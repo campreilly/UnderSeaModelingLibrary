@@ -188,7 +188,7 @@ template<> struct math_traits<double>
     }
     static inline value_type copysign(const_reference t1, const_reference t2)
     {
-        return t1 * (-1.0 * std::signbit(t2));
+		return ( t2 < 0.0 ) ? -t1 : t1 ;
     }
 
     //*********************************************************
@@ -372,7 +372,7 @@ template<> struct math_traits<float>
     }
     static inline value_type copysign(const_reference t1, const_reference t2)
     {
-        return t1 * (-1.0 * std::signbit(t2));
+		return ( t2 < 0.0 ) ? -t1 : t1 ;
     }
 
     //*********************************************************

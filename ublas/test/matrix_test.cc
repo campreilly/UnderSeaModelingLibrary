@@ -1,7 +1,6 @@
 /** 
  * @example ublas/test/matrix_test.cc
  */
-#define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 #include <usml/ublas/matrix_math.h>
 
