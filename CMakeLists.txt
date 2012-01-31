@@ -1,16 +1,20 @@
-# Cross platform build environment 
-# for the libraries and regression tests of
-# the Under Sea Modeling Library (USML).
+# Cross platform build environment for the libraries and regression tests of
+# the Under Sea Modeling Library (USML). This script traverses the active 
+# modules and collects all library source files and headers into a single 
+# add_library() call for the libusml target.  It then collects all regression 
+# tests into a single add_executable() call for the usml_test target.
+# The source_group() command is used to organize the files into subgroups
+# in IDE's such as Visual C++.
 #
 # Builds:
-#	libusml library
-#     usml_test regression test executable
-# Tested with:
-#	Visual Studio 9 (2008) Project File Generator
-#	Visual Studio 9 (2008) NMAKE Generator
+#	- libusml library
+#   - usml_test regression test executable
+# Tested Generators:
+#	- Visual Studio 9 2008 (creates a solution)
+#	- NMAKE Makfile (w/ Visual Studio 9 2008)
 # Requires:
-#	Boost unit_test_framework 1.41 or better
-#	NetCDF 3.6 or better
+#	- Boost unit_test_framework 1.41 or better
+#	- NetCDF 3.6 or better
 #
 cmake_minimum_required( VERSION 2.6 )
 project( USML CXX )
@@ -18,18 +22,24 @@ project( USML CXX )
 set( USML_VERSION_MAJOR 0 )
 set( USML_VERSION_MINOR 2 )
 set( USML_VERSION ${USML_VERSION_MAJOR}.${USML_VERSION_MINOR} )
-set( USML_MODULES ublas ) # types netcdf ocean wave_q3d ) 
+set( USML_MODULES ublas types ) # netcdf ocean wave_q3d ) 
 
-# platform specific options
+# compiler options
 
-if( MSVC )
+if( MSVC )							# Visual Studio 9 (2008) options
     set( BUILD_SHARED_LIBS OFF )
-    add_definitions(-D_USE_MATH_DEFINES)	# for M_PI etc.
-else( MSVC )
+    add_definitions( -D_USE_MATH_DEFINES )	# for M_PI etc.
+    # add_definitions( /fp:fast )		# fast floating point math
+    
+else( CMAKE_COMPILER_IS_GNUCXX )	# GNU C++ options
     set( BUILD_SHARED_LIBS ON )
+    add_definitions( -ffast-math )	# fast floating point math
+
 endif( MSVC )
 
-# configure Boost library usage
+include_directories( ${PROJECT_SOURCE_DIR}/.. )
+
+# include Boost library
 
 set( Boost_DEBUG OFF )	  # displays debug msgs during cmake
 if ( BUILD_SHARED_LIBS )
@@ -49,9 +59,9 @@ if( Boost_FOUND )
     endif( MSVC )
 endif()
 
-# configure NetCDF library usage
+# include NetCDF library
 
-find_path( NETCDF_DIR netcdf_c++.dll )
+find_path( NETCDF_DIR ${CMAKE_SHARED_MODULE_PREFFIX}netcdf_c++.${CMAKE_SHARED_MODULE_SUFFIX} )
 set( NETCDF_INCLUDES "${NETCDF_DIR}/src/libsrc" CACHE PATH "Include directory for NetCDF C interface" )
 set( NETCDF_INCLUDES_CXX "${NETCDF_DIR}/src/cxx" CACHE PATH "Include directory for NetCDF CXX interface" )
 set( NETCDF_CXX "YES" )
@@ -64,16 +74,17 @@ endif()
 
 macro( FIND_SOURCES MODULES SUFFIX )
     foreach( MOD ${MODULES} )
-        file( GLOB FILE_LIST ${MOD}${SUFFIX}/*.h )
-        SET( HEADERS ${HEADERS} ${FILE_LIST} )
-        file( GLOB FILE_LIST ${MOD}${SUFFIX}/*.cc )
-        SET( SOURCES ${SOURCES} ${FILE_LIST} )
+        file( GLOB HDR_LIST ${MOD}${SUFFIX}/*.h )
+        set( HEADERS ${HEADERS} ${HDR_LIST} )
+        file( GLOB SRC_LIST ${MOD}${SUFFIX}/*.cc )
+        set( SOURCES ${SOURCES} ${SRC_LIST} )
+        source_group( ${MOD} FILES ${HDR_LIST} ${SRC_LIST} )
     endforeach( MOD )
+    
 endmacro(FIND_SOURCES)
 
 # build the USML library
 
-include_directories( ${PROJECT_SOURCE_DIR}/.. )
 set( HEADERS "" )
 set( SOURCES "" )
 FIND_SOURCES( "${USML_MODULES}" "" )
@@ -85,6 +96,7 @@ target_link_libraries( libusml ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
 
 set( HEADERS "" )
 file( GLOB SOURCES usml_test.cc )
+source_group( main FILES ${SOURCES} )
 FIND_SOURCES( "${USML_MODULES}" "/test" )
 
 add_executable( usml_test ${HEADERS} ${SOURCES} )
