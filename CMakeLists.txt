@@ -49,7 +49,7 @@ else ( BUILD_SHARED_LIBS )
     set( Boost_USE_STATIC_LIBS ON )
 endif( BUILD_SHARED_LIBS )
 
-find_package( Boost 1.41 REQUIRED COMPONENTS unit_test_framework )
+find_package( Boost 1.48 REQUIRED COMPONENTS unit_test_framework )
 if( Boost_FOUND )
     include_directories( ${Boost_INCLUDE_DIR} )
     set( Boost_DIR ${Boost_INCLUDE_DIR} CACHE PATH "Root directory for Boost library" FORCE )
@@ -57,7 +57,17 @@ if( Boost_FOUND )
     if( MSVC )
         add_definitions(/wd4244 /wd4996)	# quiet warning from boost library
     endif( MSVC )
+    # add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
 endif()
+
+# fix bug in boost/numeric/ublas/vector_expression.hpp lines 1409 through 1417
+# function: operator/( vector, scalar )
+#
+# Should be using the enable_if<> macros just like the operator*() in lines
+# 1397 through 1407 (just above it).  Doing so allows further overloading of
+# operator/() for other types. 
+
+add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 
 # include NetCDF library
 

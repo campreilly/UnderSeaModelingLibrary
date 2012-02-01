@@ -289,7 +289,7 @@ public:
      * errors in the dot product when distances are small.
      * <pre>
      *      dot product = r1*r2
-     *          * { 1-2*( sin^2[(t1-t2)/2] + sin(t1)sin(t2)sin^2[(p1-p2)/2] ) }
+     *          * { 1-2*{ sin^2[(t1-t2)/2] + sin(t1)sin(t2)sin^2[(p1-p2)/2] } }
      * </pre>
      * @param  other	Second vector in the dot product.
      * @param  result   Dot product between these two vectors.

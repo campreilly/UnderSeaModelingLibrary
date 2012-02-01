@@ -1,7 +1,6 @@
 Stuff to do:
 
 * Porting to Windows
-  -- dot_test and distance_test failing, probably because of precision errors.
 
 * Bugs
   -- Haversine distance approximation in wave_element::compute_target_distance()
