@@ -1416,7 +1416,6 @@ namespace boost { namespace numeric { namespace ublas {
 #else
     typename vector_binary_scalar2_traits<E1, const T2, scalar_divides<typename E1::value_type, T2> >::result_type
 #endif
-    typename vector_binary_scalar2_traits<E1, const T2, scalar_divides<typename E1::value_type, T2> >::result_type
     operator / (const vector_expression<E1> &e1,
                 const T2 &e2) {
         typedef typename vector_binary_scalar2_traits<E1, const T2, scalar_divides<typename E1::value_type, T2> >::expression_type expression_type;

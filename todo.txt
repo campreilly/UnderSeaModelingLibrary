@@ -1,7 +1,8 @@
 Stuff to do:
 
 * Porting to Windows
-
+  -- netcdf package compiles, but errors in read_etopo and span_bathy
+  
 * Bugs
   -- Haversine distance approximation in wave_element::compute_target_distance()
      is very inaccurate when USML_DEBUG turned on.

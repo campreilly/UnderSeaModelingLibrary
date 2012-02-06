@@ -5,6 +5,7 @@
 #ifndef USML_UBLAS_MATH_TRAITS_HH
 #define USML_UBLAS_MATH_TRAITS_HH
 
+#include<cmath>
 #include<complex>
 #include<boost/numeric/ublas/vector.hpp>
 #include<boost/numeric/ublas/matrix.hpp>
@@ -47,6 +48,14 @@ using std::exp;
 using std::log;
 using std::log10;
 using std::pow;
+
+#ifdef _MSC_VER     // Microsoft Visual C++
+    using std::tr1::round ;
+    using std::tr1::isnan ;
+    #ifndef NAN 
+        #define NAN std::numeric_limits<double>::quiet_NaN()
+    #endif
+#endif
 
 using namespace boost::numeric::ublas;
 

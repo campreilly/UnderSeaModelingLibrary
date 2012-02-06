@@ -1,7 +1,6 @@
 /** 
  * @example netcdf/test/read_profile_test.cc
  */
-#define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 #include <usml/netcdf/netcdf_files.h>
 #include <iostream>
@@ -29,9 +28,8 @@ using namespace usml::netcdf ;
  */
 BOOST_AUTO_TEST_CASE( read_etopo ) {
     cout << "=== bathy_test: read_etopo ===" << endl;
-    static const char* filename = "data/bathymetry/ETOPO1_Ice_g_gmt4.grd" ;
-    cout << "reading " << filename << endl ;
-    netcdf_bathy bathy( filename, 18.0, 23.0, 200.0, 206.0, 0.0 ) ;
+    cout << "reading " << USML_DATA_BATHYMETRY << endl ;
+    netcdf_bathy bathy( USML_DATA_BATHYMETRY, 18.0, 23.0, 200.0, 206.0, 0.0 ) ;
     
     // compare latitude axis to values read using ncdump
     
@@ -72,7 +70,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
     
     // dump CSV file for processing by graphics program
     
-    std::ofstream ofile( "netcdf/test/read_etopo.log" ) ;
+    std::ofstream ofile( "read_etopo.csv" ) ;
     for ( int n=0 ; n < num_lat ; ++n ) {
         index[0] = n ;
         for ( int m=0 ; m < num_lng ; ++m ) {
@@ -95,7 +93,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
  */
 BOOST_AUTO_TEST_CASE( read_coards ) {
     cout << "=== bathy_test: read_coards ===" << endl;
-    static const char* filename = "netcdf/test/etopo_cmp.nc" ;
+    static const char* filename = "etopo_cmp.nc" ;
     cout << "reading " << filename << endl ;
     NcFile file(filename) ;
     netcdf_coards<float,2> bathy( file, "z" ) ;
@@ -135,7 +133,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
     
     // dump CSV file for processing by graphics program
     
-    std::ofstream ofile( "netcdf/test/read_coards.log" ) ;
+    std::ofstream ofile( "read_coards.csv" ) ;
     for ( int n=0 ; n < num_lat ; ++n ) {
         index[0] = n ;
         for ( int m=0 ; m < num_lng ; ++m ) {
@@ -157,9 +155,8 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
  */
 BOOST_AUTO_TEST_CASE( span_bathy ) {
     cout << "=== bathy_test: span_bathy ===" << endl;
-    static const char* filename = "data/bathymetry/ETOPO1_Ice_g_gmt4.grd" ;
-    cout << "reading " << filename << endl ;
-    netcdf_bathy bathy( filename, -1.0, 2.0, 179, 182, 0.0 ) ;
+    cout << "reading " << USML_DATA_BATHYMETRY << endl ;
+    netcdf_bathy bathy( USML_DATA_BATHYMETRY, -1.0, 2.0, 179, 182, 0.0 ) ;
 
     // compare latitude axis to values read using ncdump
 
@@ -208,7 +205,7 @@ BOOST_AUTO_TEST_CASE( span_bathy ) {
 
     // dump CSV file for processing by graphics program
 
-    std::ofstream ofile( "netcdf/test/span_bathy.csv" ) ;
+    std::ofstream ofile( "span_bathy.csv" ) ;
     for ( int n=0 ; n < num_lat ; ++n ) {
         index[0] = n ;
         for ( int m=0 ; m < num_lng ; ++m ) {
