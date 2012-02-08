@@ -90,59 +90,67 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
  * Throw errors if values differ by more that 1E-6 percent.
  * Comparisons of the log files output by each phase (etopo.log and
  * coards.log) should also show no differences.
+ *
+ * The input file may be missing if the current platform does not 
+ * include the ncks utility.  This test quietly exits if 
+ * etopo_cmp.nc is missing.
  */
 BOOST_AUTO_TEST_CASE( read_coards ) {
     cout << "=== bathy_test: read_coards ===" << endl;
     static const char* filename = "etopo_cmp.nc" ;
-    cout << "reading " << filename << endl ;
-    NcFile file(filename) ;
-    netcdf_coards<float,2> bathy( file, "z" ) ;
+	NcFile file(filename) ;
+	if ( file.id() < 0 ) {
+		cout << filename << " not found, test skipped" << endl ;
+		return ;
+	}
+	cout << "reading " << filename << endl ;
+	netcdf_coards<float,2> bathy( file, "z" ) ;
     
-    // compare latitude axis to values read using ncdump
+	// compare latitude axis to values read using ncdump
     
-    const seq_vector& latitude = *(bathy.axis(0)) ;
-    int num_lat = latitude.size() ;
-    cout << "latitude[" << num_lat << "] = " 
-         << latitude(0) << " to " << latitude(num_lat-1) 
-         << " by " << latitude.increment(0) << endl ;
-    BOOST_CHECK_EQUAL( num_lat, 301 ) ;
-    BOOST_CHECK_CLOSE( latitude(0), 18.0, 1e-6 ) ;
-    BOOST_CHECK_CLOSE( latitude(num_lat-1), 23.0, 1e-6 ) ;
+	const seq_vector& latitude = *(bathy.axis(0)) ;
+	int num_lat = latitude.size() ;
+	cout << "latitude[" << num_lat << "] = " 
+			<< latitude(0) << " to " << latitude(num_lat-1) 
+			<< " by " << latitude.increment(0) << endl ;
+	BOOST_CHECK_EQUAL( num_lat, 301 ) ;
+	BOOST_CHECK_CLOSE( latitude(0), 18.0, 1e-6 ) ;
+	BOOST_CHECK_CLOSE( latitude(num_lat-1), 23.0, 1e-6 ) ;
     
-    // compare longitude axis to values read using ncdump
+	// compare longitude axis to values read using ncdump
     
-    const seq_vector& longitude = *(bathy.axis(1)) ;
-    int num_lng = longitude.size() ;
-    cout << "longitude[" << num_lng << "] = " 
-         << longitude(0) << " to " << longitude(num_lng-1) 
-         << " by " << longitude.increment(0) << endl ;
-    BOOST_CHECK_EQUAL( num_lng, 361 ) ;
-    BOOST_CHECK_CLOSE( longitude(0), -160.0, 1e-6 ) ;
-    BOOST_CHECK_CLOSE( longitude(num_lng-1), -154.0, 1e-6 ) ;
+	const seq_vector& longitude = *(bathy.axis(1)) ;
+	int num_lng = longitude.size() ;
+	cout << "longitude[" << num_lng << "] = " 
+			<< longitude(0) << " to " << longitude(num_lng-1) 
+			<< " by " << longitude.increment(0) << endl ;
+	BOOST_CHECK_EQUAL( num_lng, 361 ) ;
+	BOOST_CHECK_CLOSE( longitude(0), -160.0, 1e-6 ) ;
+	BOOST_CHECK_CLOSE( longitude(num_lng-1), -154.0, 1e-6 ) ;
 
-    // compare depth to some known values
-    // extracted by hand from etopo_cmp.log
+	// compare depth to some known values
+	// extracted by hand from etopo_cmp.log
     
-    unsigned index[2] ;
-    index[0]=0 ; index[1]=0 ;
-    BOOST_CHECK_CLOSE( bathy.data(index), -5262.0f, 1e-6f ) ;
-    index[0]=0 ; index[1]=1 ;
-    BOOST_CHECK_CLOSE( bathy.data(index), -5272.0f, 1e-6f ) ;
-    index[0]=1 ; index[1]=0 ;
-    BOOST_CHECK_CLOSE( bathy.data(index), -5249.0f, 1e-6f ) ;
+	unsigned index[2] ;
+	index[0]=0 ; index[1]=0 ;
+	BOOST_CHECK_CLOSE( bathy.data(index), -5262.0f, 1e-6f ) ;
+	index[0]=0 ; index[1]=1 ;
+	BOOST_CHECK_CLOSE( bathy.data(index), -5272.0f, 1e-6f ) ;
+	index[0]=1 ; index[1]=0 ;
+	BOOST_CHECK_CLOSE( bathy.data(index), -5249.0f, 1e-6f ) ;
     
-    // dump CSV file for processing by graphics program
+	// dump CSV file for processing by graphics program
     
-    std::ofstream ofile( "read_coards.csv" ) ;
-    for ( int n=0 ; n < num_lat ; ++n ) {
-        index[0] = n ;
-        for ( int m=0 ; m < num_lng ; ++m ) {
-            index[1] = m ;
-            ofile << bathy.data(index) ;
-            if ( m < (num_lng-1) ) ofile << "," ;
-        }
-        ofile << std::endl ;
-    }
+	std::ofstream ofile( "read_coards.csv" ) ;
+	for ( int n=0 ; n < num_lat ; ++n ) {
+		index[0] = n ;
+		for ( int m=0 ; m < num_lng ; ++m ) {
+			index[1] = m ;
+			ofile << bathy.data(index) ;
+			if ( m < (num_lng-1) ) ofile << "," ;
+		}
+		ofile << std::endl ;
+	}
 }
 
 /**
