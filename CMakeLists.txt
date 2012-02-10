@@ -1,20 +1,20 @@
 # Cross platform build environment for the libraries and regression tests of
 # the Under Sea Modeling Library (USML). This script traverses the active 
 # modules and collects all library source files and headers into a single 
-# add_library() call for the libusml target.  It then collects all regression 
-# tests into a single add_executable() call for the usml_test target.
-# The source_group() command is used to organize the files into subgroups
-# in IDE's such as Visual C++.
+# add_library() call for the libusml target.  It then collects all
+# regression tests into a single add_executable() call for the usml_test 
+# target. The source_group() command is used to organize the files into
+# subgroups in IDE's such as Visual C++.
 #
 # Builds:
-#	- libusml library
+#   - libusml library
 #   - usml_test regression test executable
 # Tested Generators:
-#	- Visual C++ 2010 (creates a solution)
-#	- NMAKE Makfile (w/ Visual C++ 2010)
+#   - Visual C++ 2010 (creates a solution)
+#   - NMAKE Makfile (w/ Visual C++ 2010)
 # Requires:
-#	- Boost unit_test_framework and math_tr1 1.41 or better
-#	- NetCDF 3.6 or better
+#   - Boost unit_test_framework and math_tr1 1.41 or better
+#   - NetCDF 3.6 or better
 #
 cmake_minimum_required( VERSION 2.6 )
 project( USML CXX )
@@ -29,39 +29,51 @@ set( USML_MODULES ublas types netcdf ) # ocean wave_q3d )
 
 # compiler options
 
-if( MSVC )							# Visual Studio 9 (2008) options
+if( MSVC )				# Visual Studio (2010) options
     set( BUILD_SHARED_LIBS OFF )
-    add_definitions( -D_USE_MATH_DEFINES )	# for M_PI etc.
+    add_definitions( -D_USE_MATH_DEFINES ) # for M_PI etc.
     add_definitions( /fp:fast )		# fast floating point math
+    set( USML_LIBRARY libusml ) 
     
 else( CMAKE_COMPILER_IS_GNUCXX )	# GNU C++ options
     set( BUILD_SHARED_LIBS ON )
     add_definitions( -ffast-math )	# fast floating point math
+    set( USML_LIBRARY usml ) 
 
 endif()
 
 include_directories( ${PROJECT_SOURCE_DIR}/.. )
 
 # build links to Boost shared library
-# uses the BOOST_ROOT variable as a hint for both the include and library files.
+# uses the BOOST_ROOT variable as a hint for 
+# both the include and library files.
  
-set( Boost_DEBUG OFF )					# if on -> displays debug msgs during cmake
-set( Boost_USE_STATIC_LIBS OFF )		# tells cmake to use dynamic libraries
-add_definitions( -DBOOST_ALL_DYN_LINK ) # tells auto-link to use dynamic libraries
+set( Boost_DEBUG OFF )		 # if on -> displays debug msgs during cmake
+set( Boost_USE_STATIC_LIBS OFF ) # tells cmake to use dynamic libraries
+add_definitions( -DBOOST_ALL_DYN_LINK ) # tells auto-link to use dyn libs
 
-find_package( Boost 1.48 REQUIRED COMPONENTS 
-    unit_test_framework				# for usml_test.exe
-    math_tr1 math_tr1f math_tr1l	# support GNU extensions like isnan() and round()
-    math_c99 math_c99f math_c99l	# required by math_tr1
-    )
-if( Boost_FOUND )
-    include_directories( ${Boost_INCLUDE_DIR}/boost/tr1/tr1 ${Boost_INCLUDE_DIR} )
-    set( Boost_DIR ${Boost_INCLUDE_DIR} CACHE PATH "Root directory for Boost library" FORCE )
-    # add_definitions( ${Boost_LIB_DIAGNOSTIC_DEFINITIONS} ) # displays lib debug msgs during compile
-    if( MSVC )
-        add_definitions(/wd4244 /wd4996)	# quiet warning from boost library
-    endif( MSVC )
+if( MSVC )				# Visual Studio 9 (2008) options
+    find_package( Boost 1.48 REQUIRED COMPONENTS 
+        unit_test_framework		# for usml_test.exe
+        math_tr1 math_tr1f math_tr1l	# support GNU extention like isnan() and round()
+        math_c99 math_c99f math_c99l	# required by math_tr1
+        )
+    if( Boost_FOUND )
+        add_definitions(/wd4244 /wd4996) # quiet warning from boost library
+        include_directories( ${Boost_INCLUDE_DIR}/boost/tr1/tr1 ${Boost_INCLUDE_DIR} )
+        # add_definitions( ${Boost_LIB_DIAGNOSTIC_DEFINITIONS} ) # displays lib debug msgs during compile
+    endif( Boost_FOUND )
+
+else( CMAKE_COMPILER_IS_GNUCXX )	# GNU C++ options
+    find_package( Boost 1.48 REQUIRED COMPONENTS 
+        unit_test_framework		# for usml_test.exe
+        )
+    if( Boost_FOUND )
+        include_directories( ${Boost_INCLUDE_DIR} )
+    endif( Boost_FOUND )
+
 endif()
+
 
 # fix bug in boost/numeric/ublas/vector_expression.hpp lines 1409 through 1417
 # function: operator/( vector, scalar )
@@ -76,7 +88,7 @@ add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 # uses the NETCDF_DIR variable as a hint for both the include and library files.
 
 set( NETCDF_CXX "YES" )
-find_package( NETCDF 3.6 REQUIRED )
+find_package( NetCDF 3.6 REQUIRED )
 if( NETCDF_FOUND )
     include_directories( ${NETCDF_INCLUDES} ${NETCDF_INCLUDES_CXX} )
     find_program( NETCDF_NCKS ncks "NetCDF Kitchen Sink utility, generates test files")
@@ -100,8 +112,8 @@ set( HEADERS "" )
 set( SOURCES "" )
 FIND_SOURCES( "${USML_MODULES}" "" )
 
-add_library( libusml ${HEADERS} ${SOURCES} )
-target_link_libraries( libusml ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
+add_library( ${USML_LIBRARY} ${HEADERS} ${SOURCES} )
+target_link_libraries( ${USML_LIBRARY} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
 
 ##############################################################################
 # USML_TEST REGRESSION TEST
@@ -132,7 +144,7 @@ set( USML_DATA_OUPUT ${CMAKE_CFG_INTDIR} )
 
 # generated data files for bathymetry tests
 
-if ( EXISTS ${NETCDF_NCKS} ) 
+if ( EXISTS ${NETCDF_NCKS}_bad ) 
 	set( ETOPO_CMP ${USML_DATA_OUPUT}/etopo_cmp )
 	add_custom_command( 
 		OUTPUT ${ETOPO_CMP}.nc ${ETOPO_CMP}.log
@@ -162,7 +174,7 @@ endif()
 
 # generated data files for profile tests
 
-if ( EXISTS ${NETCDF_NCKS} ) 
+if ( EXISTS ${NETCDF_NCKS}_bad ) 
 	set( WOA_CMP ${USML_DATA_OUPUT}/woa_cmp )
 	add_custom_command( 
 		OUTPUT ${WOA_CMP}.nc ${WOA_CMP}.nc
@@ -192,4 +204,4 @@ source_group( main FILES ${SOURCES} )
 FIND_SOURCES( "${USML_MODULES}" "/test" )
 
 add_executable( usml_test ${HEADERS} ${SOURCES} ${DATA} )
-target_link_libraries( usml_test libusml )
+target_link_libraries( usml_test ${USML_LIBRARY} )
