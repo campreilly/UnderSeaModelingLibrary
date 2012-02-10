@@ -35,7 +35,7 @@ netcdf_bathy::netcdf_bathy(
     }
     west += offset ;
     east += offset ;
-    // cout << " west=" << west << " east=" << east << endl ;
+    cout << " west=" << west << " east=" << east << endl ;
         
     // read latitude axis data from NetCDF file.
     // lat_first and lat_last are the integer offsets along this axis
@@ -66,8 +66,8 @@ netcdf_bathy::netcdf_bathy(
         to_radians(lng_first*inc+a-offset), 
         to_radians(inc),
         lng_num ) ;
-    // cout << " a=" << a << " n=" << n << " inc=" << inc << endl ;
-    // cout << " lng_first=" << lng_first << " lng_last=" << lng_last << " lng_num=" << lng_num << endl ;
+     cout << " a=" << a << " n=" << n << " inc=" << inc << endl ;
+     cout << " lng_first=" << lng_first << " lng_last=" << lng_last << " lng_num=" << lng_num << endl ;
 
     // check to see if database has duplicate data at cut point
 
@@ -88,7 +88,7 @@ netcdf_bathy::netcdf_bathy(
         int M = lng_last - longitude->num_vals() + 1 ;  // # pts on east side
         int N = lng_num - M ;                           // # pts on west side
         float* ptr = this->_data ;
-        // cout << " N=" << N << " M=" << M << endl ;
+        cout << " N=" << N << " M=" << M << endl ;
         for ( int lat = lat_first ; lat <= lat_last ; ++lat ) {
 
             // the west side of the block is the portion from
@@ -124,17 +124,25 @@ void netcdf_bathy::decode_filetype(
     bool found = false ;
     for ( int n=0 ; n < file.num_vars() ; ++n ) {
         NcVar *var = file.get_var(n) ;
+        cout << "var: " << var->name() << endl ;
         if ( var->num_dims() == 2 ) {
             // extract depth variable
             *altitude = var ;
+            cout << "\taltitude: " << (*altitude)->name() << endl ;
+            for ( int n=0 ; n < var->num_dims() ; ++n ) {
+                NcDim* d = var->get_dim(n) ;
+                cout << "\t\tdim(" << n << "): " << d->name() << endl ;
+            }
             
             // extract latitude variable
             NcDim* dim = var->get_dim(0) ;
             *latitude = file.get_var( dim->name() ) ;  
+            cout << "\tlatitude: " << (*latitude)->name() << endl ;
              
             // extract longitude variable
             dim = var->get_dim(1) ;
             *longitude = file.get_var( dim->name() ) ;   
+            cout << "\tlongitude: " << (*longitude)->name() << endl ;
 
             // stop searching            
             found = true ;

@@ -17,6 +17,44 @@ using namespace usml::netcdf ;
  */
 
 /**
+ *
+ */
+BOOST_AUTO_TEST_CASE( read_bathy_header ) {
+    cout << "=== read_bathy_test: read_netcdf_props ===" << endl;
+
+    cout << "reading " << USML_DATA_BATHYMETRY << endl ;
+    NcFile file( USML_DATA_BATHYMETRY ) ;
+
+    // dimensions
+
+    cout << "dimensions:" << endl ;
+    for ( int d=0 ; d < file.num_dims() ; ++d ) {
+        NcDim* dim = file.get_dim(d) ;
+        cout << "\t" << dim->name() << " = " << dim->size() << " ;" << endl ;
+    }
+
+    // variables
+
+    cout << "variables:" << endl ;
+    for ( int v=0 ; v < file.num_vars() ; ++v ) {
+        NcVar* var = file.get_var(v) ;
+        cout << "\t" << var->type() << " " << var->name() << "(" ;
+
+        // dimensions
+
+        for ( int d=0 ; d < var->num_dims() ; ++d ) {
+            NcDim* dim = var->get_dim(d) ;
+            cout << dim->name() ;
+            if ( d < var->num_dims()-1 ) {
+                cout << ", " ;
+            } else {
+                cout << ") ;" << endl ;
+            }
+        }
+    }
+}
+
+/**
  * Extract Hawaii bathymetry from March 2010 version of ETOPO1
  * using the netcdf_bathy class. Dump the resulting bathymetry to the
  * read_etopo.log file.
