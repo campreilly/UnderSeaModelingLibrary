@@ -29,15 +29,16 @@ set( USML_MODULES ublas types netcdf ) # ocean wave_q3d )
 
 # compiler options
 
-if( MSVC )				# Visual Studio (2010) options
+if( MSVC )                		# Visual Studio (2010) options
     set( BUILD_SHARED_LIBS OFF )
     add_definitions( -D_USE_MATH_DEFINES ) # for M_PI etc.
-    add_definitions( /fp:fast )		# fast floating point math
+    add_definitions( /fp:fast )        # fast floating point math
     set( USML_LIBRARY libusml ) 
     
 else( CMAKE_COMPILER_IS_GNUCXX )	# GNU C++ options
     set( BUILD_SHARED_LIBS ON )
-    add_definitions( -ffast-math )	# fast floating point math
+    set( CMAKE_BUILD_TYPE Release ) 	# turns on optimizations
+    add_definitions( -g -ffast-math )	# fast floating point math
     set( USML_LIBRARY usml ) 
 
 endif()
@@ -48,15 +49,15 @@ include_directories( ${PROJECT_SOURCE_DIR}/.. )
 # uses the BOOST_ROOT variable as a hint for 
 # both the include and library files.
  
-set( Boost_DEBUG OFF )		 # if on -> displays debug msgs during cmake
+set( Boost_DEBUG OFF )         # if on -> displays debug msgs during cmake
 set( Boost_USE_STATIC_LIBS OFF ) # tells cmake to use dynamic libraries
 add_definitions( -DBOOST_ALL_DYN_LINK ) # tells auto-link to use dyn libs
 
-if( MSVC )				# Visual Studio 9 (2008) options
+if( MSVC )                # Visual Studio 9 (2008) options
     find_package( Boost 1.48 REQUIRED COMPONENTS 
-        unit_test_framework		# for usml_test.exe
-        math_tr1 math_tr1f math_tr1l	# support GNU extention like isnan() and round()
-        math_c99 math_c99f math_c99l	# required by math_tr1
+        unit_test_framework        # for usml_test.exe
+        math_tr1 math_tr1f math_tr1l    # support GNU extention like isnan() and round()
+        math_c99 math_c99f math_c99l    # required by math_tr1
         )
     if( Boost_FOUND )
         add_definitions(/wd4244 /wd4996) # quiet warning from boost library
@@ -64,9 +65,9 @@ if( MSVC )				# Visual Studio 9 (2008) options
         # add_definitions( ${Boost_LIB_DIAGNOSTIC_DEFINITIONS} ) # displays lib debug msgs during compile
     endif( Boost_FOUND )
 
-else( CMAKE_COMPILER_IS_GNUCXX )	# GNU C++ options
+else( CMAKE_COMPILER_IS_GNUCXX )    # GNU C++ options
     find_package( Boost 1.48 REQUIRED COMPONENTS 
-        unit_test_framework		# for usml_test.exe
+        unit_test_framework        # for usml_test.exe
         )
     if( Boost_FOUND )
         include_directories( ${Boost_INCLUDE_DIR} )
@@ -140,60 +141,66 @@ add_definitions(
     -DUSML_DATA_SALT_SEASON="${USML_DATA_SALT_SEASON}"
     -DUSML_DATA_SALT_MONTH="${USML_DATA_SALT_MONTH}" 
     )
-set( USML_DATA_OUPUT ${CMAKE_CFG_INTDIR} )
+
+if( MSVC )                # Visual Studio 9 (2008) options
+    set( USML_TEST_DATA_DIR ${CMAKE_CFG_INTDIR} )
+else( CMAKE_COMPILER_IS_GNUCXX )    # GNU C++ options
+    set( USML_TEST_DATA_DIR ${PROJECT_BINARY_DIR} )
+endif()
 
 # generated data files for bathymetry tests
 
-if ( EXISTS ${NETCDF_NCKS}_bad ) 
-	set( ETOPO_CMP ${USML_DATA_OUPUT}/etopo_cmp )
-	add_custom_command( 
-		OUTPUT ${ETOPO_CMP}.nc ${ETOPO_CMP}.log
-		COMMAND ${NETCDF_NCKS} -O -a -d y,18.0,23.000001 -d x,-160.0,-154.0 
-			"${USML_DATA_BATHYMETRY}" "${ETOPO_CMP}.nc"
-		COMMAND ncdump "${ETOPO_CMP}.nc" > "${ETOPO_CMP}.log"
-	)
+if ( EXISTS ${NETCDF_NCKS} ) 
+    set( ETOPO_CMP ${USML_TEST_DATA_DIR}/etopo_cmp )
+    add_custom_command( 
+        OUTPUT ${ETOPO_CMP}.nc ${ETOPO_CMP}.log
+        COMMAND ${NETCDF_NCKS} -O -a -d y,18.0,23.000001 -d x,-160.0,-154.0 
+            "${USML_DATA_BATHYMETRY}" "${ETOPO_CMP}.nc"
+        COMMAND ncdump "${ETOPO_CMP}.nc" > "${ETOPO_CMP}.log"
+    )
 
-	set( ETOPO_CMP2W ${USML_DATA_OUPUT}/etopo_cmp2w )
-	add_custom_command( 
-		OUTPUT ${ETOPO_CMP2W}.nc ${ETOPO_CMP2W}.log
-		COMMAND ${NETCDF_NCKS} -O -a -d y,-1.0,2.000001 -d x,179.0,180.0
-			"${USML_DATA_BATHYMETRY}" "${ETOPO_CMP2W}.nc"
-		COMMAND ncdump "${ETOPO_CMP2W}.nc" > "${ETOPO_CMP2W}.log"
-	)
+    set( ETOPO_CMP2W ${USML_TEST_DATA_DIR}/etopo_cmp2w )
+    add_custom_command( 
+        OUTPUT ${ETOPO_CMP2W}.nc ${ETOPO_CMP2W}.log
+        COMMAND ${NETCDF_NCKS} -O -a -d y,-1.0,2.000001 -d x,179.0,180.0
+            "${USML_DATA_BATHYMETRY}" "${ETOPO_CMP2W}.nc"
+        COMMAND ncdump "${ETOPO_CMP2W}.nc" > "${ETOPO_CMP2W}.log"
+    )
 
-	set( ETOPO_CMP2E ${USML_DATA_OUPUT}/etopo_cmp2e )
-	add_custom_command( 
-		OUTPUT ${ETOPO_CMP2E}.nc ${ETOPO_CMP2E}.log
-		COMMAND ${NETCDF_NCKS} -O -a -d y,-1.0,2.000001 -d x,-179.9834,-178.0
-			"${USML_DATA_BATHYMETRY}" "${ETOPO_CMP2E}.nc"
-		COMMAND ncdump "${ETOPO_CMP2E}.nc" > "${ETOPO_CMP2E}.log"
-	)
+    set( ETOPO_CMP2E ${USML_TEST_DATA_DIR}/etopo_cmp2e )
+    add_custom_command( 
+        OUTPUT ${ETOPO_CMP2E}.nc ${ETOPO_CMP2E}.log
+        COMMAND ${NETCDF_NCKS} -O -a -d y,-1.0,2.000001 -d x,-179.9834,-178.0
+            "${USML_DATA_BATHYMETRY}" "${ETOPO_CMP2E}.nc"
+        COMMAND ncdump "${ETOPO_CMP2E}.nc" > "${ETOPO_CMP2E}.log"
+    )
 
-	set( DATA ${DATA} ${ETOPO_CMP}.nc ${ETOPO_CMP2W}.nc ${ETOPO_CMP2E}.nc )
+    add_custom_target( ETOPO_TEST_DATA ALL DEPENDS 
+	${ETOPO_CMP}.nc ${ETOPO_CMP2W}.nc ${ETOPO_CMP2E}.nc )
 endif()
 
 # generated data files for profile tests
 
-if ( EXISTS ${NETCDF_NCKS}_bad ) 
-	set( WOA_CMP ${USML_DATA_OUPUT}/woa_cmp )
-	add_custom_command( 
-		OUTPUT ${WOA_CMP}.nc ${WOA_CMP}.nc
-		COMMAND ${NETCDF_NCKS} -O -a -v depth,time,lat,lon,t_an 
-			-d time,165.0,165.0 -d lat,18.0,23.0 -d lon,200.0,206.0
-			"${USML_DATA_TEMP_MONTH}" "${WOA_CMP}.nc"
-		COMMAND ncdump "${WOA_CMP}.nc" > "${WOA_CMP}.log"
-	)
+if ( EXISTS ${NETCDF_NCKS} ) 
+    set( WOA_CMP ${USML_TEST_DATA_DIR}/woa_cmp )
+    add_custom_command( 
+        OUTPUT ${WOA_CMP}.nc ${WOA_CMP}.log
+        COMMAND ${NETCDF_NCKS} -O -a -v depth,time,lat,lon,t_an 
+            -d time,165.0,165.0 -d lat,18.0,23.0 -d lon,200.0,206.0
+            "${USML_DATA_TEMP_MONTH}" "${WOA_CMP}.nc"
+        COMMAND ncdump "${WOA_CMP}.nc" > "${WOA_CMP}.log"
+    )
 
-	set( WOA_CMP2 ${USML_DATA_OUPUT}/woa_cmp2 )
-	add_custom_command( 
-		OUTPUT ${WOA_CMP2}.log ${WOA_CMP2}.nc
-		COMMAND ${NETCDF_NCKS} -O -a -v depth,time,lat,lon,t_an 
-			-d time,0.0,0.0 -d lat,0.5,0.5 -d lon,0.5,0.5 
-			"${USML_DATA_TEMP_MONTH}" "${WOA_CMP2}.nc"
-		COMMAND ncdump "${WOA_CMP2}.nc" > "${WOA_CMP2}.log"
-	)
+    set( WOA_CMP2 ${USML_TEST_DATA_DIR}/woa_cmp2 )
+    add_custom_command( 
+        OUTPUT ${WOA_CMP2}.nc ${WOA_CMP2}.log
+        COMMAND ${NETCDF_NCKS} -O -a -v depth,time,lat,lon,t_an 
+            -d time,0.0,0.0 -d lat,0.5,0.5 -d lon,0.5,0.5 
+            "${USML_DATA_TEMP_MONTH}" "${WOA_CMP2}.nc"
+        COMMAND ncdump "${WOA_CMP2}.nc" > "${WOA_CMP2}.log"
+    )
 
-	set( DATA ${DATA} ${WOA_CMP}.nc ${WOA_CMP2}.nc )
+    add_custom_target( WOA_TEST_DATA ALL DEPENDS ${WOA_CMP}.nc ${WOA_CMP2}.nc )
 endif()
 
 # build the USML regression tests
@@ -203,5 +210,6 @@ file( GLOB SOURCES usml_test.cc )
 source_group( main FILES ${SOURCES} )
 FIND_SOURCES( "${USML_MODULES}" "/test" )
 
-add_executable( usml_test ${HEADERS} ${SOURCES} ${DATA} )
+add_executable( usml_test ${HEADERS} ${SOURCES} )
 target_link_libraries( usml_test ${USML_LIBRARY} )
+
