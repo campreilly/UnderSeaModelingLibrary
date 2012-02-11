@@ -17,13 +17,19 @@ using namespace usml::netcdf ;
  */
 
 /**
- *
+ * This test prints out the dimensions and variables in the netCDF header.
+ * It is used as a fundemental test to see if access to netCDF files
+ * are working at all.
  */
 BOOST_AUTO_TEST_CASE( read_bathy_header ) {
-    cout << "=== read_bathy_test: read_netcdf_props ===" << endl;
+    cout << "=== read_bathy_test: read_bathy_header ===" << endl;
+    static const char* type_name[] = {
+	"unknown", "byte", "char", "short", "int", "float", "double"
+    } ;
 
     cout << "reading " << USML_DATA_BATHYMETRY << endl ;
     NcFile file( USML_DATA_BATHYMETRY ) ;
+    cout << "netcdf read_bathy_header {" << endl ;
 
     // dimensions
 
@@ -38,9 +44,9 @@ BOOST_AUTO_TEST_CASE( read_bathy_header ) {
     cout << "variables:" << endl ;
     for ( int v=0 ; v < file.num_vars() ; ++v ) {
         NcVar* var = file.get_var(v) ;
-        cout << "\t" << var->type() << " " << var->name() << "(" ;
+        cout << "\t" << type_name[var->type()] << " " << var->name() << "(" ;
 
-        // dimensions
+        // variable dimensions
 
         for ( int d=0 ; d < var->num_dims() ; ++d ) {
             NcDim* dim = var->get_dim(d) ;
@@ -51,7 +57,29 @@ BOOST_AUTO_TEST_CASE( read_bathy_header ) {
                 cout << ") ;" << endl ;
             }
         }
+
+        // variable attributes
+
+        for ( int a=0 ; a < var->num_atts() ; ++a ) {
+            NcAtt* att = var->get_att(a) ;
+            cout << "\t\t" << var->name() << ":" << att->name() << " = " ;
+	    if ( att->type() == 2 ) {
+                cout << "\"" << att->values()->as_string(0) << "\" ;" << endl ;
+            } else {
+  	        for ( int v=0 ; v < att->num_vals() ; ++v ) {
+	            cout << att->values()->as_string(v) ;
+                    if ( v < att->num_vals()-1 ) {
+                        cout << ", " ;
+                    } else {
+                        cout << " ;" << endl ;
+                    }
+                }
+            }
+        }
+
     }
+
+    cout << "}" << endl ;
 }
 
 /**
