@@ -1,4 +1,4 @@
-/** 
+/**
  * @example netcdf/test/read_profile_test.cc
  */
 #include <boost/test/unit_test.hpp>
@@ -79,6 +79,29 @@ BOOST_AUTO_TEST_CASE( read_bathy_header ) {
 
     }
 
+    // data
+
+    cout << "data:" << endl ;
+    const long N = 10 ;
+    float data[N] ;
+    for ( int v=0 ; v < file.num_vars() ; ++v ) {
+        NcVar* var = file.get_var(v) ;
+        long D1 = min( N, var->num_vals() ) ;
+        long D2 = max( 0L, var->num_dims()-1L ) ;
+        long D3 = max( 0L, var->num_dims()-2L ) ;
+        long D4 = max( 0L, var->num_dims()-3L ) ;
+        long D5 = max( 0L, var->num_dims()-4L ) ;
+        if ( D1 > 0 ) {
+        	NcBool status = var->get( data, D1, D2, D3, D4, D5 ) ;
+        	cout << var->name() << " = " ;
+        	if ( status ) {
+        		for ( long d=0 ; d < D1 ; ++d ) cout << data[d] << ", " ;
+        		cout << "..." << endl ;
+        	} else {
+        		cout << "error" << endl ;
+        	}
+        }
+    }
     cout << "}" << endl ;
 }
 
@@ -86,7 +109,7 @@ BOOST_AUTO_TEST_CASE( read_bathy_header ) {
  * Extract Hawaii bathymetry from March 2010 version of ETOPO1
  * using the netcdf_bathy class. Dump the resulting bathymetry to the
  * read_etopo.log file.
- * 
+ *
  * Automatically compares results for a handfull of individual location
  * to data that was extracted by hand from the etopo_cmp.log file created
  * by the Makefile. Generate BOOST errors if these values differ by
@@ -96,28 +119,28 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
     cout << "=== bathy_test: read_etopo ===" << endl;
     cout << "reading " << USML_DATA_BATHYMETRY << endl ;
     netcdf_bathy bathy( USML_DATA_BATHYMETRY, 18.0, 23.0, 200.0, 206.0, 0.0 ) ;
-    
+
     // compare latitude axis to values read using ncdump
-    
+
     const seq_vector& latitude = *(bathy.axis(0)) ;
     int num_lat = latitude.size() ;
     double lat1 = to_latitude( latitude(0) ) ;
     double lat2 = to_latitude( latitude(num_lat-1) ) ;
     double inc_lat = to_degrees( -latitude.increment(0) ) ;
-    cout << "latitude[" << num_lat 
+    cout << "latitude[" << num_lat
          << "] = " << lat1 << " to " << lat2 << " by " << inc_lat << endl ;
     BOOST_CHECK_EQUAL( num_lat, 301 ) ;
     BOOST_CHECK_CLOSE( lat1, 18.0, 1e-6 ) ;
     BOOST_CHECK_CLOSE( lat2, 23.0, 1e-6 ) ;
-    
+
     // compare longitude axis to values read using ncdump
-    
+
     const seq_vector& longitude = *(bathy.axis(1)) ;
     int num_lng = longitude.size() ;
     double lng1 = to_degrees( longitude(0) ) ;
     double lng2 = to_degrees( longitude(num_lng-1) ) ;
     double inc_lng = to_degrees( longitude.increment(0) ) ;
-    cout << "longitude[" << num_lng 
+    cout << "longitude[" << num_lng
          << "] = " << lng1 << " to " << lng2 << " by " << inc_lng << endl ;
     BOOST_CHECK_EQUAL( num_lng, 361 ) ;
     BOOST_CHECK_CLOSE( lng1, 200.0, 1e-6 ) ;
@@ -125,7 +148,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
 
     // compare depth to some known values
     // extracted by hand from etopo_cmp.log
-    
+
     unsigned index[2] ;
     index[0]=0 ; index[1]=0 ;
     BOOST_CHECK_CLOSE( bathy.data(index), -5262.0f, 1e-6f ) ;
@@ -133,9 +156,9 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
     BOOST_CHECK_CLOSE( bathy.data(index), -5272.0f, 1e-6f ) ;
     index[0]=1 ; index[1]=0 ;
     BOOST_CHECK_CLOSE( bathy.data(index), -5249.0f, 1e-6f ) ;
-    
+
     // dump CSV file for processing by graphics program
-    
+
     std::ofstream ofile( "read_etopo.csv" ) ;
     for ( int n=0 ; n < num_lat ; ++n ) {
         index[0] = n ;
@@ -157,8 +180,8 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
  * Comparisons of the log files output by each phase (etopo.log and
  * coards.log) should also show no differences.
  *
- * The input file may be missing if the current platform does not 
- * include the ncks utility.  This test quietly exits if 
+ * The input file may be missing if the current platform does not
+ * include the ncks utility.  This test quietly exits if
  * etopo_cmp.nc is missing.
  */
 BOOST_AUTO_TEST_CASE( read_coards ) {
@@ -171,24 +194,24 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 	}
 	cout << "reading " << filename << endl ;
 	netcdf_coards<float,2> bathy( file, "z" ) ;
-    
+
 	// compare latitude axis to values read using ncdump
-    
+
 	const seq_vector& latitude = *(bathy.axis(0)) ;
 	int num_lat = latitude.size() ;
-	cout << "latitude[" << num_lat << "] = " 
-			<< latitude(0) << " to " << latitude(num_lat-1) 
+	cout << "latitude[" << num_lat << "] = "
+			<< latitude(0) << " to " << latitude(num_lat-1)
 			<< " by " << latitude.increment(0) << endl ;
 	BOOST_CHECK_EQUAL( num_lat, 301 ) ;
 	BOOST_CHECK_CLOSE( latitude(0), 18.0, 1e-6 ) ;
 	BOOST_CHECK_CLOSE( latitude(num_lat-1), 23.0, 1e-6 ) ;
-    
+
 	// compare longitude axis to values read using ncdump
-    
+
 	const seq_vector& longitude = *(bathy.axis(1)) ;
 	int num_lng = longitude.size() ;
-	cout << "longitude[" << num_lng << "] = " 
-			<< longitude(0) << " to " << longitude(num_lng-1) 
+	cout << "longitude[" << num_lng << "] = "
+			<< longitude(0) << " to " << longitude(num_lng-1)
 			<< " by " << longitude.increment(0) << endl ;
 	BOOST_CHECK_EQUAL( num_lng, 361 ) ;
 	BOOST_CHECK_CLOSE( longitude(0), -160.0, 1e-6 ) ;
@@ -196,7 +219,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 
 	// compare depth to some known values
 	// extracted by hand from etopo_cmp.log
-    
+
 	unsigned index[2] ;
 	index[0]=0 ; index[1]=0 ;
 	BOOST_CHECK_CLOSE( bathy.data(index), -5262.0f, 1e-6f ) ;
@@ -204,9 +227,9 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 	BOOST_CHECK_CLOSE( bathy.data(index), -5272.0f, 1e-6f ) ;
 	index[0]=1 ; index[1]=0 ;
 	BOOST_CHECK_CLOSE( bathy.data(index), -5249.0f, 1e-6f ) ;
-    
+
 	// dump CSV file for processing by graphics program
-    
+
 	std::ofstream ofile( "read_coards.csv" ) ;
 	for ( int n=0 ; n < num_lat ; ++n ) {
 		index[0] = n ;
