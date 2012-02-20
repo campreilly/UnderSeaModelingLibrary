@@ -18,7 +18,7 @@ using namespace usml::netcdf ;
 
 /**
  * This test prints out the dimensions and variables in the netCDF header.
- * It is used as a fundemental test to see if access to netCDF files
+ * It is used as a fundamental test to see if access to netCDF files
  * are working at all.
  */
 BOOST_AUTO_TEST_CASE( read_bathy_header ) {

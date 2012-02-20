@@ -37,7 +37,9 @@ if( MSVC )                		# Visual Studio (2010) options
     
 else( CMAKE_COMPILER_IS_GNUCXX )	# GNU C++ options
     set( BUILD_SHARED_LIBS ON )
-    set( CMAKE_BUILD_TYPE Release ) 	# turns on optimizations
+    set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+	"Release" "Debug" "RelWithDebInfo" "MinSizeRel" )
+    set( CMAKE_BUILD_TYPE Release CACHE STRING "Type of build" ) # turns on optimizations
     add_definitions( -g -ffast-math )	# fast floating point math
     set( USML_LIBRARY usml ) 
 
