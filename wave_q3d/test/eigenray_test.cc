@@ -1,4 +1,4 @@
-/** 
+/**
  * @example wave_q3d/test/eigenray_test.cc
  */
 #define BOOST_TEST_DYN_LINK
@@ -35,7 +35,7 @@ static const double bot_depth = 1e5 ;
  * This test models direct-path, surface-reflected, and bottom reflected paths
  * to a single point in a flat bottomed isovelocity ocean on a round earth.
  * This test limits the D/E ray fan from -60 to 60 so that extrapolation of
- * ray paths outside of the fan can also be tested. (Note that it is the 
+ * ray paths outside of the fan can also be tested. (Note that it is the
  * bottom bounce path that requires rays outside of this range.)
  *
  * - Scenario parameters
@@ -52,7 +52,7 @@ static const double bot_depth = 1e5 ;
  *   - Bottom Bounce: 3.051676949 sec, -60.91257162 deg launch, 73.21 dB
  *
  * With a time step of 100 msec and an angular spacing of 5.0 deg,
- * the interpolated results are expected to match the analytic values 
+ * the interpolated results are expected to match the analytic values
  * within 2 msec and 0.05 deg.  The extrapolated bottom bounce path
  * is only accurate to within 20 msec and 1.0 deg because it is
  * outside of the ensonified ray fan.
@@ -64,7 +64,7 @@ static const double bot_depth = 1e5 ;
  * This configuration produces propagation loss values within 0.1 dB of the
  * 20*log10(R) theoretical value (where R is the distance
  * traveled). The exception to this PL accuracy level is the bottom bounce
- * case.  This is because "out of beam" effects are expected to yield 
+ * case.  This is because "out of beam" effects are expected to yield
  * significantly weaker PL values than predicted by 20*log10(R).
  *
  * This test writes multi-path eigenrays in CSV format to eigenray_basic.csv
@@ -73,9 +73,9 @@ static const double bot_depth = 1e5 ;
  */
 BOOST_AUTO_TEST_CASE( eigenray_basic ) {
     cout << "=== eigenray_test: eigenray_basic ===" << endl;
-    const char* csvname = "wave_q3d/test/eigenray_basic.csv";
-    const char* ncname = "wave_q3d/test/eigenray_basic.nc";
-    const char* ncname_wave = "wave_q3d/test/eigenray_basic_wave.nc";
+    const char* csvname = "eigenray_basic.csv";
+    const char* ncname = "eigenray_basic.nc";
+    const char* ncname_wave = "eigenray_basic_wave.nc";
     const double src_alt = -1000.0;
     const double trg_lat = 45.02;
     const double time_max = 3.5;
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
     wposition1 pos( src_lat, src_lng, src_alt );
     seq_linear de( -60.0, 1.0, 60.0 );
     seq_linear az( -4.0, 1.0, 4.0 );
- 
+
     // build a single target
 
     wposition target( 1, 1, trg_lat, src_lng, src_alt );
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
         cout << "ray #" << n
              << " tl=" << ray.intensity(0)
              << " t=" << ray.time
-             << " de=" << -ray.target_de 
+             << " de=" << -ray.target_de
              << " error:" ;
         os << ray.time
            << "," << ray.intensity(0)
@@ -197,11 +197,11 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
 /**
  * Tests the model's ability to accurately estimate geometric terms for
  * the direct path and surface reflected eigenrays on a spherical earth.
- * The concave shape of the earth's surface causes the analytic solution 
+ * The concave shape of the earth's surface causes the analytic solution
  * for the surface reflected path to have up to three roots at long ranges.
  * This test compares results for a single target at 1.2 deg to those
  * analystic solutions computed externally in a spreadsheet.
- * 
+ *
  * - Scenario parameters
  *   - Profile: constant 1500 m/s sound speed, no absorption
  *   - Bottom: "infinitely" deep
@@ -227,8 +227,8 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
  */
 BOOST_AUTO_TEST_CASE( eigenray_concave ) {
     cout << "=== eigenray_test: eigenray_concave ===" << endl;
-    const char* ncname_wave = "wave_q3d/test/eigenray_concave_wave.nc";
-    const char* ncname = "wave_q3d/test/eigenray_concave.nc";
+    const char* ncname_wave = "eigenray_concave_wave.nc";
+    const char* ncname = "eigenray_concave.nc";
 
     const double src_alt = -200.0;      // source depth = 200 meters
     const double time_max = 120.0 ;     // let rays plots go into region w/ 2 roots
@@ -427,9 +427,9 @@ BOOST_AUTO_TEST_CASE( eigenray_concave ) {
  */
 BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
     cout << "=== eigenray_test: eigenray_lloyds ===" << endl;
-    const char* ncname_wave = "wave_q3d/test/eigenray_lloyds_wave.nc";
-    const char* ncname = "wave_q3d/test/eigenray_lloyds.nc";
-    const char* analytic_name = "wave_q3d/test/eigenray_lloyds_analytic.nc";
+    const char* ncname_wave = "eigenray_lloyds_wave.nc";
+    const char* ncname = "eigenray_lloyds.nc";
+    const char* analytic_name = "eigenray_lloyds_analytic.nc";
 
     const double src_alt = -200.0;      // source depth = 200 meters
     const double time_max = 120.0 ;     // let rays plots go into region w/ 2 roots
@@ -584,7 +584,7 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
             }   // loop through eigenrays for each target
         }   // loop through target depths
     }   // loop through target ranges
-    
+
     loss.write_netcdf(analytic_name);
 
 }

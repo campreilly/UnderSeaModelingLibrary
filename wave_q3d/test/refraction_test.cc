@@ -1,4 +1,4 @@
-/** 
+/**
  * @example wave_q3d/test/refraction_test.cc
  */
 #define BOOST_TEST_DYN_LINK
@@ -80,8 +80,8 @@ static const seq_log freq(10e3, 10e3, 1);
  * compute ray paths in spherical Earth coordinates.  A BOOST error
  * is thrown if this condition fails.
  *
- * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the 
- * Time Domain, Comprehensive Test Results", Alion Science and Technology, 
+ * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the
+ * Time Domain, Comprehensive Test Results", Alion Science and Technology,
  * Norfolk, VA, September, 2006.
  */
 BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
 
     // initialize output to spreadsheet file
 
-    const char* name = "wave_q3d/test/refraction_isovelocity.csv";
+    const char* name = "refraction_isovelocity.csv";
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
     os << "time,x,y,z,d";
@@ -253,11 +253,11 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
  * is required to be less than 1 millimeter and 0.001 degree.  If this
  * result is true, we'll conclude that the model accurately follows
  * great circle routes.  A BOOST error is thrown if this condition fails.
- * 
- * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the 
- * Time Domain, Comprehensive Test Results", Alion Science and Technology, 
+ *
+ * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the
+ * Time Domain, Comprehensive Test Results", Alion Science and Technology,
  * Norfolk, VA, September, 2006.
- * @xref E. Williams, "Aviation Formulary V1.43", 
+ * @xref E. Williams, "Aviation Formulary V1.43",
  * http://williams.best.vwh.net/avform.htm , July 2010.
  */
 BOOST_AUTO_TEST_CASE(refraction_great_circle) {
@@ -286,7 +286,7 @@ BOOST_AUTO_TEST_CASE(refraction_great_circle) {
 
     // initialize output to spreadsheet file
 
-    const char* name = "wave_q3d/test/refraction_great_circle.csv";
+    const char* name = "refraction_great_circle.csv";
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
     os << "time";
@@ -348,8 +348,8 @@ BOOST_AUTO_TEST_CASE(refraction_great_circle) {
 }
 
 /**
- * Evaluates the model's ray refraction accuracy using a comparison to the 
- * analytic solution for a linear profile. Match conditions of the test 
+ * Evaluates the model's ray refraction accuracy using a comparison to the
+ * analytic solution for a linear profile. Match conditions of the test
  * and output table format to those in the Reilly/Goodrich report.
  * <pre>
  *      Ocean:          Linear: c0 = 1500 m/s, g0 = 1.6e-2 m/s/m
@@ -359,7 +359,7 @@ BOOST_AUTO_TEST_CASE(refraction_great_circle) {
  *      AZ Angles:      90 degrees (east)
  *      Time Step:      100 msec
  * </pre>
- * In Cartesian coordinates, the analytic solution for this profile 
+ * In Cartesian coordinates, the analytic solution for this profile
  * is defined by the equation:
  * \f[
  *      z(r) = \frac{1}{g_0} \left[ \frac{1}{a_0}
@@ -369,8 +369,8 @@ BOOST_AUTO_TEST_CASE(refraction_great_circle) {
  * An exception is thrown if the modeled position is not within 1 millimeter
  * of the analytic result.
  *
- * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the 
- * Time Domain, Comprehensive Test Results", Alion Science and Technology, 
+ * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the
+ * Time Domain, Comprehensive Test Results", Alion Science and Technology,
  * Norfolk, VA, September, 2006.
  */
 BOOST_AUTO_TEST_CASE(refraction_linear) {
@@ -402,7 +402,7 @@ BOOST_AUTO_TEST_CASE(refraction_linear) {
 
     // initialize output to spreadsheet file
 
-    const char* name = "wave_q3d/test/refraction_linear.csv";
+    const char* name = "refraction_linear.csv";
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
 
@@ -469,9 +469,9 @@ BOOST_AUTO_TEST_CASE(refraction_linear) {
 }
 
 /**
- * Evaluates the model's ray refraction accuracy using a comparison to the 
- * analytic solution for a profile where the square of the index of refraction 
- * is linear. Match conditions of the test and output table format to those in 
+ * Evaluates the model's ray refraction accuracy using a comparison to the
+ * analytic solution for a profile where the square of the index of refraction
+ * is linear. Match conditions of the test and output table format to those in
  * the Reilly/Goodrich report.  These are also the specific conditions used by
  * Jensen, Kupperman, et. al. in their formulation of the analytic
  * ray tracing solution for the N^2 linear profile.
@@ -483,7 +483,7 @@ BOOST_AUTO_TEST_CASE(refraction_linear) {
  *      AZ Angles:      90 degrees (east)
  *      Time Step:      100 msec
  * </pre>
- * In Cartesian coordinates, the analytic solution for this profile 
+ * In Cartesian coordinates, the analytic solution for this profile
  * is defined by the equation:
  * \f[
  *      z(r) = z_0 + \frac{ 2*g_0/c_0 }{ (2 a_0 c_1)^2 } r^2 -r tan(\delta_0)
@@ -495,17 +495,17 @@ BOOST_AUTO_TEST_CASE(refraction_linear) {
  *      - \f$ \delta_0 \f$ = launch angle
  *      - \f$ c_1 \f$ = sound speed at initial depth
  *      - \f$ g_0 \f$ =  sound speed gradient at z=0.
- *      - \f$ a_0 \f$ = Snell coefficient = \f$ cos(\delta_0)/c_0 \f$ 
- * 
+ *      - \f$ a_0 \f$ = Snell coefficient = \f$ cos(\delta_0)/c_0 \f$
+ *
  * An exception is thrown if the modeled position is not within 200 millimeters
- * of the analytic result.  Note that this threshold is much different 
- * than the linear case where the maximum error is significantly 
+ * of the analytic result.  Note that this threshold is much different
+ * than the linear case where the maximum error is significantly
  * less than 1 millimeter.  The maximum error shrinks to about 14 millimeters
  * if a step size of 10 milliseconds is used.  It appears that the larger
  * step size undersamples the sound velocity profile field.
  *
- * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the 
- * Time Domain, Comprehensive Test Results", Alion Science and Technology, 
+ * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the
+ * Time Domain, Comprehensive Test Results", Alion Science and Technology,
  * Norfolk, VA, September, 2006.
  * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
  * "Computational Ocean Acoustics", equation (3.128).
@@ -538,7 +538,7 @@ BOOST_AUTO_TEST_CASE(refraction_n2_linear) {
 
     // initialize output to spreadsheet file
 
-    const char* name = "wave_q3d/test/refraction_n2_linear.csv";
+    const char* name = "refraction_n2_linear.csv";
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
 
@@ -608,8 +608,8 @@ BOOST_AUTO_TEST_CASE(refraction_n2_linear) {
 }
 
 /**
- * Evaluates the model's ray refraction accuracy using a comparison to the 
- * a deep sound channel with a hyperbolic cosine profile. Match conditions 
+ * Evaluates the model's ray refraction accuracy using a comparison to the
+ * a deep sound channel with a hyperbolic cosine profile. Match conditions
  * of the test and output table format to those in the Reilly/Goodrich report.
  * <pre>
  *      Ocean:          Catenary: c1 = 1500 m/s, g1 = 1500 m/s
@@ -619,7 +619,7 @@ BOOST_AUTO_TEST_CASE(refraction_n2_linear) {
  *      AZ Angles:      90 degrees (east)
  *      Time Step:      100 msec
  * </pre>
- * This test is designed to isolate the effects of the radial component 
+ * This test is designed to isolate the effects of the radial component
  * of the sound speed gradient.
  * \f[
  *      z(r) = z_0 + c_1 arccosh \left[ sqrt \left( \frac{
@@ -634,8 +634,8 @@ BOOST_AUTO_TEST_CASE(refraction_n2_linear) {
  *      - \f$ \delta_0 \f$ = launch angle
  *
  * An exception is thrown if the modeled position is not within 2 meters
- * of the analytic result.  Note that this threshold is much different 
- * than the linear case where the maximum error is significantly 
+ * of the analytic result.  Note that this threshold is much different
+ * than the linear case where the maximum error is significantly
  * less than 1 millimeter.  The catenary error oscillates between
  * positive and negative and grows with increasing range.  For a -3 degree
  * launch angle, the error has grown to +/- 2 meters by the time the
@@ -644,8 +644,8 @@ BOOST_AUTO_TEST_CASE(refraction_n2_linear) {
  * used.  It appears that the larger step size undersamples the sound
  * velocity profile field.
  *
- * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the 
- * Time Domain, Comprehensive Test Results", Alion Science and Technology, 
+ * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the
+ * Time Domain, Comprehensive Test Results", Alion Science and Technology,
  * Norfolk, VA, September, 2006.
  */
 BOOST_AUTO_TEST_CASE(refraction_catenary) {
@@ -682,7 +682,7 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
 
     // initialize output to spreadsheet file
 
-    const char* name = "wave_q3d/test/refraction_catenary.csv";
+    const char* name = "refraction_catenary.csv";
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
 
@@ -787,8 +787,8 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
  */
 BOOST_AUTO_TEST_CASE(refraction_munk_range) {
     cout << "=== refraction_test: refraction_munk_range ===" << endl;
-    const char* ncname_wave = "wave_q3d/test/refraction_munk_range.nc";
-    const char* name = "wave_q3d/test/refraction_munk_range.csv";
+    const char* ncname_wave = "refraction_munk_range.nc";
+    const char* name = "refraction_munk_range.csv";
 
     // analytic solution for cycle ranges for angles -14:14 degrees;
     // computed using the munk_range_compute.m routine
@@ -956,8 +956,8 @@ BOOST_AUTO_TEST_CASE(refraction_munk_range) {
  */
 BOOST_AUTO_TEST_CASE(refraction_pedersen_range) {
     cout << "=== refraction_test: refraction_pedersen_range ===" << endl;
-    const char* ncname_wave = "wave_q3d/test/refraction_pedersen_range.nc";
-    const char* name = "wave_q3d/test/refraction_pedersen_range.csv";
+    const char* ncname_wave = "refraction_pedersen_range.nc";
+    const char* name = "refraction_pedersen_range.csv";
 
     // analytic solution for cycle ranges for angles 20:2:50 degrees;
     // computed using the pedersen_range_compute.m routine

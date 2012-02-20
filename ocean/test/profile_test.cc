@@ -1,4 +1,4 @@
-/** 
+/**
  * @example ocean/test/profile_test.cc
  */
 #define BOOST_TEST_DYN_LINK
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE( constant_profile_test ) {
 BOOST_AUTO_TEST_CASE( plot_profile_test ) {
     cout << "=== profile_test: plot_profile_test ===" << endl;
     try {
-        const char* name = "ocean/test/profile_test.csv" ;
+        const char* name = "profile_test.csv" ;
         std::ofstream os(name);
         cout << "writing tables to " << name << endl;
 
@@ -135,11 +135,11 @@ BOOST_AUTO_TEST_CASE( plot_profile_test ) {
 
 /**
  * Extract Hawaii ocean temperature and salinity from World Ocean Atlas 2005.
- * Compare some of the results to the interactive version at 
- * UK National Physical Laboratory, "Technical Guides - 
+ * Compare some of the results to the interactive version at
+ * UK National Physical Laboratory, "Technical Guides -
  * Speed of Sound in Sea-Water," interactive website at
  * http://resource.npl.co.uk/acoustics/techguides/soundseawater/.
- * 
+ *
  * Generate errors if values differ by more that 1E-3 percent.
  */
 BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
 
         // print results for first lat/long entry
 
-        const char* name = "ocean/test/mackenzie_test.csv" ;
+        const char* name = "mackenzie_test.csv" ;
         std::ofstream os(name);
         cout << "writing tables to " << name << endl;
 

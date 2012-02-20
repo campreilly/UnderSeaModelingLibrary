@@ -1,4 +1,4 @@
-/** 
+/**
  * @example wave_q3d/test/proploss_test.cc
  */
 #define BOOST_TEST_DYN_LINK
@@ -25,12 +25,12 @@ static const double f0 = 2000 ;
 static const double bot_depth = 1e5 ;
 
 /**
- * This test demonstrates that the  basic functions of the spreading loss model 
- * are working correctly.  It computes propagation loss in a spherical spreading 
- * in an isovelocity ocean with no boundary interaction.  
+ * This test demonstrates that the  basic functions of the spreading loss model
+ * are working correctly.  It computes propagation loss in a spherical spreading
+ * in an isovelocity ocean with no boundary interaction.
  *
  *      - Source:       15000 meters deep
- *      - Target:       15000 meters deep, latitude change is 0.01-18.01 deg 
+ *      - Target:       15000 meters deep, latitude change is 0.01-18.01 deg
  *      - Frequency:    10, 100, 1000, & 10000 Hz
  *      - Sound Speed:  1500 m/s
  *      - Time Step:    100 msec
@@ -46,7 +46,7 @@ static const double bot_depth = 1e5 ;
  */
 BOOST_AUTO_TEST_CASE(proploss_basic) {
     cout << "=== proploss_test: proploss_basic ===" << endl;
-    const char* csvname = "wave_q3d/test/proploss_basic.csv";
+    const char* csvname = "proploss_basic.csv";
     const double c0 = 1500.0;
     const double src_lat = 45.0;
     const double src_lng = -45.0;
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic) {
 }
 
 /**
- * Compares modeled propagation loss as a function of range to the Lloyd's 
+ * Compares modeled propagation loss as a function of range to the Lloyd's
  * mirror analytic expression for surface reflection in an isovelocity ocean.
  *
  *      - Source:       25 meters deep
@@ -168,14 +168,14 @@ BOOST_AUTO_TEST_CASE(proploss_basic) {
  * An automatic error is thrown if bias > 0.5 dB, dev > 4 db, or
  * detcoef < 80%.
  *
- * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt, 
+ * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
  * "Computational Ocean Acoustics", pp. 16-19.
  */
 BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
     cout << "=== proploss_test: proploss_lloyds_range ===" << endl;
-    const char* csvname = "wave_q3d/test/proploss_lloyds_range.csv";
-    const char* ncname = "wave_q3d/test/proploss_lloyds_range.nc";
-    const char* ncname_wave = "wave_q3d/test/proploss_lloyds_range_wave.nc";
+    const char* csvname = "proploss_lloyds_range.csv";
+    const char* ncname = "proploss_lloyds_range.nc";
+    const char* ncname_wave = "proploss_lloyds_range_wave.nc";
 
     const double c0 = 1500.0;
     const double src_lat = 45.0;
@@ -313,10 +313,10 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
 }
 
 /**
- * Compares modeled propagation loss as a function of depth to the Lloyd's 
+ * Compares modeled propagation loss as a function of depth to the Lloyd's
  * mirror analytic expression for surface reflection in an isovelocity ocean.
  * This forces the model to deal with target points near the surface where the
- * up-going and down-going wavefronts must be extrapolated from two ray 
+ * up-going and down-going wavefronts must be extrapolated from two ray
  * families that have different numbers of surface bounces.
  *
  *      - Source:       25 meters deep
@@ -329,7 +329,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
  *
  * The analytic result is the same as that for proploss_lloyds_range().
  *
- * Targets near the surface must be extrapolated from the wavefronts below 
+ * Targets near the surface must be extrapolated from the wavefronts below
  * them.  Because the Gaussian profile rolls off at edge of a ray family,
  * it is important to test the impact of that phenomena on propagation loss at
  * the interface.
@@ -346,14 +346,14 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
  * An automatic error is thrown if bias > 0.5 dB, dev > 4 db, or
  * detcoef < 80%.
  *
- * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt, 
+ * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
  * "Computational Ocean Acoustics", pp. 16-19.
  */
 BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
     cout << "=== proploss_test: proploss_lloyds_depth ===" << endl;
-    const char* csvname = "wave_q3d/test/proploss_lloyds_depth.csv";
-    const char* ncname = "wave_q3d/test/proploss_lloyds_depth.nc";
-    const char* ncname_wave = "wave_q3d/test/proploss_lloyds_depth_wave.nc";
+    const char* csvname = "proploss_lloyds_depth.csv";
+    const char* ncname = "proploss_lloyds_depth.nc";
+    const char* ncname_wave = "proploss_lloyds_depth_wave.nc";
     const double c0 = 1500.0;
     const double src_lat = 45.0;
     const double src_lng = -45.0;

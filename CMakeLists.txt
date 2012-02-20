@@ -22,7 +22,7 @@ project( USML CXX )
 set( USML_VERSION_MAJOR 0 )
 set( USML_VERSION_MINOR 2 )
 set( USML_VERSION ${USML_VERSION_MAJOR}.${USML_VERSION_MINOR} )
-set( USML_MODULES ublas types netcdf ) # ocean wave_q3d ) 
+set( USML_MODULES ublas types netcdf ocean wave_q3d ) 
 
 ##############################################################################
 # LIBUSML LIBRARY
