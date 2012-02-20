@@ -1,4 +1,4 @@
-/** 
+/**
  * @example ocean/test/boundary_test.cc
  */
 #define BOOST_TEST_DYN_LINK
@@ -51,8 +51,8 @@ BOOST_AUTO_TEST_CASE( flat_boundary_test ) {
 /**
  * Find the bottom slope that causes the bathymetry to break the ocean surface
  * after traveling 1 deg north of the equator.  The analytic result is
- * about 0.5 degrees.  Intuitively, a value equal to about half the traveled 
- * distance represents the combined effect of the bottom reaching up to the 
+ * about 0.5 degrees.  Intuitively, a value equal to about half the traveled
+ * distance represents the combined effect of the bottom reaching up to the
  * surface, and the surface bending down to the reach the bottom.
  * Generate errors if values differ by more that 1E-6 percent.
  */
@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE( sloped_boundary_test ) {
  *	  -3593, -3613, -3612, -3623, -3638, -3615, -3594, -3569, -3557 ;
  *	}
  * </pre>
- * Given that boundary_grid is using PCHIP interpolation, 
+ * Given that boundary_grid is using PCHIP interpolation,
  * the expected results are:
  *
  *	Location:     lat=36.0004 long=15.8904
@@ -166,10 +166,9 @@ BOOST_AUTO_TEST_CASE( sloped_boundary_test ) {
  */
 BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
     cout << "=== boundary_test: etopo_boundary_test ===" << endl;
-    static const char* filename = "data/bathymetry/ETOPO1_Ice_g_gmt4.grd";
-    cout << "reading " << filename << endl;
-    boundary_grid<float, 2> model(new netcdf_bathy(filename, 36.0, 36.2, 15.85,
-            16.0, wposition::earth_radius));
+    cout << "reading " << USML_DATA_BATHYMETRY << endl;
+    boundary_grid<float, 2> model( new netcdf_bathy(
+    	USML_DATA_BATHYMETRY, 36.0, 36.2, 15.85, 16.0, wposition::earth_radius));
 
     // simple values for points and depth
 

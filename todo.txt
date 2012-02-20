@@ -7,26 +7,23 @@ Stuff to do:
      Tries to read "int" data into "float" array.  Function returns false.
   
 * Bugs
-  -- reflection_test: reflect_grid_test
-        load bathymetry
-        unknown location(0): fatal error in "reflect_grid_test": std::invalid_argument: unrecognized file type
-        /home/sreilly/Projects/usml/wave_q3d/test/reflection_test.cc(324): last checkpoint
-  -- refraction_test: refraction_isovelocity
-        time step = 0.1 secs freq = 10000 Hz
-        writing tables to refraction_isovelocity.csv
-        unknown location(0): fatal error in "refraction_isovelocity": std::out_of_range: bad index
-        /home/sreilly/Projects/usml/wave_q3d/test/refraction_test.cc(205): last checkpoint
-        Check failed in file /usr/local/include/boost/numeric/ublas/functional.hpp at line 1370: i < size_i
-  -- refraction_test: refraction_great_circle
-        time step = 0.1 secs freq = 10000 Hz
-        writing tables to refraction_great_circle.csv
-        unknown location(0): fatal error in "refraction_great_circle": std::out_of_range: bad index
-        /home/sreilly/Projects/usml/wave_q3d/test/refraction_test.cc(205): last checkpoint        
-        Check failed in file /usr/local/include/boost/numeric/ublas/functional.hpp at line 1370: i < size_i
-  -- boundary_test: etopo_boundary_test
-        reading data/bathymetry/ETOPO1_Ice_g_gmt4.grd
-        unknown location(0): fatal error in "etopo_boundary_test": 
-            signal: SIGSEGV, si_code: 0 (memory access violation at address: 0x00000080)
+
+=== refraction_test: refraction_isovelocity ===
+time step = 0.1 secs freq = 10000 Hz
+writing tables to refraction_isovelocity.csv
+Check failed in file /usr/local/include/boost/numeric/ublas/functional.hpp at line 1370:
+i < size_i
+unknown location(0): fatal error in "refraction_isovelocity": std::out_of_range: bad index
+/home/sreilly/Projects/usml/wave_q3d/test/refraction_test.cc(205): last checkpoint
+
+=== refraction_test: refraction_great_circle ===
+time step = 0.1 secs freq = 10000 Hz
+writing tables to refraction_great_circle.csv
+Check failed in file /usr/local/include/boost/numeric/ublas/functional.hpp at line 1370:
+i < size_i
+unknown location(0): fatal error in "refraction_great_circle": std::out_of_range: bad index
+/home/sreilly/Projects/usml/wave_q3d/test/refraction_test.cc(205): last checkpoint
+
   -- Haversine distance approximation in wave_element::compute_target_distance()
      is very inaccurate when USML_DEBUG turned on.
 

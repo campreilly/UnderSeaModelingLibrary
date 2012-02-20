@@ -1,4 +1,4 @@
-/** 
+/**
  * @file malta_rays.cc
  *
  * Reflect rays off of the ETOPO1 bottom near the Malta escarpment.
@@ -6,8 +6,8 @@
  * Ray path starts from 36N 16E, D/E=-90->0 deg and AZ set from command line.
  *
  * At an azimuth of 270, the run for 90 seconds should propagate up the
- * slope, turn around and head back down the slope.  Because of slop 
- * features in the latitude direction, the ray does not stay in 
+ * slope, turn around and head back down the slope.  Because of slop
+ * features in the latitude direction, the ray does not stay in
  * the east-west plane.
  *
  * At an azimuth of 315, the shallowest rays run into dry land.  This
@@ -33,9 +33,9 @@ int main( int argc, char* argv[] ) {
     cout << "=== malta_rays_test ===" << endl ;
 
     // define scenario parameters
-    
+
     int month = 12 ;			// december
-    const double lat1 = 30.0 ;  // entire Mediterranean Sea 
+    const double lat1 = 30.0 ;  // entire Mediterranean Sea
     const double lat2 = 46.0 ;
     const double lng1 = -8.0 ;
     const double lng2 = 37.0 ;
@@ -44,43 +44,41 @@ int main( int argc, char* argv[] ) {
     wposition1 pos( 35.983333333, 16.0, -10.0 ) ;
     seq_linear de( -45.0, 5.0, 0.0 ) ;
 
-    double angle = (argc <= 1) ? 270.0 : atof(argv[1]) ; 
+    double angle = (argc <= 1) ? 270.0 : atof(argv[1]) ;
     cout << "azimuth=" << angle << endl ;
     seq_linear az( angle, 1.0, 1 ) ;
     const double time_max = 90.0 ;
     const double time_step = 0.1 ;
-    
+
     seq_log freq( 3000.0, 1.0, 1 ) ;
-        
+
     // load temperature & salinity data from World Ocean Atlas
 
     cout << "load temperature & salinity data from World Ocean Atlas" << endl ;
-    netcdf_woa temperature( 
-        "data/woa09/temperature_seasonal_1deg.nc",
-        "data/woa09/temperature_monthly_1deg.nc",
+    netcdf_woa temperature(
+   		USML_DATA_TEMP_SEASON, USML_DATA_TEMP_MONTH,
         month, lat1, lat2, lng1, lng2 ) ;
-    netcdf_woa salinity( 
-        "data/woa09/salinity_seasonal_1deg.nc",
-        "data/woa09/salinity_monthly_1deg.nc",
+    netcdf_woa salinity(
+		USML_DATA_SALT_SEASON, USML_DATA_SALT_MONTH,
         month, lat1, lat2, lng1, lng2 ) ;
 
     // compute sound speed
-    
+
     cout << "compute sound speed" << endl ;
-    profile_model* profile = 
+    profile_model* profile =
     	new profile_mackenzie<float,3>( temperature, salinity ) ;
-    
+
     // load bathymetry from ETOPO1 database
-    
+
     cout << "load bathymetry from ETOPO1 database" << endl ;
     boundary_model* bottom = new boundary_grid<float,2>( new netcdf_bathy(
-        "data/bathymetry/ETOPO1_Ice_g_gmt4.grd", lat1, lat2, lng1, lng2 ) ) ;
+    		USML_DATA_BATHYMETRY, lat1, lat2, lng1, lng2 ) ) ;
     double height ;
     wvector1 normal ;
     bottom->height( pos, &height, &normal ) ;
 
     // combine sound speed and bathymetry into ocean model
-    
+
     boundary_model* surface = new boundary_flat() ;
     ocean_model ocean( surface, bottom, profile ) ;
 
@@ -98,7 +96,7 @@ int main( int argc, char* argv[] ) {
     	    sprintf( csvname, "malta_rays_%02.0f_%02.0f.csv",
     	        fabs(de(d)), fabs(az(a)) ) ;
     	    os[d][a] = new std::ofstream(csvname) ;
-            *os[d][a] << "t," 
+            *os[d][a] << "t,"
                 << "lat,lng,alt,"
                 << "de,az,srf,bot,cst,"
                 << "r,theta,phi,"
@@ -107,7 +105,7 @@ int main( int argc, char* argv[] ) {
                 << "mud,etad,nud,"
                 << "c,dcdz"
                 << endl ;
-                	
+
             wvector1 ndir( wave.current()->ndirection, d, a ) ;
             double de, az ;
             ndir.direction( &de, &az ) ;
@@ -142,9 +140,9 @@ int main( int argc, char* argv[] ) {
     // propagate wavefront
 
     while ( wave.time() < time_max ) {
-        
+
         // move wavefront to next time step
-        
+
         wave.step() ;
 
         // write to spreadsheet file
@@ -181,7 +179,7 @@ int main( int argc, char* argv[] ) {
             }
         }
 
-    } 
+    }
     cout << "wave propagated for " << wave.time() << " secs" << endl ;
 
     for ( unsigned d=0 ; d < de.size() ; ++d ) {

@@ -1,10 +1,10 @@
-/** 
+/**
  * @file malta_movie.cc
  *
- * Demonstrates the model's ability to visualize the wavefront in 3-D.  
+ * Demonstrates the model's ability to visualize the wavefront in 3-D.
  * Uses the World Ocean Atlas and the ETOPO1 databases to construct a
  * real world environment near the Malta escarpment south-east of Sicily.
- * 
+ *
  *      - Area: 34.5 to 37.0 North, 14,5 to 17.0 East
  *      - Month: December
  *      - Source: 36N, 16.0E, 10 meters deep
@@ -34,9 +34,9 @@ int main( int argc, char* argv[] ) {
     cout << "=== malta_movie ===" << endl ;
 
     // define scenario parameters
-    
+
     int month = 12 ;		// december
-    const double lat1 = 30.0 ;  // entire Mediterranean Sea 
+    const double lat1 = 30.0 ;  // entire Mediterranean Sea
     const double lat2 = 46.0 ;
     const double lng1 = -8.0 ;
     const double lng2 = 37.0 ;
@@ -47,39 +47,36 @@ int main( int argc, char* argv[] ) {
     seq_linear az( 225.0, 5.0, 315.0 ) ;
     const double time_max = 60.0 ;
     const double time_step = 0.050 ;
-    
+
     seq_log freq( 3000.0, 1.0, 1 ) ;
-        
+
     // load temperature & salinity data from World Ocean Atlas
 
     cout << "load temperature & salinity data from World Ocean Atlas" << endl ;
     netcdf_woa temperature(
-        "data/woa09/temperature_seasonal_1deg.nc",
-        "data/woa09/temperature_monthly_1deg.nc",
+		USML_DATA_TEMP_SEASON, USML_DATA_TEMP_MONTH,
         month, lat1, lat2, lng1, lng2 ) ;
     netcdf_woa salinity(
-        "data/woa09/salinity_seasonal_1deg.nc",
-        "data/woa09/salinity_monthly_1deg.nc",
+		USML_DATA_SALT_SEASON, USML_DATA_SALT_MONTH,
         month, lat1, lat2, lng1, lng2 ) ;
 
     // compute sound speed
-    
+
     cout << "compute sound speed" << endl ;
-    profile_model* profile = 
+    profile_model* profile =
     	new profile_mackenzie<float,3>( temperature, salinity ) ;
-    
+
     // load bathymetry from ETOPO1 database
-    
+
     cout << "load bathymetry from ETOPO1 database" << endl ;
     boundary_model* bottom = new boundary_grid<float,2>( new netcdf_bathy(
-        "data/bathymetry/ETOPO1_Ice_g_gmt4.grd",
-        lat1, lat2, lng1, lng2 ) ) ;
+    	USML_DATA_BATHYMETRY, lat1, lat2, lng1, lng2 ) ) ;
     double height ;
     wvector1 normal ;
     bottom->height( pos, &height, &normal ) ;
 
     // combine sound speed and bathymetry into ocean model
-    
+
     boundary_model* surface = new boundary_flat() ;
     ocean_model ocean( surface, bottom, profile ) ;
 
@@ -89,14 +86,14 @@ int main( int argc, char* argv[] ) {
     wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
     wave.init_netcdf( ncname ) ;
     wave.save_netcdf() ;
-    
+
     // propagate wavefront
 
     while ( wave.time() < time_max ) {
         // cout << "time=" << wave.time() << endl ;
         wave.step() ;
         wave.save_netcdf() ;
-    } 
+    }
     wave.close_netcdf() ;
     cout << "wave propagated for " << wave.time() << " secs" << endl ;
 }

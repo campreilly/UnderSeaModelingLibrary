@@ -151,12 +151,10 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
         // load temperature & salinity data from World Ocean Atlas
 
         netcdf_woa temperature(
-            "data/woa09/temperature_seasonal_1deg.nc",
-            "data/woa09/temperature_monthly_1deg.nc",
+        	USML_DATA_TEMP_SEASON, USML_DATA_TEMP_MONTH,
             month, 18.5, 22.5, 200.5, 205.5 ) ;
         netcdf_woa salinity(
-            "data/woa09/salinity_seasonal_1deg.nc",
-            "data/woa09/salinity_monthly_1deg.nc",
+			USML_DATA_SALT_SEASON, USML_DATA_SALT_MONTH,
             month, 18.5, 22.5, 200.5, 205.5 ) ;
 
         // compute sound speed
