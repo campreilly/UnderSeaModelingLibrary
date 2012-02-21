@@ -1,4 +1,4 @@
-/** 
+/**
  * @file wave_front.cc
  * Wavefront characteristics at a specific point in time.
  */
@@ -9,18 +9,18 @@ using namespace usml::wave_q3d ;
 /**
  * Create workspace for all properties.
  */
-wave_front::wave_front( 
+wave_front::wave_front(
     ocean_model& ocean,
     const seq_vector* freq,
-    unsigned num_de, 
+    unsigned num_de,
     unsigned num_az,
     const wposition* targets,
     const matrix<double>* sin_theta
-) : 
-    position( num_de, num_az ), 
-    pos_gradient( num_de, num_az ), 
-    ndirection( num_de, num_az ), 
-    ndir_gradient( num_de, num_az ), 
+) :
+    position( num_de, num_az ),
+    pos_gradient( num_de, num_az ),
+    ndirection( num_de, num_az ),
+    ndir_gradient( num_de, num_az ),
     sound_speed( num_de, num_az ),
     sound_gradient( num_de, num_az ),
     attenuation( num_de, num_az ),
@@ -45,7 +45,7 @@ wave_front::wave_front(
     caustic.clear() ;
     on_fold.clear() ;
     on_edge.clear() ;
-    
+
     for ( unsigned n1=0 ; n1 < num_de ; ++n1 ) {
         for ( unsigned n2=0 ; n2 < num_az ; ++n2 ) {
             attenuation(n1,n2).resize( freq->size() ) ;
@@ -54,7 +54,7 @@ wave_front::wave_front(
             phase(n1,n2).clear() ;
         }
     }
-    
+
     if ( this->targets ) {
         distance2.resize( this->targets->size1(), this->targets->size2() ) ;
         for ( unsigned n1=0 ; n1 < this->targets->size1() ; ++n1 ) {
@@ -69,7 +69,7 @@ wave_front::wave_front(
 /**
  * Initialize position and direction components of the wavefront.
  */
-void wave_front::init_wave( 
+void wave_front::init_wave(
     const wposition1& pos, const seq_vector& de, const seq_vector& az )
 {
     // compute direction for all D/E and AZ combinations
@@ -80,28 +80,28 @@ void wave_front::init_wave(
         for ( unsigned c=0 ; c < az.size() ; ++c ) {
             double cos_az = cos( to_radians( az(c) ) ) ;
             double sin_az = sin( to_radians( az(c) ) ) ;
-            
+
             // compute direction relative to east, north, up coord system
-            
+
             ndirection.rho( r, c, sin_de ) ;
             ndirection.theta( r, c, -cos_de * cos_az ) ;
             ndirection.phi( r, c, cos_de * sin_az ) ;
-                
+
             // copy position from pos argument
-            
+
             position.rho(   r, c, pos.rho() ) ;
             position.theta( r, c, pos.theta() ) ;
             position.phi(   r, c, pos.phi() ) ;
         }
     }
-        
+
     // normalize direction using sound speed at initial location
-    
+
     wposition position(1,1) ;
     position.rho( 0, 0, pos.rho() ) ;
     position.theta( 0, 0, pos.theta() ) ;
     position.phi( 0, 0, pos.phi() ) ;
-    
+
     matrix<double> c(1,1) ;
     _ocean.profile().sound_speed( position, &c ) ;
     ndirection.rho(   ndirection.rho()   / c(0,0), false ) ;
@@ -169,6 +169,7 @@ void wave_front::update() {
  */
 void wave_front::find_folds() {
     on_fold.clear() ;
+    if ( num_de() < 3 ) return ;
     const unsigned max_de = num_de() - 1 ;
     for ( unsigned az=0 ; az < num_az() ; ++az ) {
         for ( unsigned de=1 ; de < max_de ; ++de ) {
@@ -197,7 +198,7 @@ void wave_front::find_edges() {
 
     on_edge(0,0) = on_edge(max_de,max_az) = true ;
     on_edge(max_de,0) = on_edge(0,max_az) = true ;
-    for ( unsigned de=1 ; de < max_az ; ++de ) {
+    for ( unsigned de=1 ; de < max_de ; ++de ) {
         on_edge(de,0) = on_edge(de,max_az) = true ;
     }
     for ( unsigned az=1 ; az < max_az ; ++az ) {

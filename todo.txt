@@ -6,27 +6,6 @@ Stuff to do:
      Line 82 in netcdf_bathy.cc altitude->get( this->_data, lat_num, lng_num ) ;
      Tries to read "int" data into "float" array.  Function returns false.
   
-* Bugs
-
-=== refraction_test: refraction_isovelocity ===
-time step = 0.1 secs freq = 10000 Hz
-writing tables to refraction_isovelocity.csv
-Check failed in file /usr/local/include/boost/numeric/ublas/functional.hpp at line 1370:
-i < size_i
-unknown location(0): fatal error in "refraction_isovelocity": std::out_of_range: bad index
-/home/sreilly/Projects/usml/wave_q3d/test/refraction_test.cc(205): last checkpoint
-
-=== refraction_test: refraction_great_circle ===
-time step = 0.1 secs freq = 10000 Hz
-writing tables to refraction_great_circle.csv
-Check failed in file /usr/local/include/boost/numeric/ublas/functional.hpp at line 1370:
-i < size_i
-unknown location(0): fatal error in "refraction_great_circle": std::out_of_range: bad index
-/home/sreilly/Projects/usml/wave_q3d/test/refraction_test.cc(205): last checkpoint
-
-  -- Haversine distance approximation in wave_element::compute_target_distance()
-     is very inaccurate when USML_DEBUG turned on.
-
 * Cleanup tasks
   -- Move eigenray_llyods to studies directory.  Runs slow.
   -- Move wave_element::on_edge and find_edges() to wavefront class.
