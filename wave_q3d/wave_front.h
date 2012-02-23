@@ -63,7 +63,7 @@ using namespace usml::ocean ;
  * @xref S.M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
-class wave_front {
+class USML_DECLSPEC wave_front {
 
 public:
 

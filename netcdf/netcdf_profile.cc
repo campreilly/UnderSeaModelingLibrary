@@ -242,7 +242,11 @@ void netcdf_profile::decode_filetype(
 
             // extract missing attribute
             NcAtt* att = var->get_att("_FillValue") ;
-            if ( att ) *missing = att->values()->as_float(0) ;
+            if ( att ) {
+                NcValues* values = att->values() ;
+                *missing = values->as_float(0) ;
+                delete att, values ;
+            }
             
             // stop searching            
             found = true ;

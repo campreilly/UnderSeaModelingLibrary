@@ -26,7 +26,7 @@ namespace types {
  * they intercect horizontal planes with an even spacing in an
  * isovelocity environment.
  */
-class seq_rayfan: public seq_data
+class USML_DECLSPEC seq_rayfan: public seq_data
 {
 public:
     /**

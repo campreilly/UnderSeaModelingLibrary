@@ -39,7 +39,7 @@ class wposition1; // forward reference
  * @xref Portland State Aerospace Society, "Local Tangent Plane",
  *       Version 2.01 (2007.9.15), http://www.psas.pdx.edu.
  */
-class wvector
+class USML_DECLSPEC wvector
 {
 
 public:

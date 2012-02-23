@@ -19,7 +19,7 @@ using namespace usml::ocean ;
  *
  * @todo The reverb_model class is currently just a stub for future behaviors.
  */
-class reverb_model {
+class USML_DECLSPEC reverb_model {
 
   public:
 

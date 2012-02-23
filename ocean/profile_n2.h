@@ -37,7 +37,7 @@ namespace ocean {
  * to Underwater Acoustic conditions of Extreme Downward Refraction",
  * J. Acoust. Soc. Am. 51 (1B), 323-368 (June 1972).
  */
-class profile_n2 : public profile_model {
+class USML_DECLSPEC profile_n2 : public profile_model {
 
     //**************************************************
     // sound speed model

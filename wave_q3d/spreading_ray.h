@@ -30,7 +30,7 @@ using namespace usml::ocean ;
  *      - \f$ c_{target}    \f$ = speed of sound at target
  *      - \f$ c_0           \f$ = initial speed of sound
  */
-class spreading_ray : public spreading_model {
+class USML_DECLSPEC spreading_ray : public spreading_model {
 
     friend class wave_queue ;
     

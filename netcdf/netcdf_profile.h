@@ -52,7 +52,7 @@ using namespace usml::types ;
  * This may seem like a pretty loose specification, but this looseness is very
  * helpful in automating the reading NetCDF files from a variety of sources.
  */
-class netcdf_profile : public data_grid<float,3> {
+class USML_DECLSPEC netcdf_profile : public data_grid<float,3> {
 
   public:  
 

@@ -17,7 +17,7 @@ namespace ocean {
  * Models reflection loss as a constant factor that is independent
  * of grazing angle and frequency.
  */
-class reflect_loss_constant : public reflect_loss_model {
+class USML_DECLSPEC reflect_loss_constant : public reflect_loss_model {
 
   private:
 

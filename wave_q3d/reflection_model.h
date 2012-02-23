@@ -46,7 +46,7 @@ class wave_queue ;      // forward reference for friend declaration
  * @xref S.M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
-class reflection_model {
+class USML_DECLSPEC reflection_model {
 
     friend class wave_queue ;
     

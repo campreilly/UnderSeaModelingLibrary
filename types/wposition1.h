@@ -20,7 +20,7 @@ namespace types {
  * This class is a convenience to save the developer from doing a lot of 
  * operations on 1x1 matrices.
  */
-class wposition1: public wvector1
+class USML_DECLSPEC wposition1: public wvector1
 {
 
 public:

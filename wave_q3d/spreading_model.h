@@ -18,7 +18,7 @@ using namespace usml::ocean ;
  * propagation loss. These models compute their results as a
  * function of frequency to support broadband acoustics.
  */
-class spreading_model {
+class USML_DECLSPEC spreading_model {
 
     friend class wave_queue ;
 

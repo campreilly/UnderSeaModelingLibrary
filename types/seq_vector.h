@@ -31,7 +31,7 @@ namespace types {
  * instead of traits, so that they can be resolved at run-time.  Run-time 
  * resolution is critical to reading sequences from netCDF data files.
  */
-class seq_vector: public vector_container<seq_vector>
+class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
 {
     //**************************************************
     // type definisions

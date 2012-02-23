@@ -33,7 +33,7 @@ namespace ocean {
  * @xref W. H. Munk, "Sound channel in an exponentially stratified ocean, 
  * with application to SOFAR", J. Acoust. Soc. Amer. (55) (1974) pp. 220-226.
  */
-class profile_munk : public profile_model {
+class USML_DECLSPEC profile_munk : public profile_model {
 
   private:
 

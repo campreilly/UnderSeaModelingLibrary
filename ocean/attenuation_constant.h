@@ -17,7 +17,7 @@ namespace ocean {
  * Models attenuation loss as a constant factor that multiplies
  * distance and frequency.
  */
-class attenuation_constant : public attenuation_model {
+class USML_DECLSPEC attenuation_constant : public attenuation_model {
 
   private:
 

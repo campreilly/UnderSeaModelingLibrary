@@ -24,7 +24,7 @@ using namespace usml::ocean;
  * complete, the sum_eigenrays() method is used to collect the results
  * into a phasor-summed propagation loss and phase at each target point.
  */
-class proploss {
+class USML_DECLSPEC proploss {
     friend class wave_queue;
 
 private:

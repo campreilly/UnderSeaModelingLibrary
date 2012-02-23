@@ -36,7 +36,7 @@ namespace types {
  * @xref WGS 84 IMPLEMENTATION MANUAL, Version 2.4, 1998. 
  *       See http://www.dqts.net/wgs84.htm for more information.
  */
-class wposition: public wvector
+class USML_DECLSPEC wposition: public wvector
 {
 
 public:

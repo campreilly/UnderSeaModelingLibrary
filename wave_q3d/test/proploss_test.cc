@@ -1,10 +1,7 @@
 /**
  * @example wave_q3d/test/proploss_test.cc
  */
-#define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
-#include <boost/test/included/unit_test_framework.hpp>
 #include <usml/wave_q3d/wave_q3d.h>
 #include <iostream>
 #include <iomanip>
@@ -94,7 +91,6 @@ BOOST_AUTO_TEST_CASE(proploss_basic) {
     cout << "writing spreadsheets to " << csvname << endl;
     for (unsigned n = 0; n < target.size1(); ++n) {
         const eigenray_list *raylist = loss.eigenrays(n, 0);
-        int n = 0;
         for (eigenray_list::const_iterator iter = raylist->begin();
                 iter != raylist->end(); ++n, ++iter) {
             const eigenray &ray = *iter;

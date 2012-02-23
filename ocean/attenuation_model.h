@@ -25,7 +25,7 @@ using namespace usml::types ;
  * These models compute their results as a function of frequency 
  * to support broadband acoustics.  
  */
-class attenuation_model {
+class USML_DECLSPEC attenuation_model {
 
 public:
 

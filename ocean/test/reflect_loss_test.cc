@@ -1,7 +1,6 @@
 /**
  * @example ocean/test/reflect_loss_test.cc
  */
-#define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 #include <usml/ocean/ocean.h>
 #include <fstream>

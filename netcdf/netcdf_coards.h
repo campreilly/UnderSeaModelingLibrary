@@ -136,14 +136,19 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
         DATA_TYPE missing = NAN ;   // default value for missing data
         NcAtt* att = variable->get_att("missing_value") ;
         if ( att ) {
-            missing = (DATA_TYPE) att->values()->as_double(0) ;
-            delete att ;
+            NcValues* values = att->values() ;
+            missing = (DATA_TYPE) values->as_double(0) ;
+            delete att, values ;
         }
 
         DATA_TYPE filling = NAN ;   // default for fill value
         if ( read_fill ) {
 			att = variable->get_att("_FillValue") ;
-			if ( att ) filling = att->values()->as_double(0) ;
+			if ( att ) {
+                NcValues* values = att->values() ;
+                filling = values->as_double(0) ;
+                delete att, values ;
+            }
         }
 
         // copy interpolant data from the NetCDF file into local memory.

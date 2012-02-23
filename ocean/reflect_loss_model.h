@@ -25,7 +25,7 @@ using namespace usml::types ;
  * given time step. These models compute their results as a function 
  * of frequency to support broadband acoustics.  
  */
-class reflect_loss_model {
+class USML_DECLSPEC reflect_loss_model {
 
 public:
 

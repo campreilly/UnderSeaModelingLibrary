@@ -16,7 +16,7 @@ namespace types {
  * Sequence defined by an evenly spaced grid of points. 
  * Designed to serve the same function as the a=1:2:N Matlab construct.
  */
-class seq_linear : public seq_vector {
+class USML_DECLSPEC seq_linear : public seq_vector {
 
     typedef seq_linear self_type;
 public:
