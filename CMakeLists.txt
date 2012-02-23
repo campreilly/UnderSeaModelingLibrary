@@ -17,7 +17,7 @@
 #   - NetCDF 3.6 or better
 #
 cmake_minimum_required( VERSION 2.6 )
-project( USML CXX )
+project( usml CXX )
 
 set( USML_VERSION_MAJOR 0 )
 set( USML_VERSION_MINOR 2 )
@@ -25,23 +25,24 @@ set( USML_VERSION ${USML_VERSION_MAJOR}.${USML_VERSION_MINOR} )
 set( USML_MODULES ublas types netcdf ocean wave_q3d ) 
 
 ##############################################################################
-# LIBUSML LIBRARY
+# USML LIBRARY
 
 # compiler options
 
-if( MSVC )                		# Visual Studio (2010) options
-    set( BUILD_SHARED_LIBS OFF )
-    add_definitions( -D_USE_MATH_DEFINES ) # for M_PI etc.
-    add_definitions( /fp:fast )        # fast floating point math
-    set( USML_LIBRARY libusml ) 
+set( BUILD_SHARED_LIBS ON CACHE BOOL "Should shared libraries be used?" )
+
+if( MSVC )                		    # Visual Studio (2010) options
+    add_definitions( /fp:fast )     # fast floating point math
+    add_definitions( -D_USE_MATH_DEFINES ) # symbols like M_PI
+    add_definitions(                # quiet some harmless warning
+        -D_CRT_SECURE_NO_WARNINGS 
+        -wd4244 -wd4996 -wd4018 ) 
     
 else( CMAKE_COMPILER_IS_GNUCXX )	# GNU C++ options
-    set( BUILD_SHARED_LIBS ON )
     set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-	"Release" "Debug" "RelWithDebInfo" "MinSizeRel" )
+	    "Release" "Debug" "RelWithDebInfo" "MinSizeRel" )
     set( CMAKE_BUILD_TYPE Release CACHE STRING "Type of build" ) # turns on optimizations
     add_definitions( -g -ffast-math )	# fast floating point math
-    set( USML_LIBRARY usml ) 
 
 endif()
 
@@ -77,7 +78,6 @@ else( CMAKE_COMPILER_IS_GNUCXX )    # GNU C++ options
 
 endif()
 
-
 # fix bug in boost/numeric/ublas/vector_expression.hpp lines 1409 through 1417
 # function: operator/( vector, scalar )
 #
@@ -88,13 +88,23 @@ endif()
 add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 
 # build links to NetCDF shared library
-# uses the NETCDF_DIR variable as a hint for both the include and library files.
+# the NETCDF_DIR (variable or environment) can be used to
+# over-ride the root of the include, lib, and bin directories
 
-set( NETCDF_CXX "YES" )
+if( NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR} )
+    set( NETCDF_DIR $ENV{NETCDF_DIR} CACHE PATH "Root of NetCDF library" )
+endif()
+if( IS_DIRECTORY ${NETCDF_DIR}/include )
+    list( APPEND CMAKE_INCLUDE_PATH $ENV{NETCDF_DIR}/include )
+endif()
+if( IS_DIRECTORY ${NETCDF_DIR}/lib )
+    list( APPEND CMAKE_LIBRARY_PATH $ENV{NETCDF_DIR}/lib )
+endif()
+
+set( NETCDF_CXX ON )
 find_package( NetCDF 3.6 REQUIRED )
 if( NETCDF_FOUND )
-    include_directories( ${NETCDF_INCLUDES} ${NETCDF_INCLUDES_CXX} )
-    find_program( NETCDF_NCKS ncks "NetCDF Kitchen Sink utility, generates test files")
+    include_directories( ${NETCDF_INCLUDES} ${NETCDF_INCLUDES}/.. )
 endif( NETCDF_FOUND )
 
 # macro: searches a module list for headers and sources
@@ -115,8 +125,8 @@ set( HEADERS "" )
 set( SOURCES "" )
 FIND_SOURCES( "${USML_MODULES}" "" )
 
-add_library( ${USML_LIBRARY} ${HEADERS} ${SOURCES} )
-target_link_libraries( ${USML_LIBRARY} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
+add_library( usml ${HEADERS} ${SOURCES} )
+target_link_libraries( usml ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
 
 ##############################################################################
 # USML_TEST REGRESSION TEST
@@ -213,5 +223,5 @@ source_group( main FILES ${SOURCES} )
 FIND_SOURCES( "${USML_MODULES}" "/test" )
 
 add_executable( usml_test ${HEADERS} ${SOURCES} )
-target_link_libraries( usml_test ${USML_LIBRARY} )
+target_link_libraries( usml_test usml )
 

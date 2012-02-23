@@ -5,7 +5,7 @@
 #ifndef USML_NETCDF_PROFILE_H
 #define USML_NETCDF_PROFILE_H
 
-#include <netcdf.hh>
+#include <netcdfcpp.h>
 #include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
 

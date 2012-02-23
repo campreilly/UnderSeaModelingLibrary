@@ -5,7 +5,7 @@
 #ifndef USML_NETCDF_COARDS_H
 #define USML_NETCDF_COARDS_H
 
-#include <netcdf.hh>
+#include <netcdfcpp.h>
 #include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
 
@@ -155,7 +155,7 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
             this->_data[n] = (DATA_TYPE) values->as_double(n) ;
             if ( ! isnan(missing) ) {
             	if ( this->_data[n] == missing ) {
-            		this->_data[n] == filling ;
+            		this->_data[n] = filling ;
             	}
             }
         }
