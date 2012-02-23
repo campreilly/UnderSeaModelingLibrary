@@ -62,12 +62,13 @@ BOOST_AUTO_TEST_CASE( read_bathy_header ) {
 
         for ( int a=0 ; a < var->num_atts() ; ++a ) {
             NcAtt* att = var->get_att(a) ;
+            NcValues* values = att->values() ;
             cout << "\t\t" << var->name() << ":" << att->name() << " = " ;
-	    if ( att->type() == 2 ) {
-                cout << "\"" << att->values()->as_string(0) << "\" ;" << endl ;
+            if ( att->type() == 2 ) {
+                cout << "\"" << values->as_string(0) << "\" ;" << endl ;
             } else {
-  	        for ( int v=0 ; v < att->num_vals() ; ++v ) {
-	            cout << att->values()->as_string(v) ;
+                for ( int v=0 ; v < att->num_vals() ; ++v ) {
+                    cout << values->as_string(v) ;
                     if ( v < att->num_vals()-1 ) {
                         cout << ", " ;
                     } else {
@@ -75,6 +76,7 @@ BOOST_AUTO_TEST_CASE( read_bathy_header ) {
                     }
                 }
             }
+            delete att, values ;
         }
 
     }
