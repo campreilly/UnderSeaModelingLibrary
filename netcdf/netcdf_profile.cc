@@ -245,7 +245,7 @@ void netcdf_profile::decode_filetype(
             if ( att ) {
                 NcValues* values = att->values() ;
                 *missing = values->as_float(0) ;
-                delete att, values ;
+                delete att ; delete values ;
             }
             
             // stop searching            

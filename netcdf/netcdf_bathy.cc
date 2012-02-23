@@ -129,10 +129,10 @@ void netcdf_bathy::decode_filetype(
             // extract depth variable
             *altitude = var ;
             // cout << "\taltitude: " << (*altitude)->name() << endl ;
-            for ( int n=0 ; n < var->num_dims() ; ++n ) {
-                NcDim* d = var->get_dim(n) ;
+            // for ( int n=0 ; n < var->num_dims() ; ++n ) {
+                // NcDim* d = var->get_dim(n) ;
                 // cout << "\t\tdim(" << n << "): " << d->name() << endl ;
-            }
+            // }
 
             // extract latitude variable
             NcDim* dim = var->get_dim(0) ;

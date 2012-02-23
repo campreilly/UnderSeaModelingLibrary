@@ -138,7 +138,7 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
         if ( att ) {
             NcValues* values = att->values() ;
             missing = (DATA_TYPE) values->as_double(0) ;
-            delete att, values ;
+            delete att ; delete values ;
         }
 
         DATA_TYPE filling = NAN ;   // default for fill value
@@ -147,7 +147,7 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
 			if ( att ) {
                 NcValues* values = att->values() ;
                 filling = values->as_double(0) ;
-                delete att, values ;
+                delete att ; delete values ;
             }
         }
 
