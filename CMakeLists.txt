@@ -7,13 +7,13 @@
 # subgroups in IDE's such as Visual C++.
 #
 # Builds:
-#   - libusml library
+#   - usml shared library
 #   - usml_test regression test executable
 # Tested Generators:
 #   - Visual C++ 2010 (creates a solution)
-#   - NMAKE Makfile (w/ Visual C++ 2010)
+#   - NMAKE Makefile (w/ Visual C++ 2010)
 # Requires:
-#   - Boost unit_test_framework and math_tr1 1.41 or better
+#   - Boost 1.41 or better for ublas, unit_test_framework
 #   - NetCDF 3.6 or better
 #
 cmake_minimum_required( VERSION 2.6 )
@@ -22,19 +22,17 @@ project( usml CXX )
 set( PACKAGE_VERSION_MAJOR 0 )
 set( PACKAGE_VERSION_MINOR 2 )
 set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
-set( PACKAGE_MODULES ublas types netcdf ocean wave_q3d ) 
-
-##############################################################################
-# USML LIBRARY
-
-# compiler options
+set( PACKAGE_MODULES ublas types netcdf ocean ) # wave_q3d ) 
 
 option( USML_PEDANTIC "use only C++98, maximize warnings, treat warning as errors" ON )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
 set( CMAKE_BUILD_TYPE Release CACHE STRING "type of build" )
 set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} )
 
-if( MSVC )                		    # Visual C++ options
+######################################################################
+# Visual C++ compiler options
+
+if( MSVC )                		    
     add_definitions( -fp:fast )     # fast floating point math
     add_definitions( -MP )          # multi-processor compilation
     add_definitions( -D_USE_MATH_DEFINES ) # symbols like M_PI
@@ -47,8 +45,11 @@ if( MSVC )                		    # Visual C++ options
     if ( USML_PEDANTIC )
         add_definitions( -WX )
     endif ( USML_PEDANTIC )
-    
-else( CMAKE_COMPILER_IS_GNUCXX )	# GNU C++ options
+
+######################################################################
+# GNU C++ options
+
+else( CMAKE_COMPILER_IS_GNUCXX )
     add_definitions( -g -ffast-math )	# fast floating point math
     if ( USML_PEDANTIC )
         add_definitions( -std=c++98 -pedantic -Wall -Werror )
@@ -57,8 +58,10 @@ endif()
 
 include_directories( ${PROJECT_SOURCE_DIR}/.. )
 
-# build links to Boost shared library
-# uses the BOOST_ROOT variable as a hint for 
+######################################################################
+# Boost C++ utility libraries for ublas and unit_test_framework
+#
+# Uses the BOOST_ROOT variable as a hint for 
 # both the include and library files.
  
 set( Boost_DEBUG OFF )         # if on -> displays debug msgs during cmake
@@ -83,9 +86,11 @@ endif( Boost_FOUND )
 
 add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 
-# build links to NetCDF shared library
-# the NETCDF_DIR (variable or environment) can be used to
-# over-ride the root of the include, lib, and bin directories
+######################################################################
+# NetCDF data access library
+#
+# Uses the NETCDF_DIR (variable or environment) to
+# over-ride the root of the include, lib, and bin directories.
 
 if( NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR} )
     set( NETCDF_DIR $ENV{NETCDF_DIR} CACHE PATH "Root of NetCDF library" )
@@ -103,6 +108,7 @@ if( NETCDF_FOUND )
     include_directories( ${NETCDF_INCLUDES} ${NETCDF_INCLUDES}/.. )
 endif( NETCDF_FOUND )
 
+######################################################################
 # macro: searches a module list for headers and sources
 
 macro( FIND_SOURCES MODULES SUFFIX )
@@ -116,7 +122,8 @@ macro( FIND_SOURCES MODULES SUFFIX )
     endforeach( MOD )
 endmacro(FIND_SOURCES)
 
-# build the USML library
+######################################################################
+# USML shared libraries
 
 unset( HEADERS )
 unset( SOURCES )
@@ -130,8 +137,8 @@ if( MSVC AND BUILD_SHARED_LIBS )
     set_target_properties( ${TARGET} PROPERTIES COMPILE_DEFINITIONS USML_DLL_EXPORT )
 endif()
 
-##############################################################################
-# USML_TEST REGRESSION TEST
+######################################################################
+# USML_TEST regression test suite
 
 # define standard input data files for USML regression tests
 
