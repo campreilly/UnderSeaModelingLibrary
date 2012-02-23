@@ -1,7 +1,6 @@
 /**
  * @example ocean/test/profile_test.cc
  */
-#define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/ocean/ocean.h>

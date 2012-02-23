@@ -81,7 +81,7 @@ namespace ocean {
  * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
  * "Computational Ocean Acoustics", pp. 35-49.
  */
-class reflect_loss_rayleigh : public reflect_loss_model {
+class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
 
     //**************************************************
     // bottom type lookup table

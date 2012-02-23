@@ -1,7 +1,6 @@
 /**
  * @example wave_q3d/test/reflection_test.cc
  */
-#define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/wave_q3d/wave_q3d.h>

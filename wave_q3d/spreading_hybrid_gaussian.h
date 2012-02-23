@@ -41,7 +41,7 @@ using namespace usml::ocean ;
  * high-frequency propagation loss under shallow-water conditions.”
  * J. Acoust. Soc. Am. 100 (3), 1421-1431, (Sept 1996).
  */
-class spreading_hybrid_gaussian : public spreading_model {
+class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
 
     friend class wave_queue ;
     

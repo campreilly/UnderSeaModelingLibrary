@@ -59,7 +59,7 @@ class proploss ;
  * @xref S.M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
-class wave_queue {
+class USML_DECLSPEC wave_queue {
 
     friend class reflection_model ;
     friend class spreading_ray ;

@@ -17,7 +17,7 @@ class wave_queue ;      // forward reference for friend declaration
  * @internal
  * Integration utilities for ordinary differental equations.
  */
-class ode_integ {
+class USML_DECLSPEC ode_integ {
 
     friend class wave_queue ;
     friend class reflection_model ;

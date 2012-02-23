@@ -22,7 +22,7 @@ namespace types {
  * The find_index() routine in this implementation tries to speed up the
  * search by using the last search as the initial guess for the next search.
  */
-class seq_data : public seq_vector {
+class USML_DECLSPEC seq_data : public seq_vector {
 
     //**************************************************
     // type definisions

@@ -24,7 +24,7 @@ class wvector1; // forward reference
  * scalar.  This class is a convenience to save the developer 
  * from doing a lot of operations on 1x1 matrices.
  */
-class wvector1
+class USML_DECLSPEC wvector1
 {
 
 public:

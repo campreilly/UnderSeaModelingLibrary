@@ -10,6 +10,7 @@
 #include<boost/numeric/ublas/vector.hpp>
 #include<boost/numeric/ublas/matrix.hpp>
 #include<boost/numeric/ublas/io.hpp>
+#include <usml/usml_config.h>
 
 # define TWO_PI     (2.0*M_PI)
 
@@ -48,14 +49,6 @@ using std::exp;
 using std::log;
 using std::log10;
 using std::pow;
-
-#ifdef _MSC_VER     // Microsoft Visual C++
-    using std::tr1::round ;
-    using std::tr1::isnan ;
-    #ifndef NAN 
-        #define NAN std::numeric_limits<double>::quiet_NaN()
-    #endif
-#endif
 
 using namespace boost::numeric::ublas;
 
@@ -770,6 +763,35 @@ inline math_traits<double>::value_type to_colatitude(
 {
     return math_traits<double>::to_colatitude(t);
 }
+
+//*********************************************************
+// add GNU C++ math functions to Visual C++
+
+#ifdef _MSC_VER     // Microsoft Visual C++
+    #ifndef NAN 
+        #define NAN std::numeric_limits<double>::quiet_NaN()
+    #endif
+    inline int isnan(double x) { return _isnan(x); }
+    inline int round(double x) { return floor(x + 0.5); }
+
+    inline math_traits<double>::value_type acosh(
+        math_traits<double>::const_reference t)
+    {
+        return math_traits<double>::acosh(t);
+    }
+    inline math_traits<double>::value_type asinh(
+        math_traits<double>::const_reference t)
+    {
+        return math_traits<double>::asinh(t);
+    }
+    inline math_traits<double>::value_type atanh(
+        math_traits<double>::const_reference t)
+    {
+        return math_traits<double>::atanh(t);
+    }
+
+#endif
+
 
 } // end of ublas namespace
 } // end of usml namespace

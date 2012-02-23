@@ -17,7 +17,7 @@ namespace types {
  * Sequence defined by a logarithmically spaced grid of points. 
  * Designed to be used as the frequency axis for acoustic properties.
  */
-class seq_log: public seq_vector {
+class USML_DECLSPEC seq_log: public seq_vector {
 
     typedef seq_log self_type;
 public:

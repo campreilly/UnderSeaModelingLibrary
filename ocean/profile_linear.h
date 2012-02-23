@@ -35,7 +35,7 @@ namespace ocean {
  * This can be used as a linear profile by setting z1=0 and g1=g0.
  * In a contant profile, all of the values are zero except c0.
  */
-class profile_linear : public profile_model {
+class USML_DECLSPEC profile_linear : public profile_model {
 
     //**************************************************
     // sound speed model

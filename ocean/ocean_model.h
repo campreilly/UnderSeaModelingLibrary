@@ -17,7 +17,7 @@ namespace ocean {
 /**
  * Combines the effects of surface, bottom, and profile into a single model.
  */
-class ocean_model {
+class USML_DECLSPEC ocean_model {
 
     //**************************************************
     // surface model

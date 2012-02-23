@@ -50,7 +50,7 @@ namespace ocean {
  * @xref R.H. Fisher, "Effect of High Pressure on Sound Absorption
  * and Chemical Equilibrium," J. Acoust. Soc. Am. 30:442 (1973).
  */
-class attenuation_thorp : public attenuation_model {
+class USML_DECLSPEC attenuation_thorp : public attenuation_model {
 
 private:
     /**

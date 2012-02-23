@@ -17,7 +17,7 @@ namespace ocean {
 /**
  * Models any flat boundary in the ocean including the ocean surface.
  */
-class boundary_flat : public boundary_model {
+class USML_DECLSPEC boundary_flat : public boundary_model {
 
     //**************************************************
     // height model

@@ -23,7 +23,7 @@ namespace ocean {
  * subclass so that its children can share the attenuation model 
  * through this delegation.
  */
-class profile_model : public attenuation_model {
+class USML_DECLSPEC profile_model : public attenuation_model {
 
     //**************************************************
     // sound speed model

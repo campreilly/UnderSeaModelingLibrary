@@ -33,7 +33,7 @@ namespace ocean {
  *   - \f$ (\Delta \theta,\Delta \phi) \f$ = offset from reference point.
  *   - \f$ \rho_{calc}  \f$ = calculated height (meters) at new location.
  */
-class boundary_slope : public boundary_model {
+class USML_DECLSPEC boundary_slope : public boundary_model {
 
     //**************************************************
     // height model

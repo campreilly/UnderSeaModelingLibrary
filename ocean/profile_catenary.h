@@ -35,7 +35,7 @@ namespace ocean {
  * Time Domain, Comprehensive Test Results", Alion Science and 
  * Technology, Norfolk, VA, September, 2006.
  */
-class profile_catenary : public profile_model {
+class USML_DECLSPEC profile_catenary : public profile_model {
 
     //**************************************************
     // sound speed model

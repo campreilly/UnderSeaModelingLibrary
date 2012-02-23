@@ -10,6 +10,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/random.hpp>
+#include <usml/usml_config.h>
 
 namespace usml {
 namespace ublas {
@@ -51,17 +52,17 @@ namespace ublas {
          * Master generator that underlies all distributions.
          * Seeded with the current system time at initialization.
          */
-        static random_type master_gen;
+        static USML_DECLSPEC random_type master_gen;
 
         /** Uniform random number generator for the range [0,1). */
-        static boost::uniform_01 < random_type, double > uniform_gen;
+        static USML_DECLSPEC boost::uniform_01 < random_type, double > uniform_gen;
 
         /** variate_generator<> requires reference to abstract distribution. */
-        static boost::normal_distribution<double> gaussian_dist ;
+        static USML_DECLSPEC boost::normal_distribution<double> gaussian_dist ;
 
         /** Gaussian random number generator with sigma = 1. */
-        static boost::variate_generator< random_type, 
-    	boost::normal_distribution<double> > gaussian_gen;
+        static USML_DECLSPEC boost::variate_generator< random_type, 
+    	    boost::normal_distribution<double> > gaussian_gen;
 
         //******************************************************************
         // Utility routines

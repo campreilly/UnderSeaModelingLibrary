@@ -76,7 +76,7 @@ namespace netcdf {
  * Research Organization (CSIRO) Marine and Atmospheric Research Paper 015, 
  * Australia, December 2006. Contact mark.collier@csiro.au for more information.
  */
-class netcdf_woa : public netcdf_profile {
+class USML_DECLSPEC netcdf_woa : public netcdf_profile {
 
   public:  
 

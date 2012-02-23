@@ -19,31 +19,40 @@
 cmake_minimum_required( VERSION 2.6 )
 project( usml CXX )
 
-set( USML_VERSION_MAJOR 0 )
-set( USML_VERSION_MINOR 2 )
-set( USML_VERSION ${USML_VERSION_MAJOR}.${USML_VERSION_MINOR} )
-set( USML_MODULES ublas types netcdf ocean wave_q3d ) 
+set( PACKAGE_VERSION_MAJOR 0 )
+set( PACKAGE_VERSION_MINOR 2 )
+set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
+set( PACKAGE_MODULES ublas types netcdf ocean wave_q3d ) 
 
 ##############################################################################
 # USML LIBRARY
 
 # compiler options
 
-set( BUILD_SHARED_LIBS ON CACHE BOOL "Should shared libraries be used?" )
+option( USML_PEDANTIC "use only C++98, maximize warnings, treat warning as errors" ON )
+option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
+set( CMAKE_BUILD_TYPE Release CACHE STRING "type of build" )
+set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} )
 
-if( MSVC )                		    # Visual Studio (2010) options
-    add_definitions( /fp:fast )     # fast floating point math
+if( MSVC )                		    # Visual C++ options
+    add_definitions( -fp:fast )     # fast floating point math
+    add_definitions( -MP )          # multi-processor compilation
     add_definitions( -D_USE_MATH_DEFINES ) # symbols like M_PI
     add_definitions(                # quiet some harmless warning
         -D_CRT_SECURE_NO_WARNINGS 
-        -wd4244 -wd4996 -wd4018 ) 
+        -wd4244 -wd4996 -wd4018 -wd4251 ) 
+    if ( BUILD_SHARED_LIBS )
+        add_definitions( -DUSML_DYN_LINK )
+    endif ( BUILD_SHARED_LIBS )
+    if ( USML_PEDANTIC )
+        add_definitions( -WX )
+    endif ( USML_PEDANTIC )
     
 else( CMAKE_COMPILER_IS_GNUCXX )	# GNU C++ options
-    set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-	    "Release" "Debug" "RelWithDebInfo" "MinSizeRel" )
-    set( CMAKE_BUILD_TYPE Release CACHE STRING "Type of build" ) # turns on optimizations
     add_definitions( -g -ffast-math )	# fast floating point math
-
+    if ( USML_PEDANTIC )
+        add_definitions( -std=c++98 -pedantic -Wall -Werror )
+    endif ( USML_PEDANTIC )
 endif()
 
 include_directories( ${PROJECT_SOURCE_DIR}/.. )
@@ -53,30 +62,17 @@ include_directories( ${PROJECT_SOURCE_DIR}/.. )
 # both the include and library files.
  
 set( Boost_DEBUG OFF )         # if on -> displays debug msgs during cmake
-set( Boost_USE_STATIC_LIBS OFF ) # tells cmake to use dynamic libraries
-add_definitions( -DBOOST_ALL_DYN_LINK ) # tells auto-link to use dyn libs
+if ( BUILD_SHARED_LIBS )
+    set( Boost_USE_STATIC_LIBS OFF ) 
+    add_definitions( -DBOOST_ALL_DYN_LINK )
+endif ( BUILD_SHARED_LIBS )
 
-if( MSVC )                # Visual Studio 9 (2008) options
-    find_package( Boost 1.48 REQUIRED COMPONENTS 
-        unit_test_framework        # for usml_test.exe
-        math_tr1 math_tr1f math_tr1l    # support GNU extention like isnan() and round()
-        math_c99 math_c99f math_c99l    # required by math_tr1
-        )
-    if( Boost_FOUND )
-        add_definitions(/wd4244 /wd4996) # quiet warning from boost library
-        include_directories( ${Boost_INCLUDE_DIR}/boost/tr1/tr1 ${Boost_INCLUDE_DIR} )
-        # add_definitions( ${Boost_LIB_DIAGNOSTIC_DEFINITIONS} ) # displays lib debug msgs during compile
-    endif( Boost_FOUND )
-
-else( CMAKE_COMPILER_IS_GNUCXX )    # GNU C++ options
-    find_package( Boost 1.48 REQUIRED COMPONENTS 
-        unit_test_framework        # for usml_test.exe
-        )
-    if( Boost_FOUND )
-        include_directories( ${Boost_INCLUDE_DIR} )
-    endif( Boost_FOUND )
-
-endif()
+find_package( Boost 1.48 REQUIRED COMPONENTS 
+    unit_test_framework        # for usml_test.exe
+    )
+if( Boost_FOUND )
+    include_directories( ${Boost_INCLUDE_DIR} )
+endif( Boost_FOUND )
 
 # fix bug in boost/numeric/ublas/vector_expression.hpp lines 1409 through 1417
 # function: operator/( vector, scalar )
@@ -111,6 +107,7 @@ endif( NETCDF_FOUND )
 
 macro( FIND_SOURCES MODULES SUFFIX )
     foreach( MOD ${MODULES} )
+        message( STATUS "processing ${MOD}${SUFFIX}" )
         file( GLOB HDR_LIST ${MOD}${SUFFIX}/*.h )
         set( HEADERS ${HEADERS} ${HDR_LIST} )
         file( GLOB SRC_LIST ${MOD}${SUFFIX}/*.cc )
@@ -121,12 +118,17 @@ endmacro(FIND_SOURCES)
 
 # build the USML library
 
-set( HEADERS "" )
-set( SOURCES "" )
-FIND_SOURCES( "${USML_MODULES}" "" )
+unset( HEADERS )
+unset( SOURCES )
+FIND_SOURCES( "${PACKAGE_MODULES}" "" )
 
-add_library( usml ${HEADERS} ${SOURCES} )
-target_link_libraries( usml ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
+set( TARGET usml )
+add_library( ${TARGET} ${HEADERS} ${SOURCES} )
+target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
+set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION} )
+if( MSVC AND BUILD_SHARED_LIBS )
+    set_target_properties( ${TARGET} PROPERTIES COMPILE_DEFINITIONS USML_DLL_EXPORT )
+endif()
 
 ##############################################################################
 # USML_TEST REGRESSION TEST
@@ -217,10 +219,10 @@ endif()
 
 # build the USML regression tests
 
-set( HEADERS "" )
+unset( HEADERS )
 file( GLOB SOURCES usml_test.cc )
 source_group( main FILES ${SOURCES} )
-FIND_SOURCES( "${USML_MODULES}" "/test" )
+FIND_SOURCES( "${PACKAGE_MODULES}" "/test" )
 
 add_executable( usml_test ${HEADERS} ${SOURCES} )
 target_link_libraries( usml_test usml )

@@ -53,7 +53,7 @@ namespace ocean {
  * This definition of the unit normal saves processing time during
  * reflection processing.
  */
-class boundary_model : public reflect_loss_model {
+class USML_DECLSPEC boundary_model : public reflect_loss_model {
 
     //**************************************************
     // height model
