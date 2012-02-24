@@ -1,20 +1,10 @@
 # Cross platform build environment for the libraries and regression tests of
 # the Under Sea Modeling Library (USML). This script traverses the active 
 # modules and collects all library source files and headers into a single 
-# add_library() call for the libusml target.  It then collects all
+# add_library() call for the usml target.  It then collects all
 # regression tests into a single add_executable() call for the usml_test 
 # target. The source_group() command is used to organize the files into
 # subgroups in IDE's such as Visual C++.
-#
-# Builds:
-#   - usml shared library
-#   - usml_test regression test executable
-# Tested Generators:
-#   - Visual C++ 2010 (creates a solution)
-#   - NMAKE Makefile (w/ Visual C++ 2010)
-# Requires:
-#   - Boost 1.41 or better for ublas, unit_test_framework
-#   - NetCDF 3.6 or better
 #
 cmake_minimum_required( VERSION 2.6 )
 project( usml CXX )
@@ -24,7 +14,7 @@ set( PACKAGE_VERSION_MINOR 2 )
 set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
 set( PACKAGE_MODULES ublas types netcdf ocean waveq3d ) 
 
-option( USML_PEDANTIC "use only C++98, maximize warnings, treat warning as errors" ON )
+option( USML_PEDANTIC "maximize warnings, treat warning as errors" OFF )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
 if( NOT CMAKE_BUILD_TYPE )
     set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )

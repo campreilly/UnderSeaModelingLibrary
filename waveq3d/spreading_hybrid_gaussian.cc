@@ -3,7 +3,6 @@
  * Spreading loss based on a hybrid Gaussian beam theory.
  */
 #include <usml/waveq3d/spreading_hybrid_gaussian.h>
-#include<boost/numeric/ublas/matrix_proxy.hpp>
 
 //#define USML_WAVEQ3D_DEBUG_DE
 //#define USML_WAVEQ3D_DEBUG_AZ
