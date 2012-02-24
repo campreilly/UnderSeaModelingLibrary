@@ -1,4 +1,4 @@
-/** 
+/**
  * @file spreading_hybrid_gaussian.h
  * Spreading loss based on a hybrid Gaussian beam theory.
  */
@@ -16,23 +16,23 @@ using namespace usml::ocean ;
  * @internal
  * Spreading loss based on a hybrid Gaussian beam theory. It is similar
  * to the Gaussian Ray Bundling (GRAB) used by the Weinberg/Keenan model in
- * that the Gaussian profile is defined by the distance between rays 
+ * that the Gaussian profile is defined by the distance between rays
  * instead of dynamic ray tracing equations.  It also uses the GRAB
  * values for minimum beam width.
  *
- * The intensity at the point of collision is an in-phase summation of 
+ * The intensity at the point of collision is an in-phase summation of
  * the Gaussian beams that surround the eigenray target.  To create the
- * acoustic field in two dimensions across the wavefront, we assume that 
- * the divergence can be characterized in terms of independent D/E and AZ 
+ * acoustic field in two dimensions across the wavefront, we assume that
+ * the divergence can be characterized in terms of independent D/E and AZ
  * terms and that Gaussian beam cross terms are unimportant.
  *
- * The width of each Gaussian beam consists of two components: a frequency 
+ * The width of each Gaussian beam consists of two components: a frequency
  * independent cell width and a frequency-dependent evanescent spreading term.
- * The evanescent spreading term is modeled as the distance which a wave 
- * (of a given frequency) could be expected to tunnel into an area 
+ * The evanescent spreading term is modeled as the distance which a wave
+ * (of a given frequency) could be expected to tunnel into an area
  * forbidden by classic ray theory.  This distance is equivalent to the
  * \f$ 2 \pi \lambda \f$ minimum width term in the GRAB model.
- * 
+ *
  * Creates temporary workspace for many of its frequency dependent terms
  * in the form of member variables so that they don't have to be re-created
  * each time they are used.
@@ -44,7 +44,7 @@ using namespace usml::ocean ;
 class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
 
     friend class wave_queue ;
-    
+
   private:
 
     /** Normalization in depression/elevation direction. */
@@ -96,7 +96,7 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      *                         { DE_{n-1} - DE_n }
      * \f]
      * Note that in this implementation the \f$ \sqrt{ 2 \pi } \f$ term
-     * from the gaussian() method is folded into the normalization 
+     * from the gaussian() method is folded into the normalization
      * coefficients so that it can be computed a single time,
      * during initialization.
      *
@@ -120,10 +120,10 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * of two Gaussians, then the square of total width will be the sum
      * of squares of each term.
      * \f[
-     *      w^2_total = w^2_spread + w^2_width
+     *      w^2_{total} = w^2_{spread} + w^2_{width}
      * \f]
      * Note that in this implementation the \f$ \sqrt{ 2 \pi } \f$ term
-     * is folded into the normalization calculation so that it can be 
+     * is folded into the normalization calculation so that it can be
      * computed a single time, during initialization.
      *
      * @param   d           Distance from field point to center of profile.
@@ -135,13 +135,13 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      */
     inline vector<double> gaussian(double d,double w,double A) {
         _beam_width = _spread + OVERLAP * OVERLAP * w * w ; // sum of squares
-        return element_div( 
-        	exp( (-0.5*d*d) / _beam_width ), 
+        return element_div(
+        	exp( (-0.5*d*d) / _beam_width ),
         	sqrt(_beam_width) ) * A ;
     }
 
     /**
-     * Estimate intensity as the product of Gaussian contributions in the 
+     * Estimate intensity as the product of Gaussian contributions in the
      * D/E and AZ directions.  It assumes that the the divergence can be
      * characterized in terms of independent D/E and AZ terms and that
      * Gaussian beam cross terms are unimportant.
@@ -160,7 +160,7 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
   private:
 
     /**
-     * Summation of Gaussian beam contributions from all cells in 
+     * Summation of Gaussian beam contributions from all cells in
      * the D/E direction.  Iteration stops when lowest frequency contribution
      * makes less than a THRESHOLD difference relative to the overall result.
      *
@@ -170,11 +170,11 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * @param  distance     Offsets in distance units.
      * @return              Intensity of ray at this point.
      */
-    void intensity_de( unsigned de, unsigned az, 
+    void intensity_de( unsigned de, unsigned az,
         const vector<double>& offset, const vector<double>& distance ) ;
-        
+
     /**
-     * Summation of Gaussian beam contributions from all cells in 
+     * Summation of Gaussian beam contributions from all cells in
      * the AZ direction.  Iteration stops when lowest frequency contribution
      * makes less than a THRESHOLD difference relative to the overall result.
      *
@@ -184,15 +184,15 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * @param  distance     Offsets in distance units.
      * @return              Intensity of ray at this point.
      */
-    void intensity_az( unsigned de, unsigned az, 
+    void intensity_az( unsigned de, unsigned az,
         const vector<double>& offset, const vector<double>& distance ) ;
-        
+
     /**
      * Interpolate the half-width of a cell in the D/E direction.
      * At each AZ, compute the distance between the D/E corner
-     * and the D/E+1 corner.  Use the AZ offset to linearly interpolate 
+     * and the D/E+1 corner.  Use the AZ offset to linearly interpolate
      * between these sides.  Then repeat this process with the next
-     * (or previous) wavefront and use the time offset to linearly 
+     * (or previous) wavefront and use the time offset to linearly
      * interpolate between times.
      *
      * @param   de          DE index of contributing cell.
@@ -201,13 +201,13 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * @return              Half-width of cell in the DE direction.
      */
     double width_de( unsigned de, unsigned az, const vector<double>& offset ) ;
-    
+
     /**
      * Interpolate the half-width of a cell in the AZ direction.
      * At each DE, compute the distance between the AZ corner
-     * and the AZ+1 corner.  Use the D/E offset to linearly interpolate 
+     * and the AZ+1 corner.  Use the D/E offset to linearly interpolate
      * between these sides.  Then repeat this process with the next
-     * (or previous) wavefront and use the time offset to linearly 
+     * (or previous) wavefront and use the time offset to linearly
      * interpolate between times.
      *
      * @param   de          DE index of contributing cell.
