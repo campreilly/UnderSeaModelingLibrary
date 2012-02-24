@@ -53,6 +53,19 @@
       </ul>
     </ul>
 
+    <h3>Configuration Issues with External Dependencies</h3>
+    <p>This version of USML requires a few changes to the external dependencies.</p> 
+    <ul>
+    <li> By default, CMake does not include a module to find NetCDF libraries.  Please copy the 
+         <code>FindNetCDF.cmake</code> file from the <code>config</code> directory into CMake's shared modules directory. </li>
+    <li> There is a bug in version 1.48 of the Boost uBLAS library that prevents us from overloading
+         operator/().  Please search for the symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the 
+         <code>vector_expression.hpp</code> and <code>matrix_expression.hpp</code> files in the <code>config</code> directory.
+         In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
+         just above it. Those using Boost 1.48.0 can just replace the original files with the
+         ones from the <code>config</code> directory.
+    </ul>
+
     <h2>Building and Testing USML</h2>
 
     <p>
