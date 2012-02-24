@@ -1,12 +1,12 @@
 /** 
- * @file wave_q3d.h WaveQ3D Model
- * @defgroup wave_q3d WaveQ3D Model
+ * @file waveq3d.h WaveQ3D Model
+ * @defgroup waveq3d WaveQ3D Model
  *
  * The WaveQ3D model computes propagation loss using hybrid Gaussian beams 
  * in spherical/time coordinates. This model is designed to support real-time, 
  * sonar simulation/stimulation systems, in littoral environments,
  * at active sonar frequencies. 
- * \link usml::wave_q3d::wave_queue
+ * \link usml::waveq3d::wave_queue
  * See wave_queue class for high level class diagram.
  * \endlink
  * 
@@ -106,17 +106,17 @@
  * These assumptions should be reviewed by the system development team
  * before this model is evaluated for their intended use.
  *
- * @defgroup wave_q3d_test Regression Tests
- * @ingroup wave_q3d
+ * @defgroup waveq3d_test Regression Tests
+ * @ingroup waveq3d
  *
- * Regression tests for the wave_q3d package
+ * Regression tests for the waveq3d package
  */ 
 #ifndef USML_WAVEQ3D_H
 #define USML_WAVEQ3D_H
 
-#include <usml/wave_q3d/wave_queue.h>
-#include <usml/wave_q3d/wave_front.h>
-#include <usml/wave_q3d/eigenray.h>
-#include <usml/wave_q3d/proploss.h>
+#include <usml/waveq3d/wave_queue.h>
+#include <usml/waveq3d/wave_front.h>
+#include <usml/waveq3d/eigenray.h>
+#include <usml/waveq3d/proploss.h>
 
 #endif

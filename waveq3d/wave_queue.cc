@@ -2,12 +2,12 @@
  * @file wave_queue.cc
  * Wavefront propagation as a function of time.
  */
-#include <usml/wave_q3d/wave_queue.h>
-#include <usml/wave_q3d/ode_integ.h>
-#include <usml/wave_q3d/reflection_model.h>
-#include <usml/wave_q3d/spreading_ray.h>
-#include <usml/wave_q3d/spreading_hybrid_gaussian.h>
-#include <usml/wave_q3d/proploss.h>
+#include <usml/waveq3d/wave_queue.h>
+#include <usml/waveq3d/ode_integ.h>
+#include <usml/waveq3d/reflection_model.h>
+#include <usml/waveq3d/spreading_ray.h>
+#include <usml/waveq3d/spreading_hybrid_gaussian.h>
+#include <usml/waveq3d/proploss.h>
 
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/triangular.hpp>
@@ -19,7 +19,7 @@
 //#define DEBUG_CAUSTICS
 //#define USML_DEBUG
 
-using namespace usml::wave_q3d ;
+using namespace usml::waveq3d ;
 
 /**
  * Initialize a propagation scenario.

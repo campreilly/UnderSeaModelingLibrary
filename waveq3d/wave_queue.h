@@ -6,12 +6,12 @@
 #define USML_WAVEQ3D_WAVE_QUEUE_H
 
 #include <usml/ocean/ocean.h>
-#include <usml/wave_q3d/reverb_model.h>
-#include <usml/wave_q3d/wave_front.h>
+#include <usml/waveq3d/reverb_model.h>
+#include <usml/waveq3d/wave_front.h>
 #include <netcdfcpp.h>
 
 namespace usml {
-namespace wave_q3d {
+namespace waveq3d {
 
 using namespace usml::ocean ;
 class reverb_model ;    // forward references for friend declarations
@@ -21,7 +21,7 @@ class spreading_ray ;
 class spreading_hybrid_gaussian ;
 class proploss ;
 
-/// @ingroup wave_q3d
+/// @ingroup waveq3d
 /// @{
 
 /**
@@ -657,7 +657,7 @@ class USML_DECLSPEC wave_queue {
 };
 
 /// @}
-}  // end of namespace wave_q3d
+}  // end of namespace waveq3d
 }  // end of namespace usml
 
 #endif

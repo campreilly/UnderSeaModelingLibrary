@@ -2,10 +2,10 @@
  * @file reflection_model.cc
  * Reflection model components of wave_queue object type.
  */
-#include <usml/wave_q3d/reflection_model.h>
-#include <usml/wave_q3d/ode_integ.h>
+#include <usml/waveq3d/reflection_model.h>
+#include <usml/waveq3d/ode_integ.h>
 
-using namespace usml::wave_q3d ;
+using namespace usml::waveq3d ;
 
 /**
  * Reflect a single acoustic ray from the ocean bottom.  

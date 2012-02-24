@@ -5,10 +5,10 @@
 #ifndef USML_WAVEQ3D_SPREADING_RAY_H
 #define USML_WAVEQ3D_SPREADING_RAY_H
 
-#include <usml/wave_q3d/spreading_model.h>
+#include <usml/waveq3d/spreading_model.h>
 
 namespace usml {
-namespace wave_q3d {
+namespace waveq3d {
 
 using namespace usml::ocean ;
 
@@ -94,7 +94,7 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
         const vector<double>& offset, const vector<double>& distance ) ;
 } ;
 
-}  // end of namespace wave_q3d
+}  // end of namespace waveq3d
 }  // end of namespace usml
 
 #endif

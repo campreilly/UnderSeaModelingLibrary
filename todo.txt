@@ -5,6 +5,7 @@ Stuff to do:
      Automatic data type translation does not seem to be working.
      Line 82 in netcdf_bathy.cc altitude->get( this->_data, lat_num, lng_num ) ;
      Tries to read "int" data into "float" array.  Function returns false.
+  -- Make compiles of Tests and NetCDF interface optional?
   
 * Cleanup tasks
   -- Move eigenray_llyods to studies directory.  Runs slow.

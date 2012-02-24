@@ -2,13 +2,13 @@
  * @file spreading_hybrid_gaussian.cc
  * Spreading loss based on a hybrid Gaussian beam theory.
  */
-#include <usml/wave_q3d/spreading_hybrid_gaussian.h>
+#include <usml/waveq3d/spreading_hybrid_gaussian.h>
 #include<boost/numeric/ublas/matrix_proxy.hpp>
 
 //#define USML_WAVEQ3D_DEBUG_DE
 //#define USML_WAVEQ3D_DEBUG_AZ
 
-using namespace usml::wave_q3d;
+using namespace usml::waveq3d;
 
 const double spreading_hybrid_gaussian::SPREADING_WIDTH = TWO_PI ;
 const double spreading_hybrid_gaussian::OVERLAP = 2.0 ;

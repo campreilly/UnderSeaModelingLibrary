@@ -2,10 +2,10 @@
  * @file proploss.cc
  * List of targets and their associated propagation data.
  */
-#include <usml/wave_q3d/proploss.h>
+#include <usml/waveq3d/proploss.h>
 #include <netcdfcpp.h>
 
-using namespace usml::wave_q3d ;
+using namespace usml::waveq3d ;
 
 /**
  * Initialize the acoustic propagation effects associated  with each target.

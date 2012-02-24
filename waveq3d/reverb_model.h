@@ -9,7 +9,7 @@
 #include <usml/types/types.h>
 
 namespace usml {
-namespace wave_q3d {
+namespace waveq3d {
 
 using namespace usml::ocean ;
 
@@ -46,7 +46,7 @@ class USML_DECLSPEC reverb_model {
 };
 
 /// @}
-}  // end of namespace wave_q3d
+}  // end of namespace waveq3d
 }  // end of namespace usml
 
 #endif

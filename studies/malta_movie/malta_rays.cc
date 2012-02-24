@@ -15,13 +15,13 @@
  *
  * Results are stored to speadsheet files for later plotting.
  */
-#include <usml/wave_q3d/wave_q3d.h>
+#include <usml/waveq3d/waveq3d.h>
 #include <usml/netcdf/netcdf_files.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 
-using namespace usml::wave_q3d ;
+using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
 using namespace usml::ocean ;
 

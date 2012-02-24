@@ -5,10 +5,10 @@
 #ifndef USML_WAVEQ3D_ODE_INTEG_H
 #define USML_WAVEQ3D_ODE_INTEG_H
 
-#include <usml/wave_q3d/wave_queue.h>
+#include <usml/waveq3d/wave_queue.h>
 
 namespace usml {
-namespace wave_q3d {
+namespace waveq3d {
 
 using namespace usml::ocean ;
 class wave_queue ;      // forward reference for friend declaration
@@ -125,7 +125,7 @@ class USML_DECLSPEC ode_integ {
         wave_front *y2, wave_front *y3, bool no_alias=true ) ;
 } ;
 
-}  // end of namespace wave_q3d
+}  // end of namespace waveq3d
 }  // end of namespace usml
 
 #endif

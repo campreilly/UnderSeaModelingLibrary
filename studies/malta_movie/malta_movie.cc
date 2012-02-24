@@ -17,12 +17,12 @@
  * The resulting wavefronts are stored in the "malta_movie.nc" netCDF
  * file for later plotting by Matlab, Octave, or other analysis routines.
  */
-#include <usml/wave_q3d/wave_q3d.h>
+#include <usml/waveq3d/waveq3d.h>
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/ocean/ocean.h>
 #include <fstream>
 
-using namespace usml::wave_q3d ;
+using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
 using namespace usml::ocean ;
 

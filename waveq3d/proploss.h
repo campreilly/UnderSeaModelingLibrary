@@ -6,15 +6,15 @@
 #define USML_WAVEQ3D_PROPLOSS_H
 
 #include <usml/ocean/ocean.h>
-#include <usml/wave_q3d/eigenray.h>
-#include <usml/wave_q3d/wave_queue.h>
+#include <usml/waveq3d/eigenray.h>
+#include <usml/waveq3d/wave_queue.h>
 
 namespace usml {
-namespace wave_q3d {
+namespace waveq3d {
 
 using namespace usml::ocean;
 
-/// @ingroup wave_q3d
+/// @ingroup waveq3d
 /// @{
 
 /**
@@ -312,7 +312,7 @@ public:
 };
 
 /// @}
-} // end of namespace wave_q3d
+} // end of namespace waveq3d
 } // end of namespace usml
 
 #endif

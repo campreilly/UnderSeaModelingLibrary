@@ -1,10 +1,10 @@
 /**
- * @example wave_q3d/test/reflection_test.cc
+ * @example waveq3d/test/reflection_test.cc
  */
 #include <boost/test/unit_test.hpp>
 #include <usml/netcdf/netcdf_files.h>
-#include <usml/wave_q3d/wave_q3d.h>
-#include <usml/wave_q3d/reverb_model.h>
+#include <usml/waveq3d/waveq3d.h>
+#include <usml/waveq3d/reverb_model.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -13,10 +13,10 @@ BOOST_AUTO_TEST_SUITE(reflection_test)
 
 using namespace boost::unit_test ;
 using namespace usml::netcdf ;
-using namespace usml::wave_q3d ;
+using namespace usml::waveq3d ;
 
 /**
- * @ingroup wave_q3d_test
+ * @ingroup waveq3d_test
  * @{
  */
 

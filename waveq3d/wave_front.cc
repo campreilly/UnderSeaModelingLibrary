@@ -2,9 +2,9 @@
  * @file wave_front.cc
  * Wavefront characteristics at a specific point in time.
  */
-#include <usml/wave_q3d/wave_front.h>
+#include <usml/waveq3d/wave_front.h>
 
-using namespace usml::wave_q3d ;
+using namespace usml::waveq3d ;
 
 /**
  * Create workspace for all properties.

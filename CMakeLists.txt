@@ -22,12 +22,15 @@ project( usml CXX )
 set( PACKAGE_VERSION_MAJOR 0 )
 set( PACKAGE_VERSION_MINOR 2 )
 set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
-set( PACKAGE_MODULES ublas types netcdf ocean ) # wave_q3d ) 
+set( PACKAGE_MODULES ublas types netcdf ocean waveq3d ) 
 
 option( USML_PEDANTIC "use only C++98, maximize warnings, treat warning as errors" ON )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
-set( CMAKE_BUILD_TYPE Release CACHE STRING "type of build" )
-set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} )
+if( NOT CMAKE_BUILD_TYPE )
+    set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
+endif()
+set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS 
+    Release Debug RelWithDebInfo MinSize )
 
 ######################################################################
 # Visual C++ compiler options

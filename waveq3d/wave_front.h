@@ -8,11 +8,11 @@
 #include <usml/ocean/ocean.h>
 
 namespace usml {
-namespace wave_q3d {
+namespace waveq3d {
 
 using namespace usml::ocean ;
 
-/// @ingroup wave_q3d
+/// @ingroup waveq3d
 /// @{
 
 /**
@@ -323,7 +323,7 @@ private:
 };
 
 /// @}
-}  // end of namespace wave_q3d
+}  // end of namespace waveq3d
 }  // end of namespace usml
 
 #endif

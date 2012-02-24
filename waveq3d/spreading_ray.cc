@@ -2,9 +2,9 @@
  * @file spreading_ray.cc
  * Spreading loss based on classic ray theory.
  */
-#include <usml/wave_q3d/spreading_ray.h>
+#include <usml/waveq3d/spreading_ray.h>
 
-using namespace usml::wave_q3d;
+using namespace usml::waveq3d;
 
 /**
  * Estimate initial ensonfied area between rays at radius of 1 meter.

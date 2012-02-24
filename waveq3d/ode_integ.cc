@@ -2,9 +2,9 @@
  * @file ode_integ.cc
  * Integration utilities for ordinary differental equations.
  */
-#include <usml/wave_q3d/ode_integ.h>
+#include <usml/waveq3d/ode_integ.h>
 
-using namespace usml::wave_q3d ;
+using namespace usml::waveq3d ;
 
 /**
  * First position estimate in 3rd order Runge-Kutta.

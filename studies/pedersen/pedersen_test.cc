@@ -52,7 +52,7 @@
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
-#include <usml/wave_q3d/wave_q3d.h>
+#include <usml/waveq3d/waveq3d.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -60,7 +60,7 @@
 BOOST_AUTO_TEST_SUITE(pedersen_test)
 
 using namespace boost::unit_test;
-using namespace usml::wave_q3d;
+using namespace usml::waveq3d;
 
 // Define analysis parameter constants.
 

@@ -5,10 +5,10 @@
 #ifndef USML_WAVEQ3D_REFLECTION_MODEL_H
 #define USML_WAVEQ3D_REFLECTION_MODEL_H
 
-#include <usml/wave_q3d/wave_queue.h>
+#include <usml/waveq3d/wave_queue.h>
 
 namespace usml {
-namespace wave_q3d {
+namespace waveq3d {
 
 using namespace usml::ocean ;
 class wave_queue ;      // forward reference for friend declaration
@@ -212,7 +212,7 @@ class USML_DECLSPEC reflection_model {
         wave_front& results ) ;
 } ;
 
-}  // end of namespace wave_q3d
+}  // end of namespace waveq3d
 }  // end of namespace usml
 
 #endif

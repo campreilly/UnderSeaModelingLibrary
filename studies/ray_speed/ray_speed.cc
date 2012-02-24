@@ -16,12 +16,12 @@
  *      - AZ: [0,360] in 5.0 deg steps
  *
  */
-#include <usml/wave_q3d/wave_q3d.h>
+#include <usml/waveq3d/waveq3d.h>
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/ocean/ocean.h>
 #include <fstream>
 
-using namespace usml::wave_q3d ;
+using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
 using namespace usml::ocean ;
 

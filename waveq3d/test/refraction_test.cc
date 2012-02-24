@@ -1,8 +1,8 @@
 /**
- * @example wave_q3d/test/refraction_test.cc
+ * @example waveq3d/test/refraction_test.cc
  */
 #include <boost/test/unit_test.hpp>
-#include <usml/wave_q3d/wave_q3d.h>
+#include <usml/waveq3d/waveq3d.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -10,10 +10,10 @@
 BOOST_AUTO_TEST_SUITE(refraction_test)
 
 using namespace boost::unit_test;
-using namespace usml::wave_q3d;
+using namespace usml::waveq3d;
 
 /**
- * @ingroup wave_q3d_test
+ * @ingroup waveq3d_test
  * @{
  */
 
