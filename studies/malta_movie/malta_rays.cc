@@ -106,32 +106,32 @@ int main( int argc, char* argv[] ) {
                 << "c,dcdz"
                 << endl ;
 
-            wvector1 ndir( wave.current()->ndirection, d, a ) ;
+            wvector1 ndir( wave.curr()->ndirection, d, a ) ;
             double de, az ;
             ndir.direction( &de, &az ) ;
 
             *os[d][a] << wave.time() << ','
-                << wave.current()->position.latitude(d,a) << ','
-                << wave.current()->position.longitude(d,a) << ','
-                << wave.current()->position.altitude(d,a) << ','
+                << wave.curr()->position.latitude(d,a) << ','
+                << wave.curr()->position.longitude(d,a) << ','
+                << wave.curr()->position.altitude(d,a) << ','
                 << de << "," << az << ","
-                << wave.current()->surface(d,a) << ','
-                << wave.current()->bottom(d,a) << ','
-                << wave.current()->caustic(d,a) << ','
-                << wave.current()->position.rho(d,a) << ','
-                << wave.current()->position.theta(d,a) << ','
-                << wave.current()->position.phi(d,a) << ','
-                << wave.current()->pos_gradient.rho(d,a) << ','
-                << wave.current()->pos_gradient.theta(d,a) << ','
-                << wave.current()->pos_gradient.phi(d,a) << ','
-                << wave.current()->ndirection.rho(d,a) << ','
-                << wave.current()->ndirection.theta(d,a) << ','
-                << wave.current()->ndirection.phi(d,a) << ','
-                << wave.current()->ndir_gradient.rho(d,a) << ','
-                << wave.current()->ndir_gradient.theta(d,a) << ','
-                << wave.current()->ndir_gradient.phi(d,a) << ','
-                << wave.current()->sound_speed(d,a) << ','
-                << wave.current()->sound_gradient.rho(d,a) ;
+                << wave.curr()->surface(d,a) << ','
+                << wave.curr()->bottom(d,a) << ','
+                << wave.curr()->caustic(d,a) << ','
+                << wave.curr()->position.rho(d,a) << ','
+                << wave.curr()->position.theta(d,a) << ','
+                << wave.curr()->position.phi(d,a) << ','
+                << wave.curr()->pos_gradient.rho(d,a) << ','
+                << wave.curr()->pos_gradient.theta(d,a) << ','
+                << wave.curr()->pos_gradient.phi(d,a) << ','
+                << wave.curr()->ndirection.rho(d,a) << ','
+                << wave.curr()->ndirection.theta(d,a) << ','
+                << wave.curr()->ndirection.phi(d,a) << ','
+                << wave.curr()->ndir_gradient.rho(d,a) << ','
+                << wave.curr()->ndir_gradient.theta(d,a) << ','
+                << wave.curr()->ndir_gradient.phi(d,a) << ','
+                << wave.curr()->sound_speed(d,a) << ','
+                << wave.curr()->sound_gradient.rho(d,a) ;
         	*os[d][a] << endl ;
         	(*os[d][a]).flush() ;
         }
@@ -149,31 +149,31 @@ int main( int argc, char* argv[] ) {
 
     	for ( unsigned d=0 ; d < de.size() ; ++d ) {
     	    for ( unsigned a=0 ; a < az.size() ; ++a ) {
-                wvector1 ndir( wave.current()->ndirection, d, a ) ;
+                wvector1 ndir( wave.curr()->ndirection, d, a ) ;
                 double de, az ;
                 ndir.direction( &de, &az ) ;
 
                 *os[d][a] << wave.time() << ','
-                    << wave.current()->position.latitude(d,a) << ','
-                    << wave.current()->position.longitude(d,a) << ','
-                    << wave.current()->position.altitude(d,a) << ','
+                    << wave.curr()->position.latitude(d,a) << ','
+                    << wave.curr()->position.longitude(d,a) << ','
+                    << wave.curr()->position.altitude(d,a) << ','
                     << de << "," << az << ","
-                    << wave.current()->surface(d,a) << ','
-                    << wave.current()->bottom(d,a) << ','
-                    << wave.current()->position.rho(d,a) << ','
-                    << wave.current()->position.theta(d,a) << ','
-                    << wave.current()->position.phi(d,a) << ','
-                    << wave.current()->pos_gradient.rho(d,a) << ','
-                    << wave.current()->pos_gradient.theta(d,a) << ','
-                    << wave.current()->pos_gradient.phi(d,a) << ','
-                    << wave.current()->ndirection.rho(d,a) << ','
-                    << wave.current()->ndirection.theta(d,a) << ','
-                    << wave.current()->ndirection.phi(d,a) << ','
-                    << wave.current()->ndir_gradient.rho(d,a) << ','
-                    << wave.current()->ndir_gradient.theta(d,a) << ','
-                    << wave.current()->ndir_gradient.phi(d,a) << ','
-                    << wave.current()->sound_speed(d,a) << ','
-                    << wave.current()->sound_gradient.rho(d,a) ;
+                    << wave.curr()->surface(d,a) << ','
+                    << wave.curr()->bottom(d,a) << ','
+                    << wave.curr()->position.rho(d,a) << ','
+                    << wave.curr()->position.theta(d,a) << ','
+                    << wave.curr()->position.phi(d,a) << ','
+                    << wave.curr()->pos_gradient.rho(d,a) << ','
+                    << wave.curr()->pos_gradient.theta(d,a) << ','
+                    << wave.curr()->pos_gradient.phi(d,a) << ','
+                    << wave.curr()->ndirection.rho(d,a) << ','
+                    << wave.curr()->ndirection.theta(d,a) << ','
+                    << wave.curr()->ndirection.phi(d,a) << ','
+                    << wave.curr()->ndir_gradient.rho(d,a) << ','
+                    << wave.curr()->ndir_gradient.theta(d,a) << ','
+                    << wave.curr()->ndir_gradient.phi(d,a) << ','
+                    << wave.curr()->sound_speed(d,a) << ','
+                    << wave.curr()->sound_gradient.rho(d,a) ;
             	*os[d][a] << endl ;
             	(*os[d][a]).flush() ;
             }

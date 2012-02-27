@@ -227,3 +227,20 @@ FIND_SOURCES( "${PACKAGE_MODULES}" "/test" )
 add_executable( usml_test ${HEADERS} ${SOURCES} )
 target_link_libraries( usml_test usml )
 
+######################################################################
+# USML studies
+
+add_executable( ray_speed studies/ray_speed/ray_speed.cc )
+target_link_libraries( ray_speed usml )
+
+add_executable( pedersen_test studies/pedersen/pedersen_test.cc )
+target_link_libraries( pedersen_test usml )
+
+add_executable( malta_movie studies/malta_movie/malta_movie.cc )
+target_link_libraries( malta_movie usml )
+
+add_executable( malta_rays studies/malta_movie/malta_rays.cc )
+target_link_libraries( malta_rays usml )
+
+
+

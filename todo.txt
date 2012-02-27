@@ -1,7 +1,7 @@
 Stuff to do:
 
 * Porting to Windows
-  -- Add "studies" to CMake build process.
+  -- The ray_speed test is suddenly running much slower (about 117 sec/60 sec).
   -- Make compiles of Tests and NetCDF interface optional?
   
 * Cleanup tasks
