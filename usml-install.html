@@ -57,10 +57,21 @@
     <p>This version of USML requires a few changes to the external dependencies.</p> 
     <ul>
     <li> By default, CMake does not include a module to find NetCDF libraries.  Please copy the 
-         <code>FindNetCDF.cmake</code> file from the <code>config</code> directory into CMake's shared modules directory. </li>
+         <code>FindNetCDF.cmake</code> file from the <code>config</code> directory 
+         into CMake's shared modules directory. </li>
+    <li> Unidata's recent refactoring of the NetCDF library (Summer of 2010) hopelessly broke
+         the existing port to Microsoft Visual Studio (see 
+         <a href="http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#windows_netcdf4_1">
+         http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#windows_netcdf4_1</a>).
+         Until this is fixed by the open source community, Windows developers are expected 
+         to create their own NetCDF libraries from source code.  A copy of the 
+         CMake-based build that system that we used for testing is freely available on GitHub at
+         <a href="https://github.com/campreilly/netcdf-4.1.3-with-cmake">
+	 https://github.com/campreilly/netcdf-4.1.3-with-cmake</a>.
     <li> There is a bug in version 1.48 of the Boost uBLAS library that prevents us from overloading
-         operator/().  Please search for the symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the 
-         <code>vector_expression.hpp</code> and <code>matrix_expression.hpp</code> files in the <code>config</code> directory.
+         operator/().  To see the correctedd version of this code, please search for the 
+         symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the <code>vector_expression.hpp</code> 
+         and <code>matrix_expression.hpp</code> files in the <code>config</code> directory.
          In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
          just above it. Those using Boost 1.48.0 can just replace the original files with the
          ones from the <code>config</code> directory.

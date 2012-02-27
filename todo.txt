@@ -1,6 +1,7 @@
 Stuff to do:
 
 * Porting to Windows
+  -- Add "studies" to CMake build process.
   -- Make compiles of Tests and NetCDF interface optional?
   
 * Cleanup tasks
