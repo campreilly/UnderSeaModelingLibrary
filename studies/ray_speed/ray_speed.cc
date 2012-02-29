@@ -18,7 +18,6 @@
  */
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/netcdf/netcdf_files.h>
-#include <usml/ocean/ocean.h>
 #include <fstream>
 
 using namespace usml::waveq3d ;

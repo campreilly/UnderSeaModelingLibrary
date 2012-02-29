@@ -233,6 +233,9 @@ target_link_libraries( usml_test usml )
 add_executable( ray_speed studies/ray_speed/ray_speed.cc )
 target_link_libraries( ray_speed usml )
 
+add_executable( eigenray_extra_test studies/eigenray_extra/eigenray_extra_test.cc )
+target_link_libraries( eigenray_extra_test usml )
+
 add_executable( pedersen_test studies/pedersen/pedersen_test.cc )
 target_link_libraries( pedersen_test usml )
 

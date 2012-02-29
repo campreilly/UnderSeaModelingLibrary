@@ -49,9 +49,7 @@
  * New York, 1994) pp. 162-166.
  */
 #define BOOST_TEST_MAIN
-#define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
 #include <usml/waveq3d/waveq3d.h>
 #include <iostream>
 #include <iomanip>
@@ -182,13 +180,13 @@ void analyze_raytrace(
                     wave.curr()->position.latitude(d,0) - LAT_SOURCE ) ;
 
                 // find T = travel time to the ray at the target location
-                // Pedersen eq. 12: 
+                // Pedersen eq. 12:
                 // R = 2/(3b Cm^3)[tan^3(Ah)-tan^3(As)-2tan^3(A0)] + R/Cm
 
                 const double T = (2/(3*b*Cm*Cm*Cm))
-                    * ( tanAh*tanAh*tanAh - tanAs*tanAs*tanAs 
+                    * ( tanAh*tanAh*tanAh - tanAs*tanAs*tanAs
                       - 2*tanA0*tanA0*tanA0 ) + R / Cm ;
-                
+
                 // write the results to a spreadsheet
 
                 os << -to_degrees(As)

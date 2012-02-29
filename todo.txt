@@ -1,14 +1,11 @@
 Stuff to do:
 
-* Porting to Windows
-  -- The ray_speed test is suddenly running much slower (about 117 sec/60 sec).
-  -- Make compiles of Tests and NetCDF interface optional?
-  
 * Cleanup tasks
-  -- Move eigenray_llyods to studies directory.  Runs slow.
-  -- Move wave_element::on_edge and find_edges() to wavefront class.
+  -- Compute bottom depth during wave_front::update() process.
+     In preparation for optimizing interpolation with vector arguments.
   -- Find a way to pass generic USML vector instead of explicitly using
      explicit c_vector anywhere in the API.
+  -- Make compiles of Tests and NetCDF interface optional?
   -- Update references to Reilly paper to reflect JCA reference.
   -- Ensure that that the proploss and eigenray tests still work if we revert
      to the wave_front::CLASSIC_RAY version of the model.
