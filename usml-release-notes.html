@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+  <head>
+    <title>Under Sea Modeling Library (USML)</title>
+  </head>
+  <body>
+    <h1>Under Sea Modeling Library (USML) Release Notes</h1>
+
+    <h2>Release 0.02</h2>
+    <ul>
+    <li>Convert to CMake build system to support multiple operating systems.</li>
+        <ul>
+        <li>Port the library to Windows using Visual C++ 2010 Express.</li>
+        <li>Eliminate the need for USML_ROOT environment variable.</li>
+        <li>Define symbols for test data files in CMakeLists file.</li>
+        <li>Quitely fail some tests w/o errors if current platform does not 
+            include the ncks utility.</li>
+        </ul>
+    <li>Fix vector/matrix operations with scalars.</li>
+        <ul>
+        <li>Requires upgrade of Boost library to version 1.48.0 or better.</li>
+        <li>Use enable_if<> template like 1.48.0 version of ublas.</li>
+        <li>Before this fix, scalar addition with vector/matrix just resulted
+            in the original vector/matrix on Windows.<li>
+        <li>This fix fixed the errors in dot_test and distance_test.</li>
+        </ul>
+    <li>Use operator*() and operator/() as aliases for element_prod() and element_div().</li>
+        <ul>
+        <li>Requires a bug fix in ublas itself.</li>
+        <li>file: boost/numeric/ublas/vector_expression.hpp lines 1409 through 1417
+            Should be using the enable_if<> macros just like the operator*()
+            in lines 1397 through 1407 (just above it).  Doing so allows further
+            overloading of operator/() for other types.</li>
+        </ul>
+    <li>Fixed a bug in wave_front::find_edges().  First loop on line 201 said max_az
+        when it should have said max_de.</li>
+    <li>Fixed memory leaks in the way that tests were using NetCDF.  Calls to 
+        get_att() and values() require the user to free the memory when they are down with it.</li>
+    <li>Change the name of wave_q3d to waveq3d.</li>
+    <li>Move eigenray_llyods to studies directory because it runs slow.</li>
+    </ul>
+
+    <h2>Release 0.01</h2>
+    <ul>
+    <li>First version delivered to ONR.</li>
+    </ul>
+
+
+  </body>
+</html>
