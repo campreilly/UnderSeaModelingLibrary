@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+  <head>
+    <title>Under Sea Modeling Library (USML)</title>
+  </head>
+  <body>
+    <h1>Under Sea Modeling Library (USML)</h1>
+    <p>
+      The Under Sea Modeling Library (USML) is a collection of C++ software
+      development modules for sonar modeling and simulation.
+      The Wavefront Queue 3D (WaveQ3D) model is the component of USML
+      that computes acoustic transmission loss in the ocean using
+      Hybrid Gaussian Beams in Spherical/Time Coordinates.
+      At this time, most of the other modules provide support to WaveQ3D.
+    </p>
+    <h2>Research Papers</h2>
+    <ul>
+    <li>S. M. Reilly, G. Potty, M. Goodrich, <a href="/Rays/USML/ReillyGaussianSphericalTime.pdf">
+        Sonar Propagation Modeling using Hybrid Gaussian Beams in Spherical/Time Coordinates</a>, 
+        Preprint of an article submitted for consideration in 
+        Journal of Computational Acoustics (JCA) (c) 2012
+        copyright World Scientic Publishing Company, http://www.worldscinet.com/jca/.
+        </li>
+    <li>S. M. Reilly, G. Potty, <a href="/Rays/USML/ReillyTestingGaussianSphericalTime.pdf">
+        Verfication Tests for Hybrid Gaussian Beams in Spherical/Time Coordinates</a>, 
+        Report to the High Fidelity Active Sonar Training (HiFAST) Program,
+        U. S. Office of Naval Research, 10 January 2012.
+        </li>
+    </ul>
+    <h2>Distribution Media</h2>
+    <ul>
+    <li>Source Code for <a href=/USML/usml-src-0.02.tar.gz">Linux</a> and
+        <a href="/Rays/USML/usml-src-0.02.zip">Windows</a>. </li>
+    <li>API Documentation for <a href="/Rays/USML/usml-doc-0.02.tar.gz">Linux</a> and
+        <a href="/Rays/USML/usml-doc-0.02.zip">Windows</a>. </li>
+    <li><a href="/Rays/USML/usml-data-0.02.tar.gz">Test Data</a> </li>
+    <li><a href="/Rays/USML/usml-install.html">Installation Instructions</a> 
+        (same as below).</li>
+    </ul>
+    <h2>External Dependencies</h2>
+    This current version of this package has been tested in
+    the following environments:
+    <ul>
+      <li> Ubuntu Linux 10.04 LTS (this is USML's primary environment) </li>
+      <ul>
+        <li> GNU C++ compiler (4.4.3) </li>
+        <li>
+          CMake 2.8.7 from <a href="http://www.cmake.org/">http://www.cmake.org/</a>
+          (Makefile and Eclipse CDT4 generators)
+        </li>
+        <li>
+          boost 1.48.0 from <a href="http://www.boost.org">http://www.boost.org</a>
+        </li>
+        <li>
+          netcdf 3.6.3 & nco 3.9.9 from
+          <a href="http://www.unidata.ucar.edu/software/netcdf">
+            http://www.unidata.ucar.edu/software/netcdf
+          </a>
+        </li>
+        <li>
+          Doxygen 1.6.3 from <a href="http://www.doxygen.org">http://www.doxygen.org</a>
+        </li>
+      </ul>
+      <li>
+        Windows 7
+      </li>
+      <ul>
+        <li>
+          Microsoft Visual C++ 2010 Express from
+          <a href="http://www.microsoft.com/visualstudio/en-us/products/2010-editions/visual-cpp-express">
+            http://www.microsoft.com/visualstudio/en-us/products/2010-editions/visual-cpp-express
+          </a>
+        </li>
+        <li> CMake 2.8.7 (Visual Studio 10 and NMAKE generators) </li>
+        <li> boost 1.48.0 </li>
+        <li> netcdf 4.1.3 </li>
+      </ul>
+    </ul>
+
+    <h3>Configuration Issues with External Dependencies</h3>
+    <p>This version of USML requires a few changes to the external dependencies.</p> 
+    <ul>
+    <li> By default, CMake does not include a module to find NetCDF libraries.  Please copy the 
+         <code>FindNetCDF.cmake</code> file from the <code>config</code> directory 
+         into CMake's shared modules directory. </li>
+    <li> Unidata's recent refactoring of the NetCDF library (Summer of 2010) hopelessly broke
+         the existing port to Microsoft Visual Studio (see 
+         <a href="http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#windows_netcdf4_1">
+         http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#windows_netcdf4_1</a>).
+         Until this is fixed by the open source community, Windows developers are expected 
+         to create their own NetCDF libraries from source code.  A copy of the 
+         CMake-based build that system that we used for testing is freely available on GitHub at
+         <a href="https://github.com/campreilly/netcdf-4.1.3-with-cmake">
+	 https://github.com/campreilly/netcdf-4.1.3-with-cmake</a>.
+    <li> There is a bug in version 1.48 of the Boost uBLAS library that prevents us from overloading
+         operator/().  To see the correctedd version of this code, please search for the 
+         symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the <code>vector_expression.hpp</code> 
+         and <code>matrix_expression.hpp</code> files in the <code>config</code> directory.
+         In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
+         just above it. Those using Boost 1.48.0 can just replace the original files with the
+         ones from the <code>config</code> directory.
+    </ul>
+
+    <h2>Building and Testing USML</h2>
+
+    <p>
+      For the sake of the example, let's assume that you are installing on a Linux
+      system into the "~/Projects/usml" directory. Assuming that this is the current
+      directory, and that all of the tarballs are here as well, the Linux commands
+      to execute would be:
+      <pre>
+        tar -xzf usml-src-#.##.tar.gz
+        tar -xzf usml-doc-#.##.tar.gz
+        tar -xzf usml-data-#.##.tar.gz
+      </pre>
+      where #.## is the version number to be installed.
+    </p><p>
+      This library is built using the CMake cross-platform, open-source build system.
+      Users are strongly encouraged to configure their builds using the cmake-gui
+      tool.  CMake makes it much easier to support cross-platform builds, but it
+      requires a few more steps than a direct Makefile interface.
+      For example, a simple Unix build includes the following steps.
+    </p>
+    <ul>
+      <li>
+        In the cmake-gui tool, set the source directory to the place where you
+        installed the USML source code.
+      </li>
+      <li>
+        Setup for an "out of source" build by setting the binary directory to
+        something like the "~/Projects/usml-build" directory.  Using a binary
+        directory that is not outside of the source tree is strictly optional,
+        except for the <a href="http://www.vtk.org/Wiki/Eclipse_CDT4_Generator">
+	Eclipse CMake generator</a>.
+      </li>
+      <li>
+        Use the "Configure" button to process the CMakeList file.
+        Select the "Unix Makefile" generator from the pop-up menu.
+      </li>
+      <li>
+        Change any options that you'd like. Note that the USML_PEDANTIC option
+        is only used to search for questionable programming during our development.
+      </li>
+      <li>
+        Hit the "Configure" button a second time, even if you have not changed any
+        options.  Hit the "Generate" button to create makefiles for your system.
+        At this point, you can close the cmake-gui tool.
+      </li>
+      <li>
+        Run the "make" utility from "~/Projects/usml-build" directory to compile both
+        the usml shared libraries and the usml_test regression tests.
+      </li>
+      <li>
+        You can optionally use "make install" to install the compiled programs into
+        the include, lib, and src directories in /usr/local.
+      </li>
+      <li>
+        Running the "usml_test"  regression test should run without errors if the
+        compilation and install were successful.  Prints "*** No errors detected".
+      </li>
+    </ul>
+
+  </body>
+</html>
