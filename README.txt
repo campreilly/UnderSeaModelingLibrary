@@ -6,4 +6,5 @@ Hybrid Gaussian Beams in Spherical/Time Coordinates. At this time,
 most of the other modules provide support to WaveQ3D. 
 
 Instructions for building and testing this library are provided
-in the usml_install.html file.
+in the usml_install.html file.  Documentation for the users of
+this model is created from the source code using Doxygen.
