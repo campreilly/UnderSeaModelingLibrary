@@ -34,13 +34,21 @@ ylabel('Longitude (deg)');
 title('Coastal Relief Model (3 sec resolution)');
 colorbar;
 
+% add a contour between bottom types
+
+hold on;
+[c,h] = contour(crm.longitude,crm.latitude,crm.altitude,[0 -236.0])
+set(h,'LineColor','black');
+
 % add ship tracks
 
 hold on;
-plot(-79.99054,26.0217,'ko');
+h = plot(-79.99054,26.0217,'ko');
+set(h,'MarkerEdgeColor','yellow','MarkerFaceColor','yellow');
 x = [ -79.99054 -79.88057 ] ;
 y = [ 26.03545 26.73028 ] ;
-plot(x,y,'k-');
+h = plot(x,y,'k-');
+set(h,'Color','white');
 hold off
 
 % load and plot SVP data
