@@ -245,5 +245,8 @@ target_link_libraries( malta_movie usml )
 add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 target_link_libraries( malta_rays usml )
 
+add_executable( reflect_loss_florida studies/florida_straits/reflect_loss_florida.cc )
+target_link_libraries( reflect_loss_florida usml )
+
 
 
