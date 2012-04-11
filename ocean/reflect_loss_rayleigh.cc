@@ -6,6 +6,16 @@
 
 using namespace usml::ocean ;
 
+/**
+ * Converts attenuation in dB/wavelength units into the loss tangent
+ * needed for the complex sound speed.  This is the same as the
+ * (1.0/54.5751) factor defined in  * F.B. Jensen, W.A. Kuperman,
+ * M.B. Porter, H. Schmidt, "Computational Ocean Acoustics",
+ * equation 1.46.
+ *
+ */
+static const double ATT_CONVERT = 1.0 / (20.0*M_LOG10E*TWO_PI);
+
 /** 
  * Reflection loss parameter lookup from table 1.3 in 
  * F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
@@ -39,9 +49,9 @@ reflect_loss_rayleigh::reflect_loss_rayleigh(
     _speed_water(1500.0),
     _density_bottom( _density_water * lookup[(int)type].density ),
     _speed_bottom( _speed_water * lookup[(int)type].speed ),
-    _att_bottom( lookup[(int)type].att_bottom / (20.0*M_LOG10E) ),
-    _speed_shear( _speed_shear * lookup[(int)type].speed_shear ),
-    _att_shear( lookup[(int)type].att_shear / (20.0*M_LOG10E) )
+    _att_bottom( lookup[(int)type].att_bottom * ATT_CONVERT ),
+    _speed_shear( _speed_water * lookup[(int)type].speed_shear ),
+    _att_shear( lookup[(int)type].att_shear * ATT_CONVERT )
 {
 } 
 
@@ -56,9 +66,9 @@ reflect_loss_rayleigh::reflect_loss_rayleigh(
     _speed_water(1500.0),
     _density_bottom( _density_water * density ),
     _speed_bottom( _speed_water * speed ),
-    _att_bottom( att_bottom / (20.0*M_LOG10E) ),
+    _att_bottom( att_bottom * ATT_CONVERT ),
     _speed_shear( _speed_water * speed_shear ),
-    _att_shear( att_shear / (20.0*M_LOG10E) )
+    _att_shear( att_shear * ATT_CONVERT )
 {
 } 
 
@@ -111,7 +121,7 @@ complex<double> reflect_loss_rayleigh::impedence(
     double density, double speed, double attenuation, double angle,
     complex< double >* cosA ) 
 {
-    const complex< double > c( speed, -attenuation/TWO_PI*speed ) ;
+    const complex< double > c( speed, -attenuation*speed ) ;
     const complex< double > sinA = sin(angle) * c / _speed_water ;
     *cosA = sqrt( 1.0 - sinA*sinA ) ;
     return c * density / (*cosA) ;
