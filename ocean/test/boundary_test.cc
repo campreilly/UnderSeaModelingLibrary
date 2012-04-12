@@ -204,6 +204,27 @@ BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
     BOOST_CHECK_CLOSE( normal.phi(), 0.012764947615721318, normal_accuracy );
 }
 
+/**
+ * Test the extraction of bathymetry data from ASCII files with an ARC header.
+ * The test file creates a simple environment with 3 latitudes and 4 longitudes.
+ * Testing individual depth points in latitude and longitude ensures the
+ * the data is oriented correctly as it is read in.  Errors on the order 3 cm
+ * are introduced by the conversion from earth spherical coordinates and back.
+ */
+BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
+    cout << "=== boundary_test: ascii_arc_test ===" << endl;
+
+    ascii_arc_bathy bathy( USML_ASCII_ARC_TEST_DATA ) ;
+
+    BOOST_CHECK_EQUAL( bathy.axis(0)->size(), 3 );
+    BOOST_CHECK_EQUAL( bathy.axis(1)->size(), 4 );
+
+    unsigned index[2] ;
+    index[0]=0; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - bathy.data(index), -100.0, 0.1);
+    index[0]=1; index[1]=1; BOOST_CHECK_CLOSE(wposition::earth_radius - bathy.data(index), -111.0, 0.1);
+    index[0]=2; index[1]=2; BOOST_CHECK_CLOSE(wposition::earth_radius - bathy.data(index), -122.0, 0.1);
+}
+
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()

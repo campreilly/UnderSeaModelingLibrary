@@ -147,6 +147,11 @@ set( USML_DATA_SALT_SEASON ${USML_DATA_DIR}/woa09/salinity_seasonal_1deg.nc
     CACHE FILEPATH "data file for deep WOA salinity profile" )
 set( USML_DATA_SALT_MONTH ${USML_DATA_DIR}/woa09/salinity_monthly_1deg.nc
     CACHE FILEPATH "data file for shallow WOA salinity profile" )
+set( USML_DATA_SALT_MONTH ${USML_DATA_DIR}/woa09/salinity_monthly_1deg.nc
+    CACHE FILEPATH "data file for shallow WOA salinity profile" )
+set( USML_ASCII_ARC_TEST_DATA ${PROJECT_SOURCE_DIR}/ocean/test/ascii_arc_test.asc
+    CACHE FILEPATH "data file for ascii_arc_test bathymetry" )
+
 add_definitions( 
     -DUSML_DATA_DIR="$USML_DATA_DIR"
     -DUSML_DATA_BATHYMETRY="${USML_DATA_BATHYMETRY}"
@@ -154,6 +159,7 @@ add_definitions(
     -DUSML_DATA_TEMP_MONTH="${USML_DATA_TEMP_MONTH}"
     -DUSML_DATA_SALT_SEASON="${USML_DATA_SALT_SEASON}"
     -DUSML_DATA_SALT_MONTH="${USML_DATA_SALT_MONTH}" 
+    -DUSML_ASCII_ARC_TEST_DATA="${USML_ASCII_ARC_TEST_DATA}" 
     )
 
 if( MSVC )                # Visual Studio 9 (2008) options

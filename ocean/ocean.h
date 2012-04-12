@@ -70,6 +70,7 @@
 #include <usml/ocean/boundary_flat.h>
 #include <usml/ocean/boundary_slope.h>
 #include <usml/ocean/boundary_grid.h>
+#include <usml/ocean/ascii_arc_bathy.h>
 
 #include <usml/ocean/ocean_model.h>
 
