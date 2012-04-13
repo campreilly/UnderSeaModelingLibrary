@@ -8,6 +8,7 @@
 #define REFLECT_LOSS_CALOPS_H
 
 #include <usml/ocean/reflect_loss_model.h>
+//#include <usml/types/types.h>
 
 /**
  * Models the bottom reflection properties of the CALOPS experiment
@@ -35,15 +36,18 @@
  * @xref M.S. Ballard, Modeling three-dimensional propagation in a
  * continental shelf environment, J. Acoust. Soc. Am. 131 (3), March 2012.
  */
-class USML_DECLSPEC reflect_loss_calops : public reflect_loss_model {
+class USML_DECLSPEC reflect_loss_calops : public usml::ocean::reflect_loss_model {
 
   private:
 
     /** Reflection loss model above the the 236 m isobath. */
-    reflect_loss_model* carbonate_sand ;
+    usml::ocean::reflect_loss_model* carbonate_sand ;
 
     /** Reflection loss model below the the 236 m isobath. */
-    reflect_loss_model* limestone ;
+    usml::ocean::reflect_loss_model* limestone ;
+
+    /** Bathymetry data.  Used to provivince the bottom loss data */
+    usml::types::data_grid<float,2>* bathymetry ;
 
   public:
 
@@ -51,9 +55,10 @@ class USML_DECLSPEC reflect_loss_calops : public reflect_loss_model {
      * Initialize model with Rayleigh reflection loss models for
      * both carbonate sand and limestone.
      */
-    reflect_loss_calops() {
-        carbonate_sand = new reflect_loss_rayleigh( 1.70, 1675.0/1500.0, 0.8, 0.0, 0.0 ) ;
-        limestone = new reflect_loss_rayleigh( 2.40, 3000.0/1500.0, 0.1, 1430.0/1500.0, 0.2 ) ;
+    reflect_loss_calops( usml::types::data_grid<float,2>* bathy ) {
+        carbonate_sand = new usml::ocean::reflect_loss_rayleigh( 1.70, 1675.0/1500.0, 0.8, 0.0, 0.0 ) ;
+        limestone = new usml::ocean::reflect_loss_rayleigh( 2.40, 3000.0/1500.0, 0.1, 1430.0/1500.0, 0.2 ) ;
+        bathymetry = bathy ;
     }
 
 
@@ -70,11 +75,22 @@ class USML_DECLSPEC reflect_loss_calops : public reflect_loss_model {
      *                      Phase change not computed if this is NULL.
      */
     virtual void reflect_loss( 
-        const wposition1& location, 
-        const seq_vector& frequencies, double angle,
-        vector<double>* amplitude, vector<double>* phase=NULL )
+        const usml::types::wposition1& location,
+        const usml::types::seq_vector& frequencies, double angle,
+        boost::numeric::ublas::vector<double>* amplitude,
+        boost::numeric::ublas::vector<double>* phase=NULL )
     {
-        if ( location.altitude() > -236.0 ) {
+
+        // find ocean depth at this point
+
+        double loc[2] ;
+        loc[0] = location.theta() ;
+        loc[1] = location.phi() ;
+        double depth = bathymetry->interpolate(loc) - usml::types::wposition::earth_radius ;
+
+        // use ocean depth to select bottom type
+
+        if ( depth > -236.0 ) {
             return carbonate_sand->reflect_loss(location,frequencies,angle,amplitude,phase) ;
         } else {
             return limestone->reflect_loss(location,frequencies,angle,amplitude,phase) ;

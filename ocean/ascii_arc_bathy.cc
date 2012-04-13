@@ -37,7 +37,7 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename, double earth_radius )
         to_radians(-cellsize),
         nrows );
     this->_axis[1] = new seq_linear(
-        to_colatitude(xllcenter),
+        to_radians(xllcenter),
         to_radians(cellsize),
         ncols );
 

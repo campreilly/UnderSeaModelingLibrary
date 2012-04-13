@@ -251,8 +251,14 @@ target_link_libraries( malta_movie usml )
 add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 target_link_libraries( malta_rays usml )
 
-add_executable( reflect_loss_florida studies/florida_straits/reflect_loss_florida.cc )
-target_link_libraries( reflect_loss_florida usml )
+######################################################################
+# Florida Straits study
 
+set( STUDIES_FLORIDA_STRAITS_BATHYMETRY ${PROJECT_SOURCE_DIR}/studies/florida_straits/florida-crm.asc
+    CACHE FILEPATH "data file for Florida Straits study" )
 
+add_definitions( -DSTUDIES_FLORIDA_STRAITS_BATHYMETRY="${STUDIES_FLORIDA_STRAITS_BATHYMETRY}")
+
+add_executable( test_loss_calops studies/florida_straits/test_loss_calops.cc )
+target_link_libraries( test_loss_calops usml )
 
