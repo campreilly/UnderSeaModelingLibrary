@@ -259,6 +259,6 @@ set( STUDIES_FLORIDA_STRAITS_BATHYMETRY ${PROJECT_SOURCE_DIR}/studies/florida_st
 
 add_definitions( -DSTUDIES_FLORIDA_STRAITS_BATHYMETRY="${STUDIES_FLORIDA_STRAITS_BATHYMETRY}")
 
-add_executable( test_loss_calops studies/florida_straits/test_loss_calops.cc )
-target_link_libraries( test_loss_calops usml )
+add_executable( test_loss_florida studies/florida_straits/test_loss_florida.cc )
+target_link_libraries( test_loss_florida usml )
 

@@ -1,14 +1,13 @@
 /** 
- * @file reflect_loss_calops.h
+ * @file reflect_loss_florida.h
  * Models plane wave reflection from a flat fluid-solid interface.
  * Includes LaTEX documentation of formula for processing by Doxygen.
  */
 
-#ifndef REFLECT_LOSS_CALOPS_H
-#define REFLECT_LOSS_CALOPS_H
+#ifndef REFLECT_LOSS_FLORIDA_H
+#define REFLECT_LOSS_FLORIDA_H
 
 #include <usml/ocean/reflect_loss_model.h>
-//#include <usml/types/types.h>
 
 /**
  * Models the bottom reflection properties of the CALOPS experiment
@@ -36,7 +35,7 @@
  * @xref M.S. Ballard, Modeling three-dimensional propagation in a
  * continental shelf environment, J. Acoust. Soc. Am. 131 (3), March 2012.
  */
-class USML_DECLSPEC reflect_loss_calops : public usml::ocean::reflect_loss_model {
+class USML_DECLSPEC reflect_loss_florida : public usml::ocean::reflect_loss_model {
 
   private:
 
@@ -55,7 +54,7 @@ class USML_DECLSPEC reflect_loss_calops : public usml::ocean::reflect_loss_model
      * Initialize model with Rayleigh reflection loss models for
      * both carbonate sand and limestone.
      */
-    reflect_loss_calops( usml::types::data_grid<float,2>* bathy ) {
+    reflect_loss_florida( usml::types::data_grid<float,2>* bathy ) {
         carbonate_sand = new usml::ocean::reflect_loss_rayleigh( 1.70, 1675.0/1500.0, 0.8, 0.0, 0.0 ) ;
         limestone = new usml::ocean::reflect_loss_rayleigh( 2.40, 3000.0/1500.0, 0.1, 1430.0/1500.0, 0.2 ) ;
         bathymetry = bathy ;
