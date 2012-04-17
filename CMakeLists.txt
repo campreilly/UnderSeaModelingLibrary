@@ -151,6 +151,8 @@ set( USML_DATA_SALT_MONTH ${USML_DATA_DIR}/woa09/salinity_monthly_1deg.nc
     CACHE FILEPATH "data file for shallow WOA salinity profile" )
 set( USML_ASCII_ARC_TEST_DATA ${PROJECT_SOURCE_DIR}/ocean/test/ascii_arc_test.asc
     CACHE FILEPATH "data file for ascii_arc_test bathymetry" )
+set( USML_ASCII_PROFILE_TEST_DATA ${PROJECT_SOURCE_DIR}/ocean/test/ascii_profile_test.csv
+    CACHE FILEPATH "data file for ascii_profile_test" )
 
 add_definitions( 
     -DUSML_DATA_DIR="$USML_DATA_DIR"
@@ -160,6 +162,7 @@ add_definitions(
     -DUSML_DATA_SALT_SEASON="${USML_DATA_SALT_SEASON}"
     -DUSML_DATA_SALT_MONTH="${USML_DATA_SALT_MONTH}" 
     -DUSML_ASCII_ARC_TEST_DATA="${USML_ASCII_ARC_TEST_DATA}" 
+    -DUSML_ASCII_PROFILE_TEST_DATA="${USML_ASCII_PROFILE_TEST_DATA}" 
     )
 
 if( MSVC )                # Visual Studio 9 (2008) options
@@ -261,4 +264,10 @@ add_definitions( -DSTUDIES_FLORIDA_STRAITS_BATHYMETRY="${STUDIES_FLORIDA_STRAITS
 
 add_executable( test_loss_florida studies/florida_straits/test_loss_florida.cc )
 target_link_libraries( test_loss_florida usml )
+
+add_executable( calops_s_run1a studies/florida_straits/calops_s_run1a.cc )
+target_link_libraries( calops_s_run1a usml )
+
+
+
 

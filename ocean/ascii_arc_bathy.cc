@@ -11,12 +11,12 @@ using namespace usml::ocean ;
 /**
  * Load bathymetry from disk.
  */
-ascii_arc_bathy::ascii_arc_bathy( const char* filename, double earth_radius )
+ascii_arc_bathy::ascii_arc_bathy( const char* filename )
 {
     int ncols, nrows ;
     double xllcenter, yllcenter, cellsize, nodata_value ;
     static char label[80] ;
-    const float R = (float) earth_radius ;
+    const float R = (float) wposition::earth_radius ;
 
     std::ifstream fi(filename);
     fi >> std::skipws ;
