@@ -12,9 +12,8 @@ using namespace usml::waveq3d ;
  * operations test (CALOPS) experiments conducted in the Florida Straits in
  * Sept 2007 (late summer). Several papers have recently focused on the
  * presence of strong 3-D propagation effects in this area. In this study,
- * the CALOPS experimental results that were previously studied by Heaney,
- * Ballard, et. al. will be used to test the accuracy of the
- * Wavefront Queue 3-D (WaveQ3D) model.
+ * the CALOPS results that were previously studied by Heaney, Ballard, et. al.
+ * will be used to test the accuracy of the Wavefront Queue 3-D (WaveQ3D) model.
  *
  * The bathymetry is derived from the U.S. Coastal Relief Model (CRM) on the
  * the Geophysical Data System (GEODAS) Search and Data Retrieval web site.
@@ -65,14 +64,13 @@ int main( int argc, char* argv[] ) {
         new profile_linear() ) ;
 
     // define a single receiver location
-    // estimate height of acoustic center 5 cm off the bottom
 
     wposition1 receiver( 26.0217, -79.99054, -250.0 ) ;
     cout << receiver.latitude() << "," << receiver.longitude() << "," << receiver.altitude() << endl ;
     double rho ;
     bottom->height( receiver, &rho ) ;
     cout << (rho-wposition::earth_radius) << endl ;
-    // receiver.rho( rho + 0.05 ) ;
+    receiver.rho(rho) ;
     cout << receiver.latitude() << "," << receiver.longitude() << "," << receiver.altitude() << endl ;
 
     // define a series of sources locations along great circle route
@@ -92,7 +90,7 @@ int main( int argc, char* argv[] ) {
         // cout << lat << "," << lng << endl ;
     }
     proploss loss( &source ) ;
-
+/*
     // initialize ray fan parameters
 
     static double f[] = { 24.0, 52.5, 106.0, 206.0, 415.0 } ;
@@ -116,7 +114,7 @@ int main( int argc, char* argv[] ) {
     }
     wave.close_netcdf() ;
     cout << "wave propagated for " << wave.time() << " secs" << endl ;
-
+*/
     return 0 ;
 }
 

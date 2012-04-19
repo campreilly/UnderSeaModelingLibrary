@@ -31,10 +31,11 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
     fi >> label >> nodata_value ;
 
     // construct latitude and longitude axes in spherical coordinates
+    // note that axis[0] starts in the north and moves south
 
     this->_axis[0] = new seq_linear(
-        to_colatitude(yllcenter),
-        to_radians(-cellsize),
+        to_colatitude(yllcenter+cellsize*(nrows-1)),
+        to_radians(cellsize),
         nrows );
     this->_axis[1] = new seq_linear(
         to_radians(xllcenter),
@@ -45,8 +46,8 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
     // flip latitude direction upside down during the read.
 
     this->_data = new float[ ncols * nrows ] ;
+    float* ptr = this->_data ;
     for ( int r=nrows-1 ; r >= 0 ; --r ) {
-        float* ptr = &(this->_data[(nrows-1-r)*ncols]) ;
         for ( int c=0 ; c < ncols ; ++c ) {
             fi >> *ptr ;
             *(ptr++) += R ;

@@ -26,9 +26,8 @@ using namespace usml::types ;
  * represents the depth as a function of decreasing latitude, 
  * which is the Y coordinate. Each column represents the depth as
  * a function of increasing longitude, which is the X coordinate. 
- * The first data point is therefore the depth at north-west corner. 
- * If the data is read in reverse latitude order, then the first 
- * point will become the south-west corner specified by 
+ * The first data point is therefore the depth at north-west corner.
+ * Note that it is the south-west corner that is specified by
  * longitude=XLLCENTER and latitude=YLLCENTER. Each depth represents
  * the average value over the CELLSIZE x CELLSIZE area centered on 
  * the specified longitude and latitude.
