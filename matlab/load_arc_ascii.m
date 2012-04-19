@@ -1,6 +1,20 @@
 %
 % load_arc_ascii.m - Loads ASCII Raster Grid File with an Arc Header
 %
+% Each row in the data represents the depth as a function of decreasing
+% latitude, which is the Y coordinate. Each column represents the depth as
+% a function of increasing longitude, which is the X coordinate. The first
+% data point is therefore the depth at north-west corner. If the data is
+% read in reverse latitude order, then the first point will become the
+% south-west corner specified by longitude=XLLCENTER and
+% latitude=YLLCENTER). Each depth represents the average value over the
+% CELLSIZE x CELLSIZE area centered on the specified longitude and
+% latitude.
+%
+% This format is one of the options used by the Geophysical Data System
+% (GEODAS) Search and Data Retrieval web site. to distribute custom
+% bathymetry grids.
+%
 % Returns a bottom topology structure with the following fields:
 %
 %       latitude        bottom latitudes (degrees_north)
@@ -8,13 +22,6 @@
 %       altitude        bottom altitudes (meters)
 %
 function bathymetry = load_arc_ascii( filename )
-
-% NCOLS  2401
-% NROWS  1201
-% XLLCENTER  -80.00000
-% YLLCENTER  26.00000
-% CELLSIZE 0.00083333
-% NODATA_VALUE  999999
 
 fi = fopen(filename) ;
 

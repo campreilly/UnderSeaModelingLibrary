@@ -22,15 +22,16 @@ using namespace usml::types ;
  * Stores the latitude, longitude, and depth in spherical earth
  * coordinates for faster interpolation within the WaveQ3D model.
  *
- * An example of this header is shown below.  Each row in the data
- * represents the depth as a function of increasing latitude,
- * which is the Y coordinate. Each column represents the depth
- * as a function of increasing longitude, which is the X coordinate.
- * The first data point is therefore the depth at south-west corner
- * specified by longitude=XLLCENTER and latitude=YLLCENTER).
- * Each depth represents the average value over the
- * CELLSIZE x CELLSIZE area centered on the specified longitude
- * and latitude.
+ * An example of this header is shown below.  Each row in the data 
+ * represents the depth as a function of decreasing latitude, 
+ * which is the Y coordinate. Each column represents the depth as
+ * a function of increasing longitude, which is the X coordinate. 
+ * The first data point is therefore the depth at north-west corner. 
+ * If the data is read in reverse latitude order, then the first 
+ * point will become the south-west corner specified by 
+ * longitude=XLLCENTER and latitude=YLLCENTER). Each depth represents 
+ * the average value over the CELLSIZE x CELLSIZE area centered on 
+ * the specified longitude and latitude.
  * <pre>
  * NCOLS   601
  * NROWS  1201
@@ -43,13 +44,9 @@ using namespace usml::types ;
  *      etc.
  * </pre>
  *
- * This format is used by the Geophysical Data System (GEODAS)
- * Search and Data Retrieval web site to produce custom grids
- * of U.S. Coastal Relief Model (CRM) bathymetry.  CRM provides
- * gridded bathymetry, at 3 arc-second resolution, for the
- * U.S. East and West Coasts, the northern coast of the
- * Gulf of Mexico, Puerto Rico, and Hawaii, reaching out
- * to the continental slope.
+ * This format is one of the options used by the Geophysical Data System
+ * (GEODAS) Search and Data Retrieval web site to distribute custom
+ * bathymetry grids.
  */
 class USML_DECLSPEC ascii_arc_bathy : public data_grid<float,2> {
 
