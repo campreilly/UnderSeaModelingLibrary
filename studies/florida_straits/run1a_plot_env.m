@@ -13,6 +13,7 @@ bathymetry = load_arc_ascii('flstrts_bathymetry.asc');
 
 figure;
 run1a_plot_bathy( bathymetry ) ;
+axis([-80.1 -79.85 26 26.8]);
 title('CALOPS RUN 1N SEPT 2007');
 
 hold on ;

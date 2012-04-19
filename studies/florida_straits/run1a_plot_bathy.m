@@ -8,7 +8,6 @@ function run1a_plot_bathy( bathymetry )
 surf(bathymetry.longitude,bathymetry.latitude,bathymetry.altitude,...
      'LineStyle','none','FaceColor','interp');
 view([0 90]); colormap(coldhot);
-axis([-80.1 -79.85 26 26.8]);
 set(gca,'TickDir','out');
 set(gca,'Clim',[-350 0]);
 xlabel('Latitude (deg)');
