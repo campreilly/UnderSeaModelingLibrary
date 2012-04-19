@@ -22,6 +22,27 @@ using namespace usml::types ;
  * Stores the latitude, longitude, and depth in spherical earth
  * coordinates for faster interpolation within the WaveQ3D model.
  *
+ * An example of this header is shown below.  Each row in the data
+ * represents the depth as a function of increasing latitude,
+ * which is the Y coordinate. Each column represents the depth
+ * as a function of increasing longitude, which is the X coordinate.
+ * The first data point is therefore the depth at south-west corner
+ * specified by longitude=XLLCENTER and latitude=YLLCENTER).
+ * Each depth represents the average value over the
+ * CELLSIZE x CELLSIZE area centered on the specified longitude
+ * and latitude.
+ * <pre>
+ * NCOLS   601
+ * NROWS  1201
+ * XLLCENTER  -80.25000
+ * YLLCENTER  26.00000
+ * CELLSIZE 0.00083333
+ * NODATA_VALUE  999999
+ *      6.0      6.0      6.0      6.0      6.0      ...
+ *      6.0      6.0      6.0      6.0      6.0      ...
+ *      etc.
+ * </pre>
+ *
  * This format is used by the Geophysical Data System (GEODAS)
  * Search and Data Retrieval web site to produce custom grids
  * of U.S. Coastal Relief Model (CRM) bathymetry.  CRM provides

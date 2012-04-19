@@ -214,15 +214,29 @@ BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
 BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
     cout << "=== boundary_test: ascii_arc_test ===" << endl;
 
-    ascii_arc_bathy bathy( USML_ASCII_ARC_TEST_DATA ) ;
+    // test interpolation of the raw grid
 
-    BOOST_CHECK_EQUAL( bathy.axis(0)->size(), 3 );
-    BOOST_CHECK_EQUAL( bathy.axis(1)->size(), 4 );
+    ascii_arc_bathy* grid =
+        new ascii_arc_bathy( USML_ASCII_ARC_TEST_DATA ) ;
+
+    BOOST_CHECK_EQUAL( grid->axis(0)->size(), 3 );
+    BOOST_CHECK_EQUAL( grid->axis(1)->size(), 4 );
 
     unsigned index[2] ;
-    index[0]=0; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - bathy.data(index), -100.0, 0.1);
-    index[0]=1; index[1]=1; BOOST_CHECK_CLOSE(wposition::earth_radius - bathy.data(index), -111.0, 0.1);
-    index[0]=2; index[1]=2; BOOST_CHECK_CLOSE(wposition::earth_radius - bathy.data(index), -122.0, 0.1);
+    index[0]=0; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1000.0, 0.1);
+    index[0]=1; index[1]=1; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1110.0, 0.1);
+    index[0]=2; index[1]=2; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1220.0, 0.1);
+    cout << "axis0: " << *(grid->axis(0)) << endl ;
+    cout << "axis1: " << *(grid->axis(1)) << endl ;
+
+    // test implementation as a boundary model
+
+    boundary_grid<float,2> bottom(grid) ;
+    wposition1 location( 26.25, -80.0 ) ;
+    double depth ;
+    bottom.height( location, &depth ) ;
+    depth -= wposition::earth_radius ;
+    cout << "depth: " << depth << endl ;
 }
 
 /// @}

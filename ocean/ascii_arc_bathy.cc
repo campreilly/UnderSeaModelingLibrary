@@ -48,6 +48,9 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
     for ( int r=0 ; r < nrows ; ++r ) {
         for ( int c=0 ; c < ncols ; ++c ) {
             fi >> *ptr ;
+            if ( r == 26 ) {
+            cout << to_latitude( (*(this->_axis[0]))(r) ) << "\t" << to_degrees( (*(this->_axis[1]))(c) ) << "\t" << *ptr << endl ;
+            }
             *(ptr++) += R ;
         }
     }
