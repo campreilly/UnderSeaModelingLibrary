@@ -66,12 +66,13 @@ int main( int argc, char* argv[] ) {
     // define a single receiver location
 
     wposition1 receiver( 26.0217, -79.99054, -250.0 ) ;
-    cout << receiver.latitude() << "," << receiver.longitude() << "," << receiver.altitude() << endl ;
-    double rho ;
-    bottom->height( receiver, &rho ) ;
-    cout << (rho-wposition::earth_radius) << endl ;
-    receiver.rho(rho) ;
-    cout << receiver.latitude() << "," << receiver.longitude() << "," << receiver.altitude() << endl ;
+//    double rho ;
+//    bottom->height( receiver, &rho ) ;
+//    receiver.rho(rho) ;
+    cout << "receiver: "
+        << receiver.latitude() << ","
+        << receiver.longitude() << ","
+        << receiver.altitude() << endl ;
 
     // define a series of sources locations along great circle route
 
@@ -90,22 +91,20 @@ int main( int argc, char* argv[] ) {
         // cout << lat << "," << lng << endl ;
     }
     proploss loss( &source ) ;
-/*
+
     // initialize ray fan parameters
 
     static double f[] = { 24.0, 52.5, 106.0, 206.0, 415.0 } ;
     seq_data freq( f, 5 ) ;
-//    seq_rayfan de( -20.0, 20.0, 45 ) ;
-    seq_linear de( -20.0, 20.0, 2 ) ;
-    seq_linear az( -40.0, 40.0, 2 ) ;
+    seq_rayfan de( -20.0, 20.0, 45 ) ;
+    seq_linear az( -40.0, 1.0, 10.0 ) ;
     const double time_max = 1.0 ;
     const double time_step = 0.100 ;
-    cout << receiver.latitude() << "," << receiver.longitude() << "," << receiver.altitude() << endl ;
     wave_queue wave( ocean, freq, receiver, de, az, time_step ) ;
 
     // propagate wavefront
 
-    wave.init_netcdf( STUDIES_FLORIDA_STRAITS_DIR "run1a_wavefront.nc" ) ;
+    wave.init_netcdf( STUDIES_FLORIDA_STRAITS_DIR "/run1a_wavefront.nc" ) ;
     wave.save_netcdf() ;
     while ( wave.time() < time_max ) {
         cout << "time=" << wave.time() << endl ;
@@ -114,7 +113,5 @@ int main( int argc, char* argv[] ) {
     }
     wave.close_netcdf() ;
     cout << "wave propagated for " << wave.time() << " secs" << endl ;
-*/
     return 0 ;
 }
-
