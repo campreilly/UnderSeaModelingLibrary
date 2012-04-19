@@ -8,7 +8,7 @@ close all;
 
 wavefront = load_wavefront('run1a_wavefront.nc') ;
 max_time = min(9999,length(wavefront.travel_time)) ;
-tindex = 1 ;
+time_index = 2 ;
 
 % load and plot batyhymetry data
 
@@ -21,26 +21,40 @@ view([10 40]);
 
 % show a movie of wavefront propagation
 
-% hw = 0 ;
-% % while ( true )
-% 
-%     % plot wavefront
-%     
-% 	wlng = double( squeeze( wavefront.longitude(tindex,:,:) ) );
-% 	wlat = double( squeeze( wavefront.latitude(tindex,:,:) ) );
-% 	walt = double( squeeze( wavefront.altitude(tindex,:,:) ) );
-%     
-% 	hw = surf( wlng, wlat, walt ) ;
-% 	% set(hw,'FaceColor','white');
-% 	% set(hw,'EdgeColor','black');
-%     title(sprintf('Travel Time = %.1f',wavefront.travel_time(tindex)));
-%     drawnow() ;
-%     
-%     % get ready for next plot
-% 
-% %     tindex = tindex + 3 ;
-% %     if ( tindex > max_time ) break; end ;
-% %     pause(0.12);
-% % 	delete(hw) ;
-% 
-% % end
+while ( true )
+
+    % plot wavefront
+    
+	wlng = double( squeeze( wavefront.longitude(time_index,:,:) ) );
+	wlat = double( squeeze( wavefront.latitude(time_index,:,:) ) );
+	walt = double( squeeze( wavefront.altitude(time_index,:,:) ) );
+
+    hold on;
+	hw = surf( wlng, wlat, walt ) ;
+	set(hw,'FaceColor','white');
+	set(hw,'EdgeColor','black');
+    title(sprintf('Travel Time = %.1f',wavefront.travel_time(time_index)));
+    hold off;
+    drawnow() ;
+    
+    % allows user to move the plot forward and backward in time
+
+    choice = menu('Action','Quit','Next','+10','Previous','-10','Save') ;
+    switch ( choice )
+        case 1
+            break ;
+        case 2
+            if ( time_index < max_time ) time_index = time_index + 1 ; end ;
+        case 3
+            if ( time_index < max_time-10 ) time_index = time_index + 10 ; end ;
+        case 4
+            if ( time_index > 1 ) time_index = time_index - 1 ; end ;
+        case 5
+            if ( time_index > 10 ) time_index = time_index - 10 ; end ;
+        case 6
+            title('');
+            print -deps pedersen_deep_raytrace
+    end
+    delete(hw) ;
+
+end
