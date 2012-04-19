@@ -41,16 +41,14 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
         to_radians(cellsize),
         ncols );
 
-    // depth depths and convert to rho coordinate of spherical earth system
+    // read depths and convert to rho coordinate of spherical earth system
+    // flip latitude direction upside down during the read.
 
     this->_data = new float[ ncols * nrows ] ;
-    float* ptr = this->_data ;
-    for ( int r=0 ; r < nrows ; ++r ) {
+    for ( int r=nrows-1 ; r >= 0 ; --r ) {
+        float* ptr = &(this->_data[(nrows-1-r)*ncols]) ;
         for ( int c=0 ; c < ncols ; ++c ) {
             fi >> *ptr ;
-            if ( r == 26 ) {
-            cout << to_latitude( (*(this->_axis[0]))(r) ) << "\t" << to_degrees( (*(this->_axis[1]))(c) ) << "\t" << *ptr << endl ;
-            }
             *(ptr++) += R ;
         }
     }

@@ -1,9 +1,9 @@
 /**
- * @example calops_s_run1a.cc
+ * @example run1a_proploss.cc
  */
 #include <fstream>
 #include <usml/waveq3d/waveq3d.h>
-#include "reflect_loss_florida.h"
+#include "flstrts_btmloss.h"
 
 using namespace usml::waveq3d ;
 
@@ -39,10 +39,10 @@ using namespace usml::waveq3d ;
  * http://www.ngdc.noaa.gov/mgg/gdas/gd_designagrid.html .
  */
 int main( int argc, char* argv[] ) {
-    cout << "=== calops_s_run1a ===" << endl ;
+    cout << "=== run1a_proploss ===" << endl ;
    // wposition::compute_earth_radius( 26.4 ) ;
 
-    // const char* name = "calops_s_run1a.csv" ;
+    // const char* name = STUDIES_FLORIDA_STRAITS_DIR "/run1a_proploss.csv" ;
     // std::ofstream os(name) ;
     // cout << "writing tables to " << name << endl ;
 
@@ -50,11 +50,11 @@ int main( int argc, char* argv[] ) {
     // bottom loss derived from Ballard's analysis
 
     ascii_arc_bathy* bathymetry =
-        new ascii_arc_bathy( STUDIES_FLORIDA_STRAITS_BATHYMETRY ) ;
+        new ascii_arc_bathy( STUDIES_FLORIDA_STRAITS_DIR "/flstrts_bathymetry.asc" ) ;
 
     boundary_grid<float,2>* bottom = new boundary_grid<float,2>(
         bathymetry,
-        new reflect_loss_florida( bathymetry ) ) ;
+        new flstrts_btmloss( bathymetry ) ) ;
 
     // use simple models for sound velocity profile and surface
     // @todo upgrade SVP later
@@ -107,7 +107,7 @@ int main( int argc, char* argv[] ) {
 
     // propagate wavefront
 
-    wave.init_netcdf( "florida_wavefront.nc" ) ;
+    wave.init_netcdf( STUDIES_FLORIDA_STRAITS_DIR "run1a_wavefront.nc" ) ;
     wave.save_netcdf() ;
     while ( wave.time() < time_max ) {
         cout << "time=" << wave.time() << endl ;

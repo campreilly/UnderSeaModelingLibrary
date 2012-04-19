@@ -1,9 +1,9 @@
 /**
- * @example test_loss_florida.cc
+ * @example flstrts_btmloss_test.cc
  */
 #include <fstream>
 #include <usml/ocean/ocean.h>
-#include "reflect_loss_florida.h"
+#include "flstrts_btmloss.h"
 
 using namespace usml::ocean;
 
@@ -16,14 +16,14 @@ using namespace usml::ocean;
  * continental shelf environment, J. Acoust. Soc. Am. 131 (3), March 2012.
  */
 int main( int argc, char* argv[] ) {
-    cout << "=== test_loss_florida ===" << endl ;
-    const char* name = "test_loss_florida.csv" ;
+    cout << "=== flstrts_btmloss_test ===" << endl ;
+    const char* name = STUDIES_FLORIDA_STRAITS_DIR "/flstrts_btmloss_test.csv" ;
     std::ofstream os(name) ;
     cout << "writing tables to " << name << endl ;
 
-    ascii_arc_bathy bathymetry( STUDIES_FLORIDA_STRAITS_BATHYMETRY ) ;
+    ascii_arc_bathy bathymetry( STUDIES_FLORIDA_STRAITS_DIR "/flstrts_bathymetry.asc" ) ;
 
-    reflect_loss_florida bottom( &bathymetry ) ;
+    flstrts_btmloss bottom( &bathymetry ) ;
     seq_log freq( 52.5, 1.0, 1 ) ;
     vector<double> sand( freq.size() ), limestone( freq.size() ) ;
 
