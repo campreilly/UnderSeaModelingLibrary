@@ -66,9 +66,9 @@ int main( int argc, char* argv[] ) {
     // define a single receiver location
 
     wposition1 receiver( 26.0217, -79.99054, -250.0 ) ;
-//    double rho ;
-//    bottom->height( receiver, &rho ) ;
-//    receiver.rho(rho) ;
+    double rho ;
+    bottom->height( receiver, &rho ) ;
+    receiver.rho(rho) ;
     cout << "receiver: "
         << receiver.latitude() << ","
         << receiver.longitude() << ","
@@ -76,7 +76,7 @@ int main( int argc, char* argv[] ) {
 
     // define a series of sources locations along great circle route
 
-    seq_linear range( 5e3, 5e3, 80e3 ) ; // 3 to 80 km
+    seq_linear range( 3e3, 1e3, 80e3 ) ; // 3 to 80 km
     double bearing = to_radians(8.0) ;
     wposition source( range.size(), 1, 0.0, 0.0, -100.0 ) ;
     for ( unsigned n=0 ; n < range.size() ; ++n ) {
@@ -88,7 +88,10 @@ int main( int argc, char* argv[] ) {
             sin(bearing) * sin(d) / sin(receiver.theta()) ) ) ;
         source.latitude(  n, 0, lat ) ;
         source.longitude( n, 0, lng ) ;
-        // cout << lat << "," << lng << endl ;
+        cout << "source(" << n << "): "
+            << source.latitude(n,0) << ","
+            << source.longitude(n,0) << ","
+            << source.altitude(n,0) << endl ;
     }
     proploss loss( &source ) ;
 
@@ -96,8 +99,10 @@ int main( int argc, char* argv[] ) {
 
     static double f[] = { 24.0, 52.5, 106.0, 206.0, 415.0 } ;
     seq_data freq( f, 5 ) ;
-    seq_rayfan de( -20.0, 20.0, 45 ) ;
-    seq_linear az( -40.0, 1.0, 10.0 ) ;
+//    seq_rayfan de( -5.0, 5.0, 22 ) ;
+//    seq_linear az( -40.0, 1.0, 10.0 ) ;
+    seq_linear de( 0.0, 1.0, 1 ) ;
+    seq_linear az( -18.0, 1.0, 1 ) ;
     const double time_max = 1.0 ;
     const double time_step = 0.100 ;
     wave_queue wave( ocean, freq, receiver, de, az, time_step ) ;
@@ -110,6 +115,7 @@ int main( int argc, char* argv[] ) {
         cout << "time=" << wave.time() << endl ;
         wave.step() ;
         wave.save_netcdf() ;
+        cout << "\talt: " << wave.curr()->position.altitude(0,0) << endl ;
     }
     wave.close_netcdf() ;
     cout << "wave propagated for " << wave.time() << " secs" << endl ;

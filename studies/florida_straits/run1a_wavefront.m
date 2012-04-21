@@ -1,5 +1,9 @@
-% florida_wavefront.m 
+%%
+% run1a_wavefront.m - movie of wavefront propagation
 %
+% Graph the wavefront as a user controlled movie.  
+% The user controls time (forward and back) using a GUI menu.
+% Used as both a debugging and demostration tool.
 %
 clear all; 
 close all;
@@ -18,6 +22,8 @@ run1a_plot_bathy( bathymetry ) ;
 title('CALOPS RUN 1N SEPT 2007');
 set(gca,'ZLim',[-800 0]);
 view([10 40]); 
+set(gca,'YLim',[26.0 26.1])
+set(gca,'XLim',[-80.00 -79.98])
 
 % show a movie of wavefront propagation
 
@@ -53,7 +59,7 @@ while ( true )
             if ( time_index > 10 ) time_index = time_index - 10 ; end ;
         case 6
             title('');
-            print -deps pedersen_deep_raytrace
+            print -deps run1a_wavefront
     end
     delete(hw) ;
 

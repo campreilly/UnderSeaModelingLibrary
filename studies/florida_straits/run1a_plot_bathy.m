@@ -19,8 +19,8 @@ colorbar;
 hold on;
 plot3(-79.99054,26.0217,-250,'o',...
     'MarkerEdgeColor','yellow','MarkerFaceColor','yellow');
-x = [ -79.99054 -79.88057 ] ;
-y = [ 26.03545 26.73028 ] ;
+x = [ -79.9864 -79.8792 ] ;
+y = [ 26.0484 26.7333 ] ;
 z = [ -100 -100 ] ;
 plot3(x,y,z,'Color','white');
 hold off;
