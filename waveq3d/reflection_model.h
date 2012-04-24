@@ -119,11 +119,12 @@ class USML_DECLSPEC reflection_model {
      * help of a reflection.
      *
      * @param de                D/E angle index number of reflected ray.
-     * @param az		AZ angle index number of reflected ray.
-     * @return 			True for an actual reflection,
-     *				False for a near-miss.
+     * @param az                AZ angle index number of reflected ray.
+     * @param depth             Depth that ray has penetrated into the bottom.
+     * @return                  True for an actual reflection,
+     *                          False for a near-miss.
      */
-    bool bottom_reflection( unsigned de, unsigned az ) ;
+    bool bottom_reflection( unsigned de, unsigned az, double depth ) ;
 
     /**
      * Reflect a single acoustic ray from the ocean surface. 
@@ -156,7 +157,7 @@ class USML_DECLSPEC reflection_model {
      *
      * @param de            D/E angle index number of reflected ray.
      * @param az            AZ angle index number of reflected ray.
-     * @return 		`   True for an actual reflection,
+     * @return              True for an actual reflection,
      *                      False for a near-miss.
      */
     bool surface_reflection( unsigned de, unsigned az ) ;

@@ -10,7 +10,7 @@ using namespace usml::waveq3d ;
 /**
  * Reflect a single acoustic ray from the ocean bottom.  
  */
-bool reflection_model::bottom_reflection( unsigned de, unsigned az ) {
+bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth ) {
     double N ;
     
     // extract position, direction, and sound speed from this ray
@@ -19,66 +19,74 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az ) {
     wposition1 position( _wave._curr->position, de, az ) ;
     wvector1 ndirection( _wave._curr->ndirection, de, az ) ;
     double c = _wave._curr->sound_speed( de, az ) ;
+    double c2 = c*c ;
    
-    // extract height above boundary and 
-    // bathymetry slope at this point from the ocean bottom model
+    // extract bottom_rho and slope from the bottom model
     
-    double height ;
-    wvector1 normal ;
+    double bottom_rho ;
+    wvector1 bottom_normal ;
     boundary_model& boundary = _wave._ocean.bottom() ;
-    boundary.height( position, &height, &normal ) ;
+    boundary.height( position, &bottom_rho, &bottom_normal ) ;
 
-    // make normal horizontal for very shallow water
+    // make bottom horizontal for very shallow water
     // to avoid propagating onto land
     
-    if ( (height-wposition::earth_radius) > TOO_SHALLOW ) {
-    	N = normal.theta()*normal.theta() + normal.phi()*normal.phi() ;
-        normal.rho( 0.0 ) ;
-        normal.theta( normal.theta() / N ) ;
-        normal.phi(   normal.phi() / N  ) ;
+    if ( (bottom_rho-wposition::earth_radius) > TOO_SHALLOW ) {
+    	N = bottom_normal.theta()*bottom_normal.theta()
+    	  + bottom_normal.phi()*bottom_normal.phi() ;
+        bottom_normal.rho( 0.0 ) ;
+        bottom_normal.theta( bottom_normal.theta() / N ) ;
+        bottom_normal.phi(   bottom_normal.phi() / N  ) ;
     }
     
-    // convert normalized direction to dr/dt in rectangular coordinates
-    // relative to the point of collision
+    // compute dot_full = dot product of the full dr/dt with bottom_normal (negative #)
+    // converts ndirection to rectangular coordinates relative to reflection point
        
-    double c2 = c*c ;
     ndirection.rho(   c2 * ndirection.rho() ) ;
     ndirection.theta( c2 * ndirection.theta() ) ;
     ndirection.phi(   c2 * ndirection.phi() ) ;
+    double dot_full = bottom_normal.rho() * ndirection.rho()
+        + bottom_normal.theta() * ndirection.theta()
+        + bottom_normal.phi() * ndirection.phi() ;
 
-    // compute fraction of time step needed to strike the point of collision
-    
-    double dot = normal.rho() * ndirection.rho()
-               + normal.theta() * ndirection.theta()
-               + normal.phi() * ndirection.phi() ;
-    const double dtime = ( dot == 0.0 ) ? 0.0 
-        : ( height - position.rho() ) * normal.rho() / dot ;
+    // compute time_water = fraction of time step needed to strike the bottom
+    // height_water = initial ray height above the bottom (must be positive)
+    // dot_water = component of "height_water" parallel to bottom normal (positive #)
+
+    const double height_water = position.rho() - bottom_rho ;
+    const double dot_water = height_water * bottom_normal.rho() ;
+    const double time_water = ( dot_full >= 0.0 )
+        ? _wave._time_step * height_water / depth
+        : -dot_water / dot_full ;
+    #ifdef USML_DEBUG
+        if ( time_water < 0.0 || time_water > _wave._time_step ) {
+            throw std::runtime_error("reflection_model::bottom_reflection: time step computation error") ;
+        }
+    #endif
                  
-    // compute the precise values for position, direction, 
-    // sound speed, and grazing angle at the point of collision
+    // compute the more precise values for position, direction,
+    // sound speed, and grazing angle at the point of collision.
+    // failure to do this results in grazing angle errors in highly reflective environments.
     
-    collision_location( de, az, dtime, &position, &ndirection, &c ) ;
+    collision_location( de, az, time_water, &position, &ndirection, &c ) ;
     c2 = c*c ;
     ndirection.rho(   c2 * ndirection.rho() ) ;
     ndirection.theta( c2 * ndirection.theta() ) ;
     ndirection.phi(   c2 * ndirection.phi() ) ;
-    double ray_de, ray_az ;
-    ndirection.direction( &ray_de, &ray_az ) ;
-    
-    dot = normal.rho() * ndirection.rho()
-        + normal.theta() * ndirection.theta()
-        + normal.phi() * ndirection.phi() ;
-    N = sqrt( ndirection.rho() * ndirection.rho()
-            + ndirection.theta() * ndirection.theta()
-            + ndirection.phi() * ndirection.phi() ) ;
-    double angle = asin( dot / -N ) ;
-    if ( angle <= 0.0 ) return false ;	// near miss of the bottom
+    dot_full = bottom_normal.rho() * ndirection.rho()
+        + bottom_normal.theta() * ndirection.theta()
+        + bottom_normal.phi() * ndirection.phi() ;
+    if ( dot_full >= 0.0 ) {
+        dot_full = -( height_water + depth ) * bottom_normal.rho() ;
+    }
+    const double grazing = asin( min( 1.0, -dot_full / (c*_wave._time_step) ) ) ;
 
     // invoke bottom reverberation callback
-    // THIS IS A STUB FOR FUTURE BEHAVIORS.
+    // @todo THIS IS A STUB FOR FUTURE BEHAVIORS.
+    // @todo Add grazing angle to this call.
 
     if ( _bottom_reverb ) {
-        _bottom_reverb->collision(  de, az, _wave._time+dtime,
+        _bottom_reverb->collision(  de, az, _wave._time+time_water,
             position,  ndirection, c, *(_wave._frequencies),
             _wave._curr->attenuation(de,az), _wave._curr->phase(de,az) ) ;
             // Still need to calculate eigenray ampltiude and phase for
@@ -91,7 +99,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az ) {
     vector<double> amplitude( _wave._frequencies->size() ) ;
     vector<double> phase( _wave._frequencies->size() ) ;
     boundary.reflect_loss( 
-        position, *(_wave._frequencies), angle, &amplitude, &phase ) ;
+        position, *(_wave._frequencies), grazing, &amplitude, &phase ) ;
     for ( unsigned f=0 ; f < _wave._frequencies->size() ; ++f ) {
         _wave._next->attenuation(de,az)(f) += amplitude(f) ;
         _wave._next->phase(de,az)(f) += phase(f) ; 
@@ -100,10 +108,10 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az ) {
     // change direction of the ray ( R = I - 2 dot(n,I) n )
     // and reinit past, prev, curr, next entries
 
-    dot *= 2.0 ;
-    ndirection.rho(   ndirection.rho()   - dot * normal.rho() ) ;
-    ndirection.theta( ndirection.theta() - dot * normal.theta() ) ;
-    ndirection.phi(   ndirection.phi()   - dot * normal.phi() ) ;
+    dot_full *= 2.0 ;
+    ndirection.rho(   ndirection.rho()   - dot_full * bottom_normal.rho() ) ;
+    ndirection.theta( ndirection.theta() - dot_full * bottom_normal.theta() ) ;
+    ndirection.phi(   ndirection.phi()   - dot_full * bottom_normal.phi() ) ;
 
     N = sqrt( ndirection.rho() * ndirection.rho()
             + ndirection.theta() * ndirection.theta()
@@ -114,8 +122,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az ) {
     ndirection.theta( ndirection.theta() / N ) ;
     ndirection.phi(   ndirection.phi() / N ) ;
 
-    reflection_reinit( de, az, dtime, position, ndirection, c ) ;
-    ndirection.direction( &ray_de, &ray_az ) ;
+    reflection_reinit( de, az, time_water, position, ndirection, c ) ;
     return true ;
 }
 
@@ -129,7 +136,7 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     
     double c = _wave._curr->sound_speed(de,az) ;
     const double d = c*c * _wave._curr->ndirection.rho(de,az) ;
-    double dtime = (d==0.0) ? 0.0 
+    double time_water = (d==0.0) ? 0.0
         : - _wave._curr->position.altitude(de,az) / d ;
 
     // compute the precise values for position, direction, 
@@ -137,20 +144,20 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     
     wposition1 position ;
     wvector1 ndirection ;
-    collision_location( de, az, dtime, &position, &ndirection, &c ) ;
-    double angle = atan2( _wave._curr->ndirection.rho(de,az), sqrt(
+    collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+    double grazing = atan2( _wave._curr->ndirection.rho(de,az), sqrt(
         _wave._curr->ndirection.theta(de,az) * 
         _wave._curr->ndirection.theta(de,az) +
         _wave._curr->ndirection.phi(de,az) * 
         _wave._curr->ndirection.phi(de,az)
     ) ) ;
-    if ( angle <= 0.0 ) return false ;	// near miss of the surface
+    if ( grazing <= 0.0 ) return false ;	// near miss of the surface
 
     // invoke bottom reverberation callback
     // THIS IS A STUB FOR FUTURE BEHAVIORS.
 
     if ( _surface_reverb ) {
-        _surface_reverb->collision(  de, az, _wave._time+dtime,
+        _surface_reverb->collision(  de, az, _wave._time+time_water,
             position,  ndirection, c, *(_wave._frequencies),
             _wave._curr->attenuation(de,az), _wave._curr->phase(de,az) ) ;
             // Still need to calculate eigenray ampltiude and phase for
@@ -162,7 +169,7 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     
     vector<double> amplitude( _wave._frequencies->size() ) ;
     boundary.reflect_loss( 
-        position, *(_wave._frequencies), angle, &amplitude ) ;
+        position, *(_wave._frequencies), grazing, &amplitude ) ;
     for ( unsigned f=0 ; f < _wave._frequencies->size() ; ++f ) {
         _wave._next->attenuation(de,az)(f) += amplitude(f) ;
         _wave._next->phase(de,az)(f) -= M_PI ;
@@ -172,7 +179,7 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     // and reinit past, prev, curr, next entries
 
     ndirection.rho( -ndirection.rho() ) ;
-    reflection_reinit(de, az, dtime, position, ndirection, c ) ;
+    reflection_reinit(de, az, time_water, position, ndirection, c ) ;
     return true ;
 }
 
@@ -180,13 +187,13 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
  * Compute the precise location and direction at the point of collision.
  */
 void reflection_model::collision_location(
-    unsigned de, unsigned az, double dtime,
+    unsigned de, unsigned az, double time_water,
     wposition1* position, wvector1* ndirection, double* speed ) const
 {
     double drho, dtheta, dphi, d2rho, d2theta, d2phi ;
     const double time1 = 2.0 * _wave._time_step ;
     const double time2 = _wave._time_step * _wave._time_step ;
-    const double dtime2 = dtime * dtime ;
+    const double dtime2 = time_water * time_water ;
 
     // second order Taylor series for sound speed
 
@@ -200,7 +207,7 @@ void reflection_model::collision_location(
         / time2 ;
 
     *speed = _wave._curr->sound_speed(de,az)
-        + drho * dtime + 0.5 * d2rho * dtime2 ;
+        + drho * time_water + 0.5 * d2rho * dtime2 ;
 
     // second order Taylor series for position
 
@@ -228,11 +235,11 @@ void reflection_model::collision_location(
         / time2 ;
 
     position->rho( _wave._curr->position.rho(de,az)
-        + drho * dtime + 0.5 * d2rho * dtime2 ) ;
+        + drho * time_water + 0.5 * d2rho * dtime2 ) ;
     position->theta( _wave._curr->position.theta(de,az)
-        + dtheta * dtime + 0.5 * d2theta * dtime2 ) ;
+        + dtheta * time_water + 0.5 * d2theta * dtime2 ) ;
     position->phi( _wave._curr->position.phi(de,az)
-        + dphi * dtime + 0.5 * d2phi * dtime2 ) ;
+        + dphi * time_water + 0.5 * d2phi * dtime2 ) ;
 
     // second order Taylor series for ndirection
 
@@ -260,18 +267,18 @@ void reflection_model::collision_location(
         / time2 ;
 
     ndirection->rho( _wave._curr->ndirection.rho(de,az)
-        + drho * dtime + 0.5 * d2rho * dtime2 ) ;
+        + drho * time_water + 0.5 * d2rho * dtime2 ) ;
     ndirection->theta( _wave._curr->ndirection.theta(de,az)
-        + dtheta * dtime + 0.5 * d2theta * dtime2 ) ;
+        + dtheta * time_water + 0.5 * d2theta * dtime2 ) ;
     ndirection->phi( _wave._curr->ndirection.phi(de,az)
-        + dphi * dtime + 0.5 * d2phi * dtime2 ) ;
+        + dphi * time_water + 0.5 * d2phi * dtime2 ) ;
 }
 
 /**
  * Re-initialize an individual ray after reflection.
  */
 void reflection_model::reflection_reinit( 
-    unsigned de, unsigned az, double dtime, 
+    unsigned de, unsigned az, double time_water,
     const wposition1& position, const wvector1& ndirection, double speed )
 {
     // create temporary 1x1 wavefront elements
@@ -294,19 +301,19 @@ void reflection_model::reflection_reinit(
 
     curr.update() ;
     
-    // Runge-Kutta to initialize current entry "dtime" seconds in the past
+    // Runge-Kutta to initialize current entry "time_water" seconds in the past
     // adapted from wave_queue::init_wavefronts() 
     
-    ode_integ::rk1_pos(  - dtime, &curr, &next ) ;
-    ode_integ::rk1_ndir( - dtime, &curr, &next ) ;
+    ode_integ::rk1_pos(  - time_water, &curr, &next ) ;
+    ode_integ::rk1_ndir( - time_water, &curr, &next ) ;
     next.update() ;
     
-    ode_integ::rk2_pos(  - dtime, &curr, &next, &past ) ;
-    ode_integ::rk2_ndir( - dtime, &curr, &next, &past ) ;
+    ode_integ::rk2_pos(  - time_water, &curr, &next, &past ) ;
+    ode_integ::rk2_ndir( - time_water, &curr, &next, &past ) ;
     past.update() ;
     
-    ode_integ::rk3_pos(  - dtime, &curr, &next, &past, &curr, false ) ;
-    ode_integ::rk3_ndir( - dtime, &curr, &next, &past, &curr, false ) ;
+    ode_integ::rk3_pos(  - time_water, &curr, &next, &past, &curr, false ) ;
+    ode_integ::rk3_ndir( - time_water, &curr, &next, &past, &curr, false ) ;
     curr.update() ;
     reflection_copy( _wave._curr, de, az, curr ) ;
     
