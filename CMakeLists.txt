@@ -129,6 +129,9 @@ set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION} )
 if( MSVC AND BUILD_SHARED_LIBS )
     set_target_properties( ${TARGET} PROPERTIES COMPILE_DEFINITIONS USML_DLL_EXPORT )
 endif()
+if ( ${CMAKE_BUILD_TYPE} MATCHES Debug )
+    add_definitions( -DUSML_DEBUG )
+endif()
 
 ######################################################################
 # USML_TEST regression test suite

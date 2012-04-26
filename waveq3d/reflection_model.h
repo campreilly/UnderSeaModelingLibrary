@@ -43,7 +43,7 @@ class wave_queue ;      // forward reference for friend declaration
  * @todo Calculate eigenray amplitude and phase for reverberation callback.
  * Just passing bogus values currently.
  *
- * @xref S.M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
+ * @xref S. M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
 class USML_DECLSPEC reflection_model {
@@ -67,12 +67,13 @@ class USML_DECLSPEC reflection_model {
      * propagation could wander into a region where the ocean bottom was 
      * above the surface and all propagation elements evaluated to NaN.  
      * This approximation has very little practical effect because the rays 
-     * are already very weak, due to multiple bottom interactions, 
+     * should already be very weak, due to multiple bottom interactions,
      * by the time they reach the beach.
      *
      * It is automatically set to a value that is 300 times the time
      * step of the wavefront.  This value 1/5 the length of a typical
      * time step (1500*dt).
+     * @todo Are we happy with this definition of "too shallow"?
      */
     const double TOO_SHALLOW ;
 
@@ -112,11 +113,18 @@ class USML_DECLSPEC reflection_model {
      *      - \f$ \hat{I} \f$ = incident direction in spherical earth coords
      *      - \f$ \hat{R} \f$ = reflected direction in spherical earth coords
      *
+     * Note that Small errors in the surface normal have a large effect when the
+     * ray path is nearly parallel to the ocean floor. If the reflection does
+     * not point the ray back-into the water column, the next time step
+     * will include an erroneous reflection in which both the current and
+     * next location are below the bottom.  This implement uses the height
+     * differential between the current and next rays to refine the dot product
+     * \f$ \frac{d\vec{r}}{d\tau} \bullet \hat{n} \f$ when this becomes a problem.
+     *
      * This routine exits without producing a reflection if this calculation
      * indicates that a near-miss has occurred. A near-miss is defined as the
-     * case where the grazing angle is zero or negative. In a near-miss,
-     * the ray is already heading back into the water column without the
-     * help of a reflection.
+     * case where the ray is already heading back into the water column without
+     * the help of a reflection.
      *
      * @param de                D/E angle index number of reflected ray.
      * @param az                AZ angle index number of reflected ray.

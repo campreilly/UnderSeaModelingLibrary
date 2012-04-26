@@ -32,6 +32,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     // to avoid propagating onto land
     
     if ( (bottom_rho-wposition::earth_radius) > TOO_SHALLOW ) {
+        cout << "\tTOO_SHALLOW" << endl ;
     	N = bottom_normal.theta()*bottom_normal.theta()
     	  + bottom_normal.phi()*bottom_normal.phi() ;
         bottom_normal.rho( 0.0 ) ;
@@ -58,6 +59,13 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     const double time_water = ( dot_full >= 0.0 )
         ? _wave._time_step * height_water / depth
         : -dot_water / dot_full ;
+    cout << "\tbottom_normal=" << bottom_normal.rho() << "," << bottom_normal.theta() << "," << bottom_normal.phi()
+         << " dr/dt=" << ndirection.rho() << "," << ndirection.theta() << "," << ndirection.phi() << endl
+         << "\tdot_full=" << dot_full
+         << " height_water=" << height_water
+         << " depth=" << depth
+         << " time_water=" << time_water
+         << endl ;
     #ifdef USML_DEBUG
         if ( time_water < 0.0 || time_water > _wave._time_step ) {
             throw std::runtime_error("reflection_model::bottom_reflection: time step computation error") ;
@@ -69,6 +77,8 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     // failure to do this results in grazing angle errors in highly reflective environments.
     
     collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+//    if ( ndirection.rho() > 0.0 ) return false ;    // near miss
+
     c2 = c*c ;
     ndirection.rho(   c2 * ndirection.rho() ) ;
     ndirection.theta( c2 * ndirection.theta() ) ;
@@ -80,6 +90,10 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
         dot_full = -( height_water + depth ) * bottom_normal.rho() ;
     }
     const double grazing = asin( min( 1.0, -dot_full / (c*_wave._time_step) ) ) ;
+    cout << "\tprecise dr/dt=" << ndirection.rho() << "," << ndirection.theta() << "," << ndirection.phi() << endl
+         << "\tdot_full=" << dot_full
+         << " grazing=" << grazing
+         << endl ;
 
     // invoke bottom reverberation callback
     // @todo THIS IS A STUB FOR FUTURE BEHAVIORS.
@@ -112,6 +126,9 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     ndirection.rho(   ndirection.rho()   - dot_full * bottom_normal.rho() ) ;
     ndirection.theta( ndirection.theta() - dot_full * bottom_normal.theta() ) ;
     ndirection.phi(   ndirection.phi()   - dot_full * bottom_normal.phi() ) ;
+    cout << "\treflect dr/dt=" << ndirection.rho() << "," << ndirection.theta() << "," << ndirection.phi() << endl
+         << "\tdot_full=" << dot_full
+         << endl ;
 
     N = sqrt( ndirection.rho() * ndirection.rho()
             + ndirection.theta() * ndirection.theta()
@@ -123,6 +140,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     ndirection.phi(   ndirection.phi() / N ) ;
 
     reflection_reinit( de, az, time_water, position, ndirection, c ) ;
+    cout << "\tnew height=" << (_wave._next->position.rho() - bottom_rho ) << endl ;
     return true ;
 }
 
@@ -154,7 +172,7 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     if ( grazing <= 0.0 ) return false ;	// near miss of the surface
 
     // invoke bottom reverberation callback
-    // THIS IS A STUB FOR FUTURE BEHAVIORS.
+    // @todo THIS IS A STUB FOR FUTURE BEHAVIORS.
 
     if ( _surface_reverb ) {
         _surface_reverb->collision(  de, az, _wave._time+time_water,
