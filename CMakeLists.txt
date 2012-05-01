@@ -268,6 +268,9 @@ add_definitions( -DSTUDIES_FLORIDA_STRAITS_DIR="${STUDIES_FLORIDA_STRAITS_DIR}")
 add_executable( flstrts_btmloss_test studies/florida_straits/flstrts_btmloss_test.cc )
 target_link_libraries( flstrts_btmloss_test usml )
 
+add_executable( flstrts_slope_test studies/florida_straits/flstrts_slope_test.cc )
+target_link_libraries( flstrts_slope_test usml )
+
 add_executable( run1a_proploss studies/florida_straits/run1a_proploss.cc )
 target_link_libraries( run1a_proploss usml )
 

@@ -252,13 +252,19 @@ private:
 
         const double u = (location[dim] - (*ax)(k)) / ax->increment(k);
         result = a * (1.0 - u) + b * u;
+//        cout << "dim=" << dim << " inc=" << ax->increment(k)
+//            << " k=" << k
+//            << " u=" << u << " a=" << (a-wposition::earth_radius)
+//            << " b=" << (b-wposition::earth_radius) << endl ;
 
         // compute derivative in this dimension and prior dimension
 
         if (deriv_vec) {
             deriv = (b - a) / ax->increment(k);
             deriv_vec[dim] = deriv;
+//            cout << "deriv=" << deriv << endl ;
             if (dim > 0) {
+//                cout << "da=" << da << " db=" << db << endl ;
                 deriv_vec[dim - 1] = da * (1.0 - u) + db * u;
             }
         }

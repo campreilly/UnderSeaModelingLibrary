@@ -20,19 +20,22 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     wvector1 ndirection( _wave._curr->ndirection, de, az ) ;
     double c = _wave._curr->sound_speed( de, az ) ;
     double c2 = c*c ;
+//    double ct = -c*_wave._time_step ;   // distance along ray (negative #)
    
-    // extract bottom_rho and slope from the bottom model
+    // extract radial height and slope at current location
+    // height_water = initial ray height above the bottom (must be positive)
     
     double bottom_rho ;
     wvector1 bottom_normal ;
     boundary_model& boundary = _wave._ocean.bottom() ;
     boundary.height( position, &bottom_rho, &bottom_normal ) ;
+    const double height_water = position.rho() - bottom_rho ;
 
     // make bottom horizontal for very shallow water
     // to avoid propagating onto land
     
-    if ( (bottom_rho-wposition::earth_radius) > TOO_SHALLOW ) {
-        cout << "\tTOO_SHALLOW" << endl ;
+    if ( (wposition::earth_radius-bottom_rho) < TOO_SHALLOW ) {
+        cout << "too shallow: " << (wposition::earth_radius-bottom_rho) << " < " << TOO_SHALLOW << endl;
     	N = bottom_normal.theta()*bottom_normal.theta()
     	  + bottom_normal.phi()*bottom_normal.phi() ;
         bottom_normal.rho( 0.0 ) ;
@@ -40,60 +43,59 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
         bottom_normal.phi(   bottom_normal.phi() / N  ) ;
     }
     
-    // compute dot_full = dot product of the full dr/dt with bottom_normal (negative #)
-    // converts ndirection to rectangular coordinates relative to reflection point
-       
-    ndirection.rho(   c2 * ndirection.rho() ) ;
-    ndirection.theta( c2 * ndirection.theta() ) ;
-    ndirection.phi(   c2 * ndirection.phi() ) ;
-    double dot_full = bottom_normal.rho() * ndirection.rho()
-        + bottom_normal.theta() * ndirection.theta()
-        + bottom_normal.phi() * ndirection.phi() ;
-
     // compute time_water = fraction of time step needed to strike the bottom
-    // height_water = initial ray height above the bottom (must be positive)
-    // dot_water = component of "height_water" parallel to bottom normal (positive #)
 
-    const double height_water = position.rho() - bottom_rho ;
-    const double dot_water = height_water * bottom_normal.rho() ;
-    const double time_water = ( dot_full >= 0.0 )
-        ? _wave._time_step * height_water / depth
-        : -dot_water / dot_full ;
-    cout << "\tbottom_normal=" << bottom_normal.rho() << "," << bottom_normal.theta() << "," << bottom_normal.phi()
-         << " dr/dt=" << ndirection.rho() << "," << ndirection.theta() << "," << ndirection.phi() << endl
-         << "\tdot_full=" << dot_full
-         << " height_water=" << height_water
-         << " depth=" << depth
-         << " time_water=" << time_water
-         << endl ;
-    #ifdef USML_DEBUG
-        if ( time_water < 0.0 || time_water > _wave._time_step ) {
-            throw std::runtime_error("reflection_model::bottom_reflection: time step computation error") ;
+    double time_water = 0.0 ;
+    double dot_full = 0.0 ;
+    if ( height_water > 0.0 ) {
+
+        // compute dot_full = dot product of the full dr/dt with bottom_normal (negative #)
+        // converts ndirection to dr/dt in rectangular coordinates relative to reflection point
+
+        ndirection.rho(   c2 * ndirection.rho() ) ;
+        ndirection.theta( c2 * ndirection.theta() ) ;
+        ndirection.phi(   c2 * ndirection.phi() ) ;
+        dot_full = bottom_normal.rho() * ndirection.rho()
+            + bottom_normal.theta() * ndirection.theta()
+            + bottom_normal.phi() * ndirection.phi() ;
+        if ( dot_full >= 0.0 ) {
+            // cout << "near miss 1" << endl ;
+            return false ;   // near miss, non-positive grazing angle
         }
-    #endif
+
+        // time step = ratio of in water dot product to full dot product
+        // dot_water = component of "height_water" parallel to bottom normal (negative #)
+
+        const double dot_water = -height_water * bottom_normal.rho() ;
+        time_water = dot_water / dot_full ;
+        if ( time_water < 0 ) time_water = 0.0 ;
+        if ( time_water > _wave._time_step ) time_water = _wave._time_step ;
+    } else {
+        // cout << "curr point is below bottom" << endl ;
+    }
                  
     // compute the more precise values for position, direction,
-    // sound speed, and grazing angle at the point of collision.
-    // failure to do this results in grazing angle errors in highly reflective environments.
+    // sound speed, bottom height, bottom slope, and grazing angle at the point of collision.
+    // failure to do this results in grazing angle errors in highly refractive environments.
     
     collision_location( de, az, time_water, &position, &ndirection, &c ) ;
-//    if ( ndirection.rho() > 0.0 ) return false ;    // near miss
-
+    boundary.height( position, &bottom_rho, &bottom_normal ) ;
     c2 = c*c ;
+//    ct = -c*_wave._time_step ;   // distance along ray (negative #)
+
     ndirection.rho(   c2 * ndirection.rho() ) ;
     ndirection.theta( c2 * ndirection.theta() ) ;
     ndirection.phi(   c2 * ndirection.phi() ) ;
     dot_full = bottom_normal.rho() * ndirection.rho()
         + bottom_normal.theta() * ndirection.theta()
-        + bottom_normal.phi() * ndirection.phi() ;
+        + bottom_normal.phi() * ndirection.phi() ;  // negative #
     if ( dot_full >= 0.0 ) {
-        dot_full = -( height_water + depth ) * bottom_normal.rho() ;
+        // cout << "near miss 2" << endl ;
+        return false ;   // near miss, non-positive grazing angle
     }
-    const double grazing = asin( min( 1.0, -dot_full / (c*_wave._time_step) ) ) ;
-    cout << "\tprecise dr/dt=" << ndirection.rho() << "," << ndirection.theta() << "," << ndirection.phi() << endl
-         << "\tdot_full=" << dot_full
-         << " grazing=" << grazing
-         << endl ;
+    // cout << "\tdot_full=" << dot_full << " c=" << c << endl ;
+    const double grazing = asin( -dot_full / c ) ;
+    // cout << "\tgrazing angle = " << to_degrees( grazing ) << endl ;
 
     // invoke bottom reverberation callback
     // @todo THIS IS A STUB FOR FUTURE BEHAVIORS.
@@ -126,9 +128,9 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     ndirection.rho(   ndirection.rho()   - dot_full * bottom_normal.rho() ) ;
     ndirection.theta( ndirection.theta() - dot_full * bottom_normal.theta() ) ;
     ndirection.phi(   ndirection.phi()   - dot_full * bottom_normal.phi() ) ;
-    cout << "\treflect dr/dt=" << ndirection.rho() << "," << ndirection.theta() << "," << ndirection.phi() << endl
-         << "\tdot_full=" << dot_full
-         << endl ;
+    // cout << "\treflect dr/dt=" << ndirection.rho() << "," << ndirection.theta() << "," << ndirection.phi() << endl
+//         << "\tdot_full=" << dot_full
+//         << endl ;
 
     N = sqrt( ndirection.rho() * ndirection.rho()
             + ndirection.theta() * ndirection.theta()
@@ -140,7 +142,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     ndirection.phi(   ndirection.phi() / N ) ;
 
     reflection_reinit( de, az, time_water, position, ndirection, c ) ;
-    cout << "\tnew height=" << (_wave._next->position.rho() - bottom_rho ) << endl ;
+    // cout << "\tnew height=" << (_wave._next->position.rho() - bottom_rho ) << endl ;
     return true ;
 }
 

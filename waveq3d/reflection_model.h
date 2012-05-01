@@ -70,8 +70,8 @@ class USML_DECLSPEC reflection_model {
      * should already be very weak, due to multiple bottom interactions,
      * by the time they reach the beach.
      *
-     * It is automatically set to a value that is 300 times the time
-     * step of the wavefront.  This value 1/5 the length of a typical
+     * It is automatically set to a value that is 500 times the time
+     * step of the wavefront.  This value 1/3 the length of a typical
      * time step (1500*dt).
      * @todo Are we happy with this definition of "too shallow"?
      */
@@ -82,7 +82,7 @@ class USML_DECLSPEC reflection_model {
      */
     reflection_model( wave_queue& wave ) 
     	: _wave( wave ), _bottom_reverb(0), _surface_reverb(0),
-        TOO_SHALLOW( 300.0 * wave._time_step )
+        TOO_SHALLOW( 1500.0 * wave._time_step )
     	{}
 
     /**

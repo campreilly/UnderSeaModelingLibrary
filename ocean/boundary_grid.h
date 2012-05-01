@@ -166,8 +166,12 @@ template< class DATA_TYPE, int NUM_DIMS > class boundary_grid
                     normal->theta( -t / sqrt(1.0+t*t) );// normal = -sin(angle)
                     normal->phi( -p / sqrt(1.0+p*p) );
                     normal->rho( sqrt( 1.0 		// r=sqrt(1-t^2-p^2)
-    			- normal->theta()*normal->theta() 
-    			- normal->phi()*normal->phi() ) ) ;
+                                - normal->theta()*normal->theta()
+                                - normal->phi()*normal->phi() ) ) ;
+//                    cout << "gradient=" << grad[0] << "," << grad[1]
+//                         << " slope=" << t << "," << p
+//                         << " norm=" << normal->theta() << "," << normal->phi()
+//                         << endl ;
     	 
                 } else {
                     const double loc[2] = {

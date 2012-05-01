@@ -99,12 +99,12 @@ int main( int argc, char* argv[] ) {
 
     static double f[] = { 24.0, 52.5, 106.0, 206.0, 415.0 } ;
     seq_data freq( f, 5 ) ;
-//    seq_rayfan de( -2.5, 2.5, 40 ) ;
-//    seq_linear az( -40.0, 1.0, 10.0 ) ;
-    seq_linear de( 0.0, 1.0, 1 ) ;
-    seq_linear az( -28.0, 1.0, 1 ) ;
-    const double time_max = 0.6 ;
-    const double time_step = 0.100 ;
+    seq_rayfan de( -2.0, 2.0, 40 ) ;
+    seq_linear az( -60.0, 5.0, 1 ) ;
+//    seq_linear de( 0.0, 1.0, 1 ) ;
+//    seq_linear az( -28.0, 1.0, 1 ) ;
+    const double time_max = 60.0 ;
+    const double time_step = 0.05 ;
     wave_queue wave( ocean, freq, receiver, de, az, time_step ) ;
 
     // propagate wavefront
