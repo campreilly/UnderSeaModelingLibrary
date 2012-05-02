@@ -39,11 +39,12 @@ using namespace usml::waveq3d ;
  */
 int main( int argc, char* argv[] ) {
     cout << "=== run1a_proploss ===" << endl ;
-   // wposition::compute_earth_radius( 26.4 ) ;
 
-    // const char* name = STUDIES_FLORIDA_STRAITS_DIR "/run1a_proploss.csv" ;
-    // std::ofstream os(name) ;
-    // cout << "writing tables to " << name << endl ;
+    // characterize the profile using Heaney's
+    // summer profile at all locations.
+
+    profile_grid<double,1>* profile = new profile_grid<double,1>(
+        new ascii_profile( STUDIES_FLORIDA_STRAITS_DIR "/flstrts_profile_sept2007.csv" ) ) ;
 
     // characterize the bottom using CRM bathymetry and
     // bottom loss derived from Ballard's analysis
@@ -61,7 +62,7 @@ int main( int argc, char* argv[] ) {
     ocean_model ocean(
         new boundary_flat(),
         bottom,
-        new profile_linear() ) ;
+        profile ) ;
 
     // define a single receiver location
 
@@ -99,13 +100,13 @@ int main( int argc, char* argv[] ) {
 
     static double f[] = { 24.0, 52.5, 106.0, 206.0, 415.0 } ;
     seq_data freq( f, 5 ) ;
-    seq_rayfan de( -2.0, 2.0, 40 ) ;
-    seq_linear az( -60.0, 5.0, 1 ) ;
-//    seq_linear de( 0.0, 1.0, 1 ) ;
-//    seq_linear az( -28.0, 1.0, 1 ) ;
-    const double time_max = 60.0 ;
-    const double time_step = 0.05 ;
-    wave_queue wave( ocean, freq, receiver, de, az, time_step ) ;
+//    seq_rayfan de( -20.0, 20.0, 50 ) ;
+//    seq_linear de( 0.1, 1.0, 15.0 ) ;
+    seq_linear de( 0.0, 1.0, 1 ) ;
+    seq_linear az( -40.0, 10.0, 1 ) ;
+    const double time_max = 10.0 ;
+    const double time_step = 0.1 ;
+    wave_queue wave( ocean, freq, receiver, de, az, time_step ) ; // , &loss ) ;
 
     // propagate wavefront
 
@@ -118,6 +119,8 @@ int main( int argc, char* argv[] ) {
 //        cout << "\talt: " << wave.curr()->position.altitude(0,0) << endl ;
     }
     wave.close_netcdf() ;
+//    loss.sum_eigenrays() ;
+//    loss.write_netcdf(STUDIES_FLORIDA_STRAITS_DIR "/run1a_proploss.nc" ) ;
     cout << "wave propagated for " << wave.time() << " secs" << endl ;
     return 0 ;
 }

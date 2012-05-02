@@ -70,19 +70,32 @@ class USML_DECLSPEC reflection_model {
      * should already be very weak, due to multiple bottom interactions,
      * by the time they reach the beach.
      *
-     * It is automatically set to a value that is 500 times the time
-     * step of the wavefront.  This value 1/3 the length of a typical
+     * It is automatically set to a value that is 300 times the time
+     * step of the wavefront.  This value 1/5 the length of a typical
      * time step (1500*dt).
      * @todo Are we happy with this definition of "too shallow"?
      */
     const double TOO_SHALLOW ;
 
     /**
+     * The assumption that the surface normal is constant across the time step
+     * breaks down when the incident ray is nearly parallel to the bottom.
+     * Establishing a minimize grazing angle prevents the model from
+     * becoming unstable under these conditions.
+     *
+     * The minimum grazing angle is asin( MIN_REFLECT / c  ) where c is the
+     * speed of sound.  A value where MIN_REFLECT=6.0 results in a minimum
+     * grazing angle of about 0.23 degrees.  We assume that this value is
+     * much lower than the uncertainty in the gridded bathymetry slope.
+     */
+    static const double MIN_REFLECT ;
+
+    /**
      * Hide default constructor to prohibit use by non-friends.
      */
     reflection_model( wave_queue& wave ) 
     	: _wave( wave ), _bottom_reverb(0), _surface_reverb(0),
-        TOO_SHALLOW( 1500.0 * wave._time_step )
+        TOO_SHALLOW( 500.0 * wave._time_step )
     	{}
 
     /**

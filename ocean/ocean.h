@@ -61,7 +61,7 @@
 #include <usml/ocean/profile_catenary.h>
 #include <usml/ocean/profile_grid.h>
 #include <usml/ocean/profile_mackenzie.h>
-#include <usml/ocean/ascii_profile_factory.h>
+#include <usml/ocean/ascii_profile.h>
 
 #include <usml/ocean/reflect_loss_model.h>
 #include <usml/ocean/reflect_loss_constant.h>

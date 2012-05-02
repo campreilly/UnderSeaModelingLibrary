@@ -212,15 +212,15 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
  * a constant profile model.
  * Generate errors if values differ by more that 1E-6 percent.
  */
-BOOST_AUTO_TEST_CASE( ascii_profile_test ) {
-    cout << "=== profile_test: ascii_profile_test ===" << endl;
-    try {
-        ascii_profile_factory::read( USML_ASCII_PROFILE_TEST_DATA ) ;
-
-    } catch (std::exception* except) {
-        BOOST_ERROR(except->what());
-    }
-}
+//BOOST_AUTO_TEST_CASE( ascii_profile_test ) {
+//    cout << "=== profile_test: ascii_profile_test ===" << endl;
+//    try {
+//        ascii_profile_factory::read( USML_ASCII_PROFILE_TEST_DATA ) ;
+//
+//    } catch (std::exception* except) {
+//        BOOST_ERROR(except->what());
+//    }
+//}
 
 
 /// @}

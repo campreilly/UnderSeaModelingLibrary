@@ -146,10 +146,11 @@ void wave_front::update() {
         );
     ndir_gradient.theta(
         element_prod(-_c2_r,
-            element_prod(ndirection.rho(), ndirection.theta())
-            - element_prod(abs2(ndirection.phi()), _cot_theta))
+            element_prod(ndirection.rho(), ndirection.theta()))
+            + element_prod(abs2(ndirection.phi()), _cot_theta)
             - element_div(_dc_c.theta(), position.rho())
         );
+    cout << ">>> ndir_gradient.theta()=" << ndir_gradient.theta() << endl ;
     ndir_gradient.phi(
         element_prod(-_c2_r,
             element_prod(ndirection.phi(),

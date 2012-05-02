@@ -7,11 +7,14 @@
 
 using namespace usml::waveq3d ;
 
+const double reflection_model::MIN_REFLECT = 6.0 ;
+
 /**
  * Reflect a single acoustic ray from the ocean bottom.  
  */
 bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth ) {
     double N ;
+    cout << "reflection_model::bottom_reflection:" << endl ;
     
     // extract position, direction, and sound speed from this ray
     // at a point just before it goes below the bottom
@@ -20,8 +23,8 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     wvector1 ndirection( _wave._curr->ndirection, de, az ) ;
     double c = _wave._curr->sound_speed( de, az ) ;
     double c2 = c*c ;
-//    double ct = -c*_wave._time_step ;   // distance along ray (negative #)
-   
+    cout << "\tndirection=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << endl ;
+
     // extract radial height and slope at current location
     // height_water = initial ray height above the bottom (must be positive)
     
@@ -29,7 +32,8 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     wvector1 bottom_normal ;
     boundary_model& boundary = _wave._ocean.bottom() ;
     boundary.height( position, &bottom_rho, &bottom_normal ) ;
-    const double height_water = position.rho() - bottom_rho ;
+    double height_water = position.rho() - bottom_rho ;
+    cout << "\tdepth=" << depth << " height_water=" << height_water << endl ;
 
     // make bottom horizontal for very shallow water
     // to avoid propagating onto land
@@ -42,46 +46,42 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
         bottom_normal.theta( bottom_normal.theta() / N ) ;
         bottom_normal.phi(   bottom_normal.phi() / N  ) ;
     }
+    cout << "\tbottom_normal=" << bottom_normal.rho() << ","  << bottom_normal.theta() << ","  << bottom_normal.phi() << endl ;
     
+    // compute dot_full = dot product of the full dr/dt with bottom_normal (negative #)
+    // converts ndirection to dr/dt in rectangular coordinates relative to reflection point
+
+    ndirection.rho(   c2 * ndirection.rho() ) ;
+    ndirection.theta( c2 * ndirection.theta() ) ;
+    ndirection.phi(   c2 * ndirection.phi() ) ;
+    double dot_full = bottom_normal.rho() * ndirection.rho()
+                    + bottom_normal.theta() * ndirection.theta()
+                    + bottom_normal.phi() * ndirection.phi() ;
+    cout << "\tdr/dt=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << " dot_full=" << dot_full << endl ;
+
+    // compute the smallest "dot_full" that could have led to this penetration depth
+    // assume minimum depth change, along normal, of 1.0 meters
+
+    double max_dot = - max( MIN_REFLECT, (height_water+depth)*bottom_normal.rho() ) ;
+    if ( dot_full >= max_dot ) dot_full = max_dot ;
+    cout << "\tmax_dot=" << max_dot << " dot_full=" << dot_full << endl ;
+
     // compute time_water = fraction of time step needed to strike the bottom
+    // time step = ratio of in water dot product to full dot product
+    // dot_water = component of "height_water" parallel to bottom normal (negative #)
 
-    double time_water = 0.0 ;
-    double dot_full = 0.0 ;
-    if ( height_water > 0.0 ) {
-
-        // compute dot_full = dot product of the full dr/dt with bottom_normal (negative #)
-        // converts ndirection to dr/dt in rectangular coordinates relative to reflection point
-
-        ndirection.rho(   c2 * ndirection.rho() ) ;
-        ndirection.theta( c2 * ndirection.theta() ) ;
-        ndirection.phi(   c2 * ndirection.phi() ) ;
-        dot_full = bottom_normal.rho() * ndirection.rho()
-            + bottom_normal.theta() * ndirection.theta()
-            + bottom_normal.phi() * ndirection.phi() ;
-        if ( dot_full >= 0.0 ) {
-            // cout << "near miss 1" << endl ;
-            return false ;   // near miss, non-positive grazing angle
-        }
-
-        // time step = ratio of in water dot product to full dot product
-        // dot_water = component of "height_water" parallel to bottom normal (negative #)
-
-        const double dot_water = -height_water * bottom_normal.rho() ;
-        time_water = dot_water / dot_full ;
-        if ( time_water < 0 ) time_water = 0.0 ;
-        if ( time_water > _wave._time_step ) time_water = _wave._time_step ;
-    } else {
-        // cout << "curr point is below bottom" << endl ;
-    }
+    const double dot_water = -height_water * bottom_normal.rho() ;
+    double time_water = max( 0.0, dot_water / dot_full ) ;
+    cout << "\tdot_water=" << dot_water << " time_water=" << time_water << endl ;
                  
     // compute the more precise values for position, direction,
     // sound speed, bottom height, bottom slope, and grazing angle at the point of collision.
-    // failure to do this results in grazing angle errors in highly refractive environments.
+    // reduces grazing angle errors in highly refractive environments.
     
     collision_location( de, az, time_water, &position, &ndirection, &c ) ;
     boundary.height( position, &bottom_rho, &bottom_normal ) ;
     c2 = c*c ;
-//    ct = -c*_wave._time_step ;   // distance along ray (negative #)
+    height_water = position.rho() - bottom_rho ;
 
     ndirection.rho(   c2 * ndirection.rho() ) ;
     ndirection.theta( c2 * ndirection.theta() ) ;
@@ -89,13 +89,11 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     dot_full = bottom_normal.rho() * ndirection.rho()
         + bottom_normal.theta() * ndirection.theta()
         + bottom_normal.phi() * ndirection.phi() ;  // negative #
-    if ( dot_full >= 0.0 ) {
-        // cout << "near miss 2" << endl ;
-        return false ;   // near miss, non-positive grazing angle
-    }
-    // cout << "\tdot_full=" << dot_full << " c=" << c << endl ;
+    cout << "\tprecise dr/dt=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << " dot_full=" << dot_full << endl ;
+    max_dot = - max( MIN_REFLECT, (height_water+depth)*bottom_normal.rho() ) ;
+    if ( dot_full >= max_dot ) dot_full = max_dot ;
     const double grazing = asin( -dot_full / c ) ;
-    // cout << "\tgrazing angle = " << to_degrees( grazing ) << endl ;
+    cout << "\tmax_dot=" << max_dot << " dot_full=" << dot_full << " grazing= " << to_degrees( grazing ) << endl ;
 
     // invoke bottom reverberation callback
     // @todo THIS IS A STUB FOR FUTURE BEHAVIORS.
@@ -128,21 +126,26 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     ndirection.rho(   ndirection.rho()   - dot_full * bottom_normal.rho() ) ;
     ndirection.theta( ndirection.theta() - dot_full * bottom_normal.theta() ) ;
     ndirection.phi(   ndirection.phi()   - dot_full * bottom_normal.phi() ) ;
-    // cout << "\treflect dr/dt=" << ndirection.rho() << "," << ndirection.theta() << "," << ndirection.phi() << endl
-//         << "\tdot_full=" << dot_full
-//         << endl ;
+    cout << "\treflect dr/dt=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << " 2*dot_full=" << dot_full << endl ;
 
     N = sqrt( ndirection.rho() * ndirection.rho()
             + ndirection.theta() * ndirection.theta()
-            + ndirection.phi() * ndirection.phi() )
-            * c ;
+            + ndirection.phi() * ndirection.phi() ) * c ;
     
     ndirection.rho(   ndirection.rho() / N ) ;
     ndirection.theta( ndirection.theta() / N ) ;
     ndirection.phi(   ndirection.phi() / N ) ;
+    cout << "\tndirection=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << " N=" << N << endl ;
 
     reflection_reinit( de, az, time_water, position, ndirection, c ) ;
-    // cout << "\tnew height=" << (_wave._next->position.rho() - bottom_rho ) << endl ;
+
+    double curr_height, next_height ;
+    boundary.height( wposition1(_wave._curr->position,de,az), &curr_height ) ;
+    boundary.height( wposition1(_wave._next->position,de,az), &next_height ) ;
+    curr_height = wposition1(_wave._curr->position,de,az).rho() - curr_height ;
+    next_height = wposition1(_wave._curr->position,de,az).rho() - next_height ;
+
+    cout << "\tcurr_height=" << curr_height << " next_height=" << next_height << endl ;
     return true ;
 }
 
@@ -307,40 +310,46 @@ void reflection_model::reflection_reinit(
     wave_front prev( _wave._ocean, _wave._frequencies, 1, 1 ) ;
     wave_front curr( _wave._ocean, _wave._frequencies, 1, 1 ) ;
     wave_front next( _wave._ocean, _wave._frequencies, 1, 1 ) ;
+    wave_front temp( _wave._ocean, _wave._frequencies, 1, 1 ) ;
       
     // initialize current entry with reflected position and direction
     // adapted from wave_front::init_wave()
     
-    curr.position.rho(   0, 0, position.rho() ) ;
-    curr.position.theta( 0, 0, position.theta() ) ;
-    curr.position.phi(   0, 0, position.phi() ) ;
+    temp.position.rho(   0, 0, position.rho() ) ;
+    temp.position.theta( 0, 0, position.theta() ) ;
+    temp.position.phi(   0, 0, position.phi() ) ;
     
-    curr.ndirection.rho(   0, 0, ndirection.rho()  ) ;
-    curr.ndirection.theta( 0, 0, ndirection.theta() ) ;
-    curr.ndirection.phi(   0, 0, ndirection.phi() ) ;
+    temp.ndirection.rho(   0, 0, ndirection.rho()  ) ;
+    temp.ndirection.theta( 0, 0, ndirection.theta() ) ;
+    temp.ndirection.phi(   0, 0, ndirection.phi() ) ;
 
-    curr.update() ;
+    temp.update() ;
     
     // Runge-Kutta to initialize current entry "time_water" seconds in the past
     // adapted from wave_queue::init_wavefronts() 
     
-    ode_integ::rk1_pos(  - time_water, &curr, &next ) ;
-    ode_integ::rk1_ndir( - time_water, &curr, &next ) ;
+    cout << "time_water=" << time_water << endl ;
+    ode_integ::rk1_pos(  - time_water, &temp, &next ) ;
+    ode_integ::rk1_ndir( - time_water, &temp, &next ) ;
     next.update() ;
-    
-    ode_integ::rk2_pos(  - time_water, &curr, &next, &past ) ;
-    ode_integ::rk2_ndir( - time_water, &curr, &next, &past ) ;
+
+    ode_integ::rk2_pos(  - time_water, &temp, &next, &past ) ;
+    ode_integ::rk2_ndir( - time_water, &temp, &next, &past ) ;
     past.update() ;
-    
-    ode_integ::rk3_pos(  - time_water, &curr, &next, &past, &curr, false ) ;
-    ode_integ::rk3_ndir( - time_water, &curr, &next, &past, &curr, false ) ;
+
+    ode_integ::rk3_pos(  - time_water, &temp, &next, &past, &curr ) ;
+    ode_integ::rk3_ndir( - time_water, &temp, &next, &past, &curr ) ;
     curr.update() ;
     reflection_copy( _wave._curr, de, az, curr ) ;
+
+    cout << "curr: pos=" << curr.position.rho() << "," << curr.position.theta() << "," << curr.position.phi()
+        << " ndir=" << curr.ndirection.rho() << "," << curr.ndirection.theta() << "," << curr.ndirection.phi() << endl ;
     
     // Runge-Kutta to estimate prev wavefront from curr entry
     // adapted from wave_queue::init_wavefronts() 
     
     double time_step = _wave._time_step ;
+    cout << "time_step=" << time_step << endl ;
     ode_integ::rk1_pos(  - time_step, &curr, &next ) ;
     ode_integ::rk1_ndir( - time_step, &curr, &next ) ;
     next.update() ;
@@ -361,12 +370,12 @@ void reflection_model::reflection_reinit(
     ode_integ::rk1_ndir( - time_step, &prev, &next ) ;
     next.update() ;
     
-    ode_integ::rk2_pos(  - time_step, &prev, &next, &past ) ;
-    ode_integ::rk2_ndir( - time_step, &prev, &next, &past ) ;
+    ode_integ::rk2_pos(  - time_step, &prev, &next, &temp ) ;
+    ode_integ::rk2_ndir( - time_step, &prev, &next, &temp ) ;
     past.update() ;
     
-    ode_integ::rk3_pos(  - time_step, &prev, &next, &past, &past, false ) ;
-    ode_integ::rk3_ndir( - time_step, &prev, &next, &past, &past, false ) ;
+    ode_integ::rk3_pos(  - time_step, &prev, &next, &temp, &past ) ;
+    ode_integ::rk3_ndir( - time_step, &prev, &next, &temp, &past ) ;
     past.update() ;
     reflection_copy( _wave._past, de, az, past ) ;
 
@@ -377,7 +386,6 @@ void reflection_model::reflection_reinit(
     ode_integ::ab3_pos(  time_step, &past, &prev, &curr, &next ) ;
     ode_integ::ab3_ndir( time_step, &past, &prev, &curr, &next ) ;
     next.update() ;
-    
     reflection_copy( _wave._next, de, az, next ) ;
 }
 
