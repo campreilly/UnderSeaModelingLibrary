@@ -69,7 +69,7 @@ int main( int argc, char* argv[] ) {
     wposition1 receiver( 26.0217, -79.99054, -250.0 ) ;
     double rho ;
     bottom->height( receiver, &rho ) ;
-    receiver.rho(rho) ;
+    receiver.rho(rho+5.0) ;
     cout << "receiver: "
         << receiver.latitude() << ","
         << receiver.longitude() << ","
@@ -102,9 +102,9 @@ int main( int argc, char* argv[] ) {
     seq_data freq( f, 5 ) ;
 //    seq_rayfan de( -20.0, 20.0, 50 ) ;
 //    seq_linear de( 0.1, 1.0, 15.0 ) ;
-    seq_linear de( 0.0, 1.0, 1 ) ;
+    seq_linear de( 1.0, 10.0, 1 ) ;
     seq_linear az( -40.0, 10.0, 1 ) ;
-    const double time_max = 10.0 ;
+    const double time_max = 60.0 ;
     const double time_step = 0.1 ;
     wave_queue wave( ocean, freq, receiver, de, az, time_step ) ; // , &loss ) ;
 

@@ -21,9 +21,10 @@ figure;
 run1a_plot_bathy( bathymetry ) ;
 title('CALOPS RUN 1N SEPT 2007');
 set(gca,'ZLim',[-800 0]);
-view([10 40]); 
-set(gca,'YLim',[26.0 26.1])
-set(gca,'XLim',[-80.00 -79.98])
+% view([10 40]); 
+view([0 90]);
+% set(gca,'YLim',[26.0 26.1])
+% set(gca,'XLim',[-80.00 -79.98])
 
 % show a movie of wavefront propagation
 
@@ -45,6 +46,7 @@ while ( true )
     
     % allows user to move the plot forward and backward in time
 
+    inc = 10 ;
     choice = menu('Action','Quit','Next','+10','Previous','-10','Save') ;
     switch ( choice )
         case 1
@@ -52,11 +54,11 @@ while ( true )
         case 2
             if ( time_index < max_time ) time_index = time_index + 1 ; end ;
         case 3
-            if ( time_index < max_time-10 ) time_index = time_index + 10 ; end ;
+            if ( time_index < max_time-inc ) time_index = time_index + inc ; end ;
         case 4
             if ( time_index > 1 ) time_index = time_index - 1 ; end ;
         case 5
-            if ( time_index > 10 ) time_index = time_index - 10 ; end ;
+            if ( time_index > inc ) time_index = time_index - inc ; end ;
         case 6
             title('');
             print -deps run1a_wavefront

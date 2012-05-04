@@ -12,7 +12,7 @@ close all;
 wavefront = load_wavefront('run1a_wavefront.nc') ;
 max_az = length(wavefront.source_az) ;
 [p,az_index] = min( abs(wavefront.source_az-0) ) ;
-scale = [0 1 -300 0];
+scale = [0 60 -300 0];
 
 % plot depth vs. time for one azimuth
 
@@ -23,6 +23,7 @@ while ( true )
 	wlat = double( squeeze( wavefront.latitude(:,:,az_index) ) );
 	wlng = double( squeeze( wavefront.longitude(:,:,az_index) ) );
 	walt = double( squeeze( wavefront.altitude(:,:,az_index) ) );
+	wbtm = double( squeeze( wavefront.bottom(:,:,az_index) ) );
 
     plot( wavefront.travel_time, walt ) ;
     grid; axis( scale ) ;    
