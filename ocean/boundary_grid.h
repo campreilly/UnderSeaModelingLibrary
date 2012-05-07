@@ -99,10 +99,10 @@ template< class DATA_TYPE, int NUM_DIMS > class boundary_grid
                     	sqrt( element_prod(t,t)+1.0 ) ) ) ;
                     normal->phi( element_div( -p,
                     	sqrt( element_prod(p,p)+1.0 ) ) ) ;
-                    normal->rho( sqrt(			// r=sqrt(1-t^2-p^2)
+                    normal->rho( sqrt( max( 		// r=sqrt(1-t^2-p^2)
                     	- element_prod( normal->theta(), normal->theta() ) 
                     	- element_prod( normal->phi(), normal->phi() ) 
-                    	+ 1.0 )) ;        
+                    	+ 1.0, 0.0 ))) ;        
                 } else {
                     this->_height->interpolate( 
                         location.theta(), location.phi(),
@@ -161,17 +161,24 @@ template< class DATA_TYPE, int NUM_DIMS > class boundary_grid
                         location.phi() } ;
                     float grad[2] ;
                     *rho = this->_height->interpolate( loc, grad ) ;
-                    const double t = grad[0] / (*rho) ;	// slope = tan(angle)
+                    const double t = grad[0] / (*rho) ;		// slope = tan(angle)
                     const double p = grad[1] / ((*rho) * sin(location.theta()) ) ;
-                    normal->theta( -t / sqrt(1.0+t*t) );// normal = -sin(angle)
+                    normal->theta( -t / sqrt(1.0+t*t) );	// normal = -sin(angle)
                     normal->phi( -p / sqrt(1.0+p*p) );
-                    normal->rho( sqrt( 1.0 		// r=sqrt(1-t^2-p^2)
-                                - normal->theta()*normal->theta()
-                                - normal->phi()*normal->phi() ) ) ;
-//                    cout << "gradient=" << grad[0] << "," << grad[1]
-//                         << " slope=" << t << "," << p
-//                         << " norm=" << normal->theta() << "," << normal->phi()
-//                         << endl ;
+
+		    double N = normal->theta()*normal->theta() + normal->phi()*normal->phi() ;
+	            if ( N >= 1.0 ) {
+			N = sqrt(N) ;
+			normal->rho(0.0) ;
+			normal->theta( normal->theta() / N ) ;
+			normal->phi( normal->phi() / N ) ;
+		    } else {
+			normal->rho( 1.0 - N ) ;
+                    }
+                    cout << "gradient=" << grad[0] << "," << grad[1]
+                         << " slope=" << t << "," << p
+                         << " norm=" << normal->theta() << "," << normal->phi()
+                         << endl ;
     	 
                 } else {
                     const double loc[2] = {

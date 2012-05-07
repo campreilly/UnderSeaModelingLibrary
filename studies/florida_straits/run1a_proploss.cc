@@ -43,8 +43,9 @@ int main( int argc, char* argv[] ) {
     // characterize the profile using Heaney's
     // summer profile at all locations.
 
-    profile_grid<double,1>* profile = new profile_grid<double,1>(
-        new ascii_profile( STUDIES_FLORIDA_STRAITS_DIR "/flstrts_profile_sept2007.csv" ) ) ;
+//    profile_grid<double,1>* profile = new profile_grid<double,1>(
+//        new ascii_profile( STUDIES_FLORIDA_STRAITS_DIR "/flstrts_profile_sept2007.csv" ) ) ;
+    profile_linear* profile = new profile_linear() ;
 
     // characterize the bottom using CRM bathymetry and
     // bottom loss derived from Ballard's analysis
@@ -57,7 +58,6 @@ int main( int argc, char* argv[] ) {
         new flstrts_btmloss( bathymetry ) ) ;
 
     // use simple models for sound velocity profile and surface
-    // @todo upgrade SVP later
 
     ocean_model ocean(
         new boundary_flat(),
@@ -77,6 +77,7 @@ int main( int argc, char* argv[] ) {
 
     // define a series of sources locations along great circle route
 
+/*
     seq_linear range( 3e3, 1e3, 80e3 ) ; // 3 to 80 km
     double bearing = to_radians(8.0) ;
     wposition source( range.size(), 1, 0.0, 0.0, -100.0 ) ;
@@ -95,6 +96,7 @@ int main( int argc, char* argv[] ) {
             << source.altitude(n,0) << endl ;
     }
     proploss loss( &source ) ;
+*/
 
     // initialize ray fan parameters
 
@@ -102,8 +104,8 @@ int main( int argc, char* argv[] ) {
     seq_data freq( f, 5 ) ;
 //    seq_rayfan de( -20.0, 20.0, 50 ) ;
 //    seq_linear de( 0.1, 1.0, 15.0 ) ;
-    seq_linear de( 1.0, 10.0, 1 ) ;
-    seq_linear az( -40.0, 10.0, 1 ) ;
+    seq_linear de( 0.0, 1.0, 20.0 ) ;
+    seq_linear az( -40.0, 5.0, 10.0 ) ;
     const double time_max = 60.0 ;
     const double time_step = 0.1 ;
     wave_queue wave( ocean, freq, receiver, de, az, time_step ) ; // , &loss ) ;

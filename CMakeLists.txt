@@ -78,7 +78,7 @@ endif( Boost_FOUND )
 # 1397 through 1407 (just above it).  Doing so allows further overloading of
 # operator/() for other types. 
 
-add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
+# add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 
 ######################################################################
 # NetCDF data access library

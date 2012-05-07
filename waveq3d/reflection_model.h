@@ -95,7 +95,7 @@ class USML_DECLSPEC reflection_model {
      */
     reflection_model( wave_queue& wave ) 
     	: _wave( wave ), _bottom_reverb(0), _surface_reverb(0),
-        TOO_SHALLOW( 500.0 * wave._time_step )
+        TOO_SHALLOW( 300.0 * wave._time_step )
     	{}
 
     /**
