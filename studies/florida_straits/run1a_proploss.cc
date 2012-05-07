@@ -43,9 +43,9 @@ int main( int argc, char* argv[] ) {
     // characterize the profile using Heaney's
     // summer profile at all locations.
 
-//    profile_grid<double,1>* profile = new profile_grid<double,1>(
-//        new ascii_profile( STUDIES_FLORIDA_STRAITS_DIR "/flstrts_profile_sept2007.csv" ) ) ;
-    profile_linear* profile = new profile_linear() ;
+    profile_grid<double,1>* profile = new profile_grid<double,1>(
+        new ascii_profile( STUDIES_FLORIDA_STRAITS_DIR "/flstrts_profile_sept2007.csv" ) ) ;
+//    profile_linear* profile = new profile_linear() ;
 
     // characterize the bottom using CRM bathymetry and
     // bottom loss derived from Ballard's analysis
@@ -69,7 +69,7 @@ int main( int argc, char* argv[] ) {
     wposition1 receiver( 26.0217, -79.99054, -250.0 ) ;
     double rho ;
     bottom->height( receiver, &rho ) ;
-    receiver.rho(rho+5.0) ;
+    receiver.rho(rho) ;
     cout << "receiver: "
         << receiver.latitude() << ","
         << receiver.longitude() << ","
@@ -77,7 +77,6 @@ int main( int argc, char* argv[] ) {
 
     // define a series of sources locations along great circle route
 
-/*
     seq_linear range( 3e3, 1e3, 80e3 ) ; // 3 to 80 km
     double bearing = to_radians(8.0) ;
     wposition source( range.size(), 1, 0.0, 0.0, -100.0 ) ;
@@ -96,19 +95,16 @@ int main( int argc, char* argv[] ) {
             << source.altitude(n,0) << endl ;
     }
     proploss loss( &source ) ;
-*/
 
     // initialize ray fan parameters
 
     static double f[] = { 24.0, 52.5, 106.0, 206.0, 415.0 } ;
     seq_data freq( f, 5 ) ;
-//    seq_rayfan de( -20.0, 20.0, 50 ) ;
-//    seq_linear de( 0.1, 1.0, 15.0 ) ;
-    seq_linear de( 0.0, 1.0, 20.0 ) ;
-    seq_linear az( -40.0, 5.0, 10.0 ) ;
+    seq_linear de( -40.0, 2.0, 40.0 ) ;
+    seq_linear az( -40.0, 2.0, 10.0 ) ;
     const double time_max = 60.0 ;
-    const double time_step = 0.1 ;
-    wave_queue wave( ocean, freq, receiver, de, az, time_step ) ; // , &loss ) ;
+    const double time_step = 0.025 ;
+    wave_queue wave( ocean, freq, receiver, de, az, time_step, &loss ) ;
 
     // propagate wavefront
 
@@ -118,11 +114,10 @@ int main( int argc, char* argv[] ) {
         cout << "time=" << wave.time() << endl ;
         wave.step() ;
         wave.save_netcdf() ;
-//        cout << "\talt: " << wave.curr()->position.altitude(0,0) << endl ;
     }
     wave.close_netcdf() ;
-//    loss.sum_eigenrays() ;
-//    loss.write_netcdf(STUDIES_FLORIDA_STRAITS_DIR "/run1a_proploss.nc" ) ;
+    loss.sum_eigenrays() ;
+    loss.write_netcdf(STUDIES_FLORIDA_STRAITS_DIR "/run1a_proploss.nc" ) ;
     cout << "wave propagated for " << wave.time() << " secs" << endl ;
     return 0 ;
 }

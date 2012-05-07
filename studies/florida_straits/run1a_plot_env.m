@@ -1,3 +1,4 @@
+%%
 % run1a_plot_env.m - Plot environment for CALOPS-S Run 1A
 %
 % In the first plot, this routine overlays the area bathymetry with

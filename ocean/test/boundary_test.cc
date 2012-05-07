@@ -211,33 +211,33 @@ BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
  * the data is oriented correctly as it is read in.  Errors on the order 3 cm
  * are introduced by the conversion from earth spherical coordinates and back.
  */
-BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
-    cout << "=== boundary_test: ascii_arc_test ===" << endl;
-
-    // test interpolation of the raw grid
-
-    ascii_arc_bathy* grid =
-        new ascii_arc_bathy( USML_ASCII_ARC_TEST_DATA ) ;
-
-    BOOST_CHECK_EQUAL( grid->axis(0)->size(), 3 );
-    BOOST_CHECK_EQUAL( grid->axis(1)->size(), 4 );
-
-    unsigned index[2] ;
-    index[0]=0; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1000.0, 0.1);
-    index[0]=1; index[1]=1; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1110.0, 0.1);
-    index[0]=2; index[1]=2; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1220.0, 0.1);
-    cout << "axis0: " << *(grid->axis(0)) << endl ;
-    cout << "axis1: " << *(grid->axis(1)) << endl ;
-
-    // test implementation as a boundary model
-
-    boundary_grid<float,2> bottom(grid) ;
-    wposition1 location( 26.25, -80.0 ) ;
-    double depth ;
-    bottom.height( location, &depth ) ;
-    depth -= wposition::earth_radius ;
-    cout << "depth: " << depth << endl ;
-}
+//BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
+//    cout << "=== boundary_test: ascii_arc_test ===" << endl;
+//
+//    // test interpolation of the raw grid
+//
+//    ascii_arc_bathy* grid =
+//        new ascii_arc_bathy( USML_ASCII_ARC_TEST_DATA ) ;
+//
+//    BOOST_CHECK_EQUAL( grid->axis(0)->size(), 3 );
+//    BOOST_CHECK_EQUAL( grid->axis(1)->size(), 4 );
+//
+//    unsigned index[2] ;
+//    index[0]=0; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1000.0, 0.1);
+//    index[0]=1; index[1]=1; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1110.0, 0.1);
+//    index[0]=2; index[1]=2; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1220.0, 0.1);
+//    cout << "axis0: " << *(grid->axis(0)) << endl ;
+//    cout << "axis1: " << *(grid->axis(1)) << endl ;
+//
+//    // test implementation as a boundary model
+//
+//    boundary_grid<float,2> bottom(grid) ;
+//    wposition1 location( 26.25, -80.0 ) ;
+//    double depth ;
+//    bottom.height( location, &depth ) ;
+//    depth -= wposition::earth_radius ;
+//    cout << "depth: " << depth << endl ;
+//}
 
 /// @}
 

@@ -43,9 +43,9 @@ if( MSVC )
 # GNU C++ options
 
 else( CMAKE_COMPILER_IS_GNUCXX )
-    # add_definitions( -g -ffast-math )   # fast floating point math
-    add_definitions( -g )   # fast floating point math
-    if ( USML_PEDANTIC )
+    add_definitions( -g )   		# debugging symbols
+    add_definitions( -ffast-math )   	# fast floating point math
+    if ( USML_PEDANTIC )		# standards compliance
         add_definitions( -std=c++98 -pedantic -Wall -Werror )
     endif ( USML_PEDANTIC )
 endif()

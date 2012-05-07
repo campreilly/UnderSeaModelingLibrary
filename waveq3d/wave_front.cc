@@ -125,8 +125,6 @@ void wave_front::update() {
     _dc_c.phi(element_div(sound_gradient.phi(), sound_speed));
     noalias(_sin_theta) = sin(position.theta());
     noalias(_cot_theta) = element_div(cos(position.theta()), _sin_theta);
-//    cout << "_dc_c=" << _dc_c.rho() << "," << _dc_c.theta() << "," << _dc_c.phi() 
-//         << " _sin_theta=" << _sin_theta << " _cot_theta=" << _cot_theta << endl ;
 
     // update wave propagation position derivatives
     // Reilly eqns. 36-38
@@ -138,12 +136,10 @@ void wave_front::update() {
     pos_gradient.phi(element_prod(
         element_div(_c2_r, _sin_theta),
         ndirection.phi()));
-    // cout << "pos_gradient=" << pos_gradient.rho() << "," << pos_gradient.theta() << "," << pos_gradient.phi() << endl ;
 
     // update wave propagation direction derivatives
     // Reilly eqns. 39-41
 
-    // cout << "ndir_gradient=" << ndir_gradient.rho() << endl << ndir_gradient.theta() << endl << ndir_gradient.phi() << endl ;
     ndir_gradient.rho(
         element_prod(_c2_r, abs2(ndirection.theta()) + abs2(ndirection.phi()))
             - _dc_c.rho()
@@ -162,7 +158,6 @@ void wave_front::update() {
         )
         - element_div(_dc_c.phi(), element_prod(position.rho(), _sin_theta))
         );
-    // cout << "ndir_gradient=" << ndir_gradient.rho() << endl << ndir_gradient.theta() << endl << ndir_gradient.phi() << endl ;
 
     // update data that relies on new wavefront locations
 

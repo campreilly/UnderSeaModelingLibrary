@@ -12,7 +12,7 @@ close all;
 
 wavefront = load_wavefront('run1a_wavefront.nc') ;
 max_time = min(9999,length(wavefront.travel_time)) ;
-time_index = 2 ;
+time_index = 100 ;
 
 % load and plot batyhymetry data
 
@@ -21,10 +21,13 @@ figure;
 run1a_plot_bathy( bathymetry ) ;
 title('CALOPS RUN 1N SEPT 2007');
 set(gca,'ZLim',[-800 0]);
-% view([10 40]); 
 view([0 90]);
-% set(gca,'YLim',[26.0 26.1])
-% set(gca,'XLim',[-80.00 -79.98])
+axis([-80.1 -79.85 26 26.8]);
+
+hold on ;
+[c,h] = contour(bathymetry.longitude,bathymetry.latitude,bathymetry.altitude,[0 -236.0]);
+set(h,'LineColor','black');
+hold off ;
 
 % show a movie of wavefront propagation
 
@@ -46,8 +49,8 @@ while ( true )
     
     % allows user to move the plot forward and backward in time
 
-    inc = 10 ;
-    choice = menu('Action','Quit','Next','+10','Previous','-10','Save') ;
+    inc = 100 ;
+    choice = menu('Action','Quit','Next','+100','Previous','-100','Save') ;
     switch ( choice )
         case 1
             break ;

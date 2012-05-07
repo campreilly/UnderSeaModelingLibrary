@@ -14,7 +14,6 @@ const double reflection_model::MIN_REFLECT = 6.0 ;
  */
 bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth ) {
     double N ;
-    cout << "reflection_model::bottom_reflection:" << endl ;
     
     // extract position, direction, and sound speed from this ray
     // at a point just before it goes below the bottom
@@ -23,7 +22,6 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     wvector1 ndirection( _wave._curr->ndirection, de, az ) ;
     double c = _wave._curr->sound_speed( de, az ) ;
     double c2 = c*c ;
-    // // cout << "\tndirection=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << endl ;
 
     // extract radial height and slope at current location
     // height_water = initial ray height above the bottom (must be positive)
@@ -33,21 +31,17 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     boundary_model& boundary = _wave._ocean.bottom() ;
     boundary.height( position, &bottom_rho, &bottom_normal ) ;
     double height_water = position.rho() - bottom_rho ;
-    cout << "\tbottom_normal=" << bottom_normal.rho() << ","  << bottom_normal.theta() << ","  << bottom_normal.phi() << endl ;
-    // cout << "\tdepth=" << depth << " height_water=" << height_water << endl ;
 
     // make bottom horizontal for very shallow water
     // to avoid propagating onto land
     
     if ( (wposition::earth_radius-bottom_rho) < TOO_SHALLOW ) {
-        cout << "too shallow: " << (wposition::earth_radius-bottom_rho) << " < " << TOO_SHALLOW << endl;
     	N = sqrt( bottom_normal.theta()*bottom_normal.theta()
     	  + bottom_normal.phi()*bottom_normal.phi() ) ;
         bottom_normal.rho( 0.0 ) ;
         bottom_normal.theta( bottom_normal.theta() / N ) ;
         bottom_normal.phi(   bottom_normal.phi() / N  ) ;
     }
-    cout << "\tbottom_normal=" << bottom_normal.rho() << ","  << bottom_normal.theta() << ","  << bottom_normal.phi() << endl ;
     
     // compute dot_full = dot product of the full dr/dt with bottom_normal (negative #)
     // converts ndirection to dr/dt in rectangular coordinates relative to reflection point
@@ -58,14 +52,12 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     double dot_full = bottom_normal.rho() * ndirection.rho()
                     + bottom_normal.theta() * ndirection.theta()
                     + bottom_normal.phi() * ndirection.phi() ;
-    // cout << "\tdr/dt=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << " dot_full=" << dot_full << endl ;
 
     // compute the smallest "dot_full" that could have led to this penetration depth
     // assume minimum depth change, along normal, of 1.0 meters
 
     double max_dot = - max( MIN_REFLECT, (height_water+depth)*bottom_normal.rho() ) ;
     if ( dot_full >= max_dot ) dot_full = max_dot ;
-    // cout << "\tmax_dot=" << max_dot << " dot_full=" << dot_full << endl ;
 
     // compute time_water = fraction of time step needed to strike the bottom
     // time step = ratio of in water dot product to full dot product
@@ -73,7 +65,6 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
 
     const double dot_water = -height_water * bottom_normal.rho() ;
     double time_water = max( 0.0, dot_water / dot_full ) ;
-    // cout << "\tdot_water=" << dot_water << " time_water=" << time_water << endl ;
                  
     // compute the more precise values for position, direction,
     // sound speed, bottom height, bottom slope, and grazing angle at the point of collision.
@@ -90,11 +81,9 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     dot_full = bottom_normal.rho() * ndirection.rho()
         + bottom_normal.theta() * ndirection.theta()
         + bottom_normal.phi() * ndirection.phi() ;  // negative #
-    // cout << "\tprecise dr/dt=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << " dot_full=" << dot_full << endl ;
     max_dot = - max( MIN_REFLECT, (height_water+depth)*bottom_normal.rho() ) ;
     if ( dot_full >= max_dot ) dot_full = max_dot ;
     const double grazing = asin( -dot_full / c ) ;
-    // cout << "\tmax_dot=" << max_dot << " dot_full=" << dot_full << " grazing= " << to_degrees( grazing ) << endl ;
 
     // invoke bottom reverberation callback
     // @todo THIS IS A STUB FOR FUTURE BEHAVIORS.
@@ -123,16 +112,11 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     // change direction of the ray ( R = I - 2 dot(n,I) n )
     // and reinit past, prev, curr, next entries
 
-//    cout << "\ta) ndirection=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << endl ;
-//    cout << "\ta) bottom_normal=" << bottom_normal.rho() << ","  << bottom_normal.theta() << ","  << bottom_normal.phi() 
-//         << " dot_full=" << dot_full << endl ;
     dot_full *= 2.0 ;
     ndirection.rho(   ndirection.rho()   - dot_full * bottom_normal.rho() ) ;
     ndirection.theta( ndirection.theta() - dot_full * bottom_normal.theta() ) ;
     ndirection.phi(   ndirection.phi()   - dot_full * bottom_normal.phi() ) ;
-    // cout << "\treflect dr/dt=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << " 2*dot_full=" << dot_full << endl ;
 
-//    cout << "\tb) ndirection=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << endl ;
     N = sqrt( ndirection.rho() * ndirection.rho()
             + ndirection.theta() * ndirection.theta()
             + ndirection.phi() * ndirection.phi() ) * c ;
@@ -140,7 +124,6 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     ndirection.rho(   ndirection.rho() / N ) ;
     ndirection.theta( ndirection.theta() / N ) ;
     ndirection.phi(   ndirection.phi() / N ) ;
-//    cout << "\tc) ndirection=" << ndirection.rho() << ","  << ndirection.theta() << ","  << ndirection.phi() << " N=" << N << endl ;
 
     reflection_reinit( de, az, time_water, position, ndirection, c ) ;
 
@@ -149,9 +132,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     boundary.height( wposition1(_wave._next->position,de,az), &next_height ) ;
     curr_height = wposition1(_wave._curr->position,de,az).rho() - curr_height ;
     next_height = wposition1(_wave._curr->position,de,az).rho() - next_height ;
-//    cout << "\tcurr_height=" << curr_height << " next_height=" << next_height << endl ;
 
-    cout << "reflection_model::bottom_reflection: done" << endl ;
     return true ;
 }
 

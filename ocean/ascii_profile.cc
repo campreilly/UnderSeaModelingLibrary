@@ -24,7 +24,6 @@ ascii_profile::ascii_profile( const char* filename ) {
     while ( getline(infile,line) ) ++size ;
     infile.clear() ;
     infile.seekg(0) ;
-    cout << "filename=" << filename << " size=" << size << endl ;
 
     // read data from input file
 
@@ -41,7 +40,6 @@ ascii_profile::ascii_profile( const char* filename ) {
         }
         infile >> speed[n] ;
         height[n] = wposition::earth_radius - depth ;
-        cout << depth << "\t" << speed[n] << endl ;
     }
 
     // load into data_grid variables

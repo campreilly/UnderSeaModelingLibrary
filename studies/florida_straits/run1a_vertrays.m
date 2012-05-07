@@ -2,7 +2,7 @@
 % run1a_vertrays.m - plot a vertical cut through wavefront
 %
 % The user controls azimuth (forward and back) using a GUI menu.
-% Used as both a debugging and demostration tool.
+% Used as both a debugging and demonstration tool.
 %
 clear all; 
 close all;
@@ -11,7 +11,9 @@ close all;
 
 wavefront = load_wavefront('run1a_wavefront.nc') ;
 max_az = length(wavefront.source_az) ;
-[p,az_index] = min( abs(wavefront.source_az-0) ) ;
+[p,de_index] = min( abs(wavefront.source_de-2) ) ;
+de_index = de_index:5:length(wavefront.source_de);
+[p,az_index] = min( abs(wavefront.source_az+30) ) ;
 scale = [0 60 -300 0];
 
 % plot depth vs. time for one azimuth
@@ -20,10 +22,10 @@ while ( true )
 
     % plot wavefront
     
-	wlat = double( squeeze( wavefront.latitude(:,:,az_index) ) );
-	wlng = double( squeeze( wavefront.longitude(:,:,az_index) ) );
-	walt = double( squeeze( wavefront.altitude(:,:,az_index) ) );
-	wbtm = double( squeeze( wavefront.bottom(:,:,az_index) ) );
+	wlat = double( squeeze( wavefront.latitude(:,de_index,az_index) ) );
+	wlng = double( squeeze( wavefront.longitude(:,de_index,az_index) ) );
+	walt = double( squeeze( wavefront.altitude(:,de_index,az_index) ) );
+	wbtm = double( squeeze( wavefront.bottom(:,de_index,az_index) ) );
 
     plot( wavefront.travel_time, walt ) ;
     grid; axis( scale ) ;    
