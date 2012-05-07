@@ -101,7 +101,7 @@ int main( int argc, char* argv[] ) {
     static double f[] = { 24.0, 52.5, 106.0, 206.0, 415.0 } ;
     seq_data freq( f, 5 ) ;
     seq_linear de( -40.0, 2.0, 40.0 ) ;
-    seq_linear az( -40.0, 2.0, 10.0 ) ;
+    seq_linear az( -40.0, 2.0, 20.0 ) ;
     const double time_max = 60.0 ;
     const double time_step = 0.025 ;
     wave_queue wave( ocean, freq, receiver, de, az, time_step, &loss ) ;
