@@ -13,7 +13,7 @@ close all ;
 degrees = [1e-6 1:90] ;
 angles = degrees/90*pi/2 ;
 speed_bottom    = [ 3000 1676 ] ;
-att_bottom      = [ 0.10 0.8 ] ;
+att_bottom      = [ 0.10 0.01 ] ;
 speed_shear     = [ 1430    0 ] ;
 att_shear       = [ 0.20    0 ] ;
 density         = [ 2.40 1.70 ]*1000 ;

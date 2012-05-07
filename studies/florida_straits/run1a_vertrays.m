@@ -11,10 +11,10 @@ close all;
 
 wavefront = load_wavefront('run1a_wavefront.nc') ;
 max_az = length(wavefront.source_az) ;
-[p,de_index] = min( abs(wavefront.source_de-2) ) ;
-de_index = de_index:5:length(wavefront.source_de);
+[p,de_index] = min( abs(wavefront.source_de-0) ) ;
+de_index = de_index + (0:2:8) ;
 [p,az_index] = min( abs(wavefront.source_az+30) ) ;
-scale = [0 60 -300 0];
+scale = [0 10 -300 0];
 
 % plot depth vs. time for one azimuth
 
@@ -30,6 +30,9 @@ while ( true )
     plot( wavefront.travel_time, walt ) ;
     grid; axis( scale ) ;    
     title(sprintf('Launch Azimuth = %.1f',wavefront.source_az(az_index)));
+    xlabel('Travel Time (sec)');
+    ylabel('Depth (m)');
+    legend('0 deg','4 deg','8 deg','12 deg','16 deg','Location','SouthEast');
     drawnow() ;
     
     % allows user to move the plot forward and backward in time
@@ -48,7 +51,7 @@ while ( true )
             if ( az_index > 10 ) az_index = az_index - 10 ; end ;
         case 6
             title('');
-            print -deps run1a_vertrays
+            print -dpng run1a_vertrays
     end
     scale = axis ;      % store user changes to axes
 

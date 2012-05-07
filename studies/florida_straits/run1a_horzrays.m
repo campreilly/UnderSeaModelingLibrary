@@ -63,7 +63,7 @@ while ( true )
             if ( de_index > 10 ) de_index = de_index - 10 ; end ;
         case 6
             title('');
-            print -deps run1a_horzrays
+            print -dpng run1a_horzrays
     end
     scale = axis ;      % store user changes to axes
     delete(hw) ;
