@@ -4,12 +4,12 @@
 % The user controls azimuth (forward and back) using a GUI menu.
 % Used as both a debugging and demonstration tool.
 %
-clear all; 
+% clear all; 
 close all;
 
 % load wavefront into memory 
 
-wavefront = load_wavefront('run1a_wavefront.nc') ;
+% wavefront = load_wavefront('run1a_wavefront.nc') ;
 max_az = length(wavefront.source_az) ;
 [p,de_index] = min( abs(wavefront.source_de-2) ) ;
 scale = [-80.1 -79.85 26 26.8] ;
@@ -41,7 +41,7 @@ while ( true )
 	wbtm = double( squeeze( wavefront.bottom(:,de_index,:) ) );
 
     hold on;
-    hw = plot3( wlng, wlat, zeros(size(wlng)), 'k' ) ;
+    hw = plot3( wlng, wlat, zeros(size(wlng)), 'k', 'LineWidth', 1.0);
     grid; axis( scale ) ;    
     title(sprintf('Launch D/E = %.1f',wavefront.source_de(de_index)));
     hold off;

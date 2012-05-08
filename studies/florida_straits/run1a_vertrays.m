@@ -27,7 +27,7 @@ while ( true )
 	walt = double( squeeze( wavefront.altitude(:,de_index,az_index) ) );
 	wbtm = double( squeeze( wavefront.bottom(:,de_index,az_index) ) );
 
-    plot( wavefront.travel_time, walt ) ;
+    h = plot( wavefront.travel_time, walt, 'LineWidth', 1.5 ) ;
     grid; axis( scale ) ;    
     title(sprintf('Launch Azimuth = %.1f',wavefront.source_az(az_index)));
     xlabel('Travel Time (sec)');

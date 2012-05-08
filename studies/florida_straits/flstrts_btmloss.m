@@ -25,7 +25,7 @@ for n=1:length(density)
 end
 
 figure;
-plot( degrees, loss ) ; grid ;
+plot( degrees, loss, 'LineWidth', 1.5 ) ; grid ;
 xlabel('Grazing angle (deg)');
 ylabel('Bottom loss (dB)');
 axis([0 90 0 15]);

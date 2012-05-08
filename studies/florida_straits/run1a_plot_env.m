@@ -30,7 +30,7 @@ m = csvread('flstrts_profile_sept2007.csv');
 depth=-400:0;
 speed=interp1(-m(:,1),m(:,2),depth,'pchip');
 figure; 
-plot(m(:,2),-m(:,1),'o',speed,depth,'-');
+plot(m(:,2),-m(:,1),'o',speed,depth,'-','LineWidth',1.5);
 grid;
 axis([1490 1550 -400 0]);
 xlabel('Sound Speed (m/s)');

@@ -77,7 +77,8 @@ int main( int argc, char* argv[] ) {
 
     // define a series of sources locations along great circle route
 
-    seq_linear range( 3e3, 1e3, 80e3 ) ; // 3 to 80 km
+//    seq_linear range( 3e3, 1e3, 80e3 ) ; // 3 to 80 km
+    seq_linear range( 5e3, 10e3, 80e3 ) ;
     double bearing = to_radians(8.0) ;
     wposition source( range.size(), 1, 0.0, 0.0, -100.0 ) ;
     for ( unsigned n=0 ; n < range.size() ; ++n ) {
@@ -98,24 +99,25 @@ int main( int argc, char* argv[] ) {
 
     // initialize ray fan parameters
 
-    static double f[] = { 24.0, 52.5, 106.0, 206.0, 415.0 } ;
-    seq_data freq( f, 5 ) ;
-    seq_linear de( -40.0, 2.0, 40.0 ) ;
-    seq_linear az( -40.0, 2.0, 20.0 ) ;
-    const double time_max = 60.0 ;
+//    static double f[] = { 24.0, 52.5, 106.0, 206.0, 415.0 } ;
+//    seq_data freq( f, 5 ) ;
+    seq_linear freq( 206.0, 1.0, 1 ) ;
+    seq_linear de( 0.0, 0.25, 60.0 ) ;
+    seq_linear az( -40.0, 0.25, 20.0 ) ;
+    const double time_max = 50.0 ;
     const double time_step = 0.025 ;
     wave_queue wave( ocean, freq, receiver, de, az, time_step, &loss ) ;
 
     // propagate wavefront
 
-    wave.init_netcdf( STUDIES_FLORIDA_STRAITS_DIR "/run1a_wavefront.nc" ) ;
-    wave.save_netcdf() ;
+//    wave.init_netcdf( STUDIES_FLORIDA_STRAITS_DIR "/run1a_wavefront.nc" ) ;
+//    wave.save_netcdf() ;
     while ( wave.time() < time_max ) {
-        cout << "time=" << wave.time() << endl ;
+//        cout << "time=" << wave.time() << endl ;
         wave.step() ;
-        wave.save_netcdf() ;
+//        wave.save_netcdf() ;
     }
-    wave.close_netcdf() ;
+//    wave.close_netcdf() ;
     loss.sum_eigenrays() ;
     loss.write_netcdf(STUDIES_FLORIDA_STRAITS_DIR "/run1a_proploss.nc" ) ;
     cout << "wave propagated for " << wave.time() << " secs" << endl ;
