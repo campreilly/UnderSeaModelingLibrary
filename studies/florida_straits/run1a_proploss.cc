@@ -44,14 +44,14 @@ int main( int argc, char* argv[] ) {
     // summer profile at all locations.
 
     profile_grid<double,1>* profile = new profile_grid<double,1>(
-        new ascii_profile( STUDIES_FLORIDA_STRAITS_DIR "/flstrts_profile_sept2007.csv" ) ) ;
+        new ascii_profile( USML_STUDIES_DIR "/florida_straits/flstrts_profile_sept2007.csv" ) ) ;
 //    profile_linear* profile = new profile_linear() ;
 
     // characterize the bottom using CRM bathymetry and
     // bottom loss derived from Ballard's analysis
 
     ascii_arc_bathy* bathymetry =
-        new ascii_arc_bathy( STUDIES_FLORIDA_STRAITS_DIR "/flstrts_bathymetry.asc" ) ;
+        new ascii_arc_bathy( USML_STUDIES_DIR "/florida_straits/flstrts_bathymetry.asc" ) ;
 
     boundary_grid<float,2>* bottom = new boundary_grid<float,2>(
         bathymetry,
@@ -78,24 +78,24 @@ int main( int argc, char* argv[] ) {
     // define a series of sources locations along great circle route
 
 //    seq_linear range( 3e3, 1e3, 80e3 ) ; // 3 to 80 km
-    seq_linear range( 3e3, 1e3, 30e3 ) ;
-    double bearing = to_radians(8.0) ;
-    wposition source( range.size(), 1, 0.0, 0.0, -100.0 ) ;
-    for ( unsigned n=0 ; n < range.size() ; ++n ) {
-        double d = range(n) / wposition::earth_radius ;
-        double lat = to_degrees( asin(
-            cos( receiver.theta() ) * cos(d) +
-            sin( receiver.theta() ) * sin(d) * cos(bearing) ) ) ;
-        double lng = to_degrees( receiver.phi() + asin(
-            sin(bearing) * sin(d) / sin(receiver.theta()) ) ) ;
-        source.latitude(  n, 0, lat ) ;
-        source.longitude( n, 0, lng ) ;
-        cout << "source(" << n << "): "
-            << source.latitude(n,0) << ","
-            << source.longitude(n,0) << ","
-            << source.altitude(n,0) << endl ;
-    }
-    proploss loss( &source ) ;
+//    seq_linear range( 3e3, 1e3, 30e3 ) ;
+//    double bearing = to_radians(8.0) ;
+//    wposition source( range.size(), 1, 0.0, 0.0, -100.0 ) ;
+//    for ( unsigned n=0 ; n < range.size() ; ++n ) {
+//        double d = range(n) / wposition::earth_radius ;
+//        double lat = to_degrees( asin(
+//            cos( receiver.theta() ) * cos(d) +
+//            sin( receiver.theta() ) * sin(d) * cos(bearing) ) ) ;
+//        double lng = to_degrees( receiver.phi() + asin(
+//            sin(bearing) * sin(d) / sin(receiver.theta()) ) ) ;
+//        source.latitude(  n, 0, lat ) ;
+//        source.longitude( n, 0, lng ) ;
+//        cout << "source(" << n << "): "
+//            << source.latitude(n,0) << ","
+//            << source.longitude(n,0) << ","
+//            << source.altitude(n,0) << endl ;
+//    }
+//    proploss loss( &source ) ;
 
     // initialize ray fan parameters
 
@@ -106,20 +106,20 @@ int main( int argc, char* argv[] ) {
     seq_linear az( -40.0, 0.25, 20.0 ) ;
     const double time_max = 30.0 ;
     const double time_step = 0.025 ;
-    wave_queue wave( ocean, freq, receiver, de, az, time_step, &loss ) ;
+    wave_queue wave( ocean, freq, receiver, de, az, time_step ) ; // , &loss ) ;
 
     // propagate wavefront
 
-//    wave.init_netcdf( STUDIES_FLORIDA_STRAITS_DIR "/run1a_wavefront.nc" ) ;
-//    wave.save_netcdf() ;
+    wave.init_netcdf( USML_STUDIES_DIR "/florida_straits/run1a_wavefront.nc" ) ;
+    wave.save_netcdf() ;
     while ( wave.time() < time_max ) {
-//        cout << "time=" << wave.time() << endl ;
+        cout << "time=" << wave.time() << endl ;
         wave.step() ;
-//        wave.save_netcdf() ;
+        wave.save_netcdf() ;
     }
-//    wave.close_netcdf() ;
-    loss.sum_eigenrays() ;
-    loss.write_netcdf(STUDIES_FLORIDA_STRAITS_DIR "/run1a_proploss.nc" ) ;
+    wave.close_netcdf() ;
+//    loss.sum_eigenrays() ;
+//    loss.write_netcdf(STUDIES_FLORIDA_STRAITS_DIR "/run1a_proploss.nc" ) ;
     cout << "wave propagated for " << wave.time() << " secs" << endl ;
     return 0 ;
 }

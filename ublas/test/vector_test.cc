@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE( real_vector_test ) {
     cout << "2.1-a:     " << 2.1-rvect << endl;
     cout << "2.1/a:     " << 2.1/rvect << endl;
     cout << "a*a:       " << rvect * rvect << endl;
-//    cout << "a/a:       " << rvect / rvect << endl;
+    cout << "a/a:       " << rvect / rvect << endl;
     cout << "max(a,3.0):   " << max(rvect,3.0) << endl;
     cout << "min(a,3.0):   " << min(rvect,3.0) << endl;
     cout << "floor(a+2.1): " << floor( rvect+2.1 ) << endl;

@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE( constant_profile_test ) {
 BOOST_AUTO_TEST_CASE( plot_profile_test ) {
     cout << "=== profile_test: plot_profile_test ===" << endl;
     try {
-        const char* name = "profile_test.csv" ;
+        const char* name = USML_TEST_DIR "/waveq3d/ocean/profile_test.csv" ;
         std::ofstream os(name);
         cout << "writing tables to " << name << endl;
 
@@ -150,10 +150,12 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
         // load temperature & salinity data from World Ocean Atlas
 
         netcdf_woa temperature(
-        	USML_DATA_TEMP_SEASON, USML_DATA_TEMP_MONTH,
+	    USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
+   	    USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
             month, 18.5, 22.5, 200.5, 205.5 ) ;
         netcdf_woa salinity(
-			USML_DATA_SALT_SEASON, USML_DATA_SALT_MONTH,
+	    USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
+	    USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
             month, 18.5, 22.5, 200.5, 205.5 ) ;
 
         // compute sound speed
@@ -162,7 +164,7 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
 
         // print results for first lat/long entry
 
-        const char* name = "mackenzie_test.csv" ;
+        const char* name = USML_TEST_DIR "/waveq3d/ocean/mackenzie_test.csv" ;
         std::ofstream os(name);
         cout << "writing tables to " << name << endl;
 

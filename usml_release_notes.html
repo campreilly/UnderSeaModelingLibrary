@@ -6,6 +6,53 @@
   <body>
     <h1>Under Sea Modeling Library (USML) Release Notes</h1>
 
+    <h2>Release pending</h2>
+    <h3>Overview</h3>
+        <ul>
+        <li>Fix problems found during florida_straits study.</li>
+        <li>Add ascii_profile and ascii_arc_bathy models.</li>
+        <li>reflect_loss_rayleigh: Fix calculation of complex sound speed.</li>
+        <li>boundary_grid: Fix error in calculation of radial component of the slope.</li>
+        <li>reflection_model: Fix problems that occur when incident ray is nearly parallel to bottom.</li>
+        </ul>
+    
+    <h3>Specific changes</h3>
+        <ul>
+        <li>CMakeLists.txt</li>
+          <ul>
+          <li>Add florida_straits study</li>
+          <li>Define USML_DEBUG if CMAKE_BUILD_TYPE is Debug </li>
+          <li>Use CMAKE_BUILD_TYPE to control use of -g and -ffast_math options</li>
+          <li>Rework data directories by defining USML_DATA_DIR, USML_TEST_DIR, USML_STUDIES_DIR.</li>
+          </ul>
+        <li>ocean/boundary_grid.h</li>
+          <ul>
+          <li>Clip the radial component of the slope to zero if the sum of the 
+              squares of the theta and phi components are greater than 1. </li>
+          </ul>
+        <li>ocean/ocean.h</li>
+          <ul>
+          <li>Add ascii_profile and ascii_arc_bathy models</li>
+          </ul>
+        <li>ocean/reflect_loss_rayleigh.cc</li>
+          <ul>
+          <li>Add missing factor of TWO_PI to the complex sound speed calculation.
+          <li>Add the ATT_CONVERT to define 1.0 / (20.0*M_LOG10E*TWO_PI) term.</li>
+          </ul>
+        <li>waveq3d/reflection_model.cc</li> 
+          <ul>
+          <li>Add bottom penetration depth as an input parameter</li>
+          <li>Compute the smallest "dot_full" that could have led to this penetration </li>
+          <li>Recompute bottom height and normal at the precise point of impact</li>
+          <li>Eliminate conditions for bottom_reflection() near-miss</li>
+          <li>Rename many of the variables to make their use clearer</li>
+          </ul>
+        <li>waveq3d/wave_queue.cc</li> 
+          <ul>
+          <li>Compute the depth that ray has penetrated into the bottom.</li>
+          </ul>
+        </ul>
+    
     <h2>Release 0.02</h2>
     <ul>
     <li>Convert to CMake build system to support multiple operating systems.</li>

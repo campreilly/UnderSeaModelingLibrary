@@ -43,7 +43,7 @@ static const double bot_depth = 1e5 ;
  */
 BOOST_AUTO_TEST_CASE(proploss_basic) {
     cout << "=== proploss_test: proploss_basic ===" << endl;
-    const char* csvname = "proploss_basic.csv";
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/proploss_basic.csv";
     const double c0 = 1500.0;
     const double src_lat = 45.0;
     const double src_lng = -45.0;
@@ -169,9 +169,9 @@ BOOST_AUTO_TEST_CASE(proploss_basic) {
  */
 BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
     cout << "=== proploss_test: proploss_lloyds_range ===" << endl;
-    const char* csvname = "proploss_lloyds_range.csv";
-    const char* ncname = "proploss_lloyds_range.nc";
-    const char* ncname_wave = "proploss_lloyds_range_wave.nc";
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/proploss_lloyds_range.csv";
+    const char* ncname = USML_TEST_DIR "/waveq3d/test/proploss_lloyds_range.nc";
+    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/proploss_lloyds_range_wave.nc";
 
     const double c0 = 1500.0;
     const double src_lat = 45.0;
@@ -347,9 +347,9 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
  */
 BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
     cout << "=== proploss_test: proploss_lloyds_depth ===" << endl;
-    const char* csvname = "proploss_lloyds_depth.csv";
-    const char* ncname = "proploss_lloyds_depth.nc";
-    const char* ncname_wave = "proploss_lloyds_depth_wave.nc";
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/proploss_lloyds_depth.csv";
+    const char* ncname = USML_TEST_DIR "/waveq3d/test/proploss_lloyds_depth.nc";
+    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/proploss_lloyds_depth_wave.nc";
     const double c0 = 1500.0;
     const double src_lat = 45.0;
     const double src_lng = -45.0;

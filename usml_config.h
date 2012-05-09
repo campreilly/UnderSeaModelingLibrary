@@ -8,10 +8,10 @@
 /**
  * Setup Windows DLL export/import prefixes in USML_DECLSPEC.
  * USML_DYN_LINK if shared libraries enabled.
- * USML_DLL_EXPORT is defined if currently building a DLL.
+ * CMake automatically defines usml_EXPORT when compiling shared libraries.
 */
-#if defined(USML_DYN_LINK)
-    #ifdef USML_DLL_EXPORT
+#if defined(_MSC_VER) && defined(USML_DYN_LINK)
+    #ifdef usml_EXPORT
         #define USML_DECLSPEC __declspec(dllexport)
     #else
         #define USML_DECLSPEC __declspec(dllimport)

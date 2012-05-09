@@ -165,9 +165,9 @@ BOOST_AUTO_TEST_CASE( sloped_boundary_test ) {
  */
 BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
     cout << "=== boundary_test: etopo_boundary_test ===" << endl;
-    cout << "reading " << USML_DATA_BATHYMETRY << endl;
     boundary_grid<float, 2> model( new netcdf_bathy(
-    	USML_DATA_BATHYMETRY, 36.0, 36.2, 15.85, 16.0, wposition::earth_radius));
+    	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+	36.0, 36.2, 15.85, 16.0, wposition::earth_radius));
 
     // simple values for points and depth
 

@@ -30,7 +30,6 @@ using namespace usml::ocean ;
  * Command line interface.
  */
 int main( int argc, char* argv[] ) {
-    const char* ncname = "malta_movie.nc" ;
     cout << "=== malta_movie ===" << endl ;
 
     // define scenario parameters
@@ -54,10 +53,12 @@ int main( int argc, char* argv[] ) {
 
     cout << "load temperature & salinity data from World Ocean Atlas" << endl ;
     netcdf_woa temperature(
-		USML_DATA_TEMP_SEASON, USML_DATA_TEMP_MONTH,
+	USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
+	USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
         month, lat1, lat2, lng1, lng2 ) ;
     netcdf_woa salinity(
-		USML_DATA_SALT_SEASON, USML_DATA_SALT_MONTH,
+	USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
+	USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
         month, lat1, lat2, lng1, lng2 ) ;
 
     // compute sound speed
@@ -70,7 +71,8 @@ int main( int argc, char* argv[] ) {
 
     cout << "load bathymetry from ETOPO1 database" << endl ;
     boundary_model* bottom = new boundary_grid<float,2>( new netcdf_bathy(
-    	USML_DATA_BATHYMETRY, lat1, lat2, lng1, lng2 ) ) ;
+    	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd", 
+	lat1, lat2, lng1, lng2 ) ) ;
     double height ;
     wvector1 normal ;
     bottom->height( pos, &height, &normal ) ;
@@ -82,6 +84,7 @@ int main( int argc, char* argv[] ) {
 
     // initialize wavefront
 
+    const char* ncname = USML_STUDIES_DIR "/malta_movie/malta_movie.nc" ;
     cout << "propagate rays & record to " << ncname << endl ;
     wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
     wave.init_netcdf( ncname ) ;

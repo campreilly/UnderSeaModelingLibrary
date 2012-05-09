@@ -28,12 +28,11 @@ using namespace usml::netcdf ;
  */
 BOOST_AUTO_TEST_CASE( read_woa ) {
     cout << "=== profile_test: read_woa ===" << endl;
-    cout << "reading " << USML_DATA_TEMP_SEASON << endl ;
-    cout << "reading " << USML_DATA_TEMP_MONTH << endl ;
     int month = 6 ;
     const double earth_radius = 6378137.0 ;
     netcdf_woa profile(
-        USML_DATA_TEMP_SEASON, USML_DATA_TEMP_MONTH, 
+	USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
+	USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
         month, 18.5, 22.5, 200.5, 205.5, earth_radius ) ;
 
     // compare depth axis to values read using ncdump
@@ -91,7 +90,7 @@ BOOST_AUTO_TEST_CASE( read_woa ) {
     // each row is a depth, cycle through all longitudes
     // before moving to next latitude
 
-    std::ofstream ofile( "read_woa.csv" ) ;
+    std::ofstream ofile( USML_TEST_DIR "/waveq3d/netcdf/read_woa.csv" ) ;
 
     // print header row
     ofile << "depth" ;
@@ -132,10 +131,10 @@ BOOST_AUTO_TEST_CASE( read_woa ) {
  */
 BOOST_AUTO_TEST_CASE( span_profile ) {
     cout << "=== profile_test: span_profile ===" << endl;
-    cout << "reading " << USML_DATA_TEMP_MONTH << endl ;
     const double earth_radius = 0.0 ;
     netcdf_profile profile( 
-        USML_DATA_TEMP_MONTH, 15.0, -1.0, 2.0, -1.0, 2.0, earth_radius ) ;
+	USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
+	15.0, -1.0, 2.0, -1.0, 2.0, earth_radius ) ;
 
     // compare depth axis to values read using ncdump
 
@@ -184,7 +183,7 @@ BOOST_AUTO_TEST_CASE( span_profile ) {
     // each row is a depth, cycle through all longitudes
     // before moving to next latitude
 
-    std::ofstream ofile( "span_profile.csv" ) ;
+    std::ofstream ofile( USML_TEST_DIR "/waveq3d/netcdf/span_profile.csv" ) ;
 
     // print header row
     ofile << "depth" ;

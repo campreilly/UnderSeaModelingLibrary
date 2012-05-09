@@ -27,8 +27,7 @@ BOOST_AUTO_TEST_CASE( read_bathy_header ) {
 	"unknown", "byte", "char", "short", "int", "float", "double"
     } ;
 
-    cout << "reading " << USML_DATA_BATHYMETRY << endl ;
-    NcFile file( USML_DATA_BATHYMETRY ) ;
+    NcFile file( USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd" ) ;
     cout << "netcdf read_bathy_header {" << endl ;
 
     // dimensions
@@ -123,8 +122,9 @@ BOOST_AUTO_TEST_CASE( read_bathy_header ) {
  */
 BOOST_AUTO_TEST_CASE( read_etopo ) {
     cout << "=== bathy_test: read_etopo ===" << endl;
-    cout << "reading " << USML_DATA_BATHYMETRY << endl ;
-    netcdf_bathy bathy( USML_DATA_BATHYMETRY, 18.0, 23.0, 200.0, 206.0, 0.0 ) ;
+    netcdf_bathy bathy( 
+	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+        18.0, 23.0, 200.0, 206.0, 0.0 ) ;
 
     // compare latitude axis to values read using ncdump
 
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
 
     // dump CSV file for processing by graphics program
 
-    std::ofstream ofile( "read_etopo.csv" ) ;
+    std::ofstream ofile( USML_TEST_DIR "/waveq3d/netcdf/read_etopo.csv" ) ;
     for ( int n=0 ; n < num_lat ; ++n ) {
         index[0] = n ;
         for ( int m=0 ; m < num_lng ; ++m ) {
@@ -236,7 +236,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 
 	// dump CSV file for processing by graphics program
 
-	std::ofstream ofile( "read_coards.csv" ) ;
+	std::ofstream ofile( USML_TEST_DIR "/waveq3d/netcdf/read_coards.csv" ) ;
 	for ( int n=0 ; n < num_lat ; ++n ) {
 		index[0] = n ;
 		for ( int m=0 ; m < num_lng ; ++m ) {
@@ -258,8 +258,9 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
  */
 BOOST_AUTO_TEST_CASE( span_bathy ) {
     cout << "=== bathy_test: span_bathy ===" << endl;
-    cout << "reading " << USML_DATA_BATHYMETRY << endl ;
-    netcdf_bathy bathy( USML_DATA_BATHYMETRY, -1.0, 2.0, 179, 182, 0.0 ) ;
+    netcdf_bathy bathy( 
+	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+	-1.0, 2.0, 179, 182, 0.0 ) ;
 
     // compare latitude axis to values read using ncdump
 
@@ -308,7 +309,7 @@ BOOST_AUTO_TEST_CASE( span_bathy ) {
 
     // dump CSV file for processing by graphics program
 
-    std::ofstream ofile( "span_bathy.csv" ) ;
+    std::ofstream ofile( USML_TEST_DIR "/waveq3d/netcdf/span_bathy.csv" ) ;
     for ( int n=0 ; n < num_lat ; ++n ) {
         index[0] = n ;
         for ( int m=0 ; m < num_lng ; ++m ) {

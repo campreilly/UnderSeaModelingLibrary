@@ -17,11 +17,11 @@ using namespace usml::ocean;
  */
 int main( int argc, char* argv[] ) {
     cout << "=== flstrts_btmloss_test ===" << endl ;
-    const char* name = STUDIES_FLORIDA_STRAITS_DIR "/flstrts_btmloss_test.csv" ;
+    const char* name = USML_STUDIES_DIR "/florida_straits/flstrts_btmloss_test.csv" ;
     std::ofstream os(name) ;
     cout << "writing tables to " << name << endl ;
 
-    ascii_arc_bathy bathymetry( STUDIES_FLORIDA_STRAITS_DIR "/flstrts_bathymetry.asc" ) ;
+    ascii_arc_bathy bathymetry( USML_STUDIES_DIR "/florida_straits/flstrts_bathymetry.asc" ) ;
 
     flstrts_btmloss bottom( &bathymetry ) ;
     seq_log freq( 52.5, 1.0, 1 ) ;

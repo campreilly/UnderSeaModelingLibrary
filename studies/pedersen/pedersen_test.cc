@@ -234,8 +234,8 @@ BOOST_AUTO_TEST_CASE( pedersen_shallow_raytrace ) {
     analyze_raytrace( -75.0, de,
         0.30, 0.01, 0.85,
         0.003, 4.0, 0.2,
-        "pedersen_shallow_raytrace.nc",
-        "pedersen_shallow_raytrace.csv" ) ;
+        USML_STUDIES_DIR "/pedersen/pedersen_shallow_raytrace.nc",
+        USML_STUDIES_DIR "/pedersen/pedersen_shallow_raytrace.csv" ) ;
 }
 
 /**
@@ -255,8 +255,8 @@ BOOST_AUTO_TEST_CASE( pedersen_deep_raytrace ) {
     analyze_raytrace( -1000.0, de,
         2.0, 0.02, 3.5,
         0.008, 10.0, 0.03,
-        "pedersen_deep_raytrace.nc",
-        "pedersen_deep_raytrace.csv" ) ;
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_raytrace.nc",
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_raytrace.csv" ) ;
 }
 
 /**
@@ -350,8 +350,8 @@ BOOST_AUTO_TEST_CASE( pedersen_shallow_proploss ) {
     seq_linear de( 0.0, 0.025, 25.0 ) ;
     analyze_proploss( de, -75.0, -75.0, ranges,
         0.01, 0.85,
-        "pedersen_shallow_proploss.nc",
-        "pedersen_shallow_proploss.csv" ) ;
+        USML_STUDIES_DIR "/pedersen/pedersen_shallow_proploss.nc",
+        USML_STUDIES_DIR "/pedersen/pedersen_shallow_proploss.csv" ) ;
 }
 
 /**
@@ -379,8 +379,8 @@ BOOST_AUTO_TEST_CASE( pedersen_deep_proploss ) {
     seq_linear de( 20.0, 0.25, 60.0 ) ;
     analyze_proploss( de, -1000.0, -800.0, ranges,
         0.01, 3.5,
-        "pedersen_deep_proploss.nc",
-        "pedersen_deep_proploss.csv" ) ;
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.nc",
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.csv" ) ;
 }
 
 ///**

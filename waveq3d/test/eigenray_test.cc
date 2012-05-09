@@ -72,9 +72,9 @@ static const double bot_depth = 1e5 ;
  */
 BOOST_AUTO_TEST_CASE( eigenray_basic ) {
     cout << "=== eigenray_test: eigenray_basic ===" << endl;
-    const char* csvname = "eigenray_basic.csv";
-    const char* ncname = "eigenray_basic.nc";
-    const char* ncname_wave = "eigenray_basic_wave.nc";
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_basic.csv";
+    const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_basic.nc";
+    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/eigenray_basic_wave.nc";
     const double src_alt = -1000.0;
     const double trg_lat = 45.02;
     const double time_max = 3.5;
@@ -226,8 +226,8 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
  */
 BOOST_AUTO_TEST_CASE( eigenray_concave ) {
     cout << "=== eigenray_test: eigenray_concave ===" << endl;
-    const char* ncname_wave = "eigenray_concave_wave.nc";
-    const char* ncname = "eigenray_concave.nc";
+    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/eigenray_concave_wave.nc";
+    const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_concave.nc";
 
     const double src_alt = -200.0;      // source depth = 200 meters
     const double time_max = 120.0 ;     // let rays plots go into region w/ 2 roots

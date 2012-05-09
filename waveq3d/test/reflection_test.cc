@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
 
         // initialize output to spreadsheet file
 
-        const char* name = "reflect_flat_test.csv" ;
+        const char* name = USML_TEST_DIR "/waveq3d/test/reflect_flat_test.csv" ;
         std::ofstream os(name) ;
         cout << "writting tables to " << name << endl ;
 
@@ -247,7 +247,7 @@ BOOST_AUTO_TEST_CASE( reflect_slope_test ) {
 
         // initialize output to spreadsheet file
 
-        const char* name = "reflect_slope_test.csv" ;
+        const char* name = USML_TEST_DIR "/waveq3d/test/reflect_slope_test.csv" ;
         std::ofstream os(name) ;
         cout << "writting tables to " << name << endl ;
 
@@ -345,8 +345,8 @@ BOOST_AUTO_TEST_CASE( reflect_slope_test ) {
  * is lost on the accuracy in depth.
  */
 BOOST_AUTO_TEST_CASE( reflect_grid_test ) {
-    const char* csvname = "reflect_grid_test.csv" ;
-    const char* ncname = "reflect_grid_test.nc" ;
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/reflect_grid_test.csv" ;
+    const char* ncname = USML_TEST_DIR "/waveq3d/test/reflect_grid_test.nc" ;
     cout << "=== reflection_test: reflect_grid_test ===" << endl ;
     try {
 
@@ -372,7 +372,8 @@ BOOST_AUTO_TEST_CASE( reflect_grid_test ) {
 
         cout << "load bathymetry" << endl ;
         boundary_model* bottom = new boundary_grid<float,2>( new netcdf_bathy(
-            USML_DATA_BATHYMETRY, lat1, lat2, lng1, lng2 ) ) ;
+    	    USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+            lat1, lat2, lng1, lng2 ) ) ;
 
         // combine sound speed and bathymetry into ocean model
 

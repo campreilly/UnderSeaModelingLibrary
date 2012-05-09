@@ -29,7 +29,6 @@ using namespace usml::ocean ;
  * Command line interface.
  */
 int main( int argc, char* argv[] ) {
-    char csvname[80] ;
     cout << "=== malta_rays_test ===" << endl ;
 
     // define scenario parameters
@@ -56,10 +55,12 @@ int main( int argc, char* argv[] ) {
 
     cout << "load temperature & salinity data from World Ocean Atlas" << endl ;
     netcdf_woa temperature(
-   		USML_DATA_TEMP_SEASON, USML_DATA_TEMP_MONTH,
+	USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
+	USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
         month, lat1, lat2, lng1, lng2 ) ;
     netcdf_woa salinity(
-		USML_DATA_SALT_SEASON, USML_DATA_SALT_MONTH,
+	USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
+	USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
         month, lat1, lat2, lng1, lng2 ) ;
 
     // compute sound speed
@@ -72,7 +73,9 @@ int main( int argc, char* argv[] ) {
 
     cout << "load bathymetry from ETOPO1 database" << endl ;
     boundary_model* bottom = new boundary_grid<float,2>( new netcdf_bathy(
-    		USML_DATA_BATHYMETRY, lat1, lat2, lng1, lng2 ) ) ;
+    	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd", 
+	lat1, lat2, lng1, lng2 ) ) ;
+
     double height ;
     wvector1 normal ;
     bottom->height( pos, &height, &normal ) ;
@@ -93,7 +96,9 @@ int main( int argc, char* argv[] ) {
     for ( unsigned d=0 ; d < de.size() ; ++d ) {
     	os[d] = new std::ofstream*[az.size()] ;
     	for ( unsigned a=0 ; a < az.size() ; ++a ) {
-    	    sprintf( csvname, "malta_rays_%02.0f_%02.0f.csv",
+            static char csvname[256] ;
+    	    sprintf( csvname, "%s/malta_rays_%02.0f_%02.0f.csv",
+    		USML_STUDIES_DIR "/malta_rays",
     	        fabs(de(d)), fabs(az(a)) ) ;
     	    os[d][a] = new std::ofstream(csvname) ;
             *os[d][a] << "t,"

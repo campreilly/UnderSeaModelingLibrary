@@ -124,9 +124,9 @@ static const double bot_depth = 1e5 ;
  */
 BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
     cout << "=== eigenray_test: eigenray_lloyds ===" << endl;
-    const char* ncname_wave = "eigenray_lloyds_wave.nc";
-    const char* ncname = "eigenray_lloyds.nc";
-    const char* analytic_name = "eigenray_lloyds_analytic.nc";
+    const char* ncname_wave = USML_STUDIES_DIR "/eigenray_extra_test/eigenray_lloyds_wave.nc";
+    const char* ncname = USML_STUDIES_DIR "/eigenray_extra_test/eigenray_lloyds.nc";
+    const char* analytic_name = USML_STUDIES_DIR "/eigenray_extra_test/eigenray_lloyds_analytic.nc";
 
     const double src_alt = -200.0;      // source depth = 200 meters
     const double time_max = 120.0 ;     // let rays plots go into region w/ 2 roots

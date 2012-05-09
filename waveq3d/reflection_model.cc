@@ -32,7 +32,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     boundary.height( position, &bottom_rho, &bottom_normal ) ;
     double height_water = position.rho() - bottom_rho ;
 
-    // make bottom horizontal for very shallow water
+    // make bottom vertical for very shallow water
     // to avoid propagating onto land
     
     if ( (wposition::earth_radius-bottom_rho) < TOO_SHALLOW ) {
@@ -71,8 +71,8 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     // reduces grazing angle errors in highly refractive environments.
     
     collision_location( de, az, time_water, &position, &ndirection, &c ) ;
-//    boundary.height( position, &bottom_rho, &bottom_normal ) ;
-//    c2 = c*c ;
+    boundary.height( position, &bottom_rho, &bottom_normal ) ;
+    c2 = c*c ;
     height_water = position.rho() - bottom_rho ;
 
     ndirection.rho(   c2 * ndirection.rho() ) ;
@@ -126,13 +126,6 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     ndirection.phi(   ndirection.phi() / N ) ;
 
     reflection_reinit( de, az, time_water, position, ndirection, c ) ;
-
-    double curr_height, next_height ;
-    boundary.height( wposition1(_wave._curr->position,de,az), &curr_height ) ;
-    boundary.height( wposition1(_wave._next->position,de,az), &next_height ) ;
-    curr_height = wposition1(_wave._curr->position,de,az).rho() - curr_height ;
-    next_height = wposition1(_wave._curr->position,de,az).rho() - next_height ;
-
     return true ;
 }
 

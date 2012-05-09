@@ -56,10 +56,12 @@ int main( int argc, char* argv[] ) {
 
     cout << "load temperature & salinity data from World Ocean Atlas" << endl ;
     netcdf_woa temperature(
-		USML_DATA_TEMP_SEASON, USML_DATA_TEMP_MONTH,
+	USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
+	USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
         month, lat1, lat2, lng1, lng2 ) ;
     netcdf_woa salinity(
-		USML_DATA_SALT_SEASON, USML_DATA_SALT_MONTH,
+	USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
+	USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
         month, lat1, lat2, lng1, lng2 ) ;
     profile_model* profile =
     	new profile_mackenzie<float,3>( temperature, salinity ) ;
@@ -70,7 +72,8 @@ int main( int argc, char* argv[] ) {
 
     cout << "load bathymetry from ETOPO1 database" << endl ;
     boundary_model* bottom = new boundary_grid<float,2>( new netcdf_bathy(
-		USML_DATA_BATHYMETRY, lat1,lat2,lng1,lng2) ) ;
+    	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd", 
+	lat1, lat2, lng1, lng2 ) ) ;
 //    boundary_model* bottom = new boundary_flat(3000.0);
     double height ;
     wvector1 normal ;

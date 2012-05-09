@@ -4,7 +4,7 @@
 # add_library() call for the usml target.  It then collects all
 # regression tests into a single add_executable() call for the usml_test 
 # target. The source_group() command is used to organize the files into
-# subgroups in IDE's such as Visual C++.
+# subgroups in IDE's such as Visual C++ and Eclipse.
 #
 cmake_minimum_required( VERSION 2.6 )
 project( usml CXX )
@@ -17,10 +17,14 @@ set( PACKAGE_MODULES ublas types netcdf ocean waveq3d )
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" OFF )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
 if( NOT CMAKE_BUILD_TYPE )
-    set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
+    set( CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build" FORCE )
 endif()
 set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS 
     Release Debug RelWithDebInfo MinSize )
+
+if ( ${CMAKE_BUILD_TYPE} MATCHES Debug )
+    add_definitions( -DUSML_DEBUG )
+endif()
 
 ######################################################################
 # Visual C++ compiler options
@@ -43,9 +47,14 @@ if( MSVC )
 # GNU C++ options
 
 else( CMAKE_COMPILER_IS_GNUCXX )
-    add_definitions( -g )   		# debugging symbols
-    add_definitions( -ffast-math )   	# fast floating point math
-    if ( USML_PEDANTIC )		# standards compliance
+    if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) 
+      OR ( ${CMAKE_BUILD_TYPE} MATCHES RelWithDebInfo ))
+        add_definitions( -g )           # debugging symbols
+    endif()
+    if ( NOT ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) )
+        add_definitions( -ffast-math )  # fast floating point math
+    endif()
+    if ( USML_PEDANTIC )                # standards compliance
         add_definitions( -std=c++98 -pedantic -Wall -Werror )
     endif ( USML_PEDANTIC )
 endif()
@@ -78,7 +87,7 @@ endif( Boost_FOUND )
 # 1397 through 1407 (just above it).  Doing so allows further overloading of
 # operator/() for other types. 
 
-# add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
+add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 
 ######################################################################
 # NetCDF data access library
@@ -127,58 +136,26 @@ set( TARGET usml )
 add_library( ${TARGET} ${HEADERS} ${SOURCES} )
 target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
 set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION} )
-if( MSVC AND BUILD_SHARED_LIBS )
-    set_target_properties( ${TARGET} PROPERTIES COMPILE_DEFINITIONS USML_DLL_EXPORT )
-endif()
-if ( ${CMAKE_BUILD_TYPE} MATCHES Debug )
-    add_definitions( -DUSML_DEBUG )
-endif()
 
 ######################################################################
 # USML_TEST regression test suite
 
-# define standard input data files for USML regression tests
+# define standard input and output data files for USML regression tests
 
 set( USML_DATA_DIR ${PROJECT_SOURCE_DIR}/data 
      CACHE PATH "directory for data used in testing" )
-set( USML_DATA_BATHYMETRY ${USML_DATA_DIR}/bathymetry/ETOPO1_Ice_g_gmt4.grd 
-    CACHE FILEPATH "data file for ETOPO bathymetry" )
-set( USML_DATA_TEMP_SEASON ${USML_DATA_DIR}/woa09/temperature_seasonal_1deg.nc
-    CACHE FILEPATH "data file for deep WOA temperature profile" )
-set( USML_DATA_TEMP_MONTH ${USML_DATA_DIR}/woa09/temperature_monthly_1deg.nc
-    CACHE FILEPATH "data file for shallow WOA temperature profile" )
-set( USML_DATA_SALT_SEASON ${USML_DATA_DIR}/woa09/salinity_seasonal_1deg.nc
-    CACHE FILEPATH "data file for deep WOA salinity profile" )
-set( USML_DATA_SALT_MONTH ${USML_DATA_DIR}/woa09/salinity_monthly_1deg.nc
-    CACHE FILEPATH "data file for shallow WOA salinity profile" )
-set( USML_DATA_SALT_MONTH ${USML_DATA_DIR}/woa09/salinity_monthly_1deg.nc
-    CACHE FILEPATH "data file for shallow WOA salinity profile" )
-set( USML_ASCII_ARC_TEST_DATA ${PROJECT_SOURCE_DIR}/ocean/test/ascii_arc_test.asc
-    CACHE FILEPATH "data file for ascii_arc_test bathymetry" )
-set( USML_ASCII_PROFILE_TEST_DATA ${PROJECT_SOURCE_DIR}/ocean/test/ascii_profile_test.csv
-    CACHE FILEPATH "data file for ascii_profile_test" )
-
-add_definitions( 
-    -DUSML_DATA_DIR="$USML_DATA_DIR"
-    -DUSML_DATA_BATHYMETRY="${USML_DATA_BATHYMETRY}"
-    -DUSML_DATA_TEMP_SEASON="${USML_DATA_TEMP_SEASON}"
-    -DUSML_DATA_TEMP_MONTH="${USML_DATA_TEMP_MONTH}"
-    -DUSML_DATA_SALT_SEASON="${USML_DATA_SALT_SEASON}"
-    -DUSML_DATA_SALT_MONTH="${USML_DATA_SALT_MONTH}" 
-    -DUSML_ASCII_ARC_TEST_DATA="${USML_ASCII_ARC_TEST_DATA}" 
-    -DUSML_ASCII_PROFILE_TEST_DATA="${USML_ASCII_PROFILE_TEST_DATA}" 
-    )
-
-if( MSVC )                # Visual Studio 9 (2008) options
-    set( USML_TEST_DATA_DIR ${CMAKE_CFG_INTDIR} )
-else( CMAKE_COMPILER_IS_GNUCXX )    # GNU C++ options
-    set( USML_TEST_DATA_DIR ${PROJECT_BINARY_DIR} )
-endif()
+set( USML_TEST_DIR ${PROJECT_SOURCE_DIR}
+     CACHE PATH "root directory for testing outputs" )
+foreach( MOD ${PACKAGE_MODULES} )
+    file(MAKE_DIRECTORY ${USML_TEST_DIR}/${MOD}/test)
+endforeach( MOD )
 
 # generated data files for bathymetry tests
 
 if ( EXISTS ${NETCDF_NCKS} ) 
-    set( ETOPO_CMP ${USML_TEST_DATA_DIR}/etopo_cmp )
+    set( USML_DATA_BATHYMETRY ${USML_DATA_DIR}/bathymetry/ETOPO1_Ice_g_gmt4.grd 
+	CACHE FILEPATH "data file for ETOPO bathymetry" )
+    set( ETOPO_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp )
     add_custom_command( 
         OUTPUT ${ETOPO_CMP}.nc ${ETOPO_CMP}.log
         COMMAND ${NETCDF_NCKS} -O -a -d y,18.0,23.000001 -d x,-160.0,-154.0 
@@ -186,7 +163,7 @@ if ( EXISTS ${NETCDF_NCKS} )
         COMMAND ncdump "${ETOPO_CMP}.nc" > "${ETOPO_CMP}.log"
     )
 
-    set( ETOPO_CMP2W ${USML_TEST_DATA_DIR}/etopo_cmp2w )
+    set( ETOPO_CMP2W ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp2w )
     add_custom_command( 
         OUTPUT ${ETOPO_CMP2W}.nc ${ETOPO_CMP2W}.log
         COMMAND ${NETCDF_NCKS} -O -a -d y,-1.0,2.000001 -d x,179.0,180.0
@@ -194,7 +171,7 @@ if ( EXISTS ${NETCDF_NCKS} )
         COMMAND ncdump "${ETOPO_CMP2W}.nc" > "${ETOPO_CMP2W}.log"
     )
 
-    set( ETOPO_CMP2E ${USML_TEST_DATA_DIR}/etopo_cmp2e )
+    set( ETOPO_CMP2E ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp2e )
     add_custom_command( 
         OUTPUT ${ETOPO_CMP2E}.nc ${ETOPO_CMP2E}.log
         COMMAND ${NETCDF_NCKS} -O -a -d y,-1.0,2.000001 -d x,-179.9834,-178.0
@@ -209,7 +186,9 @@ endif()
 # generated data files for profile tests
 
 if ( EXISTS ${NETCDF_NCKS} ) 
-    set( WOA_CMP ${USML_TEST_DATA_DIR}/woa_cmp )
+    set( USML_DATA_TEMP_MONTH ${USML_DATA_DIR}/woa09/temperature_monthly_1deg.nc
+	    CACHE FILEPATH "data file for shallow WOA temperature profile" )
+    set( WOA_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/woa_cmp )
     add_custom_command( 
         OUTPUT ${WOA_CMP}.nc ${WOA_CMP}.log
         COMMAND ${NETCDF_NCKS} -O -a -v depth,time,lat,lon,t_an 
@@ -218,7 +197,7 @@ if ( EXISTS ${NETCDF_NCKS} )
         COMMAND ncdump "${WOA_CMP}.nc" > "${WOA_CMP}.log"
     )
 
-    set( WOA_CMP2 ${USML_TEST_DATA_DIR}/woa_cmp2 )
+    set( WOA_CMP2 ${PROJECT_SOURCE_DIR}/netcdf/test/woa_cmp2 )
     add_custom_command( 
         OUTPUT ${WOA_CMP2}.nc ${WOA_CMP2}.log
         COMMAND ${NETCDF_NCKS} -O -a -v depth,time,lat,lon,t_an 
@@ -239,9 +218,18 @@ FIND_SOURCES( "${PACKAGE_MODULES}" "/test" )
 
 add_executable( usml_test ${HEADERS} ${SOURCES} )
 target_link_libraries( usml_test usml )
+set_property(
+   TARGET usml_test
+   PROPERTY COMPILE_DEFINITIONS 
+	USML_DATA_DIR="${USML_DATA_DIR}"
+	USML_TEST_DIR="${USML_TEST_DIR}"
+   )
 
 ######################################################################
 # USML studies
+
+set( USML_STUDIES_DIR ${PROJECT_SOURCE_DIR}/studies 
+     CACHE PATH "directory for data used in testing" )
 
 add_executable( ray_speed studies/ray_speed/ray_speed.cc )
 target_link_libraries( ray_speed usml )
@@ -258,13 +246,15 @@ target_link_libraries( malta_movie usml )
 add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 target_link_libraries( malta_rays usml )
 
+set_property(
+   TARGET ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays 
+   PROPERTY COMPILE_DEFINITIONS 
+	USML_DATA_DIR="${USML_DATA_DIR}"
+	USML_STUDIES_DIR="${USML_STUDIES_DIR}"
+   )
+
 ######################################################################
 # Florida Straits study
-
-set( STUDIES_FLORIDA_STRAITS_DIR ${PROJECT_SOURCE_DIR}/studies/florida_straits
-    CACHE FILEPATH "directory for Florida Straits study" )
-
-add_definitions( -DSTUDIES_FLORIDA_STRAITS_DIR="${STUDIES_FLORIDA_STRAITS_DIR}")
 
 add_executable( flstrts_btmloss_test studies/florida_straits/flstrts_btmloss_test.cc )
 target_link_libraries( flstrts_btmloss_test usml )
@@ -274,6 +264,13 @@ target_link_libraries( flstrts_slope_test usml )
 
 add_executable( run1a_proploss studies/florida_straits/run1a_proploss.cc )
 target_link_libraries( run1a_proploss usml )
+
+set_property(
+   TARGET flstrts_btmloss_test flstrts_slope_test run1a_proploss
+   PROPERTY COMPILE_DEFINITIONS 
+	USML_DATA_DIR="${USML_DATA_DIR}"
+	USML_STUDIES_DIR="${USML_STUDIES_DIR}"
+   )
 
 
 

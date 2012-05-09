@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
 
     // initialize output to spreadsheet file
 
-    const char* name = "refraction_isovelocity.csv";
+    const char* name = USML_TEST_DIR "/waveq3d/test/refraction_isovelocity.csv";
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
     os << "time,x,y,z,d";
@@ -285,7 +285,7 @@ BOOST_AUTO_TEST_CASE(refraction_great_circle) {
 
     // initialize output to spreadsheet file
 
-    const char* name = "refraction_great_circle.csv";
+    const char* name = USML_TEST_DIR "/waveq3d/test/refraction_great_circle.csv";
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
     os << "time";
@@ -401,7 +401,7 @@ BOOST_AUTO_TEST_CASE(refraction_linear) {
 
     // initialize output to spreadsheet file
 
-    const char* name = "refraction_linear.csv";
+    const char* name = USML_TEST_DIR "/waveq3d/test/refraction_linear.csv";
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
 
@@ -537,7 +537,7 @@ BOOST_AUTO_TEST_CASE(refraction_n2_linear) {
 
     // initialize output to spreadsheet file
 
-    const char* name = "refraction_n2_linear.csv";
+    const char* name = USML_TEST_DIR "/waveq3d/test/refraction_n2_linear.csv";
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
 
@@ -681,7 +681,7 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
 
     // initialize output to spreadsheet file
 
-    const char* name = "refraction_catenary.csv";
+    const char* name = USML_TEST_DIR "/waveq3d/test/refraction_catenary.csv";
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
 
@@ -786,8 +786,8 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
  */
 BOOST_AUTO_TEST_CASE(refraction_munk_range) {
     cout << "=== refraction_test: refraction_munk_range ===" << endl;
-    const char* ncname_wave = "refraction_munk_range.nc";
-    const char* name = "refraction_munk_range.csv";
+    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/refraction_munk_range.nc";
+    const char* name = USML_TEST_DIR "/waveq3d/test/refraction_munk_range.csv";
 
     // analytic solution for cycle ranges for angles -14:14 degrees;
     // computed using the munk_range_compute.m routine
@@ -955,8 +955,8 @@ BOOST_AUTO_TEST_CASE(refraction_munk_range) {
  */
 BOOST_AUTO_TEST_CASE(refraction_pedersen_range) {
     cout << "=== refraction_test: refraction_pedersen_range ===" << endl;
-    const char* ncname_wave = "refraction_pedersen_range.nc";
-    const char* name = "refraction_pedersen_range.csv";
+    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/refraction_pedersen_range.nc";
+    const char* name = USML_TEST_DIR "/waveq3d/test/refraction_pedersen_range.csv";
 
     // analytic solution for cycle ranges for angles 20:2:50 degrees;
     // computed using the pedersen_range_compute.m routine

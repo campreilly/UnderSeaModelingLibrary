@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE( constant_reflect_loss_test ) {
  */
 BOOST_AUTO_TEST_CASE( rayleigh_test_a ) {
     cout << "=== reflect_loss_test: rayleigh_test_a ===" << endl ;
-    const char* name = "rayleigh_test_a.csv" ;
+    const char* name = USML_TEST_DIR "/waveq3d/ocean/rayleigh_test_a.csv" ;
     std::ofstream os(name) ;
     cout << "writing tables to " << name << endl ;
 
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_a ) {
  */
 BOOST_AUTO_TEST_CASE( rayleigh_test_b ) {
     cout << "=== reflect_loss_test: rayleigh_test_b ===" << endl ;
-    const char* name = "rayleigh_test_b.csv" ;
+    const char* name = USML_TEST_DIR "/waveq3d/ocean/rayleigh_test_b.csv" ;
     std::ofstream os(name) ;
     cout << "writing tables to " << name << endl ;
 
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_b ) {
  */
 BOOST_AUTO_TEST_CASE( rayleigh_test_c ) {
     cout << "=== reflect_loss_test: rayleigh_test_c ===" << endl ;
-    const char* name = "rayleigh_test_c.csv" ;
+    const char* name = USML_TEST_DIR "/waveq3d/ocean/rayleigh_test_c.csv" ;
     std::ofstream os(name) ;
     cout << "writing tables to " << name << endl ;
 
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_c ) {
  */
 BOOST_AUTO_TEST_CASE( rayleigh_test_d ) {
     cout << "=== reflect_loss_test: rayleigh_test_d ===" << endl ;
-    const char* name = "rayleigh_test_d.csv" ;
+    const char* name = USML_TEST_DIR "/waveq3d/ocean/rayleigh_test_d.csv" ;
     std::ofstream os(name) ;
     cout << "writing tables to " << name << endl ;
 
@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_d ) {
  */
 BOOST_AUTO_TEST_CASE( plot_rayleigh_sediments ) {
     cout << "=== reflect_loss_test: plot_rayleigh_sediments ===" << endl ;
-    const char* name = "rayleigh_sediments.csv" ;
+    const char* name = USML_TEST_DIR "/waveq3d/ocean/rayleigh_sediments.csv" ;
     std::ofstream os(name) ;
     cout << "writing tables to " << name << endl ;
 
