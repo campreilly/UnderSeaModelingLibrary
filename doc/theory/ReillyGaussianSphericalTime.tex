@@ -47,7 +47,7 @@ Norfolk VA, USA\\
 
 \begin{history}
 \received{(Day Month Year)}
-\revised{(26 January 2012)}
+\revised{(10 May 2012)}
 \end{history}
 
 \begin{abstract}
@@ -182,7 +182,7 @@ The ray tracing equations used by this model are
 \end{equation}
 \begin{equation}
 	\frac{d\beta}{dt} = -\frac{1}{cr}\frac{dc}{d\theta} 
-		- \frac{c^2 \alpha \beta}{r} + \gamma^2 cot\theta \:,
+		- \frac{c^2}{r} \left( \alpha \beta + \gamma^2 cot\theta \right) \:.
 	\label{eq:dbeta_dt}
 \end{equation}
 \begin{equation}
@@ -1058,7 +1058,7 @@ reduced to a state where all of the coordinate derivatives appear only once
 \end{equation}
 \begin{equation}
 	\frac{d\beta}{dt} = -\frac{1}{cr}\frac{dc}{d\theta} 
-		- \frac{c^2 \alpha \beta}{r} + \gamma^2 cot\theta \:,
+		- \frac{c^2}{r} \left( \alpha \beta + \gamma^2 cot\theta \right) \:.
 \end{equation}
 \begin{equation}
 	\frac{d\gamma}{dt} = -\frac{1}{cr sin\theta}\frac{dc}{d\phi} 
