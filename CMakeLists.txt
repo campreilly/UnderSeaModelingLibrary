@@ -50,7 +50,7 @@ else( CMAKE_COMPILER_IS_GNUCXX )
     if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) )
         add_definitions( -O0 )          # no optimizations
     else()                              # max optimizations
-        add_definitions( -O3 -ffast-math )  
+        add_definitions( -O3 -ffast-math -DNDEBUG )  
     endif()
     if ( USML_PEDANTIC )                # standards compliance
         add_definitions( -std=c++98 -pedantic -Wall -Werror )
