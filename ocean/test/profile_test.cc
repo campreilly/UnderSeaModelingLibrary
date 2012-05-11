@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE( constant_profile_test ) {
 BOOST_AUTO_TEST_CASE( plot_profile_test ) {
     cout << "=== profile_test: plot_profile_test ===" << endl;
     try {
-        const char* name = USML_TEST_DIR "/waveq3d/ocean/profile_test.csv" ;
+        const char* name = USML_TEST_DIR "/ocean/test/profile_test.csv" ;
         std::ofstream os(name);
         cout << "writing tables to " << name << endl;
 
@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
 
         // print results for first lat/long entry
 
-        const char* name = USML_TEST_DIR "/waveq3d/ocean/mackenzie_test.csv" ;
+        const char* name = USML_TEST_DIR "/ocean/test/mackenzie_test.csv" ;
         std::ofstream os(name);
         cout << "writing tables to " << name << endl;
 
@@ -208,22 +208,6 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
         BOOST_ERROR(except->what());
     }
 }
-
-/**
- * Test the basic features of the profile model using
- * a constant profile model.
- * Generate errors if values differ by more that 1E-6 percent.
- */
-//BOOST_AUTO_TEST_CASE( ascii_profile_test ) {
-//    cout << "=== profile_test: ascii_profile_test ===" << endl;
-//    try {
-//        ascii_profile_factory::read( USML_ASCII_PROFILE_TEST_DATA ) ;
-//
-//    } catch (std::exception* except) {
-//        BOOST_ERROR(except->what());
-//    }
-//}
-
 
 /// @}
 

@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
 
     // dump CSV file for processing by graphics program
 
-    std::ofstream ofile( USML_TEST_DIR "/waveq3d/netcdf/read_etopo.csv" ) ;
+    std::ofstream ofile( USML_TEST_DIR "/netcdf/test/read_etopo.csv" ) ;
     for ( int n=0 ; n < num_lat ; ++n ) {
         index[0] = n ;
         for ( int m=0 ; m < num_lng ; ++m ) {
@@ -236,7 +236,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 
 	// dump CSV file for processing by graphics program
 
-	std::ofstream ofile( USML_TEST_DIR "/waveq3d/netcdf/read_coards.csv" ) ;
+	std::ofstream ofile( USML_TEST_DIR "/netcdf/test/read_coards.csv" ) ;
 	for ( int n=0 ; n < num_lat ; ++n ) {
 		index[0] = n ;
 		for ( int m=0 ; m < num_lng ; ++m ) {
@@ -309,7 +309,7 @@ BOOST_AUTO_TEST_CASE( span_bathy ) {
 
     // dump CSV file for processing by graphics program
 
-    std::ofstream ofile( USML_TEST_DIR "/waveq3d/netcdf/span_bathy.csv" ) ;
+    std::ofstream ofile( USML_TEST_DIR "/netcdf/test/span_bathy.csv" ) ;
     for ( int n=0 ; n < num_lat ; ++n ) {
         index[0] = n ;
         for ( int m=0 ; m < num_lng ; ++m ) {

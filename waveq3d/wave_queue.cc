@@ -522,13 +522,13 @@ void wave_queue::add_eigenray(
         #endif
         return ;
     } else if ( spread_intensity(0) <= 1e-20 ) {
-        #ifdef USML_DEBUG
-            std::cerr << "warning: wave_queue::add_eigenray()" << endl
-                      << "\tignores eigenray because intensity is "
-                      << spread_intensity(0) << endl
-                      << "\tt1=" << t1 << " t2=" << t2
-                      << " de=" << de << " az=" << az << endl ;
-        #endif
+//        #ifdef USML_DEBUG
+//            std::cerr << "warning: wave_queue::add_eigenray()" << endl
+//                      << "\tignores eigenray because intensity is "
+//                      << spread_intensity(0) << endl
+//                      << "\tt1=" << t1 << " t2=" << t2
+//                      << " de=" << de << " az=" << az << endl ;
+//        #endif
         return ;
     }
     ray.intensity = -10.0 * log10( spread_intensity ) ; // positive value
