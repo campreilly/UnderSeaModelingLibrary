@@ -16,7 +16,7 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
     int ncols, nrows ;
     double xllcenter, yllcenter, cellsize, nodata_value ;
     static char label[80] ;
-    const float R = (float) wposition::earth_radius ;
+    const double R = (double) wposition::earth_radius ;
 
     std::ifstream fi(filename);
     fi >> std::skipws ;
@@ -45,9 +45,9 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
     // read depths and convert to rho coordinate of spherical earth system
     // flip latitude direction upside down during the read.
 
-    this->_data = new float[ ncols * nrows ] ;
+    this->_data = new double[ ncols * nrows ] ;
     for ( int r=nrows-1 ; r >= 0 ; --r ) {
-        float* ptr = &( this->_data[r*ncols] ) ;
+        double* ptr = &( this->_data[r*ncols] ) ;
         for ( int c=0 ; c < ncols ; ++c ) {
             fi >> *ptr ;
             *(ptr++) += R ;

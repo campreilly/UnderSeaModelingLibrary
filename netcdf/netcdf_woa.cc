@@ -23,7 +23,7 @@ netcdf_woa::netcdf_woa(
             // work around protected nature of _data and _axis by using
             // netcdf_woa for "replace" instead of netcdf_profile.
         memcpy( this->_data, replace._data, 
-                sizeof(float) *
+                sizeof(double) *
                 replace.axis(0)->size() * 
                 replace.axis(1)->size() * 
                 replace.axis(2)->size() ) ;

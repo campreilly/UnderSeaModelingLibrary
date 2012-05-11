@@ -64,14 +64,14 @@ int main( int argc, char* argv[] ) {
 	USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
         month, lat1, lat2, lng1, lng2 ) ;
     profile_model* profile =
-    	new profile_mackenzie<float,3>( temperature, salinity ) ;
+    	new profile_mackenzie<double,3>( temperature, salinity ) ;
 //    attenuation_model* attn = new attenuation_constant(0.0);
 //    profile_model* profile = new profile_linear(1500.0,attn);
 
     // load bathymetry from ETOPO1 database
 
     cout << "load bathymetry from ETOPO1 database" << endl ;
-    boundary_model* bottom = new boundary_grid<float,2>( new netcdf_bathy(
+    boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
     	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd", 
 	lat1, lat2, lng1, lng2 ) ) ;
 //    boundary_model* bottom = new boundary_flat(3000.0);

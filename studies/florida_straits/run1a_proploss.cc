@@ -53,7 +53,7 @@ int main( int argc, char* argv[] ) {
     ascii_arc_bathy* bathymetry =
         new ascii_arc_bathy( USML_STUDIES_DIR "/florida_straits/flstrts_bathymetry.asc" ) ;
 
-    boundary_grid<float,2>* bottom = new boundary_grid<float,2>(
+    boundary_grid<double,2>* bottom = new boundary_grid<double,2>(
         bathymetry,
         new flstrts_btmloss( bathymetry ) ) ;
 

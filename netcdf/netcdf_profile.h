@@ -52,7 +52,7 @@ using namespace usml::types ;
  * This may seem like a pretty loose specification, but this looseness is very
  * helpful in automating the reading NetCDF files from a variety of sources.
  */
-class USML_DECLSPEC netcdf_profile : public data_grid<float,3> {
+class USML_DECLSPEC netcdf_profile : public data_grid<double,3> {
 
   public:  
 
@@ -110,7 +110,7 @@ class USML_DECLSPEC netcdf_profile : public data_grid<float,3> {
      * @param  value        NetCDF variable for datafile value (output).
      */
     void decode_filetype( 
-        NcFile& file, float *missing, NcVar **time, NcVar **altitude, 
+        NcFile& file, double *missing, NcVar **time, NcVar **altitude,
         NcVar **latitude, NcVar **longitude, NcVar **value ) ;
 } ;
 

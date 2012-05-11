@@ -47,7 +47,7 @@ using namespace usml::types ;
  * (GEODAS) Search and Data Retrieval web site to distribute custom
  * bathymetry grids.
  */
-class USML_DECLSPEC ascii_arc_bathy : public data_grid<float,2> {
+class USML_DECLSPEC ascii_arc_bathy : public data_grid<double,2> {
 
   public:  
 

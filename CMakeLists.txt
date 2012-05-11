@@ -47,12 +47,10 @@ if( MSVC )
 # GNU C++ options
 
 else( CMAKE_COMPILER_IS_GNUCXX )
-    if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) 
-      OR ( ${CMAKE_BUILD_TYPE} MATCHES RelWithDebInfo ))
-        add_definitions( -g )           # debugging symbols
-    endif()
-    if ( NOT ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) )
-        add_definitions( -ffast-math )  # fast floating point math
+    if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) )
+        add_definitions( -O0 )          # no optimizations
+    else()                              # max optimizations
+        add_definitions( -O3 -ffast-math )  
     endif()
     if ( USML_PEDANTIC )                # standards compliance
         add_definitions( -std=c++98 -pedantic -Wall -Werror )

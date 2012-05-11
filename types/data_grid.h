@@ -299,7 +299,7 @@ private:
      * @param   deriv	    Derivative for this iteration. Constant across the 
      *                      interval for linear interpolation.
      * @param	deriv_vec   Results vector for derivative.
-     *			    Derviative not computed if NULL.
+     *			            Derivative not computed if NULL.
      * @return              Estimate of the field after interpolation.
      */
     DATA_TYPE pchip(int dim, const unsigned* index, const double* location,

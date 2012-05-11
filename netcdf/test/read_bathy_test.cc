@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE( read_bathy_header ) {
 
     cout << "data:" << endl ;
     const long N = 10 ;
-    float data[N] ;
+    double data[N] ;
     for ( int v=0 ; v < file.num_vars() ; ++v ) {
         NcVar* var = file.get_var(v) ;
         long D1 = min( N, var->num_vals() ) ;
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 		return ;
 	}
 	cout << "reading " << filename << endl ;
-	netcdf_coards<float,2> bathy( file, "z" ) ;
+	netcdf_coards<double,2> bathy( file, "z" ) ;
 
 	// compare latitude axis to values read using ncdump
 

@@ -46,7 +46,7 @@ class USML_DECLSPEC flstrts_btmloss : public usml::ocean::reflect_loss_model {
     usml::ocean::reflect_loss_model* limestone ;
 
     /** Bathymetry data.  Used to provivince the bottom loss data */
-    usml::types::data_grid<float,2>* bathymetry ;
+    usml::types::data_grid<double,2>* bathymetry ;
 
   public:
 
@@ -54,7 +54,7 @@ class USML_DECLSPEC flstrts_btmloss : public usml::ocean::reflect_loss_model {
      * Initialize model with Rayleigh reflection loss models for
      * both carbonate sand and limestone.
      */
-    flstrts_btmloss( usml::types::data_grid<float,2>* bathy ) {
+    flstrts_btmloss( usml::types::data_grid<double,2>* bathy ) {
         carbonate_sand = new usml::ocean::reflect_loss_rayleigh( 1.70, 1675.0/1500.0, 0.01, 0.0, 0.0 ) ;
         limestone = new usml::ocean::reflect_loss_rayleigh( 2.40, 3000.0/1500.0, 0.1, 1430.0/1500.0, 0.2 ) ;
         bathymetry = bathy ;

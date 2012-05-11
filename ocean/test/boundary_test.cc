@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE( sloped_boundary_test ) {
  */
 BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
     cout << "=== boundary_test: etopo_boundary_test ===" << endl;
-    boundary_grid<float, 2> model( new netcdf_bathy(
+    boundary_grid<double, 2> model( new netcdf_bathy(
     	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
 	36.0, 36.2, 15.85, 16.0, wposition::earth_radius));
 
@@ -231,7 +231,7 @@ BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
 //
 //    // test implementation as a boundary model
 //
-//    boundary_grid<float,2> bottom(grid) ;
+//    boundary_grid<double,2> bottom(grid) ;
 //    wposition1 location( 26.25, -80.0 ) ;
 //    double depth ;
 //    bottom.height( location, &depth ) ;

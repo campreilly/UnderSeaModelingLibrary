@@ -45,7 +45,7 @@ using namespace usml::types ;
  *   of odd minutes of latitude and longitude.
  * - ETOPO5 5-minute gridded elevations/bathymetry for the world.
  */
-class USML_DECLSPEC netcdf_bathy : public data_grid<float,2> {
+class USML_DECLSPEC netcdf_bathy : public data_grid<double,2> {
 
   public:  
 

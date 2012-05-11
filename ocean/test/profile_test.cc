@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
 
         // compute sound speed
 
-        profile_mackenzie<float, 3> profile(temperature, salinity);
+        profile_mackenzie<double, 3> profile(temperature, salinity);
 
         // print results for first lat/long entry
 

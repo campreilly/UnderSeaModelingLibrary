@@ -133,7 +133,7 @@ public:
         case 1:
             if (normal) {
                 const double theta = location.theta();
-                float gtheta;
+                double gtheta;
                 *rho = this->_height->interpolate(&theta, &gtheta);
                 const double t = gtheta / (*rho);       // slope = tan(angle)
                 normal->theta(-t / sqrt(1.0 + t * t));  // normal = -sin(angle)
@@ -153,7 +153,7 @@ public:
         case 2:
             if (normal) {
                 const double loc[2] = { location.theta(), location.phi() };
-                float grad[2];
+                double grad[2];
                 *rho = this->_height->interpolate(loc, grad);
                 const double t = grad[0] / (*rho);      // slope = tan(angle)
                 const double p = grad[1] / ((*rho) * sin(location.theta()));

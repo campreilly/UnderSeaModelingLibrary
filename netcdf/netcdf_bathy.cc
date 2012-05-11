@@ -76,7 +76,7 @@ netcdf_bathy::netcdf_bathy(
 
     // load depth data out of NetCDF file
 
-    this->_data = new float[ lat_num * lng_num ] ;
+    this->_data = new double[ lat_num * lng_num ] ;
     if ( longitude->num_vals() > lng_last ) {
         altitude->set_cur( lat_first, lng_first ) ;
         altitude->get( this->_data, lat_num, lng_num ) ;
@@ -87,7 +87,7 @@ netcdf_bathy::netcdf_bathy(
     } else {
         int M = lng_last - longitude->num_vals() + 1 ;  // # pts on east side
         int N = lng_num - M ;                           // # pts on west side
-        float* ptr = this->_data ;
+        double* ptr = this->_data ;
         // cout << " N=" << N << " M=" << M << endl ;
         for ( int lat = lat_first ; lat <= lat_last ; ++lat ) {
 
@@ -108,8 +108,8 @@ netcdf_bathy::netcdf_bathy(
 
     // convert depth to rho coordinate of spherical earth system
 
-    float* ptr = this->_data ;
-    float R = (float) earth_radius ;
+    double* ptr = this->_data ;
+    double R = (double) earth_radius ;
     while ( ptr < this->_data+(lat_num * lng_num) ) {
         *(ptr++) += R ;
     }

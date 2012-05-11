@@ -65,12 +65,12 @@ int main( int argc, char* argv[] ) {
 
     cout << "compute sound speed" << endl ;
     profile_model* profile =
-    	new profile_mackenzie<float,3>( temperature, salinity ) ;
+    	new profile_mackenzie<double,3>( temperature, salinity ) ;
 
     // load bathymetry from ETOPO1 database
 
     cout << "load bathymetry from ETOPO1 database" << endl ;
-    boundary_model* bottom = new boundary_grid<float,2>( new netcdf_bathy(
+    boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
     	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd", 
 	lat1, lat2, lng1, lng2 ) ) ;
     double height ;

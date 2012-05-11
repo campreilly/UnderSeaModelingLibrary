@@ -16,7 +16,7 @@ netcdf_profile::netcdf_profile(
 {
     // initialize access to NetCDF file.
 
-    float missing = NAN ;   // default value for missing information
+    double missing = NAN ;   // default value for missing information
     NcVar *time, *altitude, *latitude, *longitude, *value ;
     NcFile pfile( profile ) ;
     decode_filetype( pfile, &missing, &time, &altitude, 
@@ -99,7 +99,7 @@ netcdf_profile::netcdf_profile(
 
     // load profile data out of NetCDF variable
 
-    this->_data = new float[ alt_num * lat_num * lng_num ] ;
+    this->_data = new double[ alt_num * lat_num * lng_num ] ;
     if ( longitude->num_vals() > lng_last ) {
         value->set_cur( time_index, 0, lat_first, lng_first ) ;
         value->get( this->_data, 1, alt_num, lat_num, lng_num ) ;
@@ -110,7 +110,7 @@ netcdf_profile::netcdf_profile(
     } else {
         int M = lng_last - longitude->num_vals() + 1 ;  // # pts on east side
         int N = lng_num - M ;                           // # pts on west side
-        float* ptr = this->_data ;
+        double* ptr = this->_data ;
         // cout << " N=" << N << " M=" << M << endl ;
         for ( int alt = 0 ; alt < alt_num ; ++alt ) {
             for ( int lat = lat_first ; lat <= lat_last ; ++lat ) {
@@ -136,7 +136,7 @@ netcdf_profile::netcdf_profile(
     
     if ( ! isnan(missing) ) {
         const int N = alt_num * lat_num * lng_num ;
-        float* ptr = this->_data ;
+        double* ptr = this->_data ;
         while ( ptr < this->_data + N ) {
             if ( *ptr == missing ) *ptr = NAN ;
             ++ptr ;
@@ -156,8 +156,8 @@ void netcdf_profile::fill_missing() {
 
     // compute average value at each depth
     
-    data_grid<float,1> average( this->_axis ) ;
-    data_grid<float,1> number( this->_axis ) ;
+    data_grid<double,1> average( this->_axis ) ;
+    data_grid<double,1> number( this->_axis ) ;
     
     for ( int alt = 0 ; alt < alt_num ; ++alt ) {
         index[0] = alt ;
@@ -168,7 +168,7 @@ void netcdf_profile::fill_missing() {
             index[1] = lat ;
             for ( int lng = 0 ; lng < lng_num ; ++lng ) {
                 index[2] = lng ;
-                float value = data(index) ;
+                double value = data(index) ;
                 if ( ! isnan( value ) ) {
                     average.data( index, average.data(index)+value ) ;
                     number.data( index, number.data(index)+1.0 ) ;
@@ -200,7 +200,7 @@ void netcdf_profile::fill_missing() {
             index[1] = lat ;
             for ( int lng = 0 ; lng < lng_num ; ++lng ) {
                 index[2] = lng ;
-                float value = data(index) ;
+                double value = data(index) ;
                 if ( isnan( value ) ) {
                     data( index, average.data(index) ) ;
                 }
@@ -213,7 +213,7 @@ void netcdf_profile::fill_missing() {
  * Deduces the variables to be loaded based on their dimensionality.
  */
 void netcdf_profile::decode_filetype( 
-    NcFile& file, float *missing, NcVar **time, 
+    NcFile& file, double *missing, NcVar **time,
     NcVar **altitude, NcVar **latitude, NcVar **longitude, 
     NcVar **value )
 {
@@ -244,7 +244,7 @@ void netcdf_profile::decode_filetype(
             NcAtt* att = var->get_att("_FillValue") ;
             if ( att ) {
                 NcValues* values = att->values() ;
-                *missing = values->as_float(0) ;
+                *missing = values->as_double(0) ;
                 delete att ; delete values ;
             }
             
