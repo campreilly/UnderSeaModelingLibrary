@@ -142,7 +142,7 @@ set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION} )
 
 set( USML_DATA_DIR ${PROJECT_SOURCE_DIR}/data 
      CACHE PATH "directory for data used in testing" )
-set( USML_TEST_DIR ${PROJECT_SOURCE_DIR}/usml
+set( USML_TEST_DIR ${PROJECT_SOURCE_DIR}
      CACHE PATH "root directory for testing outputs" )
 foreach( MOD ${PACKAGE_MODULES} )
     file(MAKE_DIRECTORY ${USML_TEST_DIR}/${MOD}/test)
