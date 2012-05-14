@@ -352,13 +352,13 @@ private:
         const DATA_TYPE deriv0 = (k < kmin) ? deriv1 : (y1 - y0) / h0;
         const DATA_TYPE deriv2 = (k > kmax) ? deriv1 : (y3 - y2) / h2;
         if (deriv_vec) {
-            if (k < kmin)
-                dy0 = dy1;
-            if (k > kmax)
-                dy3 = dy2;
+            if (k < kmin) dy0 = dy1;
+            if (k > kmax) dy3 = dy2;
+//            cout << "h=" << h0 << " dy0=" << dy0 << " dy1=" << dy1 << " dy2=" << dy2 << " dy3=" << dy3 << endl ;
             dderiv1 = (dy2 - dy1) / h1;
             dderiv0 = (k < kmin) ? dderiv1 : (dy1 - dy0) / h0;
             dderiv2 = (k > kmax) ? dderiv1 : (dy3 - dy2) / h2;
+//            cout << "   dderiv0=" << dderiv0 << " dderiv1=" << dderiv1 << " dderiv2=" << dderiv2 << endl ;
         }
 
         // compute weighted harmonic mean of slope

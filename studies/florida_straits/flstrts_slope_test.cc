@@ -14,7 +14,9 @@ int main( int argc, char* argv[] ) {
     cout << "=== flstrts_slope_test ===" << endl ;
 
     ascii_arc_bathy* bathymetry = new ascii_arc_bathy( 
-	USML_STUDIES_DIR "/florida_straits/flstrts_bathymetry.asc" ) ;
+    		USML_STUDIES_DIR "/florida_straits/flstrts_bathymetry.asc" ) ;
+//    bathymetry->interp_type( 0, GRID_INTERP_LINEAR ) ;
+//    bathymetry->interp_type( 1, GRID_INTERP_LINEAR ) ;
     boundary_grid<double,2> bottom( bathymetry ) ;
 
     std::ofstream file1( USML_STUDIES_DIR "/florida_straits/flstrts_slope_depth.csv" ) ;
