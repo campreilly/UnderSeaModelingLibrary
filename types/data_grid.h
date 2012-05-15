@@ -209,8 +209,7 @@ private:
         if (deriv_vec) {
             deriv = 0.0;
             deriv_vec[dim] = deriv;
-            if (dim > 0)
-                deriv_vec[dim - 1] = da;
+            if (dim > 0) deriv_vec[dim - 1] = da;
         }
 
         // use results for dim+1 iteration
@@ -250,13 +249,14 @@ private:
 
         // compute field value in this dimension
 
-        const double u = (location[dim] - (*ax)(k)) / ax->increment(k);
+        const DATA_TYPE h = (DATA_TYPE) ax->increment(k) ;
+        const DATA_TYPE u = (location[dim] - (*ax)(k)) / h ;
         result = a * (1.0 - u) + b * u;
 
         // compute derivative in this dimension and prior dimension
 
         if (deriv_vec) {
-            deriv = (b - a) / ax->increment(k);
+            deriv = (b - a) / h ;
             deriv_vec[dim] = deriv;
             if (dim > 0) {
                 deriv_vec[dim - 1] = da * (1.0 - u) + db * u;
@@ -274,9 +274,11 @@ private:
      * designed to preserve the shape of the underlying data and avoid 
      * the overshooting issues prevalent in the cubic spline.  Although the
      * the first derivative of the PCHIP result is guaranteed to be continuous,
-     * the second derivative has no such guarantee.  This algorithm 
-     * is taken from Chapter 3 of the book <b>Numerical Computing in Matlab</b> 
-     * by Cleve Moler, available on-line at http://www.mathworks.com/molar.
+     * the second derivative has no such guarantee.
+     *
+     * @xref Cleve Moler, Numerical Computing in Matlab, Chapter 3 Interpolation,
+     * http://www.mathworks.com/moler/chapters.html, accessed 5/15/2012.
+     *
      * <pre>
      *
      *      p(x) = y[k+1]  * ( 3 h s^2 - 2 s^3 ) / h^3
@@ -305,131 +307,109 @@ private:
     DATA_TYPE pchip(int dim, const unsigned* index, const double* location,
             DATA_TYPE& deriv, DATA_TYPE* deriv_vec) const
     {
-        DATA_TYPE result, dy0, dy1, dy2, dy3;
-        DATA_TYPE dderiv0 = 0.0, dderiv1 = 0.0, dderiv2 = 0.0;
+        DATA_TYPE result ;
+        DATA_TYPE y0, y1, y2, y3 ; 			// dim-1 values at k-1, k, k+1, k+2
+        DATA_TYPE dy0, dy1, dy2, dy3 ;		// dim-1 derivs at k-1, k, k+1, k+2
 
-        // build function values at k, k-1, k+1, k+2
-
-        const unsigned kmin = 1u;
-        const unsigned kmax = _axis[dim]->size() - 3u;
+        // interpolate in dim-1 dimension to find values and derivs at k, k-1
 
         const unsigned k = index[dim];
         seq_vector* ax = _axis[dim];
-        const DATA_TYPE y1 = interp(dim - 1, index, location, dy1, deriv_vec);
+        y1 = interp( dim-1, index, location, dy1, deriv_vec );
 
-        unsigned prev[NUM_DIMS];
-        memcpy(prev, index, NUM_DIMS * sizeof(unsigned));
-        --prev[dim];
-        const DATA_TYPE y0 = (k < kmin) ? y1 : interp(dim - 1, prev, location,
-                dy0, deriv_vec);
+		unsigned prev[NUM_DIMS];
+		memcpy(prev, index, NUM_DIMS * sizeof(unsigned));
+		--prev[dim];
+		y0 = interp( dim-1, prev, location, dy0, deriv_vec );
+
+        // interpolate in dim-1 dimension to find values and derivs at k+1, k+2
 
         unsigned next[NUM_DIMS];
         memcpy(next, index, NUM_DIMS * sizeof(unsigned));
         ++next[dim];
-        const DATA_TYPE y2 = interp(dim - 1, next, location, dy2, deriv_vec);
+        y2 = interp( dim-1, next, location, dy2, deriv_vec );
 
-        unsigned last[NUM_DIMS];
-        memcpy(last, next, NUM_DIMS * sizeof(unsigned));
-        ++last[dim];
-        const DATA_TYPE y3 = (k > kmax) ? y2 : interp(dim - 1, last, location,
-                dy3, deriv_vec);
+		unsigned last[NUM_DIMS];
+		memcpy(last, next, NUM_DIMS * sizeof(unsigned));
+		++last[dim];
+		y3 = interp(dim - 1, last, location, dy3, deriv_vec);
 
         // compute difference values used frequently in computation
 
-        const double h1 = ax->increment(k);
-        const double h1_2 = h1 * h1, h1_3 = h1_2 * h1;
-        const double h0 = (k < kmin) ? 0.0 : ax->increment(k - 1);
-        const double h2 = (k > kmax) ? 0.0 : ax->increment(k + 1);
+        const DATA_TYPE h0 = (DATA_TYPE) ax->increment(k - 1); 	// interval from k-1 to k
+        const DATA_TYPE h1 = (DATA_TYPE) ax->increment(k);	   	// interval from k to k+1
+        const DATA_TYPE h2 = (DATA_TYPE) ax->increment(k + 1); 	// interval from k+1 to k+2
+        const DATA_TYPE h1_2 = h1 * h1; 		   	// k to k+1 interval squared
+        const DATA_TYPE h1_3 = h1_2 * h1;		   	// k to k+1 interval cubed
 
-        const double s = location[dim] - (*ax)(k);
-        const double s_2 = s * s, s_3 = s_2 * s;
-        const double sh_minus = s - h1;
-        const double sh_term = 3.0 * h1 * s_2 - 2.0 * s_3;
+        const DATA_TYPE s = location[dim]-(*ax)(k);	// local variable
+        const DATA_TYPE s_2 = s * s, s_3 = s_2 * s;	// s squared and cubed
+        const DATA_TYPE sh_minus = s - h1;
+        const DATA_TYPE sh_term = 3.0 * h1 * s_2 - 2.0 * s_3;
 
-        // compute piecewise first derivatives 
+        // compute first divided differences (forward derivative)
+        // for both the values, and their derivatives
 
-        const DATA_TYPE deriv1 = (y2 - y1) / h1;
-        const DATA_TYPE deriv0 = (k < kmin) ? deriv1 : (y1 - y0) / h0;
-        const DATA_TYPE deriv2 = (k > kmax) ? deriv1 : (y3 - y2) / h2;
-        if (deriv_vec) {
-            if (k < kmin) dy0 = dy1;
-            if (k > kmax) dy3 = dy2;
-//            cout << "h=" << h0 << " dy0=" << dy0 << " dy1=" << dy1 << " dy2=" << dy2 << " dy3=" << dy3 << endl ;
+        const DATA_TYPE deriv0 = (y1 - y0) / h0;	// fwd deriv from k-1 to k
+        const DATA_TYPE deriv1 = (y2 - y1) / h1; 	// fwd deriv from k to k+1
+        const DATA_TYPE deriv2 = (y3 - y2) / h2; 	// fwd deriv from k+1 to k+2
+
+        DATA_TYPE dderiv0=0.0, dderiv1=0.0, dderiv2=0.0 ;
+        if (deriv_vec) {				// fwd deriv of dim-1 derivatives
+            dderiv0 = (dy1 - dy0) / h0;
             dderiv1 = (dy2 - dy1) / h1;
-            dderiv0 = (k < kmin) ? dderiv1 : (dy1 - dy0) / h0;
-            dderiv2 = (k > kmax) ? dderiv1 : (dy3 - dy2) / h2;
-//            cout << "   dderiv0=" << dderiv0 << " dderiv1=" << dderiv1 << " dderiv2=" << dderiv2 << endl ;
+            dderiv2 = (dy3 - dy2) / h2;
         }
 
-        // compute weighted harmonic mean of slope
-        // assume x axis unevenly spaced
-        // reuse end-point algorithm from pchipend.m w/o derviative limit
+        // compute weighted harmonic mean of slopes around index k
+        // for both the values, and their derivatives
+        // set it zero at local maxima or minima
+        // deriv0 * deriv1 condition guards against division by zero
 
-        DATA_TYPE slope1, dslope1 = 0.0;
-        if (k < kmin) {
-            slope1 = ((2.0 + h1 + h2) * deriv1 - h1 * deriv2) / (h1 + h2);
-            if (slope1 * deriv1 < 0.0) {
-                slope1 *= 0.0;
-            }
-            if (deriv_vec) {
-                dslope1 = ((2.0 + h1 + h2) * dderiv1 - h1 * dderiv2)
-                        / (h1 + h2);
-                if (dslope1 * dderiv1 < 0.0) {
-                    dslope1 *= 0.0;
-                }
-            }
-        } else {
-            const double w1 = 2.0 * h1 + h0;
-            const double w2 = h1 + 2.0 * h0;
-            slope1 = (deriv0 * deriv1 <= 0.0) ? (deriv1 * 0.0) : (w1 + w2)
-                    / (w1 / deriv0 + w2 / deriv1);
-            if (deriv_vec) {
-                dslope1 = (dderiv0 * dderiv1 <= 0.0) ? (dderiv1 * 0.0) : (w1
-                        + w2) / (w1 / dderiv0 + w2 / dderiv1);
-            }
-        }
+        DATA_TYPE slope1=0.0, dslope1=0.0;
+		const DATA_TYPE w0 = 2.0 * h1 + h0;
+		DATA_TYPE w1 = h1 + 2.0 * h0;
+		if ( deriv0 * deriv1 > 0.0 ) {
+			slope1 = (w0 + w1) / ( w0 / deriv0 + w1 / deriv1 );
+		}
+		if ( deriv_vec != NULL && dderiv0 * dderiv1 > 0.0 ) {
+			dslope1 = (w0 + w1) / ( w0 / dderiv0 + w1 / dderiv1 );
+		}
 
-        DATA_TYPE slope2, dslope2 = 0.0;
-        if (k > kmax) {
-            slope2 = ((2.0 + h1 + h0) * deriv1 - h1 * deriv0) / (h1 + h0);
-            if (slope2 * deriv0 < 0.0) {
-                slope2 *= 0.0;
-            }
-            if (deriv_vec) {
-                dslope2 = ((2.0 + h1 + h0) * dderiv1 - h1 * dderiv0)
-                        / (h1 + h0);
-                if (dslope2 * dderiv0 < 0.0) {
-                    dslope2 *= 0.0;
-                }
-            }
-        } else {
-            const double w1 = 2.0 * h2 + h1;
-            const double w2 = h2 + 2.0 * h1;
-            slope2 = (deriv1 * deriv2 <= 0.0) ? (deriv2 * 0.0) : (w1 + w2)
-                    / (w1 / deriv1 + w2 / deriv2);
-            if (deriv_vec) {
-                dslope2 = (dderiv1 * dderiv2 <= 0.0) ? (dderiv2 * 0.0) : (w1
-                        + w2) / (w1 / dderiv1 + w2 / dderiv2);
-            }
-        }
+        // compute weighted harmonic mean of slopes around index k+1
+        // for both the values, and their derivatives
+        // set it zero at local maxima or minima
+        // deriv1 * deriv2 condition guards against division by zero
+
+        DATA_TYPE slope2=0.0, dslope2=0.0;
+		w1 = 2.0 * h1 + h0;
+		const DATA_TYPE w2 = h1 + 2.0 * h0;
+		if ( deriv1 * deriv2 > 0.0 ) {
+			slope2 = (w1 + w2) / ( w1 / deriv1 + w2 / deriv2 );
+		}
+		if ( deriv_vec != NULL && dderiv1 * dderiv2 > 0.0 ) {
+			dslope2 = (w1 + w2) / ( w1 / dderiv1 + w2 / dderiv2 );
+		}
 
         // compute interpolation value in this dimension
 
-        result = y2 * sh_term / h1_3 + y1 * (h1_3 - sh_term) / h1_3 + slope2
-                * s_2 * sh_minus / h1_2 + slope1 * s * sh_minus * sh_minus
-                / h1_2;
+        result = y2 * sh_term / h1_3
+        	   + y1 * (h1_3 - sh_term) / h1_3
+        	   + slope2 * s_2 * sh_minus / h1_2
+        	   + slope1 * s * sh_minus * sh_minus / h1_2;
 
         // compute derivative in this dimension
         // assume linear change of slope across interval
 
         if (deriv_vec) {
-            const double u = s / h1;
+            const DATA_TYPE u = s / h1;
             deriv = slope1 * (1.0 - u) + slope2 * u;
             deriv_vec[dim] = deriv;
             if (dim > 0) {
-                deriv_vec[dim - 1] = dy2 * sh_term / h1_3 + dy1 * (h1_3
-                        - sh_term) / h1_3 + dslope2 * s_2 * sh_minus / h1_2
-                        + dslope1 * s * sh_minus * sh_minus / h1_2;
+                deriv_vec[dim-1] = dy2 * sh_term / h1_3
+                		         + dy1 * (h1_3 - sh_term) / h1_3
+                		         + dslope2 * s_2 * sh_minus / h1_2
+                		         + dslope1 * s * sh_minus * sh_minus / h1_2;
             }
         }
 
@@ -454,10 +434,24 @@ public:
      */
     DATA_TYPE interpolate(const double* location, DATA_TYPE* derivative = NULL)
     {
-        DATA_TYPE dresult;
+    	// find the "interval index" in each dimension
+        // disallow indices 0 and N-1 if using cubic interpolation
+
         for (unsigned dim = 0; dim < NUM_DIMS; ++dim) {
             _offset[dim] = _axis[dim]->find_index(location[dim]);
+            if ( _interp_type[dim] > GRID_INTERP_LINEAR ) {
+            	if ( _offset[dim] < 1u ) {
+            		_offset[dim] = 1u ;
+            	} else {
+            		unsigned m = _axis[dim]->size() - 3u ;
+            		if ( _offset[dim] > m ) _offset[dim] = m ;
+            	}
+            }
         }
+
+        // compute interpolation results for value and derivative
+
+        DATA_TYPE dresult;
         return interp(NUM_DIMS - 1, _offset, location, dresult, derivative);
     }
 
