@@ -132,13 +132,22 @@ public:
     /**
      * Define the type of interpolation for one of the axes.
      * Modifies the axis buffer size as a side effect.
+     * Note that linear interpolation requires a minimum of 2 points;
+     * pchip requires a minimum of 4 points.
      *
      * @param  dimension        Dimension number to be modified.
      * @param  type             Type of interpolation for this dimension.
      */
     inline void interp_type(int unsigned dimension, enum GRID_INTERP_TYPE type)
     {
-        _interp_type[dimension] = type;
+    	const unsigned size = _axis[dimension]->size() ;
+    	if ( type > GRID_INTERP_NEAREST && size < 2 ) {
+    		type = GRID_INTERP_NEAREST ;
+    	} else if ( type > GRID_INTERP_LINEAR && size < 4 ) {
+    		type = GRID_INTERP_LINEAR ;
+    	} else {
+    		_interp_type[dimension] = type;
+    	}
     }
 
     //*************************************************************************
@@ -544,6 +553,9 @@ public:
      *
      * @param   location    Location at which field value is desired. Must
      *                      have the same rank as the data grid or higher.
+     *                      WARNING: The contents of the location vector
+     *                      may be modified if edge_limit() is true for
+     *                      any dimension.
      * @param   derivative  If this is not null, the first derivative 
      *                      of the field at this point will also be computed.
      * @return              Value of the field at this point.
@@ -685,7 +697,7 @@ protected:
      */
     data_grid() {
         memset(_interp_type, GRID_INTERP_LINEAR, NUM_DIMS * sizeof(enum GRID_INTERP_TYPE));
-        memset(_edge_limit, 0, NUM_DIMS * sizeof(bool));
+        memset(_edge_limit, false, NUM_DIMS * sizeof(bool));
     }
 
 public:
@@ -705,11 +717,11 @@ public:
         for (unsigned n = 0; n < NUM_DIMS; ++n) {
             _axis[n] = axis[n]->clone();
             N *= _axis[n]->size();
+            interp_type( n, GRID_INTERP_LINEAR ) ;
         }
         _data = new DATA_TYPE[N];
         memset(_data, 0, N * sizeof(DATA_TYPE));
-        memset(_interp_type, GRID_INTERP_LINEAR, NUM_DIMS
-                * sizeof(enum GRID_INTERP_TYPE));
+        memset(_edge_limit, false, NUM_DIMS * sizeof(bool));
     }
 
     /**
@@ -736,6 +748,7 @@ public:
         }
         memcpy(_interp_type, other._interp_type, NUM_DIMS
                 * sizeof(enum GRID_INTERP_TYPE));
+        memset(_edge_limit, false, NUM_DIMS * sizeof(bool));
     }
 
     /**
@@ -743,8 +756,7 @@ public:
      */
     ~data_grid()
     {
-        for (unsigned n = 0; n < NUM_DIMS; ++n)
-            delete _axis[n];
+        for (unsigned n = 0; n < NUM_DIMS; ++n) delete _axis[n];
         delete[] _data;
     }
 };

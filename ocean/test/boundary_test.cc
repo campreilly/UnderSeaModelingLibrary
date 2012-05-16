@@ -199,9 +199,9 @@ BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
         const double depth_accuracy = 1e-6 ;
         const double normal_accuracy = 1e-6 ;
     #endif
-    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 3671.1635118499398, depth_accuracy );
-    BOOST_CHECK_CLOSE( normal.theta(), -0.00015194595550750722, normal_accuracy );
-    BOOST_CHECK_CLOSE( normal.phi(), 0.012765547676391755, normal_accuracy );
+    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 3671.1557116601616, depth_accuracy );
+    BOOST_CHECK_CLOSE( normal.theta(), 0.0, normal_accuracy );
+    BOOST_CHECK_CLOSE( normal.phi(), 0.012764948465248139, normal_accuracy );
 }
 
 /**
@@ -219,13 +219,14 @@ BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
     ascii_arc_bathy* grid = new ascii_arc_bathy(
         USML_TEST_DIR "/ocean/test/ascii_arc_test.asc" ) ;
 
-    BOOST_CHECK_EQUAL( grid->axis(0)->size(), 3 );
-    BOOST_CHECK_EQUAL( grid->axis(1)->size(), 4 );
+    BOOST_CHECK_EQUAL( grid->axis(0)->size(), 4 );
+    BOOST_CHECK_EQUAL( grid->axis(1)->size(), 5 );
 
     unsigned index[2] ;
-    index[0]=0; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1020.0, 1e-6);
-    index[0]=1; index[1]=1; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1110.0, 1e-6);
-    index[0]=2; index[1]=2; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1200.0, 1e-6);
+    index[0]=0; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1030.0, 1e-6);
+    index[0]=1; index[1]=1; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1120.0, 1e-6);
+    index[0]=2; index[1]=2; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1210.0, 1e-6);
+    index[0]=3; index[1]=3; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), -1300.0, 1e-6);
 
     // test implementation as a boundary model
 
@@ -233,7 +234,7 @@ BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
     wposition1 location( 26.25, -80.0 ) ;
     double depth ;
     bottom.height( location, &depth ) ;
-    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, -1110.0, 1e-6);
+    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, -1130.0, 1e-6);
 }
 
 /// @}

@@ -102,21 +102,22 @@ BOOST_AUTO_TEST_CASE( linear_1d_test ) {
 
     cout << "x\ttruth\tnearest\tlinear\tpchip" << endl;
     for ( double x=0.25; x <= 10.0; x += 0.25 ) {
-        cout << x << "\t";
-        truth = linear1d(x);
+    	double y = x ;
+        cout << y << "\t";
+        truth = linear1d(y);
         cout << truth << "\t";
 
         grid.interp_type(0,GRID_INTERP_NEAREST);
-        nearest = grid.interpolate( &x );
+        nearest = grid.interpolate( &y );
         cout << nearest << "\t";
 
         grid.interp_type(0,GRID_INTERP_LINEAR);
-        linear = grid.interpolate( &x );
+        linear = grid.interpolate( &y );
         cout << linear << "\t";
         BOOST_CHECK_CLOSE( linear, truth, 1e-6 );
 
         grid.interp_type(0,GRID_INTERP_PCHIP);
-        pchip = grid.interpolate( &x );
+        pchip = grid.interpolate( &y );
         cout << pchip << "\t";
         BOOST_CHECK_CLOSE( pchip, truth, 1e-6 );
 
