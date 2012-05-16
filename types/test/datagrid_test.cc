@@ -84,7 +84,7 @@ static double linear1d( double axis ) {
  * Generate errors if values differ by more that 1E-6 percent.
  */
 BOOST_AUTO_TEST_CASE( linear_1d_test ) {
-    double truth, nearest, linear, cubic;
+    double truth, nearest, linear, pchip;
 
     cout << "=== datagrid_test: linear_1d_test ===" << endl;
 
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE( linear_1d_test ) {
 
     // interpolate using all possible algorithms
 
-    cout << "x\ttruth\tnearest\tlinear\tcubic" << endl;
+    cout << "x\ttruth\tnearest\tlinear\tpchip" << endl;
     for ( double x=0.25; x <= 10.0; x += 0.25 ) {
         cout << x << "\t";
         truth = linear1d(x);
@@ -116,9 +116,9 @@ BOOST_AUTO_TEST_CASE( linear_1d_test ) {
         BOOST_CHECK_CLOSE( linear, truth, 1e-6 );
 
         grid.interp_type(0,GRID_INTERP_PCHIP);
-        cubic = grid.interpolate( &x );
-        cout << cubic << "\t";
-        BOOST_CHECK_CLOSE( cubic, truth, 1e-6 );
+        pchip = grid.interpolate( &x );
+        cout << pchip << "\t";
+        BOOST_CHECK_CLOSE( pchip, truth, 1e-6 );
 
         cout << endl;
     }
@@ -138,7 +138,7 @@ static double cubic1d( double axis ) {
  * Generate errors if values differ by more that 1E-6 percent.
  */
 BOOST_AUTO_TEST_CASE( cubic_1d_test ) {
-    double truth, nearest, linear, cubic;
+    double truth, nearest, linear, pchip;
 
     cout << "=== datagrid_test: cubic_1d_test ===" << endl;
 
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE( cubic_1d_test ) {
     // interpolate using all possible algorithms
     // don't try extrapolation
 
-    cout << "x\ttruth\tnearest\tlinear\tcubic" << endl;
+    cout << "x\ttruth\tnearest\tlinear\tpchip" << endl;
     for ( double x=1.0; x <= 9.0; x += 0.25 ) {
         cout << x << "\t";
         truth = cubic1d(x);
@@ -170,9 +170,9 @@ BOOST_AUTO_TEST_CASE( cubic_1d_test ) {
         cout << linear << "\t";
 
         grid.interp_type(0,GRID_INTERP_PCHIP);
-        cubic = grid.interpolate( &x );
-        cout << cubic << "\t";
-        BOOST_CHECK_CLOSE( cubic, truth, 2.0 );
+        pchip = grid.interpolate( &x );
+        cout << pchip << "\t";
+        BOOST_CHECK_CLOSE( pchip, truth, 2.0 );
 
         cout << endl;
     }
@@ -192,7 +192,7 @@ static double deriv1d( double axis ) {
  * Generate errors if values differ by more that 1E-6 percent.
  */
 BOOST_AUTO_TEST_CASE( deriv_1d_test ) {
-    double truth, nearest, linear, cubic;
+    double truth, nearest, linear, pchip;
 
     cout << "=== datagrid_test: deriv_1d_test ===" << endl;
 
@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE( deriv_1d_test ) {
     // interpolate using all possible algorithms
     // don't try extrapolation
 
-    cout << "x\ttruth\tnearest\tlinear\tcubic" << endl;
+    cout << "x\ttruth\tnearest\tlinear\tpchip" << endl;
     for ( double x=1.0; x <= 9.0; x += 0.25 ) {
         cout << x << "\t";
         truth = deriv1d(x);
@@ -224,9 +224,9 @@ BOOST_AUTO_TEST_CASE( deriv_1d_test ) {
         cout << linear << "\t";
 
         grid.interp_type(0,GRID_INTERP_PCHIP);
-        grid.interpolate( &x, &cubic );
-        cout << cubic << "\t";
-        // BOOST_CHECK_CLOSE( cubic, truth, 20.0 ) ;
+        grid.interpolate( &x, &pchip );
+        cout << pchip << "\t";
+        // BOOST_CHECK_CLOSE( pchip, truth, 20.0 ) ;
 
         cout << endl;
     }

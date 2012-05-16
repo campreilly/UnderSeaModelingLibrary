@@ -270,29 +270,52 @@ private:
 
     /**
      * Interpolate this dimension using the Piecewise Cubic Hermite 
-     * Interpolation Polynomial (PCHIP) algorithm. The PCHIP algorithm is
-     * designed to preserve the shape of the underlying data and avoid 
-     * the overshooting issues prevalent in the cubic spline.  Although the
-     * the first derivative of the PCHIP result is guaranteed to be continuous,
+     * Interpolation Polynomial (PCHIP) algorithm from Matlab.
+     * Matlab uses shape preserving, "visually pleasing" version of the
+     * cubic interpolant that does not suffer from the overshooting
+     * issues prevalent in the cubic spline.  Although the the first
+     * derivative of the PCHIP result is guaranteed to be continuous,
      * the second derivative has no such guarantee.
+     *
+     * This algorithm differs from the Matlab implementation in that
+     * is simultaneously interpolates the function value for the current
+     * dimension, and interpolates the derivative for the previous dimension.
      *
      * @xref Cleve Moler, Numerical Computing in Matlab, Chapter 3 Interpolation,
      * http://www.mathworks.com/moler/chapters.html, accessed 5/15/2012.
+     * @xref F. N. Fritsch and R. E. Carlson, Monotone Piecewise Cubic Interpolation,
+	 * SIAM Journal on Numerical Analysis, 17 (1980), pp. 238-246.
+	 * @xref D. Kahaner, C. Moler, and S. Nash, Numerical Methods and Software,
+     * Prentice{Hall, Englewood Cli®s, NJ, 1989.
+     *
+     * The basic algorithm assumes that the interpolation location is
+     * in the interval [ x[k], x[k+1] ), where "k" is known as the
+     * "interval index".  The result is then calculated from four unevenly
+     * spaced points, and their forward (one-sided) derivatives.
      *
      * <pre>
+     * 		y0 = y[k-1]		h0 = x[k]-x[k-1]	deriv0 = (y1-y0)/h0
+     * 		y1 = y[k]		h1 = x[k+1]-x[k]	deriv1 = (y2-y1)/h1
+     * 		y2 = y[k+1]		h2 = x[k+2]-x[k+1]	deriv2 = (y3-y2)/h2
+     * 		y3 = y[k+2]		s = x - x[k]
      *
-     *      p(x) = y[k+1]  * ( 3 h s^2 - 2 s^3 ) / h^3
-     *             y[k]    * ( h^3 - 3 h s^2 - 2 s^3 ) / h^3
-     *             y'[k+1] * ( s^2 (s-h) ) / h^2
-     *             y'[k]   * ( s (s-h)^2 ) / h^2
+     * such that
+     *
+     *
+     *      p(x) = y[k+1]  * ( 3 h1 s^2 - 2 s^3 ) / h1^3
+     *             y[k]    * ( h1^3 - 3 h1 s^2 - 2 s^3 ) / h1^3
+     *             slope[k+1] * ( s1^2 (s-h) ) / h1^2
+     *             slope[k]   * ( s (s-h[k])^2 ) / h1^2
      *
      * where:
      *
-     *      h = x[k+1] - x[k] 
-     *      s = x - x[k]
-     *      y'[k] = average slope of interpolant
+     *		slope[k] = weighted harmonic average of deriv0, deriv1, deriv2 terms
      *
      * </pre>
+     * At the end-points, y'[0] and y'[N-1] must be estimated.  Like Matlab,
+     * this implementation uses a non-centered, shape-preserving, three-point
+     * formula for the end-point slope.
+     *
      * @param   dim         Index of the dimension currently being processed.
      * @param   index       Position of the corner before the desired field
      *                      point. Must have the same rank as the data grid.
@@ -310,6 +333,8 @@ private:
         DATA_TYPE result ;
         DATA_TYPE y0, y1, y2, y3 ; 			// dim-1 values at k-1, k, k+1, k+2
         DATA_TYPE dy0, dy1, dy2, dy3 ;		// dim-1 derivs at k-1, k, k+1, k+2
+        const unsigned kmin = 1u ;					  // at endpt if k-1 < 0
+        const unsigned kmax = _axis[dim]->size()-3u ; // at endpt if k+2 > N-1
 
         // interpolate in dim-1 dimension to find values and derivs at k, k-1
 
@@ -317,10 +342,15 @@ private:
         seq_vector* ax = _axis[dim];
         y1 = interp( dim-1, index, location, dy1, deriv_vec );
 
-		unsigned prev[NUM_DIMS];
-		memcpy(prev, index, NUM_DIMS * sizeof(unsigned));
-		--prev[dim];
-		y0 = interp( dim-1, prev, location, dy0, deriv_vec );
+        if ( k < kmin ) {			// use bogus values at left end-point
+        	y0 = y1 ;
+        	dy0 = dy1 ;
+        } else {					// otherwise, compute actual values
+			unsigned prev[NUM_DIMS];
+			memcpy(prev, index, NUM_DIMS * sizeof(unsigned));
+			--prev[dim];
+			y0 = interp( dim-1, prev, location, dy0, deriv_vec );
+        }
 
         // interpolate in dim-1 dimension to find values and derivs at k+1, k+2
 
@@ -329,10 +359,15 @@ private:
         ++next[dim];
         y2 = interp( dim-1, next, location, dy2, deriv_vec );
 
-		unsigned last[NUM_DIMS];
-		memcpy(last, next, NUM_DIMS * sizeof(unsigned));
-		++last[dim];
-		y3 = interp(dim - 1, last, location, dy3, deriv_vec);
+        if ( k > kmax ) {			// use bogus values at right end-point
+        	y2 = y2 ;
+        	dy3 = dy2 ;
+        } else {					// otherwise, compute actual values
+			unsigned last[NUM_DIMS];
+			memcpy(last, next, NUM_DIMS * sizeof(unsigned));
+			++last[dim];
+			y3 = interp(dim - 1, last, location, dy3, deriv_vec);
+        }
 
         // compute difference values used frequently in computation
 
@@ -367,14 +402,23 @@ private:
         // deriv0 * deriv1 condition guards against division by zero
 
         DATA_TYPE slope1=0.0, dslope1=0.0;
-		const DATA_TYPE w0 = 2.0 * h1 + h0;
-		DATA_TYPE w1 = h1 + 2.0 * h0;
-		if ( deriv0 * deriv1 > 0.0 ) {
-			slope1 = (w0 + w1) / ( w0 / deriv0 + w1 / deriv1 );
-		}
-		if ( deriv_vec != NULL && dderiv0 * dderiv1 > 0.0 ) {
-			dslope1 = (w0 + w1) / ( w0 / dderiv0 + w1 / dderiv1 );
-		}
+        if ( k < kmin ) {			// use end-point formula at left end-point
+        	slope1 = ( (2.0+h1+h2) * deriv1 - h1 * deriv2 ) / (h1+h2) ;
+        	if ( slope1 * deriv1 < 0.0 ) slope1 = 0.0 ;
+        	if ( deriv_vec ) {
+            	dslope1 = ( (2.0+h1+h2) * dderiv1 - h1 * dderiv2 ) / (h1+h2) ;
+            	if ( dslope1 * dderiv1 < 0.0 ) dslope1 = 0.0 ;
+        	}
+        } else {					// otherwise, compute weighted average
+			const DATA_TYPE w0 = 2.0 * h1 + h0;
+			const DATA_TYPE w1 = h1 + 2.0 * h0;
+			if ( deriv0 * deriv1 > 0.0 ) {
+				slope1 = (w0 + w1) / ( w0 / deriv0 + w1 / deriv1 );
+			}
+			if ( deriv_vec != NULL && dderiv0 * dderiv1 > 0.0 ) {
+				dslope1 = (w0 + w1) / ( w0 / dderiv0 + w1 / dderiv1 );
+			}
+        }
 
         // compute weighted harmonic mean of slopes around index k+1
         // for both the values, and their derivatives
@@ -382,13 +426,22 @@ private:
         // deriv1 * deriv2 condition guards against division by zero
 
         DATA_TYPE slope2=0.0, dslope2=0.0;
-		w1 = 2.0 * h1 + h0;
-		const DATA_TYPE w2 = h1 + 2.0 * h0;
-		if ( deriv1 * deriv2 > 0.0 ) {
-			slope2 = (w1 + w2) / ( w1 / deriv1 + w2 / deriv2 );
-		}
-		if ( deriv_vec != NULL && dderiv1 * dderiv2 > 0.0 ) {
-			dslope2 = (w1 + w2) / ( w1 / dderiv1 + w2 / dderiv2 );
+        if ( k > kmax ) {			// use end-point formula at right end-point
+        	slope2 = ( (2.0+h1+h2) * deriv1 - h1 * deriv0 ) / (h1+h0) ;
+        	if ( slope2 * deriv2 < 0.0 ) slope2 = 0.0 ;
+        	if ( deriv_vec ) {
+            	dslope2 = ( (2.0+h1+h2) * dderiv1 - h1 * dderiv0 ) / (h1+h0) ;
+            	if ( dslope2 * dderiv2 < 0.0 ) dslope2 = 0.0 ;
+        	}
+		} else {					// otherwise, compute weighted average
+			const DATA_TYPE w1 = 2.0 * h1 + h0;
+			const DATA_TYPE w2 = h1 + 2.0 * h0;
+			if ( deriv1 * deriv2 > 0.0 ) {
+				slope2 = (w1 + w2) / ( w1 / deriv1 + w2 / deriv2 );
+			}
+			if ( deriv_vec != NULL && dderiv1 * dderiv2 > 0.0 ) {
+				dslope2 = (w1 + w2) / ( w1 / dderiv1 + w2 / dderiv2 );
+			}
 		}
 
         // compute interpolation value in this dimension
@@ -435,18 +488,9 @@ public:
     DATA_TYPE interpolate(const double* location, DATA_TYPE* derivative = NULL)
     {
     	// find the "interval index" in each dimension
-        // disallow indices 0 and N-1 if using cubic interpolation
 
         for (unsigned dim = 0; dim < NUM_DIMS; ++dim) {
             _offset[dim] = _axis[dim]->find_index(location[dim]);
-            if ( _interp_type[dim] > GRID_INTERP_LINEAR ) {
-            	if ( _offset[dim] < 1u ) {
-            		_offset[dim] = 1u ;
-            	} else {
-            		unsigned m = _axis[dim]->size() - 3u ;
-            		if ( _offset[dim] > m ) _offset[dim] = m ;
-            	}
-            }
         }
 
         // compute interpolation results for value and derivative
