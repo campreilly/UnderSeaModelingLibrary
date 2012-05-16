@@ -25,14 +25,9 @@ namespace ocean {
  *             equivalents (theta,phi).
  *
  * Uses the GRID_INTERP_PCHIP interpolation in both directions
- * to reduce sudden changes in surface normal direction.
- *
- * Clips the radial component of the slope to zero if the sum of the
- * squares of the theta and phi components are greater than 1.
- * This shouldn't happen in realistic bathymetry, but can occur when
- * high frequency jitter in the underlying database create huge gradients.
- * In that case, there can be a round off error in the calculation
- * of the sum of the squares.
+ * to reduce sudden changes in surface normal direction.  Values outside of the
+ * latitude/longitude axes defined by the data grid at limited to the values
+ * at the grid edge.
  */
 template< class DATA_TYPE, int NUM_DIMS > class boundary_grid 
     : public boundary_model 
@@ -72,8 +67,7 @@ public:
                 normal->theta(                          // normal = -sin(angle)
                     element_div( -t, sqrt(1.0+abs2(t)) ));
                 normal->phi(scalar_matrix<double>(location.size1(),location.size2(),0.0));
-                normal->rho(sqrt(max(                   // r=sqrt(1-t^2)
-                    1.0 - abs2(normal->theta()), 0.0 )));
+                normal->rho( sqrt(1.0-abs2(normal->theta())) ) ; // r=sqrt(1-t^2)
             } else {
                 this->_height->interpolate(location.theta(), rho);
             }
@@ -97,9 +91,8 @@ public:
                     element_div( -t, sqrt(1.0+abs2(t)) ));
                 normal->phi(
                     element_div( -p, sqrt(1.0+abs2(p)) ));
-                normal->rho(sqrt(max(           // r=sqrt(1-t^2-p^2)
-                        1.0 - abs2(normal->theta()) - abs2(normal->phi()),
-                        0.0)));
+                normal->rho(sqrt(           	// r=sqrt(1-t^2-p^2)
+                		1.0 - abs2(normal->theta()) - abs2(normal->phi()) ));
             } else {
                 this->_height->interpolate(location.theta(), location.phi(),
                     rho);
@@ -132,17 +125,16 @@ public:
 
         case 1:
             if (normal) {
-                const double theta = location.theta();
+                double theta = location.theta();
                 double gtheta;
                 *rho = this->_height->interpolate(&theta, &gtheta);
                 const double t = gtheta / (*rho);       // slope = tan(angle)
                 normal->theta(-t / sqrt(1.0 + t * t));  // normal = -sin(angle)
                 normal->phi(0.0);
-                normal->rho(sqrt(max(                   // r=sqrt(1-t^2-p^2)
-                    1.0 - normal->theta() * normal->theta(),
-                    0.0 )));
+                const double N = normal->theta() * normal->theta() ;
+                normal->rho( sqrt(1.0-N) );				// r=sqrt(1-t^2)
             } else {
-                const double theta = location.theta();
+                double theta = location.theta();
                 *rho = this->_height->interpolate(&theta);
             }
             break;
@@ -152,30 +144,18 @@ public:
 
         case 2:
             if (normal) {
-                const double loc[2] = { location.theta(), location.phi() };
+                double loc[2] = { location.theta(), location.phi() };
                 double grad[2];
                 *rho = this->_height->interpolate(loc, grad);
                 const double t = grad[0] / (*rho);      // slope = tan(angle)
                 const double p = grad[1] / ((*rho) * sin(location.theta()));
                 normal->theta(-t / sqrt(1.0 + t * t));  // normal = -sin(angle)
                 normal->phi(-p / sqrt(1.0 + p * p));
-
-                double N = normal->theta() * normal->theta()
-                         + normal->phi()  * normal->phi();
-                if (N < 1.0) {                          // r=sqrt(1-t^2-p^2)
-                    normal->rho(1.0 - N);
-                } else {            // fix roundoff errors when r is nearly zero
-                    N = sqrt(N);
-                    normal->rho(0.0);
-                    normal->theta(normal->theta() / N);
-                    normal->phi(normal->phi() / N);
-                }
-//                cout << "gradient=" << grad[0] << "," << grad[1] << " slope="
-//                    << t << "," << p << " norm=" << normal->theta() << ","
-//                    << normal->phi() << endl;
-
+                const double N = normal->theta() * normal->theta()
+                               + normal->phi()  * normal->phi();
+                normal->rho( sqrt(1.0-N) );				// r=sqrt(1-t^2-p^2)
             } else {
-                const double loc[2] = { location.theta(), location.phi() };
+                double loc[2] = { location.theta(), location.phi() };
                 *rho = this->_height->interpolate(loc);
             }
             break;
@@ -206,8 +186,10 @@ public:
     boundary_grid(data_grid<DATA_TYPE, NUM_DIMS>* height,
         reflect_loss_model* reflect_loss = NULL) :
         boundary_model(reflect_loss), _height(height) {
-        this->_height->interp_type(0, GRID_INTERP_PCHIP);
-        this->_height->interp_type(1, GRID_INTERP_PCHIP);
+        this->_height->interp_type(0,GRID_INTERP_PCHIP);
+        this->_height->interp_type(1,GRID_INTERP_PCHIP);
+        this->_height->edge_limit(0,true);
+        this->_height->edge_limit(1,true);
         if (_reflect_loss_model == NULL) {
             _reflect_loss_model = new reflect_loss_rayleigh(
                 reflect_loss_rayleigh::SAND);

@@ -142,6 +142,35 @@ public:
     }
 
     //*************************************************************************
+    // edge_limit property
+
+private:
+
+    /** Limits locations to values inside axis limits when true. */
+    bool _edge_limit[NUM_DIMS];
+
+public:
+
+    /**
+     * Do we limit locations to values inside axis limits?
+     */
+    inline bool edge_limit(int unsigned dimension) const
+    {
+        return _edge_limit[dimension];
+    }
+
+    /**
+     * Should we limit locations to values inside axis limits?
+     *
+     * @param  dimension        Dimension number to be modified.
+     * @param  flag             Limits locations when true.
+     */
+    inline void edge_limit(int unsigned dimension, bool type)
+    {
+    	_edge_limit[dimension] = type;
+    }
+
+    //*************************************************************************
     // interpolation methods
 
 private:
@@ -228,7 +257,7 @@ private:
      * @param   deriv	    Derivative for this iteration. Constant across the 
      *                      interval for linear interpolation.
      * @param	deriv_vec   Results vector for derivative.
-     *			    Derviative not computed if NULL.
+     *			    		Derviative not computed if NULL.
      * @return              Estimate of the field after interpolation.
      */
     DATA_TYPE linear(int dim, const unsigned* index, const double* location,
@@ -519,12 +548,26 @@ public:
      *                      of the field at this point will also be computed.
      * @return              Value of the field at this point.
      */
-    DATA_TYPE interpolate(const double* location, DATA_TYPE* derivative = NULL)
+    DATA_TYPE interpolate(double* location, DATA_TYPE* derivative = NULL)
     {
     	// find the "interval index" in each dimension
 
         for (unsigned dim = 0; dim < NUM_DIMS; ++dim) {
-            _offset[dim] = _axis[dim]->find_index(location[dim]);
+        	if ( _edge_limit[dim] ) {
+				const double a = *(_axis[dim]->begin()) ;
+				const double b = *(_axis[dim]->rbegin()) ;
+				if ( location[dim] <= a ) {
+					location[dim] = a ;
+					_offset[dim] = 0 ;
+				} else if ( location[dim] >= b ) {
+					location[dim] = b ;
+					_offset[dim] = _axis[dim]->size()-2 ;
+				} else {
+					_offset[dim] = _axis[dim]->find_index(location[dim]);
+				}
+        	} else {
+        		_offset[dim] = _axis[dim]->find_index(location[dim]);
+        	}
         }
 
         // compute interpolation results for value and derivative
@@ -640,10 +683,9 @@ protected:
     /**
      * Default constructor for sub-classes
      */
-    data_grid()
-    {
-        memset(_interp_type, GRID_INTERP_LINEAR, NUM_DIMS
-                * sizeof(enum GRID_INTERP_TYPE));
+    data_grid() {
+        memset(_interp_type, GRID_INTERP_LINEAR, NUM_DIMS * sizeof(enum GRID_INTERP_TYPE));
+        memset(_edge_limit, 0, NUM_DIMS * sizeof(bool));
     }
 
 public:

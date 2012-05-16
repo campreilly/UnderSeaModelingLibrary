@@ -34,7 +34,9 @@ namespace ocean {
  *
  * Uses the GRID_INTERP_PCHIP interpolation in the depth direction
  * to reduce sudden changes in profile slope.  The latitude and longitude
- * directions use GRID_INTERP_LINEAR (the default).
+ * directions use GRID_INTERP_LINEAR (the default).  Values outside of the
+ * latitude/longitude axes defined by the data grid at limited to the values
+ * at the grid edge.
  *
  * @xref R.J. Urick, Principles of Underwater Sound, 3rd Edition, 
  *       (1983), p. 113.
@@ -74,6 +76,8 @@ template< class DATA_TYPE, int NUM_DIMS > class profile_mackenzie
             attmodel )
     {
         this->_sound_speed->interp_type(0,GRID_INTERP_PCHIP) ;
+        this->_sound_speed->edge_limit(1,true);
+        this->_sound_speed->edge_limit(2,true);
         
         unsigned index[3] ;
         for ( index[0]=0 ; index[0] < temperature.axis(0)->size() ; ++index[0] ) {
