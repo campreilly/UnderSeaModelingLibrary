@@ -312,9 +312,9 @@ private:
      *		slope[k] = weighted harmonic average of deriv0, deriv1, deriv2 terms
      *
      * </pre>
-     * At the end-points, y'[0] and y'[N-1] must be estimated.  Like Matlab,
-     * this implementation uses a non-centered, shape-preserving, three-point
-     * formula for the end-point slope.
+     * At the end-points, y'[0] and y'[N-1] must be estimated.  This
+     * implementation uses Matlab's non-centered, shape-preserving,
+     * three-point formula for the end-point slope.
      *
      * @param   dim         Index of the dimension currently being processed.
      * @param   index       Position of the corner before the desired field
@@ -342,14 +342,14 @@ private:
         seq_vector* ax = _axis[dim];
         y1 = interp( dim-1, index, location, dy1, deriv_vec );
 
-        if ( k < kmin ) {			// use bogus values at left end-point
-        	y0 = y1 ;
-        	dy0 = dy1 ;
-        } else {					// otherwise, compute actual values
+        if ( k >= kmin ) {
 			unsigned prev[NUM_DIMS];
 			memcpy(prev, index, NUM_DIMS * sizeof(unsigned));
 			--prev[dim];
 			y0 = interp( dim-1, prev, location, dy0, deriv_vec );
+        } else {	// use harmless values at left end-point
+        	y0 = y1 ;
+        	dy0 = dy1 ;
         }
 
         // interpolate in dim-1 dimension to find values and derivs at k+1, k+2
@@ -359,14 +359,14 @@ private:
         ++next[dim];
         y2 = interp( dim-1, next, location, dy2, deriv_vec );
 
-        if ( k > kmax ) {			// use bogus values at right end-point
-        	y2 = y2 ;
-        	dy3 = dy2 ;
-        } else {					// otherwise, compute actual values
+        if ( k <= kmax ) {
 			unsigned last[NUM_DIMS];
 			memcpy(last, next, NUM_DIMS * sizeof(unsigned));
 			++last[dim];
 			y3 = interp(dim - 1, last, location, dy3, deriv_vec);
+        } else {	// use harmless values at right end-point
+        	y2 = y2 ;
+        	dy3 = dy2 ;
         }
 
         // compute difference values used frequently in computation
@@ -396,20 +396,18 @@ private:
             dderiv2 = (dy3 - dy2) / h2;
         }
 
+        //*************
         // compute weighted harmonic mean of slopes around index k
         // for both the values, and their derivatives
         // set it zero at local maxima or minima
         // deriv0 * deriv1 condition guards against division by zero
 
         DATA_TYPE slope1=0.0, dslope1=0.0;
-        if ( k < kmin ) {			// use end-point formula at left end-point
-        	slope1 = ( (2.0+h1+h2) * deriv1 - h1 * deriv2 ) / (h1+h2) ;
-        	if ( slope1 * deriv1 < 0.0 ) slope1 = 0.0 ;
-        	if ( deriv_vec ) {
-            	dslope1 = ( (2.0+h1+h2) * dderiv1 - h1 * dderiv2 ) / (h1+h2) ;
-            	if ( dslope1 * dderiv1 < 0.0 ) dslope1 = 0.0 ;
-        	}
-        } else {					// otherwise, compute weighted average
+
+        // when not at an end-point, slope1 is the harmonic, weighted
+        // average of deriv0 and deriv1.
+
+        if ( k >= kmin ) {
 			const DATA_TYPE w0 = 2.0 * h1 + h0;
 			const DATA_TYPE w1 = h1 + 2.0 * h0;
 			if ( deriv0 * deriv1 > 0.0 ) {
@@ -418,22 +416,39 @@ private:
 			if ( deriv_vec != NULL && dderiv0 * dderiv1 > 0.0 ) {
 				dslope1 = (w0 + w1) / ( w0 / dderiv0 + w1 / dderiv1 );
 			}
-        }
 
+        // at left end-point, use Matlab end-point formula with slope limits
+        // note that the deriv0 value is bogus values when this is true
+
+		} else {
+        	slope1 = ( (2.0+h1+h2) * deriv1 - h1 * deriv2 ) / (h1+h2) ;
+        	if ( slope1 * deriv1 < 0.0 ) {
+        		slope1 = 0.0 ;
+        	} else if ( (deriv1*deriv2 < 0.0) && (abs(slope1) > abs(3.0*deriv1)) ) {
+        		slope1 = 3.0*deriv1 ;
+        	}
+        	if ( deriv_vec ) {
+            	dslope1 = ( (2.0+h1+h2) * dderiv1 - h1 * dderiv2 ) / (h1+h2) ;
+            	if ( dslope1 * dderiv1 < 0.0 ) {
+            		dslope1 = 0.0 ;
+            	} else if ( (dderiv1*dderiv2 < 0.0) && (abs(dslope1) > abs(3.0*dderiv1)) ) {
+            		dslope1 = 3.0*dderiv1 ;
+            	}
+        	}
+		}
+
+        //*************
         // compute weighted harmonic mean of slopes around index k+1
         // for both the values, and their derivatives
         // set it zero at local maxima or minima
         // deriv1 * deriv2 condition guards against division by zero
 
         DATA_TYPE slope2=0.0, dslope2=0.0;
-        if ( k > kmax ) {			// use end-point formula at right end-point
-        	slope2 = ( (2.0+h1+h2) * deriv1 - h1 * deriv0 ) / (h1+h0) ;
-        	if ( slope2 * deriv2 < 0.0 ) slope2 = 0.0 ;
-        	if ( deriv_vec ) {
-            	dslope2 = ( (2.0+h1+h2) * dderiv1 - h1 * dderiv0 ) / (h1+h0) ;
-            	if ( dslope2 * dderiv2 < 0.0 ) dslope2 = 0.0 ;
-        	}
-		} else {					// otherwise, compute weighted average
+
+		// when not at an end-point, slope2 is the harmonic, weighted
+		// average of deriv1 and deriv2.
+
+        if ( k <= kmax ) {
 			const DATA_TYPE w1 = 2.0 * h1 + h0;
 			const DATA_TYPE w2 = h1 + 2.0 * h0;
 			if ( deriv1 * deriv2 > 0.0 ) {
@@ -442,6 +457,25 @@ private:
 			if ( deriv_vec != NULL && dderiv1 * dderiv2 > 0.0 ) {
 				dslope2 = (w1 + w2) / ( w1 / dderiv1 + w2 / dderiv2 );
 			}
+
+        // at right end-point, use Matlab end-point formula with slope limits
+        // note that the deriv2 value is bogus values when this is true
+
+		} else {		// otherwise, compute harmonic weighted average
+        	slope2 = ( (2.0+h1+h2) * deriv1 - h1 * deriv0 ) / (h1+h0) ;
+        	if ( slope2 * deriv1 < 0.0 ) {
+        		slope2 = 0.0 ;
+        	} else if ( (deriv1*deriv0 < 0.0) && (abs(slope2) > abs(3.0*deriv1)) ) {
+        		slope2 = 3.0*deriv1 ;
+        	}
+        	if ( deriv_vec ) {
+            	dslope2 = ( (2.0+h1+h2) * dderiv1 - h1 * dderiv0 ) / (h1+h0) ;
+            	if ( dslope2 * dderiv1 < 0.0 ) {
+            		dslope2 = 0.0 ;
+            	} else if ( (dderiv1*dderiv0 < 0.0) && (abs(dslope2) > abs(3.0*dderiv1)) ) {
+            		dslope2 = 3.0*dderiv1 ;
+            	}
+        	}
 		}
 
         // compute interpolation value in this dimension
