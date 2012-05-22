@@ -120,6 +120,9 @@ macro( FIND_SOURCES MODULES SUFFIX )
         file( GLOB SRC_LIST ${MOD}${SUFFIX}/*.cc )
         set( SOURCES ${SOURCES} ${SRC_LIST} )
         source_group( ${MOD} FILES ${HDR_LIST} ${SRC_LIST} )
+	if ( NOT ${SUFFIX} MATCHES "" )
+            install(FILES ${HDR_LIST} DESTINATION include/usml/${MOD})
+        endif()
     endforeach( MOD )
 endmacro(FIND_SOURCES)
 
@@ -134,6 +137,8 @@ set( TARGET usml )
 add_library( ${TARGET} ${HEADERS} ${SOURCES} )
 target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
 set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION} )
+install(TARGETS usml DESTINATION lib)
+install(FILES usml_config.h DESTINATION include/usml)
 
 ######################################################################
 # USML_TEST regression test suite
