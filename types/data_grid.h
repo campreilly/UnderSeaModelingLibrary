@@ -403,7 +403,7 @@ private:
 			++last[dim];
 			y3 = interp(dim - 1, last, location, dy3, deriv_vec);
         } else {	// use harmless values at right end-point
-        	y2 = y2 ;
+        	y3 = y2 ;
         	dy3 = dy2 ;
         }
 
