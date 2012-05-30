@@ -1,4 +1,4 @@
-/** 
+/**
  * @example types/test/position_test.cc
  */
 #include <boost/test/unit_test.hpp>
@@ -19,7 +19,7 @@ using namespace usml::types;
  * Compare the earth's radius at specific latitudes to known values.
  * Generate errors if values differ by more that 1E-6 percent.
  *
- * @xref WGS 84 IMPLEMENTATION MANUAL, Version 2.4, 1998. 
+ * @xref WGS 84 IMPLEMENTATION MANUAL, Version 2.4, 1998.
  *       See http://www.dqts.net/wgs84.htm for more information.
  */
 BOOST_AUTO_TEST_CASE( earth_radius_test ) {
@@ -191,6 +191,51 @@ BOOST_AUTO_TEST_CASE( distance1_test ) {
             BOOST_CHECK_SMALL( distance-analytic, 0.1 );
         }
     }
+}
+
+/**
+ * Compute the great circle range and bearing between JFK and LAX airports.
+ * Based on the "Worked Examples" in Aviation Formulary.
+ * Requires an earth radius based on the definition where
+ * 1 nmi = 1 min latitude = 1852.0 meters. Generate errors if values differ
+ * from Williams' answers, in radians, by more that 1e-4%
+ *
+ * The process is then reversed to predict the location of JFK using this
+ * range and bearing from LAX.  Those answers are required to be within
+ * 1e-10% of the true location for JFK.
+ *
+ * @xref E. Williams, "Aviation Formulary V1.43",
+ * http://williams.best.vwh.net/avform.htm , July 2010.
+ */
+BOOST_AUTO_TEST_CASE( gc_range_test ) {
+    cout << "=== position_test: gc_range_test ===" << endl;
+    double orig_radius = wposition::earth_radius ;
+    wposition::earth_radius =  180.0/M_PI*60.0*1852.0 ; // radius used in Aviation Formulary.
+
+    // compute range and bearing from LAX to JFK
+
+    wposition1 jfk( 40.0 + 38.0/60.0, -(73.0 + 47.0/60.0) ) ;
+    wposition1 lax( 33.0 + 57.0/60.0, -(118.0 + 24.0/60.0) ) ;
+
+    double range, bearing ;
+    range = lax.gc_range( jfk, &bearing ) ;
+
+    cout << "LAX to JFK: range = " << (range/wposition::earth_radius) << " rad bearing = " << bearing << " rad" << endl ;
+    cout << "LAX to JFK: range = " << (range/1852.0) << " km bearing = " << to_degrees(bearing) << " deg" << endl ;
+
+    BOOST_CHECK_CLOSE( range/wposition::earth_radius, 0.623585, 1e-4 );
+    BOOST_CHECK_CLOSE( bearing, 1.150035, 1e-4 );
+
+    // reverse the process by computing location at this range/bearing from LAX
+
+    wposition1 unk( lax, range, bearing ) ;
+    cout << "JFK: " << jfk.latitude() << "N " << -jfk.longitude() << "W" << endl ;
+    cout << "UNK: " << unk.latitude() << "N " << -unk.longitude() << "W" << endl ;
+
+    BOOST_CHECK_CLOSE( unk.latitude(), jfk.latitude(), 1e-10 );
+    BOOST_CHECK_CLOSE( unk.longitude(), jfk.longitude(), 1e-10 );
+
+    wposition::earth_radius = orig_radius ;
 }
 
 /// @}
