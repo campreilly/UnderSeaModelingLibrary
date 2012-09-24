@@ -268,25 +268,3 @@ set_property(
 	USML_STUDIES_DIR="${USML_STUDIES_DIR}"
    )
 
-######################################################################
-# Florida Straits study
-
-add_executable( flstrts_btmloss_test studies/florida_straits/flstrts_btmloss_test.cc )
-target_link_libraries( flstrts_btmloss_test usml )
-
-add_executable( flstrts_slope_test studies/florida_straits/flstrts_slope_test.cc )
-target_link_libraries( flstrts_slope_test usml )
-
-add_executable( run1a_proploss studies/florida_straits/run1a_proploss.cc )
-target_link_libraries( run1a_proploss usml )
-
-set_property(
-   TARGET flstrts_btmloss_test flstrts_slope_test run1a_proploss
-   PROPERTY COMPILE_DEFINITIONS
-	USML_DATA_DIR="${USML_DATA_DIR}"
-	USML_STUDIES_DIR="${USML_STUDIES_DIR}"
-   )
-
-
-
-

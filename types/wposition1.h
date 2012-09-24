@@ -150,7 +150,7 @@ public:
      * @param  bearing      True bearing to the new point (radians, optional).
      * @return              Distance to the new point along the Earth's surface (meters).
      */
-    double gc_range( const wposition1& location, double* bearing=NULL);
+    double gc_range( const wposition1& location, double* bearing=NULL) const ;
 
 };
 

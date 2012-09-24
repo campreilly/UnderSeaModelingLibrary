@@ -55,7 +55,7 @@ wposition1::wposition1(const wvector& other, unsigned row, unsigned col) {
  * Computes the great circle range and bearing between two
  * latitude/longtiude positions along the Earth's surface.
  */
-double wposition1::gc_range( const wposition1& location, double* bearing ) {
+double wposition1::gc_range( const wposition1& location, double* bearing ) const {
     const double lat1 = to_radians( latitude() ) ;
     const double lng1 = to_radians( longitude() ) ;
     const double R = wposition::earth_radius + altitude() ;

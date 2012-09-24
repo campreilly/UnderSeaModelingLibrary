@@ -1,6 +1,6 @@
-/** 
- * @file data_grid.h 
- * N-dimensional data set and its associated axes. 
+/**
+ * @file data_grid.h
+ * N-dimensional data set and its associated axes.
  */
 #ifndef USML_TYPES_DATA_GRID_H
 #define USML_TYPES_DATA_GRID_H
@@ -20,11 +20,11 @@ enum GRID_INTERP_TYPE
     GRID_INTERP_PCHIP = 1
 };
 
-/** 
+/**
  * @internal
- * Generalized recursive calculation of N-dimensional array index. 
+ * Generalized recursive calculation of N-dimensional array index.
  * Template recursion used to un-wrap loops and increase execution speed.
- * Start recursion with Dim=NUM_DIMS-1. 
+ * Start recursion with Dim=NUM_DIMS-1.
  * Template specialization terminates recursion.
  * Designed to only be used internally by the data_grid class.
  *
@@ -52,7 +52,7 @@ template<> inline size_t data_grid_compute_offset<0> (seq_vector *axis[],
  * N-dimensional data set and its associated axes.
  * Supports interpolation in any number of dimensions.
  *
- * @param  DATA_TYPE    Type of data to be interpolated. Must support +,-,*,/ 
+ * @param  DATA_TYPE    Type of data to be interpolated. Must support +,-,*,/
  *                      with itself and double precision scalars.
  * @param  NUM_DIMS     Number of dimensions in this grid.  Specifying this
  *                      at compile time allows for some loop un-wrapping.
@@ -68,8 +68,8 @@ protected:
     /** Axis associated with each dimension of the data grid. */
     seq_vector* _axis[NUM_DIMS];
 
-    /** 
-     * Multi-dimensional data stored as a linear array in column major order. 
+    /**
+     * Multi-dimensional data stored as a linear array in column major order.
      * This format is used to support an N-dimensional data set
      * with any any number of dimensions.
      * This memory is created in the constructor and deleted in the destructor.
@@ -86,7 +86,7 @@ public:
         return _axis[dim];
     }
 
-    /** 
+    /**
      * Extract a data value at a specific combination of indices.
      *
      * @param  index            Index number in each dimension.
@@ -98,7 +98,7 @@ public:
         return _data[offset];
     }
 
-    /** 
+    /**
      * Define a new data value at a specific combination of indices.
      *
      * @param  index            Index number in each dimension.
@@ -121,7 +121,7 @@ private:
 
 public:
 
-    /** 
+    /**
      * Retrieve the type of interpolation for one of the axes.
      */
     inline enum GRID_INTERP_TYPE interp_type(int unsigned dimension) const
@@ -188,9 +188,9 @@ private:
     unsigned _offset[NUM_DIMS];
 
     /**
-     * Private recursion engine for multi-dimensional interpolation.  
-     * The type of interpolation for each dimension is determined using 
-     * the _interp_type[] field. Interpoaltion coefficients are computed on 
+     * Private recursion engine for multi-dimensional interpolation.
+     * The type of interpolation for each dimension is determined using
+     * the _interp_type[] field. Interpoaltion coefficients are computed on
      * the fly to make arbitary combinations of interpolation types viable.
      *
      * @param   dim         Index of the dimension currently being processed.
@@ -217,7 +217,7 @@ private:
      *                      point. Must have the same rank as the data grid.
      * @param   location    Location at which field value is desired. Must
      *                      have the same rank as the data grid or higher.
-     * @param   deriv	    Derivative for this iteration. Always zero for 
+     * @param   deriv	    Derivative for this iteration. Always zero for
      *                      nearest neighbor interpolation.
      * @param	deriv_vec   Results vector for derivative.
      *			    Derviative not computed if NULL.
@@ -263,7 +263,7 @@ private:
      *                      point. Must have the same rank as the data grid.
      * @param   location    Location at which field value is desired. Must
      *                      have the same rank as the data grid or higher.
-     * @param   deriv	    Derivative for this iteration. Constant across the 
+     * @param   deriv	    Derivative for this iteration. Constant across the
      *                      interval for linear interpolation.
      * @param	deriv_vec   Results vector for derivative.
      *			    		Derviative not computed if NULL.
@@ -307,7 +307,7 @@ private:
     }
 
     /**
-     * Interpolate this dimension using the Piecewise Cubic Hermite 
+     * Interpolate this dimension using the Piecewise Cubic Hermite
      * Interpolation Polynomial (PCHIP) algorithm from Matlab.
      * Matlab uses shape preserving, "visually pleasing" version of the
      * cubic interpolant that does not suffer from the overshooting
@@ -359,7 +359,7 @@ private:
      *                      point. Must have the same rank as the data grid.
      * @param   location    Location at which field value is desired. Must
      *                      have the same rank as the data grid or higher.
-     * @param   deriv	    Derivative for this iteration. Constant across the 
+     * @param   deriv	    Derivative for this iteration. Constant across the
      *                      interval for linear interpolation.
      * @param	deriv_vec   Results vector for derivative.
      *			            Derivative not computed if NULL.
@@ -547,16 +547,19 @@ public:
 
     /**
      * Multi-dimensional interpolation with the derivative calculation.
-     * So many calculations are shared between the determination of an 
-     * interpolate value and its derivative, that it is computationally 
+     * So many calculations are shared between the determination of an
+     * interpolate value and its derivative, that it is computationally
      * efficient to compute them both at the same time.
+     *
+     * Limit interpolation to axis domain if _edge_limit turned on for that
+     * dimension.  Allow extrapolation if _edge_limit turned off.
      *
      * @param   location    Location at which field value is desired. Must
      *                      have the same rank as the data grid or higher.
      *                      WARNING: The contents of the location vector
      *                      may be modified if edge_limit() is true for
      *                      any dimension.
-     * @param   derivative  If this is not null, the first derivative 
+     * @param   derivative  If this is not null, the first derivative
      *                      of the field at this point will also be computed.
      * @return              Value of the field at this point.
      */
@@ -565,9 +568,13 @@ public:
     	// find the "interval index" in each dimension
 
         for (unsigned dim = 0; dim < NUM_DIMS; ++dim) {
+
+            // limit interpolation to axis domain if _edge_limit turned on
+
         	if ( _edge_limit[dim] ) {
-				const double a = *(_axis[dim]->begin()) ;
-				const double b = *(_axis[dim]->rbegin()) ;
+				double a = *(_axis[dim]->begin()) ;
+				double b = *(_axis[dim]->rbegin()) ;
+				if ( b < a ) std::swap(a,b) ;   // swap if axis inc is < 0
 				if ( location[dim] <= a ) {
 					location[dim] = a ;
 					_offset[dim] = 0 ;
@@ -577,6 +584,9 @@ public:
 				} else {
 					_offset[dim] = _axis[dim]->find_index(location[dim]);
 				}
+
+            // allow extrapolation if _edge_limit turned off
+
         	} else {
         		_offset[dim] = _axis[dim]->find_index(location[dim]);
         	}
@@ -708,7 +718,7 @@ public:
      * Initialize all of the interpolation types to GRID_INTERP_LINEAR.
      *
      * @param axis  Axes to use for each dimension of the grid.
-     *              The seq_vector::clone() routine is used to make a 
+     *              The seq_vector::clone() routine is used to make a
      *              local copy of each axis within the data grid.
      */
     data_grid(seq_vector *axis[])
