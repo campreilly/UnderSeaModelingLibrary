@@ -116,10 +116,41 @@ if( IS_DIRECTORY ${NETCDF_DIR}/lib )
 endif()
 
 set( NETCDF_CXX ON )
+find_package( HDF5 )
 find_package( NetCDF 3.6 REQUIRED )
 if( NETCDF_FOUND )
     include_directories( ${NETCDF_INCLUDES} ${NETCDF_INCLUDES}/.. )
 endif( NETCDF_FOUND )
+
+#############################################
+# NETCDF 4.X DEPENDS ON PACKAGES ZLIB, HDF5
+
+# build links to ZLIB utility library
+# uses the ZLIB_ROOT variable as a hint
+
+if ( NOT DEFINED ${ZLIB_ROOT} ) 
+    if ( EXISTS $ENV{ZLIB_ROOT} )
+	set( ZLIB_ROOT $ENV{ZLIB_ROOT} CACHE PATH "Root directory for ZLIB" )
+    endif()
+endif()
+find_package( ZLIB REQUIRED )
+if( ZLIB_FOUND )
+    include_directories( ${ZLIB_INCLUDE_DIRS} )
+    set( USE_ZLIB YES )
+endif( ZLIB_FOUND )
+
+# build links to HDF5 utility library
+# uses the HDF5_ROOT variable as a hint
+
+if ( NOT DEFINED ${HDF5_ROOT} ) 
+    if ( EXISTS $ENV{HDF5_ROOT} )
+	set( HDF5_ROOT $ENV{HDF5_ROOT} CACHE PATH "Root directory for HDF5" )
+    endif()
+endif()
+find_package( HDF5 REQUIRED )
+if( HDF5_FOUND )
+    include_directories( ${HDF5_INCLUDE_DIRS} )
+endif( HDF5_FOUND )
 
 ######################################################################
 # macro: searches a module list for headers and sources
