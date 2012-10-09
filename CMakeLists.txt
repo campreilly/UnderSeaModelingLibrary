@@ -116,7 +116,6 @@ if( IS_DIRECTORY ${NETCDF_DIR}/lib )
 endif()
 
 set( NETCDF_CXX ON )
-find_package( HDF5 )
 find_package( NetCDF 3.6 REQUIRED )
 if( NETCDF_FOUND )
     include_directories( ${NETCDF_INCLUDES} ${NETCDF_INCLUDES}/.. )
@@ -152,6 +151,20 @@ if( HDF5_FOUND )
     include_directories( ${HDF5_INCLUDE_DIRS} )
 endif( HDF5_FOUND )
 
+# build links to cURL utility library
+# uses the CURL_ROOT variable as a hint
+
+if ( NOT DEFINED ${CURL_ROOT} ) 
+    if ( EXISTS $ENV{CURL_ROOT} )
+	set( CURL_ROOT $ENV{CURL_ROOT} CACHE PATH "Root directory for CURL" )
+    endif()
+endif()
+find_package( CURL REQUIRED )
+if( CURL_FOUND )
+    include_directories( ${CURL_INCLUDE_DIRS} )
+    set( USE_CURL YES )
+endif( CURL_FOUND )
+
 ######################################################################
 # macro: searches a module list for headers and sources
 
@@ -178,7 +191,7 @@ FIND_SOURCES( "${PACKAGE_MODULES}" "" )
 
 set( TARGET usml )
 add_library( ${TARGET} ${HEADERS} ${SOURCES} )
-target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
+target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} ${HDF5_hdf5_LIBRARY} ${ZLIB_LIBRARY} )
 set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION} )
 install(TARGETS usml DESTINATION lib)
 install(FILES usml_config.h DESTINATION include/usml)
