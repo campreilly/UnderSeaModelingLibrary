@@ -14,6 +14,8 @@ set( PACKAGE_VERSION_MINOR 2 )
 set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
 set( PACKAGE_MODULES ublas types netcdf ocean waveq3d ) 
 
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/config" )
+
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" OFF )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
 if( NOT CMAKE_BUILD_TYPE )
