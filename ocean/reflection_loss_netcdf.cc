@@ -39,6 +39,10 @@ using namespace usml::ocean ;
 	bottom_prov_grid->get(bot_prov_dataIn[0][0],)
 ***************************************************************/
 
+	if(file.is.valid()) {
+		cout << "File: " << filename << " was opened successfully." << endl;
+	}
+
 private:
 
 	reflection_loss_rayleigh rayleigh[_n];
@@ -54,4 +58,5 @@ for(int i=0; i<_n; i++) {
 	// reflection_loss( const wposition1& location, const seq_vector& frequencies, double angle, blah......)
 	// find the prov # for above location from data grid
 	// rayleigh[above prov #].reflection_loss(all that jazz);
+
 
