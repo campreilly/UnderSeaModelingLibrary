@@ -1,21 +1,22 @@
-/** 
+/**
  * @file reflect_loss_netcdf.h
  * Builds rayleigh models for an imported netcdf bottom province file.
  * Includes LaTEX documentation of formula for processing by Doxygen (not yet).
  */
 
-#ifndef USML_OCEAN_REFLECT_LOSS_NETCDF_H
-#define USML_OCEAN_REFLECT_LOSS_NETCDF_H
+#ifndef USML_OCEAN_REFLECTION_LOSS_NETCDF_H
+#define USML_OCEAN_REFLECTION_LOSS_NETCDF_H
 
 #include <usml/ocean/reflect_loss_model.h>
+#include <netcdfcpp.h>
 
 namespace usml {
 namespace ocean {
 
-class USML_DECLSPEC reflect_loss_netcdf : public reflect_loss_model {
+class USML_DECLSPEC reflection_loss_netcdf : public reflect_loss_model {
 
 	public:
-	
+
 	 /**
 	  * Load bottom province data from disk. Format of the bottom
 	  * province file is currently restricted to the following:
@@ -51,8 +52,8 @@ class USML_DECLSPEC reflect_loss_netcdf : public reflect_loss_model {
 	 * @param phase         Change in ray phase in radians (output).
 	 *                      Phase change not computed if this is NULL.
 	 */
-		virtual void reflect_loss( 
-			const wposition1& location, 
+		virtual void reflect_loss(
+			const wposition1& location,
 			const seq_vector& frequencies, double angle,
 			vector<double>* amplitude, vector<double>* phase=NULL ) ;
 
