@@ -3,6 +3,7 @@
  * Models plane wave reflection from a bottom province profile.
  */
 #include <usml/ocean/reflection_loss_netcdf.h>
+#include <usml/types/data_grid.h>
 
 using namespace usml::ocean ;
 
@@ -11,7 +12,6 @@ reflection_loss_netcdf::reflection_loss_netcdf(const char* filename) {
 /**
  * Opens the netcdf file, [filename], and grabs the following data:
  *
- *	@dim num_types	   : the number of bottom provinces
  *	@var lat	   : latitude in degrees
  *	@var lon	   : longitude in degrees
  *	@var type	   : predetermined bottom province number
@@ -24,32 +24,45 @@ reflection_loss_netcdf::reflection_loss_netcdf(const char* filename) {
  */
 
 	NcFile file( filename );
-//	NcDim *_n = file.get_dim("num_types");
 	NcVar *_lat = file.get_var("lat");
 	NcVar *_lon = file.get_var("lon");
-	NcVar *bot_num = file.get_var("type");
+//	NcVar *bot_num = file.get_var("type");
 	NcVar *bot_speed = file.get_var("speed_ratio");
 	NcVar *bot_density = file.get_var("density_ratio");
 	NcVar *bot_atten = file.get_var("atten");
 	NcVar *bot_shear_speed = file.get_var("shear_speed");
 	NcVar *bot_shear_atten = file.get_var("shear_atten");
 
-	float latIn[2];
-        _lat->get(latIn, 2);
-	float lonIn[2];
-        _lon->get(lonIn, 2);
-	float numIn[2][2];
-        bot_num->get(&numIn[0][0], 2, 2);
-	float speedIn[2];
-        bot_speed->get(speedIn, 2);
-	float densityIn[2];
-        bot_density->get(densityIn, 2);
-	float attenIn[2];
-        bot_atten->get(attenIn, 2);
-	float shearspdIn[2];
-        bot_shear_speed->get(shearspdIn, 2);
-    float shearattnIn[2];
-        bot_shear_atten->get(shearattnIn, 2);
+    /** Gets the size of the dimensions to be used to create the data grid */
+    int ncid, latid, lonid, provid;
+    long latdim, londim, n_types;
+    ncid = ncopen(filename, NC_NOWRITE);
+	latid = ncdimid(ncid, "lat");
+    ncdiminq(ncid, latid, 0, &latdim);
+    lonid = ncdimid(ncid, "lon");
+    ncdiminq(ncid, lonid, 0, &londim);
+    provid = ncdimid(ncid, "num_types");
+    ncdiminq(ncid, provid, 0, &n_types);
+
+    /** Extracts the data for all of the variables from the netcdf file and stores them */
+    double* latitude = new double[latdim];
+        _lat->get(&latitude[0], latdim);
+    double* longitude = new double[londim];
+        _lon->get(&longitude[0], londim);
+    double* speed = new double[n_types];
+        bot_speed->get(&speed[0], n_types);
+    double* density = new double[n_types];
+        bot_density->get(&density[0], n_types);
+    double* atten = new double[n_types];
+        bot_atten->get(&atten[0], n_types);
+    double* shearspd = new double[n_types];
+        bot_shear_speed->get(&shearspd[0], n_types);
+    double* shearatten = new double[n_types];
+        bot_shear_atten->get(&shearatten[0], n_types);
+
+//    data_grid<double, 2>* bottom_prov_grid;
+//    double inc = ( latitude[latdim] - latitude[0] ) / latdim ;
+//    _axis[0] = new seq_linear(to_colatitude(int(latitude[0])), to_radians(int(inc)), latdim);
 
 /***************************************************************
 	double bot_prov_dataIn[sizeof(_lat)][sizeof(_lon)];
@@ -57,15 +70,6 @@ reflection_loss_netcdf::reflection_loss_netcdf(const char* filename) {
 	data_grid<double,2> bottom_prov_grid;
 	bottom_prov_grid->get(bot_prov_dataIn[0][0],)
 ***************************************************************/
-
-    cout << "The latitudes are: " << latIn[0] << ", " << latIn[1] << endl;
-    cout << "The longitutdes are: " << lonIn[0] << ", " << lonIn[1] << endl;
-    cout << "The data field is: " << numIn[0][0] << ", " << numIn[1][0] << ", " << numIn[1][0] << ", " << numIn[1][1] << endl;
-    cout << "The speeds are: " << speedIn[0] << ", " << speedIn[1] << endl;
-    cout << "The densities are: " << densityIn[0] << ", " << densityIn[1] << endl;
-    cout << "The attentuations are: " << attenIn[0] << ", " << attenIn[1] << endl;
-    cout << "The shear speeds are: " << shearspdIn[0] << ", " << shearspdIn[1] << endl;
-    cout << "The shear attentuations are: " << shearattnIn[0] << ", " << shearattnIn[1] << endl;
 
 //private:
 
@@ -82,6 +86,14 @@ reflection_loss_netcdf::reflection_loss_netcdf(const char* filename) {
 	// reflection_loss( const wposition1& location, const seq_vector& frequencies, double angle, blah......)
 	// find the prov # for above location from data grid
 	// rayleigh[above prov #].reflection_loss(all that jazz);
+
+	delete[] latitude;
+	delete[] longitude;
+	delete[] speed;
+	delete[] density;
+	delete[] atten;
+	delete[] shearspd;
+	delete[] shearatten;
 
 }
 
