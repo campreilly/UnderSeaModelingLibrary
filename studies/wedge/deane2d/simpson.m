@@ -8,13 +8,13 @@
 %
 %   h = spacing between ordinate points
 %   f = function evaluated at these points
-%   
+%
 function result = simpson( h, f )
 
 N = length(f) ;
 even = 2 * ( 1:(N/2-1) ) ;
 odd = 2 * ( 2:(N/2) ) - 1 ;
-result = h/3 * ( f(1) + 4*f(even) + 2*f(odd) * f(end) ) ;
+result = h/3 * ( f(1) + 4*sum(f(even)) + 2*sum(f(odd)) * f(end) ) ;
 
 end
 

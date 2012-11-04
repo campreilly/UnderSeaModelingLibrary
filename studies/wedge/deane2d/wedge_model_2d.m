@@ -3,9 +3,18 @@
 % 2-D slice in the plane of of the source.  The scenario is based on
 % Figure 6 in the March 1993 paper.
 %
-function wedge_test_2d
+% The model is structured as follows:
+%   - wedge_spectrum_2d() computes the wave number spectrum for one image.
+%     This calculation uses reflection() to model bottom loss.
+%   - wedge_integ_2d() uses simpson() to integrate the wave number spectrum 
+%     along the contour 0 to pi/2-Inf.
+%   - wedge_pressure_2d() coherently sums the contributions from all images.
+%     This calculation uses spherical_add() to compute the location
+%     of targets relative to each image source.
+%
+function wedge_model_2d
     close all ; clc
-    disp('wedge_test_2d')
+    disp('=== wedge_model_2d ===')
 
     global wedge_angle density speed atten speed_shear atten_shear
 
@@ -26,9 +35,6 @@ function wedge_test_2d
     speed_shear = 0.0 ;         % shear sound speed ration
     atten_shear = 0.0 ;         % shear attenuation
     
-    wedge_angle = atan(water_depth/source_range) ;
-    wave_number = 2 * pi * source_freq / water_speed ;
-
     % compute source range from apex and D/E relative to ocean bottom
     
     source_range = 4000 ;       % meters from wedge apex
@@ -46,6 +52,9 @@ function wedge_test_2d
 
     % compute complex pressure as a function of target range
     
+    wedge_angle = atan(water_depth/source_range) ;
+    wave_number = 2 * pi * source_freq / water_speed ;
+
     pressure = wedge_pressure_2d( ...
         wave_number, max_bottom, tolerance, ...
         source_range, source_zeta, target_range, target_zeta )

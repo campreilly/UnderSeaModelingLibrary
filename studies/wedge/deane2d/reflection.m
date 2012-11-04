@@ -42,7 +42,7 @@ function R = reflection( angle, density, speed, atten, speed_shear, atten_shear 
 end
 
 %%
-% Compute sediment impedance.  Use for both compressional and shear waves.
+% Compute sediment impedance.  Used for both compressional and shear waves.
 %
 function [Z,cosA]= impedance( angle, density, speed, atten ) 
     atten = atten / (20.0*log10(exp(1))*2*pi);  % loss tangent
