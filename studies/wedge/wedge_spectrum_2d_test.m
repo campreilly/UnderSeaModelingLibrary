@@ -41,6 +41,7 @@ target_rho = sqrt( target_range.^2 + target_depth.^2 ) ;
 target_theta = atan2( target_range, -target_depth ) ;
 
 % for each target, compute spectrum as a function of wave number
+% then integrate over wave numbers to compute the pressure
 
 wave_number = 2 * pi * source_freq / water_speed ;
 wave_theta = (0:(1/(theta_num-1)):1)*pi/2 ;
@@ -53,7 +54,7 @@ for t = 1:length(target_theta)
         wave_number, wave_theta, max_bottom, tolerance, ...
         source_rho, source_theta, target_rho(t), target_theta(t), ...
         wedge_theta, bottom_density, bottom_speed, bottom_atten, shear_speed, shear_atten ) ;
-    pressure(t) = sum( spectrum(t,:) ) * dtheta ;
+    pressure(t) = sum( spectrum(t,:) ) * dtheta ; % integration
 end
 clear t
 
