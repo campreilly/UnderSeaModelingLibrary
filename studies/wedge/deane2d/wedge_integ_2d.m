@@ -36,8 +36,8 @@ function pressure = wedge_integ_2d( num_surface, num_bottom, ...
             % Error: complex portion of spectrum goes to Inf for large X!!!
             % Should be decaying.
             %
-            % for axis = 0:1  % 0 = real axis, 1 = imag axis
-            for axis = 0	% for debugging only!!!
+             for axis = 0:1  % 0 = real axis, 1 = imag axis
+            %for axis = 0	% for debugging only!!!
 
                 if ( axis == 0 )
                     % integrate along a real contour from 0 to pi/2 to represent the
@@ -56,11 +56,11 @@ function pressure = wedge_integ_2d( num_surface, num_bottom, ...
                 spectrum = wedge_spectrum_2d( ...
                     num_surface, num_bottom, wave_number, theta, ...
                     range(row,col), zeta(row,col) ) ;
-                pressure(row,col) = pressure(row,col) ...
-                    + simpson( theta(2)-theta(1), spectrum ) ;
+		P = simpson( theta(2)-theta(1), spectrum ) ;
+                pressure(row,col) = pressure(row,col) + P ;
 
-                figure;
-                plot( x, abs(spectrum) ) ;  % plotting is for debugging only!!!
+%                figure;
+%                plot( x, abs(spectrum) ) ;  % plotting is for debugging only!!!
             end
         end
     end

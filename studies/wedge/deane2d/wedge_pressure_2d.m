@@ -37,51 +37,57 @@ function pressure = wedge_pressure_2d( ...
     [ range, zeta ] = spherical_add( ...
         target_range, target_zeta, 0.0, ...
         -source_range, source_zeta, 0.0 ) ;
-    pressure = wedge_integ_2d( 0, 0, wave_number, range, zeta ) ;
+    pressure = wedge_integ_2d( 0, 0, wave_number, range, (zeta+pi/2) ) ;				%adjusted for x to z axis orientation (needs to be corrected by pi)
+	printf("zeta_0_0: %f\n", (zeta+pi/2-pi)*180/pi);		%debug only
 
     % 1st surface image = s(1,0) term
 
     [ range, zeta ] = spherical_add( ...
         target_range, target_zeta, 0.0, ...
-        -source_range, pi-source_zeta, 0.0 ) ;
-    pressure = pressure + wedge_integ_2d( 1, 0, wave_number, range, zeta ) ;
+        -source_range, -source_zeta, 0.0 ) ;
+    pressure = pressure + wedge_integ_2d( 1, 0, wave_number, range, (zeta+pi/2) ) ;			%adjusted for x to z axis orientation
+	printf("zeta_1_0: %f\n", (zeta+pi/2)*180/pi);		%debug only
 
     % loop through images that include bottom reflection
     % need to check the source_zeta terms in spherical_add()!!!
 
     for num_bottom = 1:max_bottom
 
-        % source->bottom->target path = s'(n-1,n) term
+        % source->bottom->...->target path = s'(n-1,n) term (below, bottom is first interaction, l = -(2n-1), n=1,2,3,...)
 
         [ range, zeta ] = spherical_add( ...
-            target_range, target_zeta, 0.0, ...
-            -source_range, source_zeta-2*wedge_angle*num_bottom, 0.0 ) ;
+            -target_range, target_zeta, 0.0, ...
+            source_range, -source_zeta+wedge_angle*(2*num_bottom), 0.0 ) ;
+	printf("zeta'_%i_%i: %f\n", num_bottom-1, num_bottom, -(180-(zeta+pi/2)*180/pi));		%debug only
         new = wedge_integ_2d( ...
-            num_bottom-1, num_bottom, wave_number, range, zeta ) ;
+            num_bottom-1, num_bottom, wave_number, range, 3*pi/2-(zeta+pi/2) ) ;			%adjusted for x to z axis orientation
 
-        % source->bottom->surface->target path = s'(n,n) term
+        % source->surface->bottom->...->target path = s'(n,n) term (below, surface is the first interaction, l = -2n, n=1,2,3,...)
+
+        [ range, zeta ] = spherical_add( ...
+            -target_range, target_zeta, 0.0, ...
+            source_range, source_zeta+wedge_angle*(2*num_bottom), 0.0 ) ;
+	printf("zeta'_%i_%i: %f\n", num_bottom, num_bottom, -(180-(zeta+pi/2)*180/pi));			%debug only
+        new = new + wedge_integ_2d( ...
+            num_bottom, num_bottom, wave_number, range, 3*pi/2-(zeta+pi/2) ) ;				%adjusted for x to z axis orientation
+
+        % source->bottom->surface->...->target path = s(n,n) term (above, bottom is the first interaction, l = 2n, n=1,2,3,...)
 
         [ range, zeta ] = spherical_add( ...
             target_range, target_zeta, 0.0, ...
-            -source_range, -source_zeta+2*wedge_angle*num_bottom, 0.0 ) ;
+	    -source_range, source_zeta-2*wedge_angle*num_bottom, 0.0 ) ;
+	printf("zeta_%i_%i: %f\n", num_bottom, num_bottom, (zeta+pi/2)*180/pi);		%debug only
         new = new + wedge_integ_2d( ...
-            num_bottom, num_bottom, wave_number, range, zeta ) ;
+            num_bottom, num_bottom, wave_number, range, (zeta+pi/2) ) ;					%adjusted for x to z axis orientation
 
-        % source->surface->bottom->target path = s(n,n) term
+        % source->surface->bottom->...->target path = s(n+1,n) term (above, surface is the first interaction, l=2n+1, n=1,2,3,...)
 
         [ range, zeta ] = spherical_add( ...
             target_range, target_zeta, 0.0, ...
-            -source_range, -source_zeta-2*wedge_angle*(num_bottom-1), 0.0 ) ;
+            -source_range, -source_zeta-2*wedge_angle*num_bottom, 0.0 ) ;
+	printf("zeta_%i_%i: %f\n", num_bottom+1, num_bottom, (zeta+pi/2)*180/pi);		%debug only
         new = new + wedge_integ_2d( ...
-            num_bottom, num_bottom, wave_number, range, zeta ) ;
-
-        % source->surface->bottom->target path = s(n+1,n) term
-
-        [ range, zeta ] = spherical_add( ...
-            target_range, target_zeta, 0.0, ...
-            -source_range, source_zeta+2*wedge_angle*(num_bottom+1), 0.0 ) ;
-        new = new + wedge_integ_2d( ...
-            num_bottom+1, num_bottom, wave_number, range, zeta ) ;
+            num_bottom+1, num_bottom, wave_number, range, (zeta+pi/2) ) ;				%adjusted for x to z axis orientation
 
         % incorporate new contribution into the sum
         % exit early if the new contribution is small

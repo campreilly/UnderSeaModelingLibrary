@@ -21,7 +21,7 @@ function wedge_model_2d
     % define tuning parameters
 
     range_inc = 500 ;
-    max_bottom = 1 ;
+    max_bottom = 2 ;
     tolerance = 0.1 ;
 
     % define ASA wedge scenario
@@ -45,9 +45,9 @@ function wedge_model_2d
     % define a grid of targets 30 meters below the ocean surface
 
     target_range = 500:range_inc:source_range ; % meters from wedge apex
-    target_range = 1000 ;       % for debug only!!!
+    target_range = 3000 ;       % for debug only!!!
     target_depth = 30 ;         % meters from surface
-    target_zeta = atan2( source_depth, source_range ) ;
+    target_zeta = atan2( target_depth, target_range ) ;
     target_range = sqrt( target_range*target_range + target_depth*target_depth ) ;
 
     % compute complex pressure as a function of target range

@@ -25,3 +25,8 @@ simpson: Needs to be tested, including tests for complex integrands
 wedge_pressure_2d: Need to check the source_zeta terms in spherical_add()!!!
 wedge_integ_2d: Error: complex portion of spectrum goes to Inf for large X!!! Should be decaying.
 wedge_model_2d: Expand calculation to multiple ranges
+
+Notes:
+
+1) zeta was oriented from the x-axis as opposed to the z-axis. Corrected zeta by adding pi/2 to the values and now have corrected values.
+2) corrected the equation in wedge_spectrum_2d so that the imaginary parts go to 0 at large values by including the appropriate negative sign in the equation.
