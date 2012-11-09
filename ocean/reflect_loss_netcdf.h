@@ -8,12 +8,17 @@
 #define USML_OCEAN_REFLECTION_LOSS_NETCDF_H
 
 #include <usml/ocean/reflect_loss_model.h>
+#include <usml/ocean/reflect_loss_rayleigh.h>
+#include <vector>
 #include <netcdfcpp.h>
 
 namespace usml {
 namespace ocean {
 
-class USML_DECLSPEC reflection_loss_netcdf : public reflect_loss_model {
+class USML_DECLSPEC reflect_loss_netcdf : public reflect_loss_model {
+
+    std::vector<reflect_loss_rayleigh*> rayleigh;
+    data_grid<double, 2>* province;
 
 	public:
 
@@ -27,20 +32,20 @@ class USML_DECLSPEC reflection_loss_netcdf : public reflect_loss_model {
 	  *	@dim num_types  : number of different bottom provinces
 	  *
 	  *		Variables
-	  *	@var speed_ratio	: speed ratio of the province		@dim num_types
-	  *	@var density_ratio	: density ratio of the province		@dim num_types
-	  *	@var atten		: attenuation value for the province	@dim num_types
-	  *	@var shear_speed	: shear speed of the province		@dim num_types
-	  *	@var shear_atten	: shear attenuation of the province	@dim num_types
-	  *	@var lat		: latitude in degrees			@dim lat
-	  *	@var long		: longitude in degress			@dim lon
-	  *	@var type		: bottom province map			@dim (lat,lon)
+	  *	@var speed_ratio	: speed ratio of the province		    @dim num_types
+	  *	@var density_ratio	: density ratio of the province		    @dim num_types
+	  *	@var atten		    : attenuation value for the province	@dim num_types
+	  *	@var shear_speed	: shear speed of the province		    @dim num_types
+	  *	@var shear_atten	: shear attenuation of the province 	@dim num_types
+	  *	@var lat		    : latitude in degrees		            @dim lat
+	  *	@var long		    : longitude in degress		    	    @dim lon
+	  *	@var type		    : bottom province map		    	    @dim (lat,lon)
 	  *
 	  * The information stored in type is set to a double with the value from 1 to
 	  * the number of different bottom provinces for the profile.
 	  *
 	  */
-		reflection_loss_netcdf(const char *filename);
+		reflect_loss_netcdf(const char *filename);
 
 	/**
 	 * Computes the broadband reflection loss and phase change.
