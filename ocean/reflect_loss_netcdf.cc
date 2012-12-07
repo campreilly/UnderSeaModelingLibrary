@@ -70,7 +70,7 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 
     //+++++++++debug
     cout << "===============axis layout=============" << endl;
-    cout << "lat first: " << latitude[0] << "\nlat last: " << latitude[latdim-1] << "\nlat inc: " << latinc << endl;
+    cout << "lat first: " << latitude[0] << "\nlat last: " << latitude[latdim-1] << "\nlat inc: " << latinc <<  "\nnum elements: " << (*axis[0]).size() << endl;
     cout << "lat axis: " << *axis[0] << endl;
     cout << "lon first: " << longitude[0] << "\nlon last: " << longitude[londim-1] << "\nlon inc: " << loninc << endl;
     cout << "lon axis: " << *axis[1] << endl;

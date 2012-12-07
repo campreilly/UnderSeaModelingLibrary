@@ -199,6 +199,7 @@ BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
         const double depth_accuracy = 1e-6 ;
         const double normal_accuracy = 1e-6 ;
     #endif
+
     BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 3671.1557116601616, depth_accuracy );
     BOOST_CHECK_CLOSE( normal.theta(), 0.0, normal_accuracy );
     BOOST_CHECK_CLOSE( normal.phi(), 0.012764948465248139, normal_accuracy );
@@ -231,10 +232,14 @@ BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
     // test implementation as a boundary model
 
     boundary_grid<double,2> bottom(grid) ;
-    wposition1 location( 26.25, -80.0 ) ;
+    wposition1 location( 26.25, -80 ) ;
     double depth ;
     bottom.height( location, &depth ) ;
-    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, -1130.0, 1e-6);
+    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, -1120.0, 1e-6);
+
+    wposition1 location2( 26.5, -79.5 ) ;
+    bottom.height( location2, &depth ) ;
+    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, -1310.0, 1e-6);
 }
 
 /// @}

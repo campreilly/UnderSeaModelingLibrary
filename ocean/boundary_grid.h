@@ -1,4 +1,4 @@
-/** 
+/**
  * @file boundary_grid.h
  * Creates a bottom model from a 1-D or 2-D data grid.
  */
@@ -13,15 +13,15 @@ namespace usml {
 namespace ocean {
 
 /**
- * Bottom model constructed from a 1-D or 2-D data grid.  
+ * Bottom model constructed from a 1-D or 2-D data grid.
  * The coordinate system for each kind of data set is:
  *
- *      - 1-D: Assumes that the bottom depth is a function of latitude and 
- *             that the geodetic axes have been transformed to 
+ *      - 1-D: Assumes that the bottom depth is a function of latitude and
+ *             that the geodetic axes have been transformed to
  *             their spherical earth equivalents (theta).
- *      - 2-D: Assumes that the order of axes in the grid is 
- *             (latitude, longitude) and that the geodetic 
- *             axes have been transformed to their spherical earth 
+ *      - 2-D: Assumes that the order of axes in the grid is
+ *             (latitude, longitude) and that the geodetic
+ *             axes have been transformed to their spherical earth
  *             equivalents (theta,phi).
  *
  * Uses the GRID_INTERP_PCHIP interpolation in both directions
@@ -29,8 +29,8 @@ namespace ocean {
  * latitude/longitude axes defined by the data grid at limited to the values
  * at the grid edge.
  */
-template< class DATA_TYPE, int NUM_DIMS > class boundary_grid 
-    : public boundary_model 
+template< class DATA_TYPE, int NUM_DIMS > class boundary_grid
+    : public boundary_model
 {
     //**************************************************
     // height model
@@ -174,7 +174,7 @@ public:
 
     /**
      * Initialize depth and reflection loss components for a boundary.
-     * 
+     *
      * @param height            Bottom depth (meters) as a function of position.
      *                          Assumes control of this grid and deletes
      *                          it when the class is destroyed.

@@ -72,7 +72,7 @@ int main( int argc, char* argv[] ) {
 
     cout << "load bathymetry from ETOPO1 database" << endl ;
     boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
-    	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd", 
+    	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
 	lat1, lat2, lng1, lng2 ) ) ;
 //    boundary_model* bottom = new boundary_flat(3000.0);
     double height ;
