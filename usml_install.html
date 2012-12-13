@@ -75,6 +75,20 @@
          In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
          just above it. Those using Boost 1.48.0 can just replace the original files with the
          ones from the <code>config</code> directory.
+    <li> At this time, USML does not support the use of HDF5 or cURL. So in order to use USML and NetCDF 
+	 versions 4.0.1 and higher there are two options that you will need to do in order to run USML.
+	<ul>
+	 <li>The first option is to download the source code for netcdf at 
+	 <a href="http://www.unidata.ucar.edu/downloads/netcdf"> http://www.unidata.ucar.edu/downloads/netcdf <a/>
+	 and configure the install to disable netcdf-4 and dap.</li>
+
+	 <li>The second option is if you wish to keep these features on for netcdf. In order to get USML 
+	 to run properly, you will need to alter the CMakeLists.txt to include HDF5/zLib/cURL packages. 
+	 If you need to do this, there is a CMakeLists.txt file in the <code>usml/config</code> directory 
+	 that is specifically setup to do this for you. NOTE: you will need to download the HDF%/zLib/cURL 
+	 packages from source and compile them appropriately. There is also a README.txt provided in the 
+	 <code>usml/config</code> directory that assists with this.</li>
+	</ul>
     </ul>
 
     <h2>Building and Testing USML</h2>
