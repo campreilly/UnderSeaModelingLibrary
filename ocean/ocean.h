@@ -65,6 +65,7 @@
 
 #include <usml/ocean/reflect_loss_model.h>
 #include <usml/ocean/reflect_loss_constant.h>
+#include <usml/ocean/reflect_loss_netcdf.h>
 #include <usml/ocean/reflect_loss_rayleigh.h>
 
 #include <usml/ocean/boundary_model.h>
