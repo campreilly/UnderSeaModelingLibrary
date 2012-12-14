@@ -117,7 +117,7 @@ public:
 
     /**
      * Retrieves the longitude component of geodetic earth coordinates.
-     * Acts as a convenient transformation of the "Theta" property.
+     * Acts as a convenient transformation of the "Phi" property.
      *
      * @return			Longitude component in degrees.
      */
@@ -127,7 +127,7 @@ public:
 
     /**
      * Defines the longitude component of geodetic earth coordinates.
-     * Acts as a convenient transformation of the "theta" property.
+     * Acts as a convenient transformation of the "Phi" property.
      *
      * @param  longitude	Longitude component in degrees.
      */
