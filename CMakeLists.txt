@@ -10,27 +10,22 @@ cmake_minimum_required( VERSION 2.6 )
 project( usml CXX )
 
 set( PACKAGE_VERSION_MAJOR 0 )
-set( PACKAGE_VERSION_MINOR 2 )
+set( PACKAGE_VERSION_MINOR 3 )
 set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
 set( PACKAGE_MODULES ublas types netcdf ocean waveq3d )
 
+######################################################################
+# set USML defaults
+
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" OFF )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
+set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug )
 if( NOT CMAKE_BUILD_TYPE )
-    set( CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build" FORCE )
+    set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
 endif()
-set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-    Release Debug RelWithDebInfo MinSize )
-
 if ( ${CMAKE_BUILD_TYPE} MATCHES Debug )
     add_definitions( -DUSML_DEBUG )
 endif()
-
-# Hardset BUILD_SHARED_LIBS before setting up compilers and libraries.
-# If you try to do this from the GUI, everything will already be in the cache,
-# and it will bee too late to change it.  Defaults to true if not set.
-
-set( BUILD_SHARED_LIBS OFF CACHE BOOL "build and utilize shared libraries" FORCE )
 
 ######################################################################
 # Visual C++ compiler options
@@ -53,16 +48,16 @@ if( MSVC )
 # GNU C++ options
 
 else( CMAKE_COMPILER_IS_GNUCXX )
-    if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) )
-        add_definitions( -O0 )          # no optimizations
-    else()                              # max optimizations
-        add_definitions( -O3 -ffast-math -DNDEBUG )
+    if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) ) # no optimizations
+        add_definitions( -O0 )          
+    else()                              	# max optimizations
+        add_definitions( -g -ffast-math )
     endif()
-    if ( USML_PEDANTIC )                # standards compliance
+    if ( USML_PEDANTIC )                	# standards compliance
         add_definitions( -std=c++98 -pedantic -Wall -Werror )
     endif ( USML_PEDANTIC )
     if ( NOT BUILD_SHARED_LIBS )
-        set(CMAKE_FIND_LIBRARY_SUFFIXES .a) # prefer shared libraries
+        set(CMAKE_FIND_LIBRARY_SUFFIXES .a) 	# prefer static libraries
     endif ( NOT BUILD_SHARED_LIBS )
 
 endif()
@@ -72,18 +67,30 @@ include_directories( ${PROJECT_SOURCE_DIR}/.. )
 ######################################################################
 # Boost C++ utility libraries for ublas and unit_test_framework
 #
-# Uses the BOOST_ROOT variable as a hint for
-# both the include and library files.
+# The BOOST_ROOT variable can be used to over-ride default Boost version,
+# but it must be set immediately after the cache is cleared, and before
+# the FindBoost script is executed.
 
-set( Boost_DEBUG OFF )         # if on -> displays debug msgs during cmake
+set( Boost_DEBUG OFF ) 
+unset( Boost_INCLUDE_DIR CACHE ) # force FindBoost.cmake to reload each time
+
+if ( BOOST_ROOT )
+    set( Boost_NO_SYSTEM_PATHS ON )
+    set( Boost_INCLUDE_DIR ${BOOST_ROOT}/include ) 
+    set( BOOST_LIBRARYDIR ${BOOST_ROOT}/lib ) 
+endif()
+
 if ( BUILD_SHARED_LIBS )
     set( Boost_USE_STATIC_LIBS OFF )
     add_definitions( -DBOOST_ALL_DYN_LINK )
+    set( Boost_REALPATH ON )	# use version suffix in *.so name
 else ( BUILD_SHARED_LIBS )
     set( Boost_USE_STATIC_LIBS ON )
 endif ( BUILD_SHARED_LIBS )
 
-find_package( Boost 1.48 REQUIRED COMPONENTS
+set(Boost_ADDITIONAL_VERSIONS 
+	"1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.520")
+find_package( Boost 1.41 REQUIRED COMPONENTS
     unit_test_framework        # for usml_test.exe
     )
 if( Boost_FOUND )
@@ -104,6 +111,8 @@ add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 #
 # Uses the NETCDF_DIR (variable or environment) to
 # over-ride the root of the include, lib, and bin directories.
+
+unset( NETCDF_INCLUDES CACHE ) # force FindNetCDF.cmake to reload each time
 
 if( NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR} )
     set( NETCDF_DIR $ENV{NETCDF_DIR} CACHE PATH "Root of NetCDF library" )
