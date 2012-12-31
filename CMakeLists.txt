@@ -1,10 +1,17 @@
 # Cross platform build environment for the libraries and regression tests of
-# the Under Sea Modeling Library (USML). This script traverses the active
-# modules and collects all library source files and headers into a single
-# add_library() call for the usml target.  It then collects all
-# regression tests into a single add_executable() call for the usml_test
-# target. The source_group() command is used to organize the files into
-# subgroups in IDE's such as Visual C++ and Eclipse.
+# the Under Sea Modeling Library (USML). 
+#
+# This script traverses the active modules and collects all library source 
+# files and headers into a single add_library() call for the usml target.  
+# It then collects all regression tests into a single add_executable() 
+# call for the usml_test target. Several of these tests require data 
+# files to be generated, and many of these require the use of NCKS.
+# Finally, it builds the USML studies.
+#
+# The source_group() command is used to organize the files into
+# subgroups in IDE's such as Visual C++ and Eclipse.  Note that the 
+# Code::Blocks generator does not currently support the source_group() 
+# command.
 #
 cmake_minimum_required( VERSION 2.6 )
 project( usml CXX )
@@ -19,13 +26,6 @@ set( PACKAGE_MODULES ublas types netcdf ocean waveq3d )
 
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" OFF )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
-set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug )
-if( NOT CMAKE_BUILD_TYPE )
-    set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
-endif()
-if ( ${CMAKE_BUILD_TYPE} MATCHES Debug )
-    add_definitions( -DUSML_DEBUG )
-endif()
 
 ######################################################################
 # Visual C++ compiler options
@@ -48,20 +48,25 @@ if( MSVC )
 # GNU C++ options
 
 else( CMAKE_COMPILER_IS_GNUCXX )
+    set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug )
+    if( NOT CMAKE_BUILD_TYPE )
+        set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
+    endif()
     if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) ) # no optimizations
         add_definitions( -O0 )          
     else()                              	# max optimizations
         add_definitions( -g -ffast-math )
     endif()
     if ( USML_PEDANTIC )                	# standards compliance
-        add_definitions( -std=c++98 -pedantic -Wall -Werror )
+        add_definitions( -std=c++98 -pedantic -Wall -Werror 
+	    -Wno-long-long -Wno-sign-compare)
     endif ( USML_PEDANTIC )
     if ( NOT BUILD_SHARED_LIBS )
         set(CMAKE_FIND_LIBRARY_SUFFIXES .a) 	# prefer static libraries
     endif ( NOT BUILD_SHARED_LIBS )
-
 endif()
 
+set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSML_DEBUG" )
 include_directories( ${PROJECT_SOURCE_DIR}/.. )
 
 ######################################################################
@@ -102,7 +107,7 @@ endif( Boost_FOUND )
 #
 # Should be using the enable_if<> macros just like the operator*() in lines
 # 1397 through 1407 (just above it).  Doing so allows further overloading of
-# operator/() for other types.
+# operator/() for other types.  Same idea applies to matrix_expression.hpp.
 
 add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 
@@ -111,8 +116,6 @@ add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 #
 # Uses the NETCDF_DIR (variable or environment) to
 # over-ride the root of the include, lib, and bin directories.
-
-unset( NETCDF_INCLUDES CACHE ) # force FindNetCDF.cmake to reload each time
 
 if( NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR} )
     set( NETCDF_DIR $ENV{NETCDF_DIR} CACHE PATH "Root of NetCDF library" )
