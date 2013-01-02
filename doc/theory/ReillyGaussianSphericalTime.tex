@@ -825,21 +825,53 @@ represents the spatial spreading created by the sampling of the wavefront.
 It manages the 50\% overlap by multiplying the cell width term by two.  Treating the two spreading terms in this way reduces the number of gauusian beam calculations by 2, while avoiding the sudden transitions inherent in taking a maximum value. Normalizing
 Eq.~(\ref{eq:gaussian_each1}) by the combined effect of both spreading sources conserves energy across the wavefront.
 
-\section{Execution Speed Test}
+During development, we evaluated the impact of these changes on propagation into a shadow zone using the downward refracting n\textsuperscript{2} linear environment used in the development of GRAB's minimum beamwidth.
+\begin{equation}
+	c(z) = \cfrac{c_0}{\sqrt{1+\cfrac{2 g_0 z}{c_0}}} \:,
+	\label{eq:n2_linear}
+\end{equation}
+where
+\(c(z)\) is speed of sound as a function of depth;
+\(z\) is depth (positive is down);
+\(c_0\) is the speed of sound at the ocean surface (=1550.0~m/s); and
+\(g_0\) is the sound speed gradient at the ocean surface
+(=1.2~s\textsuperscript{-1}).
 
-\section{Transmission Loss Accuarcy Test}
+Because GRAB's original results for this scenario did not include the effects of a round Earth, an Earth flattening correction must be applied to the sound speed profile\cite{Pekeris1946} before WaveQ3D can generate equivalent results.
+\begin{equation}
+	c(r) = \frac{r}{R} \: c(z) \:, 
+	\label{eq:n2_correction}
+\end{equation}
+where
+$r$ is the radial distance from the center of curvature;
+$R$ is the radius of earth's curvature in this area of operations;
+$c(z)$ is the original sound speed; and
+$c(r)$ is the modified sound speed.
 
-\section{Summary}
+\begin{figure}[th]
+	\centerline{\includegraphics[width=4in]{pedersen_shallow_compare.eps}} 
+	\vspace*{8pt}
+	\caption{Model comparisons at edge of shadow zone. \label{fig:n2_shallow}}
+\end{figure}
+
+Fig.~\ref{fig:n2_shallow} compares the results of WaveQ3D, GRAB, and a full field calculation using the Fast Field Program (FFP) wavenumber integration model.\cite{DiNapoli1980,Brekhovskikh1980}  
+Fig.~\ref{fig:n2_shallow} plots the coherent propagation loss, as a function of range, for a continuous ensonification at 2000 Hz, with the source and receiver both at a depth of 75 meters.  Note that, at all ranges, the FFP result is consistent with an ideal wave equation solution except for the presence of some minor implementation jitter in the ranges above 880~m.  Prior to the shadow zone, all three models produce similar results. In the region beyond 840~m, the WaveQ3D and GRAB transmission loss values are similar to each other, but slightly higher than FFP. This, in concert with other tests that we have done, lead us to believe that WaveQ3D's extension of Gaussian Ray Bundles into three dimensions produces results that are at least as accurate as GRAB, which is the U.S. Navy's standard model for most active sonar applications.  This level of accuracy should be adequate for active sonar simulation/stimulation applications.
+
+\section{Execution Speed Comparisons}
+
+\emph{Work in Progress - In this section, we need to compare WaveQ3D execution speeds to an equivalent calculation using GRAB.  Demonstrates "fast".}
+
+\section{\threeD Wedge TL Comparisons}
+
+\emph{Work in Progress - In this section, we need to compare WaveQ3D propagation loss results to Deane and Buckingham's analytic model for the 3-D wedge.  Demonstrates "accurate".}
+
+\section{Availability}
+
+WaveQ3D is freely available to the research community as an open-source product.  It is distributed as part of the Under Sea Modeling Library (USML), a C++ package that provides the compuational framewwork in which WaveQ3D implemented.  Formal releases and test results are distributed through the Ocean Modleing Library, a web site (http://oalib.hlsresearch.com) that is supported by the U.S. Office of Naval Research as a means of publishing software of general use to the international ocean acoustics community.  Software developers can also participate directly in the WaveQ3D development process through the UnderSeaModelingLibrary project on GitHub (https://github.com/campreilly/UnderSeaModelingLibrary).  Documentation on the application programmer's interface (API) for this software and additional test results are also available from both sources.
 
 \section*{Acknowledgments}
 
-This paper was developed as part of Sean Reilly's PhD studies at the Ocean
-Engineering Department of the University of Rhode Island, under the
-direction of Dr. Gopu Potty and Dr. James Miller. Testing and productization
-of this model were funded by Michael Vaccaro the High Fidelity Active Sonar Training
-(HiFAST) Project at the U.S. Office of Naval Research. 
-The authors would also like to thank Dr. Charles Holland
-(ARL/PS) for his editorial help in preparing this manuscript.
+This paper was developed as part of Sean Reilly's PhD studies at the Ocean Engineering Department of the University of Rhode Island, under the direction of Dr. Gopu Potty and Dr. James Miller. Testing and productization of this model were funded by Michael Vaccaro as part of the High Fidelity Active Sonar Training (HiFAST) Project at the U.S. Office of Naval Research. The authors would also like to thank Dr. Charles Holland (ARL/PS) for his editorial help in preparing this manuscript.
 
 \begin{thebibliography}{0}
 \bibitem{Baxley2000} P. A. Baxley, H. Bucker, M. B. Porter, Comparison of
