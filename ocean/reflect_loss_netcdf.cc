@@ -150,16 +150,23 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
  * @param phase         Change in ray phase in radians (output).
  *                      Phase change not computed if this is NULL.
  */
-    void reflect_loss_netcdf::reflect_loss(
-        const wposition1& location,
-        const seq_vector& frequencies, double angle,
-        vector<double>* amplitude, vector<double>* phase) {
+void reflect_loss_netcdf::reflect_loss(
+    const wposition1& location,
+    const seq_vector& frequencies, double angle,
+    vector<double>* amplitude, vector<double>* phase) {
 
-        double loc[2];
-        loc[0] = location.latitude();
-        loc[1] = location.longitude();
+    double loc[2];
+    loc[0] = location.latitude();
+    loc[1] = location.longitude();
 
-        unsigned prov = province->interpolate(loc);
-        rayleigh[prov]->reflect_loss(location, frequencies, angle,
-			amplitude );
-    }
+    unsigned prov = province->interpolate(loc);
+    rayleigh[prov]->reflect_loss(location, frequencies, angle,
+        amplitude );
+}
+
+/// Destructor
+reflect_loss_netcdf::~reflect_loss_netcdf() {
+	for(int i=0; i<20; i++) {
+        delete[] rayleigh[i];
+	}
+}

@@ -62,6 +62,9 @@ class USML_DECLSPEC reflect_loss_netcdf : public reflect_loss_model {
 			const seq_vector& frequencies, double angle,
 			vector<double>* amplitude, vector<double>* phase=NULL ) ;
 
+
+    ///Desctuctor
+        virtual ~reflect_loss_netcdf();
 } ;
 
 /// @}
