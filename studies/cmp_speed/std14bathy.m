@@ -3556,6 +3556,8 @@ for n = 1:N
     end
 end
 
+% create a color plot of the bathymetry
+
 figure;
 surf( data.longitude, data.latitude, data.depth, ...
     'FaceColor','interp','EdgeColor','none' ) ;
@@ -3566,3 +3568,37 @@ colorbar
 
 print -dpng std14bathy
 saveas(gcf, 'std14bathy', 'fig');
+
+% create CDL file for import into netCDF
+
+fo = fopen('std14bathy.cdl','w');
+fprintf(fo,'netcdf std14bathy {\n');
+fprintf(fo,'dimensions:\n');
+fprintf(fo,'\tlat = %d, lon = %d;\n',N,M);
+fprintf(fo,'variables:\n');
+fprintf(fo,'\tfloat lat(lat), lon(lon), depth(lat,lon);\n');
+fprintf(fo,'\tlat:units = "degrees_north";\n');
+fprintf(fo,'\tlon:units = "degrees_east";\n');
+fprintf(fo,'\tdepth:units = "meters";\n');
+fprintf(fo,'data:\n');
+
+fprintf(fo,'\tlat = ');
+for n=1:(N-1), fprintf(fo,'%.3f,',data.latitude(n)); end
+fprintf(fo,'%d;\n',data.latitude(N));
+
+fprintf(fo,'\tlon = ');
+for m=1:(M-1), fprintf(fo,'%.3f,',data.longitude(m)); end
+fprintf(fo,'%d;\n',data.longitude(M));
+
+fprintf(fo,'\tdepth = \n\t\t');
+for n = 1:N
+    for m = 1:M
+        fprintf(fo,'%.0f,',data.depth(n,m));
+    end
+    fprintf(fo,'\n\t\t');
+end
+fprintf(fo,'\t;\n');
+
+fprintf(fo,'}\n');
+fclose(fo);
+
