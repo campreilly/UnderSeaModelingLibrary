@@ -3,6 +3,7 @@
  * Models plane wave reflection from a bottom province profile.
  */
 #include <usml/ocean/reflect_loss_netcdf.h>
+#include <exception>
 
 using namespace usml::ocean ;
 
@@ -166,7 +167,7 @@ void reflect_loss_netcdf::reflect_loss(
 
 /// Destructor
 reflect_loss_netcdf::~reflect_loss_netcdf() {
-	for(int i=0; i<20; i++) {
-        delete[] rayleigh[i];
+	for(std::vector<reflect_loss_rayleigh*>::iterator iter=rayleigh.begin(); iter != rayleigh.end(); iter++) {
+        delete *iter;
 	}
 }
