@@ -574,15 +574,28 @@ public:
         	if ( _edge_limit[dim] ) {
 				double a = *(_axis[dim]->begin()) ;
 				double b = *(_axis[dim]->rbegin()) ;
-				if ( b < a ) std::swap(a,b) ;   // swap if axis inc is < 0
-				if ( location[dim] <= a ) {
-					location[dim] = a ;
-					_offset[dim] = 0 ;
-				} else if ( location[dim] >= b ) {
-					location[dim] = b ;
-					_offset[dim] = _axis[dim]->size()-2 ;
-				} else {
-					_offset[dim] = _axis[dim]->find_index(location[dim]);
+				double inc = _axis[dim]->increment(0);
+				if ( inc < 0) {                                                     // a > b
+                    if ( location[dim] >= a ) {                                     //left of the axis
+                        location[dim] = a ;
+                        _offset[dim] = 0 ;
+                    } else if ( location[dim] <= b ) {                              //right of the axis
+                        location[dim] = b ;
+                        _offset[dim] = _axis[dim]->size()-2 ;
+                    } else {
+                        _offset[dim] = _axis[dim]->find_index(location[dim]);       //somewhere in-between the endpoints of the axis
+                    }
+				}
+				if (inc > 0 ) {                                                     // a < b
+                    if ( location[dim] <= a ) {                                     //left of the axis
+                        location[dim] = a ;
+                        _offset[dim] = 0 ;
+                    } else if ( location[dim] >= b ) {                              //right of the axis
+                        location[dim] = b ;
+                        _offset[dim] = _axis[dim]->size()-2 ;
+                    } else {
+                        _offset[dim] = _axis[dim]->find_index(location[dim]);       //somewhere in-between the endpoints of the axis
+                    }
 				}
 
             // allow extrapolation if _edge_limit turned off
