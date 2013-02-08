@@ -40,6 +40,7 @@ BOOST_AUTO_TEST_CASE( reflect_loss_netcdf_test ) {
 	BOOST_CHECK_CLOSE(amplitude(0), limestone, tolerance);
 	netcdf.reflect_loss(wposition1(35, -89), frequency, angle, &amplitude);
 	BOOST_CHECK_CLOSE(amplitude(0), limestone, tolerance);
+	cout << "\tAll tests passed.\t" << endl;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

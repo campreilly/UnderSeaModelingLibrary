@@ -194,15 +194,15 @@ BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
 
     #ifdef __FAST_MATH__
         const double depth_accuracy = 0.005 ;
-        const double normal_accuracy = 1e-5 ;
+        const double normal_accuracy = 2e-4 ;
     #else
-        const double depth_accuracy = 1e-6 ;
-        const double normal_accuracy = 1e-6 ;
+        const double depth_accuracy = 5e-4 ;
+        const double normal_accuracy = 2e-4 ;
     #endif
 
     BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 3671.1557116601616, depth_accuracy );
-    BOOST_CHECK_CLOSE( normal.theta(), 0.0, normal_accuracy );
-    BOOST_CHECK_CLOSE( normal.phi(), 0.012764948465248139, normal_accuracy );
+    BOOST_CHECK( abs(normal.theta()) < normal_accuracy );
+    BOOST_CHECK( abs(normal.phi() - 0.012764948465248139) < normal_accuracy );
 }
 
 /**

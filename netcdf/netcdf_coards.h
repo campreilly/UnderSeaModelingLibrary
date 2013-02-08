@@ -62,7 +62,7 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
         const int N = (int) axis->num_vals() ;
         bool isLinear = true ;
         bool isLog = true ;
-        vector<double> data(N) ;
+        boost::numeric::ublas::vector<double> data(N) ;
 
         double p1 = axis->as_double(0) ; data(0) = p1 ;
         double minValue = p1 ;

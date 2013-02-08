@@ -3,6 +3,7 @@
  * Models plane wave reflection from a bottom province profile.
  */
 #include <usml/ocean/reflect_loss_netcdf.h>
+#include <exception>
 
 using namespace usml::ocean ;
 
@@ -68,14 +69,14 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
     double loninc = ( longitude[londim-1] - longitude[0] ) / londim ;
     axis[1] = new seq_linear(longitude[0], loninc, int(londim));
 
-    //+++++++++debug
+#ifdef USML_DEBUG
     cout << "===============axis layout=============" << endl;
     cout << "lat first: " << latitude[0] << "\nlat last: " << latitude[latdim-1] << "\nlat inc: " << latinc <<  "\nnum elements: " << (*axis[0]).size() << endl;
     cout << "lat axis: " << *axis[0] << endl;
     cout << "lon first: " << longitude[0] << "\nlon last: " << longitude[londim-1] << "\nlon inc: " << loninc << endl;
     cout << "lon axis: " << *axis[1] << endl;
     cout << endl;
-    //+++++++++end debug
+#endif
 
     /** Creates a data grid with the above assigned axises and populates the grid with the data from the netcdf file */
     province = new data_grid<double,2>(axis);
@@ -88,7 +89,7 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
         }
     }
 
-    //++++++++debug
+#ifdef USML_DEBUG
     cout << "==========data grid=============" << endl;
     for(int i=0; i<londim; i++) {
         for(int j=0; j<latdim; j++) {
@@ -101,7 +102,7 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
         }
     }
     cout << endl;
-    //+++++++end debug
+#endif
 
     /** Set the interpolation type to the nearest neighbor and restrict extrapolation */
     for(int i=0; i<2; i++){
@@ -114,7 +115,7 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
         rayleigh.push_back( new reflect_loss_rayleigh( density[i], speed[i]/1500, atten[i], shearspd[i]/1500, shearatten[i] ) );
     }
 
-        //debug only
+#ifdef USML_DEBUG
     cout << "Sediment properties:" << endl;
     cout << "\t\tSand\t\tLimestone" << endl;
     cout << "density:\t" << density[0] << "\t\t" << density[1] << endl;
@@ -124,6 +125,7 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
     cout << "shear atten:\t" << shearatten[0] << "\t\t" << shearatten[1] << endl;
     cout << "province:\t" << 0 << "\t\t" << 1 << endl;
     cout << "rayleigh:\t" << rayleigh[0] << "\t" << rayleigh[1] << endl << endl;
+#endif
 
 	delete[] latitude;
 	delete[] longitude;
@@ -133,9 +135,6 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 	delete[] shearspd;
 	delete[] shearatten;
 	delete[] prov_num;
-//	for(int i=0; i<n_types; i++) {
-//        delete[] rayleigh[i];
-//	}
 
 }
 
@@ -150,16 +149,23 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
  * @param phase         Change in ray phase in radians (output).
  *                      Phase change not computed if this is NULL.
  */
-    void reflect_loss_netcdf::reflect_loss(
-        const wposition1& location,
-        const seq_vector& frequencies, double angle,
-        vector<double>* amplitude, vector<double>* phase) {
+void reflect_loss_netcdf::reflect_loss(
+    const wposition1& location,
+    const seq_vector& frequencies, double angle,
+    vector<double>* amplitude, vector<double>* phase) {
 
-        double loc[2];
-        loc[0] = location.latitude();
-        loc[1] = location.longitude();
+    double loc[2];
+    loc[0] = location.latitude();
+    loc[1] = location.longitude();
 
-        unsigned prov = province->interpolate(loc);
-        rayleigh[prov]->reflect_loss(location, frequencies, angle,
-			amplitude );
-    }
+    unsigned prov = province->interpolate(loc);
+    rayleigh[prov]->reflect_loss(location, frequencies, angle,
+        amplitude );
+}
+
+/// Destructor
+reflect_loss_netcdf::~reflect_loss_netcdf() {
+	for(std::vector<reflect_loss_rayleigh*>::iterator iter=rayleigh.begin(); iter != rayleigh.end(); iter++) {
+        delete *iter;
+	}
+}
