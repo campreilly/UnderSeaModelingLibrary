@@ -94,7 +94,7 @@ public:
  *      - \f$ c      \f$ = 1500 m/sec
  *      - \f$ \tau   \f$ = 7.450560973 sec
  *
- * Uses a 1 millisecond time step so that the time and location of the
+ * Uses a 100 millisecond time step so that the time and location of the
  * collision can be compared to the analytic valaues without breaking
  * into the guts of the reflection model.
  */
@@ -102,8 +102,12 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
     cout << "=== reflection_test: reflect_flat_test ===" << endl ;
     try {
 
+        const double src_lat = 45.0; // default to 45 degrees
+
         // initialize propagation model
 
+        // Ensure static (global scope of test framework) set
+        wposition::compute_earth_radius(src_lat) ;
         const double c0 = 1500.0 ;
         profile_model*  profile = new profile_linear(c0) ;
         boundary_model* surface = new boundary_flat() ;
@@ -114,7 +118,7 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
         wposition1 pos( 45.0, -45.0, 0.0 ) ;
         seq_linear de( -5.183617057, 0.0, 1 ) ;  // steer down
         seq_linear az( 0.0, 0.0, 1 ) ;           // north
-        const double time_step = 0.1 ;
+        const double time_step = 0.1 ;           // 100 msec
 
         wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
         reflection_callback callback ;
