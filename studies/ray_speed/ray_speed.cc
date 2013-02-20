@@ -45,10 +45,10 @@ int main( int argc, char* argv[] ) {
     wposition::compute_earth_radius( (lat1+lat2)/2.0 ) ;
 
     wposition1 pos( 36.0, 16.0, -10.0 ) ;
-//    seq_rayfan de( -90.0, 90.0, 181 ) ;
-//    seq_linear az( 0.0, 15.0, 360.0 ) ;
-    seq_linear de( -90.0, 1.0, 3 ) ;
-    seq_linear az( 0.0, 1.0, 3 ) ;
+    seq_rayfan de( -90.0, 90.0, 181 ) ;
+    seq_linear az( 0.0, 15.0, 360.0 ) ;
+//    seq_linear de( -32.3182, 1.0, 3 ) ;
+//    seq_linear az( 105, 1.0, 3 ) ;
     const double time_max = 60.0 ;
     const double time_step = 0.100 ;
 
@@ -76,6 +76,7 @@ int main( int argc, char* argv[] ) {
     boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
     	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
 	lat1, lat2, lng1, lng2 ) ) ;
+//	bottom->reflect_loss(new reflect_loss_constant(0.0));
 //    boundary_model* bottom = new boundary_flat(3000.0);
     double height ;
     wvector1 normal ;

@@ -76,6 +76,7 @@ template< class DATA_TYPE, int NUM_DIMS > class profile_mackenzie
             attmodel )
     {
         this->_sound_speed->interp_type(0,GRID_INTERP_PCHIP) ;
+        this->_sound_speed->edge_limit(0,true);
         this->_sound_speed->edge_limit(1,false);
         this->_sound_speed->edge_limit(2,false);
 
