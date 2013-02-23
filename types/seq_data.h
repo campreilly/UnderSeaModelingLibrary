@@ -1,4 +1,4 @@
-/** 
+/**
  * @file seq_data.h
  * Sequence defined by an unevenly spaced vector of points.
  */
@@ -75,6 +75,9 @@ public:
     virtual size_type find_index(value_type value) {
 
         // check for a redundant search
+        if (_max_index == 0) {
+            return 0;
+        }
 
         if (value == _value) {
             return _index;
@@ -144,6 +147,7 @@ public:
         _index = 0 ;
         _value = data[0] ;
         _sign = 1.0;
+        _data[0] = _value;
         if (_max_index > 0) {
 
             // process first element
@@ -152,7 +156,6 @@ public:
             if (left < 0) {
                 _sign = -1.0;
             }
-            _data[0] = data[0] ;
             _increment[0] = left;
 
             // process middle elements
