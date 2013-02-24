@@ -1,16 +1,16 @@
 # Cross platform build environment for the libraries and regression tests of
-# the Under Sea Modeling Library (USML). 
+# the Under Sea Modeling Library (USML).
 #
-# This script traverses the active modules and collects all library source 
-# files and headers into a single add_library() call for the usml target.  
-# It then collects all regression tests into a single add_executable() 
-# call for the usml_test target. Several of these tests require data 
+# This script traverses the active modules and collects all library source
+# files and headers into a single add_library() call for the usml target.
+# It then collects all regression tests into a single add_executable()
+# call for the usml_test target. Several of these tests require data
 # files to be generated, and many of these require the use of NCKS.
 # Finally, it builds the USML studies.
 #
 # The source_group() command is used to organize the files into
-# subgroups in IDE's such as Visual C++ and Eclipse.  Note that the 
-# Code::Blocks generator does not currently support the source_group() 
+# subgroups in IDE's such as Visual C++ and Eclipse.  Note that the
+# Code::Blocks generator does not currently support the source_group()
 # command.
 #
 cmake_minimum_required( VERSION 2.6 )
@@ -53,12 +53,12 @@ else( CMAKE_COMPILER_IS_GNUCXX )
         set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
     endif()
     if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) ) # no optimizations
-        add_definitions( -O0 )          
+        add_definitions( -O0 )
     else()                              	# max optimizations
         add_definitions( -g -ffast-math )
     endif()
     if ( USML_PEDANTIC )                	# standards compliance
-        add_definitions( -std=c++98 -pedantic -Wall -Werror 
+        add_definitions( -std=c++98 -pedantic -Wall -Werror
 	    -Wno-long-long -Wno-sign-compare)
     endif ( USML_PEDANTIC )
     if ( NOT BUILD_SHARED_LIBS )
@@ -76,13 +76,13 @@ include_directories( ${PROJECT_SOURCE_DIR}/.. )
 # but it must be set immediately after the cache is cleared, and before
 # the FindBoost script is executed.
 
-set( Boost_DEBUG OFF ) 
+set( Boost_DEBUG OFF )
 unset( Boost_INCLUDE_DIR CACHE ) # force FindBoost.cmake to reload each time
 
 if ( BOOST_ROOT )
     set( Boost_NO_SYSTEM_PATHS ON )
-    set( Boost_INCLUDE_DIR ${BOOST_ROOT}/include ) 
-    set( BOOST_LIBRARYDIR ${BOOST_ROOT}/lib ) 
+    set( Boost_INCLUDE_DIR ${BOOST_ROOT}/include )
+    set( BOOST_LIBRARYDIR ${BOOST_ROOT}/lib )
 endif()
 
 if ( BUILD_SHARED_LIBS )
@@ -93,7 +93,7 @@ else ( BUILD_SHARED_LIBS )
     set( Boost_USE_STATIC_LIBS ON )
 endif ( BUILD_SHARED_LIBS )
 
-set(Boost_ADDITIONAL_VERSIONS 
+set(Boost_ADDITIONAL_VERSIONS
 	"1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.520")
 find_package( Boost 1.41 REQUIRED COMPONENTS
     unit_test_framework        # for usml_test.exe
@@ -272,6 +272,9 @@ target_link_libraries( malta_movie usml )
 
 add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 target_link_libraries( malta_rays usml )
+
+add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
+target_link_libraries( cmp_speed usml )
 
 set_property(
    TARGET ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
