@@ -6,16 +6,16 @@ clear all; close all;
 load std14raw
 latitude = unique(latitude) ; N = length(latitude) ;
 longitude = unique(longitude) ; M = length(longitude) ;
-depth = svp0001(:,1)'; D = length(depth) ;
+depth = -svp0001(:,1)'; D = length(depth) ;
 
 profile = reshape(profile,N,M)';
-speed = zeros(N,M,D);
+speed = zeros(D,N,M);
 for n = 1:N
     for m = 1:M
-        eval(sprintf('speed(n,m,:)=svp%04d(:,2);',profile(n,m)));
+        eval(sprintf('speed(:,n,m)=svp%04d(:,2);',profile(n,m)));
     end
 end
-plot( squeeze(speed(1,:,:)), -depth ) ;
+plot( squeeze(speed(:,1,:)), depth ) ;
 
 save std14profile latitude longitude depth speed
 
@@ -24,14 +24,15 @@ save std14profile latitude longitude depth speed
 fo = fopen('std14profile.cdl','w');
 fprintf(fo,'netcdf std14profile {\n');
 fprintf(fo,'dimensions:\n');
-fprintf(fo,'\tdepth = %d, lat = %d, lon = %d;\n',D,N,M);
+fprintf(fo,'\ttime = 1, depth = %d, lat = %d, lon = %d;\n',D,N,M);
 fprintf(fo,'variables:\n');
-fprintf(fo,'\tfloat depth(depth), lat(lat), lon(lon), speed(depth,lat,lon);\n');
+fprintf(fo,'\tfloat time(time), depth(depth), lat(lat), lon(lon), speed(time,depth,lat,lon);\n');
 fprintf(fo,'\tdepth:units = "meters";\n');
 fprintf(fo,'\tlat:units = "degrees_north";\n');
 fprintf(fo,'\tlon:units = "degrees_east";\n');
 fprintf(fo,'\tspeed:units = "meters/sec";\n');
 fprintf(fo,'data:\n');
+fprintf(fo,'\ttime = 0 ;\n');
 
 fprintf(fo,'\tdepth = ');
 for d=1:(D-1), fprintf(fo,'%.3f,',depth(d)); end
@@ -49,7 +50,7 @@ fprintf(fo,'\tspeed = \n\t\t');
 for d = 1:D
     for n = 1:N
         for m = 1:M
-            fprintf(fo,'%.2f,',speed(n,m,d));
+            fprintf(fo,'%.2f,',speed(d,n,m));
         end
         fprintf(fo,'\n\t\t');
     end
