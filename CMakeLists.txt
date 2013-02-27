@@ -276,9 +276,6 @@ target_link_libraries( malta_movie usml )
 add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 target_link_libraries( malta_rays usml )
 
-add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
-target_link_libraries( cmp_speed usml )
-
 set_property(
    TARGET cmp_speed ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
    PROPERTY COMPILE_DEFINITIONS
