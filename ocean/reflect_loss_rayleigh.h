@@ -1,4 +1,4 @@
-/** 
+/**
  * @file reflect_loss_rayleigh.h
  * Models plane wave reflection from a flat fluid-solid interface.
  * Includes LaTEX documentation of formula for processing by Doxygen.
@@ -20,7 +20,7 @@ namespace ocean {
  * Includes the effects of both compression and shear waves in the bottom.
  * Note that the Rayleigh model is frequency independent because
  * all of the frequency terms cancel out.
- *  
+ *
  * The effect of attenuation is incorporated into the model as
  * a complex component of the sound speed:
  * \f[
@@ -29,7 +29,7 @@ namespace ocean {
  *          c_b = c_{rb}-i \frac{ \alpha_b c_{rb}^2 }{ \omega }
  * \f]\f[
  *          \alpha_b = \frac{ \alpha_{\lambda b} }{ \lambda_b 20 \log{e} }
- * \f] 
+ * \f]
  * where:
  *   - \f$ c_n        \f$ = complex sound speed in medium "n" (m/s)
  *   - \f$ c_{rn}     \f$ = real component of sound speed in medium "n" (m/s)
@@ -37,12 +37,12 @@ namespace ocean {
  *   - \f$ \lambda_b  \f$ = wavelength in bottom = \f$ c_{rb} / f \f$
  *   - \f$ \alpha_b   \f$ = attenuation coefficient in bottom (nepers/meter)
  *
- * The effect of absorption on the in-water sound speed is 
+ * The effect of absorption on the in-water sound speed is
  * assumed to be negligible.
- * 
+ *
  * The complex reflection coefficient is modeled as a combination of
  * the acoustic impedances for compressional and shear waves.
- * The effect of shear on the in-water impedance is assumed to be negligible. 
+ * The effect of shear on the in-water impedance is assumed to be negligible.
  * \f[
  *          Z_{pn} = \frac{ \rho_n c_n }{ cos(\theta_{pn}) }
  * \f]\f[
@@ -57,9 +57,9 @@ namespace ocean {
  * where:
  *   - \f$ \rho_n  \f$ = density of medium "n" (kg/m^3)
  *   - \f$ c_{sb}  \f$ = complex shear speed in bottom (m/s)
- *   - \f$ \theta_{pn} \f$ = angle between ray and surface normal 
+ *   - \f$ \theta_{pn} \f$ = angle between ray and surface normal
  *          in medium "n" for compression waves (radians)
- *   - \f$ \theta_{sn} \f$ = angle between ray and surface normal 
+ *   - \f$ \theta_{sn} \f$ = angle between ray and surface normal
  *          in bottom for shear waves (radians)
  *   - \f$ Z_{pn}  \f$ = compression waves impedance in medium "n"
  *   - \f$ Z_{sn}  \f$ = shear wave impedance in bottom
@@ -69,14 +69,14 @@ namespace ocean {
  * The angles between the ray and surface normal in each medium is
  * computed using Snell's Law:
  * \f[
- *      \frac{sin(\theta_w)}{c_w} = 
+ *      \frac{sin(\theta_w)}{c_w} =
  *      \frac{sin(\theta_{pb})}{c_{pb}} =
  *      \frac{sin(\theta_{sb})}{c_{sb}}
  * \f]
  *
- * Note that the sin() and cos() terms in this derivation have been 
- * inverted from the reference to take into account the difference 
- * between grazing angle and angle to the surface normal. 
+ * Note that the sin() and cos() terms in this derivation have been
+ * inverted from the reference to take into account the difference
+ * between grazing angle and angle to the surface normal.
  *
  * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
  * "Computational Ocean Acoustics", pp. 35-49.
@@ -91,9 +91,9 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
 
     /** Bottom types supported by table lookup feature. */
     typedef enum {
-        CLAY, SILT, SAND, GRAVEL, MORAINE, CHALK, LIMESTONE, BASALT
+        CLAY, SILT, SAND, GRAVEL, MORAINE, CHALK, LIMESTONE, BASALT, MUD
     } bottom_type_enum ;
-    
+
   private:
 
     /** Bottom types lookup table. */
@@ -126,7 +126,7 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
 
     /** Shear speed of sound in bottom (m/s). */
     const double _speed_shear ;
-    
+
     /** Shear wave attenuation in bottom (nepers/wavelength). */
     const double _att_shear ;
 
@@ -136,7 +136,7 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
      * Initialize model with a generic bottom type.  Uses an internal
      * lookup table to convert into impedance mis-match factors.
      *
-     * @param type          Generic bottom for table lookup of 
+     * @param type          Generic bottom for table lookup of
      *                      impedance mis-match factors.
      */
     reflect_loss_rayleigh( bottom_type_enum type ) ;
@@ -145,18 +145,18 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
      * Initialize model with impedance mis-match factors.  Defined in terms
      * of ratios to match commonly used databases.
      *
-     * @param density       Ratio of bottom density to water density 
+     * @param density       Ratio of bottom density to water density
      *                      Water density is assumed to be 1000 kg/m^3.
      * @param speed         Ratio of compressional sound speed in the bottom to
      *                      the sound speed in water. The sound speed in water
      *                      is assumed to be 1500 m/s.
-     * @param att_bottom    Compressional wave attenuation in bottom 
+     * @param att_bottom    Compressional wave attenuation in bottom
      *                      (dB/wavelength).  No attenuation if this is zero.
      * @param speed_shear   Ratio of shear wave sound speed in the bottom to
-     *                      the sound speed in water. 
+     *                      the sound speed in water.
      * @param att_shear     Shear wave attenuation in bottom (dB/wavelength).
      */
-    reflect_loss_rayleigh( 
+    reflect_loss_rayleigh(
         double density, double speed, double att_bottom=0.0,
         double speed_shear=0.0, double att_shear=0.0 ) ;
 
@@ -170,8 +170,8 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
      * @param phase         Change in ray phase in radians (output).
      *                      Phase change not computed if this is NULL.
      */
-    virtual void reflect_loss( 
-        const wposition1& location, 
+    virtual void reflect_loss(
+        const wposition1& location,
         const seq_vector& frequencies, double angle,
         vector<double>* amplitude, vector<double>* phase=NULL ) ;
 
@@ -181,18 +181,18 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
      * Compute impendence for compression or shear waves with attenuation.
      * Includes the Snell's Law computation of transmitted angle.
      *
-     * @param density       Ratio of bottom density to water density 
+     * @param density       Ratio of bottom density to water density
      *                      Water density is assumed to be 1000 kg/m^3.
      * @param speed         Ratio of compressional sound speed in the bottom to
      *                      the sound speed in water. The sound speed in water
      *                      is assumed to be 1500 m/s.
-     * @param attenuation   Compressional wave attenuation in bottom 
+     * @param attenuation   Compressional wave attenuation in bottom
      *                      (dB/wavelength).  No attenuation if this is zero.
      * @param angle         Reflection angle relative to the normal (radians).
      * @param cosA          Returns the cosine of the transmitted angle
      *                      computed using Snell's Law.
      */
-    complex<double> impedence( 
+    complex<double> impedence(
         double density, double speed, double attenuation, double angle,
         complex< double >* cosA ) ;
 } ;

@@ -66,7 +66,7 @@ int main( int argc, char* argv[] ) {
             USML_STUDIES_DIR "/cmp_speed/std14bathy.nc", lat1, lat2, lng1, lng2,
             wposition::earth_radius ) ) ;
 
-    // bottom->reflect_loss(new reflect_loss_rayleigh(reflect_loss_rayleigh::MUD));
+    bottom->reflect_loss(new reflect_loss_rayleigh(reflect_loss_rayleigh::MUD));
 
 //// Bathy Testing
 //    wposition1 seaPoint( 22.332, -162.615 ) ;

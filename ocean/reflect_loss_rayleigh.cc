@@ -1,4 +1,4 @@
-/** 
+/**
  * @file reflect_loss_rayleigh.cc
  * Models plane wave reflection from a flat fluid-solid interface.
  */
@@ -16,16 +16,16 @@ using namespace usml::ocean ;
  */
 static const double ATT_CONVERT = 1.0 / (20.0*M_LOG10E*TWO_PI);
 
-/** 
- * Reflection loss parameter lookup from table 1.3 in 
+/**
+ * Reflection loss parameter lookup from table 1.3 in
  * F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
  * "Computational Ocean Acoustics", pp. 41.
  * Does not implement the weak, depth dependent, shear
  * in slit, sand, and gravel.  Don't use this table if
  * more precision is called for.
  */
-struct reflect_loss_rayleigh::bottom_type_table 
-    reflect_loss_rayleigh::lookup[] = 
+struct reflect_loss_rayleigh::bottom_type_table
+    reflect_loss_rayleigh::lookup[] =
 {
 //    type        den  spd   att  shear  satt
 //    ---------   ---  ----  ---  -----  ----
@@ -37,14 +37,15 @@ struct reflect_loss_rayleigh::bottom_type_table
     { CHALK,      2.2, 1.60, 0.2, 0.67,  0.5  },
     { LIMESTONE,  2.4, 2.00, 0.1, 1.00,  0.2  },
     { BASALT,     2.7, 3.50, 0.1, 1.67,  0.2  },
+    { MUD,        1.1474189, 0.9848732, 0.0151946, 0.02, 0.02 },                    ///< CASS rayleigh MUD parameters
 } ;
 
 /**
  * Initialize model with impedance mis-match factors.
  */
-reflect_loss_rayleigh::reflect_loss_rayleigh( 
+reflect_loss_rayleigh::reflect_loss_rayleigh(
     bottom_type_enum type
-) : 
+) :
     _density_water(1000.0),
     _speed_water(1500.0),
     _density_bottom( _density_water * lookup[(int)type].density ),
@@ -53,12 +54,12 @@ reflect_loss_rayleigh::reflect_loss_rayleigh(
     _speed_shear( _speed_water * lookup[(int)type].speed_shear ),
     _att_shear( lookup[(int)type].att_shear * ATT_CONVERT )
 {
-} 
+}
 
 /**
  * Initialize model with impedance mis-match factors.
  */
-reflect_loss_rayleigh::reflect_loss_rayleigh( 
+reflect_loss_rayleigh::reflect_loss_rayleigh(
     double density, double speed, double att_bottom,
     double speed_shear, double att_shear
 ) :
@@ -70,39 +71,39 @@ reflect_loss_rayleigh::reflect_loss_rayleigh(
     _speed_shear( _speed_water * speed_shear ),
     _att_shear( att_shear * ATT_CONVERT )
 {
-} 
+}
 
 /**
  * Computes the broadband reflection loss and phase change.
  */
-void reflect_loss_rayleigh::reflect_loss( 
-    const wposition1& location, 
+void reflect_loss_rayleigh::reflect_loss(
+    const wposition1& location,
     const seq_vector& frequencies, double angle,
     vector<double>* amplitude, vector<double>* phase )
 {
     if ( angle >= M_PI_2 ) angle = M_PI_2 - 1e-10 ;
-    
+
     // compute acoustic impedence in water
-    
+
     double Zw = _speed_water * _density_water / cos(angle) ;
-    
+
     // compute compression wave reflection components
-    
+
     complex<double> cosAp, cosAs ;
-    complex<double> Zb = impedence( 
+    complex<double> Zb = impedence(
         _density_bottom, _speed_bottom, _att_bottom, angle, &cosAp ) ;
-        
+
     // compute shear wave reflection components
-    
+
     if ( _speed_shear != 0.0 || _att_shear != 0.0 ) {
-        const complex<double> Zs = impedence( 
+        const complex<double> Zs = impedence(
             _density_bottom, _speed_shear, _att_shear, angle, &cosAs ) ;
         const complex<double> sinAs = sqrt( 1.0 - cosAs*cosAs ) ;
         const complex<double> cos2As = 2.0 * cosAs * cosAs - 1.0 ;
         const complex<double> sin2As = 2.0 * sinAs * cosAs ;
         Zb = Zb * cos2As * cos2As + Zs * sin2As * sin2As ;
     }
-        
+
     // compute complex reflection coefficient
 
     complex<double> R = ( Zb - Zw ) / ( Zb + Zw ) ;
@@ -117,9 +118,9 @@ void reflect_loss_rayleigh::reflect_loss(
 /**
  * Compute impendence for compression or shear waves with attenuation.
  */
-complex<double> reflect_loss_rayleigh::impedence( 
+complex<double> reflect_loss_rayleigh::impedence(
     double density, double speed, double attenuation, double angle,
-    complex< double >* cosA ) 
+    complex< double >* cosA )
 {
     const complex< double > c( speed, -attenuation*speed ) ;
     const complex< double > sinA = sin(angle) * c / _speed_water ;
