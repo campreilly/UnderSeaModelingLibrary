@@ -1,4 +1,4 @@
-/** 
+/**
  * @file netcdf_profile.cc
  * Extracts ocean profile data from world-wide databases.
  */
@@ -9,7 +9,7 @@ using namespace usml::netcdf ;
 /**
  * Load ocean profile from disk.
  */
-netcdf_profile::netcdf_profile( 
+netcdf_profile::netcdf_profile(
     const char* profile, double date,
     double south, double north, double west, double east,
     double earth_radius )
@@ -19,7 +19,7 @@ netcdf_profile::netcdf_profile(
     double missing = NAN ;   // default value for missing information
     NcVar *time, *altitude, *latitude, *longitude, *value ;
     NcFile pfile( profile ) ;
-    decode_filetype( pfile, &missing, &time, &altitude, 
+    decode_filetype( pfile, &missing, &time, &altitude,
                      &latitude, &longitude, &value ) ;
 
     // find the time closest to the specified value
@@ -33,7 +33,7 @@ netcdf_profile::netcdf_profile(
             time_index = t ;
         }
     }
-                        
+
     // read altitude axis data from NetCDF variable
 
     const int alt_num = (int) altitude->num_vals() ;
@@ -42,9 +42,9 @@ netcdf_profile::netcdf_profile(
         vect[d] = earth_radius - abs( altitude->as_double(d) ) ;
     }
     this->_axis[0] = new seq_data( vect ) ;
-    
+
     // manage wrap-around between eastern and western hemispheres
-    
+
     double offset = 0.0 ;
     if ( longitude->as_double(0) < 0.0 ) {
         // if database has a range (-180,180)
@@ -82,13 +82,17 @@ netcdf_profile::netcdf_profile(
     a = longitude->as_double(0) ;
     n = (int) longitude->num_vals() - 1 ;
     inc = ( longitude->as_double(n) - a ) / n ;
-    const int lng_first = (int) floor( 1e-6 + (west-a) / inc ) ;
+    int lng_first = (int) floor( 1e-6 + (west-a) / inc ) ;
+    if (lng_first < 0) {  // Prevent request for data outside
+        lng_first = 0;    // of the data provided, on the left side.
+    }
     const int lng_last = (int) floor( 0.5 + (east-a) / inc ) ;
     const int lng_num = lng_last - lng_first + 1 ;
     this->_axis[2] = new seq_linear(
         to_radians(lng_first*inc+a-offset),
         to_radians(inc),
         lng_num ) ;
+
     // cout << " a=" << a << " n=" << n << " inc=" << inc << endl ;
     // cout << " lng_first=" << lng_first << " lng_last=" << lng_last << " lng_num=" << lng_num << endl ;
 
@@ -106,7 +110,7 @@ netcdf_profile::netcdf_profile(
 
     // support datasets that cross the unwrapping longitude
     // assumes that bathy data is NOT repeated on both sides of cut point
-    
+
     } else {
         int M = lng_last - longitude->num_vals() + 1 ;  // # pts on east side
         int N = lng_num - M ;                           // # pts on west side
@@ -114,7 +118,7 @@ netcdf_profile::netcdf_profile(
         // cout << " N=" << N << " M=" << M << endl ;
         for ( int alt = 0 ; alt < alt_num ; ++alt ) {
             for ( int lat = lat_first ; lat <= lat_last ; ++lat ) {
-                
+
                 // the west side of the block is the portion from
                 // lng_first to the last latitude
                 value->set_cur( time_index, alt, lat, lng_first ) ;
@@ -133,7 +137,7 @@ netcdf_profile::netcdf_profile(
 
     // change missing values in the file to NaN in memory
     // don't execute if netCDF file didn't specify a "missing" value
-    
+
     if ( ! isnan(missing) ) {
         const int N = alt_num * lat_num * lng_num ;
         double* ptr = this->_data ;
@@ -143,7 +147,7 @@ netcdf_profile::netcdf_profile(
         }
     }
 }
-    
+
 /**
  * Fill missing values with average data at each depth.
  */
@@ -155,15 +159,15 @@ void netcdf_profile::fill_missing() {
     unsigned index[3] ;
 
     // compute average value at each depth
-    
+
     data_grid<double,1> average( this->_axis ) ;
     data_grid<double,1> number( this->_axis ) ;
-    
+
     for ( int alt = 0 ; alt < alt_num ; ++alt ) {
         index[0] = alt ;
-        
+
         // sum non-NAN data from all lat/longs
-        
+
         for ( int lat = 0 ; lat < lat_num ; ++lat ) {
             index[1] = lat ;
             for ( int lng = 0 ; lng < lng_num ; ++lng ) {
@@ -175,10 +179,10 @@ void netcdf_profile::fill_missing() {
                 }
             }
         }
-        
+
         // divide data sum by number of observations
         // use value from previous depth if all lat/longs are NAN
-        
+
         if ( number.data(index) == 0.0 ) {
             if ( index[0] <= 0 ) {
                 average.data( index, NAN ) ;
@@ -193,7 +197,7 @@ void netcdf_profile::fill_missing() {
     }
 
     // fill in missing values with average values
-    
+
     for ( int alt = 0 ; alt < alt_num ; ++alt ) {
         index[0] = alt ;
         for ( int lat = 0 ; lat < lat_num ; ++lat ) {
@@ -212,9 +216,9 @@ void netcdf_profile::fill_missing() {
 /**
  * Deduces the variables to be loaded based on their dimensionality.
  */
-void netcdf_profile::decode_filetype( 
+void netcdf_profile::decode_filetype(
     NcFile& file, double *missing, NcVar **time,
-    NcVar **altitude, NcVar **latitude, NcVar **longitude, 
+    NcVar **altitude, NcVar **latitude, NcVar **longitude,
     NcVar **value )
 {
     bool found = false ;
@@ -223,32 +227,37 @@ void netcdf_profile::decode_filetype(
         if ( var->num_dims() == 4 ) {
             // extract profile variable
             *value = var ;
-            
+
             // extract time variable
             NcDim* dim = var->get_dim(0) ;
-            *time = file.get_var( dim->name() ) ;  
-             
+            *time = file.get_var( dim->name() ) ;
+
             // extract altitude variable
             dim = var->get_dim(1) ;
-            *altitude = file.get_var( dim->name() ) ;  
-             
+            *altitude = file.get_var( dim->name() ) ;
+
             // extract latitude variable
             dim = var->get_dim(2) ;
-            *latitude = file.get_var( dim->name() ) ;  
-             
+            *latitude = file.get_var( dim->name() ) ;
+
             // extract longitude variable
             dim = var->get_dim(3) ;
-            *longitude = file.get_var( dim->name() ) ;   
+            *longitude = file.get_var( dim->name() ) ;
 
+            { // Handle ncdfiles with no diffault _FillValue
+            NcError* ncdfError = new NcError(NcError::verbose_nonfatal) ;
             // extract missing attribute
-            NcAtt* att = var->get_att("_FillValue") ;
-            if ( att ) {
-                NcValues* values = att->values() ;
-                *missing = values->as_double(0) ;
-                delete att ; delete values ;
+                NcAtt* att = var->get_att("_FillValue") ;
+                if (att) {
+                    NcValues* values = att->values() ;
+                    *missing = values->as_double(0) ;
+                    delete att ; delete values ;
+                }
+                delete ncdfError;
             }
-            
-            // stop searching            
+
+
+            // stop searching
             found = true ;
             break ;
         }

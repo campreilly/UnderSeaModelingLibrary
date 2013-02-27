@@ -59,15 +59,19 @@ netcdf_bathy::netcdf_bathy(
     a = longitude->as_double(0) ;
     n = longitude->num_vals() - 1 ;
     inc = ( longitude->as_double(n) - a ) / n ;
-    const int lng_first = (int) floor( 1e-6 + (west-a) / inc ) ;
+    int lng_first = (int) floor( 1e-6 + (west-a) / inc ) ;
+    if (lng_first < 0 ) {  // Prevent request for data outside
+        lng_first = 0;     // of the data provided, on the left side.
+    }
     const int lng_last = (int) floor( 0.5 + (east-a) / inc ) ;
     const int lng_num = lng_last - lng_first + 1 ;
     this->_axis[1] = new seq_linear(
         to_radians(lng_first*inc+a-offset),
         to_radians(inc),
         lng_num ) ;
-     // cout << " a=" << a << " n=" << n << " inc=" << inc << endl ;
-     // cout << " lng_first=" << lng_first << " lng_last=" << lng_last << " lng_num=" << lng_num << endl ;
+
+    //cout << " a=" << a << " n=" << n << " inc=" << inc << endl ;
+    //cout << " lng_first=" << lng_first << " lng_last=" << lng_last << " lng_num=" << lng_num << endl ;
 
     // check to see if database has duplicate data at cut point
 
