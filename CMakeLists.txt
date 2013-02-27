@@ -258,6 +258,9 @@ set_property(
 set( USML_STUDIES_DIR ${PROJECT_SOURCE_DIR}/studies
      CACHE PATH "directory for data used in testing" )
 
+add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
+target_link_libraries( cmp_speed usml )
+
 add_executable( ray_speed studies/ray_speed/ray_speed.cc )
 target_link_libraries( ray_speed usml )
 
@@ -277,7 +280,7 @@ add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
 target_link_libraries( cmp_speed usml )
 
 set_property(
-   TARGET ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
+   TARGET cmp_speed ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
    PROPERTY COMPILE_DEFINITIONS
 	USML_DATA_DIR="${USML_DATA_DIR}"
 	USML_STUDIES_DIR="${USML_STUDIES_DIR}"

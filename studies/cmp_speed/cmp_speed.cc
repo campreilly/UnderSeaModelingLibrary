@@ -27,9 +27,9 @@ using namespace usml::netcdf ;
  * Command line interface.
  */
 int main( int argc, char* argv[] ) {
-    cout << "=== ray_speed ===" << endl ;
+    cout << "=== cmp_speed ===" << endl ;
 
-    int num_targets = 100 ;
+    int num_targets = 100;
     if ( argc > 1 ) {
         num_targets = atoi( argv[1] ) ;
     }
@@ -38,40 +38,69 @@ int main( int argc, char* argv[] ) {
 
     seq_linear freq( 250.0, 1.0, 1 ) ;
     wposition::compute_earth_radius( 19.52 ) ;
-    wposition1 pos( 19.52, -160.5, -200.0 ) ;
+    wposition1 src_pos( 19.52, -160.5, -200.0 ) ;
     seq_rayfan de( -90.0, 90.0, 181 ) ;
     seq_linear az( 0.0, 15.0, 360.0 ) ;
+    const double target_depth = 100.0; // Meters
+    const double target_range = 100000.0; // Meters
     const double time_max = 80.0 ;
     const double time_step = 0.100 ;
 
     // load STD14 environmental data from netCDF files
 
-    cout << "load STD14 environmental data" << endl ;
     const double lat1 = 16.2 ;
     const double lat2 = 24.6 ;
-    const double lng1 = -164.7 ;
-    const double lng2 = -155.4 ;
+    const double lng1 = -164.4;
+    const double lng2 = -155.5 ;
+
+    cout << "load STD14 environmental profile data" << endl ;
     profile_model* profile = new profile_grid<double,3>( new netcdf_profile(
-            USML_STUDIES_DIR "/std14profile.nc", 0.0, lat1, lat2, lng1, lng2,
-            wpostion::earth_radius ) ) ;
+            USML_STUDIES_DIR "/cmp_speed/std14profile.nc", 0.0, lat1, lat2, lng1, lng2,
+            wposition::earth_radius ) ) ;
+
+//  attenuation_model* attn = new attenuation_constant(0.0);
+//  profile_model* profile = new profile_linear(1500.0,attn);
+
+    cout << "load STD14 environmental bathy data" << endl ;
     boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
-            USML_STUDIES_DIR "/std14bathy.nc", lat1, lat2, lng1, lng2,
-            wpostion::earth_radius ) ) ;
+            USML_STUDIES_DIR "/cmp_speed/std14bathy.nc", lat1, lat2, lng1, lng2,
+            wposition::earth_radius ) ) ;
+
+    // bottom->reflect_loss(new reflect_loss_rayleigh(reflect_loss_rayleigh::MUD));
+
+//// Bathy Testing
+//    wposition1 seaPoint( 22.332, -162.615 ) ;
+//    double rho;
+//    bottom->height(seaPoint, &rho);
+//    cout << "height  " <<  wposition::earth_radius - rho << endl;
+
     boundary_model* surface = new boundary_flat() ;
+
+//	  bottom->reflect_loss(new reflect_loss_constant(0.0));  // Total Reflection
+//    boundary_model* bottom = new boundary_flat(3000.0);    // Flat Bottom
+
     ocean_model ocean( surface, bottom, profile ) ;
 
     // initialize proploss targets and wavefront
 
     cout << "initialize " << num_targets << " targets" << endl ;
-    randgen::seed(0) ;  // fix the initial seed
-    wposition target( num_targets, 1, pos.latitude(), pos.longitude(), pos.altitude() ) ;
-    for ( unsigned n=0 ; n < target.size1() ; ++n ) {
-        target.latitude(  n, 0, pos.latitude() + randgen::uniform() - 0.5 ) ;
-        target.longitude( n, 0, pos.longitude() + randgen::uniform() - 0.5 ) ;
+
+    wposition target( num_targets, 1, src_pos.latitude(), src_pos.longitude(), target_depth ) ;
+    // build a series of targets at 100 km
+    double angle = TWO_PI/num_targets;
+    double bearing_inc = angle;
+    for (unsigned n = 0; n < num_targets; ++n) {
+        wposition1 aTarget( src_pos, target_range, bearing_inc) ;
+        target.latitude( n, 0, aTarget.latitude());
+        target.longitude( n, 0, aTarget.longitude());
+        target.altitude( n, 0, aTarget.altitude());
+        bearing_inc = bearing_inc + angle;
     }
+
     proploss loss( &target ) ;
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss ) ;
-//    wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
+
+    //loss->
+    wave_queue wave( ocean, freq, src_pos, de, az, time_step, &loss ) ;
 
     // propagate wavefront
 
@@ -81,7 +110,7 @@ int main( int argc, char* argv[] ) {
         wave.step() ;
     }
     time_t complete = time(NULL) ;
-    cout << "Progating for " << time_max << " sec with "
+    cout << "Propagating for " << time_max << " sec with "
          << ( target.size1() * target.size2() ) << " targets took "
          << (difftime(complete,start)) << " sec."
          << endl ;
