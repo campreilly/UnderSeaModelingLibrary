@@ -1,4 +1,4 @@
-/** 
+/**
  * @file wave_queue.cc
  * Wavefront propagation as a function of time.
  */
@@ -24,7 +24,7 @@ using namespace usml::waveq3d ;
 /**
  * Initialize a propagation scenario.
  */
-wave_queue::wave_queue( 
+wave_queue::wave_queue(
     ocean_model& ocean,
     const seq_vector& freq,
     const wposition1& pos,
@@ -32,10 +32,10 @@ wave_queue::wave_queue(
     double time_step,
     proploss* prop_loss,
     spreading_type type
-) : 
+) :
     _ocean( ocean ),
     _frequencies( freq.clone() ),
-    _source_pos( pos ), 
+    _source_pos( pos ),
     _source_de( de.clone() ),
     _source_az( az.clone() ),
     _time_step( time_step ),
@@ -44,25 +44,25 @@ wave_queue::wave_queue(
     _nc_file( NULL )
 {
     // create references between proploss and wavefront objects.
-    
+
     const wposition* targets = NULL ;
     const matrix<double>* target_sin_theta = NULL ;
     if ( _proploss ) {
     	targets = _proploss->_targets ;
-    	_proploss->initialize( _frequencies, &_source_pos, 
+    	_proploss->initialize( _frequencies, &_source_pos,
     		_source_de, _source_az, _time_step ) ;
         target_sin_theta = &_proploss->_sin_theta ;
     }
 
     // create storage space for all wavefront elements
-    
+
     _past = new wave_front( _ocean, _frequencies, de.size(), az.size(), targets, target_sin_theta ) ;
     _prev = new wave_front( _ocean, _frequencies, de.size(), az.size(), targets, target_sin_theta ) ;
     _curr = new wave_front( _ocean, _frequencies, de.size(), az.size(), targets, target_sin_theta ) ;
     _next = new wave_front( _ocean, _frequencies, de.size(), az.size(), targets, target_sin_theta ) ;
-        
+
     // initialize wave front elements
-    
+
     _curr->init_wave( pos, de, az ) ;
     _curr->update() ;
     init_wavefronts() ;
@@ -114,36 +114,36 @@ void wave_queue::set_surface_reverb( reverb_model* model ) {
 void wave_queue::init_wavefronts() {
 
     // Runge-Kutta to estimate _prev wavefront from _curr entry
-    
+
     ode_integ::rk1_pos(  - _time_step, _curr, _next ) ;
     ode_integ::rk1_ndir( - _time_step, _curr, _next ) ;
     _next->update() ;
-    
+
     ode_integ::rk2_pos(  - _time_step, _curr, _next, _past ) ;
     ode_integ::rk2_ndir( - _time_step, _curr, _next, _past ) ;
     _past->update() ;
-    
+
     ode_integ::rk3_pos(  - _time_step, _curr, _next, _past, _prev ) ;
     ode_integ::rk3_ndir( - _time_step, _curr, _next, _past, _prev ) ;
     _prev->update() ;
-    
+
     // Runge-Kutta to estimate _past wavefront from _prev entry
-    
+
     ode_integ::rk1_pos(  - _time_step, _prev, _next ) ;
     ode_integ::rk1_ndir( - _time_step, _prev, _next ) ;
     _next->update() ;
-    
+
     ode_integ::rk2_pos(  - _time_step, _prev, _next, _past ) ;
     ode_integ::rk2_ndir( - _time_step, _prev, _next, _past ) ;
     _past->update() ;
-    
+
     ode_integ::rk3_pos(  - _time_step, _prev, _next, _past, _past, false ) ;
     ode_integ::rk3_ndir( - _time_step, _prev, _next, _past, _past, false ) ;
     _past->update() ;
-    
-    // Adams-Bashforth to estimate _next wavefront 
+
+    // Adams-Bashforth to estimate _next wavefront
     // from _past, _prev, and _curr entries
-    
+
     ode_integ::ab3_pos(  _time_step, _past, _prev, _curr, _next ) ;
     ode_integ::ab3_ndir( _time_step, _past, _prev, _curr, _next ) ;
     _next->update() ;
@@ -159,7 +159,7 @@ void wave_queue::step() {
     detect_reflections() ;
 
     // rotate wavefront queue to the next step.
-    
+
     wave_front* save = _past ;
     _past = _prev ;
     _prev = _curr ;
@@ -170,12 +170,12 @@ void wave_queue::step() {
     #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS)
         cout << "*** wave_queue::step: time=" << time() << endl ;
     #endif
-        
+
     // compute position, direction, and environment parameters for next entry
-    
+
     ode_integ::ab3_pos(  _time_step, _past, _prev, _curr, _next ) ;
     ode_integ::ab3_ndir( _time_step, _past, _prev, _curr, _next ) ;
-    
+
     _next->update() ;
 
     _next->attenuation += _curr->attenuation ;
@@ -183,7 +183,7 @@ void wave_queue::step() {
     _next->surface = _curr->surface ;
     _next->bottom = _curr->bottom ;
     _next->caustic = _curr->caustic ;
-    
+
     // search for eigenray collisions with acoustic targets
 
     detect_eigenrays() ;
@@ -227,7 +227,7 @@ bool wave_queue::detect_reflections_surface( unsigned de, unsigned az ) {
     }
     return false; // indicates no reflection
 }
-    
+
 /**
  * Detect and process reflection for a single (DE,AZ) combination.
  */
@@ -246,7 +246,7 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
         }
     }
     return false ;	// indicates no reflection
-}    
+}
 /**
  * Detect caustics in the next wavefront.
  */
@@ -271,7 +271,7 @@ void wave_queue::detect_caustics() {
                         _next->surface(n,az) != _next->surface(de,az) ||
                         _next->bottom(n,az) != _next->bottom(de,az) ||
                         _next->caustic(n,az) > _next->caustic(de,az) ;
-                    
+
                     if ( _next->on_fold(c,az) ) {
                         if ( !change_bounces ) {
                             caustic = true ;
@@ -343,12 +343,12 @@ void wave_queue::detect_eigenrays() {
     double distance2[3][3][3] ;
 
     // loop over all targets
-    
+
     for ( unsigned t1=0 ; t1 < _proploss->size1() ; ++t1 ) {
         for ( unsigned t2=0 ; t2 < _proploss->size2() ; ++t2 ) {
-        
+
             // loop over all ray paths
-            
+
             for ( unsigned de=1 ; de < num_de()-1 ; ++de ) {
                 for ( unsigned az=1 ; az < num_az()-1 ; ++az ) {
                     if ( is_closest_ray(t1,t2,de,az,distance2) ) {
@@ -356,16 +356,16 @@ void wave_queue::detect_eigenrays() {
                     }
                 }
             }
-            
+
         }   // end t2 loop
     }   // end t1 loop
 }
 
 /**
- * Used by detect_eigenrays() to discover if the current ray is the 
+ * Used by detect_eigenrays() to discover if the current ray is the
  * closest point of approach to the current target.
  */
-bool wave_queue::is_closest_ray( 
+bool wave_queue::is_closest_ray(
    unsigned t1, unsigned t2,
    unsigned de, unsigned az,
    double distance2[3][3][3]
@@ -376,16 +376,16 @@ bool wave_queue::is_closest_ray(
     if ( _curr->on_edge(de,az) ) {
         return false ;
     }
-    
+
     // test the central ray
-    
+
     memset( distance2, 0, 3*3*3*sizeof(double) ) ;
     double& center = distance2[1][1][1] ;
     center = _curr->distance2(t1,t2)(de,az) ;
-    
+
     distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
     if ( distance2[2][1][1] <= center ) return false ;
-    
+
     distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
     if ( distance2[0][1][1] < center ) return false ;
 
@@ -394,14 +394,31 @@ bool wave_queue::is_closest_ray(
     for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
         for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
             if ( nde == 1 && naz == 1 ) continue ;
-            
+
             // compute distances on the current, next, and previous wavefronts
-            
+
             unsigned d = de + nde - 1 ;
             unsigned a = az + naz - 1 ;
             distance2[0][nde][naz] = _prev->distance2(t1,t2)(d,a) ;
             distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
             distance2[2][nde][naz] = _next->distance2(t1,t2)(d,a) ;
+
+#ifdef USML_DEBUG
+// test all distances to make sure they are valid numbers
+
+            if( isnan(distance2[0][nde][naz]) ) {
+                cout << "Oops, the distance for distance2[0"
+                << "][" << nde << "][" << naz << "] is NaN!" << endl;
+            }
+            if( isnan(distance2[1][nde][naz]) ) {
+                cout << "Oops, the distance for distance2[1"
+                << "][" << nde << "][" << naz << "] is NaN!" << endl;
+            }
+            if( isnan(distance2[2][nde][naz]) ) {
+                cout << "Oops, the distance for distance2[2"
+                << "][" << nde << "][" << naz << "] is NaN!" << endl;
+            }
+#endif
 
             // skip to next iteration if tested ray is on edge of ray family
             // allows extrapolation outside of ray family
@@ -409,9 +426,9 @@ bool wave_queue::is_closest_ray(
             if ( _curr->on_edge(d,a) ) {
                 continue ;
             }
-            
+
             // test to see if the center value is the smallest
-            
+
             if ( nde == 2 || naz == 2 ) {
                 if ( distance2[1][nde][naz] <= center ) return false ;
             } else {
@@ -425,10 +442,10 @@ bool wave_queue::is_closest_ray(
 }
 
 /**
- * Used by detect_eigenrays() to compute eigneray parameters and 
+ * Used by detect_eigenrays() to compute eigneray parameters and
  * add a new eigenray entry to the current target.
  */
-void wave_queue::add_eigenray( 
+void wave_queue::add_eigenray(
    unsigned t1, unsigned t2,
    unsigned de, unsigned az,
    double distance2[3][3][3]
@@ -549,7 +566,7 @@ void wave_queue::add_eigenray(
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles
-    
+
     for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
         for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
             unsigned d = de + nde - 1 ;
@@ -579,7 +596,7 @@ void wave_queue::add_eigenray(
 
     // estimate target AZ angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store AZ angles
-    
+
     for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
         for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
             unsigned d = de + nde - 1 ;
@@ -715,7 +732,7 @@ void wave_queue::compute_offsets(
 /**
  * Computes the Taylor coefficients used to compute eigenrays.
  */
-void wave_queue::make_taylor_coeff( 
+void wave_queue::make_taylor_coeff(
     const double value[3][3][3], const c_vector<double,3>& delta,
     double& center, c_vector<double,3>& gradient, c_matrix<double,3,3>& hessian,
     bool diagonal_only
@@ -723,7 +740,7 @@ void wave_queue::make_taylor_coeff(
     const double d0 = 2.0 * delta(0) ;
     const double d1 = 2.0 * delta(1) ;
     const double d2 = 2.0 * delta(2) ;
-    
+
     // find value at the center point
 
     center = value[1][1][1] ;

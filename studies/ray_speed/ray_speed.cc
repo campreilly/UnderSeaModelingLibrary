@@ -54,6 +54,12 @@ int main( int argc, char* argv[] ) {
 
     seq_log freq( 3000.0, 1.0, 1 ) ;
 
+    #ifdef USML_DEBUG
+        const char* csvname = "ray_speed_eigenray.csv";
+        const char* ncname = "ray_speed_eigenray.nc";
+        const char* ncname_wave = "ray_speed_eigenray_wave.nc";
+    #endif
+
     // build sound velocity profile from World Ocean Atlas data
 
     cout << "load temperature & salinity data from World Ocean Atlas" << endl ;
@@ -101,12 +107,60 @@ int main( int argc, char* argv[] ) {
 //    wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
 
     // propagate wavefront
+	#ifdef USML_DEBUG
+        cout << "writing wavefronts to " << ncname_wave << endl;
 
+        wave.init_netcdf( ncname_wave );
+        wave.save_netcdf();
+    #endif
     cout << "propagate wavefronts for " << time_max << " secs" << endl ;
     time_t start = time(NULL) ;
     while ( wave.time() < time_max ) {
         wave.step() ;
+        #ifdef USML_DEBUG
+            wave.save_netcdf();
+        #endif
     }
+
+	#ifdef USML_DEBUG
+        wave.close_netcdf();
+
+        // compute coherent propagation loss and write eigenrays to disk
+
+        loss.sum_eigenrays();
+        cout << "writing proploss to " << ncname << endl;
+        loss.write_netcdf(ncname,"WQ3Deigenray test");
+
+        // save results to spreadsheet and compare to analytic results
+
+        cout << "writing tables to " << csvname << endl;
+        std::ofstream os(csvname);
+        os << "time,intensity,phase,s_de,s_az,t_de,t_az,srf,btm,cst"
+        << endl;
+        os << std::setprecision(18);
+        cout << std::setprecision(18);
+
+        const eigenray_list *raylist = loss.eigenrays(0,0);
+        int n=0;
+        for ( eigenray_list::const_iterator iter = raylist->begin();
+                iter != raylist->end(); ++n, ++iter )
+        {
+            const eigenray &ray = *iter ;
+            os << ray.time
+               << "," << ray.intensity(0)
+               << "," << ray.phase(0)
+               << "," << ray.source_de
+               << "," << ray.source_az
+               << "," << ray.target_de
+               << "," << ray.target_az
+               << "," << ray.surface
+               << "," << ray.bottom
+               << "," << ray.caustic
+               << endl;
+        }
+	#endif
+
+
     time_t complete = time(NULL) ;
     cout << "Progating for " << time_max << " sec with "
          << ( target.size1() * target.size2() ) << " targets took "
