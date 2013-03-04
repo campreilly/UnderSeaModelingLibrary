@@ -245,7 +245,7 @@ void netcdf_profile::decode_filetype(
             *longitude = file.get_var( dim->name() ) ;
 
             { // Handle ncdfiles with no diffault _FillValue
-            NcError* ncdfError = new NcError(NcError::verbose_nonfatal) ;
+            NcError* ncdfError = new NcError(NcError::silent_nonfatal) ;
             // extract missing attribute
                 NcAtt* att = var->get_att("_FillValue") ;
                 if (att) {
