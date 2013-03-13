@@ -34,8 +34,8 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
     // note that axis[0] starts in the south and moves north
 
     this->_axis[0] = new seq_linear(
-        to_colatitude(yllcenter),
-        to_radians(-cellsize),
+        to_colatitude(yllcenter+cellsize*(nrows-1)),
+        to_radians(cellsize),
         nrows );
     this->_axis[1] = new seq_linear(
         to_radians(xllcenter),
@@ -46,7 +46,7 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
     // flip latitude direction upside down during the read.
 
     this->_data = new double[ ncols * nrows ] ;
-    for ( int r=nrows-1 ; r >= 0 ; --r ) {
+    for ( int r=0 ; r < nrows ; ++r ) {
         double* ptr = &( this->_data[r*ncols] ) ;
         for ( int c=0 ; c < ncols ; ++c ) {
             fi >> *ptr ;

@@ -15,8 +15,8 @@
 
 #include <iomanip>
 
-//#define DEBUG_EIGENRAYS
-//#define DEBUG_CAUSTICS
+#define DEBUG_EIGENRAYS
+#define DEBUG_CAUSTICS
 //#define USML_DEBUG
 
 using namespace usml::waveq3d ;
@@ -476,6 +476,30 @@ void wave_queue::add_eigenray(
             }
             cout << " ]" << endl ;
         }
+        for ( unsigned n2=0 ; n2 < 3 ; ++n2 ) {
+	     cout << ((n2)? "; " : "[ " ) ;
+	     for ( unsigned n3=0 ; n3 < 3 ; ++n3 ) {
+		    cout << ((n3)? "," : "[" ) << _past->on_edge(n2,n3) ;
+	     }
+	     cout << "]" ;
+	}
+	cout << "]"  << endl;
+        for ( unsigned n2=0 ; n2 < 3 ; ++n2 ) {
+	     cout << ((n2)? "; " : "[ " ) ;
+	     for ( unsigned n3=0 ; n3 < 3 ; ++n3 ) {
+		    cout << ((n3)? "," : "[" ) << _curr->on_edge(n2,n3) ;
+	     }
+	     cout << "]" ;
+	}
+	cout << "]"  << endl;
+        for ( unsigned n2=0 ; n2 < 3 ; ++n2 ) {
+	     cout << ((n2)? "; " : "[ " ) ;
+	     for ( unsigned n3=0 ; n3 < 3 ; ++n3 ) {
+		    cout << ((n3)? "," : "[" ) << _next->on_edge(n2,n3) ;
+	     }
+	     cout << "]" ;
+	}
+	cout << "]"  << endl;
     #endif
 
     // compute offsets
