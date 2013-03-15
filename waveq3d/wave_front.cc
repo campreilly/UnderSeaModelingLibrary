@@ -165,7 +165,7 @@ void wave_front::update() {
 }
 
 /**
- * Find all folds in the ray fan.
+ * Find all folds in the ray fan. Case5 will subvert this logic
  */
 void wave_front::find_folds() {
     on_fold.clear() ;
@@ -191,39 +191,35 @@ void wave_front::find_folds() {
 void wave_front::find_edges() {
     on_edge.clear() ;
     const unsigned max_de = num_de() - 1 ;
-    const unsigned max_az = num_az() - 1 ;
 
     // mark the perimeter of the ray fan
     // also treat the case where num_de()=1 or num_az()=1
 
-    on_edge(0,0) = on_edge(max_de,max_az) = true ;
-    on_edge(max_de,0) = on_edge(0,max_az) = true ;
-    for ( unsigned de=1 ; de < max_de ; ++de ) {
-        on_edge(de,0) = on_edge(de,max_az) = true ;
-    }
-    for ( unsigned az=1 ; az < max_az ; ++az ) {
+    for ( unsigned az=0 ; az < num_az() ; ++az ) {
         on_edge(0,az) = on_edge(max_de,az) = true ;
     }
 
     // search for changes around each (de,az)
     // skip by 2 to avoid counting each change twice
 
-    for ( unsigned de=0 ; de < num_de() ; de += 2 ) {
-        const unsigned min_d = (unsigned) max( (int)de-1, 0 ) ;
-        const unsigned max_d = min( de+1, max_de ) ;
-        for ( unsigned az=0 ; az < num_az() ; az += 2 ) {
-            const unsigned min_a = (unsigned) max( (int)az-1, 0 ) ;
-            const unsigned max_a = min( az+1, max_az ) ;
-            for ( unsigned d=min_d ; d <= max_d ; ++d ) {
-                for ( unsigned a=min_a ; a <= max_a ; ++a ) {
-                    if ( surface(de,az) != surface(d,a) ||
-                         bottom(de,az) != bottom(d,a) ||
-                         caustic(de,az) != caustic(d,a) )
-                    {
-                        on_edge(de,az) = on_edge(de,a) = true ;
-                        on_edge(d,az) = on_edge(d,a) = true ;
+    for ( unsigned az=0 ; az < num_az() ; az += 1 ) {
+        for ( unsigned de=1 ; de < max_de ; de += 1 ) {
+            if ( (position.rho(de,az) < position.rho(de+1,az) &&
+                  position.rho(de,az) < position.rho(de-1,az)) ||
+                 (position.rho(de,az) > position.rho(de+1,az) &&
+                  position.rho(de,az) > position.rho(de-1,az)) ) {
+                    on_edge(de,az) = true;
+//                    cout << "i-1: " << position.altitude(de-1,az) << "\ti: " << position.altitude(de,az) << "\ti+1: " << position.altitude(de+1,az) << endl;
+//                    cout << "i - (i-1) ndir: " << abs(ndirection.rho(de,az) - ndirection.rho(de-1,az)) << "\ti - (i+1) ndir: " << abs(ndirection.rho(de,az) - ndirection.rho(de+1,az)) << endl;
+//                    cout << "i is on_edge" << endl;
+                    if( abs(ndirection.rho(de,az)-ndirection.rho(de-1,az)) >
+                        abs(ndirection.rho(de,az)-ndirection.rho(de+1,az)) ) {
+                            on_edge(de-1,az) = true;
+//                            cout << "i-1 is on_edge\n\n";
+                    } else {
+                            on_edge(de+1,az) = true;
+//                            cout << "i+1 is on_edge\n\n";
                     }
-                }
             }
         }
     }
