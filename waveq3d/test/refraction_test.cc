@@ -1074,6 +1074,76 @@ BOOST_AUTO_TEST_CASE(refraction_pedersen_range) {
     cout << "max error = " << max_error << " m" << endl ;
 }
 
+BOOST_AUTO_TEST_CASE( surface_duct_test ) {
+    cout << "=== refreaction_test: surface_duct_test ===" << endl;
+    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/refraction_surface_duct.nc";
+
+    // environmental parameters
+    profile_model* profile = new profile_linear(1500.0,0.5);
+    profile->flat_earth(true);
+    boundary_model* bottom = new boundary_flat(1e4);
+    boundary_model* surface = new boundary_flat();
+    ocean_model ocean(surface, bottom, profile);
+
+    // test parameters
+    double lat = 45.0;
+    double lon = -45.0;
+    wposition1 source( lat, lon, 0.0 );
+    seq_linear de( -45.0, 5.0, -5.0 );
+    seq_linear az( 0.0, 0.0, 1 );
+
+    wave_queue wave(ocean, freq, source, de, az, time_step);
+
+    cout << "writing wavefronts to " << ncname_wave << endl;
+    wave.init_netcdf(ncname_wave);  // open a log file for wavefront data
+    wave.save_netcdf();             // write ray data to log file
+
+    while (wave.time() < 25.0) {
+
+        // increment wavefront by one time step
+
+        wave.step();
+        wave.save_netcdf();
+    }
+    wave.close_netcdf();
+}
+
+/// This test is not working as intended and therefore not yet ready
+//BOOST_AUTO_TEST_CASE( sloped_bottom_duct_test ) {
+//    cout << "=== refreaction_test: sloped_bottom_duct_test ===" << endl;
+//    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/refraction_sloped_bottom_duct.nc";
+//
+//    // environmental parameters
+//    wposition1 slope(-45.0, 45.0, 0.0);
+//    profile_model* profile = new profile_linear(1500.0,-0.95);
+//    profile->flat_earth(true);
+//    boundary_model* bottom = new boundary_slope(slope,1500.0,to_radians(2.86));
+//    boundary_model* surface = new boundary_flat();
+//    ocean_model ocean(surface, bottom, profile);
+//
+//    // test parameters
+//    double lat = 45.0;
+//    double lon = -45.0;
+//    wposition1 source( lat, lon, -1495.0 );
+//    seq_linear de( -75.0, 5.0, 25.0 );
+//    seq_linear az( 0.0, 0.0, 1 );
+//
+//    wave_queue wave(ocean, freq, source, de, az, time_step);
+//
+//    cout << "writing wavefronts to " << ncname_wave << endl;
+//    wave.init_netcdf(ncname_wave);  // open a log file for wavefront data
+//    wave.save_netcdf();             // write ray data to log file
+//
+//    while (wave.time() < 25.0) {
+//
+//        // increment wavefront by one time step
+//
+//        wave.step();
+//        wave.save_netcdf();
+//    }
+//    wave.close_netcdf();
+//}
+
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()

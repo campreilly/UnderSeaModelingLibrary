@@ -15,8 +15,8 @@
 
 #include <iomanip>
 
-#define DEBUG_EIGENRAYS
-#define DEBUG_CAUSTICS
+//#define DEBUG_EIGENRAYS
+//#define DEBUG_CAUSTICS
 //#define USML_DEBUG
 
 using namespace usml::waveq3d ;
