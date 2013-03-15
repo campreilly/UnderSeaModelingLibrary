@@ -207,8 +207,6 @@ void wave_queue::detect_reflections() {
 
     // search for other changes in wavefront
 
-    _next->find_folds() ;
-    detect_caustics() ;
     _next->find_edges() ;
 }
 
@@ -246,93 +244,6 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
         }
     }
     return false ;	// indicates no reflection
-}
-/**
- * Detect caustics in the next wavefront.
- */
-void wave_queue::detect_caustics() {
-    const unsigned max_de = num_de() - 1;
-    for (unsigned az = 0; az < num_az(); ++az) {
-        for (unsigned de = 1; de < max_de; ++de) {
-
-            // search for caustics if ray transitions
-            // from being on a fold to not being on a fold
-
-            if (_curr->on_fold(de,az) && !_next->on_fold(de,az)) {
-                bool caustic = false;
-
-                // search forward
-
-                unsigned de_last = de ;
-                for ( unsigned c=de; c < num_de()-1 ; ++c ) {
-                    const unsigned p = c-1 ;
-                    const unsigned n = c+1 ;
-                    const bool change_bounces =
-                        _next->surface(n,az) != _next->surface(de,az) ||
-                        _next->bottom(n,az) != _next->bottom(de,az) ||
-                        _next->caustic(n,az) > _next->caustic(de,az) ;
-
-                    if ( _next->on_fold(c,az) ) {
-                        if ( !change_bounces ) {
-                            caustic = true ;
-                        }
-                        de_last = p ;
-                        break ;
-                    } else if ( change_bounces ) {
-                        de_last = c ;
-                        break ;
-                    } else {
-                        de_last = n ;
-                    }
-                }
-
-                // search backward
-
-                unsigned de_first = de ;
-                for ( unsigned c=de; c > 0 ; --c ) {
-                    const unsigned p = c+1 ;
-                    const unsigned n = c-1 ;
-                    const bool change_bounces =
-                        _next->surface(n,az) != _next->surface(de,az) ||
-                        _next->bottom(n,az) != _next->bottom(de,az) ||
-                        _next->caustic(n,az) > _next->caustic(de,az) ;
-
-                    if ( _next->on_fold(c,az) ) {
-                        if ( !change_bounces ) {
-                            caustic = true ;
-                        }
-                        de_first = p ;
-                        break ;
-                    } else if ( change_bounces ) {
-                        de_first = c ;
-                        break ;
-                    } else {
-                        de_first = n ;
-                    }
-                }
-
-                // mark all caustics
-
-                if (caustic) {
-                    #ifdef DEBUG_CAUSTICS
-                        if (az == 0) cout << "\tmark caustics at de=";
-                    #endif
-                    for (unsigned d = de_first; d <= de_last; ++d) {
-                        #ifdef DEBUG_CAUSTICS
-                            if (az == 0) cout << " " << d;
-                        #endif
-                        ++(_next->caustic(d,az));
-                        for (unsigned f = 0; f < _frequencies->size(); ++f) {
-                            _next->phase(d,az)(f) -= M_PI_2;
-                        }
-                    }
-                    #ifdef DEBUG_CAUSTICS
-                        if (az == 0) cout << endl;
-                    #endif
-              }
-            } // end if on_fold changes
-        } // end of de loop
-    } // end of az loop
 }
 
 /**

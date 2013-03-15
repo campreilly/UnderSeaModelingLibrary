@@ -29,7 +29,6 @@ wave_front::wave_front(
     surface( num_de, num_az ),
     bottom( num_de, num_az ),
     caustic( num_de, num_az ),
-    on_fold( num_de, num_az ),
     on_edge( num_de, num_az ),
     targets( targets ),
     _ocean( ocean ),
@@ -43,7 +42,6 @@ wave_front::wave_front(
     surface.clear() ;
     bottom.clear() ;
     caustic.clear() ;
-    on_fold.clear() ;
     on_edge.clear() ;
 
     for ( unsigned n1=0 ; n1 < num_de ; ++n1 ) {
@@ -165,25 +163,6 @@ void wave_front::update() {
 }
 
 /**
- * Find all folds in the ray fan. Case5 will subvert this logic
- */
-void wave_front::find_folds() {
-    on_fold.clear() ;
-    if ( num_de() < 3 ) return ;
-    const unsigned max_de = num_de() - 1 ;
-    for ( unsigned az=0 ; az < num_az() ; ++az ) {
-        for ( unsigned de=1 ; de < max_de ; ++de ) {
-            const double p = position.rho(de-1,az) ;
-            const double c = position.rho(de,az) ;
-            const double n = position.rho(de+1,az) ;
-            if ( (c-p)*(n-c) <= 0 ) {
-                on_fold(de,az) = true ;
-            }
-        }
-    }
-}
-
-/**
  * Find all edges in the ray fan.  Sets on_edge(de,az) to true if
  * it is on the edge of the ray fan or one of its neighbors has
  * a different surface, bottom, or caustic count.
@@ -209,17 +188,26 @@ void wave_front::find_edges() {
                  (position.rho(de,az) > position.rho(de+1,az) &&
                   position.rho(de,az) > position.rho(de-1,az)) ) {
                     on_edge(de,az) = true;
-//                    cout << "i-1: " << position.altitude(de-1,az) << "\ti: " << position.altitude(de,az) << "\ti+1: " << position.altitude(de+1,az) << endl;
-//                    cout << "i - (i-1) ndir: " << abs(ndirection.rho(de,az) - ndirection.rho(de-1,az)) << "\ti - (i+1) ndir: " << abs(ndirection.rho(de,az) - ndirection.rho(de+1,az)) << endl;
-//                    cout << "i is on_edge" << endl;
                     if( abs(ndirection.rho(de,az)-ndirection.rho(de-1,az)) >
                         abs(ndirection.rho(de,az)-ndirection.rho(de+1,az)) ) {
                             on_edge(de-1,az) = true;
-//                            cout << "i-1 is on_edge\n\n";
-                    } else {
+                            if ( (surface(de-1,az) == surface(de,az)) ||
+                                 (bottom(de-1,az) == bottom(de,az)) ) {
+                                ++(caustic(de-1,az));
+                                for (unsigned f = 0; f < _frequencies->size(); ++f) {
+                                    phase(de-1,az)(f) -= M_PI_2;
+                                }
+                            }
+                        } else {
                             on_edge(de+1,az) = true;
-//                            cout << "i+1 is on_edge\n\n";
-                    }
+                            if ( (surface(de+1,az) == surface(de,az)) ||
+                                 (bottom(de+1,az) == bottom(de,az)) ) {
+                                ++(caustic(de+1,az));
+                                for (unsigned f = 0; f < _frequencies->size(); ++f) {
+                                    phase(de+1,az)(f) -= M_PI_2;
+                                }
+                            }
+                        }
             }
         }
     }

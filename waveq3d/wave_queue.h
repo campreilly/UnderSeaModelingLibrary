@@ -364,37 +364,6 @@ class USML_DECLSPEC wave_queue {
      */
     bool detect_reflections_bottom( unsigned de, unsigned az ) ;
 
-    /**
-     * Detect caustics in the next wavefront. A caustic is defined as a place
-     * on the wavefront where a ray is tangent to the boundary of a shadow
-     * zone.
-     *
-     * The algorithm used assumes that multiple rays can be reflected by
-     * an interface or caustic at the same time.  The search for caustics is
-     * initialized by finding a launch D/E that is on a wavefront fold
-     * for the current wavefront but not the next wavefront. Then it searches
-     * outward across neighboring D/E angles to determine if this change
-     * represents a caustic or a reflection.
-     * <pre>
-     *      if current D/E is on a wavefront fold
-     *          if next D/E has same # of bounces
-     *              previous D/E is a caustic
-     *              stop searching
-     *          else
-     *              previous D/E is edge of ray family
-     *              stop searching
-     *      else
-     *          if next D/E has same # of bounces
-     *              try another D/E angle farther out
-     *          else
-     *              current D/E is edge of ray family
-     *              stop searching
-     *          end if
-     *      end if
-     * </pre>
-     */
-    void detect_caustics() ;
-
     //**************************************************
     // eigenray estimation routines
 
