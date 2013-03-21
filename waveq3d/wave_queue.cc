@@ -15,7 +15,7 @@
 
 #include <iomanip>
 
-//#define DEBUG_EIGENRAYS
+#define DEBUG_EIGENRAYS
 //#define DEBUG_CAUSTICS
 //#define USML_DEBUG
 
@@ -47,6 +47,7 @@ wave_queue::wave_queue(
 
     const wposition* targets = NULL ;
     const matrix<double>* target_sin_theta = NULL ;
+
     if ( _proploss ) {
     	targets = _proploss->_targets ;
     	_proploss->initialize( _frequencies, &_source_pos,
@@ -511,8 +512,13 @@ void wave_queue::add_eigenray(
             }
         }
     }
+
+
     compute_offsets( distance2, delta, offset, distance, unstable ) ;
 
+    #ifdef DEBUG_EIGENRAYS
+        cout << "wave_queue::add_eigenray() after compute_offsets" << endl ;
+    #endif
     // build basic eigenray products
 
     eigenray ray ;
@@ -532,7 +538,7 @@ void wave_queue::add_eigenray(
             wposition1( *(_curr->targets), t1, t2 ), de, az, offset, distance );
     if ( isnan(spread_intensity(0)) ) {
         #ifdef USML_DEBUG
-            std::cerr << "warning: wave_queue::add_eigenray()"  << endl
+            std::cerr << "Exiting: wave_queue::add_eigenray()"  << endl
                       << "\tignores eigenray because intensity is NaN" << endl
                       << "\tt1=" << t1 << " t2=" << t2
                       << " de=" << de << " az=" << az << endl ;
@@ -540,7 +546,7 @@ void wave_queue::add_eigenray(
         return ;
     } else if ( spread_intensity(0) <= 1e-20 ) {
 //        #ifdef USML_DEBUG
-//            std::cerr << "warning: wave_queue::add_eigenray()" << endl
+//            std::cerr << "Exiting: wave_queue::add_eigenray()" << endl
 //                      << "\tignores eigenray because intensity is "
 //                      << spread_intensity(0) << endl
 //                      << "\tt1=" << t1 << " t2=" << t2
@@ -727,6 +733,7 @@ void wave_queue::compute_offsets(
 //         << center << ","
 //         << gradient(0) << "," << gradient[1] << "," << gradient[2] << ","
 //         << hessian(0,0) << "," << hessian(1,1) << "," << hessian(2,2) << endl ;
+    return;
 }
 
 /**
