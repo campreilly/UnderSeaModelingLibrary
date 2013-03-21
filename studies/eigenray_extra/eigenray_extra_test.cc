@@ -37,7 +37,7 @@ static const double bot_depth = 1e5 ;
  *   - Time Step: 100 msec
  *   - Launch D/E: 181 tangent spaced rays from -90 to 90 degrees
  *
- * This test computes travel times and eigenray angles for for a combination
+ * This test computes travel times and eigenray angles for a combination
  * of direct and surface-reflected paths in an isovelocity ocean on a
  * round earth. It searches for zones of inaccuracies in the the wavefront
  * model by comparing the modeled results to analytic solutions at a
@@ -152,6 +152,7 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( src_lat, src_lng, src_alt );		// build ray source
     seq_rayfan de ;
+//    seq_linear de(0.0, 1.0, 50.0) ;
     seq_linear az( -4.0, 1.0, 4.0 );
 
     // build a grid of targets at different ranges and depths

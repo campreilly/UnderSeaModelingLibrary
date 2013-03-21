@@ -1,4 +1,4 @@
-/** 
+/**
  * @file spreading_ray.h
  * Spreading loss based on classic ray theory.
  */
@@ -15,7 +15,7 @@ using namespace usml::ocean ;
 /**
  * @internal
  * Spreading loss based on classic ray theory.  The propagation loss within
- * an area bounded by the rays for [de1,de2] and [az1,az2] is proportional 
+ * an area bounded by the rays for [de1,de2] and [az1,az2] is proportional
  * to the change in the ensonified area.  If the initial intensity is unity,
  * then the intensity change at the target is given by:
  *
@@ -24,7 +24,7 @@ using namespace usml::ocean ;
  * \f]
  *
  * where:
- *      - \f$ I_{target}    \f$ = ensonified area at target
+ *      - \f$ I_{target}    \f$ = intensity change at target
  *      - \f$ A_{target}    \f$ = ensonified area at target
  *      - \f$ A_0           \f$ = initial ensonified area
  *      - \f$ c_{target}    \f$ = speed of sound at target
@@ -33,14 +33,14 @@ using namespace usml::ocean ;
 class USML_DECLSPEC spreading_ray : public spreading_model {
 
     friend class wave_queue ;
-    
+
   private:
 
-    /** 
-     * Initial ensonified area for each ray span. Assign the area for each 
+    /**
+     * Initial ensonified area for each ray span. Assign the area for each
      * span to the index of the ray that precedes it in D/E and azimuth.
      * Copy the last element in each direction from  the one before it.
-     * Divide the initial area by the initial speed of sound so that we 
+     * Divide the initial area by the initial speed of sound so that we
      * don't have to do this each time intensity is calculated.
      */
     matrix<double> _init_area ;
@@ -51,7 +51,7 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
      * Estimate initial ensonfied area between rays at radius of 1 meter.
      *
      * \f[
-     *      A_{ab} = \left( cos( \mu_b ) - cos( mu_a) \right) 
+     *      A_{ab} = \left( cos( \mu_b ) - cos( mu_a) \right)
      *               \left( \eta_b - \eta_a\right)
      * \f]
      *
@@ -76,7 +76,7 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
      * the corner points.
      *
      * Extrapolates across folds in the wavefront by keeping a constant
-     * level for three (3) extra beam widths.  This compensates for the fact 
+     * level for three (3) extra beam widths.  This compensates for the fact
      * that the detection scheme used by wavefront.on_fold() may leave the
      * closest valid wavefront segment may be up to 1 1/2 segments
      * away from the actual fold.  A failure to properly take this into account

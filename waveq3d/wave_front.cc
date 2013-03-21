@@ -191,7 +191,7 @@ void wave_front::find_edges() {
                     if( abs(ndirection.rho(de,az)-ndirection.rho(de-1,az)) >
                         abs(ndirection.rho(de,az)-ndirection.rho(de+1,az)) ) {
                             on_edge(de-1,az) = true;
-                            if ( (surface(de-1,az) == surface(de,az)) ||
+                            if ( (surface(de-1,az) == surface(de,az)) &&
                                  (bottom(de-1,az) == bottom(de,az)) ) {
                                 ++(caustic(de-1,az));
                                 for (unsigned f = 0; f < _frequencies->size(); ++f) {
@@ -200,7 +200,7 @@ void wave_front::find_edges() {
                             }
                         } else {
                             on_edge(de+1,az) = true;
-                            if ( (surface(de+1,az) == surface(de,az)) ||
+                            if ( (surface(de+1,az) == surface(de,az)) &&
                                  (bottom(de+1,az) == bottom(de,az)) ) {
                                 ++(caustic(de+1,az));
                                 for (unsigned f = 0; f < _frequencies->size(); ++f) {
@@ -236,6 +236,7 @@ void wave_front::compute_target_distance() {
  */
 void wave_front::compute_profile() {
     _ocean.profile().sound_speed( position, &sound_speed, &sound_gradient);
+//    cout << "sound_speed: " << sound_speed << endl;
     _ocean.profile().attenuation( position, *_frequencies, distance, &attenuation);
     for (unsigned de = 0; de < position.size1(); ++de) {
         for (unsigned az = 0; az < position.size2(); ++az) {

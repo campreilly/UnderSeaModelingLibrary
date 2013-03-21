@@ -1,4 +1,4 @@
-/** 
+/**
  * @file profile_linear.h
  * Creates an analytic model for the Bi-Linear, Linear or Constant profile.
  */
@@ -16,7 +16,7 @@ namespace ocean {
 
 /**
  * Creates an analytic model for a bi-linear, linear, or constant profile.
- * This type of profile is commonly used as an analytic test case in 
+ * This type of profile is commonly used as an analytic test case in
  * propagation loss modeling.  The general form of the bi-linear
  * profile is defined as:
  * <pre>
@@ -62,7 +62,7 @@ class USML_DECLSPEC profile_linear : public profile_model {
      * @param speed         Speed of sound (m/s) at each location (output).
      * @param gradient      Sound speed gradient at each location (output).
      */
-    virtual void sound_speed( const wposition& location, 
+    virtual void sound_speed( const wposition& location,
         matrix<double>* speed, wvector* gradient=NULL ) ;
 
     //**************************************************
@@ -70,7 +70,7 @@ class USML_DECLSPEC profile_linear : public profile_model {
 
     /**
      * Bi-Linear verion of the profile.
-     * 
+     *
      * @param c0        Speed of sound at the surface of the water.
      * @param g0        Sound speed gradient at the surface of the water.
      * @param z1        Depth at which profile changes gradients.
@@ -79,28 +79,28 @@ class USML_DECLSPEC profile_linear : public profile_model {
      *                  The profile_model takes over ownership of this
      *                  reference and deletes it as part of its destructor.
      */
-    profile_linear( 
+    profile_linear(
         double c0, double g0, double z1, double g1,
-        attenuation_model* attmodel=NULL 
-        ) : 
+        attenuation_model* attmodel=NULL
+        ) :
         profile_model(attmodel),
         _soundspeed0(c0), _gradient0(g0),
         _depth1(z1), _gradient1(g1)
         { }
-                
+
     /**
-     * Bi-Linear verion of the profile.
-     * 
+     * Linear verion of the profile.
+     *
      * @param c0        Speed of sound at the surface of the water.
      * @param g0        Sound speed gradient at the surface of the water.
      * @param attmodel  In-water attenuation model.  Defaults to Thorp.
      *                  The profile_model takes over ownership of this
      *                  reference and deletes it as part of its destructor.
      */
-    profile_linear( 
-        double c0, double g0, 
-        attenuation_model* attmodel=NULL 
-        ) : 
+    profile_linear(
+        double c0, double g0,
+        attenuation_model* attmodel=NULL
+        ) :
         profile_model(attmodel),
         _soundspeed0(c0), _gradient0(g0),
         _depth1(0.0), _gradient1(g0)
@@ -108,16 +108,16 @@ class USML_DECLSPEC profile_linear : public profile_model {
 
     /**
      * Constant speed verion of the profile.
-     * 
+     *
      * @param c0        Speed of sound at all points in the water.
      * @param attmodel  In-water attenuation model.  Defaults to Thorp.
      *                  The profile_model takes over ownership of this
      *                  reference and deletes it as part of its destructor.
      */
-    profile_linear( 
-        double c0 = 1500.0, 
-        attenuation_model* attmodel=NULL 
-        ) : 
+    profile_linear(
+        double c0 = 1500.0,
+        attenuation_model* attmodel=NULL
+        ) :
         profile_model(attmodel),
         _soundspeed0(c0), _gradient0(0.0),
         _depth1(0.0), _gradient1(0.0)
