@@ -191,7 +191,7 @@ void wave_front::find_edges() {
                     if( abs(ndirection.rho(de,az)-ndirection.rho(de-1,az)) >
                         abs(ndirection.rho(de,az)-ndirection.rho(de+1,az)) ) {
                             on_edge(de-1,az) = true;
-                            if ( (surface(de-1,az) == surface(de,az)) ||
+                            if ( (surface(de-1,az) == surface(de,az)) &&
                                  (bottom(de-1,az) == bottom(de,az)) ) {
                                 ++(caustic(de-1,az));
                                 for (unsigned f = 0; f < _frequencies->size(); ++f) {
@@ -200,7 +200,7 @@ void wave_front::find_edges() {
                             }
                         } else {
                             on_edge(de+1,az) = true;
-                            if ( (surface(de+1,az) == surface(de,az)) ||
+                            if ( (surface(de+1,az) == surface(de,az)) &&
                                  (bottom(de+1,az) == bottom(de,az)) ) {
                                 ++(caustic(de+1,az));
                                 for (unsigned f = 0; f < _frequencies->size(); ++f) {

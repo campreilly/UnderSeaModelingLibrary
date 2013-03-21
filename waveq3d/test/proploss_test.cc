@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
  *      - Frequency:    2000 Hz
  *      - Sound Speed:  1500 m/s
  *      - Time Step:    50 msec
- *	- Source D/E:	-90 deg to 90 deg, 181 rays with tangent spacing
+ *	- Source D/E:	-90 deg to 90 deg, 181 rays with tangental spacing
  *	- Source AZ:	-2 deg to 2 deg in 1 deg increments
  *
  * The Lloyd's analytic analytic result is:
@@ -164,8 +164,8 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
  * - "bias" is the mean difference and it measures offsets in level.
  * - "dev" is an estimate of the sqrt of the variance and it is a measure of
  *   the difference in flucuations of between the models.
- * - "detcoef" is the coefficient of determination and it measure of the
- *   fraction of the model that is predicts the analytic solution.
+ * - "detcoef" is the coefficient of determination and its measure of the
+ *   fraction of the model that predicts the analytic solution.
  *
  * An automatic error is thrown if bias > 0.5 dB, dev > 4 db, or
  * detcoef < 80%.
@@ -605,6 +605,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     const double wavenum = TWO_PI * freq(0) / c0;
 
     wposition1 pos(src_lat, src_lng, src_alt);
+//    seq_rayfan de( -17.0, 17.0, 363 ) ;
     seq_rayfan de ;
     seq_linear az( -4.0, 1.0, 4.0 );
 
@@ -641,7 +642,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
 
     cout << "writing spreadsheets to " << csvname << endl;
     std::ofstream os(csvname);
-    os << "depth,model,theory,m1amp,m1time,t1amp,t1time,m2amp,m2time,t2amp,t2time"
+    os << "depth,model,theory,m1amp,m1time,t1amp,t1time,m2amp,m2time,t2amp,t2time,phase"
     << endl;
     os << std::setprecision(18);
 
@@ -687,6 +688,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
                 << "," << 10.0 * log10(norm(p2))
                 << "," << R2 / c0;
             }
+            os << "," << (*iter).phase(0);
         }
         os << endl;
         mean_model += tl_model[n];

@@ -1,4 +1,4 @@
-/** 
+/**
  * @file profile_grid.h
  * Creates a sound speed model from a 1-D, 2-D, or 3-D data grid.
  */
@@ -15,26 +15,29 @@ namespace ocean {
 /// @{
 
 /**
- * Sound speed model constructed from a 1-D, 2-D, or 3-D data grid.  
+ * Sound speed model constructed from a 1-D, 2-D, or 3-D data grid.
  * The coordinate system for each kind of data set is:
  *
- *      - 1-D: Assumes that the sound speed is only a function 
- *             of altitude, and that altitude gets more negative as 
- *             the water gets deeper.
- *      - 2-D: Assumes that the order of axes in the grid is 
- *             (altitude, latitude) and that the geodetic axes have 
- *             been transformed to their spherical earth equivalents 
- *             (rho,theta).
- *      - 3-D: Assumes that the order of axes in the grid is 
- *             (altitude, latitude, longitude) and that the geodetic 
- *             axes have been transformed to their spherical earth 
- *             equivalents (rho,theta,phi).
+ *      - 1-D: Assumes that the sound speed is only a function
+ *             of altitude
+ *      - 2-D: Assumes that the order of axes in the grid is
+ *             (altitude, latitude)
+ *      - 3-D: Assumes that the order of axes in the grid is
+ *             (altitude, latitude, longitude)
+ *
+ *    ---NOTE: altitude is the distance from the surface of the ocean
+ *             to the location under the ocean with down as negative.
+ *
+ *    ^^^NOTE: All calculations are under the assumption that the
+ *             grid axes passed in have already been transformed
+ *             to their spherical earth equivalents (altitude -> rho,
+ *             theta,phi).
  */
-template< class DATA_TYPE, int NUM_DIMS > class profile_grid 
-    : public profile_model 
+template< class DATA_TYPE, int NUM_DIMS > class profile_grid
+    : public profile_model
 {
   protected:
-  
+
     //**************************************************
     // sound speed model
 
@@ -51,71 +54,71 @@ template< class DATA_TYPE, int NUM_DIMS > class profile_grid
      * @param speed         Speed of sound (m/s) at each location (output).
      * @param gradient      Sound speed gradient at each location (output).
      */
-    virtual void sound_speed( const wposition& location, 
-        matrix<double>* speed, wvector* gradient=NULL ) 
+    virtual void sound_speed( const wposition& location,
+        matrix<double>* speed, wvector* gradient=NULL )
     {
         switch( NUM_DIMS ) {
-        
+
             //***************
             // 1-D grids
-            
+
             case 1 :
                 if ( gradient ) {
                     matrix<double> rho( location.size1(), location.size2() ) ;
-                    this->_sound_speed->interpolate( 
+                    this->_sound_speed->interpolate(
                         location.rho(),
                         speed, &rho ) ;
                     gradient->rho( rho ) ;
                 } else {
-                    this->_sound_speed->interpolate( 
+                    this->_sound_speed->interpolate(
                         location.rho(),
                         speed ) ;
                 }
                 break ;
-                
+
             //***************
             // 2-D grids
-            
+
             case 2 :
                 if ( gradient ) {
                     matrix<double> rho( location.size1(), location.size2() ) ;
                     matrix<double> theta( location.size1(), location.size2() ) ;
-                    this->_sound_speed->interpolate( 
-                        location.rho(), location.theta(), 
+                    this->_sound_speed->interpolate(
+                        location.rho(), location.theta(),
                         speed, &rho, &theta ) ;
-                        gradient->rho(rho) ;
+                    gradient->rho(rho) ;
                     gradient->theta(theta) ;
                 } else {
-                    this->_sound_speed->interpolate( 
+                    this->_sound_speed->interpolate(
                         location.rho(), location.theta(),
                         speed ) ;
                 }
                 break ;
-                
+
             //***************
             // 3-D grids
-            
+
             case 3 :
                 if ( gradient ) {
                     matrix<double> rho( location.size1(), location.size2() ) ;
                     matrix<double> theta( location.size1(), location.size2() ) ;
                     matrix<double> phi( location.size1(), location.size2() ) ;
-                    this->_sound_speed->interpolate( 
+                    this->_sound_speed->interpolate(
                         location.rho(), location.theta(), location.phi(),
                         speed, &rho, &theta, &phi ) ;
                     gradient->rho(rho) ;
                     gradient->theta(theta) ;
                     gradient->phi(phi) ;
                 } else {
-                    this->_sound_speed->interpolate( 
+                    this->_sound_speed->interpolate(
                         location.rho(), location.theta(), location.phi(),
                         speed ) ;
                 }
                 break ;
-                
+
             //***************
             // error
-            
+
             default :
                 throw std::invalid_argument(
                     "sound speed must be 1-D, 2-D, or 3-D") ;
@@ -129,7 +132,7 @@ template< class DATA_TYPE, int NUM_DIMS > class profile_grid
 
     /**
      * Default behavior for new profile models.
-     * 
+     *
      * @param speed         Sound speed for the whole ocean (m/s).
      *                      Assumes control of this grid and deletes
      *                      it when the class is destroyed.
@@ -137,8 +140,8 @@ template< class DATA_TYPE, int NUM_DIMS > class profile_grid
      *                      The profile_model takes over ownership of this
      *                      reference and deletes it as part of its destructor.
      */
-    profile_grid( 
-        data_grid<DATA_TYPE,NUM_DIMS>* speed, attenuation_model* attmodel=NULL) 
+    profile_grid(
+        data_grid<DATA_TYPE,NUM_DIMS>* speed, attenuation_model* attmodel=NULL)
         : profile_model(attmodel), _sound_speed(speed) { }
 
     /**

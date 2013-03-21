@@ -3,6 +3,7 @@
  */
 #include <boost/test/unit_test.hpp>
 #include <usml/waveq3d/waveq3d.h>
+#include <usml/types/seq_vector.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -1077,9 +1078,41 @@ BOOST_AUTO_TEST_CASE(refraction_pedersen_range) {
 BOOST_AUTO_TEST_CASE( surface_duct_test ) {
     cout << "=== refreaction_test: surface_duct_test ===" << endl;
     const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/refraction_surface_duct.nc";
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/refraction_surface_duct.csv";
 
     // environmental parameters
-    profile_model* profile = new profile_linear(1500.0,0.5);
+    data_grid<double,1>* sound_profile;
+    seq_vector* axis[1];
+    axis[0] = new seq_linear( wposition::earth_radius, -0.5, 1000 );
+    sound_profile = new data_grid<double,1>(axis);
+    unsigned index[1];
+    for(int i=0; i < axis[0]->size(); ++i){
+        index[0] = i;
+        double value = 1500.0;
+        if( (*axis[0])[i] > wposition::earth_radius-150.0 ) { value+=(0.016*i) ;}
+        if( (*axis[0])[i] <= wposition::earth_radius-150.0 && (*axis[0])[i] > wposition::earth_radius-250.0 ) { value-=(0.1*(i-300)-4.8) ;}
+        if( (*axis[0])[i] <= wposition::earth_radius-250.0 ) { value-=(0.01*(i-500) + 15.2) ; }
+        sound_profile->data(index, value);
+    }
+    sound_profile->interp_type(0, GRID_INTERP_LINEAR);
+    sound_profile->edge_limit(0, true);
+    profile_model* profile = new profile_grid<double,1>(sound_profile);
+
+    cout << "writing sound speed profile to " << csvname << endl;
+    matrix<double> speed(1,1);
+    wposition test(1,1);
+    test.latitude(0,0,45.0);
+    test.longitude(0,0,-45.0);
+    std::ofstream file(csvname);
+    file << "depth,speed,interp" << endl;
+    for(int j=0; j <axis[0]->size(); ++j){
+        index[0] = j;
+        test.rho(0,0,(*axis[0])(j));
+        profile->sound_speed( test, &speed );
+        file << (*axis[0])(j)-wposition::earth_radius << "," << sound_profile->data(index) << "," << speed(0,0) << endl;
+    }
+
+//    profile_model* profile = new profile_linear(1500.0,0.016);
     profile->flat_earth(true);
     boundary_model* bottom = new boundary_flat(1e4);
     boundary_model* surface = new boundary_flat();
@@ -1088,8 +1121,8 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
     // test parameters
     double lat = 45.0;
     double lon = -45.0;
-    wposition1 source( lat, lon, 0.0 );
-    seq_linear de( -45.0, 5.0, -5.0 );
+    wposition1 source( lat, lon, -40.0 );
+    seq_rayfan de(-10.0, 10.0, 51);
     seq_linear az( 0.0, 0.0, 1 );
 
     wave_queue wave(ocean, freq, source, de, az, time_step);
