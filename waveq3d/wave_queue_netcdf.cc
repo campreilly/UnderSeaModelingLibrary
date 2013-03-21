@@ -1,4 +1,4 @@
-/** 
+/**
  * @file wave_queue_netcdf.cc
  * Recording to netCDF wavefront log
  */
@@ -19,14 +19,14 @@ void wave_queue::init_netcdf( const char* filename, const char* long_name ) {
     _nc_file->add_att("Conventions", "COARDS" ) ;
 
     // dimensions
-    
+
     NcDim *freq_dim = _nc_file->add_dim( "frequency", _frequencies->size() ) ;
     NcDim *de_dim   = _nc_file->add_dim( "source_de", _source_de->size() ) ;
     NcDim *az_dim   = _nc_file->add_dim( "source_az", _source_az->size() ) ;
     NcDim *time_dim = _nc_file->add_dim( "travel_time" ) ; // unlimited
 
     // coordinates
-    
+
     NcVar *freq_var = _nc_file->add_var( "frequency", ncDouble, freq_dim ) ;
     NcVar *de_var   = _nc_file->add_var( "source_de", ncDouble, de_dim ) ;
     NcVar *az_var   = _nc_file->add_var( "source_az", ncDouble, az_dim ) ;
@@ -43,9 +43,11 @@ void wave_queue::init_netcdf( const char* filename, const char* long_name ) {
                       time_dim, de_dim, az_dim ) ;
     _nc_caustic     = _nc_file->add_var( "caustic", ncShort,
                       time_dim, de_dim, az_dim ) ;
-                      
+    _nc_on_edge     = _nc_file->add_var( "on_edge", ncByte,
+                      time_dim, de_dim, az_dim ) ;
+
     // units
-    
+
     freq_var->add_att("units", "hertz") ;
     de_var->add_att("units", "degrees") ;
     de_var->add_att("positive", "up") ;
@@ -59,14 +61,15 @@ void wave_queue::init_netcdf( const char* filename, const char* long_name ) {
     _nc_surface->add_att("units", "count") ;
     _nc_bottom->add_att("units", "count") ;
     _nc_caustic->add_att("units", "count") ;
+    _nc_on_edge->add_att("units", "bool") ;
 
     // coordinate data
 
-    freq_var->put( vector<double>(*_frequencies).data().begin(), 
+    freq_var->put( vector<double>(*_frequencies).data().begin(),
                    _frequencies->size() ) ;
-    de_var->put( vector<double>(*_source_de).data().begin(), 
+    de_var->put( vector<double>(*_source_de).data().begin(),
         _source_de->size() ) ;
-    az_var->put( vector<double>(*_source_az).data().begin(), 
+    az_var->put( vector<double>(*_source_az).data().begin(),
         _source_az->size() ) ;
 }
 
@@ -82,6 +85,7 @@ void wave_queue::save_netcdf() {
     _nc_surface->put_rec(_curr->surface.data().begin(),_nc_rec);
     _nc_bottom->put_rec(_curr->bottom.data().begin(),_nc_rec);
     _nc_caustic->put_rec(_curr->caustic.data().begin(),_nc_rec);
+    _nc_on_edge->put_rec((const ncbyte*)_curr->on_edge.data().begin(),_nc_rec);
     ++_nc_rec ;
 }
 

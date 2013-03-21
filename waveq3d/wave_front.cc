@@ -29,7 +29,6 @@ wave_front::wave_front(
     surface( num_de, num_az ),
     bottom( num_de, num_az ),
     caustic( num_de, num_az ),
-    on_fold( num_de, num_az ),
     on_edge( num_de, num_az ),
     targets( targets ),
     _ocean( ocean ),
@@ -43,7 +42,6 @@ wave_front::wave_front(
     surface.clear() ;
     bottom.clear() ;
     caustic.clear() ;
-    on_fold.clear() ;
     on_edge.clear() ;
 
     for ( unsigned n1=0 ; n1 < num_de ; ++n1 ) {
@@ -165,25 +163,6 @@ void wave_front::update() {
 }
 
 /**
- * Find all folds in the ray fan.
- */
-void wave_front::find_folds() {
-    on_fold.clear() ;
-    if ( num_de() < 3 ) return ;
-    const unsigned max_de = num_de() - 1 ;
-    for ( unsigned az=0 ; az < num_az() ; ++az ) {
-        for ( unsigned de=1 ; de < max_de ; ++de ) {
-            const double p = position.rho(de-1,az) ;
-            const double c = position.rho(de,az) ;
-            const double n = position.rho(de+1,az) ;
-            if ( (c-p)*(n-c) <= 0 ) {
-                on_fold(de,az) = true ;
-            }
-        }
-    }
-}
-
-/**
  * Find all edges in the ray fan.  Sets on_edge(de,az) to true if
  * it is on the edge of the ray fan or one of its neighbors has
  * a different surface, bottom, or caustic count.
@@ -191,39 +170,44 @@ void wave_front::find_folds() {
 void wave_front::find_edges() {
     on_edge.clear() ;
     const unsigned max_de = num_de() - 1 ;
-    const unsigned max_az = num_az() - 1 ;
 
     // mark the perimeter of the ray fan
     // also treat the case where num_de()=1 or num_az()=1
 
-    on_edge(0,0) = on_edge(max_de,max_az) = true ;
-    on_edge(max_de,0) = on_edge(0,max_az) = true ;
-    for ( unsigned de=1 ; de < max_de ; ++de ) {
-        on_edge(de,0) = on_edge(de,max_az) = true ;
-    }
-    for ( unsigned az=1 ; az < max_az ; ++az ) {
+    for ( unsigned az=0 ; az < num_az() ; ++az ) {
         on_edge(0,az) = on_edge(max_de,az) = true ;
     }
 
     // search for changes around each (de,az)
     // skip by 2 to avoid counting each change twice
 
-    for ( unsigned de=0 ; de < num_de() ; de += 2 ) {
-        const unsigned min_d = (unsigned) max( (int)de-1, 0 ) ;
-        const unsigned max_d = min( de+1, max_de ) ;
-        for ( unsigned az=0 ; az < num_az() ; az += 2 ) {
-            const unsigned min_a = (unsigned) max( (int)az-1, 0 ) ;
-            const unsigned max_a = min( az+1, max_az ) ;
-            for ( unsigned d=min_d ; d <= max_d ; ++d ) {
-                for ( unsigned a=min_a ; a <= max_a ; ++a ) {
-                    if ( surface(de,az) != surface(d,a) ||
-                         bottom(de,az) != bottom(d,a) ||
-                         caustic(de,az) != caustic(d,a) )
-                    {
-                        on_edge(de,az) = on_edge(de,a) = true ;
-                        on_edge(d,az) = on_edge(d,a) = true ;
-                    }
-                }
+    for ( unsigned az=0 ; az < num_az() ; az += 1 ) {
+        for ( unsigned de=1 ; de < max_de ; de += 1 ) {
+            if ( (position.rho(de,az) < position.rho(de+1,az) &&
+                  position.rho(de,az) < position.rho(de-1,az)) ||
+                 (position.rho(de,az) > position.rho(de+1,az) &&
+                  position.rho(de,az) > position.rho(de-1,az)) ) {
+                    on_edge(de,az) = true;
+                    if( abs(ndirection.rho(de,az)-ndirection.rho(de-1,az)) >
+                        abs(ndirection.rho(de,az)-ndirection.rho(de+1,az)) ) {
+                            on_edge(de-1,az) = true;
+                            if ( (surface(de-1,az) == surface(de,az)) ||
+                                 (bottom(de-1,az) == bottom(de,az)) ) {
+                                ++(caustic(de-1,az));
+                                for (unsigned f = 0; f < _frequencies->size(); ++f) {
+                                    phase(de-1,az)(f) -= M_PI_2;
+                                }
+                            }
+                        } else {
+                            on_edge(de+1,az) = true;
+                            if ( (surface(de+1,az) == surface(de,az)) ||
+                                 (bottom(de+1,az) == bottom(de,az)) ) {
+                                ++(caustic(de+1,az));
+                                for (unsigned f = 0; f < _frequencies->size(); ++f) {
+                                    phase(de+1,az)(f) -= M_PI_2;
+                                }
+                            }
+                        }
             }
         }
     }

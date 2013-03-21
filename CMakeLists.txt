@@ -261,6 +261,9 @@ set( USML_STUDIES_DIR ${PROJECT_SOURCE_DIR}/studies
 add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
 target_link_libraries( cmp_speed usml )
 
+add_executable( folds studies/folds/folds.cc )
+target_link_libraries( folds usml )
+
 add_executable( ray_speed studies/ray_speed/ray_speed.cc )
 target_link_libraries( ray_speed usml )
 
