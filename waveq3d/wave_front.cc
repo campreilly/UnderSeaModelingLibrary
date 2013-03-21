@@ -236,7 +236,6 @@ void wave_front::compute_target_distance() {
  */
 void wave_front::compute_profile() {
     _ocean.profile().sound_speed( position, &sound_speed, &sound_gradient);
-//    cout << "sound_speed: " << sound_speed << endl;
     _ocean.profile().attenuation( position, *_frequencies, distance, &attenuation);
     for (unsigned de = 0; de < position.size1(); ++de) {
         for (unsigned az = 0; az < position.size2(); ++az) {

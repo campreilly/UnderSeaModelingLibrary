@@ -1095,7 +1095,7 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
         sound_profile->data(index, value);
     }
     sound_profile->interp_type(0, GRID_INTERP_LINEAR);
-//    sound_profile->edge_limit(0, true);
+    sound_profile->edge_limit(0, true);
     profile_model* profile = new profile_grid<double,1>(sound_profile);
 
     cout << "writing sound speed profile to " << csvname << endl;
