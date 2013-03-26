@@ -1,4 +1,4 @@
-/** 
+/**
  * @file seq_rayfan.h
  * Defines a sequence of values spaced evenly in tangent space.
  */
@@ -16,14 +16,14 @@ namespace types {
  * Defines a sequence of values spaced evenly in tangent space.
  * <pre>
  *      de = s * tan( u ) + de0
- * 
+ *
  * where:
  *      u   = uniformly spaced sequence
  *      s   = spreading factor
  *      de  = resulting sequence of angles
  * </pre>
  * This spacing organizes the D/E angles of acoustic rays such that
- * they intercect horizontal planes with an even spacing in an
+ * they intersect horizontal planes with an even spacing in an
  * isovelocity environment.
  */
 class USML_DECLSPEC seq_rayfan: public seq_data
@@ -43,6 +43,13 @@ public:
                 size_type size=181, value_type center=0.0, value_type spread=6.0 )
         : seq_data(size)
     {
+        // garuntees that the smallest values is first and goes up to the largest value
+        if( first > last ) {
+             _value = first ;
+             first = last ;
+             last = _value ;
+        }
+
         _index = 0 ;
         _value = first ;
         _index_data = first ;
