@@ -4,6 +4,7 @@
 #include <boost/test/unit_test.hpp>
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/ocean/ocean.h>
+#include <fstream>
 
 BOOST_AUTO_TEST_SUITE(boundary_test)
 
@@ -218,28 +219,65 @@ BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
     // test interpolation of the raw grid
 
     ascii_arc_bathy* grid = new ascii_arc_bathy(
-        USML_TEST_DIR "/ocean/test/ascii_arc_test.asc" ) ;
+          USML_DATA_DIR "/arcascii/small_crm.asc" );
+        //USML_TEST_DIR "/ocean/test/ascii_arc_test.asc" ) ;
 
-    BOOST_CHECK_EQUAL( grid->axis(0)->size(), 4 );              //rows
-    BOOST_CHECK_EQUAL( grid->axis(1)->size(), 5 );              //columns
+    BOOST_CHECK_EQUAL( grid->axis(0)->size(), 241 );              //rows
+    BOOST_CHECK_EQUAL( grid->axis(1)->size(), 241 );              //columns
 
     unsigned index[2] ;
-    index[0]=0; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 1000.0, 1e-6);
-    index[0]=1; index[1]=1; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 1110.0, 1e-6);
-    index[0]=2; index[1]=2; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 1220.0, 1e-6);
-    index[0]=3; index[1]=3; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 1330.0, 1e-6);
+    index[0]=0; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 684.0, 1e-6);
+    index[0]=240; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 622.0, 1e-6);
+    index[0]=0; index[1]=240; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 771.0, 1e-6);
+    index[0]=240; index[1]=240; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 747.0, 1e-6);
 
     // test implementation as a boundary model
 
+    grid->interp_type(0,GRID_INTERP_PCHIP);
+    grid->interp_type(1,GRID_INTERP_PCHIP);
+    std::ofstream before("usml_ascii_arc_interp_before_boundary_grid.csv");
+    for(int i=0; i<grid->axis(0)->size(); ++i) {
+        before << to_latitude((*(grid->axis(0)))[i]) << ",";
+        for(int j=0; j<grid->axis(1)->size(); ++j) {
+            double location[2];
+            location[0] = (*(grid->axis(0)))[i];
+            location[1] = (*(grid->axis(1)))[j];
+            before << wposition::earth_radius - grid->interpolate(location) << ",";
+        }
+        before << endl;
+    }
+    for ( int k=0 ; k < grid->axis(1)->size() ; ++k ) {
+        if(k==0) {before << ",";}
+        before << to_degrees((*(grid->axis(1)))[k]) << ",";
+        if(k==grid->axis(1)->size()) {before << endl;}
+    }
+
     boundary_grid<double,2> bottom(grid) ;
-    wposition1 location( 26.25, -80 ) ;
+    std::ofstream after("usml_ascii_arc_interp_after_boundary_grid.csv");
+    for(int i=0; i<grid->axis(0)->size(); ++i) {
+        after << to_latitude((*(grid->axis(0)))[i]) << ",";
+        for(int j=0; j<grid->axis(1)->size(); ++j) {
+            double depth;
+            wposition1 location( to_latitude((*(grid->axis(0)))[i]), to_degrees((*(grid->axis(1)))[j]) );
+            bottom.height(location, &depth);
+            after << wposition::earth_radius - depth << ",";
+        }
+        after << endl;
+    }
+    for ( int k=0 ; k < grid->axis(1)->size() ; ++k ) {
+        if(k==0) {after << ",";}
+        after << to_degrees((*(grid->axis(1)))[k]) << ",";
+        if(k==grid->axis(1)->size()) {after << endl;}
+    }
+
+    wposition1 location( 29.4361, -79.7862 ) ;
     double depth ;
     bottom.height( location, &depth ) ;
-    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 1120.0, 1e-6);
+    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 700.0, 0.3);
 
-    wposition1 location2( 26.5, -79.5 ) ;
+    wposition1 location2( 29.4402, -79.8853 ) ;
     bottom.height( location2, &depth ) ;
-    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 1310.0, 1e-6);
+    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 681.0, 0.3);
 }
 
 /// @}
