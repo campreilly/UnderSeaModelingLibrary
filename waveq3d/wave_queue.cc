@@ -17,7 +17,6 @@
 
 //#define DEBUG_EIGENRAYS
 //#define DEBUG_CAUSTICS
-//#define USML_DEBUG
 
 using namespace usml::waveq3d ;
 
@@ -469,7 +468,7 @@ void wave_queue::add_eigenray(
         _spreading_model->intensity(
             wposition1( *(_curr->targets), t1, t2 ), de, az, offset, distance );
     if ( isnan(spread_intensity(0)) ) {
-        #ifdef USML_DEBUG
+        #ifdef DEBUG_EIGENRAYS
             std::cerr << "warning: wave_queue::add_eigenray()"  << endl
                       << "\tignores eigenray because intensity is NaN" << endl
                       << "\tt1=" << t1 << " t2=" << t2
@@ -477,7 +476,7 @@ void wave_queue::add_eigenray(
         #endif
         return ;
     } else if ( spread_intensity(0) <= 1e-20 ) {
-        #ifdef USML_DEBUG
+        #ifdef DEBUG_EIGENRAYS
             std::cerr << "warning: wave_queue::add_eigenray()" << endl
                       << "\tignores eigenray because intensity is "
                       << spread_intensity(0) << endl
