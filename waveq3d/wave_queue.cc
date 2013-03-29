@@ -15,9 +15,8 @@
 
 #include <iomanip>
 
-#define DEBUG_EIGENRAYS
+//#define DEBUG_EIGENRAYS
 //#define DEBUG_CAUSTICS
-//#define USML_DEBUG
 
 using namespace usml::waveq3d ;
 
@@ -47,7 +46,6 @@ wave_queue::wave_queue(
 
     const wposition* targets = NULL ;
     const matrix<double>* target_sin_theta = NULL ;
-
     if ( _proploss ) {
     	targets = _proploss->_targets ;
     	_proploss->initialize( _frequencies, &_source_pos,
@@ -335,9 +333,8 @@ bool wave_queue::is_closest_ray(
             // skip to next iteration if tested ray is on edge of ray family
             // allows extrapolation outside of ray family
 
-            if ( _curr->on_edge(d,a) ) {
-                continue ;
-            }
+            if ( a == 0 || a == num_az()-1 ) continue;
+            if ( _curr->on_edge(d,a) ) continue ;
 
             // test to see if the center value is the smallest
 
@@ -388,6 +385,8 @@ void wave_queue::add_eigenray(
             }
             cout << " ]" << endl ;
         }
+        cout << "\t de (top to down), az (left to right)" << endl;
+        cout << "\t prev   ";
         for ( unsigned n2=0 ; n2 < 3 ; ++n2 ) {
 	     cout << ((n2)? "; " : "[ " ) ;
 	     for ( unsigned n3=0 ; n3 < 3 ; ++n3 ) {
@@ -396,6 +395,7 @@ void wave_queue::add_eigenray(
 	     cout << "]" ;
 	}
 	cout << "]"  << endl;
+        cout << "\t curr   ";
         for ( unsigned n2=0 ; n2 < 3 ; ++n2 ) {
 	     cout << ((n2)? "; " : "[ " ) ;
 	     for ( unsigned n3=0 ; n3 < 3 ; ++n3 ) {
@@ -404,6 +404,7 @@ void wave_queue::add_eigenray(
 	     cout << "]" ;
 	}
 	cout << "]"  << endl;
+        cout << "\t next   ";
         for ( unsigned n2=0 ; n2 < 3 ; ++n2 ) {
 	     cout << ((n2)? "; " : "[ " ) ;
 	     for ( unsigned n3=0 ; n3 < 3 ; ++n3 ) {
@@ -447,13 +448,8 @@ void wave_queue::add_eigenray(
             }
         }
     }
-
-
     compute_offsets( distance2, delta, offset, distance, unstable ) ;
 
-    #ifdef DEBUG_EIGENRAYS
-        cout << "wave_queue::add_eigenray() after compute_offsets" << endl ;
-    #endif
     // build basic eigenray products
 
     eigenray ray ;
@@ -472,23 +468,24 @@ void wave_queue::add_eigenray(
         _spreading_model->intensity(
             wposition1( *(_curr->targets), t1, t2 ), de, az, offset, distance );
     if ( isnan(spread_intensity(0)) ) {
-        #ifdef USML_DEBUG
-            std::cerr << "Exiting: wave_queue::add_eigenray()"  << endl
+        #ifdef DEBUG_EIGENRAYS
+            std::cerr << "warning: wave_queue::add_eigenray()"  << endl
                       << "\tignores eigenray because intensity is NaN" << endl
                       << "\tt1=" << t1 << " t2=" << t2
                       << " de=" << de << " az=" << az << endl ;
         #endif
         return ;
     } else if ( spread_intensity(0) <= 1e-20 ) {
-//        #ifdef USML_DEBUG
-//            std::cerr << "Exiting: wave_queue::add_eigenray()" << endl
-//                      << "\tignores eigenray because intensity is "
-//                      << spread_intensity(0) << endl
-//                      << "\tt1=" << t1 << " t2=" << t2
-//                      << " de=" << de << " az=" << az << endl ;
-//        #endif
+        #ifdef DEBUG_EIGENRAYS
+            std::cerr << "warning: wave_queue::add_eigenray()" << endl
+                      << "\tignores eigenray because intensity is "
+                      << spread_intensity(0) << endl
+                      << "\tt1=" << t1 << " t2=" << t2
+                      << " de=" << de << " az=" << az << endl ;
+        #endif
         return ;
     }
+
     ray.intensity = -10.0 * log10( spread_intensity ) ; // positive value
 
     // compute attenuation components of intensity
@@ -507,7 +504,6 @@ void wave_queue::add_eigenray(
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles
-
     for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
         for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
             unsigned d = de + nde - 1 ;
@@ -668,7 +664,6 @@ void wave_queue::compute_offsets(
 //         << center << ","
 //         << gradient(0) << "," << gradient[1] << "," << gradient[2] << ","
 //         << hessian(0,0) << "," << hessian(1,1) << "," << hessian(2,2) << endl ;
-    return;
 }
 
 /**

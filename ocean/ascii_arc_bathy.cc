@@ -14,7 +14,7 @@ using namespace usml::ocean ;
 ascii_arc_bathy::ascii_arc_bathy( const char* filename )
 {
     int ncols, nrows ;
-    double xllcenter, yllcenter, cellsize, nodata_value ;
+    double xllcorner, yllcorner, cellsize, nodata_value ;
     static char label[80] ;
     const double R = (double) wposition::earth_radius ;
 
@@ -25,8 +25,8 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
 
     fi >> label >> ncols ;
     fi >> label >> nrows ;
-    fi >> label >> xllcenter ;
-    fi >> label >> yllcenter ;
+    fi >> label >> xllcorner ;
+    fi >> label >> yllcorner ;
     fi >> label >> cellsize ;
     fi >> label >> nodata_value ;
 
@@ -34,11 +34,11 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
     // note that axis[0] starts in the south and moves north
 
     this->_axis[0] = new seq_linear(
-        to_colatitude(yllcenter+cellsize*(nrows-1)),
+        to_colatitude(yllcorner+cellsize*(nrows-1)),
         to_radians(cellsize),
         nrows );
     this->_axis[1] = new seq_linear(
-        to_radians(xllcenter),
+        to_radians(xllcorner),
         to_radians(cellsize),
         ncols );
 
@@ -53,4 +53,20 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
             *(ptr++) += R ;
         }
     }
+
+    #ifdef USML_DEBUG
+        std::ofstream of("usml_ascii_arc_raw.csv") ;
+        for ( int e=0 ; e < nrows ; ++e ) {
+            of << to_latitude((*(this->_axis[0]))[e])<< ",";
+            for (int f=0 ; f < ncols ; ++f ) {
+                of << wposition::earth_radius - this->_data[f+ncols*e] << ",";
+            }
+            of << endl;
+        }
+        for ( int k=0 ; k < ncols ; ++k ) {
+            if(k==0) {of << ",";}
+            of << to_degrees((*(this->_axis[1]))[k]) << ",";
+            if(k==ncols) {of << endl;}
+        }
+    #endif
 }
