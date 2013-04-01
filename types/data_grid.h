@@ -319,6 +319,10 @@ private:
      * is simultaneously interpolates the function value for the current
      * dimension, and interpolates the derivative for the previous dimension.
      *
+     * When using a gridded data set, it is recommended that edge_limit be set to
+     * TRUE for any dimensional axis that uses the PCHIP interpolation. This is
+     * because of PCHIP allowing for extreme values when extrapolating data.
+     *
      * @xref Cleve Moler, Numerical Computing in Matlab, Chapter 3 Interpolation,
      * http://www.mathworks.com/moler/chapters.html, accessed 5/15/2012.
      * @xref F. N. Fritsch and R. E. Carlson, Monotone Piecewise Cubic Interpolation,
