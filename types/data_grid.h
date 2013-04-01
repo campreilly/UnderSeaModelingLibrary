@@ -161,7 +161,7 @@ private:
 public:
 
     /**
-     * Do we limit locations to values inside axis limits?
+     * Do we limit locations to values inside axis limits? Default is true
      */
     inline bool edge_limit(int unsigned dimension) const
     {
@@ -724,7 +724,7 @@ protected:
      */
     data_grid() {
         memset(_interp_type, GRID_INTERP_LINEAR, NUM_DIMS * sizeof(enum GRID_INTERP_TYPE));
-        memset(_edge_limit, false, NUM_DIMS * sizeof(bool));
+        memset(_edge_limit, true, NUM_DIMS * sizeof(bool));
     }
 
 public:
@@ -748,7 +748,7 @@ public:
         }
         _data = new DATA_TYPE[N];
         memset(_data, 0, N * sizeof(DATA_TYPE));
-        memset(_edge_limit, false, NUM_DIMS * sizeof(bool));
+        memset(_edge_limit, true, NUM_DIMS * sizeof(bool));
     }
 
     /**
@@ -775,7 +775,7 @@ public:
         }
         memcpy(_interp_type, other._interp_type, NUM_DIMS
                 * sizeof(enum GRID_INTERP_TYPE));
-        memset(_edge_limit, false, NUM_DIMS * sizeof(bool));
+        memset(_edge_limit, true, NUM_DIMS * sizeof(bool));
     }
 
     /**
