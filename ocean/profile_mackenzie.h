@@ -38,6 +38,10 @@ namespace ocean {
  * latitude/longitude axes defined by the data grid at limited to the values
  * at the grid edge.
  *
+ * When using a gridded data set, it is recommended that edge_limit be set to
+ * TRUE for any dimensional axis that uses the PCHIP interpolation. This is
+ * because of PCHIP allowing for extreme values when extrapolating data.
+ *
  * @xref R.J. Urick, Principles of Underwater Sound, 3rd Edition,
  *       (1983), p. 113.
  *
@@ -76,9 +80,6 @@ template< class DATA_TYPE, int NUM_DIMS > class profile_mackenzie
             attmodel )
     {
         this->_sound_speed->interp_type(0,GRID_INTERP_PCHIP) ;
-        this->_sound_speed->edge_limit(0,true);
-        this->_sound_speed->edge_limit(1,false);
-        this->_sound_speed->edge_limit(2,false);
 
         unsigned index[3] ;
         for ( index[0]=0 ; index[0] < temperature.axis(0)->size() ; ++index[0] ) {
