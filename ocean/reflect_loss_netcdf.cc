@@ -1,5 +1,5 @@
 /**
- * @file reflection_loss_netcdf.cc
+ * @file reflect_loss_netcdf.cc
  * Models plane wave reflection from a bottom province profile.
  */
 #include <usml/ocean/reflect_loss_netcdf.h>
@@ -9,29 +9,15 @@ using namespace usml::ocean ;
 
 reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 
-/**
- * Opens the netcdf file, [filename], and grabs the following data:
- *
- *	@var lat            : latitude in degrees
- *	@var lon            : longitude in degrees
- *	@var type           : predetermined bottom province number
- *	@var speed_ratio    : specific speed ratio for [type]
- *	@var density_ratio  : specific density ratio for [type]
- *	@var atten          : attenuation value for [type]
- *	@var shear_speed    : specific shear speed for [type]
- *	@var shear_atten    : specific speed atten for [type]
- *
- */
-
 	NcFile file( filename );
-	NcVar *_lat = file.get_var("lat");
-	NcVar *_lon = file.get_var("lon");
-	NcVar *bot_num = file.get_var("type");
-	NcVar *bot_speed = file.get_var("speed_ratio");
-	NcVar *bot_density = file.get_var("density_ratio");
-	NcVar *bot_atten = file.get_var("atten");
-	NcVar *bot_shear_speed = file.get_var("shear_speed");
-	NcVar *bot_shear_atten = file.get_var("shear_atten");
+	NcVar *_lat = file.get_var("lat");                      ///< _lat : latitude in degrees
+	NcVar *_lon = file.get_var("lon");                      ///< _lon : longitude in degrees
+	NcVar *bot_num = file.get_var("type");                  ///< bot_num  : bottom province map
+	NcVar *bot_speed = file.get_var("speed_ratio");         ///< bot_speed  : speed ratio of the province
+	NcVar *bot_density = file.get_var("density_ratio");     ///< bot_density  : density ratio of the province
+	NcVar *bot_atten = file.get_var("atten");               ///< bot_atten  : attenuation value for the province
+	NcVar *bot_shear_speed = file.get_var("shear_speed");   ///< bot_shear_speed  : shear speed of the province
+	NcVar *bot_shear_atten = file.get_var("shear_atten");   ///< bot_shear_atten  : shear attenuation of the province
 
     /** Gets the size of the dimensions to be used to create the data grid */
     int ncid, latid, lonid, provid;
