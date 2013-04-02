@@ -124,9 +124,8 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 
 }
 
-/** Creates a rayleigh reflection loss value for the bottom province number at a specific location */
-/**
- * Computes the broadband reflection loss and phase change.
+/** Creates a rayleigh reflection loss value for the bottom province number
+ * at a specific location then computes the broadband reflection loss and phase change.
  *
  * @param location      Location at which to compute attenuation.
  * @param frequencies   Frequencies over which to compute loss. (Hz)
@@ -149,7 +148,9 @@ void reflect_loss_netcdf::reflect_loss(
         amplitude );
 }
 
-/// Destructor
+/** Interates over the rayleigh reflection loss values
+ * and deletes them.
+ */
 reflect_loss_netcdf::~reflect_loss_netcdf() {
 	for(std::vector<reflect_loss_rayleigh*>::iterator iter=rayleigh.begin(); iter != rayleigh.end(); iter++) {
         delete *iter;

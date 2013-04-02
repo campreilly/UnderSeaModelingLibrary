@@ -18,6 +18,12 @@ namespace ocean {
 /// @ingroup boundaries
 /// @{
 
+/**
+ * The reflect_loss_netcdf object ingests a netCDF formatted file of
+ * bottom province data and creates a reflect_loss_rayleigh object to
+ * create a rayleigh reflection loss value for the bottom province
+ * number at a specific location and returns broadband reflection loss and phase change.
+ */
 class USML_DECLSPEC reflect_loss_netcdf : public reflect_loss_model {
 
     std::vector<reflect_loss_rayleigh*> rayleigh;   ///< rayleigh : reflect_loss_rayleigh object
@@ -26,7 +32,7 @@ class USML_DECLSPEC reflect_loss_netcdf : public reflect_loss_model {
 	public:
 
 	 /**
-	  * Loads bottom province data from a file.
+	  * Loads bottom province data from a netCDF formatted file.
 	  *
 	  * @param filename     Filename of the NetCDF file to ingest
 	  *
@@ -37,7 +43,8 @@ class USML_DECLSPEC reflect_loss_netcdf : public reflect_loss_model {
 		reflect_loss_netcdf(const char *filename);
 
 	/**
-	 * Computes the broadband reflection loss and phase change.
+	 * Creates a rayleigh reflection loss value for the bottom province number
+	 * at a specific location then computes the broadband reflection loss and phase change.
 	 *
 	 * @param location      Location at which to compute attenuation.
 	 * @param frequencies   Frequencies over which to compute loss. (Hz)
