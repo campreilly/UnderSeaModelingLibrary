@@ -1,5 +1,5 @@
-/** 
- * @file netcdf_woa.h 
+/**
+ * @file netcdf_woa.h
  * Extracts ocean profile data from World Ocean Atlas.
  */
 #ifndef USML_NETCDF_WOA_H
@@ -14,8 +14,8 @@ namespace netcdf {
 /// @{
 
 /**
- * Extracts ocean profile data from World Ocean Atlas.
- * The World Ocean Atlas defines worldwide physical characteristic like
+ * Extracts ocean profile data from World Ocean Atlas (WOA).
+ * The World Ocean Atlas defines worldwide physical characteristics, like
  * temperature and salinity for monthly, seasonal, and annual averages.
  * All of these products uses a standard set of depths:
  *
@@ -71,14 +71,14 @@ namespace netcdf {
  * Atmospheric Administration (NOAA), Silver Springs, MD, September 2006.
  * See http://www.nodc.noaa.gov/OC5/WOA05/pubwoa05.html for more information.
  *
- * @xref Mark A. Collier, Paul J. Durack, "CSIRO netCDF version of the 
- * NODC World Ocean Atlas 2005," Commonwealth Scientific and Industrial 
- * Research Organization (CSIRO) Marine and Atmospheric Research Paper 015, 
+ * @xref Mark A. Collier, Paul J. Durack, "CSIRO netCDF version of the
+ * NODC World Ocean Atlas 2005," Commonwealth Scientific and Industrial
+ * Research Organization (CSIRO) Marine and Atmospheric Research Paper 015,
  * Australia, December 2006. Contact mark.collier@csiro.au for more information.
  */
 class USML_DECLSPEC netcdf_woa : public netcdf_profile {
 
-  public:  
+  public:
 
     /**
      * Load deep and shallow parts of WOA ocean profile from disk.
@@ -103,15 +103,15 @@ class USML_DECLSPEC netcdf_woa : public netcdf_profile {
      * @param  north        Upper limit for the latitude axis (degrees).
      * @param  west         Lower limit for the longitude axis (degrees).
      * @param  east         Upper limit for the longitude axis (degrees).
-     * @param  earth_radius Depth correction term (meters).  
+     * @param  earth_radius Depth correction term (meters).
      *                      Set to zero if you want to avoid transforming
      *                      profile into spherical earth coordinates.
      */
-    netcdf_woa( 
+    netcdf_woa(
         const char* deep, const char* shallow, int month,
         double south, double north, double west, double east,
         double earth_radius=wposition::earth_radius ) ;
-    
+
 } ;
 
 /// @}

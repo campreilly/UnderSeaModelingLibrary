@@ -1,4 +1,4 @@
-/** 
+/**
  * @example types/test/sequence_test.cc
  */
 #include <boost/test/unit_test.hpp>
@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE( sequence_linear_test1 ) {
     BOOST_CHECK_EQUAL( seq.size(), 8u );
     cout << "increment(3)       => " << seq.increment(3) << endl;
     BOOST_CHECK_CLOSE( seq.increment(3), 2.0, 1e-6 );
-    cout << "seq(3)             => " << seq(5) << endl;
+    cout << "seq(3)             => " << seq(3) << endl;
     BOOST_CHECK_CLOSE( seq(3), 7.0, 1e-6 );
 
     // test find_index() methods
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE( sequence_linear_test1 ) {
  *   - test sequence use as a uBLAS vector
  *   - test simple accessors:
  *          use operator[] form of element access
- *   - test find_index() methods: 
+ *   - test find_index() methods:
  *          less than min, between elements, on element, greater than max,
  *          mix of float and int arguments
  *   - test iterator looping:
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE( sequence_linear_test2 ) {
  *   - test sequence use as a uBLAS vector
  *   - test simple accessors:
  *          use operator[] form of element access
- *   - test find_index() methods: 
+ *   - test find_index() methods:
  *          less than min, between elements, on element, greater than max,
  *          mix of float and int arguments,
  *          note problem when searching exactly on element
@@ -193,12 +193,12 @@ BOOST_AUTO_TEST_CASE( sequence_log_test ) {
 
 /**
  * Basic tests for a sequence defined by an unevenly spaced vector of points.
- * 
+ *
  *   - test data input form of constructor
  *   - test sequence use as a uBLAS vector
  *   - test simple accessors:
  *          use operator[] form of element access
- *   - test find_index() methods: 
+ *   - test find_index() methods:
  *          less than min, between elements, on element, greater than max,
  *          mix of float and int arguments,
  *          note problem when searching exactly on element
@@ -243,7 +243,7 @@ BOOST_AUTO_TEST_CASE( sequence_data_test1 ) {
     cout << "find_index(20.0)   => " << seq.find_index(20.0) << endl;
     BOOST_CHECK_EQUAL( seq.find_index(20.0), 3u );
     cout << "find_index(1000.0) => " << seq.find_index(1000.0) <<endl;
-    BOOST_CHECK_EQUAL( seq.find_index(1000.0), 9u );
+    BOOST_CHECK_EQUAL( seq.find_index(1000.0), 8u );
 
     // test iterator looping
     // integrate dereferencing and post-increment operations
@@ -256,13 +256,13 @@ BOOST_AUTO_TEST_CASE( sequence_data_test1 ) {
 }
 
 /**
- * Alternate tests for a sequence defined by an unevenly spaced vector of points. 
- * 
+ * Alternate tests for a sequence defined by an unevenly spaced vector of points.
+ *
  *   - test decreasing sequence form of constructor
  *   - test sequence use as a uBLAS vector
  *   - test simple accessors:
  *          use operator[] form of element access
- *   - test find_index() methods: 
+ *   - test find_index() methods:
  *          less than min, between elements, on element, greater than max,
  *          mix of float and int arguments,
  *          note problem when searching exactly on element
@@ -300,7 +300,7 @@ BOOST_AUTO_TEST_CASE( sequence_data_test2 ) {
     // mix of float and int arguments
     // note problem when searching exactly on element
     cout << "find_index(-2)     => " << seq.find_index(-2) << endl;
-    BOOST_CHECK_EQUAL( seq.find_index(-2), 9u );
+    BOOST_CHECK_EQUAL( seq.find_index(-2), 8u );
     cout << "find_index(13)     => " << seq.find_index(13) << endl;
     BOOST_CHECK_EQUAL( seq.find_index(13), 7u );
     cout << "find_index(20.0)   => " << seq.find_index(20.0) << endl;

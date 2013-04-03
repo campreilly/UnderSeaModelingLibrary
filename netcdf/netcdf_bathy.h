@@ -22,9 +22,6 @@ using namespace usml::types ;
  * Extracts bathymetry data from world-wide bathymetry databases.
  * Stores the latitude, longitude, and depth in spherical earth
  * coordinates for faster interpolation within the WaveQ3D model.
- *
- * Stores the latitude, longitude, and depth in spherical earth
- * coordinates for faster interpolation within the WaveQ3D model.
  * This choice of coordinates means that the latitude, longitude axes
  * are actually stored in the form of a colatitude and azimuth in radians.
  * Because these databases store their data such that latitudes area increasing,
@@ -32,7 +29,7 @@ using namespace usml::types ;
  * a negative increment to sequence down to its smallest value.  In other words,
  * the data appear to be "upside-down" in spherical earth coordinates.
  *
- * Deduces the variables to be loaded based on their dimensionality.
+ * The variables to be loaded are deduced by their dimensionality.
  * The first variable to have 2 dimensions is assumed to be depth.
  * Negative depth values in netCDF file are taken to be underwater.
  * Assumes that the dataset supports the COARDS conventions for

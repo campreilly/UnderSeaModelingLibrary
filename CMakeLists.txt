@@ -20,6 +20,7 @@ set( PACKAGE_VERSION_MAJOR 0 )
 set( PACKAGE_VERSION_MINOR 3 )
 set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
 set( PACKAGE_MODULES ublas types netcdf ocean waveq3d )
+set( NETCDF_NCKS /usr/bin/ncks )
 
 ######################################################################
 # set USML defaults
@@ -179,7 +180,7 @@ endforeach( MOD )
 
 # generated data files for bathymetry tests
 
-if ( EXISTS ${NETCDF_NCKS} )
+#if ( EXISTS ${NETCDF_NCKS} )
     set( USML_DATA_BATHYMETRY ${USML_DATA_DIR}/bathymetry/ETOPO1_Ice_g_gmt4.grd
 	CACHE FILEPATH "data file for ETOPO bathymetry" )
     set( ETOPO_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp )
@@ -208,7 +209,7 @@ if ( EXISTS ${NETCDF_NCKS} )
 
     add_custom_target( ETOPO_TEST_DATA ALL DEPENDS
 	${ETOPO_CMP}.nc ${ETOPO_CMP2W}.nc ${ETOPO_CMP2E}.nc )
-endif()
+#endif()
 
 # generated data files for profile tests
 
