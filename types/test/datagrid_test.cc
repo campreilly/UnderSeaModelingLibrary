@@ -94,6 +94,7 @@ BOOST_AUTO_TEST_CASE( linear_1d_test ) {
     seq_linear axis(1.0,2.0,9.0);
     seq_vector *ax[] = {&axis};
     data_grid<double,1> grid( ax );
+    grid.edge_limit(0,false);
 
     for ( unsigned n=0; n < axis.size(); ++n ) {
         grid.data( &n, linear1d(axis(n)) );
@@ -149,6 +150,7 @@ BOOST_AUTO_TEST_CASE( cubic_1d_test ) {
     seq_linear axis(1.0,2.0,9.0);
     seq_vector *ax[] = {&axis};
     data_grid<double,1> grid( ax );
+    grid.edge_limit(0,false);
 
     for ( unsigned n=0; n < axis.size(); ++n ) {
         grid.data( &n, cubic1d(axis(n)) );
