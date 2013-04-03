@@ -71,7 +71,7 @@ protected:
     /**
      * Multi-dimensional data stored as a linear array in column major order.
      * This format is used to support an N-dimensional data set
-     * with any any number of dimensions.
+     * with any number of dimensions.
      * This memory is created in the constructor and deleted in the destructor.
      */
     DATA_TYPE *_data;
@@ -155,13 +155,13 @@ public:
 
 private:
 
-    /** Limits locations to values inside axis limits when true. */
+    /** Limits locations to values inside axis when true. */
     bool _edge_limit[NUM_DIMS];
 
 public:
 
     /**
-     * Do we limit locations to values inside axis limits? Default is true
+     * Returns the edge_limit flag for the requested dimension.
      */
     inline bool edge_limit(int unsigned dimension) const
     {
@@ -169,7 +169,8 @@ public:
     }
 
     /**
-     * Should we limit locations to values inside axis limits?
+     * Set the edge_limit flag for the requested dimension.
+     * Note: Default is true
      *
      * @param  dimension        Dimension number to be modified.
      * @param  flag             Limits locations when true.
@@ -199,10 +200,10 @@ private:
      * @param   index       Position of the corner before the desired field
      *                      point. Must have the same rank as the data grid.
      * @param   location    Location at which field value is desired. Must
-     *                      have the same rank as the data grid or higher.
+     *                      have the same NUM_DIM as the data grid or higher.
      * @param   deriv	    Derivative for this iteration.
      * @param	deriv_vec   Results vector for derivative.
-     *			    Derviative not computed if NULL.
+     *			            Derviative not computed if NULL.
      * @return              Estimate of the field after interpolation.
      */
     DATA_TYPE interp(int dim, const unsigned* index, const double* location,
@@ -214,13 +215,13 @@ private:
      *
      * @param   dim         Index of the dimension currently being processed.
      * @param   index       Position of the corner before the desired field
-     *                      point. Must have the same rank as the data grid.
+     *                      point. Must have the same NUM_DIM as the data grid.
      * @param   location    Location at which field value is desired. Must
-     *                      have the same rank as the data grid or higher.
+     *                      have the same NUM_DIM as the data grid or higher.
      * @param   deriv	    Derivative for this iteration. Always zero for
      *                      nearest neighbor interpolation.
      * @param	deriv_vec   Results vector for derivative.
-     *			    Derviative not computed if NULL.
+     *			            Derviative not computed if NULL.
      * @return              Estimate of the field after interpolation.
      */
     DATA_TYPE nearest(int dim, const unsigned* index, const double* location,
