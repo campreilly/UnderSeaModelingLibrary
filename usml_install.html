@@ -17,7 +17,7 @@
     This current version of this package has been tested in
     the following environments:
     <ul>
-      <li> Ubuntu Linux 10.04 LTS (this is USML's primary environment) </li>
+      <li> Ubuntu Linux 12.04 LTS (this is USML's primary environment) </li>
       <ul>
         <li> GNU C++ compiler (4.4.3) </li>
         <li>
@@ -28,7 +28,7 @@
           boost 1.48.0 from <a href="http://www.boost.org">http://www.boost.org</a>
         </li>
         <li>
-          netcdf 3.6.3 & nco 3.9.9 from
+          netcdf 4.1.3 & nco 3.9.9 from
           <a href="http://www.unidata.ucar.edu/software/netcdf">
             http://www.unidata.ucar.edu/software/netcdf
           </a>
@@ -56,9 +56,31 @@
     <h3>Configuration Issues with External Dependencies</h3>
     <p>This version of USML requires a few changes to the external dependencies.</p> 
     <ul>
-    <li> By default, CMake does not include a module to find NetCDF libraries.  Please copy the 
-         <code>FindNetCDF.cmake</code> file from the <code>config</code> directory 
-         into CMake's shared modules directory. </li>
+    <h4>Boost 1.4.8</h4>
+    <li> There is a bug in version 1.48 of the Boost uBLAS library that prevents us from overloading
+         operator/().  To see the corrected version of this code, please search for the 
+         symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the <code>vector_expression.hpp</code> 
+         and <code>matrix_expression.hpp</code> files in the <code>usml/config</code> directory.
+         In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
+         just above it. Those using Boost 1.48.0 can just replace the original files with the
+         ones from the <code>usml/config</code> directory.
+    <h4>NetCDF 4.1.3</h4>
+    <li> At this time, USML does not support the use of HDF5 or cURL. So in order to use USML and NetCDF 
+	 versions 4.0.1 and higher there are two options that you will need to do in order to run USML.
+	<ul>
+	 <li>The first option is to download the source code for netcdf at 
+	 <a href="http://www.unidata.ucar.edu/downloads/netcdf"> http://www.unidata.ucar.edu/downloads/netcdf <a/>
+	 and configure the install to disable netcdf-4 and dap.</li>
+     <ul>
+     For Linux: <code> CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib ./configure --prefix=/usr/local --disable-netcdf-4 --disable-dap </code>
+    </ul>
+	 <li>The second option is if you wish to keep these features on for netcdf. In order to get USML 
+	 to run properly, you will need to alter the CMakeLists.txt to include HDF5/zLib/cURL packages. 
+	 If you need to do this, there is a CMakeLists.txt file in the <code>usml/config</code> directory 
+	 that is specifically setup to do this for you. NOTE: you will need to download the HDF5/zLib/cURL 
+	 packages from source and compile them appropriately. There is also a README.txt provided in the 
+	 <code>usml/config</code> directory that assists with this.</li>
+     </ul>
     <li> Unidata's recent refactoring of the NetCDF library (Summer of 2010) hopelessly broke
          the existing port to Microsoft Visual Studio (see 
          <a href="http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#windows_netcdf4_1">
@@ -68,34 +90,15 @@
          CMake-based build that system that we used for testing is freely available on GitHub at
          <a href="https://github.com/campreilly/netcdf-4.1.3-with-cmake">
 	 https://github.com/campreilly/netcdf-4.1.3-with-cmake</a>.
-    <li> There is a bug in version 1.48 of the Boost uBLAS library that prevents us from overloading
-         operator/().  To see the correctedd version of this code, please search for the 
-         symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the <code>vector_expression.hpp</code> 
-         and <code>matrix_expression.hpp</code> files in the <code>config</code> directory.
-         In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
-         just above it. Those using Boost 1.48.0 can just replace the original files with the
-         ones from the <code>config</code> directory.
-    <li> At this time, USML does not support the use of HDF5 or cURL. So in order to use USML and NetCDF 
-	 versions 4.0.1 and higher there are two options that you will need to do in order to run USML.
-	<ul>
-	 <li>The first option is to download the source code for netcdf at 
-	 <a href="http://www.unidata.ucar.edu/downloads/netcdf"> http://www.unidata.ucar.edu/downloads/netcdf <a/>
-	 and configure the install to disable netcdf-4 and dap.</li>
-
-	 <li>The second option is if you wish to keep these features on for netcdf. In order to get USML 
-	 to run properly, you will need to alter the CMakeLists.txt to include HDF5/zLib/cURL packages. 
-	 If you need to do this, there is a CMakeLists.txt file in the <code>usml/config</code> directory 
-	 that is specifically setup to do this for you. NOTE: you will need to download the HDF%/zLib/cURL 
-	 packages from source and compile them appropriately. There is also a README.txt provided in the 
-	 <code>usml/config</code> directory that assists with this.</li>
-	</ul>
-    </ul>
+     <li> By default, CMake does not include a module to find NetCDF libraries.  Please copy the 
+         <code>FindNetCDF.cmake</code> file from the <code>usml/config</code> directory 
+         into CMake's shared modules directory.  For Linux it's the <code>/usr/share/cmake-2.8/Modules</code> directory.</li>
 
     <h2>Building and Testing USML</h2>
 
     <p>
       For the sake of the example, let's assume that you are installing on a Linux
-      system into the "~/Projects/usml" directory. Assuming that this is the current
+      system into the <code>"~/Projects/usml"</code> directory. Assuming that this is the current
       directory, and that all of the tarballs are here as well, the Linux commands
       to execute would be:
       <pre>
@@ -114,14 +117,13 @@
     <ul>
       <li>
         In the cmake-gui tool, set the source directory to the place where you
-        installed the USML source code.
+        installed the USML source code.  As suggested above source code could go in <code>"~/Projects/usml"</code>.
       </li>
       <li>
-        Setup for an "out of source" build by setting the binary directory to
-        something like the "~/Projects/usml-build" directory.  Using a binary
+        Setup for an "out of source" build by setting the binaries directory to
+        something like the <code>"~/Projects/usml-build"</code> directory.  Using a binary
         directory that is not outside of the source tree is strictly optional,
-        except for the <a href="http://www.vtk.org/Wiki/Eclipse_CDT4_Generator">
-	Eclipse CMake generator</a>.
+        except for the <a href="http://www.vtk.org/Wiki/Eclipse_CDT4_Generator">Eclipse CMake generator</a>.
       </li>
       <li>
         Use the "Configure" button to process the CMakeList file.
@@ -137,11 +139,11 @@
         At this point, you can close the cmake-gui tool.
       </li>
       <li>
-        Run the "make" utility from "~/Projects/usml-build" directory to compile both
+        Run the "make" utility from <code>"~/Projects/usml-build"</code> directory to compile both
         the usml shared libraries and the usml_test regression tests.
       </li>
       <li>
-        You can optionally use "make install" to install the compiled programs into
+        You can optionally use "sudo make install" to install the compiled programs into
         the include, lib, and src directories in /usr/local.
       </li>
       <li>
