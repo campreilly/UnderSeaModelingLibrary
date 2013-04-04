@@ -1,6 +1,6 @@
 /** 
  * @file seq_rayfan.h
- * Defines a sequence of values spaced evenly in tangent space.
+ * Defines a sequence of values that are tangentially spaced.
  */
 #ifndef USML_TYPES_SEQ_RAYFAN_H
 #define USML_TYPES_SEQ_RAYFAN_H
@@ -13,7 +13,7 @@ namespace types {
 /// @{
 
 /**
- * Defines a sequence of values spaced evenly in tangent space.
+ * Defines a sequence of values that are tangentially spaced.
  * <pre>
  *      de = s * tan( u ) + de0
  * 
@@ -30,7 +30,7 @@ class USML_DECLSPEC seq_rayfan: public seq_data
 {
 public:
     /**
-     * Construct sequence of tangent spaced angles using
+     * Construct sequence of tangentially spaced angles using
      * first value, last value, size, and center.
      *
      * @param  first        Angle at start of sequence (deg).

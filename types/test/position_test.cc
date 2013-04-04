@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE( earth_radius_test ) {
 }
 
 /**
- * Compute the dot product between vectors at different latitudes
+ * Compute the dot product between set of vectors at different latitudes
  * and a vector pointing due north.  If correct, the dots products
  * should correspond to the angles defined by the latitudes of
  * the original points.
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE( dot_test ) {
 }
 
 /**
- * Compute the dot product between vectors at different latitudes
+ * Compute the dot product between a vector at different latitudes
  * and a vector pointing due north.  If correct, the dots products
  * should correspond to the angles defined by the latitudes of
  * the original points.
@@ -113,8 +113,9 @@ BOOST_AUTO_TEST_CASE( dot1_test ) {
 }
 
 /**
- * Compute the straight line distance between positions at different latitudes
- * and the point 40N 45E. The results are compared to the analytic solution
+ * Compute the straight line distance between a wposition vector
+ * at different latitudes and the point 40N 45E. The results are
+ * compared to the analytic solution
  * <pre>
  *          distance^2 = 2 R^2 ( 1-cos(40-latitude) )
  * </pre>
@@ -155,8 +156,9 @@ BOOST_AUTO_TEST_CASE( distance_test ) {
 }
 
 /**
- * Compute the straight line distance between positions at different latitudes
- * and the point 40N 45E. The results are compared to the analytic solution
+ * Compute the straight line distance between a series of wposition1 vectors
+ * at different latitudes and the point 40N 45E. The results are compared
+ * to the analytic solution
  * <pre>
  *          distance^2 = 2 R^2 ( 1-cos(40-latitude) )
  * </pre>
@@ -221,7 +223,7 @@ BOOST_AUTO_TEST_CASE( gc_range_test ) {
     range = lax.gc_range( jfk, &bearing ) ;
 
     cout << "LAX to JFK: range = " << (range/wposition::earth_radius) << " rad bearing = " << bearing << " rad" << endl ;
-    cout << "LAX to JFK: range = " << (range/1852.0) << " km bearing = " << to_degrees(bearing) << " deg" << endl ;
+    cout << "LAX to JFK: range = " << (range/1852.0) << " nmi bearing = " << to_degrees(bearing) << " deg" << endl ;
 
     BOOST_CHECK_CLOSE( range/wposition::earth_radius, 0.623585, 1e-4 );
     BOOST_CHECK_CLOSE( bearing, 1.150035, 1e-4 );

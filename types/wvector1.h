@@ -20,8 +20,8 @@ class wvector1; // forward reference
 
 /**
  * Individual world vector in spherical earth coordinates.
- * Each of the three coordinate parameters (rho,theta,phi) is a 
- * scalar.  This class is a convenience to save the developer 
+ * Each of the three coordinate parameters (rho,theta,phi) is a
+ * scalar.  This class is a convenience to save the developer
  * from doing a lot of operations on 1x1 matrices.
  */
 class USML_DECLSPEC wvector1
@@ -83,7 +83,7 @@ private:
 public:
 
     /**
-     * Retrieves the colatitude component of the spherical earth 
+     * Retrieves the colatitude component of the spherical earth
      * coordinate system.
      *
      * @return		    Colatitude coordinate in radians.
@@ -114,7 +114,7 @@ private:
 public:
 
     /**
-     * Retrieves the longitude component of the spherical earth 
+     * Retrieves the longitude component of the spherical earth
      * coordinate system.
      *
      * @return          Longitude coordinate in radians.
@@ -143,8 +143,8 @@ public:
     void clear();
 
     /**
-     * Compute the dot product between this vector and some other 
-     * spherical earth vector.  
+     * Compute the dot product between this vector and some other
+     * spherical earth vector.
      *
      * @param  other	Second vector in the dot product.
      * @return          Dot product between these two vectors.
@@ -178,21 +178,21 @@ public:
     double distance2(const wvector1& origin) const;
 
     /**
-     * Extract depression/elevation and azimuthal angles from 
-     * acoustic ray direction in the local tangent plane.  
-     * Used to extract ray angle information from eigenray 
+     * Extract depression/elevation and azimuthal angles from
+     * acoustic ray direction in the local tangent plane.
+     * Used to extract ray angle information from eigenray
      * collisions with targets.
      *
-     * @param  de           Initial depression/elevation angle at the 
+     * @param  de           Initial depression/elevation angle at the
      *                      source location (degrees, positive is up).
-     * @param  az           Initial azimuthal angle at the source location 
+     * @param  az           Initial azimuthal angle at the source location
      *                      (degrees, clockwise from true north).
      */
     void direction(double* de, double* az);
 
     /**
      * Compute acoustic ray direction in the local tangent plane using
-     * the spherical earth geocentric direction vector.  Used to 
+     * the spherical earth geocentric direction vector.  Used to
      * re-initialize the direction of propagation after reflection.
      *
      * @param  pos          Position from which direction is measured.
@@ -202,8 +202,8 @@ public:
     void direction(const wvector1& pos, const wvector1& dir);
 
     /**
-     * Extract spherical earth geocentric direction from acoustic 
-     * ray direction in the local tangent plane. Used to extract 
+     * Extract spherical earth geocentric direction from acoustic
+     * ray direction in the local tangent plane. Used to extract
      * grazing angle information at the beginning of the reflection
      * process.
      *
@@ -224,8 +224,8 @@ public:
      *      area = 1/4 sqrt[ (a+b+c)(b+c-a)(c+a-b)(a+b-c) ]
      * </pre>
      *
-     * @xref Weisstein, Eric W. "Triangle Area." From MathWorld - A Wolfram 
-     *       Web Resource. http://mathworld.wolfram.com/TriangleArea.html 
+     * @xref Weisstein, Eric W. "Triangle Area." From MathWorld - A Wolfram
+     *       Web Resource. http://mathworld.wolfram.com/TriangleArea.html
      *
      * @param   p2   Second point in space
      * @param   p3   Third point in space
@@ -233,7 +233,7 @@ public:
     double area(const wvector1& p2, const wvector1& p3) const;
 
     /**
-     * Compute the surface area between three four points in space. Similar
+     * Compute the surface area between four points in space. Similar
      * to the three point version, but this one combines two triangle
      * (this,p2,p3) and (this,p3,p4) to form the complete solution.
      * This allows the distance from this to p3 to be reused.

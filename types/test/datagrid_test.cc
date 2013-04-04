@@ -1,10 +1,11 @@
-/** 
+/**
  * @example types/test/datagrid_test.cc
  */
 #include <boost/test/unit_test.hpp>
 #include <usml/types/types.h>
 #include <iostream>
 #include <stdio.h>
+#include <sys/time.h>
 
 BOOST_AUTO_TEST_SUITE(datagrid_test)
 
@@ -93,6 +94,7 @@ BOOST_AUTO_TEST_CASE( linear_1d_test ) {
     seq_linear axis(1.0,2.0,9.0);
     seq_vector *ax[] = {&axis};
     data_grid<double,1> grid( ax );
+    grid.edge_limit(0,false);
 
     for ( unsigned n=0; n < axis.size(); ++n ) {
         grid.data( &n, linear1d(axis(n)) );
@@ -148,6 +150,7 @@ BOOST_AUTO_TEST_CASE( cubic_1d_test ) {
     seq_linear axis(1.0,2.0,9.0);
     seq_vector *ax[] = {&axis};
     data_grid<double,1> grid( ax );
+    grid.edge_limit(0,false);
 
     for ( unsigned n=0; n < axis.size(); ++n ) {
         grid.data( &n, cubic1d(axis(n)) );
@@ -231,6 +234,104 @@ BOOST_AUTO_TEST_CASE( deriv_1d_test ) {
 
         cout << endl;
     }
+}
+
+BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
+    cout << "=== datagrid_interpolation_speed_test ===" << endl;
+
+    int num_points = 4525;
+    int counter = 0;
+    double param = 100.0;
+    double temp1,temp2;
+    vector<double> a (5);
+    a(0) = param * randgen::uniform();
+    for (int i=1; i<a.size(); ++i) {
+        temp1 = a(i-1);
+        temp2 = param * randgen::uniform();
+        while(temp1 > temp2) {
+            temp2 = param*randgen::uniform();
+        }
+        a(i) = temp2;
+    }
+    seq_data axis1(a);
+    a(0) = param * randgen::uniform();
+    for (int i=1; i<a.size(); ++i) {
+        temp1 = a(i-1);
+        temp2 = param * randgen::uniform();
+        while(temp1 > temp2) {
+            temp2 = param*randgen::uniform();
+        }
+        a(i) = temp2;
+    }
+    seq_data axis2(a);
+    a(0) = param * randgen::uniform();
+    for (int i=1; i<a.size(); ++i) {
+        temp1 = a(i-1);
+        temp2 = param * randgen::uniform();
+        while(temp1 > temp2) {
+            temp2 = param*randgen::uniform();
+        }
+        a(i) = temp2;
+    }
+    seq_data axis3(a);
+    seq_vector *ax[] = {&axis1, &axis2, &axis3};
+
+    cout << "axis(1): " << axis1 << endl;
+    cout << "axis(2): " << axis2 << endl;
+    cout << "axis(3): " << axis3 << endl;
+
+    data_grid<double,3> grid ( ax );
+
+    for( unsigned i=0; i < axis1.size(); ++i ) {
+        for( unsigned j=0; j < axis2.size(); ++j) {
+            for(unsigned k=0; k < axis3.size(); ++k) {
+                unsigned index[3];
+                index[0] = i;
+                index[1] = j;
+                index[2] = k;
+                double value = param * randgen::uniform();
+                grid.data( index, value );
+            }
+        }
+    }
+
+    cout << "data: " << endl;
+    for( unsigned i=0; i < axis1.size(); ++i ) {
+        cout << "   (" << i << ",:,:)" << endl;
+        for( unsigned j=0; j < axis2.size(); ++j) {
+            cout << "\t";
+            for(unsigned k=0; k < axis3.size(); ++k) {
+                unsigned index[3];
+                index[0] = i;
+                index[1] = j;
+                index[2] = k;
+                double value = grid.data( index );
+                cout << value;
+                if(k==axis3.size()-1) { cout << endl; }
+                else {cout << ", ";}
+            }
+        }
+        cout << endl;
+    }
+
+    struct timeval time ;
+    struct timezone zone ;
+    gettimeofday( &time, &zone ) ;
+    double start = time.tv_sec + time.tv_usec * 1e-6 ;
+    while ( counter != num_points ) {
+        double spot[3] ;
+        spot[0] = param * randgen::uniform();
+        spot[1] = param * randgen::uniform();
+        spot[2] = param * randgen::uniform();
+        grid.interpolate( spot );
+        ++counter;
+    }
+    gettimeofday( &time, &zone ) ;
+    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
+
+	cout << "Time to complete interpolation for " << num_points << " random points was "
+		<< (complete-start) << " sec." << endl;
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

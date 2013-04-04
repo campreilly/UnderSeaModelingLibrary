@@ -51,7 +51,7 @@ protected:
 
     /**
      *
-     * @param  data		  Set of data elements to use.
+     * @param  data		          Set of data elements to use.
      * @param  size               Number of elements in this set.
      * @throws invalid_argument   If series not monotonic
      */
@@ -65,8 +65,10 @@ public:
 
     /**
      * Search for a value in this sequence. If the value is outside of the
-     * legal range, the index for the nearest endpoint will
-     * be returned.
+     * legal range, the index for the nearest endpoint will be returned,
+     * unless the nearest endpoint is that last index, in which the second
+     * to last index will be returned. This is to garuntee that there is
+     * always an index to the right of the returned index.
      *
      * @param   value       Value of the element to find.
      * @return              Index of the largest value that is not greater
@@ -103,7 +105,7 @@ public:
             // Looping ends when the end of the list is hit or when
             // new point is greater than, or equal to, the search value.
 
-            difference_type N = size() - 1;
+            difference_type N = size() - 2;
             for (difference_type n = _index + 1; n <= N && _index_data < value; ++n) {
                 _index_data = _data(++_index) * _sign;
             }

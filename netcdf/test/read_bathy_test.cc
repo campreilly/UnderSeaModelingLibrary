@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE( read_bathy_header ) {
  */
 BOOST_AUTO_TEST_CASE( read_etopo ) {
     cout << "=== bathy_test: read_etopo ===" << endl;
-    netcdf_bathy bathy( 
+    netcdf_bathy bathy(
 	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
         18.0, 23.0, 200.0, 206.0, 0.0 ) ;
 
@@ -192,7 +192,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
  */
 BOOST_AUTO_TEST_CASE( read_coards ) {
     cout << "=== bathy_test: read_coards ===" << endl;
-    static const char* filename = "etopo_cmp.nc" ;
+    static const char* filename = USML_TEST_DIR "/netcdf/test/etopo_cmp.nc" ;
 	NcFile file(filename) ;
 	if ( file.id() < 0 ) {
 		cout << filename << " not found, test skipped" << endl ;
@@ -258,7 +258,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
  */
 BOOST_AUTO_TEST_CASE( span_bathy ) {
     cout << "=== bathy_test: span_bathy ===" << endl;
-    netcdf_bathy bathy( 
+    netcdf_bathy bathy(
 	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
 	-1.0, 2.0, 179, 182, 0.0 ) ;
 

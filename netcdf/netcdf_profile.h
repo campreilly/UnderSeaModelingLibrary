@@ -20,8 +20,8 @@ using namespace usml::types ;
 
 /**
  * Extracts ocean profile data from world-wide databases.
- * These profiles can be a physical characteristic like temperature and
- * salinity, or an acoustic property like sound speed.
+ * These profiles can be a physical characteristics like temperature
+ * and salinity, or an acoustic property like sound speed.
  * The three axes are stored in the order: altitude, latitude,
  * longitude. In other words, longitude changes the fastest and altitude
  * the slowest in the index to the underlying 3-D dataset.

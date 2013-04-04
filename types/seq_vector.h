@@ -1,6 +1,6 @@
-/** 
- * @file seq_vector.h 
- * A read-only, monotonic sequence of values. 
+/**
+ * @file seq_vector.h
+ * A read-only, monotonic sequence of values.
  */
 #ifndef USML_TYPES_SEQ_VECTOR_H
 #define USML_TYPES_SEQ_VECTOR_H
@@ -16,18 +16,18 @@ namespace types {
 /**
  * A read-only, monotonic sequence of values.  Designed to be used
  * as an interpolation axis for a multi-dimensional data sets.
- * Fast interpolation algorithms require an ability to quickly 
+ * Fast interpolation algorithms require an ability to quickly
  * lookup an axis index appropriate given a floating point axis value.
  *
  * This class caches data values and increments in ublas::vector<> objects.
- * This allow frequently used operations (ex: operator[] and increment()) 
- * to used inlined methods and cached values instead of computed results.
+ * This allow frequently used operations (ex: operator[] and increment())
+ * access to inlined methods and cached values instead of computed results.
  * Sub-classes often store an additional representation of this data
  * that is used to implement fast versions of the find_index() method.
  *
  * This design uses zero_vector<T> as a model of how to implement a read-only
  * uBLAS vector.  Implements subclass methods as virtual functions,
- * instead of traits, so that they can be resolved at run-time.  Run-time 
+ * instead of traits, so that they can be resolved at run-time.  Run-time
  * resolution is critical to reading sequences from netCDF data files.
  */
 class USML_DECLSPEC seq_vector: public vector_container<seq_vector>

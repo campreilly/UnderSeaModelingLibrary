@@ -42,8 +42,8 @@ void wvector1::clear()
 }
 
 /**
- * Compute the dot product between this vector and some other 
- * spherical earth vector.  
+ * Compute the dot product between this vector and some other
+ * spherical earth vector.
  */
 double wvector1::dot(const wvector1& other) const
 {
@@ -80,8 +80,8 @@ double wvector1::distance2(const wvector1& origin) const {
 }
 
 /**
- * Extract depression/elevation and azimuthal angles from 
- * acoustic ray direction in the local tangent plane.  
+ * Extract depression/elevation and azimuthal angles from
+ * acoustic ray direction in the local tangent plane.
  */
 void wvector1::direction(double* de, double* az)
 {
@@ -126,7 +126,7 @@ void wvector1::direction(const wvector1& pos, const wvector1& dir)
 }
 
 /**
- * Extract spherical earth geocentric direction from acoustic 
+ * Extract spherical earth geocentric direction from acoustic
  * ray direction in the local tangent plane.
  */
 void wvector1::direction(const wvector1& pos, wvector1* dir)
@@ -157,7 +157,7 @@ double wvector1::area(const wvector1& p2, const wvector1& p3) const
 }
 
 /**
- * Compute the surface area between three four points in space.
+ * Compute the surface area between four points in space.
  */
 double wvector1::area(const wvector1& p2, const wvector1& p3,
         const wvector1& p4) const
