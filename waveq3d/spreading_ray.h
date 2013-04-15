@@ -75,11 +75,11 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
      * Approximates the area as the sum of two triangles that connect
      * the corner points.
      *
-     * Extrapolates across folds in the wavefront by keeping a constant
+     * Extrapolates across edges in the wavefront by keeping a constant
      * level for three (3) extra beam widths.  This compensates for the fact
-     * that the detection scheme used by wavefront.on_fold() may leave the
+     * that the detection scheme used by wavefront.on_edges() may leave the
      * closest valid wavefront segment may be up to 1 1/2 segments
-     * away from the actual fold.  A failure to properly take this into account
+     * away from the actual edge.  A failure to properly take this into account
      * will show up as weak eignerays near the surface, bottom, or caustics.
      *
      * @param  location     Target location.

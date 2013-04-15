@@ -111,12 +111,12 @@ class USML_DECLSPEC wave_queue {
      */
     proploss* _proploss ;
 
-    /** Reference to the reflection loss modeling component. */
+    /** Reference to the reflection loss model component. */
     reflection_model* _reflection_model ;
 
     /**
      * Reference to the spreading loss model component.
-     * Supports either classic ray theory or hybrid Gaussian beams.
+     * Supports either classic ray theory or Hybrid Gaussian Beams.
      */
     spreading_model* _spreading_model ;
 
@@ -302,7 +302,7 @@ class USML_DECLSPEC wave_queue {
      * the current wavefront.
      *
      * If targets have been specified, this function calls detect_eigenrays()
-     * at the of of each step to search for front collisions with those
+     * at the end of each step to search for wavefront collisions with those
      * targets.
      *
      * At the end of each step, the next iteration may extend beyond one of
@@ -320,16 +320,15 @@ class USML_DECLSPEC wave_queue {
 
     /**
      * Detect and process boundary reflections and caustics.  Loops through all
-     * of the "next" wavefront elements to see if are on the wrong side of
+     * of the "next" wavefront elements to see if any are on the wrong side of
      * a boundary.
      *
-     * Relies detect_reflections_surface() and detect_reflections_bottom() to
-     * do the actual work of detecting and processing reflections.
+     * Relies on detect_reflections_surface() and detect_reflections_bottom()
+     * to do the actual work of detecting and processing reflections.
      * These routines work recursively with their opposite so that multiple
      * reflections can take place in a single time step.  This is critical
      * in very shallow water where the reflected position may already be
-     * beyond the opposing boundary. Once reflection process is complete,
-     * it then searchs for folds in the wavefront and wavefront caustics.
+     * beyond the opposing boundary.
      *
      * At the end of this process, the wave_front::find_edges()
      * routine is used to break the wavefront down into ray families.
@@ -383,7 +382,8 @@ class USML_DECLSPEC wave_queue {
      *
      * Exits early if the central ray is on the edge of a ray family.
      * Exits early if the distance to any of the surrounding points is
-     * smaller than the distance to the central point.
+     * smaller than the distance to the central point, unless that point is on
+     * the edge of the ray family, to which the search continues.
      * Ties are awarded to the higher time, higher D/E, and higher AZ.
      * Extrapolates outside of ray families by not testing to see if
      * points on the edge of the family are closer to the target than the

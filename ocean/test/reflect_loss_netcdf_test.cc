@@ -1,5 +1,5 @@
 /**
- * @example ocean/test/reflection_loss_netcdf_test.cc
+ * @example ocean/test/reflect_loss_netcdf_test.cc
  */
 #include <boost/test/unit_test.hpp>
 #include <usml/ocean/ocean.h>
@@ -10,6 +10,16 @@ BOOST_AUTO_TEST_SUITE(reflect_loss_netcdf_test)
 using namespace boost::unit_test;
 using namespace usml::ocean;
 
+/**
+ * @ingroup ocean_test
+ * @{
+ */
+
+/**
+ * Test the basic features of the reflection loss model using
+ * the netCDF bottom province file.
+ * Generate errors if values differ by more that 1E-5 percent.
+ */
 BOOST_AUTO_TEST_CASE( reflect_loss_netcdf_test ) {
 	cout << " === reflection_loss_test: reflection_loss_netcdf bottom province file === " << endl;
 	reflect_loss_netcdf netcdf( USML_DATA_DIR "/bottom_province/sediment_test.nc" );

@@ -138,7 +138,7 @@ public:
     /**
      * Cumulative # of caustics encountered at this point in time.
      * A caustic is defined as a place on the wavefront where a ray is tangent
-     * to the boundary of a shadow zone. The wave_queue::detect_caustic()
+     * to the boundary of a shadow zone. The wave_queue::find_edges()
      * function updates this field whenever the closest ray to a edge in the
      * wavefront crosses one of its neighbors without changing the number of
      * bounces. Note that this model also subtracts a PI/2 phase shift from the
@@ -272,22 +272,16 @@ public:
     void update() ;
 
     /**
-     * Find all folds in the ray fan.  Sets on_fold(de,az) to true if
-     * neighboring D/E points change radial direction.
-     */
-    void find_folds() ;
-
-    /**
-     * Find all edges in the ray fan.  Sets on_edge(de,az) to true if
-     * it is on the edge of the ray fan or one of its neighbors has
-     * a different surface, bottom, or caustic count.
+     * Find all edges and caustics in the ray fan.  Sets on_edge(de,az)
+     * to true ifit is on the edge of the ray fan or one of its neighbors
+     * has a different surface, bottom, or caustic count.
      */
     void find_edges() ;
 
 private:
 
     /**
-     * Compute a fast an approximation of the distance squared from each
+     * Compute a fast approximation of the distance squared from each
      * target to each point on the wavefront.  The speed-up process uses
      * the fact that the haversine distance formula can be replace
      * sin(x/2)^2 with (x/2)^2 when the latitude and longitude differences
@@ -307,7 +301,7 @@ private:
     void compute_target_distance() ;
 
     /**
-     * Compute extracts the sound_speed, sound_gradient, and attenuation
+     * Compute the sound_speed, sound_gradient, and attenuation
      * elements of the ocean profile.  It also clears the phase of the
      * wavefront. Later, the reflection_model will incorporate
      * reflection effects and wave_queue::step() will convert them into

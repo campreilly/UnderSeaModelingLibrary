@@ -58,9 +58,7 @@ class USML_DECLSPEC ascii_arc_bathy : public data_grid<double,2> {
      * The entire data file is loaded.
      *
      * @param  filename     Name of the ASCII ARC file to load.
-     * @param  earth_radius Local earth radius of curvature (meters).
-     *                      Set to zero if you want to make depths
-     *                      relative to earth's surface.
+     *
      */
     ascii_arc_bathy( const char* filename ) ;
 
