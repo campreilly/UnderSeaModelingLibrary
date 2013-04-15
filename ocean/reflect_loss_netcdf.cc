@@ -1,5 +1,5 @@
 /**
- * @file reflection_loss_netcdf.cc
+ * @file reflect_loss_netcdf.cc
  * Models plane wave reflection from a bottom province profile.
  */
 #include <usml/ocean/reflect_loss_netcdf.h>
@@ -9,29 +9,15 @@ using namespace usml::ocean ;
 
 reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 
-/**
- * Opens the netcdf file, [filename], and grabs the following data:
- *
- *	@var lat            : latitude in degrees
- *	@var lon            : longitude in degrees
- *	@var type           : predetermined bottom province number
- *	@var speed_ratio    : specific speed ratio for [type]
- *	@var density_ratio  : specific density ratio for [type]
- *	@var atten          : attenuation value for [type]
- *	@var shear_speed    : specific shear speed for [type]
- *	@var shear_atten    : specific speed atten for [type]
- *
- */
-
 	NcFile file( filename );
-	NcVar *_lat = file.get_var("lat");
-	NcVar *_lon = file.get_var("lon");
-	NcVar *bot_num = file.get_var("type");
-	NcVar *bot_speed = file.get_var("speed_ratio");
-	NcVar *bot_density = file.get_var("density_ratio");
-	NcVar *bot_atten = file.get_var("atten");
-	NcVar *bot_shear_speed = file.get_var("shear_speed");
-	NcVar *bot_shear_atten = file.get_var("shear_atten");
+	NcVar *_lat = file.get_var("lat");                      ///< _lat : latitude in degrees
+	NcVar *_lon = file.get_var("lon");                      ///< _lon : longitude in degrees
+	NcVar *bot_num = file.get_var("type");                  ///< bot_num  : bottom province map
+	NcVar *bot_speed = file.get_var("speed_ratio");         ///< bot_speed  : speed ratio of the province
+	NcVar *bot_density = file.get_var("density_ratio");     ///< bot_density  : density ratio of the province
+	NcVar *bot_atten = file.get_var("atten");               ///< bot_atten  : attenuation value for the province
+	NcVar *bot_shear_speed = file.get_var("shear_speed");   ///< bot_shear_speed  : shear speed of the province
+	NcVar *bot_shear_atten = file.get_var("shear_atten");   ///< bot_shear_atten  : shear attenuation of the province
 
     /** Gets the size of the dimensions to be used to create the data grid */
     int ncid, latid, lonid, provid;
@@ -69,14 +55,14 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
     double loninc = ( longitude[londim-1] - longitude[0] ) / londim ;
     axis[1] = new seq_linear(longitude[0], loninc, int(londim));
 
-    #ifdef USML_DEBUG
-        cout << "===============axis layout=============" << endl;
-        cout << "lat first: " << latitude[0] << "\nlat last: " << latitude[latdim-1] << "\nlat inc: " << latinc <<  "\nnum elements: " << (*axis[0]).size() << endl;
-        cout << "lat axis: " << *axis[0] << endl;
-        cout << "lon first: " << longitude[0] << "\nlon last: " << longitude[londim-1] << "\nlon inc: " << loninc << endl;
-        cout << "lon axis: " << *axis[1] << endl;
-        cout << endl;
-    #endif
+#ifdef USML_DEBUG
+    cout << "===============axis layout=============" << endl;
+    cout << "lat first: " << latitude[0] << "\nlat last: " << latitude[latdim-1] << "\nlat inc: " << latinc <<  "\nnum elements: " << (*axis[0]).size() << endl;
+    cout << "lat axis: " << *axis[0] << endl;
+    cout << "lon first: " << longitude[0] << "\nlon last: " << longitude[londim-1] << "\nlon inc: " << loninc << endl;
+    cout << "lon axis: " << *axis[1] << endl;
+    cout << endl;
+#endif
 
     /** Creates a data grid with the above assigned axises and populates the grid with the data from the netcdf file */
     province = new data_grid<double,2>(axis);
@@ -89,20 +75,20 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
         }
     }
 
-    #ifdef USML_DEBUG
-        cout << "==========data grid=============" << endl;
-        for(int i=0; i<londim; i++) {
-            for(int j=0; j<latdim; j++) {
-                index[0] = j;
-                index[1] = i;
-                cout << province->data(index) << ",";
-                if(j == latdim-1){
-                    cout << endl;
-                }
+#ifdef USML_DEBUG
+    cout << "==========data grid=============" << endl;
+    for(int i=0; i<londim; i++) {
+        for(int j=0; j<latdim; j++) {
+            index[0] = j;
+            index[1] = i;
+            cout << province->data(index) << ",";
+            if(j == latdim-1){
+                cout << endl;
             }
         }
-        cout << endl;
-    #endif
+    }
+    cout << endl;
+#endif
 
     /** Set the interpolation type to the nearest neighbor and restrict extrapolation */
     for(int i=0; i<2; i++){
@@ -112,52 +98,20 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 
     /** Builds a vector of reflect_loss_rayleigh values for all bottom province numbers */
     for(int i=0; i<int(n_types); i++) {
-        rayleigh.push_back(
-            new reflect_loss_rayleigh(
-                    density[i], speed[i]/1500, atten[i], shearspd[i]/1500, shearatten[i]
-                    )
-            );
+        rayleigh.push_back( new reflect_loss_rayleigh( density[i], speed[i]/1500, atten[i], shearspd[i]/1500, shearatten[i] ) );
     }
 
-    #ifdef USML_DEBUG
-        cout << "Sediment properties:" << endl;
-        cout << "\t\tSand\t\tLimestone" << endl;        ///only types provided in test file
-        for(int i=0; i<int(n_types); ++i) {
-            if(i==0) {cout << "density:\t";}
-            cout << density[i] << "\t\t";
-            if(i==int(n_types)-1) {cout << endl;}
-        }
-        for(int i=0; i<int(n_types); ++i) {
-            if(i==0) {cout << "speed:\t\t";}
-            cout << speed[i] << "\t\t";
-            if(i==int(n_types)-1) {cout << endl;}
-        }
-        for(int i=0; i<int(n_types); ++i) {
-            if(i==0) {cout << "attenuation:\t";}
-            cout << atten[i] << "\t\t";
-            if(i==int(n_types)-1) {cout << endl;}
-        }
-        for(int i=0; i<int(n_types); ++i) {
-            if(i==0) {cout << "shear speed:\t";}
-            cout << shearspd[i] << "\t\t";
-            if(i==int(n_types)-1) {cout << endl;}
-        }
-        for(int i=0; i<int(n_types); ++i) {
-            if(i==0) {cout << "shear atten:\t";}
-            cout << shearatten[i] << "\t\t";
-            if(i==int(n_types)-1) {cout << endl;}
-        }
-        for(int i=0; i<int(n_types); ++i) {
-            if(i==0) {cout << "province:\t";}
-            cout << i << "\t\t";
-            if(i==int(n_types)-1) {cout << endl;}
-        }
-        for(int i=0; i<int(n_types); ++i) {
-            if(i==0) {cout << "rayleigh:\t";}
-            cout << rayleigh[i] << "\t";
-            if(i==int(n_types)-1) {cout << endl << endl;}
-        }
-    #endif
+#ifdef USML_DEBUG
+    cout << "Sediment properties:" << endl;
+    cout << "\t\tSand\t\tLimestone" << endl;
+    cout << "density:\t" << density[0] << "\t\t" << density[1] << endl;
+    cout << "speed:\t\t" << speed[0] << "\t\t" << speed[1] << endl;
+    cout << "attenuation:\t" << atten[0] << "\t\t" << atten[1] << endl;
+    cout << "shear speed:\t" << shearspd[0] << "\t\t" << shearspd[1] << endl;
+    cout << "shear atten:\t" << shearatten[0] << "\t\t" << shearatten[1] << endl;
+    cout << "province:\t" << 0 << "\t\t" << 1 << endl;
+    cout << "rayleigh:\t" << rayleigh[0] << "\t" << rayleigh[1] << endl << endl;
+#endif
 
 	delete[] latitude;
 	delete[] longitude;
@@ -170,9 +124,8 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 
 }
 
-/** Creates a rayleigh reflection loss value for the bottom province number at a specific location */
-/**
- * Computes the broadband reflection loss and phase change.
+/** Creates a rayleigh reflection loss value for the bottom province number
+ * at a specific location then computes the broadband reflection loss and phase change.
  *
  * @param location      Location at which to compute attenuation.
  * @param frequencies   Frequencies over which to compute loss. (Hz)
@@ -195,7 +148,9 @@ void reflect_loss_netcdf::reflect_loss(
         amplitude );
 }
 
-/// Destructor
+/** Interates over the rayleigh reflection loss values
+ * and deletes them.
+ */
 reflect_loss_netcdf::~reflect_loss_netcdf() {
 	for(std::vector<reflect_loss_rayleigh*>::iterator iter=rayleigh.begin(); iter != rayleigh.end(); iter++) {
         delete *iter;
