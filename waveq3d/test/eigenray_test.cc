@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
  *
  * When the model is run with these parameters, the travel times are accurate
  * to within 0.02 msec, and the angles are accurate to within 0.02 degrees.
- * Bute note that, if the spacing between launch angles is too small,
+ * But note that, if the spacing between launch angles is too small,
  * Surface 3 occurs between the same two rays as the Direct Path.  There
  * is a fundamental limitation of the model's eigenray searching logic that
  * only allows one ray path to be found between any two launch angles.

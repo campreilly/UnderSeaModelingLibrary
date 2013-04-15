@@ -522,7 +522,7 @@ BOOST_AUTO_TEST_CASE(refraction_n2_linear) {
     const double g0 = 1.2 ;
     const double a0 = cos(ang) / (c0 / sqrt(1.0 + 2*g0/c0 * z0));
 
-    profile_model* profile = new profile_n2(c0, g0) ;
+    profile_model* profile = new profile_n2(c0, g0/1500.0) ;
     boundary_model* surface = new boundary_flat();
     boundary_model* bottom = new boundary_flat(5000.0);
     ocean_model ocean(surface, bottom, profile);
@@ -762,7 +762,7 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
  *      AZ Angles:      0 degrees (north)
  *      Time Step:      100 msec
  * </pre>
- * In this test, rays are launched from the deep sound sound channel axis,
+ * In this test, rays are launched from the deep sound channel axis,
  * pass through two vertices, and then return to the axis (heading in it's
  * original direction). The process is then repeated for a second cycle.
  * The range required to complete each cycle is compared to an analytic

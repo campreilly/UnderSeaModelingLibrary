@@ -20,8 +20,8 @@ namespace ocean {
  * the depth and reflection properties of the interface.
  * This class implements a reflection loss model through delegation.
  * The delegated model is defined separately and added to its host
- * during/after construction.  The host is defined as an reflect_loss_model
- * subclass so that its children can share the reflection loss model
+ * during/after construction.  The host is defined as a reflect_loss_model
+ * subclass so that it's children can share the reflection loss model
  * through this delegation.
  *
  * This implementation defines the unit normal using cartesian coordinates

@@ -17,6 +17,11 @@ namespace ocean {
 
 class USML_DECLSPEC reflect_loss_netcdf : public reflect_loss_model {
 
+    /**
+     * Creates a global variable to store the rayleigh loss models and provinced
+     * data grid values in. The rayleigh models are destroyed by the destructor
+     * after use.
+     */
     std::vector<reflect_loss_rayleigh*> rayleigh;
     data_grid<double, 2>* province;
 

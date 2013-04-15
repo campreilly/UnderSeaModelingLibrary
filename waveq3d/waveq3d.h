@@ -1,15 +1,15 @@
-/** 
+/**
  * @file waveq3d.h WaveQ3D Model
  * @defgroup waveq3d WaveQ3D Model
  *
- * The WaveQ3D model computes propagation loss using hybrid Gaussian beams 
- * in spherical/time coordinates. This model is designed to support real-time, 
+ * The WaveQ3D model computes propagation loss using hybrid Gaussian beams
+ * in spherical/time coordinates. This model is designed to support real-time,
  * sonar simulation/stimulation systems, in littoral environments,
- * at active sonar frequencies. 
+ * at active sonar frequencies.
  * \link usml::waveq3d::wave_queue
  * See wave_queue class for high level class diagram.
  * \endlink
- * 
+ *
  * - Ray solutions to the eikonal equation are computed in latitude, longitude,
  *   and altitude coordinates to match wide-area environmental databases.
  *   This avoids the need to translate sound speed and bottom parameters into
@@ -54,7 +54,7 @@
  *   valid answers in the outermost cells of the D/E and AZ grid. This
  *   is because the model needs a supporting Gaussian beam on either side
  *   to maintain proper normalization. For this reason, all ray fans
- *   should include at least 4 rays in each launch angle dimension.
+ *   should include at least 3 rays in each launch angle dimension.
  *
  * - The model operates at its maximum efficiency when there are a large
  *   number of targets for each sensor, but the number of targets is
@@ -110,7 +110,7 @@
  * @ingroup waveq3d
  *
  * Regression tests for the waveq3d package
- */ 
+ */
 #ifndef USML_WAVEQ3D_H
 #define USML_WAVEQ3D_H
 

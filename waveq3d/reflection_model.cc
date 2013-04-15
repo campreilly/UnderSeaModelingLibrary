@@ -159,7 +159,7 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     ) ) ;
     if ( grazing <= 0.0 ) return false ;	// near miss of the surface
 
-    // invoke bottom reverberation callback
+    // invoke surface reverberation callback
     // @todo THIS IS A STUB FOR FUTURE BEHAVIORS.
 
     if ( _surface_reverb ) {

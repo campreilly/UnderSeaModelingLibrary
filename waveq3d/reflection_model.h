@@ -1,4 +1,4 @@
-/** 
+/**
  * @file reflection_model.h
  * Reflection model components of wave_queue object type.
  */
@@ -20,7 +20,7 @@ class wave_queue ;      // forward reference for friend declaration
  * simplify maintenance of the reflection model components separately
  * from the core of the propagation engine.
  *
- * The  wave_queue::detect_reflections_surface() and
+ * The wave_queue::detect_reflections_surface() and
  * wave_queue::detect_reflections_bottom() routines detect
  * when a collision has occurred. Then, this class is used to:
  *
@@ -49,7 +49,7 @@ class wave_queue ;      // forward reference for friend declaration
 class USML_DECLSPEC reflection_model {
 
     friend class wave_queue ;
-    
+
   private:
 
     /** Wavefront object associated with this model. */
@@ -62,11 +62,11 @@ class USML_DECLSPEC reflection_model {
     reverb_model* _surface_reverb ;
 
     /**
-     * If the water is too shallow, bottom_reflection() uses a horizontal 
-     * normal to simulate reflection from "dry land".  Without this, the 
-     * propagation could wander into a region where the ocean bottom was 
-     * above the surface and all propagation elements evaluated to NaN.  
-     * This approximation has very little practical effect because the rays 
+     * If the water is too shallow, bottom_reflection() uses a horizontal
+     * normal to simulate reflection from "dry land".  Without this, the
+     * propagation could wander into a region where the ocean bottom was
+     * above the surface and all propagation elements evaluated to NaN.
+     * This approximation has very little practical effect because the rays
      * should already be very weak, due to multiple bottom interactions,
      * by the time they reach the beach.
      *
@@ -93,20 +93,20 @@ class USML_DECLSPEC reflection_model {
     /**
      * Hide default constructor to prohibit use by non-friends.
      */
-    reflection_model( wave_queue& wave ) 
+    reflection_model( wave_queue& wave )
     	: _wave( wave ), _bottom_reverb(0), _surface_reverb(0),
         TOO_SHALLOW( 300.0 * wave._time_step )
     	{}
 
     /**
-     * Reflect a single acoustic ray from the ocean bottom.  
-     * Computes boundary reflection loss and re-initializes the direction of 
+     * Reflect a single acoustic ray from the ocean bottom.
+     * Computes boundary reflection loss and re-initializes the direction of
      * the ray.  Adds reflection attenuation and phase to existing values.
      *
-     * The distance (in time) from the "current" wavefront to the 
+     * The distance (in time) from the "current" wavefront to the
      * boundary collision is given by:
      * \f[
-     *      \Delta\tau_{collision} = 
+     *      \Delta\tau_{collision} =
      *             h \frac{ \hat{r} \bullet \hat{n} }
      *             { \frac{d\vec{r}}{d\tau} \bullet \hat{n} }
      * \f]
@@ -126,7 +126,7 @@ class USML_DECLSPEC reflection_model {
      *      - \f$ \hat{I} \f$ = incident direction in spherical earth coords
      *      - \f$ \hat{R} \f$ = reflected direction in spherical earth coords
      *
-     * Note that Small errors in the surface normal have a large effect when the
+     * Note that small errors in the surface normal have a large effect when the
      * ray path is nearly parallel to the ocean floor. If the reflection does
      * not point the ray back-into the water column, the next time step
      * will include an erroneous reflection in which both the current and
@@ -134,10 +134,7 @@ class USML_DECLSPEC reflection_model {
      * differential between the current and next rays to refine the dot product
      * \f$ \frac{d\vec{r}}{d\tau} \bullet \hat{n} \f$ when this becomes a problem.
      *
-     * This routine exits without producing a reflection if this calculation
-     * indicates that a near-miss has occurred. A near-miss is defined as the
-     * case where the ray is already heading back into the water column without
-     * the help of a reflection.
+     * For near-miss instances, please refer to the section on MIN_REFLECT.
      *
      * @param de                D/E angle index number of reflected ray.
      * @param az                AZ angle index number of reflected ray.
@@ -148,8 +145,8 @@ class USML_DECLSPEC reflection_model {
     bool bottom_reflection( unsigned de, unsigned az, double depth ) ;
 
     /**
-     * Reflect a single acoustic ray from the ocean surface. 
-     * Computes boundary reflection loss and re-initializes the direction of 
+     * Reflect a single acoustic ray from the ocean surface.
+     * Computes boundary reflection loss and re-initializes the direction of
      * the ray.  Adds reflection attenuation and phase to existing values.
      *
      * Because the ocean surface has fixed normal, the generic
@@ -215,8 +212,8 @@ class USML_DECLSPEC reflection_model {
      * @param direction     Direction (un-normalized) after reflection.
      * @param speed         Speed of sound at the point of reflection.
      */
-    void reflection_reinit( 
-        unsigned de, unsigned az, double dtime, 
+    void reflection_reinit(
+        unsigned de, unsigned az, double dtime,
         const wposition1& position, const wvector1& direction, double speed ) ;
 
     /**
@@ -229,8 +226,8 @@ class USML_DECLSPEC reflection_model {
      * @param az            AZ angle index number of reflected ray.
      * @param results       Wave element data with new information.
      */
-    static void reflection_copy( 
-        wave_front* element, unsigned de, unsigned az, 
+    static void reflection_copy(
+        wave_front* element, unsigned de, unsigned az,
         wave_front& results ) ;
 } ;
 

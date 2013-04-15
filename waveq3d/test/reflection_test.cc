@@ -345,8 +345,8 @@ BOOST_AUTO_TEST_CASE( reflect_slope_test ) {
  *
  * When the gcc -ffast-math compiler option is turned off, these results are
  * expected to be accurate to at least 1e-6 percent.  With fast-math turned on,
- * the accuracy of the lat/long drops to 5e-5 percent, and the about 1 meters
- * is lost on the accuracy in depth.
+ * the accuracy of the lat/long drops to 5e-5 percent, and about 6 meters
+ * are lost on the accuracy in depth.
  */
 BOOST_AUTO_TEST_CASE( reflect_grid_test ) {
     const char* csvname = USML_TEST_DIR "/waveq3d/test/reflect_grid_test.csv" ;
@@ -447,21 +447,21 @@ BOOST_AUTO_TEST_CASE( reflect_grid_test ) {
         wave.close_netcdf() ;
         cout << "wave propagates for " << wave.time() << " secs" << endl ;
 
-//        // compare to prior runs
-//
-//        #ifdef __FAST_MATH__
-//            const double position_accuracy = 5e-4 ;
-//        #else
-//            const double position_accuracy = 1e-6 ;
-//        #endif
-//        BOOST_CHECK_CLOSE( wave.curr()->position.latitude(0,0),36.183195549220635, position_accuracy ) ;
-//        BOOST_CHECK_CLOSE( wave.curr()->position.longitude(0,0),16.021086325519299, position_accuracy ) ;
-//
-//        #ifdef __FAST_MATH__
-//            BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)+2728.2357222689316, 6.0 ) ;
-//        #else
-//            BOOST_CHECK_CLOSE( wave.curr()->position.altitude(0,0),-2728.2357222689316, 1e-6 ) ;
-//        #endif
+        // compare to prior runs
+
+        #ifdef __FAST_MATH__
+            const double position_accuracy = 5e-4 ;
+        #else
+            const double position_accuracy = 1e-6 ;
+        #endif
+        BOOST_CHECK_CLOSE( wave.curr()->position.latitude(0,0),36.183195549220635, position_accuracy ) ;
+        BOOST_CHECK_CLOSE( wave.curr()->position.longitude(0,0),16.021086325519299, position_accuracy ) ;
+
+        #ifdef __FAST_MATH__
+            BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)+2728.2357222689316, 6.0 ) ;
+        #else
+            BOOST_CHECK_CLOSE( wave.curr()->position.altitude(0,0),-2728.2357222689316, 1e-6 ) ;
+        #endif
 
     } catch ( std::exception* except ) {
         BOOST_ERROR( except->what() ) ;

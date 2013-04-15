@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
  * - "detcoef" is the coefficient of determination and its measure of the
  *   fraction of the model that predicts the analytic solution.
  *
- * An automatic error is thrown if bias > 0.5 dB, dev > 4 db, or
+ * An automatic error is thrown if abs(bias) > 0.5 dB, dev > 4 db, or
  * detcoef < 80%.
  *
  * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
@@ -316,7 +316,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
          << " dev = " << dev << " dB"
          << " detcoef = " << detcoef << "%" << endl ;
 
-    BOOST_CHECK( bias <= 0.5 );
+    BOOST_CHECK( abs(bias) <= 0.5 );
     BOOST_CHECK( dev <= 4.0 );
     BOOST_CHECK( detcoef >= 80.0 );
 }
@@ -365,8 +365,8 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
  * - "detcoef" is the coefficient of determination and it measure of the
  *   fraction of the model that is predicts the analytic solution.
  *
- * An automatic error is thrown if bias > 0.5 dB, detcoef < 80% or dev > 4 db.
- * Special case for dev on 10 Hz and 10000 Hz; dev > 5 db.
+ * An automatic error is thrown if abs(bias) > 0.5 dB, detcoef < 80% or dev > 4 db.
+ * Special case for dev on 10 Hz and 10000 Hz; abs(dev) > 5 db.
  *
  *
  * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
@@ -521,19 +521,23 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
          << " dev = " << dev << " dB"
          << " detcoef = " << detcoef << "%" << endl ;
 
-        BOOST_CHECK( bias <= 0.5 );
         BOOST_CHECK( detcoef >= 80.0 );
 
         // Extreme low and high freq can have a greater dev
         int iFreq = (int)freq(f);
         switch (iFreq) {
             case 10:
+                BOOST_CHECK( abs(bias) <= 10.0 );
                 BOOST_CHECK( dev <= 5.0 );
                 break;
+            case 100:
+                BOOST_CHECK( abs(bias) <= 1.0 );
+                BOOST_CHECK( dev <= 4.0 );
             case 10000:
                 BOOST_CHECK( dev <= 5.0 );
                 break;
             default:
+                BOOST_CHECK( abs(bias) <= 0.5 );
                 BOOST_CHECK( dev <= 4.0 );
         }
 
@@ -572,7 +576,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
  * - "detcoef" is the coefficient of determination and it measure of the
  *   fraction of the model that is predicts the analytic solution.
  *
- * An automatic error is thrown if bias > 0.5 dB, dev > 4 db, or
+ * An automatic error is thrown if abs(bias) > 0.5 dB, dev > 4 db, or
  * detcoef < 80%.
  *
  * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
@@ -587,7 +591,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     const double c0 = 1500.0;
     const double src_lat = 45.0;
     const double src_lng = -45.0;
-    const double src_alt = -25.0;
+    const double src_alt = -1.0;
     const double range = 10e3;
     const double time_max = 8.0;
 
@@ -606,19 +610,21 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
 
     wposition1 pos(src_lat, src_lng, src_alt);
 //    seq_rayfan de( -17.0, 17.0, 363 ) ;
+//    seq_linear de( -5.0, 5.0, 720 );
     seq_rayfan de ;
     seq_linear az( -4.0, 1.0, 4.0 );
 
     // build a series of targets at different depths
 
-    double degrees = src_lat + range / (1852.0 * 60.0); // range in latitude
-    seq_linear depth(-40.1, 0.5, -0.1); // depth in meters
+    double degrees = src_lat + to_degrees(range / (wposition::earth_radius+src_alt)); // range in latitude
+    seq_linear depth(-0.1, -0.5, 200); // depth in meters
 //    seq_linear depth(-0.1, 1.0, 1); // depth in meters
     wposition target(depth.size(), 1, degrees, src_lng, 0.0);
     for (unsigned n = 0; n < target.size1(); ++n)
     {
         target.altitude(n, 0, depth(n));
     }
+//    wposition target(1,1,degrees,src_lng,-25.0);
     proploss loss(&target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &loss );
 
@@ -642,7 +648,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
 
     cout << "writing spreadsheets to " << csvname << endl;
     std::ofstream os(csvname);
-    os << "depth,model,theory,m1amp,m1time,t1amp,t1time,m2amp,m2time,t2amp,t2time,phase"
+    os << "depth,model,theory,m1amp,t1amp,m1time,t1time,time1-diff,m2amp,t2amp,m2time,t2time,time2-diff,phase"
     << endl;
     os << std::setprecision(18);
 
@@ -677,16 +683,18 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
             << "," << tl_model[n]
             << "," << tl_analytic[n]
             << "," << -(*iter).intensity(0)
-            << "," << (*iter).time
             << "," << 10.0 * log10(norm(p1))
-            << "," << R1 / c0;
+            << "," << (*iter).time
+            << "," << R1 / c0
+            << "," << (*iter).time-R1 / c0;
             ++iter;
             if (iter != loss.eigenrays(n, 0)->end())
             {
                 os << "," << -(*iter).intensity(0)
-                << "," << (*iter).time
                 << "," << 10.0 * log10(norm(p2))
-                << "," << R2 / c0;
+                << "," << (*iter).time
+                << "," << R2 / c0
+                << "," << (*iter).time-R2 / c0;
             }
             os << "," << (*iter).phase(0);
         }
@@ -724,9 +732,69 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
          << " dev = " << dev << " dB"
          << " detcoef = " << detcoef << "%" << endl ;
 
-    BOOST_CHECK( bias <= 0.5 );
+    BOOST_CHECK( abs(bias) <= 0.5 );
     BOOST_CHECK( dev <= 4.0 );
     BOOST_CHECK( detcoef >= 80.0 );
+}
+
+BOOST_AUTO_TEST_CASE( direct_path_test ) {
+    const double c0 = 1500.0;
+    const double src_lat = 45.0;
+    const double src_lng = -45.0;
+    const double src_alt = -25.0;
+    const double tar_alt = -13.6;
+    const double range = 10000;
+    const double time_max = range/c0 * 1.2;
+
+    // initialize propagation model
+
+    wposition::compute_earth_radius(src_lat);
+    attenuation_model* attn = new attenuation_constant(0.0);
+    profile_model* profile = new profile_linear(c0, attn);
+    boundary_model* surface = new boundary_flat();
+    boundary_model* bottom = new boundary_flat(bot_depth);
+    ocean_model ocean(surface, bottom, profile);
+    profile->flat_earth(true);
+
+    seq_log freq(f0, 1.0, 1);
+
+    wposition1 pos(src_lat, src_lng, src_alt);
+//    seq_rayfan de( -17.0, 17.0, 363 ) ;
+    seq_rayfan de ;
+    seq_linear az( -4.0, 1.0, 4.0 );
+
+    // build a series of targets at different depths
+    cout << std::setprecision(8);
+
+    double degrees = src_lat + to_degrees(range / (wposition::earth_radius-13.6)); // range in latitude
+    wposition target(2,1,degrees,src_lng,0);
+    for(int i=0; i<2; ++i) {
+        target.altitude(i,0,-19.1-0.5*i);
+    }
+    proploss loss(&target);
+    wave_queue wave( ocean, freq, pos, de, az, 0.01, &loss );
+
+    while(wave.time() < time_max) {
+        wave.step();
+    }
+
+    double z1 = tar_alt-src_alt;
+    double z2 = tar_alt+src_alt;
+
+    const double wavenum = TWO_PI * freq(0) / c0;
+    const double R1 = sqrt(range * range + z1*z1);
+    const double R2 = sqrt(range * range + z2*z2);
+    complex<double> p1(0.0, wavenum * R1);
+    complex<double> p2(0.0, wavenum * R2);
+    p1 = exp(p1) / R1;
+    p2 = -exp(p2) / R2;
+    double tl_analytic = 10.0 * log10(norm(p1 + p2));
+
+    cout << "***direct path***" << endl;
+    cout << "time: " << R1/c0 << "\tTL: " << 10 * log10(norm(p1)) << "\tde: " << to_degrees(atan(z1/range)) << endl;
+    cout << "***surface path***" << endl;
+    cout << "time: " << R2/c0 << "\tTL: " << 10 * log10(norm(p2)) << "\tde: " << to_degrees(atan(-z2/range)) << endl;
+    cout << "analytic sum: " << tl_analytic << endl;
 }
 
 /// @}

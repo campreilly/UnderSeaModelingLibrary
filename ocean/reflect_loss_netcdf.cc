@@ -69,14 +69,14 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
     double loninc = ( longitude[londim-1] - longitude[0] ) / londim ;
     axis[1] = new seq_linear(longitude[0], loninc, int(londim));
 
-#ifdef USML_DEBUG
-    cout << "===============axis layout=============" << endl;
-    cout << "lat first: " << latitude[0] << "\nlat last: " << latitude[latdim-1] << "\nlat inc: " << latinc <<  "\nnum elements: " << (*axis[0]).size() << endl;
-    cout << "lat axis: " << *axis[0] << endl;
-    cout << "lon first: " << longitude[0] << "\nlon last: " << longitude[londim-1] << "\nlon inc: " << loninc << endl;
-    cout << "lon axis: " << *axis[1] << endl;
-    cout << endl;
-#endif
+    #ifdef USML_DEBUG
+        cout << "===============axis layout=============" << endl;
+        cout << "lat first: " << latitude[0] << "\nlat last: " << latitude[latdim-1] << "\nlat inc: " << latinc <<  "\nnum elements: " << (*axis[0]).size() << endl;
+        cout << "lat axis: " << *axis[0] << endl;
+        cout << "lon first: " << longitude[0] << "\nlon last: " << longitude[londim-1] << "\nlon inc: " << loninc << endl;
+        cout << "lon axis: " << *axis[1] << endl;
+        cout << endl;
+    #endif
 
     /** Creates a data grid with the above assigned axises and populates the grid with the data from the netcdf file */
     province = new data_grid<double,2>(axis);
@@ -89,20 +89,20 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
         }
     }
 
-#ifdef USML_DEBUG
-    cout << "==========data grid=============" << endl;
-    for(int i=0; i<londim; i++) {
-        for(int j=0; j<latdim; j++) {
-            index[0] = j;
-            index[1] = i;
-            cout << province->data(index) << ",";
-            if(j == latdim-1){
-                cout << endl;
+    #ifdef USML_DEBUG
+        cout << "==========data grid=============" << endl;
+        for(int i=0; i<londim; i++) {
+            for(int j=0; j<latdim; j++) {
+                index[0] = j;
+                index[1] = i;
+                cout << province->data(index) << ",";
+                if(j == latdim-1){
+                    cout << endl;
+                }
             }
         }
-    }
-    cout << endl;
-#endif
+        cout << endl;
+    #endif
 
     /** Set the interpolation type to the nearest neighbor and restrict extrapolation */
     for(int i=0; i<2; i++){
@@ -112,20 +112,52 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 
     /** Builds a vector of reflect_loss_rayleigh values for all bottom province numbers */
     for(int i=0; i<int(n_types); i++) {
-        rayleigh.push_back( new reflect_loss_rayleigh( density[i], speed[i]/1500, atten[i], shearspd[i]/1500, shearatten[i] ) );
+        rayleigh.push_back(
+            new reflect_loss_rayleigh(
+                    density[i], speed[i]/1500, atten[i], shearspd[i]/1500, shearatten[i]
+                    )
+            );
     }
 
-#ifdef USML_DEBUG
-    cout << "Sediment properties:" << endl;
-    cout << "\t\tSand\t\tLimestone" << endl;
-    cout << "density:\t" << density[0] << "\t\t" << density[1] << endl;
-    cout << "speed:\t\t" << speed[0] << "\t\t" << speed[1] << endl;
-    cout << "attenuation:\t" << atten[0] << "\t\t" << atten[1] << endl;
-    cout << "shear speed:\t" << shearspd[0] << "\t\t" << shearspd[1] << endl;
-    cout << "shear atten:\t" << shearatten[0] << "\t\t" << shearatten[1] << endl;
-    cout << "province:\t" << 0 << "\t\t" << 1 << endl;
-    cout << "rayleigh:\t" << rayleigh[0] << "\t" << rayleigh[1] << endl << endl;
-#endif
+    #ifdef USML_DEBUG
+        cout << "Sediment properties:" << endl;
+        cout << "\t\tSand\t\tLimestone" << endl;        ///only types provided in test file
+        for(int i=0; i<int(n_types); ++i) {
+            if(i==0) {cout << "density:\t";}
+            cout << density[i] << "\t\t";
+            if(i==int(n_types)-1) {cout << endl;}
+        }
+        for(int i=0; i<int(n_types); ++i) {
+            if(i==0) {cout << "speed:\t\t";}
+            cout << speed[i] << "\t\t";
+            if(i==int(n_types)-1) {cout << endl;}
+        }
+        for(int i=0; i<int(n_types); ++i) {
+            if(i==0) {cout << "attenuation:\t";}
+            cout << atten[i] << "\t\t";
+            if(i==int(n_types)-1) {cout << endl;}
+        }
+        for(int i=0; i<int(n_types); ++i) {
+            if(i==0) {cout << "shear speed:\t";}
+            cout << shearspd[i] << "\t\t";
+            if(i==int(n_types)-1) {cout << endl;}
+        }
+        for(int i=0; i<int(n_types); ++i) {
+            if(i==0) {cout << "shear atten:\t";}
+            cout << shearatten[i] << "\t\t";
+            if(i==int(n_types)-1) {cout << endl;}
+        }
+        for(int i=0; i<int(n_types); ++i) {
+            if(i==0) {cout << "province:\t";}
+            cout << i << "\t\t";
+            if(i==int(n_types)-1) {cout << endl;}
+        }
+        for(int i=0; i<int(n_types); ++i) {
+            if(i==0) {cout << "rayleigh:\t";}
+            cout << rayleigh[i] << "\t";
+            if(i==int(n_types)-1) {cout << endl << endl;}
+        }
+    #endif
 
 	delete[] latitude;
 	delete[] longitude;
