@@ -4,7 +4,7 @@
  */
 #include <usml/waveq3d/spreading_hybrid_gaussian.h>
 
-//#define USML_WAVEQ3D_DEBUG_DE
+#define USML_WAVEQ3D_DEBUG_DE
 //#define USML_WAVEQ3D_DEBUG_AZ
 
 using namespace usml::waveq3d;
@@ -151,33 +151,37 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
     // stop after processing last entry in ray family
     // stop when lowest frequency PL changes by < threshold
 
-    if ( !(_wave._curr->on_edge(d,az)) ) {
-        for (d = (int) de - 2; d >= 0; --d) {
+    for (d = (int) de - 2; d >= 0; --d) {
+        // compute distance to cell center and cell width
 
-            // compute distance to cell center and cell width
-
-            cell_dist += cell_width;         // add half width of prev cell
-            cell_width = width_de(d, az, offset);
-            cell_dist += cell_width;         // add half width of this cell
-
-            // compute propagation loss contribution of this cell
-
-            const double old_tl = _intensity_de(0);
-
-            _intensity_de += gaussian(cell_dist, cell_width, _norm_de(d));
-
-            #ifdef USML_WAVEQ3D_DEBUG_DE
-                cout << "\tde(" << d << ")=" << (*_wave._source_de)(d)
-                     << " cell_dist=" << cell_dist
-                     << " cell_width=" << cell_width
-                     << " beam_width=" << sqrt(_beam_width)
-                     << " norm=" << _norm_de(d)
-                     << " intensity=" << _intensity_de
-                     << endl;
-            #endif
-            if ( _intensity_de(0) / old_tl < THRESHOLD ) break;
-            if ( _wave._curr->on_edge(d,az) ) break ;
+        cell_dist += cell_width;         // add half width of prev cell
+        if( _wave._curr->on_edge(d+1,az) && _wave._curr->on_edge(d,az) ) {
+            double cell_width1 = width_de(d+1, az, offset);
+            double cell_width2 = width_de(d-1, az, offset);
+            cell_width = ( cell_width1 + cell_width2 ) / 2.0;
+            cell_dist += cell_width;
         }
+        else {
+            cell_width = width_de(d, az, offset);
+            cell_dist += cell_width;
+        }
+
+        // compute propagation loss contribution of this cell
+
+        const double old_tl = _intensity_de(0);
+
+        _intensity_de += gaussian(cell_dist, cell_width, _norm_de(d));
+
+        #ifdef USML_WAVEQ3D_DEBUG_DE
+            cout << "\tde(" << d << ")=" << (*_wave._source_de)(d)
+                 << " cell_dist=" << cell_dist
+                 << " cell_width=" << cell_width
+                 << " beam_width=" << sqrt(_beam_width)
+                 << " norm=" << _norm_de(d)
+                 << " intensity=" << _intensity_de
+                 << endl;
+        #endif
+        if ( _intensity_de(0) / old_tl < THRESHOLD ) break;
     }
 
     // contribution from higher DE angles
@@ -187,20 +191,26 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
     cell_width = initial_width;
     cell_dist = L - cell_width ;
     #ifdef USML_WAVEQ3D_DEBUG_DE
-        cout << "\t** higher" << endl
-             << "\tdist=" << cell_dist
-             << " width=" << cell_width << endl ;
+        cout << "\t** higher" << endl;
     #endif
 
     const int size = _wave._source_de->size() - 1;
     for (d = (int) de + 1; d < size; ++d) {
-        if ( _wave._curr->on_edge(d,az) ) break ;
 
         // compute distance to cell center and cell width
 
         cell_dist -= cell_width;         // add half width of prev cell
-        cell_width = width_de(d, az, offset);
-        cell_dist -= cell_width;         // remove half width of this cell
+        if( _wave._curr->on_edge(d+1,az) && _wave._curr->on_edge(d,az) ) {
+            double cell_width1 = width_de(d-1, az, offset);
+            double cell_width2 = width_de(d+2, az, offset);
+            cell_width = ( cell_width1 + cell_width2 ) / 2.0;
+            cell_dist -= cell_width;
+        }
+        else {
+            cell_width = width_de(d, az, offset);
+            cell_dist -= cell_width;
+        }
+//        cell_dist -= cell_width;         // remove half width of this cell
 
         // compute propagation loss contribution of this cell
 
