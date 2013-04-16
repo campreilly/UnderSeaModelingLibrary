@@ -591,7 +591,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     const double c0 = 1500.0;
     const double src_lat = 45.0;
     const double src_lng = -45.0;
-    const double src_alt = -1.0;
+    const double src_alt = -25.0;
     const double range = 10e3;
     const double time_max = 8.0;
 
