@@ -1,4 +1,4 @@
-/** 
+/**
  * @file spreading_hybrid_gaussian.cc
  * Spreading loss based on a hybrid Gaussian beam theory.
  */
@@ -151,31 +151,33 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
     // stop after processing last entry in ray family
     // stop when lowest frequency PL changes by < threshold
 
-    for (d = (int) de - 2; d >= 0; --d) {
-        if ( _wave._curr->on_edge(d,az) ) break ;
+    if ( !(_wave._curr->on_edge(d,az)) ) {
+        for (d = (int) de - 2; d >= 0; --d) {
 
-        // compute distance to cell center and cell width
+            // compute distance to cell center and cell width
 
-        cell_dist += cell_width;         // add half width of prev cell
-        cell_width = width_de(d, az, offset);
-        cell_dist += cell_width;         // add half width of this cell
+            cell_dist += cell_width;         // add half width of prev cell
+            cell_width = width_de(d, az, offset);
+            cell_dist += cell_width;         // add half width of this cell
 
-        // compute propagation loss contribution of this cell
+            // compute propagation loss contribution of this cell
 
-        const double old_tl = _intensity_de(0);
+            const double old_tl = _intensity_de(0);
 
-        _intensity_de += gaussian(cell_dist, cell_width, _norm_de(d));
+            _intensity_de += gaussian(cell_dist, cell_width, _norm_de(d));
 
-        #ifdef USML_WAVEQ3D_DEBUG_DE
-            cout << "\tde(" << d << ")=" << (*_wave._source_de)(d)
-                 << " cell_dist=" << cell_dist
-                 << " cell_width=" << cell_width
-                 << " beam_width=" << sqrt(_beam_width)
-                 << " norm=" << _norm_de(d)
-                 << " intensity=" << _intensity_de
-                 << endl;
-        #endif
-        if ( _intensity_de(0) / old_tl < THRESHOLD ) break;
+            #ifdef USML_WAVEQ3D_DEBUG_DE
+                cout << "\tde(" << d << ")=" << (*_wave._source_de)(d)
+                     << " cell_dist=" << cell_dist
+                     << " cell_width=" << cell_width
+                     << " beam_width=" << sqrt(_beam_width)
+                     << " norm=" << _norm_de(d)
+                     << " intensity=" << _intensity_de
+                     << endl;
+            #endif
+            if ( _intensity_de(0) / old_tl < THRESHOLD ) break;
+            if ( _wave._curr->on_edge(d,az) ) break ;
+        }
     }
 
     // contribution from higher DE angles
