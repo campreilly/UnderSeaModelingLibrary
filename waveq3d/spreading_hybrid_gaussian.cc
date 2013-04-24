@@ -10,7 +10,7 @@
 using namespace usml::waveq3d;
 
 const double spreading_hybrid_gaussian::SPREADING_WIDTH = TWO_PI ;
-const double spreading_hybrid_gaussian::OVERLAP = 2.0 ;
+const double spreading_hybrid_gaussian::OVERLAP = 1.9 ;
 const double spreading_hybrid_gaussian::THRESHOLD = 1.002305238 ;
 
 /**
@@ -106,7 +106,10 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
     #endif
 
     // compute contribution from center cell
-
+    int s = 1.0 ;                                   // adds a factor for changing in virtual directions
+    double temp ;                                   // used to check for crossing wave families
+    bool moving_away = false ;
+    bool check = true ;
     int d = (int) de;
     double cell_width = width_de(d, az, offset);// half width of center cell
     const double initial_width = cell_width;    // save width for upper angles
@@ -155,16 +158,34 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
         // compute distance to cell center and cell width
 
         cell_dist += cell_width;         // add half width of prev cell
+        temp = cell_dist;                // assign for a temp check
         if( _wave._curr->on_edge(d+1,az) && _wave._curr->on_edge(d,az) ) {
+//            double dist1 = _wave._curr->distance2(0,0)(d+1,az);
+//            double dist2 = _wave._curr->distance2(0,0)(d,az);
+//            cout << "dist1: " << dist1 << "\tdist2: " << dist2 << endl;
+//            if( dist2 / dist1 > 1.01 ) { cout << "too far away" << endl; break;}
             double cell_width1 = width_de(d+1, az, offset);
             double cell_width2 = width_de(d-1, az, offset);
             cell_width = ( cell_width1 + cell_width2 ) / 2.0;
-            cell_dist += cell_width;
+            cell_dist += s * cell_width;
+            moving_away = true ;
+            check = false ;
+//            if( abs(temp) < abs(cell_dist) ) {continue;}
+//            else { cell_dist = temp; }
+//            s = 4.0 ;
         }
         else {
             cell_width = width_de(d, az, offset);
-            cell_dist += cell_width;
+            cell_dist += s * cell_width;
+            check = true;
         }
+//        if( _wave._curr->caustic(d+1,az) != _wave._curr->caustic(d,az) ) {
+//            double cell_width1 = width_de(d+1, az, offset);
+//            double cell_width2 = width_de(d-1, az, offset);
+//            cell_width = ( cell_width1 + cell_width2 ) / 2.0;
+//            s = 2.0 ;
+//        }
+//        else { cell_dist = temp; }
 
         // compute propagation loss contribution of this cell
 
@@ -181,6 +202,9 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
                  << " intensity=" << _intensity_de
                  << endl;
         #endif
+        if( moving_away && check ) {
+            if( abs(temp) > abs(cell_dist) ) break;
+        }
         if ( _intensity_de(0) / old_tl < THRESHOLD ) break;
     }
 
@@ -190,27 +214,44 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
 
     cell_width = initial_width;
     cell_dist = L - cell_width ;
+    moving_away = false ;
+    check = true ;
     #ifdef USML_WAVEQ3D_DEBUG_DE
         cout << "\t** higher" << endl;
     #endif
 
+    s = 1.0 ;                                           // reset for higher values just in case
     const int size = _wave._source_de->size() - 1;
     for (d = (int) de + 1; d < size; ++d) {
 
         // compute distance to cell center and cell width
 
         cell_dist -= cell_width;         // add half width of prev cell
+        temp = cell_dist;                // assign for a temp check
         if( _wave._curr->on_edge(d+1,az) && _wave._curr->on_edge(d,az) ) {
             double cell_width1 = width_de(d-1, az, offset);
             double cell_width2 = width_de(d+2, az, offset);
             cell_width = ( cell_width1 + cell_width2 ) / 2.0;
-            cell_dist -= cell_width;
+            cell_dist -= s * cell_width ;
+            moving_away = true ;
+            check = false ;
+//            if( abs(temp) < abs(cell_dist) ) {break;}
+//            else { cell_dist = temp; }
+//            s = -4.0 ;
+
         }
         else {
             cell_width = width_de(d, az, offset);
-            cell_dist -= cell_width;
+            cell_dist -= s * cell_width;
+            check = true;
         }
-//        cell_dist -= cell_width;         // remove half width of this cell
+//        if( _wave._curr->caustic(d+1,az) != _wave._curr->caustic(d,az) ) {
+//            double cell_width1 = width_de(d+1, az, offset);
+//            double cell_width2 = width_de(d-1, az, offset);
+//            cell_width = ( cell_width1 + cell_width2 ) / 2.0;
+//            s = 2.0 ;
+//        }
+//        else { cell_dist = temp - cell_width; }
 
         // compute propagation loss contribution of this cell
 
@@ -226,6 +267,9 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
                  << " intensity=" << _intensity_de
                  << endl;
         #endif
+        if( moving_away && check ) {
+            if( abs(temp) > abs(cell_dist) ) break;
+        }
         if ( _intensity_de(0) / old_tl < THRESHOLD ) break;
     }
 }

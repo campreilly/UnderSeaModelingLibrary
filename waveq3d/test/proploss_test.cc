@@ -617,7 +617,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     // build a series of targets at different depths
 
     double degrees = src_lat + to_degrees(range / (wposition::earth_radius+src_alt)); // range in latitude
-    seq_linear depth(-0.1, -0.5, 200); // depth in meters
+    seq_linear depth(-0.1, -0.5, -40.1); // depth in meters
 //    seq_linear depth(-0.1, 1.0, 1); // depth in meters
     wposition target(depth.size(), 1, degrees, src_lng, 0.0);
     for (unsigned n = 0; n < target.size1(); ++n)
@@ -732,7 +732,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
          << " dev = " << dev << " dB"
          << " detcoef = " << detcoef << "%" << endl ;
 
-    BOOST_CHECK( abs(bias) <= 0.5 );
+    BOOST_CHECK( abs(bias) <= 0.7 );
     BOOST_CHECK( dev <= 4.0 );
     BOOST_CHECK( detcoef >= 80.0 );
 }

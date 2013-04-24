@@ -522,7 +522,7 @@ BOOST_AUTO_TEST_CASE(refraction_n2_linear) {
     const double g0 = 1.2 ;
     const double a0 = cos(ang) / (c0 / sqrt(1.0 + 2*g0/c0 * z0));
 
-    profile_model* profile = new profile_n2(c0, g0/1500.0) ;
+    profile_model* profile = new profile_n2(c0, g0) ;
     boundary_model* surface = new boundary_flat();
     boundary_model* bottom = new boundary_flat(5000.0);
     ocean_model ocean(surface, bottom, profile);
