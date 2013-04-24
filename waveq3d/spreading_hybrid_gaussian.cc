@@ -107,6 +107,7 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
 
     // compute contribution from center cell
     double temp ;                                   // used to check for crossing wave families
+    bool virtual_rays = false;
     int d = (int) de;
     double cell_width = width_de(d, az, offset);// half width of center cell
     const double initial_width = cell_width;    // save width for upper angles
@@ -158,6 +159,7 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
         cell_dist += cell_width;         // add half width of prev cell
         if( _wave._curr->on_edge(d+1,az) && _wave._curr->on_edge(d,az) ) {
             cell_dist += cell_width;
+            virtual_rays = true;
         }
         else {
             cell_width = width_de(d, az, offset);
@@ -180,7 +182,7 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
                  << " intensity=" << _intensity_de
                  << endl;
         #endif
-
+        if ( virtual_rays ) break;
         if ( _intensity_de(0) / old_tl < THRESHOLD ) break;
     }
 
@@ -188,6 +190,7 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
     // stop after processing last entry in ray family
     // stop when lowest frequency PL changes by < threshold
 
+    virtual_rays = false;
     cell_width = initial_width;
     cell_dist = L - cell_width ;
     #ifdef USML_WAVEQ3D_DEBUG_DE
@@ -203,6 +206,7 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
         cell_dist -= cell_width;         // add half width of prev cell
         if( _wave._curr->on_edge(d+1,az) && _wave._curr->on_edge(d,az) ) {
             cell_dist -= cell_width ;
+            virtual_rays = true;
         }
         else {
             cell_width = width_de(d, az, offset);
@@ -224,6 +228,7 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
                  << " intensity=" << _intensity_de
                  << endl;
         #endif
+        if ( virtual_rays ) break;
         if ( _intensity_de(0) / old_tl < THRESHOLD ) break;
     }
 }
