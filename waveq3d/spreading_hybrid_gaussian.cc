@@ -4,7 +4,7 @@
  */
 #include <usml/waveq3d/spreading_hybrid_gaussian.h>
 
-#define USML_WAVEQ3D_DEBUG_DE
+//#define USML_WAVEQ3D_DEBUG_DE
 //#define USML_WAVEQ3D_DEBUG_AZ
 
 using namespace usml::waveq3d;
