@@ -207,6 +207,7 @@ void wave_queue::detect_reflections() {
     // search for other changes in wavefront
 
     _next->find_edges() ;
+    detect_caustics() ;
 }
 
 /**
@@ -243,6 +244,31 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
         }
     }
     return false ;	// indicates no reflection
+}
+
+/**
+ *  Detects and processes the caustics along the next wavefront
+ */
+void wave_queue::detect_caustics() {
+    const unsigned max_de = num_de() - 1 ;
+
+    for ( unsigned a=0 ; a < num_az() ; a++ ) {
+        for ( unsigned d=1 ; d < max_de ; d++ ) {
+            double A = _curr->position.rho(d+1,a) ;
+            double B = _curr->position.rho(d,a) ;
+            double C = _next->position.rho(d+1,a) ;
+            double D = _next->position.rho(d,a) ;
+            bool fold = false ;
+            if ( (_next->surface(d+1,a) == _next->surface(d,a)) &&
+                 (_next->bottom(d+1,a) == _next->bottom(d,a)) ) { fold = true; }
+            if ( (C-D)*(A-B) < 0 && fold ) {
+                _next->caustic(d+1,a)++;
+                for (unsigned f = 0; f < _frequencies->size(); ++f) {
+                    _next->phase(d+1,a)(f) -= M_PI_2;
+                }
+            }
+        }
+    }
 }
 
 /**

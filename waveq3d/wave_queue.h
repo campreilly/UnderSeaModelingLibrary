@@ -363,6 +363,15 @@ class USML_DECLSPEC wave_queue {
      */
     bool detect_reflections_bottom( unsigned de, unsigned az ) ;
 
+    /**
+     * Detects and processes all of the logic necessary to determine
+     * points along the wavefronts that have folded over and mark them
+     * as caustics. This logic determines if any two points have crossed
+     * over each other when going from current wavefront to the next.
+     */
+
+    void detect_caustics() ;
+
     //**************************************************
     // eigenray estimation routines
 
