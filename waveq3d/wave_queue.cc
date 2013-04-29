@@ -166,9 +166,9 @@ void wave_queue::step() {
     _next = save ;
     _time += _time_step ;
 
-//    #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS)
-//        cout << "*** wave_queue::step: time=" << time() << endl ;
-//    #endif
+    #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS)
+        cout << "*** wave_queue::step: time=" << time() << endl ;
+    #endif
 
     // compute position, direction, and environment parameters for next entry
 
@@ -313,21 +313,21 @@ bool wave_queue::is_closest_ray(
             distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
             distance2[2][nde][naz] = _next->distance2(t1,t2)(d,a) ;
 
-#ifdef USML_DEBUG
-// test all distances to make sure they are valid numbers
-    if( isnan(distance2[0][nde][naz]) ) {
-        cout << "Oops, the distance for distance2[0"
-        << "][" << nde << "][" << naz << "] is NaN!" << endl;
-    }
-    if( isnan(distance2[1][nde][naz]) ) {
-        cout << "Oops, the distance for distance2[1"
-        << "][" << nde << "][" << naz << "] is NaN!" << endl;
-    }
-    if( isnan(distance2[2][nde][naz]) ) {
-        cout << "Oops, the distance for distance2[2"
-        << "][" << nde << "][" << naz << "] is NaN!" << endl;
-    }
-#endif
+            #ifdef USML_DEBUG
+            // test all distances to make sure they are valid numbers
+                if( isnan(distance2[0][nde][naz]) ) {
+                    cout << "Oops, the distance for distance2[0"
+                    << "][" << nde << "][" << naz << "] is NaN!" << endl;
+                }
+                if( isnan(distance2[1][nde][naz]) ) {
+                    cout << "Oops, the distance for distance2[1"
+                    << "][" << nde << "][" << naz << "] is NaN!" << endl;
+                }
+                if( isnan(distance2[2][nde][naz]) ) {
+                    cout << "Oops, the distance for distance2[2"
+                    << "][" << nde << "][" << naz << "] is NaN!" << endl;
+                }
+            #endif
 
             // skip to next iteration if tested ray is on edge of ray family
             // allows extrapolation outside of ray family
@@ -358,14 +358,6 @@ void wave_queue::add_eigenray(
    unsigned de, unsigned az,
    double distance2[3][3][3]
 ) {
-//    if ( _curr->surface(de,az) != 0 ) return ;
-//    if ( _curr->caustic(de,az) != 0 ) return ;
-//if( _curr->surface(de,az) != _curr->bottom(de,az) ) {
-//        wposition1 tgt( *(_curr->targets), t1, t2 ) ;
-//        cout << "*** wave_queue::add_eigenray:"
-//             << " target(" << t1 << "," << t2 << ")="
-//             << tgt.altitude() << endl;
-//}
     #ifdef DEBUG_EIGENRAYS
         cout << "*** wave_queue::step: time=" << time() << endl ;
         wposition1 tgt( *(_curr->targets), t1, t2 ) ;
@@ -601,10 +593,6 @@ void wave_queue::compute_offsets(
         const double h = max( 1e-10, hessian(n,n) ) ;
         offset(n) = -gradient(n) / h ;
     }
-//cout << "offset(1): " << offset(1) << "\tgradient(1): " << gradient[1] << endl;
-//cout << "hessian(1,1): " << hessian(1,1) << "\tgradient(1): " << gradient(1) << endl;
-//cout << "offset(1): " << offset(1) << "\tdelta(1): " << delta(1) << endl;
-//cout << "hessian: " << hessian << endl;
     if ( abs(offset(1)/delta(1)) > 0.5 ) unstable = true ;
 
     // compute offsets
@@ -615,7 +603,6 @@ void wave_queue::compute_offsets(
         hessian(0,0) * ( hessian(1,1) * hessian(2,2) - hessian(1,2) * hessian(2,1) )
       + hessian(0,1) * ( hessian(1,2) * hessian(2,0) - hessian(1,0) * hessian(2,2) )
       + hessian(0,2) * ( hessian(1,0) * hessian(2,1) - hessian(2,1) * hessian(2,0) ) ;
-//cout << "determinant: " << determinant << endl;
     if ( abs(determinant) > 1e-10 ) {
         #ifdef DEBUG_EIGENRAYS
             cout << "\tfull inverse" ;
@@ -632,7 +619,6 @@ void wave_queue::compute_offsets(
         inverse(1,2) = inverse(2,1) ;
         inverse(2,2) = hessian(0,0) * hessian(1,1) - hessian(0,1) * hessian(1,0) ;
         inverse /= determinant ;
-//cout << "\ninverse: " << inverse << endl;
         noalias(offset) = prod( inverse, -gradient ) ;
 
     } else {
@@ -695,8 +681,6 @@ void wave_queue::make_taylor_coeff(
 
     center = value[1][1][1] ;
 
-//cout << "delta(1): " << delta(1) << endl;
-//cout << "value[1][2][1]: " << value[1][2][1] << "\tvalue[1][0][1]: " << value[1][0][1] << "\tcenter: " << center << endl;
     // compute diagonal terms in Hessian matrix
 
     hessian.clear() ;
