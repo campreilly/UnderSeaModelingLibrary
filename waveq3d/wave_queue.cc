@@ -166,9 +166,9 @@ void wave_queue::step() {
     _next = save ;
     _time += _time_step ;
 
-    #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS)
-        cout << "*** wave_queue::step: time=" << time() << endl ;
-    #endif
+//    #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS)
+//        cout << "*** wave_queue::step: time=" << time() << endl ;
+//    #endif
 
     // compute position, direction, and environment parameters for next entry
 

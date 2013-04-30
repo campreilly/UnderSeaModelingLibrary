@@ -230,7 +230,7 @@ void analyze_raytrace(
  */
 BOOST_AUTO_TEST_CASE( pedersen_shallow_raytrace ) {
     cout << "=== pedersen_shallow_raytrace ===" << endl ;
-    seq_linear de( 0.0, 0.25, 25.00 ) ;
+    seq_linear de( 0.0, 0.02, 25.00 ) ;
     analyze_raytrace( -75.0, de,
         0.30, 0.01, 0.85,
         0.003, 4.0, 0.2,
@@ -251,7 +251,7 @@ BOOST_AUTO_TEST_CASE( pedersen_shallow_raytrace ) {
  */
 BOOST_AUTO_TEST_CASE( pedersen_deep_raytrace ) {
     cout << "=== pedersen_deep_raytrace ===" << endl ;
-    seq_linear de( 20.00, 1.0, 60.00 ) ;
+    seq_linear de( 20.00, 0.2, 60.00 ) ;
     analyze_raytrace( -1000.0, de,
         2.0, 0.02, 3.5,
         0.008, 10.0, 0.03,
@@ -347,7 +347,7 @@ void analyze_proploss(
 BOOST_AUTO_TEST_CASE( pedersen_shallow_proploss ) {
     cout << "=== pedersen_shallow_proploss ===" << endl ;
     seq_linear ranges(500.0,1.0,1000.0) ;
-    seq_linear de( 0.0, 0.04, 25.0 ) ;
+    seq_linear de( 0.0, 0.02, 25.0 ) ;
     analyze_proploss( de, -75.0, -75.0, ranges,
         0.01, 0.85,
         USML_STUDIES_DIR "/pedersen/pedersen_shallow_proploss.nc",
@@ -376,7 +376,7 @@ BOOST_AUTO_TEST_CASE( pedersen_shallow_proploss ) {
 BOOST_AUTO_TEST_CASE( pedersen_deep_proploss ) {
     cout << "=== pedersen_deep_proploss ===" << endl ;
     seq_linear ranges(3000.0,0.25,3120.0) ;
-    seq_linear de( 20.0, 0.95, 60.0 ) ;
+    seq_linear de( 20.0, 0.2, 60.0 ) ;
     analyze_proploss( de, -1000.0, -800.0, ranges,
         0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.nc",
