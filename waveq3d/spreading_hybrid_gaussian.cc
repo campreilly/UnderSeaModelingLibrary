@@ -107,12 +107,14 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
 
     // compute contribution from center cell
     double temp ;                                   // used to check for crossing wave families
+    double s=1.0 ;
     int d = (int) de;
     double cell_width = width_de(d, az, offset);// half width of center cell
+    if( abs(cell_width) > 80 ) {s=5.0;}
     const double initial_width = cell_width;    // save width for upper angles
     const double L = distance(1) ;              // D/E dist from nearest ray
     double cell_dist = L - cell_width ;         // dist from center of this cell
-    _intensity_de = gaussian(cell_dist, cell_width, _norm_de(d));
+    _intensity_de = s*gaussian(cell_dist, cell_width, _norm_de(d));
 
     #ifdef USML_WAVEQ3D_DEBUG_DE
         cout << "\t** center" << endl
@@ -169,8 +171,8 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
         // compute propagation loss contribution of this cell
 
         const double old_tl = _intensity_de(0);
-
-        _intensity_de += gaussian(cell_dist, cell_width, _norm_de(d));
+        if( _wave._curr->caustic(d,az) != 0 && s!=1.0 ) {s=0.25;}
+        _intensity_de += s*gaussian(cell_dist, cell_width, _norm_de(d));
 
         #ifdef USML_WAVEQ3D_DEBUG_DE
             cout << "\tde(" << d << ")=" << (*_wave._source_de)(d)
@@ -190,6 +192,7 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
     // stop when lowest frequency PL changes by < threshold
 
     cell_width = initial_width;
+    if( abs(cell_width) > 80 ) {s=5.0;}
     cell_dist = L - cell_width ;
     #ifdef USML_WAVEQ3D_DEBUG_DE
         cout << "\t** higher" << endl;
@@ -215,7 +218,7 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
         // compute propagation loss contribution of this cell
 
         const double old_tl = _intensity_de(0);
-        _intensity_de += gaussian(cell_dist, cell_width, _norm_de(d));
+        _intensity_de += s*gaussian(cell_dist, cell_width, _norm_de(d));
 
         #ifdef USML_WAVEQ3D_DEBUG_DE
             cout << "\tde(" << d << ")=" << (*_wave._source_de)(d)

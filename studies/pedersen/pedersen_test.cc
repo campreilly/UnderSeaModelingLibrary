@@ -225,7 +225,7 @@ void analyze_raytrace(
  * at 75.0 meters is 18.82 degrees.
  *
  * Errors are automatically generated if the ray paths deviate from the
- * analytic results by more than 3 millisecs in time, 4.0 meters in range,
+ * analytic results by more than 3 millisecs in time, 5.0 meters in range,
  * or 0.2 degrees in angle.
  */
 BOOST_AUTO_TEST_CASE( pedersen_shallow_raytrace ) {
@@ -233,7 +233,7 @@ BOOST_AUTO_TEST_CASE( pedersen_shallow_raytrace ) {
     seq_linear de( 0.0, 0.02, 25.00 ) ;
     analyze_raytrace( -75.0, de,
         0.30, 0.01, 0.85,
-        0.003, 4.0, 0.2,
+        0.003, 5.0, 0.2,
         USML_STUDIES_DIR "/pedersen/pedersen_shallow_raytrace.nc",
         USML_STUDIES_DIR "/pedersen/pedersen_shallow_raytrace.csv" ) ;
 }
