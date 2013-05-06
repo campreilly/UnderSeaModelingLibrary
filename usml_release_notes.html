@@ -6,53 +6,65 @@
   <body>
     <h1>Under Sea Modeling Library (USML) Release Notes</h1>
 
-    <h2>Release pending</h2>
-    <h3>Overview</h3>
-        <ul>
-        <li>Fix problems found during florida_straits study.</li>
-        <li>Add ascii_profile and ascii_arc_bathy models.</li>
-        <li>reflect_loss_rayleigh: Fix calculation of complex sound speed.</li>
-        <li>boundary_grid: Fix error in calculation of radial component of the slope.</li>
-        <li>reflection_model: Fix problems that occur when incident ray is nearly parallel to bottom.</li>
-        </ul>
-    
-    <h3>Specific changes</h3>
-        <ul>
-        <li>CMakeLists.txt</li>
-          <ul>
-          <li>Add florida_straits study</li>
-          <li>Define USML_DEBUG if CMAKE_BUILD_TYPE is Debug </li>
-          <li>Use CMAKE_BUILD_TYPE to control use of -g and -ffast_math options</li>
-          <li>Rework data directories by defining USML_DATA_DIR, USML_TEST_DIR, USML_STUDIES_DIR.</li>
-          </ul>
-        <li>ocean/boundary_grid.h</li>
-          <ul>
-          <li>Clip the radial component of the slope to zero if the sum of the 
-              squares of the theta and phi components are greater than 1. </li>
-          </ul>
-        <li>ocean/ocean.h</li>
-          <ul>
-          <li>Add ascii_profile and ascii_arc_bathy models</li>
-          </ul>
-        <li>ocean/reflect_loss_rayleigh.cc</li>
-          <ul>
-          <li>Add missing factor of TWO_PI to the complex sound speed calculation.
-          <li>Add the ATT_CONVERT to define 1.0 / (20.0*M_LOG10E*TWO_PI) term.</li>
-          </ul>
-        <li>waveq3d/reflection_model.cc</li> 
-          <ul>
-          <li>Add bottom penetration depth as an input parameter</li>
-          <li>Compute the smallest "dot_full" that could have led to this penetration </li>
-          <li>Recompute bottom height and normal at the precise point of impact</li>
-          <li>Eliminate conditions for bottom_reflection() near-miss</li>
-          <li>Rename many of the variables to make their use clearer</li>
-          </ul>
-        <li>waveq3d/wave_queue.cc</li> 
-          <ul>
-          <li>Compute the depth that ray has penetrated into the bottom.</li>
-          </ul>
-        </ul>
-    
+    <h2>Release 0.03</h2>
+    <ul>
+	    <li>Introduced the ability to accumulate energy across ray families by adding virutal
+	    rays to the end of each ray family and allows the needed support at the edge of ray
+	    families. This first exhibited during the lloyds_depth_proploss test. As the TL was 
+	    calculated closer and closer to the surface, the TL got further and further from the 
+	    theoretical values and introducing these virtual rays rectified this issue.
+	    <li>Made a significant change to the way that wavefronts are collected into families.
+		The on_edge logic no longer uses the number of surface and bottom bounces to determine
+		the location of a fold in the wavefront. This logic fails in ducts because the bounces
+		do not always result in a fold. As a consequence of this change, the on_fold logic was
+		removed and significantly simplified the way that caustics are detected.
+		<li>The reflect_loss_rayleigh mogdel had a bug where speed_shear was not being scaled
+		correctly. Now the results of the plot_rayleigh_sediments match Fig 1.24 in Jensen,
+		Kuperman, et al. Simplified the conversion from dB/wavelength to loss tanget by
+		defining ATT_CONVERT constant.
+		<li>Created the ascii_arc_bathy model to extract Coastal Relief Model (CRM) bathymetry
+		data. This data is produced by the NGDC web site as ASCII files with an ARC header.
+		<li>Created reflect_loss_netcdf model to read provinced bottom loss data from netCDF
+		file. Assumes that each of the provinces and be modelled using the reflect_loss_rayleigh 
+		model, and that the provinces define the province number as a function of latitude
+		and logitude. Each province number corresponds to a specific comination of geophysical
+		properties (aka reflect_loss_rayleigh arguments).
+		<li>The "too shallow" calculation in the reflection_model was not normalizing the theta
+		and phi components of the normal correctly. And this allowed them to be much greater 
+		than 1, which lead to crazy jumps.
+		<li>The boundary_grid model has a sqrt() in the calculation of the rho component of 
+		the normal. If the gradients were very large, the sum of the squares of the theta and
+		phi componenets were slightly greater than 1. This leads to a rho value of NaN, and 
+		then everything turns bad.
+		<li>Enabled floating point exception traps when USML_DEBUG is set. Uses the GCC 
+		constructor attributes (a C language extension) to invoke the feenableexcept() 
+		function whent he shared library is loaded. Only supported by GCC compilers and shared
+		libraries at this time.
+		<li>Discovered math overflow using "float" for bathymetry. Replaced all "float" with
+		"double".
+		<li>Added the ability to limit interpolation locations to values inside of the lat/long
+		boundaries of the bathymetry and profile grids.
+		<li>Corrected an error in pchip algorithm in data_grid (y3=y2 and not y2=y2).
+		<li>Added great circle range/bearing calculations to wposition1. Frequently used 
+		during testing.
+		<li>Developed a cmp_speed study to compare WaveQ3D speeds with CASS/GRAB scenario 
+		based on STD14. Built CASS runstreams to compute transmission loss for 1, 10, 20, 30, 
+		..., 100 targets. Implemented as a ring of receivers at 100 km from source.
+		<li>Changed profile_mackenzie to set edge_limit in the depth direction to true. 
+		Eliminated cases where extrapolation outside of the water column was leading to NaN 
+		in ray trace of ray_speed. This, in turn, was causing ray_speed to run very slow.
+		<li>Prevent the first longitude point in the extraction from netCDF files from using
+		lng_first index values that were smaller than zero. Effects netcdf_profile and 
+		netcdf_bathymetry models.
+		<li>Updated CMake process to support: install targets, included the libraries for zlib, 
+		hdf5, and curl that were required for NetCDF 4.
+		<li>Added reflect_loss_rayleigh parameters for MUD bottoms.
+		<li>In netccdf_profile, changed NcError to silent_nonfatal instead of verbose to prevent 
+		the extra line print out.
+		<li>Updated documentation to include BSD 2-Clauses License.
+		<li>Migrate test platform to Ubuntu 12.04 LTS from 10.04.</li>
+    </ul>
+
     <h2>Release 0.02</h2>
     <ul>
     <li>Convert to CMake build system to support multiple operating systems.</li>
