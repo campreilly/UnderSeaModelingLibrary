@@ -1,9 +1,0 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-%% Cartesian distance calculation
-
-function r = cart_distance(x_source, z_source,...
-			x_target, z_target)
-
-	r = sqrt( (x_source .- x_target).^2 + (z_source .- z_target).^2);
-
-end

@@ -175,9 +175,9 @@ public:
      * @param  dimension        Dimension number to be modified.
      * @param  flag             Limits locations when true.
      */
-    inline void edge_limit(int unsigned dimension, bool type)
+    inline void edge_limit(int unsigned dimension, bool flag)
     {
-    	_edge_limit[dimension] = type;
+    	_edge_limit[dimension] = flag;
     }
 
     //*************************************************************************
