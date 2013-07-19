@@ -80,6 +80,8 @@ template< class DATA_TYPE, int NUM_DIMS > class profile_mackenzie
             attmodel )
     {
         this->_sound_speed->interp_type(0,GRID_INTERP_PCHIP) ;
+        this->_sound_speed->interp_type(1,GRID_INTERP_NEAREST) ;
+        this->_sound_speed->interp_type(2,GRID_INTERP_NEAREST) ;
 
         unsigned index[3] ;
         for ( index[0]=0 ; index[0] < temperature.axis(0)->size() ; ++index[0] ) {

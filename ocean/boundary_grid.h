@@ -49,15 +49,18 @@ public:
      * @param location      Location at which to compute boundary.
      * @param rho           Surface height in spherical earth coords (output).
      * @param normal        Unit normal relative to location (output).
+     * @param quick_interp  Determines if you want a fast nearest or pchip interp
      */
     virtual void height(const wposition& location, matrix<double>* rho,
-        wvector* normal = NULL) {
+        wvector* normal = NULL, bool quick_interp = false) {
         switch (NUM_DIMS) {
 
         //***************
         // 1-D grids
 
         case 1:
+            if(quick_interp) { this->_height->interp_type(0, GRID_INTERP_LINEAR); }
+            else{ this->_height->interp_type(0, GRID_INTERP_PCHIP); }
             if (normal) {
 
                 matrix<double> gtheta(location.size1(), location.size2());
@@ -77,6 +80,13 @@ public:
             // 2-D grids
 
         case 2:
+            if(quick_interp) {
+                this->_height->interp_type(0, GRID_INTERP_LINEAR);
+                this->_height->interp_type(1, GRID_INTERP_LINEAR);
+            } else{
+                this->_height->interp_type(0, GRID_INTERP_PCHIP);
+                this->_height->interp_type(1, GRID_INTERP_PCHIP);
+            }
             if (normal) {
                 matrix<double> gtheta(location.size1(), location.size2());
                 matrix<double> gphi(location.size1(), location.size2());
@@ -115,15 +125,18 @@ public:
      * @param location      Location at which to compute boundary.
      * @param rho           Surface height in spherical earth coords (output).
      * @param normal        Unit normal relative to location (output).
+     * @param quick_interp  Determines if you want a fast nearest or pchip interp
      */
     virtual void height(const wposition1& location, double* rho,
-        wvector1* normal = NULL) {
+        wvector1* normal = NULL, bool quick_interp = false) {
         switch (NUM_DIMS) {
 
         //***************
         // 1-D grids
 
         case 1:
+            if(quick_interp) { this->_height->interp_type(0, GRID_INTERP_LINEAR); }
+            else{ this->_height->interp_type(0, GRID_INTERP_PCHIP); }
             if (normal) {
                 double theta = location.theta();
                 double gtheta;
@@ -143,6 +156,13 @@ public:
             // 2-D grids
 
         case 2:
+            if(quick_interp) {
+                this->_height->interp_type(0, GRID_INTERP_LINEAR);
+                this->_height->interp_type(1, GRID_INTERP_LINEAR);
+            } else{
+                this->_height->interp_type(0, GRID_INTERP_PCHIP);
+                this->_height->interp_type(1, GRID_INTERP_PCHIP);
+            }
             if (normal) {
                 double loc[2] = { location.theta(), location.phi() };
                 double grad[2];

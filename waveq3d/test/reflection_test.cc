@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <sys/time.h>
 
 BOOST_AUTO_TEST_SUITE(reflection_test)
 
@@ -392,7 +393,7 @@ BOOST_AUTO_TEST_CASE( reflect_grid_test ) {
 
         os << "t,"
            << "lat,lng,alt,"
-           << "de,az,bot,surf,"
+           << "de,az,surf,bot,"
            << "r,theta,phi,"
            << "rd,thd,phid,"
            << "mu,eta,nu,"
@@ -454,18 +455,111 @@ BOOST_AUTO_TEST_CASE( reflect_grid_test ) {
         #else
             const double position_accuracy = 1e-6 ;
         #endif
-        BOOST_CHECK_CLOSE( wave.curr()->position.latitude(0,0),36.169451013244291, position_accuracy ) ;
-        BOOST_CHECK_CLOSE( wave.curr()->position.longitude(0,0),16.012655200631901, position_accuracy ) ;
+        BOOST_CHECK_CLOSE( wave.curr()->position.latitude(0,0),36.169253160619995, position_accuracy ) ;
+        BOOST_CHECK_CLOSE( wave.curr()->position.longitude(0,0),16.012084836798909, position_accuracy ) ;
 
         #ifdef __FAST_MATH__
-            BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)+513.38134735822678, 6.0 ) ;
+            BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)+566.97501235455275, 6.0 ) ;
         #else
-            BOOST_CHECK_CLOSE( wave.curr()->position.altitude(0,0),-513.38134735822678, 1e-6 ) ;
+            BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)-566.97501235455275, 1e-6 ) ;
         #endif
 
     } catch ( std::exception* except ) {
         BOOST_ERROR( except->what() ) ;
     }
+}
+
+BOOST_AUTO_TEST_CASE( reflect_interp_spd_acc_test ){
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/reflect_interp_test.csv" ;
+    cout << "=== reflection_test: reflect_interp_spd_acc_test ===" << endl ;
+
+    // define scenario parameters
+
+    const double c0 = 1500.0 ;  // speed of sound
+
+    const double lat1 = 35.5 ;  // mediterrian sea
+    const double lat2 = 36.5 ;  // malta escarpment
+    const double lng1 = 15.25 ; // south-east of Sicily
+    const double lng2 = 16.25 ;
+    wposition::compute_earth_radius( (lat1+lat2)/2.0 ) ;
+
+    wposition1 pos( 35.983333333, 16.0, -10.0 ) ;
+    seq_linear de( -20.0, 1.0, 1 ) ;    // down
+    seq_linear az( 270.0, 1.0, 1 ) ;    // west
+    const double time_step = 0.1 ;
+    const double time_max = 80.0 ;
+
+    seq_log freq( 3000.0, 1.0, 1 ) ;
+
+    // load bathymetry from ETOPO1 database
+
+    cout << "load bathymetry" << endl ;
+    boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
+        USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+        lat1, lat2, lng1, lng2 ) ) ;
+
+    // combine sound speed and bathymetry into ocean model
+
+    profile_model*  profile = new profile_linear(c0) ;
+    boundary_model* surface = new boundary_flat() ;
+    ocean_model ocean( surface, bottom, profile ) ;
+
+    std::ofstream os(csvname) ;
+    cout << "writting tables to " << csvname << endl ;
+
+    os << "t,"
+       << "lat,lng,alt,"
+       << "de,az,surf,bot,"
+       << "r,theta,phi,"
+       << "rd,thd,phid,"
+       << "mu,eta,nu,"
+       << "mud,etad,nud,"
+       << "c,dcdz"
+       << endl ;
+    os << std::scientific << std::showpoint << std::setprecision(18) ;
+
+    cout << "time step = " << time_step << " secs" << endl ;
+
+    // propagate rays & record to netCDF file
+
+    wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
+    struct timeval time ;
+    struct timezone zone ;
+    gettimeofday( &time, &zone ) ;
+    double start = time.tv_sec + time.tv_usec * 1e-6 ;
+    while ( wave.time() < time_max ) {
+        wave.step() ;
+
+        wvector1 ndir( wave.curr()->ndirection, 0, 0 ) ;
+        double de, az ;
+        ndir.direction( &de, &az ) ;
+
+        os << wave.time() << ','
+           << wave.curr()->position.latitude(0,0) << ','
+           << wave.curr()->position.longitude(0,0) << ','
+           << wave.curr()->position.altitude(0,0) << ','
+           << de << "," << az << ","
+           << wave.curr()->surface(0,0) << ','
+           << wave.curr()->bottom(0,0) << ','
+           << wave.curr()->position.rho(0,0) << ','
+           << wave.curr()->position.theta(0,0) << ','
+           << wave.curr()->position.phi(0,0) << ','
+           << wave.curr()->pos_gradient.rho(0,0) << ','
+           << wave.curr()->pos_gradient.theta(0,0) << ','
+           << wave.curr()->pos_gradient.phi(0,0) << ','
+           << wave.curr()->ndirection.rho(0,0) << ','
+           << wave.curr()->ndirection.theta(0,0) << ','
+           << wave.curr()->ndirection.phi(0,0) << ','
+           << wave.curr()->ndir_gradient.rho(0,0) << ','
+           << wave.curr()->ndir_gradient.theta(0,0) << ','
+           << wave.curr()->ndir_gradient.phi(0,0) << ','
+           << wave.curr()->sound_speed(0,0) << ','
+           << wave.curr()->sound_gradient.rho(0,0) << endl ;
+   }
+    gettimeofday( &time, &zone ) ;
+    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
+
+    cout << "wave propagates for " << (complete-start) << " secs" << endl ;
 }
 
 /// @}

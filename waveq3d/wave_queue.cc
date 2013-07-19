@@ -232,7 +232,7 @@ bool wave_queue::detect_reflections_surface( unsigned de, unsigned az ) {
 bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
     double height ;
     wposition1 pos( _next->position, de, az ) ;
-    _ocean.bottom().height( pos, &height ) ;
+    _ocean.bottom().height( pos, &height, NULL, true ) ;
     const double depth = height - _next->position.rho(de,az) ;
     if ( depth > 0.0 ) {
         if ( _reflection_model->bottom_reflection( de, az, depth ) ) {

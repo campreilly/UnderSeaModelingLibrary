@@ -67,9 +67,10 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
      * @param location      Location at which to compute boundary.
      * @param rho           Surface height in spherical earth coords (output).
      * @param normal        Unit normal relative to location (output).
+     * @param quick_interp  Determines if you want a fast nearest or pchip interp
      */
     virtual void height( const wposition& location,
-        matrix<double>* rho, wvector* normal=NULL ) = 0 ;
+        matrix<double>* rho, wvector* normal=NULL, bool quick_interp=false ) = 0 ;
 
     /**
      * Compute the height of the boundary and it's surface normal at
@@ -78,9 +79,10 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
      * @param location      Location at which to compute boundary.
      * @param rho           Surface height in spherical earth coords (output).
      * @param normal        Unit normal relative to location (output).
+     * @param quick_interp  Determines if you want a fast nearest or pchip interp
      */
     virtual void height( const wposition1& location,
-        double* rho, wvector1* normal=NULL ) = 0 ;
+        double* rho, wvector1* normal=NULL, bool quick_interp=false ) = 0 ;
 
     //**************************************************
     // reflection loss model
