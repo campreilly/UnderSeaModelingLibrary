@@ -27,6 +27,8 @@ set( NETCDF_NCKS /usr/bin/ncks )
 
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" OFF )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
+option( LVCMS_BUILD "build for LVCMS - no boost debug or static libs" ON )
+option( PROFILE_TIME "build for profiling at function level timing" OFF )
 
 ######################################################################
 # Visual C++ compiler options
@@ -62,12 +64,16 @@ else( CMAKE_COMPILER_IS_GNUCXX )
         add_definitions( -std=c++98 -pedantic -Wall -Werror
 	    -Wno-long-long -Wno-sign-compare)
     endif ( USML_PEDANTIC )
+    if ( PROFILE_TIME )                	# Profile Function Timing
+        add_definitions( -pg )
+        set ( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg" )
+    endif ( PROFILE_TIME )
     if ( NOT BUILD_SHARED_LIBS )
         set(CMAKE_FIND_LIBRARY_SUFFIXES .a) 	# prefer static libraries
     endif ( NOT BUILD_SHARED_LIBS )
 endif()
 
-set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSML_DEBUG" )
+#set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSML_DEBUG" )
 include_directories( ${PROJECT_SOURCE_DIR}/.. )
 
 ######################################################################
@@ -79,10 +85,11 @@ include_directories( ${PROJECT_SOURCE_DIR}/.. )
 
 set( Boost_DEBUG OFF )
 unset( Boost_INCLUDE_DIR CACHE ) # force FindBoost.cmake to reload each time
+#include ( FindBoost )
 
 if ( BOOST_ROOT )
     set( Boost_NO_SYSTEM_PATHS ON )
-    set( Boost_INCLUDE_DIR ${BOOST_ROOT}/include )
+    set( BOOST_INCLUDEDIR ${BOOST_ROOT}/include )
     set( BOOST_LIBRARYDIR ${BOOST_ROOT}/lib )
 endif()
 
@@ -91,6 +98,9 @@ if ( BUILD_SHARED_LIBS )
     add_definitions( -DBOOST_ALL_DYN_LINK )
     set( Boost_REALPATH ON )	# use version suffix in *.so name
 else ( BUILD_SHARED_LIBS )
+    if (LVCMS_BUILD) 
+        ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)  # Required for LVCMS - for static libs
+    endif ( LVCMS_BUILD )    
     set( Boost_USE_STATIC_LIBS ON )
 endif ( BUILD_SHARED_LIBS )
 
@@ -99,6 +109,7 @@ set(Boost_ADDITIONAL_VERSIONS
 find_package( Boost 1.41 REQUIRED COMPONENTS
     unit_test_framework        # for usml_test.exe
     )
+    
 if( Boost_FOUND )
     include_directories( ${Boost_INCLUDE_DIR} )
 endif( Boost_FOUND )
@@ -120,13 +131,15 @@ add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 
 if( NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR} )
     set( NETCDF_DIR $ENV{NETCDF_DIR} CACHE PATH "Root of NetCDF library" )
-endif()
+endif(NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR})
+
 if( IS_DIRECTORY ${NETCDF_DIR}/include )
     list( APPEND CMAKE_INCLUDE_PATH $ENV{NETCDF_DIR}/include )
-endif()
+endif(IS_DIRECTORY ${NETCDF_DIR}/include)
+
 if( IS_DIRECTORY ${NETCDF_DIR}/lib )
     list( APPEND CMAKE_LIBRARY_PATH $ENV{NETCDF_DIR}/lib )
-endif()
+endif(IS_DIRECTORY ${NETCDF_DIR}/lib )
 
 set( NETCDF_CXX ON )
 find_package( NetCDF 3.6 REQUIRED )
@@ -180,7 +193,7 @@ endforeach( MOD )
 
 # generated data files for bathymetry tests
 
-#if ( EXISTS ${NETCDF_NCKS} )
+if ( EXISTS ${NETCDF_NCKS} )
     set( USML_DATA_BATHYMETRY ${USML_DATA_DIR}/bathymetry/ETOPO1_Ice_g_gmt4.grd
 	CACHE FILEPATH "data file for ETOPO bathymetry" )
     set( ETOPO_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp )
@@ -209,7 +222,7 @@ endforeach( MOD )
 
     add_custom_target( ETOPO_TEST_DATA ALL DEPENDS
 	${ETOPO_CMP}.nc ${ETOPO_CMP2W}.nc ${ETOPO_CMP2E}.nc )
-#endif()
+endif()
 
 # generated data files for profile tests
 
@@ -268,6 +281,9 @@ target_link_libraries( cmp_speed usml )
 add_executable( ray_speed studies/ray_speed/ray_speed.cc )
 target_link_libraries( ray_speed usml )
 
+add_executable( lvcms_test studies/lvcms_test/lvcms_test.cc )
+target_link_libraries( lvcms_test usml )
+
 add_executable( eigenray_extra_test studies/eigenray_extra/eigenray_extra_test.cc )
 target_link_libraries( eigenray_extra_test usml )
 
@@ -281,7 +297,7 @@ add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 target_link_libraries( malta_rays usml )
 
 set_property(
-   TARGET cmp_speed ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
+   TARGET lvcms_test cmp_speed ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
    PROPERTY COMPILE_DEFINITIONS
 	USML_DATA_DIR="${USML_DATA_DIR}"
 	USML_STUDIES_DIR="${USML_STUDIES_DIR}"
