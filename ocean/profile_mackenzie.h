@@ -69,19 +69,27 @@ template< class DATA_TYPE, int NUM_DIMS > class profile_mackenzie
      * @param attmodel      In-water attenuation model.  Defaults to Thorp.
      *                      The profile_model takes over ownership of this
      *                      reference and deletes it as part of its destructor.
+     * @param quick_interp  Allows the latitude and longitude axises to be set
+     *                      to nearest interp instead of linear.
      */
     profile_mackenzie(
         const data_grid<DATA_TYPE,NUM_DIMS>& temperature,
         const data_grid<DATA_TYPE,NUM_DIMS>& salinity,
-        attenuation_model* attmodel=NULL
+        attenuation_model* attmodel=NULL,
+        bool quick_interp = false
         ) :
         profile_grid<DATA_TYPE,NUM_DIMS>(
             new data_grid<DATA_TYPE,NUM_DIMS>(temperature,false),
             attmodel )
     {
         this->_sound_speed->interp_type(0,GRID_INTERP_PCHIP) ;
-        this->_sound_speed->interp_type(1,GRID_INTERP_NEAREST) ;
-        this->_sound_speed->interp_type(2,GRID_INTERP_NEAREST) ;
+        if(quick_interp) {
+            this->_sound_speed->interp_type(1,GRID_INTERP_NEAREST) ;
+            this->_sound_speed->interp_type(2,GRID_INTERP_NEAREST) ;
+        } else{
+            this->_sound_speed->interp_type(1,GRID_INTERP_LINEAR) ;
+            this->_sound_speed->interp_type(2,GRID_INTERP_LINEAR) ;
+        }
 
         unsigned index[3] ;
         for ( index[0]=0 ; index[0] < temperature.axis(0)->size() ; ++index[0] ) {
