@@ -17,7 +17,7 @@ cmake_minimum_required( VERSION 2.6 )
 project( usml CXX )
 
 set( PACKAGE_VERSION_MAJOR 0 )
-set( PACKAGE_VERSION_MINOR 3 )
+set( PACKAGE_VERSION_MINOR 4 )
 set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
 set( PACKAGE_MODULES ublas types netcdf ocean waveq3d )
 set( NETCDF_NCKS /usr/bin/ncks )
@@ -282,7 +282,7 @@ add_executable( ray_speed studies/ray_speed/ray_speed.cc )
 target_link_libraries( ray_speed usml )
 
 add_executable( lvcms_test studies/lvcms_test/lvcms_test.cc )
-target_link_libraries( lvcms_test usml )
+target_link_libraries( lvcms_test usml pthreadcc )
 
 add_executable( eigenray_extra_test studies/eigenray_extra/eigenray_extra_test.cc )
 target_link_libraries( eigenray_extra_test usml )

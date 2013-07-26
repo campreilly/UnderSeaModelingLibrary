@@ -5,11 +5,15 @@
 #ifndef USML_TYPES_DATA_GRID_H
 #define USML_TYPES_DATA_GRID_H
 
-#include <usml/types/seq_vector.h>
 #include <string.h>
+#include <usml/types/seq_vector.h>
+#include <usml/ublas/ublas.h>
+
+using namespace usml::ublas;
 
 namespace usml {
 namespace types {
+
 /// @ingroup data_grid
 /// @{
 

@@ -16,10 +16,14 @@
  *      - AZ: [0,360] in 15.0 deg steps
  *
  */
-#include <usml/waveq3d/waveq3d.h>
-#include <usml/netcdf/netcdf_files.h>
 #include <fstream>
 #include <iomanip>
+#include <usml/waveq3d/waveq3d.h>
+#include <usml/netcdf/netcdf_files.h>
+#include <usml/ocean/profile_mackenzie_mt.h>
+#include <usml/ocean/boundary_grid_mt.h>
+#include <usml/ocean/boundary_flat_mt.h>
+
 
 using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
@@ -64,26 +68,26 @@ int main( int argc, char* argv[] ) {
 
     cout << "load temperature & salinity data from World Ocean Atlas" << endl ;
     netcdf_woa temperature(
-    		USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
-    		USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc", month, lat1, lat2, lng1, lng2 ) ;
+    		USML_DATA_DIR  "/woa09/temperature_seasonal_1deg.nc",
+    		USML_DATA_DIR  "/woa09/temperature_monthly_1deg.nc", month, lat1, lat2, lng1, lng2 ) ;
     netcdf_woa salinity(
-    		USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
-    		USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc", month, lat1, lat2, lng1, lng2 ) ;
+    		USML_DATA_DIR  "/woa09/salinity_seasonal_1deg.nc",
+    		USML_DATA_DIR  "/woa09/salinity_monthly_1deg.nc", month, lat1, lat2, lng1, lng2 ) ;
 
-    profile_model* profile = new profile_mackenzie<double,3>( temperature, salinity ) ;
+    profile_model* profile =  new usml::ocean::profile_mackenzie_mt<double,3>( temperature, salinity );
 
 
     cout << "load bathymetry from ETOPO1 database" << endl ;
     usml::types::wposition::compute_earth_radius(29.0);
 
-    usml::netcdf::netcdf_bathy* pBathymetry = new usml::netcdf::netcdf_bathy(
-    		USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+    netcdf_bathy* pBathymetry = new usml::netcdf::netcdf_bathy(
+    		USML_DATA_DIR  "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
     		lat1, lat2, lng1, lng2, usml::types::wposition::earth_radius);
 
-    boundary_model* bottom = new boundary_grid<double,2>( pBathymetry ) ;
+    boundary_model* bottom = new boundary_grid_mt<double,2>( pBathymetry ) ;
 
     // combine sound speed and bathymetry into ocean model
-    boundary_model* surface = new boundary_flat() ;
+    boundary_model* surface = new boundary_flat_mt() ;
 
 #ifdef DEBUG
 
