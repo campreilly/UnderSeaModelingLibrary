@@ -461,7 +461,7 @@ BOOST_AUTO_TEST_CASE( reflect_grid_test ) {
         #ifdef __FAST_MATH__
             BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)+566.97501235455275, 6.0 ) ;
         #else
-            BOOST_CHECK_CLOSE( wave.curr()->position.altitude(0,0)-566.97501235455275, 1e-6 ) ;
+            BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)-566.97501235455275, 1e-6 ) ;
         #endif
 
     } catch ( std::exception* except ) {

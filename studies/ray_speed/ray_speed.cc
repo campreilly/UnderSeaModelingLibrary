@@ -73,16 +73,20 @@ int main( int argc, char* argv[] ) {
 	USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
         month, lat1, lat2, lng1, lng2 ) ;
     profile_model* profile =
-    	new profile_mackenzie<double,3>( temperature, salinity, true ) ;
+    	new profile_mackenzie<double,3>( temperature, salinity, NULL, true ) ;
 //    attenuation_model* attn = new attenuation_constant(0.0);
 //    profile_model* profile = new profile_linear(1500.0,attn);
 
     // load bathymetry from ETOPO1 database
 
+    data_grid<double,2>* grid = new netcdf_bathy( USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+        lat1, lat2, lng1, lng2 );
+    data_grid_fast_2d* fast_grid = new data_grid_fast_2d(*grid, true) ;
+    delete grid;
     cout << "load bathymetry from ETOPO1 database" << endl ;
-    boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
-    	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
-	lat1, lat2, lng1, lng2 ) ) ;
+    boundary_model* bottom = new boundary_grid<double,2>( fast_grid ) ;
+//    boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
+//        USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd", lat1, lat2, lng1, lng2 ) );
 //	bottom->reflect_loss(new reflect_loss_constant(0.0));
 //    boundary_model* bottom = new boundary_flat(3000.0);
     double height ;
