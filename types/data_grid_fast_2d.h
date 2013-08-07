@@ -9,7 +9,7 @@
 #include <usml/types/data_grid.h>
 #include <usml/types/seq_vector.h>
 
-#define FAST_GRID_DEBUG
+//#define FAST_GRID_DEBUG
 
 namespace usml {
 namespace types {
@@ -255,7 +255,7 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
             xyloc = matrix<double> (1,16);
             double x_inv = location[0] - (*_axis[0])(k0) ;
             double y_inv = location[1] - (*_axis[1])(k1) ;
-            cout << "x_inv/norm0: " << x_inv/norm0 << "\ty_inv/norm1: " << y_inv/norm1 << endl;
+//            cout << "x_inv/norm0: " << x_inv/norm0 << "\ty_inv/norm1: " << y_inv/norm1 << endl;
 
             xyloc(0,0) = 1;
             xyloc(0,1) = y_inv / norm1;
