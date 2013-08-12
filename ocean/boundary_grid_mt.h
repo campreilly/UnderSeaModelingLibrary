@@ -3,7 +3,9 @@
  * Creates a mutlti-threaded bottom model from a 1-D or 2-D data grid.
  */
 
-#pragma once
+//#pragma once
+#ifndef USML_OCEAN_BOUNDARY_GRID_MT_H
+#define USML_OCEAN_BOUNDARY_GRID_MT_H
 
 #include <pthreadcc.h>
 #include <usml/types/lockingvalue.h>
@@ -162,3 +164,5 @@ private:
 
 }  // end of namespace ocean
 }  // end of namespace usml
+
+#endif

@@ -3,7 +3,9 @@
  * Multi-threaded flat boundary model for the ocean including the ocean surface.
  */
 
-#pragma once
+//#pragma once
+#ifndef USML_OCEAN_BOUNDARY_FLAT_MT_H
+#define USML_OCEAN_BOUNDARY_FLAT_MT_H
 
 #include <pthreadcc.h>
 #include <usml/types/lockingvalue.h>
@@ -155,3 +157,5 @@ private:
 /// @}
 }// end of namespace ocean
 }  // end of namespace usml
+
+#endif

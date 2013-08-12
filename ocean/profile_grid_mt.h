@@ -3,7 +3,9 @@
  * Creates a multi-threaded sound speed model from a 1-D, 2-D, or 3-D data grid.
  */
 
-#pragma once
+//#pragma once
+#ifndef USML_OCEAN_PROFILE_GRID_MT_H
+#define USML_OCEAN_PROFILE_GRID_MT_H
 
 #include <pthreadcc.h>
 #include <usml/types/lockingvalue.h>
@@ -151,3 +153,4 @@ private:
 }// end of namespace ocean
 }  // end of namespace usml
 
+#endif
