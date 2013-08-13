@@ -20,10 +20,8 @@
 #include <iomanip>
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/netcdf/netcdf_files.h>
-#include <usml/ocean/profile_mackenzie_mt.h>
-#include <usml/ocean/boundary_grid_mt.h>
-#include <usml/ocean/boundary_flat_mt.h>
-
+#include <usml/ocean/profile_mt.h>
+#include <usml/ocean/boundary_mt.h>
 
 using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
@@ -74,8 +72,8 @@ int main( int argc, char* argv[] ) {
     		USML_DATA_DIR  "/woa09/salinity_seasonal_1deg.nc",
     		USML_DATA_DIR  "/woa09/salinity_monthly_1deg.nc", month, lat1, lat2, lng1, lng2 ) ;
 
-    profile_model* profile =  new usml::ocean::profile_mackenzie_mt<double,3>( temperature, salinity );
-
+    profile_model* profile = new usml::ocean::profile_mackenzie<double,3>( temperature, salinity );
+    profile_mt* mt_profile = new profile_mt(profile);
 
     cout << "load bathymetry from ETOPO1 database" << endl ;
     usml::types::wposition::compute_earth_radius(29.0);
@@ -84,10 +82,13 @@ int main( int argc, char* argv[] ) {
     		USML_DATA_DIR  "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
     		lat1, lat2, lng1, lng2, usml::types::wposition::earth_radius);
 
-    boundary_model* bottom = new boundary_grid_mt<double,2>( pBathymetry ) ;
+    boundary_model* bottom = new boundary_grid<double,2>( pBathymetry ) ;
+    boundary_mt* mt_bottom = new boundary_mt( bottom );
 
     // combine sound speed and bathymetry into ocean model
-    boundary_model* surface = new boundary_flat_mt() ;
+    boundary_model* surface = new boundary_flat() ;
+    boundary_mt* mt_surface = new boundary_mt( surface );
+
 
 #ifdef DEBUG
 
@@ -120,7 +121,7 @@ int main( int argc, char* argv[] ) {
 
 #endif
 
-    ocean_model ocean( surface, bottom, profile ) ;
+    ocean_model ocean( mt_surface, mt_bottom, mt_profile ) ;
 
     cout << "initialize targets" << endl ;
 
