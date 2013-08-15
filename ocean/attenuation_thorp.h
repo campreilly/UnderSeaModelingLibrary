@@ -57,7 +57,7 @@ private:
      * Cache of attenuation coefficients from last update.
      * Allows this routine to re-use attenuations that don't change.
      */
-    matrix< vector<double> > att_coeff ;
+    matrix< boost::numeric::ublas::vector<double> > att_coeff ;
 
     /**
      * Frequencies used in previous invokation of attenuation calculation.
@@ -91,7 +91,7 @@ private:
         const wposition& location, 
         const seq_vector& frequencies,
         const matrix<double>& distance,
-        matrix< vector<double> >* attenuation ) ;
+        matrix< boost::numeric::ublas::vector<double> >* attenuation ) ;
         
 } ;
 

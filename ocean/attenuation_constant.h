@@ -45,7 +45,7 @@ class USML_DECLSPEC attenuation_constant : public attenuation_model {
         const wposition& location, 
         const seq_vector& frequencies,
         const matrix<double>& distance,
-        matrix< vector<double> >* attenuation ) ;
+        matrix< boost::numeric::ublas::vector<double> >* attenuation ) ;
         
 } ;
 

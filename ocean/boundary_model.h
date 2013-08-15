@@ -116,7 +116,7 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
     virtual void reflect_loss(
         const wposition1& location,
         const seq_vector& frequencies, double angle,
-        vector<double>* amplitude, vector<double>* phase=NULL )
+        boost::numeric::ublas::vector<double>* amplitude, boost::numeric::ublas::vector<double>* phase=NULL )
     {
         _reflect_loss_model->reflect_loss( location,
             frequencies, angle, amplitude, phase ) ;

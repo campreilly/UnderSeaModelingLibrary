@@ -41,7 +41,7 @@ public:
         const wposition& location, 
         const seq_vector& frequencies,
         const matrix<double>& distance,
-        matrix< vector<double> >* attenuation ) = 0 ;
+        matrix< boost::numeric::ublas::vector<double> >* attenuation ) = 0 ;
 
 	/**
 	 * Virtual destructor

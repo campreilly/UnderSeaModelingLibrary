@@ -187,7 +187,7 @@ public:
      * @param  data		  Set of data elements to use.
      * @throws invalid_argument   If series not monotonic
      */
-    template<class T, class A> seq_data( const vector<T,A> &data )
+    template<class T, class A> seq_data( const boost::numeric::ublas::vector<T,A> &data )
         : seq_vector( data.size() )
     {
         _index = 0 ;

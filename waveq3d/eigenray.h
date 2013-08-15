@@ -34,12 +34,12 @@ struct eigenray {
     /** 
      * Propagation loss as a function of frequency (dB,positive).
      */
-    vector< double > intensity ;
+    boost::numeric::ublas::vector< double > intensity ;
 
     /** 
      * Phase change as a function of frequency (radians).
      */
-    vector< double > phase ;
+    boost::numeric::ublas::vector< double > phase ;
 
     /** 
      * Initial depression/elevation angle at the 

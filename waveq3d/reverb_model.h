@@ -42,7 +42,7 @@ class USML_DECLSPEC reverb_model {
         unsigned de, unsigned az, double time,
         const wposition1& position, const wvector1& ndirection, double speed,
         const seq_vector& frequencies,
-        const vector<double>& amplitude, const vector<double>& phase ) = 0 ;
+        const boost::numeric::ublas::vector<double>& amplitude, const boost::numeric::ublas::vector<double>& phase ) = 0 ;
 };
 
 /// @}

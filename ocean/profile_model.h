@@ -92,7 +92,7 @@ public:
 	   const wposition& location,
 	   const seq_vector& frequencies,
 	   const matrix<double>& distance,
-	   matrix< vector<double> >* attenuation)
+	   matrix< boost::numeric::ublas::vector<double> >* attenuation)
    {
 	   _attenuation->attenuation(
 		   location, frequencies, distance, attenuation ) ;

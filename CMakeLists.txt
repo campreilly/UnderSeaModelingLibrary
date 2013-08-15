@@ -19,13 +19,13 @@ project( usml CXX )
 set( PACKAGE_VERSION_MAJOR 0 )
 set( PACKAGE_VERSION_MINOR 4 )
 set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
-set( PACKAGE_MODULES ublas types netcdf ocean waveq3d )
+set( PACKAGE_MODULES ublas types netcdf ocean waveq3d)
 set( NETCDF_NCKS /usr/bin/ncks )
 
 ######################################################################
 # set USML defaults
 
-option( USML_PEDANTIC "maximize warnings, treat warning as errors" OFF )
+option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
 option( LVCMS_BUILD "build for LVCMS - no boost debug or static libs" ON )
 option( PROFILE_TIME "build for profiling at function level timing" OFF )
@@ -73,7 +73,7 @@ else( CMAKE_COMPILER_IS_GNUCXX )
     endif ( NOT BUILD_SHARED_LIBS )
 endif()
 
-#set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSML_DEBUG" )
+set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSML_DEBUG" )
 include_directories( ${PROJECT_SOURCE_DIR}/.. )
 
 ######################################################################
@@ -272,6 +272,9 @@ set_property(
 set( USML_STUDIES_DIR ${PROJECT_SOURCE_DIR}/studies
      CACHE PATH "directory for data used in testing" )
 
+add_executable( lvcms_test studies/lvcms_test/lvcms_test.cc  studies/lvcms_test/lvcms_waveq3d.cc )
+target_link_libraries( lvcms_test usml pthreadcc pthread )
+
 add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
 target_link_libraries( cmp_speed usml )
 
@@ -280,9 +283,6 @@ target_link_libraries( cmp_speed usml )
 
 add_executable( ray_speed studies/ray_speed/ray_speed.cc )
 target_link_libraries( ray_speed usml )
-
-add_executable( lvcms_test studies/lvcms_test/lvcms_test.cc )
-target_link_libraries( lvcms_test usml pthreadcc )
 
 add_executable( eigenray_extra_test studies/eigenray_extra/eigenray_extra_test.cc )
 target_link_libraries( eigenray_extra_test usml )

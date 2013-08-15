@@ -108,14 +108,14 @@ public:
      * Stores the cumulative result of interface reflection losses
      * and losses that result from the attenuation of sound in sea water.
      */
-    matrix< vector< double > > attenuation ;
+    matrix< boost::numeric::ublas::vector< double > > attenuation ;
 
     /**
      * Non-spreading component of phase change in radians.
      * Stores the cumulative result of the phase changes from
      * interface reflections and caustics.
      */
-    matrix< vector< double > > phase ;
+    matrix< boost::numeric::ublas::vector< double > > phase ;
 
     /**
      * Distance from old location to this location.

@@ -42,7 +42,7 @@ public:
     virtual void reflect_loss( 
         const wposition1& location, 
         const seq_vector& frequencies, double angle,
-        vector<double>* amplitude, vector<double>* phase=NULL ) = 0 ;
+        boost::numeric::ublas::vector<double>* amplitude, boost::numeric::ublas::vector<double>* phase=NULL ) = 0 ;
 
 	/**
 	 * Virtual destructor

@@ -18,6 +18,8 @@
  */
 #include <fstream>
 #include <iomanip>
+
+#include "lvcms_waveq3d.h"
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/ocean/profile_mt.h>
@@ -45,22 +47,11 @@ int main( int argc, char* argv[] ) {
 
     wposition::compute_earth_radius( (lat1+lat2)/2.0 ) ;
 
-    wposition1 src_pos( 29.0, -80.0, -90.0 ) ;
-
-    seq_rayfan de( -90.0, 90.0, 181 ) ;
-    seq_linear az( -180.0, 15.0, 180.0 ) ;
-
-    const double time_max = 6.0 ;
-    const double time_step = 0.010 ;
-
-    seq_log freq( 6500.0, 1.0, 1 ) ;
-
-    #ifdef DEBUG
-        const char* csvname = "lvcms_test_eigenray.csv";
-        const char* ncname = "lvcms_test_eigenrays.nc";
-        const char* ncname_wave = "lvcms_test_wave_front.nc";
-        const char* ncname_ssp = "lvcms_test_ssp.csv";
-    #endif
+//
+//
+//    seq_rayfan de( -90.0, 90.0, 181 ) ;
+//    seq_linear az( -180.0, 15.0, 180.0 ) ;
+//    seq_log freq( 6500.0, 1.0, 1 ) ;
 
     // build sound velocity profile from World Ocean Atlas data
 
@@ -73,6 +64,7 @@ int main( int argc, char* argv[] ) {
     		USML_DATA_DIR  "/woa09/salinity_monthly_1deg.nc", month, lat1, lat2, lng1, lng2 ) ;
 
     profile_model* profile = new usml::ocean::profile_mackenzie<double,3>( temperature, salinity );
+    profile->attenuation(new attenuation_constant(0.0));
     profile_mt* mt_profile = new profile_mt(profile);
 
     cout << "load bathymetry from ETOPO1 database" << endl ;
@@ -89,124 +81,77 @@ int main( int argc, char* argv[] ) {
     boundary_model* surface = new boundary_flat() ;
     boundary_mt* mt_surface = new boundary_mt( surface );
 
-
-#ifdef DEBUG
-
-    // print ssp results for source lat/long entry
-	std::ofstream ssp_output(ncname_ssp);
-	cout << "writing tables to " << ncname_ssp << endl;
-
-	unsigned index[3];
-	index[1] = 0;
-	index[2] = 0;
-
-	matrix<double> speed(1, 1);
-	wposition location(1, 1);
-	location.latitude(0, 0, 29.0);
-	location.longitude(0, 0, -80.0);
-	wvector gradient(1, 1);
-
-	ssp_output << "Depth,Temp,Sal,Speed,Gradient" << endl;
-
-	for (unsigned d = 0; d < temperature.axis(0)->size(); ++d) {
-		index[0] = d;
-		location.rho(0, 0, (*temperature.axis(0))(d));
-		profile->sound_speed(location, &speed, &gradient);
-		ssp_output << -location.altitude(0, 0) << "," << temperature.data(index)
-		<< "," << salinity.data(index) << "," << speed(0, 0) << ","
-		<< -gradient.rho(0, 0) << std::endl;
-	}
-
-	ssp_output.close();
-
-#endif
-
-    ocean_model ocean( mt_surface, mt_bottom, mt_profile ) ;
-
     cout << "initialize targets" << endl ;
+    wposition1 src_pos( 29.0, -80.0, -90.0 ) ;
 
-    wposition target( 3, 1, src_pos.latitude(), src_pos.longitude(), src_pos.altitude() ) ;
+    //wposition targets = new wposition( 3, 1, src_pos.latitude(), src_pos.longitude(), src_pos.altitude() ) ;
+    wposition targets( 3, 1, src_pos.latitude(), src_pos.longitude(), src_pos.altitude() ) ;
 
-    target.latitude ( 0, 0,  29.01) ;
-    target.longitude( 0, 0, -80.0 ) ;
-    target.altitude ( 0, 0, -10.0 ) ;
 
-    target.latitude ( 1, 0,  29.05 ) ;
-    target.longitude( 1, 0, -79.95 ) ;
-    target.altitude ( 1, 0, -100.0 ) ;
+    targets.latitude ( 0, 0,  29.01) ;
+    targets.longitude( 0, 0, -80.0 ) ;
+    targets.altitude ( 0, 0, -10.0 ) ;
 
-    target.latitude ( 2, 0,  28.95 ) ;
-    target.longitude( 2, 0, -80.05 ) ;
-    target.altitude ( 2, 0, -100.0 ) ;
+    targets.latitude ( 1, 0,  29.05 ) ;
+    targets.longitude( 1, 0, -79.95 ) ;
+    targets.altitude ( 1, 0, -100.0 ) ;
 
-    proploss loss( &target ) ;
-    wave_queue wave( ocean, freq, src_pos, de, az, time_step, &loss ) ;
+    targets.latitude ( 2, 0,  28.95 ) ;
+    targets.longitude( 2, 0, -80.05 ) ;
+    targets.altitude ( 2, 0, -100.0 ) ;
 
-    // propagate wavefront
-	#ifdef DEBUG
-        cout << "writing wavefronts to " << ncname_wave << endl;
+    ocean_model* ocean = new ocean_model( mt_surface, mt_bottom, mt_profile ) ;
 
-        wave.init_netcdf( ncname_wave );
-        wave.save_netcdf();
-    #endif
-    cout << "propagate wavefronts for " << time_max << " secs" << endl ;
-    time_t start = time(NULL) ;
-    while ( wave.time() < time_max ) {
-        wave.step() ;
-        #ifdef DEBUG
-            wave.save_netcdf();
-        #endif
+
+    std::vector<LvcmsWaveQ3D*> lvcmsWaveq3dThreads;
+
+    int totalThreads = 2;
+
+    for (int i=0; i < totalThreads; ++i){
+
+		LvcmsWaveQ3D* waveq3dThread = new LvcmsWaveQ3D();
+
+		//waveq3dThread->PrintSPPToCSV(temperature, salinity, mt_profile, i);
+
+		waveq3dThread->setOcean(ocean);
+
+//		waveq3dThread->setSrcPos(&src_pos);
+//
+//
+//
+//		waveq3dThread->setDE(&de);
+//
+//		waveq3dThread->setAZ(&az);
+
+		waveq3dThread->setThreadNum(i);
+
+		waveq3dThread->setTargets(&targets);
+
+		proploss* loss = new proploss(waveq3dThread->getTargets());
+
+		waveq3dThread->setProploss(loss);
+
+		lvcmsWaveq3dThreads.push_back(waveq3dThread);
     }
 
-	#ifdef DEBUG
-        wave.close_netcdf();
+    std::vector<LvcmsWaveQ3D*>::iterator iter;
+    for ( iter = lvcmsWaveq3dThreads.begin(); iter != lvcmsWaveq3dThreads.end(); ++iter )
+    {
+    	LvcmsWaveQ3D* aThread = *iter;
+    	aThread->Process();
+    }
 
-        // compute coherent propagation loss and write eigenrays to disk
-
-        loss.sum_eigenrays();
-        cout << "writing proploss to " << ncname << endl;
-        loss.write_netcdf(ncname,"lvcms test eigenrays");
-
-        // save results to spreadsheet and compare to analytic results
-
-        cout << "writing tables to " << csvname << endl;
-        std::ofstream os(csvname);
-        os << "target, ray, time, intensity, phase, s_de, s_az, t_de, t_az, srf, btm, cst"
-        << endl;
-        os << std::setprecision(18);
-        cout << std::setprecision(18);
-
-        for (unsigned int m = 0; m < 3 /* num targets */; ++m) {
-			const eigenray_list *raylist = loss.eigenrays(m,0);
-			int n=0;
-			for ( eigenray_list::const_iterator iter = raylist->begin();
-					iter != raylist->end(); ++n, ++iter )
-			{
-				const eigenray &ray = *iter ;
-				os  <<  m
-					<< "," << n
-					<< "," << ray.time
-					<< "," << ray.intensity(0)
-					<< "," << ray.phase(0)
-					<< "," << ray.source_de
-					<< "," << ray.source_az
-					<< "," << ray.target_de
-					<< "," << ray.target_az
-					<< "," << ray.surface
-					<< "," << ray.bottom
-					<< "," << ray.caustic
-					<< endl;
-			}
-        }
-
-        os.close();
-
-	#endif
-
-
-    time_t complete = time(NULL) ;
-    cout << "Propagating for " << time_max << " sec with "
-         << ( target.size1() * target.size2() ) << " targets took "
-         << (difftime(complete,start)) << " sec."
-         << endl ;
+	while (lvcmsWaveq3dThreads.size() > 0) {
+		for ( iter = lvcmsWaveq3dThreads.begin(); iter != lvcmsWaveq3dThreads.end(); ++iter )
+		{
+		    LvcmsWaveQ3D* aThread = *iter;
+		    if (!aThread->ThreadRunning()) {
+		    	lvcmsWaveq3dThreads.erase(iter);
+		    	usleep(100000);
+		    	break;
+		    }
+		}
+		usleep(100000);
+	}
+	return 0;
 }

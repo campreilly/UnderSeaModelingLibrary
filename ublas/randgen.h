@@ -75,7 +75,7 @@ namespace ublas {
          * @param    rand	Random number generator.
          */
         template < class T, class Random >
-        static inline void fill(vector< T > & result, Random & rand) {
+        static inline void fill(boost::numeric::ublas::vector< T > & result, Random & rand) {
             const int N = result.size();
             double * current = (double *) & result(0);
             double * end = (double *) & result(N - 1);
@@ -142,8 +142,8 @@ namespace ublas {
          *
          * @param    N		Length of the output vector.
          */
-        static inline vector<double> uniform(int N) {
-            vector<double> result(N);
+        static inline boost::numeric::ublas::vector<double> uniform(int N) {
+        	boost::numeric::ublas::vector<double> result(N);
             fill(result, uniform_gen);
             return result;
         }
@@ -153,8 +153,8 @@ namespace ublas {
          *
          * @param    N		Length of the output vector.
          */
-        static inline vector<double> gaussian(int N) {
-            vector<double> result(N);
+        static inline boost::numeric::ublas::vector<double> gaussian(int N) {
+        	boost::numeric::ublas::vector<double> result(N);
             fill(result, gaussian_gen);
             return result;
         }
@@ -165,8 +165,8 @@ namespace ublas {
          *
          * @param    N		Length of the output vector.
          */
-        static inline vector< complex<double> > noise(int N) {
-            vector< complex<double> > result(N);
+        static inline boost::numeric::ublas::vector< complex<double> > noise(int N) {
+        	boost::numeric::ublas::vector< complex<double> > result(N);
             fill(result, gaussian_gen);
             return result;
         }

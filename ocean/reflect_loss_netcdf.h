@@ -56,7 +56,7 @@ class USML_DECLSPEC reflect_loss_netcdf : public reflect_loss_model {
 		virtual void reflect_loss(
 			const wposition1& location,
 			const seq_vector& frequencies, double angle,
-			vector<double>* amplitude, vector<double>* phase=NULL ) ;
+			boost::numeric::ublas::vector<double>* amplitude, boost::numeric::ublas::vector<double>* phase=NULL ) ;
 
 
     ///Destuctor
