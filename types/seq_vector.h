@@ -10,6 +10,9 @@
 
 namespace usml {
 namespace types {
+
+using boost::numeric::ublas::vector;
+
 /// @ingroup data_grid
 /// @{
 
@@ -38,17 +41,17 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
     typedef seq_vector self_type;
 public:
     typedef double value_type;
-    typedef boost::numeric::ublas::vector<value_type>::size_type size_type;
-    typedef boost::numeric::ublas::vector<value_type>::difference_type difference_type;
-    typedef boost::numeric::ublas::vector<value_type>::const_reference const_reference;
-    typedef boost::numeric::ublas::vector<value_type>::const_reference reference;
-    typedef boost::numeric::ublas::vector<value_type>::array_type array_type;
+    typedef vector<value_type>::size_type size_type;
+    typedef vector<value_type>::difference_type difference_type;
+    typedef vector<value_type>::const_reference const_reference;
+    typedef vector<value_type>::const_reference reference;
+    typedef vector<value_type>::array_type array_type;
 
-    typedef const boost::numeric::ublas::vector_reference<const self_type> const_closure_type;
-    typedef boost::numeric::ublas::vector_reference<self_type> closure_type;
-    typedef boost::numeric::ublas::vector<value_type>::storage_category storage_category;
+    typedef const vector_reference<const self_type> const_closure_type;
+    typedef vector_reference<self_type> closure_type;
+    typedef vector<value_type>::storage_category storage_category;
 
-    typedef boost::numeric::ublas::vector<value_type>::const_iterator const_iterator;
+    typedef vector<value_type>::const_iterator const_iterator;
     typedef reverse_iterator_base<const_iterator> const_reverse_iterator;
 
     //**************************************************
@@ -58,7 +61,7 @@ protected:
     /**
      * Cache of sequence values.
      */
-    boost::numeric::ublas::vector<value_type> _data;
+    vector<value_type> _data;
 
 public:
     /**
@@ -100,7 +103,7 @@ protected:
     /**
      * Cache of increment values.
      */
-    boost::numeric::ublas::vector<value_type> _increment;
+    vector<value_type> _increment;
 
 public:
 

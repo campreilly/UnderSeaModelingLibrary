@@ -12,6 +12,8 @@
 namespace usml {
 namespace ocean {
 
+using boost::numeric::ublas::vector;
+
 class USML_DECLSPEC boundary_mt : public boundary_model {
 
    protected:

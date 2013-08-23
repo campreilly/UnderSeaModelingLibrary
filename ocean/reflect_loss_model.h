@@ -14,6 +14,8 @@ namespace ocean {
 using namespace usml::ublas ;
 using namespace usml::types ;
 
+using boost::numeric::ublas::vector;
+
 /// @ingroup boundaries
 /// @{
 
@@ -42,7 +44,7 @@ public:
     virtual void reflect_loss( 
         const wposition1& location, 
         const seq_vector& frequencies, double angle,
-        boost::numeric::ublas::vector<double>* amplitude, boost::numeric::ublas::vector<double>* phase=NULL ) = 0 ;
+        vector<double>* amplitude, vector<double>* phase=NULL ) = 0 ;
 
 	/**
 	 * Virtual destructor

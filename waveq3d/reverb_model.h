@@ -13,6 +13,8 @@ namespace waveq3d {
 
 using namespace usml::ocean ;
 
+using boost::numeric::ublas::vector;
+
 /**
  * A reverbation model listens for interface collision callbacks from
  * a wavefront.
@@ -42,7 +44,7 @@ class USML_DECLSPEC reverb_model {
         unsigned de, unsigned az, double time,
         const wposition1& position, const wvector1& ndirection, double speed,
         const seq_vector& frequencies,
-        const boost::numeric::ublas::vector<double>& amplitude, const boost::numeric::ublas::vector<double>& phase ) = 0 ;
+        const vector<double>& amplitude, const vector<double>& phase ) = 0 ;
 };
 
 /// @}

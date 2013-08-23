@@ -11,6 +11,8 @@
 namespace usml {
 namespace ocean {
 
+using boost::numeric::ublas::vector;
+
 /// @ingroup profiles
 /// @{
 
@@ -57,7 +59,7 @@ private:
      * Cache of attenuation coefficients from last update.
      * Allows this routine to re-use attenuations that don't change.
      */
-    matrix< boost::numeric::ublas::vector<double> > att_coeff ;
+    matrix< vector<double> > att_coeff ;
 
     /**
      * Frequencies used in previous invokation of attenuation calculation.
@@ -91,7 +93,7 @@ private:
         const wposition& location, 
         const seq_vector& frequencies,
         const matrix<double>& distance,
-        matrix< boost::numeric::ublas::vector<double> >* attenuation ) ;
+        matrix< vector<double> >* attenuation ) ;
         
 } ;
 

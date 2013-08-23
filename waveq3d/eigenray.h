@@ -13,6 +13,8 @@ namespace waveq3d {
 
 using namespace usml::types ;
 
+using boost::numeric::ublas::vector;
+
 /// @ingroup waveq3d
 /// @{
 
@@ -34,12 +36,12 @@ struct eigenray {
     /** 
      * Propagation loss as a function of frequency (dB,positive).
      */
-    boost::numeric::ublas::vector< double > intensity ;
+    vector< double > intensity ;
 
     /** 
      * Phase change as a function of frequency (radians).
      */
-    boost::numeric::ublas::vector< double > phase ;
+    vector< double > phase ;
 
     /** 
      * Initial depression/elevation angle at the 

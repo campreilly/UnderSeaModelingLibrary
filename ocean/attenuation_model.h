@@ -15,6 +15,8 @@ namespace ocean {
 using namespace usml::ublas ;
 using namespace usml::types ;
 
+using boost::numeric::ublas::vector;
+
 /// @ingroup profiles
 /// @{
 
@@ -41,7 +43,7 @@ public:
         const wposition& location, 
         const seq_vector& frequencies,
         const matrix<double>& distance,
-        matrix< boost::numeric::ublas::vector<double> >* attenuation ) = 0 ;
+        matrix< vector<double> >* attenuation ) = 0 ;
 
 	/**
 	 * Virtual destructor

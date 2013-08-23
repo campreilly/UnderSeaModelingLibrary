@@ -12,6 +12,8 @@ namespace waveq3d {
 
 using namespace usml::ocean ;
 
+using boost::numeric::ublas::vector;
+
 /// @ingroup waveq3d
 /// @{
 
@@ -108,14 +110,14 @@ public:
      * Stores the cumulative result of interface reflection losses
      * and losses that result from the attenuation of sound in sea water.
      */
-    matrix< boost::numeric::ublas::vector< double > > attenuation ;
+    matrix< vector< double > > attenuation ;
 
     /**
      * Non-spreading component of phase change in radians.
      * Stores the cumulative result of the phase changes from
      * interface reflections and caustics.
      */
-    matrix< boost::numeric::ublas::vector< double > > phase ;
+    matrix< vector< double > > phase ;
 
     /**
      * Distance from old location to this location.

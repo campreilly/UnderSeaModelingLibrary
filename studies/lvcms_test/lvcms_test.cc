@@ -47,12 +47,6 @@ int main( int argc, char* argv[] ) {
 
     wposition::compute_earth_radius( (lat1+lat2)/2.0 ) ;
 
-//
-//
-//    seq_rayfan de( -90.0, 90.0, 181 ) ;
-//    seq_linear az( -180.0, 15.0, 180.0 ) ;
-//    seq_log freq( 6500.0, 1.0, 1 ) ;
-
     // build sound velocity profile from World Ocean Atlas data
 
     cout << "load temperature & salinity data from World Ocean Atlas" << endl ;
@@ -105,7 +99,7 @@ int main( int argc, char* argv[] ) {
 
     std::vector<LvcmsWaveQ3D*> lvcmsWaveq3dThreads;
 
-    int totalThreads = 2;
+    int totalThreads = 100;
 
     for (int i=0; i < totalThreads; ++i){
 
@@ -114,14 +108,6 @@ int main( int argc, char* argv[] ) {
 		//waveq3dThread->PrintSPPToCSV(temperature, salinity, mt_profile, i);
 
 		waveq3dThread->setOcean(ocean);
-
-//		waveq3dThread->setSrcPos(&src_pos);
-//
-//
-//
-//		waveq3dThread->setDE(&de);
-//
-//		waveq3dThread->setAZ(&az);
 
 		waveq3dThread->setThreadNum(i);
 

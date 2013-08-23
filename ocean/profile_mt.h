@@ -12,6 +12,8 @@
 namespace usml {
 namespace ocean {
 
+using boost::numeric::ublas::vector;
+
 class USML_DECLSPEC profile_mt : public profile_model {
 
    protected:

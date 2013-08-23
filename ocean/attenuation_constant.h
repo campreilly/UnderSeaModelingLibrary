@@ -10,6 +10,8 @@
 namespace usml {
 namespace ocean {
 
+using boost::numeric::ublas::vector;
+
 /// @ingroup profiles
 /// @{
 
@@ -45,7 +47,7 @@ class USML_DECLSPEC attenuation_constant : public attenuation_model {
         const wposition& location, 
         const seq_vector& frequencies,
         const matrix<double>& distance,
-        matrix< boost::numeric::ublas::vector<double> >* attenuation ) ;
+        matrix< vector<double> >* attenuation ) ;
         
 } ;
 
