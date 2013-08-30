@@ -259,11 +259,11 @@ set_property(
 set( USML_STUDIES_DIR ${PROJECT_SOURCE_DIR}/studies
      CACHE PATH "directory for data used in testing" )
 
-add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
-target_link_libraries( cmp_speed usml )
+#add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
+#target_link_libraries( cmp_speed usml )
 
-#add_executable( folds studies/folds/folds.cc )
-#target_link_libraries( folds usml )
+add_executable( analytic_wedge studies/analytic_wedge/analytic_wedge.cc )
+target_link_libraries( analytic_wedge usml )
 
 add_executable( ray_speed studies/ray_speed/ray_speed.cc )
 target_link_libraries( ray_speed usml )
@@ -281,7 +281,7 @@ add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 target_link_libraries( malta_rays usml )
 
 set_property(
-   TARGET cmp_speed ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
+   TARGET analytic_wedge ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
    PROPERTY COMPILE_DEFINITIONS
 	USML_DATA_DIR="${USML_DATA_DIR}"
 	USML_STUDIES_DIR="${USML_STUDIES_DIR}"
