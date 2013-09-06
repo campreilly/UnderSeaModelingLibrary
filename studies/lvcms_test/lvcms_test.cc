@@ -47,97 +47,105 @@ int main( int argc, char* argv[] ) {
 
     wposition::compute_earth_radius( (lat1+lat2)/2.0 ) ;
 
-    // build sound velocity profile from World Ocean Atlas data
+    try {
 
-    cout << "load temperature & salinity data from World Ocean Atlas" << endl ;
-    netcdf_woa temperature(
-    		USML_DATA_DIR  "/woa09/temperature_seasonal_1deg.nc",
-    		USML_DATA_DIR  "/woa09/temperature_monthly_1deg.nc", month, lat1, lat2, lng1, lng2 ) ;
-    netcdf_woa salinity(
-    		USML_DATA_DIR  "/woa09/salinity_seasonal_1deg.nc",
-    		USML_DATA_DIR  "/woa09/salinity_monthly_1deg.nc", month, lat1, lat2, lng1, lng2 ) ;
+		cout << "loading temperature & salinity data from World Ocean Atlas" << endl ;
+		netcdf_woa temperature(
+				USML_DATA_DIR  "/woa09/temperature_seasonal_1deg.nc",
+				USML_DATA_DIR  "/woa09/temperature_monthly_1deg.nc", month, lat1, lat2, lng1, lng2 ) ;
+		netcdf_woa salinity(
+				USML_DATA_DIR  "/woa09/salinity_seasonal_1deg.nc",
+				USML_DATA_DIR  "/woa09/salinity_monthly_1deg.nc", month, lat1, lat2, lng1, lng2 ) ;
 
-    profile_model* profile = new usml::ocean::profile_mackenzie<double,3>( temperature, salinity );
-    profile->attenuation(new attenuation_constant(0.0));
-    profile_mt* mt_profile = new profile_mt(profile);
-
-    cout << "load bathymetry from ETOPO1 database" << endl ;
-    usml::types::wposition::compute_earth_radius(29.0);
-
-    netcdf_bathy* pBathymetry = new usml::netcdf::netcdf_bathy(
-    		USML_DATA_DIR  "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
-    		lat1, lat2, lng1, lng2, usml::types::wposition::earth_radius);
-
-    boundary_model* bottom = new boundary_grid<double,2>( pBathymetry ) ;
-    boundary_mt* mt_bottom = new boundary_mt( bottom );
-
-    // combine sound speed and bathymetry into ocean model
-    boundary_model* surface = new boundary_flat() ;
-    boundary_mt* mt_surface = new boundary_mt( surface );
-
-    cout << "initialize targets" << endl ;
-    wposition1 src_pos( 29.0, -80.0, -90.0 ) ;
-
-    //wposition targets = new wposition( 3, 1, src_pos.latitude(), src_pos.longitude(), src_pos.altitude() ) ;
-    wposition targets( 3, 1, src_pos.latitude(), src_pos.longitude(), src_pos.altitude() ) ;
+		// build sound velocity profile from World Ocean Atlas data
+		profile_model* profile = new usml::ocean::profile_mackenzie<double,3>( temperature, salinity );
+		profile->attenuation(new attenuation_constant(0.0));
+		profile_mt* mt_profile = new profile_mt(profile);
 
 
-    targets.latitude ( 0, 0,  29.01) ;
-    targets.longitude( 0, 0, -80.0 ) ;
-    targets.altitude ( 0, 0, -10.0 ) ;
+		usml::types::wposition::compute_earth_radius(29.0);
 
-    targets.latitude ( 1, 0,  29.05 ) ;
-    targets.longitude( 1, 0, -79.95 ) ;
-    targets.altitude ( 1, 0, -100.0 ) ;
+		cout << "loading bathymetry from ETOPO1 database" << endl ;
+		netcdf_bathy* pBathymetry = new usml::netcdf::netcdf_bathy(
+				USML_DATA_DIR  "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+				lat1, lat2, lng1, lng2, usml::types::wposition::earth_radius);
 
-    targets.latitude ( 2, 0,  28.95 ) ;
-    targets.longitude( 2, 0, -80.05 ) ;
-    targets.altitude ( 2, 0, -100.0 ) ;
+		boundary_model* bottom = new boundary_grid<double,2>( pBathymetry ) ;
+		boundary_mt* mt_bottom = new boundary_mt( bottom );
 
-    ocean_model* ocean = new ocean_model( mt_surface, mt_bottom, mt_profile ) ;
+		// combine sound speed and bathymetry into ocean model
+		boundary_model* surface = new boundary_flat() ;
+		boundary_mt* mt_surface = new boundary_mt( surface );
+
+		cout << "initialize targets" << endl ;
+		wposition1 src_pos( 29.0, -80.0, -90.0 ) ;
+
+		//wposition targets = new wposition( 3, 1, src_pos.latitude(), src_pos.longitude(), src_pos.altitude() ) ;
+		wposition targets( 3, 1, src_pos.latitude(), src_pos.longitude(), src_pos.altitude() ) ;
 
 
-    std::vector<LvcmsWaveQ3D*> lvcmsWaveq3dThreads;
+		targets.latitude ( 0, 0,  29.01) ;
+		targets.longitude( 0, 0, -80.0 ) ;
+		targets.altitude ( 0, 0, -10.0 ) ;
 
-    int totalThreads = 100;
+		targets.latitude ( 1, 0,  29.05 ) ;
+		targets.longitude( 1, 0, -79.95 ) ;
+		targets.altitude ( 1, 0, -100.0 ) ;
 
-    for (int i=0; i < totalThreads; ++i){
+		targets.latitude ( 2, 0,  28.95 ) ;
+		targets.longitude( 2, 0, -80.05 ) ;
+		targets.altitude ( 2, 0, -100.0 ) ;
 
-		LvcmsWaveQ3D* waveq3dThread = new LvcmsWaveQ3D();
+		ocean_model* ocean = new ocean_model( mt_surface, mt_bottom, mt_profile ) ;
 
-		//waveq3dThread->PrintSPPToCSV(temperature, salinity, mt_profile, i);
 
-		waveq3dThread->setOcean(ocean);
+		std::vector<LvcmsWaveQ3D*> lvcmsWaveq3dThreads;
 
-		waveq3dThread->setThreadNum(i);
+		int totalThreads = 2;
 
-		waveq3dThread->setTargets(&targets);
+		for (int i=0; i < totalThreads; ++i){
 
-		proploss* loss = new proploss(waveq3dThread->getTargets());
+			LvcmsWaveQ3D* waveq3dThread = new LvcmsWaveQ3D();
 
-		waveq3dThread->setProploss(loss);
+			//waveq3dThread->PrintSPPToCSV(temperature, salinity, mt_profile, i);
 
-		lvcmsWaveq3dThreads.push_back(waveq3dThread);
-    }
+			waveq3dThread->setOcean(ocean);
 
-    std::vector<LvcmsWaveQ3D*>::iterator iter;
-    for ( iter = lvcmsWaveq3dThreads.begin(); iter != lvcmsWaveq3dThreads.end(); ++iter )
-    {
-    	LvcmsWaveQ3D* aThread = *iter;
-    	aThread->Process();
-    }
+			waveq3dThread->setThreadNum(i);
 
-	while (lvcmsWaveq3dThreads.size() > 0) {
+			waveq3dThread->setTargets(&targets);
+
+			proploss* loss = new proploss(waveq3dThread->getTargets());
+
+			waveq3dThread->setProploss(loss);
+
+			lvcmsWaveq3dThreads.push_back(waveq3dThread);
+		}
+
+		std::vector<LvcmsWaveQ3D*>::iterator iter;
 		for ( iter = lvcmsWaveq3dThreads.begin(); iter != lvcmsWaveq3dThreads.end(); ++iter )
 		{
-		    LvcmsWaveQ3D* aThread = *iter;
-		    if (!aThread->ThreadRunning()) {
-		    	lvcmsWaveq3dThreads.erase(iter);
-		    	usleep(100000);
-		    	break;
-		    }
+			LvcmsWaveQ3D* aThread = *iter;
+			aThread->Process();
 		}
-		usleep(100000);
-	}
+
+		while (lvcmsWaveq3dThreads.size() > 0) {
+			for ( iter = lvcmsWaveq3dThreads.begin(); iter != lvcmsWaveq3dThreads.end(); ++iter )
+			{
+				LvcmsWaveQ3D* aThread = *iter;
+				if (!aThread->ThreadRunning()) {
+					lvcmsWaveq3dThreads.erase(iter);
+					usleep(100000);
+					break;
+				}
+			}
+			usleep(100000);
+		}
+
+    } catch (std::exception& e) {
+
+    	cout << "lvcms_test: " <<  __func__ << ": Error - " << e.what() << endl;
+    	return 1;
+    }
 	return 0;
 }

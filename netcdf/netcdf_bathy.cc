@@ -17,6 +17,9 @@ netcdf_bathy::netcdf_bathy(
     // initialize access to NetCDF file.
 
     NcFile file( filename ) ;
+    if (file.is_valid() == 0) {
+    	throw std::invalid_argument("file not found") ;
+    }
     NcVar *longitude, *latitude, *altitude ;
     decode_filetype( file, &latitude, &longitude, &altitude ) ;
 
