@@ -44,15 +44,17 @@ namespace ocean {
  * the acoustic impedances for compressional and shear waves.
  * The effect of shear on the in-water impedance is assumed to be negligible.
  * \f[
- *          Z_{pn} = \frac{ \rho_n c_n }{ cos(\theta_{pn}) }
+ *          Z_{pn} = \frac{ cos(\theta_{pn}) }{ \rho_n c_n }
  * \f]\f[
  *          Z_{sb} = \frac{ \rho_b c_{sb} }{ cos(\theta_{sb}) }
  * \f]\f[
- *          Z_w = Z_{pw}
+ *          Z_w = \frac{ 1.0 }{ Z_{pw} }
  * \f]\f[
- *          Z_b = Z_{pb} sin^2(2\theta_{sn}) + Z_{sb} cos^2(2\theta_{sn})
+ *          Z_b = \frac{ 1.0 }{ \frac{ 1.0 }{ Z_{pb} } sin^2(2\theta_{sn})
+ *                   + Z_{sb} cos^2(2\theta_{sn}) }
  * \f]\f[
- *          R = \frac{ Z_b - Z_w }{ Z_b + Z_w }
+ *          R = \frac{ \frac{ 1.0 }{ Z_b } - \frac{ 1.0 }{ Z_w } }
+ *                  { \frac{ 1.0 }{ Z_b } + \frac{ 1.0 }{ Z_w } }
  * \f]
  * where:
  *   - \f$ \rho_n  \f$ = density of medium "n" (kg/m^3)
@@ -194,7 +196,7 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
      */
     complex<double> impedence(
         double density, double speed, double attenuation, double angle,
-        complex< double >* cosA ) ;
+        complex< double >* cosA, bool shear ) ;
 } ;
 
 /// @}
