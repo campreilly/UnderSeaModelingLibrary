@@ -104,9 +104,10 @@ int main( int argc, char* argv[] ) {
         target.latitude(  n, 0, pos.latitude() + randgen::uniform() - 0.5 ) ;
         target.longitude( n, 0, pos.longitude() + randgen::uniform() - 0.5 ) ;
     }
-    proploss loss( &target ) ;
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss ) ;
-//    wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
+
+    proploss loss(freq, pos, de, az, time_step, &target);
+	wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
+	wave.addProplossListener(&loss);
 
     // propagate wavefront
 	#ifdef USML_DEBUG

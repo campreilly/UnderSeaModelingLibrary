@@ -1076,7 +1076,7 @@ BOOST_AUTO_TEST_CASE(refraction_pedersen_range) {
 }
 
 BOOST_AUTO_TEST_CASE( surface_duct_test ) {
-    cout << "=== refreaction_test: surface_duct_test ===" << endl;
+    cout << "=== refraction_test: surface_duct_test ===" << endl;
     const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/refraction_surface_duct.nc";
     const char* csvname = USML_TEST_DIR "/waveq3d/test/refraction_surface_duct.csv";
 
