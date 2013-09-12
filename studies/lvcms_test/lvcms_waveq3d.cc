@@ -46,22 +46,18 @@ void LvcmsWaveQ3D::Process()
 
 void* LvcmsWaveQ3D::Execute()
 {
-	const double time_max = 5.8 ;
-	const double time_step = 0.010 ;
-
 	try {
-
-		wposition1 src_pos( 29.0, -80.0, -90.0 ) ;
-
-		seq_rayfan de( -90.0, 90.0, 181 ) ;
-		seq_linear az( -180.0, 15.0, 180.0 ) ;
-		seq_log freq( 6500.0, 1.0, 1 ) ;
 
 #define DEBUG
 
 		time_t start = time(NULL) ;
 
-		wave_queue wave( *m_pclOcean, freq, src_pos, de, az, time_step, m_pclPropLoss ) ;
+		wave_queue wave( *m_pclOcean, *m_pclFreq, *m_pclSrcPos, *m_pclDE, *m_pclAZ, m_timeStep, m_pclTargets ) ;
+
+		if (!wave.addProplossListener(m_pclPropLoss)) {
+			cout << "Error adding proploss listener! " << endl ;
+			exit(1);
+		}
 
 		cout << "*** LvcmsWaveQ3D::threadNum is " << threadNum << endl;
 
@@ -73,9 +69,9 @@ void* LvcmsWaveQ3D::Execute()
 		wave.save_netcdf();
 	#endif
 
-		cout << "LvcmsWaveQ3D:: propagate wavefronts for " << time_max << " secs" << endl ;
+		cout << "LvcmsWaveQ3D:: propagate wavefronts for " << m_maxTime << " secs" << endl ;
 
-		while ( wave.time() < time_max ) {
+		while ( wave.time() < m_maxTime ) {
 			wave.step() ;
 	#ifdef DEBUG
 			//cout << "*** LvcmsWaveQ3D::step: time=" << wave.time() << endl ;
@@ -102,7 +98,7 @@ void* LvcmsWaveQ3D::Execute()
 
 	#endif
 		time_t complete = time(NULL) ;
-		cout << "Propagating for " << time_max << " sec with "
+		cout << "Propagating for " << m_maxTime << " sec with "
 			 << ( m_pclTargets->size1() * m_pclTargets->size2() ) << " targets took "
 			 << (difftime(complete,start)) << " sec." << endl ;
 

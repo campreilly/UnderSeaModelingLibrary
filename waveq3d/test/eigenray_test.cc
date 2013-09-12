@@ -97,8 +97,10 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
     // build a single target
 
     wposition target( 1, 1, trg_lat, src_lng, src_alt );
-    proploss loss( &target );
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss );
+
+    proploss loss(freq, pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
+    wave.addProplossListener(&loss);
 
     // propagate rays and record wavefronts to disk.
 
@@ -252,8 +254,10 @@ BOOST_AUTO_TEST_CASE( eigenray_concave ) {
     // build a wavefront to ensonify a single target
 
     wposition target( 1, 1, trg_lat, trg_lng, trg_alt );
-    proploss loss( &target );
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss );
+
+    proploss loss(freq, pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
+    wave.addProplossListener(&loss);
 
     // propagate rays & record to log file
 

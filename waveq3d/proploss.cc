@@ -8,37 +8,40 @@
 using namespace usml::waveq3d ;
 
 /**
- * Initialize the acoustic propagation effects associated  with each target.
+ * Constructor
+ * Initialize the acoustic propagation effects associated with each target.
+ * Initialize with references to wave front information.
  */
-proploss::proploss( const wposition* positions ) :
-    _targets( positions ),
-    _sin_theta( size1(), size2() ),
-    _eigenrays( size1(), size2() ),
-    _num_eigenrays(0),
-    _loss( size1(), size2() )
+proploss::proploss(
+    const seq_vector& frequencies,
+    const wposition1& source_pos,
+    const seq_vector& source_de,
+    const seq_vector& source_az,
+    double time_step,
+    const wposition* positions )
+	:
+	_targets( positions ),
+	_frequencies(frequencies.clone()),
+	_source_pos(source_pos),
+	_source_de (source_de.clone()),
+	_source_az (source_az.clone()),
+	_time_step(time_step),
+	_eigenrays( size1(), size2() ),
+	_num_eigenrays(0),
+	_loss( size1(), size2() )
 {
-    _sin_theta = sin( _targets->theta() ) ;
+	initialize();
 }
-
 /**
  * Initialize with references to wave front information.
  */
-void proploss::initialize( 
-    const seq_vector* frequencies, const wposition1* source_pos,
-    const seq_vector *source_de, const seq_vector *source_az,
-    double time_step )
+void proploss::initialize()
 {
-    _frequencies = frequencies ;
-    _source_pos = source_pos ;
-    _source_de = source_de ;
-    _source_az = source_az ;
-    _time_step = time_step ;
-    
     for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
         for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
-            _loss(t1,t2).intensity.resize( frequencies->size() ) ;
+            _loss(t1,t2).intensity.resize(_frequencies->size() ) ;
             _loss(t1,t2).intensity.clear() ;
-            _loss(t1,t2).phase.resize( frequencies->size() ) ;
+            _loss(t1,t2).phase.resize(_frequencies->size() ) ;
             _loss(t1,t2).phase.clear() ;
         	
         }
@@ -125,6 +128,16 @@ void proploss::sum_eigenrays( bool coherent ) {
             loss->caustic = caustic ;
         }
     }
+}
+
+/**
+ * Add eigenray via proplossListener
+ */
+bool proploss::addEigenray( unsigned targetRow, unsigned targetCol, eigenray pRay ) {
+
+	 _eigenrays(targetRow, targetCol).push_back( pRay ) ;
+	 ++_num_eigenrays ;
+	 return true;
 }
 
 /**
@@ -220,9 +233,10 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
     // write source parameters
 
     double v;
-    v = _source_pos->latitude();    src_lat_var->put(&v);
-    v = _source_pos->longitude();   src_lng_var->put(&v);
-    v = _source_pos->altitude();    src_alt_var->put(&v);
+    v = _source_pos.latitude();
+    src_lat_var->put(&v);
+    v = _source_pos.longitude();   src_lng_var->put(&v);
+    v = _source_pos.altitude();    src_alt_var->put(&v);
     for (unsigned d = 0; d < _source_de->size(); ++d) {
         launch_de_var->set_cur(d);
         v = (*_source_de)(d);       launch_de_var->put(&v, 1);

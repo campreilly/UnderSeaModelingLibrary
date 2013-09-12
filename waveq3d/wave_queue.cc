@@ -7,7 +7,7 @@
 #include <usml/waveq3d/reflection_model.h>
 #include <usml/waveq3d/spreading_ray.h>
 #include <usml/waveq3d/spreading_hybrid_gaussian.h>
-#include <usml/waveq3d/proploss.h>
+
 
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/triangular.hpp>
@@ -27,9 +27,10 @@ wave_queue::wave_queue(
     ocean_model& ocean,
     const seq_vector& freq,
     const wposition1& pos,
-    const seq_vector& de, const seq_vector& az,
+    const seq_vector& de,
+    const seq_vector& az,
     double time_step,
-    proploss* prop_loss,
+    const wposition* targets,
     spreading_type type
 ) :
     _ocean( ocean ),
@@ -39,26 +40,26 @@ wave_queue::wave_queue(
     _source_az( az.clone() ),
     _time_step( time_step ),
     _time( 0.0 ),
-    _proploss( prop_loss ),
+    _targets(targets),
     _nc_file( NULL )
 {
-    // create references between proploss and wavefront objects.
 
-    const wposition* targets = NULL ;
-    const matrix<double>* target_sin_theta = NULL ;
-    if ( _proploss ) {
-    	targets = _proploss->_targets ;
-    	_proploss->initialize( _frequencies, &_source_pos,
-    		_source_de, _source_az, _time_step ) ;
-        target_sin_theta = &_proploss->_sin_theta ;
+	// create references between targets and wavefront objects.
+    const matrix<double>* pTargets_sin_theta = NULL ;
+
+    _intensity_threshold = 100.00; //In dB
+
+    if ( _targets ) {
+    	targets_sin_theta = sin( _targets->theta() ) ;
+    	pTargets_sin_theta = &targets_sin_theta;
     }
 
     // create storage space for all wavefront elements
 
-    _past = new wave_front( _ocean, _frequencies, de.size(), az.size(), targets, target_sin_theta ) ;
-    _prev = new wave_front( _ocean, _frequencies, de.size(), az.size(), targets, target_sin_theta ) ;
-    _curr = new wave_front( _ocean, _frequencies, de.size(), az.size(), targets, target_sin_theta ) ;
-    _next = new wave_front( _ocean, _frequencies, de.size(), az.size(), targets, target_sin_theta ) ;
+    _past = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, pTargets_sin_theta ) ;
+    _prev = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, pTargets_sin_theta ) ;
+    _curr = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, pTargets_sin_theta ) ;
+    _next = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, pTargets_sin_theta ) ;
 
     // initialize wave front elements
 
@@ -67,7 +68,7 @@ wave_queue::wave_queue(
     init_wavefronts() ;
     _reflection_model = new reflection_model( *this ) ;
     _spreading_model = NULL ;
-    if ( _proploss ) {
+    if ( _targets ) {
         switch( type ) {
             case HYBRID_GAUSSIAN :
                 _spreading_model = new spreading_hybrid_gaussian( *this ) ;
@@ -275,20 +276,21 @@ void wave_queue::detect_caustics() {
  * Detect and process wavefront closest point of approach (CPA) with target.
  */
 void wave_queue::detect_eigenrays() {
-    if ( _proploss == NULL ) return ;
+    if ( _targets == NULL ) return ;
+
     double distance2[3][3][3] ;
 
     // loop over all targets
 
-    for ( unsigned t1=0 ; t1 < _proploss->size1() ; ++t1 ) {
-        for ( unsigned t2=0 ; t2 < _proploss->size2() ; ++t2 ) {
+    for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
+        for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
 
             // loop over all ray paths
 
             for ( unsigned de=1 ; de < num_de()-1 ; ++de ) {
                 for ( unsigned az=1 ; az < num_az()-1 ; ++az ) {
                     if ( is_closest_ray(t1,t2,de,az,distance2) ) {
-                        add_eigenray(t1,t2,de,az,distance2) ;
+                        build_eigenray(t1,t2,de,az,distance2) ;
                     }
                 }
             }
@@ -379,7 +381,7 @@ bool wave_queue::is_closest_ray(
  * Used by detect_eigenrays() to compute eigneray parameters and
  * add a new eigenray entry to the current target.
  */
-void wave_queue::add_eigenray(
+void wave_queue::build_eigenray(
    unsigned t1, unsigned t2,
    unsigned de, unsigned az,
    double distance2[3][3][3]
@@ -387,7 +389,7 @@ void wave_queue::add_eigenray(
     #ifdef DEBUG_EIGENRAYS
         cout << "*** wave_queue::step: time=" << time() << endl ;
         wposition1 tgt( *(_curr->targets), t1, t2 ) ;
-        cout << "*** wave_queue::add_eigenray:"
+        cout << "*** wave_queue::build_eigenray:"
              << " target(" << t1 << "," << t2 << ")="
              << tgt.altitude() << "," << tgt.latitude() << "," << tgt.longitude()
              << " time=" << _time
@@ -495,7 +497,7 @@ void wave_queue::add_eigenray(
             wposition1( *(_curr->targets), t1, t2 ), de, az, offset, distance );
     if ( isnan(spread_intensity(0)) ) {
         #ifdef DEBUG_EIGENRAYS
-            std::cerr << "warning: wave_queue::add_eigenray()"  << endl
+            std::cerr << "warning: wave_queue::build_eigenray()"  << endl
                       << "\tignores eigenray because intensity is NaN" << endl
                       << "\tt1=" << t1 << " t2=" << t2
                       << " de=" << de << " az=" << az << endl ;
@@ -503,7 +505,7 @@ void wave_queue::add_eigenray(
         return ;
     } else if ( spread_intensity(0) <= 1e-20 ) {
         #ifdef DEBUG_EIGENRAYS
-            std::cerr << "warning: wave_queue::add_eigenray()" << endl
+            std::cerr << "warning: wave_queue::build_eigenray()" << endl
                       << "\tignores eigenray because intensity is "
                       << spread_intensity(0) << endl
                       << "\tt1=" << t1 << " t2=" << t2
@@ -526,6 +528,27 @@ void wave_queue::add_eigenray(
         ray.intensity = ray.intensity
             + _prev->attenuation(de,az) * ( 1.0 - dt )
             + _curr->attenuation(de,az) * dt ;
+    }
+
+    // determine if intensity meets _intensity_threshold
+    // if intensity at any frequency is less than _intensity_threshold
+    // complete ray build and send to listeners; discard otherwise
+
+    bool bKeepRay = false;
+    for ( unsigned int i = 0; i < ray.intensity.size(); ++i) {
+		if ( abs(ray.intensity(i)) < _intensity_threshold  ) {
+			bKeepRay = true;
+			break ;
+		}
+	}
+
+    if (!bKeepRay) {
+		#ifdef DEBUG_EIGENRAYS
+		std::cout << "warning: wave_queue::build_eigenray()"  << endl
+				  << "\tdiscards eigenray because intensity at all freq's " << endl
+				  << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
+		#endif
+		return ;
     }
 
     // estimate target D/E angle using 2nd order vector Taylor series
@@ -584,15 +607,15 @@ void wave_queue::add_eigenray(
     ray.target_az = center + inner_prod( gradient, offset )
                   + 0.5 * inner_prod( offset, prod( hessian, offset ) ) ;
 
-    // accumulate eigenray list
-
     #ifdef DEBUG_EIGENRAYS
         cout << "\ttarget(" << t1 << "," << t2 << "):"
              << " t=" << ray.time << " de=" << ray.source_de << " az=" << ray.source_az
              << " pl=" << ray.intensity << endl ;
     #endif
-    _proploss->_eigenrays(t1,t2).push_back( ray ) ;
-    ++_proploss->_num_eigenrays ;
+
+    // Add eigenray to those objects which requested them
+    notifyProplossListeners(t1,t2,ray);
+
 }
 
 /**
@@ -745,4 +768,47 @@ void wave_queue::make_taylor_coeff(
     gradient(1) = ( value[1][2][1] - value[1][0][1] ) / d1 ;
     gradient(2) = ( value[1][1][2] - value[1][1][0] ) / d2 ;
 
+}
+
+/**
+* Add a proplossListener to the m_ProplossListenerVec vector
+*/
+bool wave_queue::addProplossListener(proplossListener* pListener) {
+
+	std::vector<proplossListener*>::iterator iter = find(m_ProplossListenerVec.begin(), m_ProplossListenerVec.end(), pListener);
+	if ( iter != m_ProplossListenerVec.end() ) {
+		return false;
+	}
+	m_ProplossListenerVec.push_back(pListener);
+	return true;
+}
+
+
+/**
+ * Remove a proplossListener from the m_ProplossListenerVec vector
+ */
+bool wave_queue::removeProplossListener(proplossListener* pListener){
+
+	std::vector<proplossListener*>::iterator iter = find(m_ProplossListenerVec.begin(), m_ProplossListenerVec.end(), pListener);
+	if ( iter == m_ProplossListenerVec.end() ){
+		return false;
+	} else {
+		m_ProplossListenerVec.erase(remove(m_ProplossListenerVec.begin(), m_ProplossListenerVec.end(), pListener));
+	}
+	return true;
+}
+
+/**
+ * For each proplossListener in the m_ProplossListenerVec vector
+ * call the addEigenray method to provide eigenrays.
+ */
+bool wave_queue::notifyProplossListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray){
+
+	for (std::vector<proplossListener*>::iterator iter = m_ProplossListenerVec.begin();
+												iter != m_ProplossListenerVec.end(); ++iter){
+		proplossListener* proploss = *iter;
+		proploss->addEigenray(targetRow, targetCol, pEigenray);
+	}
+
+	return (m_ProplossListenerVec.size() > 0);
 }

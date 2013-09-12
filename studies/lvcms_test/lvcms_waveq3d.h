@@ -103,6 +103,16 @@ public:
 		m_pclFreq = pclFreq;
 	}
 
+	void setTimeStep(double time_step)
+	{
+		m_timeStep = time_step;
+	}
+
+	void setMaxTime(double max_time)
+	{
+		m_maxTime = max_time;
+	}
+
 	void setThreadNum(int num)
 	{
 		threadNum = num;
@@ -120,6 +130,10 @@ public:
 private:
 
 	int threadNum;
+
+	double m_timeStep;
+
+	double m_maxTime;
 
 	// Print eigenrays to a csv file.
 	void PrintEigenraysToCSV(usml::waveq3d::proploss* pclPropLoss, int thread);

@@ -6,7 +6,7 @@
 #define USML_WAVEQ3D_PROPLOSS_H
 
 #include <usml/ocean/ocean.h>
-#include <usml/waveq3d/eigenray.h>
+#include <usml/waveq3d/proplossListener.h>
 #include <usml/waveq3d/wave_queue.h>
 
 namespace usml {
@@ -24,8 +24,7 @@ using namespace usml::ocean;
  * complete, the sum_eigenrays() method is used to collect the results
  * into a phasor-summed propagation loss and phase at each target point.
  */
-class USML_DECLSPEC proploss {
-    friend class wave_queue;
+class USML_DECLSPEC proploss : public proplossListener {
 
 private:
 
@@ -33,15 +32,6 @@ private:
      * Matrix of target positions in world coordinates.
      */
     const wposition* _targets;
-
-    /**
-     * Intermediate term: sin of colatitude for targets.
-     * By caching this value here, we avoid re-calculating it each time
-     * the that wave_front::compute_target_distance() needs to
-     * compute the distance squared from each target to each point
-     * on the wavefront.
-     */
-    matrix<double> _sin_theta ;
 
     /**
      * Frequencies over which loss was computed (Hz).
@@ -54,7 +44,7 @@ private:
      * Location of the wavefront source in spherical earth coordinates.
      * Linked from wavefront object so we can write it to a netCDF file.
      */
-    const wposition1* _source_pos;
+    const wposition1 _source_pos;
 
     /**
      * Initial depression/elevation angle at the
@@ -106,8 +96,6 @@ public:
      */
     proploss(const wposition* targets);
 
-private:
-
     /**
      * Initialize with references to wave front information.
      *
@@ -116,11 +104,19 @@ private:
      * @param	source_de   Launch D/E angle at source (deg)
      * @param	source_az   Launch AZ angle at source (deg)
      * @param	time_step   Propagation step size (seconds).
+     * @param   targets     Grid of targets to ensonify.
      */
-    void initialize(
-            const seq_vector* frequencies, const wposition1* source_pos,
-            const seq_vector *source_de, const seq_vector *source_az,
-            double time_step);
+    proploss( const seq_vector& frequencies, const wposition1& source_pos,
+              const seq_vector& source_de, const seq_vector& source_az,
+              double time_step, const wposition* targets);
+
+private:
+
+    /**
+     * Initialize with references to wave front information.
+     * _loss data structure.
+     */
+    void initialize();
 
 public:
 
@@ -175,6 +171,16 @@ public:
     inline const eigenray* total(unsigned t1, unsigned t2) {
         return &(_loss(t1, t2));
     }
+
+	/**
+	 * addEigenray - Adds an eigenray to the eigenray_list for the target specified.
+	 * implementation of the pure virtual method of proplossListener.
+	 * @param   targetRow          Row number of the current target.
+	 * @param   targetCol          Column number of the current target.
+	 * @param   pclRay             The eigenray to add.
+	 */
+	bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pclRay );
+
 
     /**
      * Compute propagation loss summed over all eigenrays.

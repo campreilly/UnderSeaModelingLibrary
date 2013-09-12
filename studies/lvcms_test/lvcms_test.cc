@@ -96,6 +96,13 @@ int main( int argc, char* argv[] ) {
 		targets.longitude( 2, 0, -80.05 ) ;
 		targets.altitude ( 2, 0, -100.0 ) ;
 
+		const double max_time = 6.0 ;
+		const double time_step = 0.010 ;
+
+		seq_rayfan de( -90.0, 90.0, 181 ) ;
+		seq_linear az( -180.0, 15.0, 180.0 ) ;
+		seq_log freq( 6500.0, 1.0, 1 ) ;
+
 		ocean_model* ocean = new ocean_model( mt_surface, mt_bottom, mt_profile ) ;
 
 
@@ -115,7 +122,20 @@ int main( int argc, char* argv[] ) {
 
 			waveq3dThread->setTargets(&targets);
 
-			proploss* loss = new proploss(waveq3dThread->getTargets());
+			waveq3dThread->setSrcPos(&src_pos);
+
+			waveq3dThread->setFreq(&freq);
+
+			waveq3dThread->setDE(&de);
+
+			waveq3dThread->setAZ(&az);
+
+			waveq3dThread->setTimeStep(time_step);
+
+			waveq3dThread->setMaxTime(max_time);
+
+			//proploss* loss = new proploss(waveq3dThread->getTargets());
+			proploss* loss = new proploss(freq, src_pos, de, az, time_step, waveq3dThread->getTargets());
 
 			waveq3dThread->setProploss(loss);
 
