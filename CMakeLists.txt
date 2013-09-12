@@ -27,7 +27,7 @@ set( NETCDF_NCKS /usr/bin/ncks )
 
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
-option( LVCMS_BUILD "build for LVCMS - no boost debug or static libs" ON )
+option( FORCE_BOOST_SHARED "Use Boost shared libraries" OFF )
 option( PROFILE_TIME "build for profiling at function level timing" OFF )
 
 ######################################################################
@@ -92,15 +92,12 @@ if ( BOOST_ROOT )
     set( BOOST_INCLUDEDIR ${BOOST_ROOT}/include )
     set( BOOST_LIBRARYDIR ${BOOST_ROOT}/lib )
 endif()
-
-if ( BUILD_SHARED_LIBS )
+   
+if ( BUILD_SHARED_LIBS OR FORCE_BOOST_SHARED)
     set( Boost_USE_STATIC_LIBS OFF )
     add_definitions( -DBOOST_ALL_DYN_LINK )
     set( Boost_REALPATH ON )	# use version suffix in *.so name
-else ( BUILD_SHARED_LIBS )
-    if (LVCMS_BUILD) 
-        ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)  # Required for LVCMS - for static libs
-    endif ( LVCMS_BUILD )    
+else ( BUILD_SHARED_LIBS ) 
     set( Boost_USE_STATIC_LIBS ON )
 endif ( BUILD_SHARED_LIBS )
 
