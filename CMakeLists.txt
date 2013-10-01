@@ -265,6 +265,9 @@ set( USML_STUDIES_DIR ${PROJECT_SOURCE_DIR}/studies
 add_executable( analytic_wedge studies/analytic_wedge/analytic_wedge.cc )
 target_link_libraries( analytic_wedge usml )
 
+add_executable( pekeris_waveguide studies/pekeris/pekeris_waveguide.cc )
+target_link_libraries( pekeris_waveguide usml )
+
 add_executable( ray_speed studies/ray_speed/ray_speed.cc )
 target_link_libraries( ray_speed usml )
 
@@ -281,7 +284,7 @@ add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 target_link_libraries( malta_rays usml )
 
 set_property(
-   TARGET analytic_wedge ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
+   TARGET analytic_wedge pekeris_waveguide ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
    PROPERTY COMPILE_DEFINITIONS
 	USML_DATA_DIR="${USML_DATA_DIR}"
 	USML_STUDIES_DIR="${USML_STUDIES_DIR}"

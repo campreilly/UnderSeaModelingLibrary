@@ -1,4 +1,4 @@
-/** 
+/**
  * @example ocean/test/attenuation_test.cc
  */
 #include <boost/test/unit_test.hpp>
@@ -16,8 +16,8 @@ using namespace usml::ocean;
 
 /**
  * Test the basic features of the attenuation model using
- * the attenuation_constant model.  Given a model where attenuation 
- * is 1e-6 * frequency, check to see that the calculated results are 
+ * the attenuation_constant model.  Given a model where attenuation
+ * is 1e-6 * frequency, check to see that the calculated results are
  * within 1e-6% of the analytic values.
  */
 BOOST_AUTO_TEST_CASE( constant_attenuation_test ) {
@@ -50,9 +50,9 @@ BOOST_AUTO_TEST_CASE( constant_attenuation_test ) {
 }
 
 /**
- * Compare values of the Thorp model to Table 7 in 
- * Weinburg, "Generic Sonar Model", NUWC TD-5971D (1985).  
- * Because GSM uses slightly different constants then 
+ * Compare values of the Thorp model to Table 7 in
+ * Weinburg, "Generic Sonar Model", NUWC TD-5971D (1985).
+ * Because GSM uses slightly different constants then
  * Jensen, et. al., we only expect the results to match
  * within 20% and only at 400 Hz and above.
  */
@@ -87,6 +87,38 @@ BOOST_AUTO_TEST_CASE( thorp_test ) {
         if (freq(f) > 400.0) {
             BOOST_CHECK_CLOSE(atten(0, 0)(f), gsm_thorp[f], 20.0);
         }
+    }
+}
+
+BOOST_AUTO_TEST_CASE( complex_impedence ) {
+    cout << "=== attenuation_test: complex_impedence ===" << endl;
+
+    const double speed = 1700 ;
+    const double attenuation = 0.5 ;
+    const double _speed_water = 1500 ;
+    const double inc = 1e-7 ;
+    const complex< double > c( speed, -attenuation*speed ) ;
+    complex< double > cosA ;
+//    complex< double > v_err[2] ;
+
+    for(double angle = 0.0; angle < 1.5; angle += inc) {
+            complex< double > sinA = sin(angle) * c / _speed_water ;
+//        try {
+            complex<double> something = sinA * sinA ;
+            cosA = something ;
+            complex<double> one(1.0,0.0) ;
+            one -= something ;
+//            v_err[0] = angle ;
+//            v_err[1] = sinA ;
+//            throw(v_err) ;
+//        } catch (complex<double> v[]) {
+//            cout << "*** angle = " << angle ;
+//            cout << "\tsomething: " << something << "\tabs(): " << abs(something) << endl;
+//            cout << "*** angle = " << angle << " ***" << endl;
+//            cout << "sin(angle): " << sin(angle) << "\t c/_speed_water: " << c / _speed_water << endl;
+//            cout << "cosA: " << cosA << "\tsinA: " << sinA << endl;
+//        }
+            cosA = sqrt( one ) ;
     }
 }
 
