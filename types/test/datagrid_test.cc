@@ -352,30 +352,30 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
     cout << "=== datagrid_fast_accuracy_test ===" << endl;
 
     seq_vector* axis[2];
-    axis[0] = new seq_linear(1.0, 1.0, 5);
-    axis[1] = new seq_linear(1.0, 1.0, 5);
+    axis[0] = new seq_linear(1.0, 1.0, 10);
+    axis[1] = new seq_linear(1.0, 1.0, 10);
     data_grid<double,2>* test_grid = new data_grid<double,2>(axis);
     unsigned index[2];
-    for(int i=0; i<5; ++i) {
-        for(int j=0; j<5; ++j) {
+    for(int i=0; i<(*axis[0]).size(); ++i) {
+        for(int j=0; j<(*axis[1]).size(); ++j) {
             index[0] = i;
             index[1] = j;
-            double number = ( (i+1)*(i+1)*(i+1) )
-                    * ( (j+1)*(j+1)*(j+1) ) ;
+//            double number = ( (i+1)*(i+1)*(i+1) )
+//                    * ( (j+1)*(j+1)*(j+1) ) ;
+            double number = (i+1)*(i+1)*(i+1) ;
             test_grid->data(index, number);
-//            test_grid->data(index, 100*randgen::uniform());
         }
     }
 
     cout << "==========simple_data grid=============" << endl;
     cout << "axis[0]: " << *axis[0] << endl;
     cout << "axis[1]: " << *axis[1] << endl;
-    for(int i=0; i<5; i++) {
-        for(int j=0; j<5; j++) {
+    for(int i=0; i<(*axis[0]).size(); i++) {
+        for(int j=0; j<(*axis[1]).size(); j++) {
             index[0] = i;
             index[1] = j;
             cout << test_grid->data(index);
-            (j < 4) ? cout << "\t" :  cout << endl;
+            (j < 9) ? cout << "\t" :  cout << endl;
         }
     }
     cout << endl;
@@ -388,19 +388,22 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
     data_grid_fast_2d* test_grid_fast = new data_grid_fast_2d(*test_grid, true);
 
     double spot[2];
-    spot[1] = 2.3; spot[0] = 1.7;
+    spot[1] = 3.3265; spot[0] = 2.8753;
     double derv[2];
     double value;
-    value = test_grid->interpolate( spot, derv );
-    cout << "data_grid: " << value << "\tderivative: " << derv[0] << ", " << derv[1] << endl;
+    cout << "x: " << spot[0] << "\ty: " << spot[1] << endl;
     value = test_grid_fast->interpolate( spot, derv );
-    cout << "fast_2d: " << value << "\tderivative: " << derv[0] << ", " << derv[1] << endl;
-    value = (spot[0]*spot[0]*spot[0]) * (spot[1]*spot[1]*spot[1]) ;
-    derv[0] = 3.0*spot[0]*spot[0] * (spot[1]*spot[1]*spot[1]) ;
-    derv[1] = 3.0*spot[1]*spot[1] * (spot[0]*spot[0]*spot[0]) ;
+    cout << "fast_2d:    " << value << "\tderivative: " << derv[0] << ", " << derv[1] << endl;
+    value = test_grid->interpolate( spot, derv );
+    cout << "data_grid:  " << value << "\tderivative: " << derv[0] << ", " << derv[1] << endl;
+//    value = (spot[0]*spot[0]*spot[0]) * (spot[1]*spot[1]*spot[1]) ;
+//    derv[0] = 3.0*spot[0]*spot[0] * (spot[1]*spot[1]*spot[1]) ;
+//    derv[1] = 3.0*spot[1]*spot[1] * (spot[0]*spot[0]*spot[0]) ;
+    value = spot[0]*spot[0]*spot[0] ;
+    derv[0] = 3.0*spot[0]*spot[0] ;
+    derv[1] = 0.0 ;
     cout << "true value: " << value << "\tderivative: " << derv[0] << ", " << derv[1] << endl;
-//
-//
+
         // Setup a complex example to compare results for pchip
 //    cout << "==========2d_data grid_test_pchip=============" << endl;
 //    double v0, v1 ;
@@ -417,7 +420,7 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
 //        grid->edge_limit(i, true);
 //    }
 //    data_grid_fast_2d* fast_grid = new data_grid_fast_2d(*grid, true) ;
-
+//
 //    cout << "grid->axis0: " << *(grid->axis(0)) << endl;
 //    cout << "grid->axis1: " << *(grid->axis(1)) << endl;
 //    const seq_vector* ax0 = grid->axis(0);
@@ -459,6 +462,8 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
 //    double location[2];
 //    location[0] = 1.24449;
 //    location[1] = -2.76108;
+//    location[0] = (*ax0)(17) - 0.0239;
+//    location[1] = (*ax1)(40);
 //    v0 = grid->interpolate( location ) - wposition::earth_radius;
 //    v1 = fast_grid->interpolate( location ) - wposition::earth_radius;
 //    cout << "location: (" << location[0] << ", " << location[1] << ")" << "\tgrid: " << v0 << "\tfast_grid: " << v1 << endl;

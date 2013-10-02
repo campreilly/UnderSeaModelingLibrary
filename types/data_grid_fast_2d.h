@@ -123,7 +123,6 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
             norm1 = (*_axis[1])(k1+1) - (*_axis[1])(k1);
             for(int i=-1; i<3; ++i) {
                 for(int j=-1; j<3; ++j) {
-                    cout << "(i,j): (" << i << ", " << j << ")" ;
                         //get appropriate data when at boundaries
                     if ((k0+i) >= k0max) {fast_index[0] = k0max ;}
                     else if ((k0+i) <= kmin) {fast_index[0] = kmin ;}
@@ -132,11 +131,10 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
                     if ((k1+j) >= k1max) {fast_index[1] = k1max ;}
                     else if ((k1+j) <= kmin) {fast_index[1] = kmin ;}
                     else {fast_index[1] = k1+j ;}
-                    cout << " index([0],[1]): (" << fast_index[0] << ", " << fast_index[1] << ")" << endl;
                     value(i+1,j+1) = data(fast_index);
                 }
-//                inc(i,0) = (i<2) ? (_axis[0]->increment(k0+i+2) + _axis[0]->increment(k0+i)) / _axis[0]->increment(k0) :
-//                                (_axis[1]->increment(k1+i) + _axis[1]->increment(k1+i-2)) / _axis[1]->increment(k1) ;
+//                inc(i,0) = (i<2) ? (_axis[0]->increment(k0+i+2) + _axis[0]->increment(k0+i)) / _axis[0]->increment(k0+i+1) :
+//                                (_axis[1]->increment(k1+i) + _axis[1]->increment(k1+i-2)) / _axis[1]->increment(k1+i-1) ;
             }
 inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
             #ifdef FAST_GRID_DEBUG
@@ -200,16 +198,20 @@ inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
 
             result_pchip = prod(xyloc, bicubic_coeff);
             if(derivative) {
-                double u = xyloc(0,4);
-                double t = xyloc(0,1);
-                double bck_derv = (value(1,1) - value(0,1)) / _axis[0]->increment(k0-1);
-                double fwd_derv = (value(2,1) - value(1,1)) / _axis[0]->increment(k0);
-                derivative[0] = (k0 < kmin) ? fwd_derv * (1 - u) + bck_derv * u :
-                                bck_derv * (1 - u) + fwd_derv * u;
-                bck_derv = (value(1,1) - value(1,0)) / _axis[1]->increment(k1-1);
-                fwd_derv = (value(1,2) - value(1,1)) / _axis[1]->increment(k1);
-                derivative[1] = (k1 < kmin) ? fwd_derv * (1 - t) + bck_derv * t :
-                                bck_derv * (1 - t) + fwd_derv * t;
+                derivative[0] = 0;
+                derivative[1] = 0;
+                for(int i=1; i<4; ++i){
+                    for(int j=0; j<4; ++j){
+                        derivative[0] += i * bicubic_coeff(i*4+j,0) *
+                            xyloc(0,4*(i-1)) * xyloc(0,j) ;
+                    }
+                }
+                for(int i=0; i<4; ++i){
+                    for(int j=1; j<4; ++j){
+                        derivative[1] += j * bicubic_coeff(i*4+j,0) *
+                            xyloc(0,4*i) * xyloc(0,j-1) ;
+                    }
+                }
             }
             return result_pchip(0,0);
         }
