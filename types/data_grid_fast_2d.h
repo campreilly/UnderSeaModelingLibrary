@@ -9,7 +9,7 @@
 #include <usml/types/data_grid.h>
 #include <usml/types/seq_vector.h>
 
-#define FAST_GRID_DEBUG
+//#define FAST_GRID_DEBUG
 
 namespace usml {
 namespace types {
