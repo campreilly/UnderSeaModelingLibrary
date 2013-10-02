@@ -9,7 +9,7 @@
 #include <usml/types/data_grid.h>
 #include <usml/types/seq_vector.h>
 
-//#define FAST_GRID_DEBUG
+#define FAST_GRID_DEBUG
 
 namespace usml {
 namespace types {
@@ -49,52 +49,6 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
          * coefficients. The result will be a 16x1 matrix.
          */
         matrix<double> inv_bicubic_coeff;
-
-        /**
-         * Functions used to calculate the left and right derivates
-         * used to form the field calculations. slope_calc1 is for
-         * left-sided derivates and slope_calc2 is for right-side
-         * derivatives.
-         */
-
-        double slope_calc1(double _w0, double _w1, double _dx0, double _dx1,
-                          double _dx2, double _x1, double _x2, unsigned _k) const
-        {
-            double _field;
-            if(_k >= 1u) {
-                if(_dx0*_dx1 > 0.0) {
-                    _field = ( _w0 + _w1 ) / ( _w1/_dx0 + _w0/_dx1 );
-                } else { _field = 0.0 ;}
-            } else {
-                _field = ( (2.0+_x1+_x2) * _dx1 - _x1 * _dx2 ) / (_x1+_x2);
-                if(_field * _dx1 < 0.0) {
-                    _field = 0.0 ;
-                } else if ( (_dx1*_dx2 < 0.0) && (abs(_field) > abs(3.0*_dx1)) ) {
-                    _field = 3.0*_dx1 ;
-                } else _field = 0.0 ;
-            }
-            return _field;
-        }
-
-        double slope_calc2(double _w0, double _w1, double _dx0, double _dx1,
-                          double _dx2, double _x1, double _x2, unsigned _k,
-                          unsigned _kmax) const
-        {
-            double _field;
-            if(_k <= _kmax) {
-                if(_dx0*_dx1 > 0.0) {
-                    _field = ( _w0 + _w1 ) / ( _w1/_dx0 + _w0/_dx1 );
-                } else { _field = 0.0 ;}
-            } else {
-                _field = ( (2.0+_x1+_x2) * _dx1 - _x1 * _dx2 ) / (_x1+_x2);
-                if(_field * _dx1 < 0.0) {
-                    _field = 0.0 ;
-                } else if ( (_dx1*_dx2 < 0.0) && (abs(_field) > abs(3.0*_dx1)) ) {
-                    _field = 3.0*_dx1 ;
-                } else _field = 0.0 ;
-            }
-            return _field;
-        }
 
         /**
          * A non-recursive version of the Piecewise Cubic Hermite
@@ -152,35 +106,39 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
         {
             matrix<double> bicubic_coeff, field, inc;
             matrix<double> xyloc, result_pchip, value;
-            const unsigned kmin = 1u;
-            const unsigned k0max = _axis[0]->size()-3u;
-            const unsigned k1max = _axis[1]->size()-3u;
+            const int kmin = 0u;
+            const int k0max = _axis[0]->size()-1u;
+            const int k1max = _axis[1]->size()-1u;
             value = matrix<double> (4,4);
             unsigned fast_index[2];
             fast_index[0] = 0;
             fast_index[1] = 0;
-            unsigned k0 = interp_index[0];
-            unsigned k1 = interp_index[1];
+            int k0 = interp_index[0];
+            int k1 = interp_index[1];
             double norm0, norm1;
             inc = matrix<double> (4,1);
 
                 // Checks for boundaries of the axes
-            if(k0 > k0max) k0 = k0max;
-            if(k0 < kmin) k0 = kmin;
-            if(k1 > k1max) k1 = k1max;
-            if(k1 < kmin) k1 = kmin;
             norm0 = (*_axis[0])(k0+1) - (*_axis[0])(k0);
             norm1 = (*_axis[1])(k1+1) - (*_axis[1])(k1);
-            for(int i=0; i<4; ++i) {
-                for(int j=0; j<4; ++j) {
-                    fast_index[0] = k0+i-1 ;
-                    fast_index[1] = k1+j-1 ;
-                    value(i,j) = data(fast_index) ;
+            for(int i=-1; i<3; ++i) {
+                for(int j=-1; j<3; ++j) {
+                    cout << "(i,j): (" << i << ", " << j << ")" ;
+                        //get appropriate data when at boundaries
+                    if ((k0+i) >= k0max) {fast_index[0] = k0max ;}
+                    else if ((k0+i) <= kmin) {fast_index[0] = kmin ;}
+                    else {fast_index[0] = k0+i ;}
+                        //get appropriate data when at boundaries
+                    if ((k1+j) >= k1max) {fast_index[1] = k1max ;}
+                    else if ((k1+j) <= kmin) {fast_index[1] = kmin ;}
+                    else {fast_index[1] = k1+j ;}
+                    cout << " index([0],[1]): (" << fast_index[0] << ", " << fast_index[1] << ")" << endl;
+                    value(i+1,j+1) = data(fast_index);
                 }
-                inc(i,0) = (i<2) ? (_axis[0]->increment(k0+i+1) + _axis[0]->increment(k0+i-1)) / _axis[0]->increment(k0) :
-                                (_axis[1]->increment(k1+i-1) + _axis[1]->increment(k1+i-3)) / _axis[1]->increment(k1) ;
+//                inc(i,0) = (i<2) ? (_axis[0]->increment(k0+i+2) + _axis[0]->increment(k0+i)) / _axis[0]->increment(k0) :
+//                                (_axis[1]->increment(k1+i) + _axis[1]->increment(k1+i-2)) / _axis[1]->increment(k1) ;
             }
-
+inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
             #ifdef FAST_GRID_DEBUG
                 cout << "offset0: " << k0 << "  offset1: " << k1 << endl;
                 cout << "loc0: " << location[0] << "  loc1: " << location[1] << endl;
@@ -189,55 +147,20 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
                 cout << "value: " << value << endl;
             #endif
 
-            double x0, x1, x2, y0, y1, y2, w0, w1;
-            double dx0, dx1, dx2, dx3, dx4, dx5, dx6, dx7 ;
-            double dy0, dy1, dy2, dy3, dy4, dy5, dy6, dy7 ;
-            x0 = _axis[0]->increment(k0-1), y0 = _axis[1]->increment(k1-1); // [k-1,k] intervals
-            x1 = _axis[0]->increment(k0), y1 = _axis[1]->increment(k1); // [k,k+1] intervals
-            x2 = _axis[0]->increment(k0+1), y2 = _axis[1]->increment(k1+1); // [k+1,k+2] intervals
-                // f_x(0,0) left and right slopes
-            dx0 = (value(2,1) - value(1,1)) / x1 ;
-            dx1 = (value(1,1) - value(0,1)) / x0 ;
-                // f_x(0,1) left and right slopes
-            dx2 = (value(2,2) - value(1,2)) / x1 ;
-            dx3 = (value(1,2) - value(0,2)) / x0 ;
-                // f_x(1,0) left and right slopes
-            dx4 = (value(3,1) - value(2,1)) / x2 ;
-            dx5 = (value(2,1) - value(1,1)) / x1 ;
-                // f_x(1,1) left and right slopes
-            dx6 = (value(3,2) - value(2,2)) / x2 ;
-            dx7 = (value(2,2) - value(1,2)) / x1 ;
-                // f_y(0,0) left and right slopes
-            dy1 = (value(1,2) - value(1,1)) / y1 ;
-            dy0 = (value(1,1) - value(1,0)) / y0 ;
-                // f_y(0,1) left and right slopes
-            dy2 = (value(1,3) - value(1,2)) / y2 ;
-            dy3 = (value(1,2) - value(1,1)) / y1 ;
-                // f_y(1,0) left and right slopes
-            dy4 = (value(2,1) - value(2,0)) / y1 ;
-            dy5 = (value(2,2) - value(2,1)) / y0 ;
-                // f_y(1,1) left and right slopes
-            dy6 = (value(2,3) - value(2,2)) / y2 ;
-            dy7 = (value(2,2) - value(2,1)) / y1 ;
-
                 // Construct the field matrix
             field = matrix<double> (16,1);
             field(0,0) = value(1,1);
             field(1,0) = value(1,2);
             field(2,0) = value(2,1);
             field(3,0) = value(2,2);
-            w0 = 2.0*x1 + x0, w1 = x1 + 2.0*x0 ;
-            field(4,0) = slope_calc1(w0,w1,dx0,dx1,dx2,x1,x2,k0);
-            field(5,0) = slope_calc2(w0,w1,dx2,dx3,dx4,x1,x2,k0,k0max);
-            w0 = 2.0*x2 + x1, w1 = x2 + 2.0*x1 ;
-            field(6,0) = slope_calc1(w0,w1,dx4,dx5,dx6,x1,x2,k0);
-            field(7,0) = slope_calc2(w0,w1,dx6,dx7,dx7,x1,x2,k0,k0max);
-            w0 = 2.0*y1 + y0, w1 = y1 + 2.0*y0 ;
-            field(8,0) = slope_calc1(w0,w1,dy0,dy1,dy2,y1,y2,k1);
-            field(10,0) = slope_calc2(w0,w1,dy4,dy5,dy6,y1,y2,k1,k1max);
-            w0 = 2.0*y2 + y1, w1 = y2 + 2.0*y1 ;
-            field(9,0) = slope_calc1(w0,w1,dy2,dy3,dy4,y1,y2,k1);
-            field(11,0) = slope_calc2(w0,w1,dy5,dy6,dy7,y1,y2,k1,k1max);
+            field(4,0) = (value(2,1) - value(0,1)) / inc(0,0);
+            field(5,0) = (value(2,2) - value(0,2)) / inc(0,0);
+            field(6,0) = (value(3,1) - value(1,1)) / inc(1,0);
+            field(7,0) = (value(3,2) - value(1,2)) / inc(1,0);
+            field(8,0) = (value(1,2) - value(1,0)) / inc(2,0);
+            field(9,0) = (value(1,3) - value(1,1)) / inc(3,0);
+            field(10,0) = (value(2,2) - value(2,0)) / inc(2,0);
+            field(11,0) = (value(2,3) - value(2,1)) / inc(3,0);
             field(12,0) = (value(2,2) - value(2,0) - value(0,2) + value(0,0)) / (inc(0,0)*inc(2,0));
             field(13,0) = (value(2,3) - value(2,1) - value(0,3) + value(0,1)) / (inc(0,0)*inc(3,0));
             field(14,0) = (value(3,2) - value(1,2) - value(3,0) + value(1,0)) / (inc(1,0)*inc(2,0));
@@ -246,16 +169,17 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
                 // Construct the coefficients of the bicubic interpolation
             bicubic_coeff = prod(inv_bicubic_coeff, field);
 
-            #ifdef FAST_GRID_DEBUG
-                cout << "field: " << field << endl;
-                cout << "bicubic_coeff: " << bicubic_coeff << endl;
-            #endif
 
                 // Create the power series of the interpolation formula before hand for speed
             xyloc = matrix<double> (1,16);
             double x_inv = location[0] - (*_axis[0])(k0) ;
             double y_inv = location[1] - (*_axis[1])(k1) ;
-//            cout << "x_inv/norm0: " << x_inv/norm0 << "\ty_inv/norm1: " << y_inv/norm1 << endl;
+
+            #ifdef FAST_GRID_DEBUG
+                cout << "field: " << field << endl;
+                cout << "bicubic_coeff: " << bicubic_coeff << endl;
+                cout << "x_inv/norm0: " << x_inv/norm0 << "\ty_inv/norm1: " << y_inv/norm1 << endl;
+            #endif
 
             xyloc(0,0) = 1;
             xyloc(0,1) = y_inv / norm1;
