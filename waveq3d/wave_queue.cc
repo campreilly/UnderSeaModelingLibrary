@@ -47,7 +47,7 @@ wave_queue::wave_queue(
 	// create references between targets and wavefront objects.
     const matrix<double>* pTargets_sin_theta = NULL ;
 
-    _intensity_threshold = 100.00; //In dB
+    _intensity_threshold = 300.00; //In dB
 
     if ( _targets ) {
     	targets_sin_theta = sin( _targets->theta() ) ;

@@ -281,11 +281,18 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
-	 * SetIntensityThreshold
+	 * setIntensityThreshold
 	 * @param  dThreshold The new value of the intensity threshold in dB
 	 */
-	inline void  setIntensityThreshold(double dThreshold) {
+	inline void setIntensityThreshold(double dThreshold) {
 		_intensity_threshold = dThreshold;
+	}
+	/**
+	 * getIntensityThreshold
+	 * @param  dThreshold The new value of the intensity threshold in dB
+	 */
+	inline double getIntensityThreshold() {
+		return _intensity_threshold;
 	}
     /**
      * Register a bottom reverberation model.
