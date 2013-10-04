@@ -40,7 +40,7 @@ static double cubic2d( double _val[] ) {
 int main() {
     cout << "=== datagrid_interpolation_speed_test ===" << endl;
 
-    int num_points = 1e5 ;
+    int num_points = 1e8 ;
     int param = 5 ;
     int counter = 0 ;
     unsigned index[2] ;

@@ -282,7 +282,7 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
                 break;
 
             case 1:
-                return 0;
+                throw std::invalid_argument("Interpolation of Pchip in 3 dimensions not yet implemented.");
                 break;
 
             default:
