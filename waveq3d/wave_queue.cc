@@ -279,6 +279,7 @@ void wave_queue::detect_eigenrays() {
     if ( _targets == NULL ) return ;
 
     double distance2[3][3][3] ;
+    double& center = distance2[1][1][1] ;
 
     // loop over all targets
 
@@ -289,7 +290,30 @@ void wave_queue::detect_eigenrays() {
 
             for ( unsigned de=1 ; de < num_de()-1 ; ++de ) {
                 for ( unsigned az=1 ; az < num_az()-1 ; ++az ) {
-                    if ( is_closest_ray(t1,t2,de,az,distance2) ) {
+
+                	// *******************************************
+                	// When central ray is at the edge of ray family
+                	// it prevents edges from acting as CPA, if so, go to next de/az
+
+					if ( _curr->on_edge(de,az) ) {
+						continue;
+					}
+
+					// get the central ray for testing
+					center = _curr->distance2(t1,t2)(de,az) ;
+
+					distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
+					if ( distance2[2][1][1] <= center ) {
+						continue;
+					}
+
+					distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
+					if ( distance2[0][1][1] < center ) {
+						continue;
+					}
+
+                	// *******************************************
+                    if ( is_closest_ray(t1,t2,de,az,center,distance2) ) {
                         build_eigenray(t1,t2,de,az,distance2) ;
                     }
                 }
@@ -306,28 +330,11 @@ void wave_queue::detect_eigenrays() {
 bool wave_queue::is_closest_ray(
    unsigned t1, unsigned t2,
    unsigned de, unsigned az,
+   const double& center,
    double distance2[3][3][3]
 ) {
-    // exit early if central ray is at the edge of ray family
-    // prevents edges from acting as CPA
 
-    if ( _curr->on_edge(de,az) ) {
-        return false ;
-    }
-
-    // test the central ray
-
-    memset( distance2, 0, 3*3*3*sizeof(double) ) ;
-    double& center = distance2[1][1][1] ;
-    center = _curr->distance2(t1,t2)(de,az) ;
-
-    distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
-    if ( distance2[2][1][1] <= center ) return false ;
-
-    distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
-    if ( distance2[0][1][1] < center ) return false ;
-
-    // test all neigbors that are not the central ray
+    // test all neighbors that are not the central ray
 
     for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
         for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
@@ -378,7 +385,7 @@ bool wave_queue::is_closest_ray(
 }
 
 /**
- * Used by detect_eigenrays() to compute eigneray parameters and
+ * Used by detect_eigenrays() to compute eigenray parameters and
  * add a new eigenray entry to the current target.
  */
 void wave_queue::build_eigenray(
@@ -626,7 +633,7 @@ void wave_queue::compute_offsets(
     c_vector<double,3>& offset, c_vector<double,3>& distance,
     bool& unstable )
 {
-    // compute 1st and 2nd derviatives of distance2
+    // compute 1st and 2nd derivatives of distance2
     // use analytic solution for the determinant of a 3x3 matrix
 
     double center ;

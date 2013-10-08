@@ -458,6 +458,7 @@ class USML_DECLSPEC wave_queue {
      * @param   t2          Column number of the current target.
      * @param   de          D/E angle index number.
      * @param   az          AZ angle index number.
+     * @param   center      Reference to the center of the distance2 cube.
      * @param   distance2   Distance squared to each of the 27 neighboring
      *                      points. The first index is time, the second is D/E
      *                      and the third is AZ (output).
@@ -466,6 +467,7 @@ class USML_DECLSPEC wave_queue {
     bool is_closest_ray(
         unsigned t1, unsigned t2,
         unsigned de, unsigned az,
+        const double &center,
         double distance2[3][3][3] ) ;
 
     /**
@@ -501,12 +503,12 @@ class USML_DECLSPEC wave_queue {
      * along the CPA ray. Phase is copied from the CPA as are the counts
      * for surface, bottom, and caustics.
      *
-     * There is an interesting degrenerate case that happens for targets
+     * There is an interesting degenerate case that happens for targets
      * near the source location.  The CPA calculation from detect_eigenrays()
      * creates non-physical eigenrays around the point at which the 2nd
-     * wavefront transitions from occuring before surface reflection to
+     * wavefront transitions from occurring before surface reflection to
      * including just after it. This routines examines the offsets in time and
-     * ensonified area to eliminate these non-physcial eigenrays.
+     * ensonified area to eliminate these non-physical eigenrays.
      *
      * @param   t1          Row number of the current target.
      * @param   t2          Column number of the current target.
