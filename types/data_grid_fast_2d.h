@@ -42,13 +42,27 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
 
         /** Used during interpolation to hold the axis offsets. */
         unsigned _offset[2];
+        unsigned fast_index[2];
 
         /**
          * Matrix that is the inverse of the bicubic coefficients
          * This matrix will be used to construct the bicubic
          * coefficients. The result will be a 16x1 matrix.
          */
-        matrix<double> inv_bicubic_coeff;
+        c_matrix<double,16,16> inv_bicubic_coeff ;
+
+        /**
+         *
+         */
+        c_matrix<double,16,1> bicubic_coeff ;
+        c_matrix<double,16,1> field ;
+        c_matrix<double,4,1> inc ;
+        c_matrix<double,1,16> xyloc ;
+        c_matrix<double,1,1> result_pchip ;
+        c_matrix<double,4,4> value ;
+        const int kmin ;
+        const int k0max ;
+        const int k1max ;
 
         /**
          * A non-recursive version of the Piecewise Cubic Hermite
@@ -102,21 +116,11 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
          * @param derivative    Generate the derivative at the location (output)
          */
         double fast_pchip(const unsigned* interp_index, double* location,
-                     double* derivative = NULL) const
+                     double* derivative = NULL)
         {
-            matrix<double> bicubic_coeff, field, inc;
-            matrix<double> xyloc, result_pchip, value;
-            const int kmin = 0u;
-            const int k0max = _axis[0]->size()-1u;
-            const int k1max = _axis[1]->size()-1u;
-            value = matrix<double> (4,4);
-            unsigned fast_index[2];
-            fast_index[0] = 0;
-            fast_index[1] = 0;
             int k0 = interp_index[0];
             int k1 = interp_index[1];
             double norm0, norm1;
-            inc = matrix<double> (4,1);
 
                 // Checks for boundaries of the axes
             norm0 = (*_axis[0])(k0+1) - (*_axis[0])(k0);
@@ -124,29 +128,52 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
             for(int i=-1; i<3; ++i) {
                 for(int j=-1; j<3; ++j) {
                         //get appropriate data when at boundaries
-                    if ((k0+i) >= k0max) {fast_index[0] = k0max ;}
-                    else if ((k0+i) <= kmin) {fast_index[0] = kmin ;}
-                    else {fast_index[0] = k0+i ;}
+                    if ((k0+i) >= k0max)
+                        {fast_index[0] = k0max ;}
+                    else if ((k0+i) <= kmin)
+                        {fast_index[0] = kmin ;}
+                    else
+                        {fast_index[0] = k0+i ;}
                         //get appropriate data when at boundaries
                     if ((k1+j) >= k1max) {fast_index[1] = k1max ;}
                     else if ((k1+j) <= kmin) {fast_index[1] = kmin ;}
                     else {fast_index[1] = k1+j ;}
                     value(i+1,j+1) = data(fast_index);
                 }
-//                inc(i,0) = (i<2) ? (_axis[0]->increment(k0+i+2) + _axis[0]->increment(k0+i)) / _axis[0]->increment(k0+i+1) :
-//                                (_axis[1]->increment(k1+i) + _axis[1]->increment(k1+i-2)) / _axis[1]->increment(k1+i-1) ;
+//                if (i<1) {
+//                    if ((k0+i+1) >= k0max) {
+//                        inc(i+1,0) = (_axis[0]->increment(k0max) + _axis[0]->increment(k0+i)) / _axis[0]->increment(k0max) ;
+//                    }
+//                    else if ((k0+i+1) <= kmin) {
+//                        inc(i+1,0) = (_axis[0]->increment(k0+i+2) + _axis[0]->increment(kmin)) / _axis[0]->increment(kmin) ;
+//                    }
+//                    else {
+//                        inc(i+1,0) = (_axis[0]->increment(k0+i+2) + _axis[0]->increment(k0+i)) / _axis[0]->increment(k0+i+1) ;
+//                    }
+//                } else {
+//                    if ((k1+i-1) >= k1max) {
+//                        inc(i+1,0) = (_axis[1]->increment(k1max) + _axis[1]->increment(k1+i-2)) / _axis[1]->increment(k1max) ;
+//                    }
+//                    else if ((k1+i-1) <= kmin) {
+//                        inc(i+1,0) = (_axis[1]->increment(k1+i) + _axis[1]->increment(kmin)) / _axis[1]->increment(kmin) ;
+//                    }
+//                    else {
+//                        inc(i+1,0) = (_axis[1]->increment(k1+i) + _axis[1]->increment(k1+i-2)) / _axis[1]->increment(k1+i-1) ;
+//                    }
+//                }
             }
 inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
             #ifdef FAST_GRID_DEBUG
-                cout << "offset0: " << k0 << "  offset1: " << k1 << endl;
                 cout << "loc0: " << location[0] << "  loc1: " << location[1] << endl;
+                cout << "offset0: " << k0 << "  offset1: " << k1 << endl;
                 cout << "axis0: " << (*_axis[0])(k0) << "  axis1: " << (*_axis[1])(k1) << endl;
+                cout << "data value at offset: " << ( (data(interp_index) > 1e6) ?
+                            data(interp_index) - wposition::earth_radius : data(interp_index) ) << endl;
                 cout << "inc: " << inc << endl;
                 cout << "value: " << value << endl;
             #endif
 
                 // Construct the field matrix
-            field = matrix<double> (16,1);
             field(0,0) = value(1,1);
             field(1,0) = value(1,2);
             field(2,0) = value(2,1);
@@ -169,7 +196,6 @@ inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
 
 
                 // Create the power series of the interpolation formula before hand for speed
-            xyloc = matrix<double> (1,16);
             double x_inv = location[0] - (*_axis[0])(k0) ;
             double y_inv = location[1] - (*_axis[1])(k1) ;
 
@@ -227,7 +253,9 @@ inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
         */
 
         data_grid_fast_2d( const data_grid<double,2>& grid, bool copy_data = true ) :
-            data_grid(grid,copy_data)
+            data_grid(grid,copy_data), bicubic_coeff(16,1), field(16,1), inc(4,1),
+            xyloc(1,16), result_pchip(1,1), value(4,4), kmin(0u),
+            k0max(_axis[0]->size()-1u), k1max(_axis[1]->size()-1u)
         {
                 //Construct the inverse bicubic interpolation coefficient matrix
             inv_bicubic_coeff = zero_matrix<double> (16,16);
@@ -295,6 +323,9 @@ inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
             inv_bicubic_coeff(15,4) = inv_bicubic_coeff(15,6) = inv_bicubic_coeff(15,8) = inv_bicubic_coeff(15,9) = 2;
             inv_bicubic_coeff(15,5) = inv_bicubic_coeff(15,7) = inv_bicubic_coeff(15,10) = inv_bicubic_coeff(15,11) = -2;
             inv_bicubic_coeff(15,12) = inv_bicubic_coeff(15,13) = inv_bicubic_coeff(15,14) = inv_bicubic_coeff(15,15) = 1;
+
+            fast_index[0] = 0;
+            fast_index[1] = 0;
         }
 
         /**
@@ -313,9 +344,6 @@ inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
         double interpolate(double* location, double* derivative = NULL) {
 
             double result = 0;
-            unsigned fast_index[2];
-            fast_index[0] = 0;
-            fast_index[1] = 0;
             // find the interval index in each dimension
 
             for (unsigned dim = 0; dim < 2; ++dim) {

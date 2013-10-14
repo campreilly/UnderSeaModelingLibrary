@@ -17,16 +17,17 @@ cmake_minimum_required( VERSION 2.6 )
 project( usml CXX )
 
 set( PACKAGE_VERSION_MAJOR 0 )
-set( PACKAGE_VERSION_MINOR 3 )
+set( PACKAGE_VERSION_MINOR 4 )
 set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
-set( PACKAGE_MODULES ublas types netcdf ocean waveq3d )
+set( PACKAGE_MODULES ublas types netcdf ocean waveq3d)
 set( NETCDF_NCKS /usr/bin/ncks )
 
 ######################################################################
 # set USML defaults
 
-option( USML_PEDANTIC "maximize warnings, treat warning as errors" OFF )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
+option( PROFILE_TIME "build for profiling at function level timing" OFF )
+option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
 
 ######################################################################
 # Visual C++ compiler options
@@ -54,14 +55,28 @@ else( CMAKE_COMPILER_IS_GNUCXX )
         set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
     endif()
     if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) ) # no optimizations
-        add_definitions( -O0 )
+        if ( PROFILE_TIME )                	# Profile Function Timing
+            add_definitions( -pg -O0 )
+            set ( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg" )
+        else()
+            add_definitions( -O0 )
+        endif ( PROFILE_TIME )
     else()                              	# max optimizations
-        add_definitions( -g -ffast-math )
+        if ( PROFILE_TIME )                	# Profile Function Timing
+            add_definitions( -pg -ffast-math)
+            set ( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg" )
+        else()
+            add_definitions( -g -ffast-math )
+        endif ( PROFILE_TIME )
     endif()
     if ( USML_PEDANTIC )                	# standards compliance
         add_definitions( -std=c++98 -pedantic -Wall -Werror
 	    -Wno-long-long -Wno-sign-compare)
     endif ( USML_PEDANTIC )
+#    if ( PROFILE_TIME )                	# Profile Function Timing
+#        add_definitions( -pg )
+#        set ( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg" )
+#    endif ( PROFILE_TIME )
     if ( NOT BUILD_SHARED_LIBS )
         set(CMAKE_FIND_LIBRARY_SUFFIXES .a) 	# prefer static libraries
     endif ( NOT BUILD_SHARED_LIBS )
@@ -81,15 +96,15 @@ set( Boost_DEBUG OFF )
 unset( Boost_INCLUDE_DIR CACHE ) # force FindBoost.cmake to reload each time
 
 if ( BOOST_ROOT )
-    set( Boost_NO_SYSTEM_PATHS ON )
-    set( Boost_INCLUDE_DIR ${BOOST_ROOT}/include )
+    set( BOOST_NO_SYSTEM_PATHS ON )
+    set( BOOST_INCLUDEDIR ${BOOST_ROOT}/include )
     set( BOOST_LIBRARYDIR ${BOOST_ROOT}/lib )
 endif()
 
 if ( BUILD_SHARED_LIBS )
     set( Boost_USE_STATIC_LIBS OFF )
     add_definitions( -DBOOST_ALL_DYN_LINK )
-    set( Boost_REALPATH ON )	# use version suffix in *.so name
+    set( BOOST_REALPATH ON )	# use version suffix in *.so name
 else ( BUILD_SHARED_LIBS )
     set( Boost_USE_STATIC_LIBS ON )
 endif ( BUILD_SHARED_LIBS )
@@ -262,9 +277,6 @@ set( USML_STUDIES_DIR ${PROJECT_SOURCE_DIR}/studies
 add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
 target_link_libraries( cmp_speed usml )
 
-#add_executable( folds studies/folds/folds.cc )
-#target_link_libraries( folds usml )
-
 add_executable( ray_speed studies/ray_speed/ray_speed.cc )
 target_link_libraries( ray_speed usml )
 
@@ -279,6 +291,9 @@ target_link_libraries( malta_movie usml )
 
 add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 target_link_libraries( malta_rays usml )
+
+add_executable( speed_test studies/speed_test/speed_test.cc )
+target_link_libraries( speed_test usml )
 
 set_property(
    TARGET cmp_speed ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
