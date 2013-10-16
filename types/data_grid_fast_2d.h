@@ -426,8 +426,10 @@ inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
                            f12*(x2-x)*(y-y1) +
                            f22*(x-x1)*(y-y1) ) / (x_diff*y_diff);
                 if(derivative) {
-                    derivative[0] = (f21 - f11) / _axis[0]->increment(_offset[0]);
-                    derivative[1] = (f12 - f11) / _axis[1]->increment(_offset[1]);
+                    derivative[0] = ( f21*(y2-y) - f11*(y2-y) + f22*(y-y1) - f12*(y-y1) )
+                                    / ( x_diff * y_diff );
+                    derivative[1] = ( f12*(x2-x) - f11*(x2-x) + f22*(x-x1) - f21*(x-x1) )
+                                    / ( x_diff * y_diff );
                 }
                 return result;
                 break;

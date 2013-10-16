@@ -8,6 +8,9 @@
 
 #include <usml/types/data_grid.h>
 
+//#define FAST_GRID_DEBUG
+//#define FAST_PCHIP_GRID_DEBUG
+
 namespace usml {
 namespace types {
 /// @ingroup data_grid
@@ -41,111 +44,51 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
         */
 
         unsigned _offset[3];
+        unsigned fast_index[3];
 
         double pchip_part(const unsigned _k, const double _location,
                           const double* _data, double* _deriv) const
         {
-
-            const unsigned kmin = 1u ;					  // at endpt if k-1 < 0
-            const unsigned kmax = _axis[2]->size()-3u ; // at endpt if k+2 > N-1
             double y0 = _data[0], y1 = _data[1], y2 = _data[2], y3 = _data[3];
 
-            // compute difference values used frequently in computation
+            double inc0 = _axis[0]->increment(_k-1) ;
+            double inc1 = _axis[0]->increment(_k) ;
+            double inc2 = _axis[0]->increment(_k+1) ;
+            double slope_1 = (y2 - y1)/(2*inc1) + (y1 - y0)/(2*inc0);
+            double slope_2 = (y3 - y2)/(2*inc2) + (y2 - y1)/(2*inc1);
 
-            double h0 = _axis[0]->increment(_k - 1); 	// interval from k-1 to k
-            double h1 = _axis[0]->increment(_k);	   	// interval from k to k+1
-            double h2 = _axis[0]->increment(_k + 1); 	// interval from k+1 to k+2
-            double h1_2 = h1 * h1; 		   	// k to k+1 interval squared
-            double h1_3 = h1_2 * h1;		   	// k to k+1 interval cubed
+            double t = ( _location - (*_axis[0])(_k) ) / inc1 ;
+            double t_2 = t*t ;
+            double t_3 = t_2*t ;
 
-            double s = _location-(*_axis[0])(_k);	// local variable
-            double s_2 = s * s, s_3 = s_2 * s;	// s squared and cubed
-            double sh_minus = s - h1;
-            double sh_term = 3.0 * h1 * s_2 - 2.0 * s_3;
+            double h00 = ( 2*t_3 - 3*t_2 + 1 ) ;
+            double h10 = ( t_3 - 2*t_2 + t ) ;
+            double h01 = ( 3*t_2 - 2*t_3 ) ;
+            double h11 = ( t_3 - t_2 ) ;
 
-            // compute first divided differences (forward derivative)
-            // for both the values, and their derivatives
+            double _result = h00 * y1 + h10 * slope_1 +
+                             h01 * y2 + h11 * slope_2 ;
 
-            double deriv0 = (y1 - y0) / h0;	// fwd deriv from k-1 to k
-            double deriv1 = (y2 - y1) / h1; 	// fwd deriv from k to k+1
-            double deriv2 = (y3 - y2) / h2; 	// fwd deriv from k+1 to k+2
-
-            //*************
-            // compute weighted harmonic mean of slopes around index k
-            // for both the values, and their derivatives
-            // set it zero at local maxima or minima
-            // deriv0 * deriv1 condition guards against division by zero
-
-            double slope1=0.0;
-
-            // when not at an end-point, slope1 is the harmonic, weighted
-            // average of deriv0 and deriv1.
-
-            if ( _k >= kmin ) {
-                double w0 = 2.0 * h1 + h0;
-                double w1 = h1 + 2.0 * h0;
-                if ( deriv0 * deriv1 > 0.0 ) {
-                    slope1 = (w0 + w1) / ( w0 / deriv0 + w1 / deriv1 );
-                }
-
-            // at left end-point, use Matlab end-point formula with slope limits
-            // note that the deriv0 value is bogus values when this is true
-
-            } else {
-                slope1 = ( (2.0+h1+h2) * deriv1 - h1 * deriv2 ) / (h1+h2) ;
-                if ( slope1 * deriv1 < 0.0 ) {
-                    slope1 = 0.0 ;
-                } else if ( (deriv1*deriv2 < 0.0) && (abs(slope1) > abs(3.0*deriv1)) ) {
-                    slope1 = 3.0*deriv1 ;
-                }
-            }
-
-            //*************
-            // compute weighted harmonic mean of slopes around index k+1
-            // for both the values, and their derivatives
-            // set it zero at local maxima or minima
-            // deriv1 * deriv2 condition guards against division by zero
-
-            double slope2=0.0;
-
-            // when not at an end-point, slope2 is the harmonic, weighted
-            // average of deriv1 and deriv2.
-
-            if ( _k <= kmax ) {
-                double w1 = 2.0 * h1 + h0;
-                double w2 = h1 + 2.0 * h0;
-                if ( deriv1 * deriv2 > 0.0 ) {
-                    slope2 = (w1 + w2) / ( w1 / deriv1 + w2 / deriv2 );
-                }
-
-            // at right end-point, use Matlab end-point formula with slope limits
-            // note that the deriv2 value is bogus values when this is true
-
-            } else {		// otherwise, compute harmonic weighted average
-                slope2 = ( (2.0+h1+h2) * deriv1 - h1 * deriv0 ) / (h1+h0) ;
-                if ( slope2 * deriv1 < 0.0 ) {
-                    slope2 = 0.0 ;
-                } else if ( (deriv1*deriv0 < 0.0) && (abs(slope2) > abs(3.0*deriv1)) ) {
-                    slope2 = 3.0*deriv1 ;
-                }
-            }
-
-            // compute interpolation value in this dimension
-
-            double _result = y2 * sh_term / h1_3
-                   + y1 * (h1_3 - sh_term) / h1_3
-                   + slope2 * s_2 * sh_minus / h1_2
-                   + slope1 * s * sh_minus * sh_minus / h1_2;
-
-            // compute derivative in this dimension
-            // assume linear change of slope across interval
+            #ifdef FAST_PCHIP_GRID_DEBUG
+                cout << "y0: " << y0 << "\ty1: " << y1
+                     << "\ty2: " << y2 << "\ty3: " << y3 << endl;
+                cout << "t: " << t << "\tt_2: " << t_2
+                     << "\tt_3: " << t_3 << endl;
+                cout << "inc0: " << inc0 << "\tinc1: " << inc1
+                     << "\tinc2: " << inc2 << endl;
+                cout << "slope_1: " << slope_1
+                     << "\tslope_2: " << slope_2 << endl;
+                cout << "h00: " << h00 << "\th10: " << h10
+                     << "\th01: " << h01 << "\th11: " << h11 << endl;
+                cout << "_result is: " << _result << endl;
+            #endif
 
             if(_deriv) {
-                double u = s / h1;
-                _deriv[0] = slope1 * (1.0 - u) + slope2 * u;
+                _deriv[0] = ( 6*t_2 - 6*t ) * y1 +
+                            ( 3*t_2 - 4*t + 1 ) * slope_1 +
+                            ( 6*t - 6*t_2 ) * y2 +
+                            ( 3*t_2 - 2*t ) * slope_2 ;
             }
-
-            // use results for dim+1 iteration
 
             return _result;
         }
@@ -162,7 +105,12 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
         */
 
         data_grid_fast_3d( const data_grid<double,3>& grid, bool copy_data = true) :
-            data_grid(grid,copy_data) {}
+                data_grid(grid,copy_data)
+        {
+            fast_index[0] = 0;
+            fast_index[1] = 0;
+            fast_index[2] = 0;
+        }
 
         /**
         * Overrides the interpolate function within data_grid using the
@@ -179,10 +127,6 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
 
         double interpolate(double* location, double* derivative = NULL) {
             double result = 0;
-            unsigned fast_index[3];
-            fast_index[0] = 0;
-            fast_index[1] = 0;
-            fast_index[2] = 0;
             // find the interval index in each dimension
 
             for (unsigned dim = 0; dim < 3; ++dim) {
@@ -223,6 +167,14 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
                 }
             }
 
+            #ifdef FAST_GRID_DEBUG
+                cout << "offset: (" << _offset[0] << "," << _offset[1] << "," << _offset[2] << ")" << endl;
+                cout << "axis[0]: " << (*_axis[0])(_offset[0]) << "\taxis[1]: " << (*_axis[1])(_offset[1])
+                     << "\taxis[2]: " << (*_axis[2])(_offset[2]) << endl;
+            #endif
+            double v = location[0] - (*_axis[0])(_offset[0]) ;
+            if(derivative) {derivative[1] = derivative[2] = 0;}
+
             switch(interp_type(1)) {
 
                 ///****nearest****
@@ -245,39 +197,56 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
                 double f11, f21, f12, f22, x_diff, y_diff;
                 double x, x1, x2, y, y1, y2;
                 double interp_values[4];
+                unsigned temp_index [3];
+                double s ;
 
                 for(int i=0; i<4; ++i) {
                     fast_index[0] = _offset[0]+i-1;
-                    unsigned temp_index [4];
                     temp_index[0] = fast_index[0];
                     temp_index[1] = _offset[1];
                     temp_index[2] = _offset[2];
                     x = location[1];
-                    x1 = (*_axis[1])(_offset[1]+i-1) ;
-                    x2 = (*_axis[1])(_offset[1]+i) ;
+                    x1 = (*_axis[1])(temp_index[1]) ;
+                    x2 = (*_axis[1])(temp_index[1]+1) ;
                     y = location[2];
-                    y1 = (*_axis[2])(_offset[2]+i-1) ;
-                    y2 = (*_axis[2])(_offset[2]+i) ;
+                    y1 = (*_axis[2])(temp_index[2]) ;
+                    y2 = (*_axis[2])(temp_index[2]+1) ;
                     f11 = data(temp_index);
-                    fast_index[1] = _offset[1]+i ; fast_index[2] = _offset[2]+i-1 ;
+                    fast_index[1] = temp_index[1]+1 ; fast_index[2] = temp_index[2] ;
                     f21 = data(fast_index);
-                    fast_index[1] = _offset[1]+i-1 ; fast_index[2] = _offset[2]+i ;
+                    fast_index[1] = temp_index[1] ; fast_index[2] = temp_index[2]+1 ;
                     f12 = data(fast_index);
-                    fast_index[1] = _offset[1]+i ; fast_index[2] = _offset[2]+i ;
+                    fast_index[1] = temp_index[1]+1 ; fast_index[2] = temp_index[2]+1 ;
                     f22 = data(fast_index);
                     x_diff = x2 - x1 ;
                     y_diff = y2 - y1 ;
+                    #ifdef FAST_GRID_DEBUG
+                        cout << "iteration: " << i << endl;
+                        cout << "temp_index: (" << temp_index[0] << ", " << temp_index[1] << ", " << temp_index[2] << ")" << endl;
+                        cout << "x: " << x << "\tx1: " << x1 << "\tx2: " << x2 << endl;
+                        cout << "y: " << y << "\ty1: " << y1 << "\ty2: " << y2 << endl;
+                        cout << "f11: " << f11 << "\tf21: " << f21 << "\tf12: " << f12 << "\tf22: " << f22 << endl;
+                    #endif
                     result = ( f11*(x2-x)*(y2-y) +
                                f21*(x-x1)*(y2-y) +
                                f12*(x2-x)*(y-y1) +
                                f22*(x-x1)*(y-y1) ) / (x_diff*y_diff);
-
                     if(derivative) {
-                        derivative[1] = (f21 - f11) / _axis[1]->increment(_offset[1]);
-                        derivative[2] = (f12 - f11) / _axis[2]->increment(_offset[2]);
+                        if(i==1) {s = (1 - v);}
+                        else if(i==2) {s = v;}
+                        else {s = 0;}
+                        derivative[1] += s * ( -f11*(y2-y) + f21*(y2-y) - f12*(y-y1) + f22*(y-y1) )
+                                        / ( x_diff * y_diff );
+                        derivative[2] += s * ( -f11*(x2-x) - f21*(x-x1) + f12*(x2-x) + f22*(x-x1) )
+                                        / ( x_diff * y_diff );
                     }
                     interp_values[i] = result;
                 }
+                #ifdef FAST_GRID_DEBUG
+                    cout << "_offset[0]: " << _offset[0] << "\tlocation[0]: " << location[0] << endl;
+                    cout << "interp_values: (" << interp_values[0] << "," << interp_values[1] << "," <<
+                        interp_values[2] << "," << interp_values[3] << ")" << endl;
+                #endif
                 return pchip_part(_offset[0],location[0],interp_values,derivative);
                 break;
 
@@ -319,6 +288,7 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
                     location[2] = z(n, m);
                     if (dx == NULL || dy == NULL || dz == NULL) {
                         (*result)(n, m) = (double) interpolate(location);
+                        cout << "result in void interp: " << (*result)(n, m) << endl;
                     } else {
                         (*result)(n, m)
                                 = (double) interpolate(location, derivative);
