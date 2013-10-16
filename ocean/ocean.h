@@ -62,7 +62,6 @@
 #include <usml/ocean/profile_grid.h>
 #include <usml/ocean/profile_mackenzie.h>
 #include <usml/ocean/ascii_profile.h>
-#include <usml/ocean/profile_mt.h>
 
 #include <usml/ocean/reflect_loss_model.h>
 #include <usml/ocean/reflect_loss_constant.h>
@@ -74,7 +73,6 @@
 #include <usml/ocean/boundary_slope.h>
 #include <usml/ocean/boundary_grid.h>
 #include <usml/ocean/ascii_arc_bathy.h>
-#include <usml/ocean/boundary_mt.h>
 
 #include <usml/ocean/ocean_model.h>
 
