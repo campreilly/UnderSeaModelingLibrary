@@ -26,10 +26,9 @@ set( NETCDF_NCKS /usr/bin/ncks )
 # set USML defaults
 
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
-option( PROFILE_TIME "build for profiling at function level timing" OFF )
+option( GPROF_PROFILER "build for profiling at function level timing" OFF )
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
 option( Boost_FORCE_SHAREDLIB "Use Boost shared libraries" OFF )
-option( PROFILE_TIME "build for profiling at function level timing" OFF )
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
 option( USML_BUILD_TESTS "build all Tests" ON )
 option( USML_BUILD_STUDIES "build all Studies" ON )
@@ -103,7 +102,7 @@ if ( BOOST_ROOT )
     set( BOOST_LIBRARYDIR ${BOOST_ROOT}/lib )
 endif()
 
-if ( BUILD_SHARED_LIBS OR Boost_FORCE_SHAREDLIB)
+if ( BUILD_SHARED_LIBS OR Boost_FORCE_SHAREDLIB )
     set( Boost_USE_STATIC_LIBS OFF )
     add_definitions( -DBOOST_ALL_DYN_LINK )
     set( BOOST_REALPATH ON )	# use version suffix in *.so name
@@ -111,7 +110,7 @@ else ( BUILD_SHARED_LIBS )
     set( Boost_REALPATH ON )	# use version suffix in *.so name
 else ()
     set( Boost_USE_STATIC_LIBS ON )
-endif ( BUILD_SHARED_LIBS )
+endif ( BUILD_SHARED_LIBS OR Boost_FORCE_SHAREDLIB )
 
 set(Boost_ADDITIONAL_VERSIONS
 	"1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.520")
@@ -301,7 +300,7 @@ if (USML_BUILD_STUDIES)
 	add_executable( malta_movie studies/malta_movie/malta_movie.cc )
 	target_link_libraries( malta_movie usml )
 
-	add_executable( malta_movie studies/malta_movie/malta_rays.cc )
+	add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 	target_link_libraries( malta_rays usml )
 
 	add_executable( speed_test studies/speed_test/speed_test.cc )
