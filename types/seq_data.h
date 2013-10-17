@@ -9,6 +9,9 @@
 
 namespace usml {
 namespace types {
+
+using boost::numeric::ublas::vector;
+
 /// @ingroup data_grid
 /// @{
 

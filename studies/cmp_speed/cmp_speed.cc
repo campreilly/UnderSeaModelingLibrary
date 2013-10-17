@@ -109,8 +109,13 @@ int main( int argc, char* argv[] ) {
         bearing_inc = bearing_inc + angle;
     }
 
-    proploss loss( &target ) ;
-    wave_queue wave( ocean, freq, src_pos, de, az, time_step, &loss ) ;
+    proploss loss(freq, src_pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, src_pos, de, az, time_step, &target ) ;
+
+    if (!wave.addProplossListener(&loss)) {
+    	cout << "Error adding proploss listener! " << endl ;
+    	exit(1);
+    }
 
     // propagate wavefront
 

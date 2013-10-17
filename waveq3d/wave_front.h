@@ -12,6 +12,8 @@ namespace waveq3d {
 
 using namespace usml::ocean ;
 
+using boost::numeric::ublas::vector;
+
 /// @ingroup waveq3d
 /// @{
 

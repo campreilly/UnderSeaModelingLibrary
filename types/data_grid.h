@@ -5,11 +5,15 @@
 #ifndef USML_TYPES_DATA_GRID_H
 #define USML_TYPES_DATA_GRID_H
 
-#include <usml/types/seq_vector.h>
 #include <string.h>
+#include <usml/types/seq_vector.h>
+#include <usml/ublas/ublas.h>
+
+using namespace usml::ublas;
 
 namespace usml {
 namespace types {
+
 /// @ingroup data_grid
 /// @{
 
@@ -724,6 +728,12 @@ protected:
      * Default constructor for sub-classes
      */
     data_grid() {
+
+    	for (unsigned n = 0; n < NUM_DIMS; ++n) {
+    		_axis[n] = NULL;
+    	}
+    	_data = NULL;
+
         memset(_interp_type, GRID_INTERP_LINEAR, NUM_DIMS * sizeof(enum GRID_INTERP_TYPE));
         memset(_edge_limit, true, NUM_DIMS * sizeof(bool));
     }
@@ -784,8 +794,14 @@ public:
      */
     ~data_grid()
     {
-        for (unsigned n = 0; n < NUM_DIMS; ++n) delete _axis[n];
-        delete[] _data;
+        for (unsigned n = 0; n < NUM_DIMS; ++n) {
+        	if (_axis[n] != NULL) {
+        		delete _axis[n];
+        	}
+        }
+        if (_data != NULL) {
+        	delete[] _data;
+        }
     }
 };
 

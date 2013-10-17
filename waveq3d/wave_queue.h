@@ -8,6 +8,7 @@
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/reverb_model.h>
 #include <usml/waveq3d/wave_front.h>
+#include <usml/waveq3d/proplossListener.h>
 #include <netcdfcpp.h>
 
 namespace usml {
@@ -19,7 +20,7 @@ class reflection_model ;
 class spreading_model ;
 class spreading_ray ;
 class spreading_hybrid_gaussian ;
-class proploss ;
+class proplossListener ;
 
 /// @ingroup waveq3d
 /// @{
@@ -105,11 +106,18 @@ class USML_DECLSPEC wave_queue {
     double _time ;
 
     /**
-     * List of acoustic targets and their associated propagation data.
-     * Eigenrays are not computed if this reference is NULL.
-     * Assumes that the storage for this data is managed by calling routine.
+     * List of acoustic targets.
      */
-    proploss* _proploss ;
+    const wposition* _targets;
+
+	/**
+	 * Intermediate term: sin of colatitude for targets.
+	 * By caching this value here, we avoid re-calculating it each time
+	 * the that wave_front::compute_target_distance() needs to
+	 * compute the distance squared from each target to each point
+	 * on the wavefront.
+	 */
+	matrix<double> targets_sin_theta ;
 
     /** Reference to the reflection loss model component. */
     reflection_model* _reflection_model ;
@@ -119,6 +127,14 @@ class USML_DECLSPEC wave_queue {
      * Supports either classic ray theory or Hybrid Gaussian Beams.
      */
     spreading_model* _spreading_model ;
+
+
+    /**
+     * The default value of the intensity threshold in dB
+     * Any eigenray intensity values that don't meet this threshold
+     * are not sent the proplossListner(s);
+     */
+    double _intensity_threshold; //In dB
 
     /**
      * Circular queue of wavefront elements needed by the
@@ -130,6 +146,14 @@ class USML_DECLSPEC wave_queue {
      *    - _next is for iteration n+1
      */
     wave_front *_past, *_prev, *_curr, *_next ;
+
+
+    /**
+	* Vector containing the references of objects that will be used to
+	* update classes that require eigenrays as they are built.
+	* These classes must implement addEigenray method.
+	*/
+    std::vector<proplossListener *> m_ProplossListenerVec;
 
   public:
 
@@ -159,10 +183,7 @@ class USML_DECLSPEC wave_queue {
      *                      Ray fans that wrap around all azimuths should
      *                      include rays for both 0 and 360 degrees.
      * @param  time_step    Propagation step size (seconds).
-     * @param  prop_loss    List of acoustic targets and their associated
-     *                      propagation data. Eigenrays are not computed if
-     *                      this reference is NULL. Assumes that the storage
-     *                      for this data is managed by calling routine.
+     * @param  targets      List of acoustic targets.
      * @param  type         Type of spreading model to use: CLASSIC_RAY
      *                      or HYBRID_GAUSSIAN.
      */
@@ -172,7 +193,7 @@ class USML_DECLSPEC wave_queue {
         const wposition1& pos,
         const seq_vector& de, const seq_vector& az,
         double time_step,
-        proploss* prop_loss=NULL,
+        const wposition* targets=NULL,
         spreading_type type=HYBRID_GAUSSIAN
         ) ;
 
@@ -260,6 +281,20 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
+	 * setIntensityThreshold
+	 * @param  dThreshold The new value of the intensity threshold in dB
+	 */
+	inline void setIntensityThreshold(double dThreshold) {
+		_intensity_threshold = dThreshold;
+	}
+	/**
+	 * getIntensityThreshold
+	 * @param  dThreshold The new value of the intensity threshold in dB
+	 */
+	inline double getIntensityThreshold() {
+		return _intensity_threshold;
+	}
+    /**
      * Register a bottom reverberation model.
      */
     void set_bottom_reverb( reverb_model* model ) ;
@@ -268,6 +303,22 @@ class USML_DECLSPEC wave_queue {
      * Register a surface reverberation model.
      */
     void set_surface_reverb( reverb_model* model ) ;
+
+    /**
+     * Add a proplossListener to the m_ProplossListenerVec vector
+     */
+    bool addProplossListener(proplossListener* pListener);
+
+    /**
+	 * Remove a proplossListener from the m_ProplossListenerVec vector
+	 */
+    bool removeProplossListener(proplossListener* pListener);
+
+    /**
+     * For each proplossListener in the m_ProplossListenerVec vector
+     * call the addEigenray method to provide eigenrays.
+     */
+    bool notifyProplossListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray);
 
   private:
 
@@ -407,6 +458,7 @@ class USML_DECLSPEC wave_queue {
      * @param   t2          Column number of the current target.
      * @param   de          D/E angle index number.
      * @param   az          AZ angle index number.
+     * @param   center      Reference to the center of the distance2 cube.
      * @param   distance2   Distance squared to each of the 27 neighboring
      *                      points. The first index is time, the second is D/E
      *                      and the third is AZ (output).
@@ -415,6 +467,7 @@ class USML_DECLSPEC wave_queue {
     bool is_closest_ray(
         unsigned t1, unsigned t2,
         unsigned de, unsigned az,
+        const double &center,
         double distance2[3][3][3] ) ;
 
     /**
@@ -450,12 +503,12 @@ class USML_DECLSPEC wave_queue {
      * along the CPA ray. Phase is copied from the CPA as are the counts
      * for surface, bottom, and caustics.
      *
-     * There is an interesting degrenerate case that happens for targets
+     * There is an interesting degenerate case that happens for targets
      * near the source location.  The CPA calculation from detect_eigenrays()
      * creates non-physical eigenrays around the point at which the 2nd
-     * wavefront transitions from occuring before surface reflection to
+     * wavefront transitions from occurring before surface reflection to
      * including just after it. This routines examines the offsets in time and
-     * ensonified area to eliminate these non-physcial eigenrays.
+     * ensonified area to eliminate these non-physical eigenrays.
      *
      * @param   t1          Row number of the current target.
      * @param   t2          Column number of the current target.
@@ -468,7 +521,7 @@ class USML_DECLSPEC wave_queue {
      *                      and the third is AZ. Warning: this array
      *                      is modified during the computation.
      */
-    void add_eigenray(
+    void build_eigenray(
         unsigned t1, unsigned t2,
         unsigned de, unsigned az,
         double distance2[3][3][3] ) ;

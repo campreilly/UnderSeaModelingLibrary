@@ -292,8 +292,15 @@ void analyze_proploss(
         const double angle = target_range[n] / wposition::earth_radius ;
         target.latitude( n, 0, LAT_SOURCE + to_degrees(angle) );
     }
-    proploss loss(&target);
-    wave_queue wave( *ocean, freq, pos, de, az, time_inc, &loss ) ;
+
+    proploss loss(freq, pos, de, az, time_inc, &target);
+
+    wave_queue wave( *ocean, freq, pos, de, az, time_inc, &target ) ;
+
+    if (!wave.addProplossListener(&loss)) {
+    	cout << "Error adding proploss listener! " << endl ;
+    	exit(1);
+    }
 
     // compute the proploss and store eigenrays to disk
 
