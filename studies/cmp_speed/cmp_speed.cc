@@ -42,9 +42,12 @@ int main( int argc, char* argv[] ) {
     wposition1 src_pos( 19.52, -160.5, -200.0 ) ;
     seq_rayfan de( -90.0, 90.0, 181 ) ;
     seq_linear az( 0.0, 15.0, 360.0 ) ;
+//    seq_linear de( -90.0, 1.0, -90.0 ) ;
+//    seq_linear az( 0.0, 1.0, 0.0 ) ;
     const double target_depth = 100.0; // Meters
     const double target_range = 100000.0; // Meters
     const double time_max = 80.0 ;
+//    const double time_max = 3.5 ;
     const double time_step = 0.100 ;
 
     // load STD14 environmental data from netCDF files
@@ -55,15 +58,15 @@ int main( int argc, char* argv[] ) {
     const double lng2 = -155.5 ;
 
     cout << "load STD14 environmental profile data" << endl ;
-//    profile_model* profile = new profile_grid<double,3>( new netcdf_profile(
-//            USML_STUDIES_DIR "/cmp_speed/std14profile.nc", 0.0, lat1, lat2, lng1, lng2,
-//            wposition::earth_radius ) ) ;
+    profile_model* profile = new profile_grid<double,3>( new netcdf_profile(
+            USML_STUDIES_DIR "/cmp_speed/std14profile.nc", 0.0, lat1, lat2, lng1, lng2,
+            wposition::earth_radius ) ) ;
         //fast_grid_3d
-    data_grid<double,3>* ssp = new netcdf_profile( USML_STUDIES_DIR "/cmp_speed/std14profile.nc",
-            0.0, lat1, lat2, lng1, lng2, wposition::earth_radius ) ;
-    data_grid_fast_3d* fast_ssp = new data_grid_fast_3d(*ssp,true) ;
-    delete ssp ;
-    profile_model* profile = new profile_grid_fast( fast_ssp ) ;
+//    data_grid<double,3>* ssp = new netcdf_profile( USML_STUDIES_DIR "/cmp_speed/std14profile.nc",
+//            0.0, lat1, lat2, lng1, lng2, wposition::earth_radius ) ;
+//    data_grid_fast_3d* fast_ssp = new data_grid_fast_3d(*ssp,true) ;
+//    delete ssp ;
+//    profile_model* profile = new profile_grid_fast( fast_ssp ) ;
 //  attenuation_model* attn = new attenuation_constant(0.0);
 //  profile_model* profile = new profile_linear(1500.0,attn);
 
@@ -110,7 +113,8 @@ int main( int argc, char* argv[] ) {
     }
 
     proploss loss(freq, src_pos, de, az, time_step, &target);
-    wave_queue wave( ocean, freq, src_pos, de, az, time_step, &target ) ;
+//    wave_queue wave( ocean, freq, src_pos, de, az, time_step, &target ) ;
+    wave_queue wave( ocean, freq, src_pos, de, az, time_step ) ;
 
     if (!wave.addProplossListener(&loss)) {
     	cout << "Error adding proploss listener! " << endl ;

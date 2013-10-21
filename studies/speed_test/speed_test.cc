@@ -16,11 +16,11 @@ using namespace usml::netcdf ;
  * functions in the x and y directions.
  */
 
-//static double cubic2d( double _val[] ) {
-//    double func_val = ( _val[0]*_val[0]*_val[0] ) *
-//            ( _val[1]*_val[1]*_val[1] ) ;
-//    return func_val ;
-//}
+static double cubic2d( double _val[] ) {
+    double func_val = ( _val[0]*_val[0]*_val[0] ) *
+            ( _val[1]*_val[1]*_val[1] ) ;
+    return func_val ;
+}
 
 //static double deriv2d_x( double _val[] ) {
 //    double func_val = 3.0 * ( _val[0]*_val[0] ) *
@@ -62,85 +62,85 @@ using namespace usml::netcdf ;
  */
 int main() {
 /** =====Test for speed on 2-Dimensions one location at a time===== */
-//    cout << "=== datagrid_interpolation_speed_test_2d ===" << endl;
-//
-//    int num_points = 1e8 ;
-//    int param = 5 ;
-//    int counter = 0 ;
-//    unsigned index[2] ;
-//    double x_y[2] ;
-//
-//    seq_vector* ax[2] ;
-//    ax[0] = new seq_linear(1.0, 1.0, 5) ;
-//    ax[1] = new seq_linear(1.0, 1.0, 5) ;
-//    data_grid<double,2>* grid = new data_grid<double,2>(ax);
-//
-//    for(int i = 0; i<2; ++i) {
+    cout << "=== datagrid_interpolation_speed_test_2d ===" << endl;
+
+    int num_points = 1e6 ;
+    int param = 5 ;
+    int counter = 0 ;
+    unsigned index[2] ;
+    double x_y[2] ;
+
+    seq_vector* ax[2] ;
+    ax[0] = new seq_linear(1.0, 1.0, 5) ;
+    ax[1] = new seq_linear(1.0, 1.0, 5) ;
+    data_grid<double,2>* grid = new data_grid<double,2>(ax);
+
+    for(int i = 0; i<2; ++i) {
 //        grid->interp_type(i, GRID_INTERP_NEAREST);
 //        grid->interp_type(i, GRID_INTERP_LINEAR);
-//        grid->interp_type(i, GRID_INTERP_PCHIP);
-//        grid->edge_limit(i, true);
-//    }
-//
-//    for(int i=0; i < (*ax[0]).size(); ++i) {
-//        for(int j=0; j < (*ax[1]).size(); ++j) {
-//                index[0] = i ;
-//                index[1] = j ;
-//                x_y[0] = i + 1 ;
-//                x_y[1] = j + 1 ;
-//                double number = cubic2d(x_y) ;
-//                grid->data( index, number ) ;
-//        }
-//    }
-//
-//    cout << "==========simple_data grid=============" << endl;
-//    cout << "axis[0]: " << *ax[0] << endl;
-//    cout << "axis[1]: " << *ax[1] << endl;
-//    for(int i=0; i < (*ax[0]).size(); i++ ) {
-//        for(int j=0; j < (*ax[1]).size(); j++ ) {
-//            index[0] = i ;
-//            index[1] = j ;
-//            cout << grid->data(index) ;
-//            (j < (*ax[1]).size()-1) ? cout << "\t" :  cout << endl;
-//        }
-//    }
-//    cout << endl;
-//
-//    double spot[2] ;
-//    matrix<double*> location (num_points,1) ;
-//    for(int i=0; i<num_points; ++i) {
-//        spot[0] = param * randgen::uniform();
-//        spot[1] = param * randgen::uniform();
-//        location(i,0) = spot ;
-//    }
-//
-//    struct timeval time ;
-//    struct timezone zone ;
-//    gettimeofday( &time, &zone ) ;
-//    double start = time.tv_sec + time.tv_usec * 1e-6 ;
-//    while ( counter != num_points ) {
-//        grid->interpolate( location(counter, 0) );
-//        ++counter;
-//    }
-//    gettimeofday( &time, &zone ) ;
-//    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
-//
-//	cout << "Time to complete interpolation using data_grid method was "
-//		 << (complete-start) << " sec." << endl;
+        grid->interp_type(i, GRID_INTERP_PCHIP);
+        grid->edge_limit(i, true);
+    }
 
-//    data_grid_fast_2d* fast_grid = new data_grid_fast_2d(*grid, true);
-//    counter = 0 ;
-//    gettimeofday( &time, &zone ) ;
-//    start = time.tv_sec + time.tv_usec * 1e-6 ;
-//    while ( counter != num_points ) {
-//        fast_grid->interpolate( location(counter, 0) );
-//        ++counter;
-//    }
-//    gettimeofday( &time, &zone ) ;
-//    complete = time.tv_sec + time.tv_usec * 1e-6 ;
-//
-//	cout << "Time to complete interpolation using fast_grid method was "
-//		 << (complete-start) << " sec." << endl;
+    for(int i=0; i < (*ax[0]).size(); ++i) {
+        for(int j=0; j < (*ax[1]).size(); ++j) {
+                index[0] = i ;
+                index[1] = j ;
+                x_y[0] = i + 1 ;
+                x_y[1] = j + 1 ;
+                double number = cubic2d(x_y) ;
+                grid->data( index, number ) ;
+        }
+    }
+
+    cout << "==========simple_data grid=============" << endl;
+    cout << "axis[0]: " << *ax[0] << endl;
+    cout << "axis[1]: " << *ax[1] << endl;
+    for(int i=0; i < (*ax[0]).size(); i++ ) {
+        for(int j=0; j < (*ax[1]).size(); j++ ) {
+            index[0] = i ;
+            index[1] = j ;
+            cout << grid->data(index) ;
+            (j < (*ax[1]).size()-1) ? cout << "\t" :  cout << endl;
+        }
+    }
+    cout << endl;
+
+    double spot[2] ;
+    matrix<double*> location (num_points,1) ;
+    for(int i=0; i<num_points; ++i) {
+        spot[0] = param * randgen::uniform();
+        spot[1] = param * randgen::uniform();
+        location(i,0) = spot ;
+    }
+
+    struct timeval time ;
+    struct timezone zone ;
+    gettimeofday( &time, &zone ) ;
+    double start = time.tv_sec + time.tv_usec * 1e-6 ;
+    while ( counter != num_points ) {
+        grid->interpolate( location(counter, 0) );
+        ++counter;
+    }
+    gettimeofday( &time, &zone ) ;
+    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
+
+	cout << "Time to complete interpolation using data_grid method was "
+		 << (complete-start) << " sec." << endl;
+
+    data_grid_fast_2d* fast_grid = new data_grid_fast_2d(*grid, true);
+    counter = 0 ;
+    gettimeofday( &time, &zone ) ;
+    start = time.tv_sec + time.tv_usec * 1e-6 ;
+    while ( counter != num_points ) {
+        fast_grid->interpolate( location(counter, 0) );
+        ++counter;
+    }
+    gettimeofday( &time, &zone ) ;
+    complete = time.tv_sec + time.tv_usec * 1e-6 ;
+
+	cout << "Time to complete interpolation using fast_grid method was "
+		 << (complete-start) << " sec." << endl;
 
 /** =====Test for speed on 3-Dimensions one location at a time===== */
 //    cout << "=== datagrid_interpolation_speed_test_3d ===" << endl;
@@ -240,94 +240,115 @@ int main() {
 //		 << (complete-start) << " sec." << endl;
 
 /** =====Test for speed on 3-Dimensions multiple locations at a time===== */
-    cout << "=== datagrid_3d_speed_matrix_pass ===" << endl;
-
-    int num_points = 1e0 ;
+//    cout << "=== datagrid_3d_speed_matrix_pass ===" << endl;
+//
+//    int n_pts = 1e0 ;
+//    int m_pts = 2e1 ;
 //    double param = 4 ;
-    const double lat1 = 16.2 ;
-    const double lat2 = 24.6 ;
-    const double lng1 = -164.4;
-    const double lng2 = -155.5 ;
-    data_grid<double,3>* grid = new netcdf_profile( "/home/david/usml/studies/cmp_speed/std14profile.nc",
-            0.0, lat1, lat2, lng1, lng2, wposition::earth_radius ) ;
-
-    grid->interp_type(0, GRID_INTERP_PCHIP);
-    grid->edge_limit(0, true);
-    grid->interp_type(1, GRID_INTERP_LINEAR);
-    grid->edge_limit(1, true);
-    grid->interp_type(2, GRID_INTERP_LINEAR);
-    grid->edge_limit(2, true);
-
-    #ifdef USML_DEBUG
-        unsigned index[3] ;
-        cout << "==========complex_data grid=============" << endl;
-        cout << "grid->axis0: " << *(grid->axis(0)) << endl;
-        cout << "grid->axis1: " << *(grid->axis(1)) << endl;
-        cout << "grid->axis0: " << *(grid->axis(2)) << endl;
-        for(int i=0; i < (*grid->axis(0)).size(); i++ ) {
-            cout << "\t" << i << ",:,:" << endl;
-            for(int j=0; j < (*grid->axis(1)).size(); j++ ) {
-                cout << "\t\t" ;
-                for(int k=0; k < (*grid->axis(2)).size(); k++ ) {
-                    index[0] = i ;
-                    index[1] = j ;
-                    index[2] = k ;
-                    cout << grid->data(index) ;
-                    (k < (*grid->axis(2)).size()-1) ? cout << "\t" :  cout << endl;
-                }
-            }
-            cout << endl;
-        }
-        cout << endl;
-    #endif
-
-    wposition location (num_points,1) ;
-    matrix<double> _ssp (num_points,1) ;
-    wvector derv (num_points,1) ;
-//    for(unsigned i=0; i<num_points; ++i) {
-//        location.latitude( i, 0, 17.0 + param * randgen::uniform() );
-//        location.longitude( i, 0, -157.3 - param * randgen::uniform() );
-//        location.altitude( i, 0, -200.0 - 500.0 * randgen::uniform() );
+//    const double lat1 = 16.2 ;
+//    const double lat2 = 24.6 ;
+//    const double lng1 = -164.4;
+//    const double lng2 = -155.5 ;
+//    data_grid<double,3>* grid = new netcdf_profile( USML_STUDIES_DIR "/cmp_speed/std14profile.nc",
+//            0.0, lat1, lat2, lng1, lng2, wposition::earth_radius ) ;
+//
+//    grid->interp_type(0, GRID_INTERP_PCHIP);
+//    grid->edge_limit(0, true);
+//    grid->interp_type(1, GRID_INTERP_LINEAR);
+//    grid->edge_limit(1, true);
+//    grid->interp_type(2, GRID_INTERP_LINEAR);
+//    grid->edge_limit(2, true);
+//
+//    #ifdef USML_DEBUG
+//        unsigned index[3] ;
+//        cout << "==========complex_data grid=============" << endl;
+//        cout << "grid->axis0: " << *(grid->axis(0)) << endl;
+//        cout << "grid->axis1: " << *(grid->axis(1)) << endl;
+//        cout << "grid->axis0: " << *(grid->axis(2)) << endl;
+//        for(int i=0; i < (*grid->axis(0)).size(); i++ ) {
+//            cout << "\t" << i << ",:,:" << endl;
+//            for(int j=0; j < (*grid->axis(1)).size(); j++ ) {
+//                cout << "\t\t" ;
+//                for(int k=0; k < (*grid->axis(2)).size(); k++ ) {
+//                    index[0] = i ;
+//                    index[1] = j ;
+//                    index[2] = k ;
+//                    cout << grid->data(index) ;
+//                    (k < (*grid->axis(2)).size()-1) ? cout << "\t" :  cout << endl;
+//                }
+//            }
+//            cout << endl;
+//        }
+//        cout << endl;
+//    #endif
+//
+//    wposition location (n_pts,m_pts) ;
+//    matrix<double> _ssp (n_pts,m_pts) ;
+//    wvector derv (n_pts,m_pts) ;
+//    for(unsigned i=0; i<n_pts; ++i) {
+//        for(unsigned j=0; j<m_pts; ++j) {
+//            location.latitude( i, j, 17.0 + param * randgen::uniform() );
+//            location.longitude( i, j, -157.3 - param * randgen::uniform() );
+//            location.altitude( i, j, -100.0 + j*10.0 );
+//        }
 //    }
-    location.latitude( 0, 0, 18.2 );
-    location.longitude( 0, 0, -160.0 );
-    location.altitude( 0, 0, -236.0 );
-
-        //data_grid
-    profile_model* ssp = new profile_grid<double,3>(grid) ;
-    struct timeval time ;
-    struct timezone zone ;
-    cout << "\t===Starting speed test comparison===" << endl;
-    gettimeofday( &time, &zone ) ;
-    double start = time.tv_sec + time.tv_usec * 1e-6 ;
-
-    ssp->sound_speed( location, &_ssp, &derv );
-
-    gettimeofday( &time, &zone ) ;
-    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
-
-	cout << "Time to complete interpolation using data_grid method was "
-		 << (complete-start) << " sec." << endl;
-cout << "data_grid results: " << _ssp << endl;
-cout << "data_grid derv: (" << derv.rho(0,0) << ", " << derv.theta(0,0) << ", " << derv.phi(0,0) << ")" << endl;
-
-        //data_grid_fast_3d
-    data_grid_fast_3d* fast_grid = new data_grid_fast_3d(*grid, true);
-    profile_model* ssp_fast = new profile_grid_fast(fast_grid) ;
-
-    gettimeofday( &time, &zone ) ;
-    start = time.tv_sec + time.tv_usec * 1e-6 ;
-
-    ssp_fast->sound_speed( location, &_ssp, &derv );
-
-    gettimeofday( &time, &zone ) ;
-    complete = time.tv_sec + time.tv_usec * 1e-6 ;
-
-	cout << "Time to complete interpolation using fast_grid method was "
-		 << (complete-start) << " sec." << endl;
-cout << "fast_3d ssp: " << _ssp << endl;
-cout << "fast_3d derv: (" << derv.rho(0,0) << ", " << derv.theta(0,0) << ", " << derv.phi(0,0) << ")" << endl;
-
+////    location.latitude( 0, 0, 18.2 );
+////    location.longitude( 0, 0, -160.0 );
+////    location.altitude( 0, 0, 236.0 );
+//    cout << "location.altitude: " << location.altitude() << endl;
+//
+//        //data_grid
+//    profile_model* ssp = new profile_grid<double,3>(grid) ;
+//    struct timeval time ;
+//    struct timezone zone ;
+//    cout << "\t===Starting speed test comparison===" << endl;
+//    gettimeofday( &time, &zone ) ;
+//    double start = time.tv_sec + time.tv_usec * 1e-6 ;
+//
+//    ssp->sound_speed( location, &_ssp, &derv );
+//
+//    gettimeofday( &time, &zone ) ;
+//    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
+//
+//	cout << "Time to complete interpolation using data_grid method was "
+//		 << (complete-start) << " sec." << endl;
+//    cout << "data_grid results: " << _ssp << endl;
+//    cout << "---data_grid derv---" << endl;
+//    for ( unsigned n1=0 ; n1 < n_pts ; ++n1 ) {
+//        cout << "\t" << n1 << ",:" << endl;
+//        for ( unsigned n2=0 ; n2 < m_pts ; ++n2 ) {
+//            if(n2!=0) {cout << " " ;}
+//            else {cout << "\t" ;}
+//            cout << "(" << derv.rho(n1,n2) << ")" ;
+//        }
+//        cout << endl;
+//    }
+//
+//        //data_grid_fast_3d
+//    data_grid_fast_3d* fast_grid = new data_grid_fast_3d(*grid, true);
+//    profile_model* ssp_fast = new profile_grid_fast(fast_grid) ;
+//
+//    gettimeofday( &time, &zone ) ;
+//    start = time.tv_sec + time.tv_usec * 1e-6 ;
+//
+//    ssp_fast->sound_speed( location, &_ssp, &derv );
+//
+//    gettimeofday( &time, &zone ) ;
+//    complete = time.tv_sec + time.tv_usec * 1e-6 ;
+//
+//	cout << "Time to complete interpolation using fast_grid method was "
+//		 << (complete-start) << " sec." << endl;
+//    cout << "fast_3d ssp: " << _ssp << endl;
+//    cout << "---fast_3d derv---" << endl;
+//    for ( unsigned n1=0 ; n1 < n_pts ; ++n1 ) {
+//        cout << "\t" << n1 << ",:" << endl;
+//        for ( unsigned n2=0 ; n2 < m_pts ; ++n2 ) {
+//            if(n2!=0) {cout << " " ;}
+//            else {cout << "\t" ;}
+//            cout << "(" << derv.rho(n1,n2) << ")" ;
+//        }
+//        cout << endl;
+//    }
 
 /** =====Accuracy Testing===== */
 //    double value ;

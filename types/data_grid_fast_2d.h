@@ -10,6 +10,7 @@
 #include <usml/types/seq_vector.h>
 
 //#define FAST_GRID_DEBUG
+//#define DERV_CONSTRUCT
 
 namespace usml {
 namespace types {
@@ -40,6 +41,14 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
 
     private:
 
+        /** Utility accessor function for data grid values */
+        inline double data_2d(unsigned row, unsigned col) {
+            unsigned _grid_index[2] ;
+            _grid_index[0] = row ;
+            _grid_index[1] = col ;
+            return data(_grid_index) ;
+        }
+
         /** Used during interpolation to hold the axis offsets. */
         unsigned _offset[2];
         unsigned fast_index[2];
@@ -52,14 +61,19 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
         c_matrix<double,16,16> inv_bicubic_coeff ;
 
         /**
-         *
+         * Create variables that are used multiple times through out
+         * the course of multiple calls per instance. Thus allowing
+         * these variables to be created once and used as many times
+         * as needed and save memory.
          */
         c_matrix<double,16,1> bicubic_coeff ;
         c_matrix<double,16,1> field ;
-        c_matrix<double,4,1> inc ;
         c_matrix<double,1,16> xyloc ;
         c_matrix<double,1,1> result_pchip ;
         c_matrix<double,4,4> value ;
+        matrix<double> derv_x ;
+        matrix<double> derv_y ;
+        matrix<double> derv_x_y ;
         const int kmin ;
         const int k0max ;
         const int k1max ;
@@ -139,57 +153,38 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
                     else if ((k1+j) <= kmin) {fast_index[1] = kmin ;}
                     else {fast_index[1] = k1+j ;}
                     value(i+1,j+1) = data(fast_index);
-                }
-//                if (i<1) {
-//                    if ((k0+i+1) >= k0max) {
-//                        inc(i+1,0) = (_axis[0]->increment(k0max) + _axis[0]->increment(k0+i)) / _axis[0]->increment(k0max) ;
-//                    }
-//                    else if ((k0+i+1) <= kmin) {
-//                        inc(i+1,0) = (_axis[0]->increment(k0+i+2) + _axis[0]->increment(kmin)) / _axis[0]->increment(kmin) ;
-//                    }
-//                    else {
-//                        inc(i+1,0) = (_axis[0]->increment(k0+i+2) + _axis[0]->increment(k0+i)) / _axis[0]->increment(k0+i+1) ;
-//                    }
-//                } else {
-//                    if ((k1+i-1) >= k1max) {
-//                        inc(i+1,0) = (_axis[1]->increment(k1max) + _axis[1]->increment(k1+i-2)) / _axis[1]->increment(k1max) ;
-//                    }
-//                    else if ((k1+i-1) <= kmin) {
-//                        inc(i+1,0) = (_axis[1]->increment(k1+i) + _axis[1]->increment(kmin)) / _axis[1]->increment(kmin) ;
-//                    }
-//                    else {
-//                        inc(i+1,0) = (_axis[1]->increment(k1+i) + _axis[1]->increment(k1+i-2)) / _axis[1]->increment(k1+i-1) ;
-//                    }
-//                }
-            }
-inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
+                }   //end for-loop in j
+            }   //end for-loop in i
+
             #ifdef FAST_GRID_DEBUG
                 cout << "loc0: " << location[0] << "  loc1: " << location[1] << endl;
                 cout << "offset0: " << k0 << "  offset1: " << k1 << endl;
                 cout << "axis0: " << (*_axis[0])(k0) << "  axis1: " << (*_axis[1])(k1) << endl;
                 cout << "data value at offset: " << ( (data(interp_index) > 1e6) ?
                             data(interp_index) - wposition::earth_radius : data(interp_index) ) << endl;
-                cout << "inc: " << inc << endl;
                 cout << "value: " << value << endl;
+                cout << "deriv_x: " << derv_x << endl;
+                cout << "derv_y: " << derv_y << endl;
+                cout << "derv_x_y: " << derv_x_y << endl;
             #endif
 
                 // Construct the field matrix
-            field(0,0) = value(1,1);
-            field(1,0) = value(1,2);
-            field(2,0) = value(2,1);
-            field(3,0) = value(2,2);
-            field(4,0) = (value(2,1) - value(0,1)) / inc(0,0);
-            field(5,0) = (value(2,2) - value(0,2)) / inc(0,0);
-            field(6,0) = (value(3,1) - value(1,1)) / inc(1,0);
-            field(7,0) = (value(3,2) - value(1,2)) / inc(1,0);
-            field(8,0) = (value(1,2) - value(1,0)) / inc(2,0);
-            field(9,0) = (value(1,3) - value(1,1)) / inc(3,0);
-            field(10,0) = (value(2,2) - value(2,0)) / inc(2,0);
-            field(11,0) = (value(2,3) - value(2,1)) / inc(3,0);
-            field(12,0) = (value(2,2) - value(2,0) - value(0,2) + value(0,0)) / (inc(0,0)*inc(2,0));
-            field(13,0) = (value(2,3) - value(2,1) - value(0,3) + value(0,1)) / (inc(0,0)*inc(3,0));
-            field(14,0) = (value(3,2) - value(1,2) - value(3,0) + value(1,0)) / (inc(1,0)*inc(2,0));
-            field(15,0) = (value(3,3) - value(3,1) - value(1,3) + value(1,1)) / (inc(1,0)*inc(3,0));
+            field(0,0) = value(1,1);                  //f(0,0)
+            field(1,0) = value(1,2);                  //f(0,1)
+            field(2,0) = value(2,1);                  //f(1,0)
+            field(3,0) = value(2,2);                  //f(1,1)
+            field(4,0) = derv_x(k0,k1) ;              //f_x(0,0)
+            field(5,0) = derv_x(k0,k1+1) ;            //f_x(0,1)
+            field(6,0) = derv_x(k0+1,k1) ;            //f_x(1,0)
+            field(7,0) = derv_x(k0+1,k1+1) ;          //f_x(1,1)
+            field(8,0) = derv_y(k0,k1) ;              //f_y(0,0)
+            field(9,0) = derv_y(k0,k1+1) ;            //f_y(0,1)
+            field(10,0) = derv_y(k0+1,k1) ;           //f_y(1,0)
+            field(11,0) = derv_y(k0+1,k1+1) ;         //f_y(1,1)
+            field(12,0) = derv_x_y(k0,k1) ;           //f_x_y(0,0)
+            field(13,0) = derv_x_y(k0,k1+1) ;         //f_x_y(0,1)
+            field(14,0) = derv_x_y(k0+1,k1) ;         //f_x_y(1,0)
+            field(15,0) = derv_x_y(k0+1,k1+1) ;       //f_x_y(1,1)
 
                 // Construct the coefficients of the bicubic interpolation
             bicubic_coeff = prod(inv_bicubic_coeff, field);
@@ -253,9 +248,9 @@ inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
         */
 
         data_grid_fast_2d( const data_grid<double,2>& grid, bool copy_data = true ) :
-            data_grid(grid,copy_data), bicubic_coeff(16,1), field(16,1), inc(4,1),
-            xyloc(1,16), result_pchip(1,1), value(4,4), kmin(0u),
-            k0max(_axis[0]->size()-1u), k1max(_axis[1]->size()-1u)
+            data_grid(grid,copy_data), bicubic_coeff(16,1), field(16,1), xyloc(1,16),
+            result_pchip(1,1), value(4,4), kmin(0u), k0max(_axis[0]->size()-1u),
+            k1max(_axis[1]->size()-1u)
         {
                 //Construct the inverse bicubic interpolation coefficient matrix
             inv_bicubic_coeff = zero_matrix<double> (16,16);
@@ -326,6 +321,123 @@ inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
 
             fast_index[0] = 0;
             fast_index[1] = 0;
+
+                //Pre-construct increments for all intervals once to save time
+            matrix<double> inc_x(k0max+1u,1) ;
+            for(unsigned i=0; i<k0max+1u; ++i) {
+                if(i==0 || i==k0max) {
+                    inc_x(i,0) = 2 ;
+                }
+                else {
+                    inc_x(i,0) = ( _axis[0]->increment(i-1) + _axis[0]->increment(i+1) ) /
+                                _axis[0]->increment(i) ;
+                }
+            }
+            matrix<double> inc_y(k1max+1u,1) ;
+            for(unsigned i=0; i<k1max+1u; ++i) {
+                if(i==0 || i==k1max) {
+                    inc_y(i,0) = 2 ;
+                }
+                else {
+                    inc_y(i,0) = ( _axis[1]->increment(i-1) + _axis[1]->increment(i+1) ) /
+                                _axis[1]->increment(i) ;
+                }
+            }
+
+                //Pre-construct all derivatives and cross-dervs once to save time
+            derv_x = matrix<double> (k0max+1u,k1max+1u) ;
+            derv_y = matrix<double> (k0max+1u,k1max+1u) ;
+            derv_x_y = matrix<double> (k0max+1u,k1max+1u) ;
+            for(unsigned i=0; i<k0max+1u; ++i) {
+                for(unsigned j=0; j<k1max+1u; ++j) {
+                    if( i<1 && j<1 ) {                      //top-left corner
+                        #ifdef DERV_CONSTRUCT
+                            cout << "***Condition: i<1 && j<1***" << endl;
+                        #endif
+                        derv_x(i,j) = ( data_2d(i+1,j) - data_2d(i,j) ) / inc_x(i,0) ;
+                        derv_y(i,j) = ( data_2d(i,j+1) - data_2d(i,j) ) / inc_y(j,0) ;
+                        derv_x_y(i,j) = ( data_2d(i+1,j+1) - data_2d(i+1,j) -
+                                          data_2d(i,j+1) + data_2d(i,j) )
+                                        / ( inc_x(i,0)*inc_y(j,0) ) ;
+                    } else
+                    if( i==k0max && j==k1max ) {            //bottom-right corner
+                        #ifdef DERV_CONSTRUCT
+                            cout << "***Condition: i==k0max && j==k1max***" << endl;
+                        #endif
+                        derv_x(i,j) = ( data_2d(i,j) - data_2d(i-1,j) ) / inc_x(i,0) ;
+                        derv_y(i,j) = ( data_2d(i,j) - data_2d(i,j-1) ) / inc_y(j,0) ;
+                        derv_x_y(i,j) = ( data_2d(i,j) - data_2d(i,j-1) -
+                                          data_2d(i-1,j) + data_2d(i-1,j-1) )
+                                        / ( inc_x(i,0)*inc_y(j,0) ) ;
+                    } else
+                    if( i<1 && j==k1max ) {                  //top-right corner
+                        #ifdef DERV_CONSTRUCT
+                            cout << "***Condition: i<1 && j==k1max***" << endl;
+                        #endif
+                        derv_x(i,j) = ( data_2d(i+1,j) - data_2d(i,j) ) / inc_x(i,0) ;
+                        derv_y(i,j) = ( data_2d(i,j) - data_2d(i,j-1) ) / inc_y(j,0) ;
+                        derv_x_y(i,j) = ( data_2d(i+1,j) - data_2d(i+1,j-1) -
+                                          data_2d(i,j) + data_2d(i,j-1) )
+                                        / ( inc_x(i,0)*inc_y(j,0) ) ;
+                    } else
+                    if( j<1 && i==k0max ) {                  //bottom-left corner
+                        #ifdef DERV_CONSTRUCT
+                            cout << "***Condition: j<1 && i==k0max***" << endl;
+                        #endif
+                        derv_x(i,j) = ( data_2d(i,j) - data_2d(i-1,j) ) / inc_x(i,0) ;
+                        derv_y(i,j) = ( data_2d(i,j+1) - data_2d(i,j) ) / inc_y(j,0) ;
+                        derv_x_y(i,j) = ( data_2d(i,j+1) - data_2d(i,j) -
+                                          data_2d(i-1,j+1) + data_2d(i-1,j) )
+                                        / ( inc_x(i,0)*inc_y(j,0) ) ;
+                    } else
+                    if( i<1 && (1<=j && j<k1max) ) {       //top row
+                        #ifdef DERV_CONSTRUCT
+                            cout << "***Condition: i<1 && (1<=j && j<k1max)***" << endl;
+                        #endif
+                        derv_x(i,j) = ( data_2d(i+1,j) - data_2d(i,j) ) / inc_x(i,0) ;
+                        derv_y(i,j) = ( data_2d(i,j+1) - data_2d(i,j-1) ) / inc_y(j,0) ;
+                        derv_x_y(i,j) = ( data_2d(i+1,j+1) - data_2d(i+1,j-1) -
+                                          data_2d(i,j+1) + data_2d(i,j-1) )
+                                        / ( inc_x(i,0)*inc_y(j,0) ) ;
+                    } else
+                    if( j<1 && (1<=i && i<k0max) ) {       //left most column
+                        #ifdef DERV_CONSTRUCT
+                            cout << "***Condition: j<1 && (1<=i && i<k0max)***" << endl;
+                        #endif
+                        derv_x(i,j) = ( data_2d(i+1,j) - data_2d(i-1,j) ) / inc_x(i,0) ;
+                        derv_y(i,j) = ( data_2d(i,j+1) - data_2d(i,j) ) / inc_y(j,0) ;
+                        derv_x_y(i,j) = ( data_2d(i+1,j+1) - data_2d(i+1,j) -
+                                          data_2d(i-1,j+1) + data_2d(i-1,j) )
+                                        / ( inc_x(i,0)*inc_y(j,0) ) ;
+                    } else
+                    if( j==k1max && (1<=i && i<k0max) ) {       //right most column
+                        #ifdef DERV_CONSTRUCT
+                            cout << "***Condition: j>k1max && (1<=i && i<k0max)***" << endl;
+                        #endif
+                        derv_x(i,j) = ( data_2d(i+1,j) - data_2d(i-1,j) ) / inc_x(i,0) ;
+                        derv_y(i,j) = ( data_2d(i,j) - data_2d(i,j-1) ) / inc_y(j,0) ;
+                        derv_x_y(i,j) = ( data_2d(i+1,j) - data_2d(i+1,j-1) -
+                                          data_2d(i-1,j) + data_2d(i-1,j-1) )
+                                        / ( inc_x(i,0)*inc_y(j,0) ) ;
+                    } else
+                    if( i==k0max && (1<=j && j<k1max) ) {       //bottom row
+                        #ifdef DERV_CONSTRUCT
+                            cout << "***Condition: i>k0max && (1<=j && j<k1max)***" << endl;
+                        #endif
+                        derv_x(i,j) = ( data_2d(i,j) - data_2d(i-1,j) ) / inc_x(i,0) ;
+                        derv_y(i,j) = ( data_2d(i,j+1) - data_2d(i,j-1) ) / inc_y(j,0) ;
+                        derv_x_y(i,j) = ( data_2d(i,j+1) - data_2d(i,j-1) -
+                                          data_2d(i-1,j+1) + data_2d(i-1,j-1) )
+                                        / ( inc_x(i,0)*inc_y(j,0) ) ;
+                    } else {                                //inside, restrictive
+                        derv_x(i,j) = ( data_2d(i+1,j) - data_2d(i-1,j) ) / inc_x(i,0) ;
+                        derv_y(i,j) = ( data_2d(i,j+1) - data_2d(i,j-1) ) / inc_y(j,0) ;
+                        derv_x_y(i,j) = ( data_2d(i+1,j+1) - data_2d(i+1,j-1) -
+                                          data_2d(i-1,j+1) + data_2d(i-1,j-1) )
+                                        / ( inc_x(i,0)*inc_y(j,0) ) ;
+                    }
+                } //end for-loop in j
+            } //end for-loop in i
         }
 
         /**
@@ -480,6 +592,7 @@ inc(0,0) = inc(1,0) = inc(2,0) = inc(3,0) = 2;
                 }
             }
         }
+
 };
 
 } // end of namespace types

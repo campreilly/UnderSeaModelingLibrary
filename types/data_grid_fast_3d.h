@@ -45,21 +45,38 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
 
         unsigned _offset[3];
         unsigned fast_index[3];
+        unsigned kmin ;
+        unsigned kzmax ;
 
         double pchip_part(const unsigned _k, const double _location,
                           const double* _data, double* _deriv) const
         {
             double y0 = _data[0], y1 = _data[1], y2 = _data[2], y3 = _data[3];
 
-            double inc0 = _axis[0]->increment(_k-1) ;
+            double inc0 ;
+            if(_k-1==kmin) {inc0 = _axis[0]->increment(_k) ;}
+            else {inc0 = _axis[0]->increment(_k-1) ;}
             double inc1 = _axis[0]->increment(_k) ;
-            double inc2 = _axis[0]->increment(_k+1) ;
-            double slope_1 = (y2 - y1)/(2*inc1) + (y1 - y0)/(2*inc0);
-            double slope_2 = (y3 - y2)/(2*inc2) + (y2 - y1)/(2*inc1);
+            double inc2 ;
+            if(_k+1>=kzmax) {inc2 = _axis[0]->increment(kzmax) ;}
+            else {inc2 = _axis[0]->increment(_k+1) ;}
+            double d0 = (y1 - y0) / inc0 ;
+            double d1 = (y2 - y1) / inc1 ;
+            double d2 = (y3 - y2) / inc2 ;
 
             double t = ( _location - (*_axis[0])(_k) ) / inc1 ;
             double t_2 = t*t ;
             double t_3 = t_2*t ;
+
+                //weighted harmonic mean calculation for slope
+            double w0 = 2.0*inc0 + inc1 ;
+            double w1 = inc0 + 2.0*inc1 ;
+            double w2 = 2.0*inc1 + inc2 ;
+            double w3 = inc1 + 2.0*inc2 ;
+            double slope_1 = (w0 + w1) / (w0/d0 + w1/d1) ;
+            double slope_2 = (w2 + w3) / (w2/d1 + w3/d2) ;
+            double dslope_1 = (d1 - d0) / inc0 ;
+            double dslope_2 = (d2 - d1) / inc1 ;
 
             double h00 = ( 2*t_3 - 3*t_2 + 1 ) ;
             double h10 = ( t_3 - 2*t_2 + t ) ;
@@ -84,10 +101,10 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
             #endif
 
             if(_deriv) {
-                _deriv[0] = ( 6*t_2 - 6*t ) * y1 +
-                            ( 3*t_2 - 4*t + 1 ) * slope_1 +
-                            ( 6*t - 6*t_2 ) * y2 +
-                            ( 3*t_2 - 2*t ) * slope_2 ;
+                _deriv[0] = ( 6*t_2 - 6*t ) * slope_1 +
+                            ( 3*t_2 - 4*t + 1 ) * dslope_1 +
+                            ( 6*t - 6*t_2 ) * slope_2 +
+                            ( 3*t_2 - 2*t ) * dslope_2 ;
             }
 
             return _result;
@@ -105,7 +122,7 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
         */
 
         data_grid_fast_3d( const data_grid<double,3>& grid, bool copy_data = true) :
-                data_grid(grid,copy_data)
+                data_grid(grid,copy_data), kmin(-1), kzmax(_axis[0]->size()-1u)
         {
             fast_index[0] = 0;
             fast_index[1] = 0;
@@ -169,7 +186,10 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
 
             #ifdef FAST_GRID_DEBUG
                 cout << "offset: (" << _offset[0] << "," << _offset[1] << "," << _offset[2] << ")" << endl;
-                cout << "axis[0]: " << (*_axis[0])(_offset[0]) << "\taxis[1]: " << (*_axis[1])(_offset[1])
+                cout << "axis[0]: " ;
+                ( (*_axis[0])(_offset[0]) >= 1e6 ) ? (cout << (*_axis[0])(_offset[0])-wposition::earth_radius)
+                            : cout << (*_axis[0])(_offset[0]) ;
+                cout << "\taxis[1]: " << (*_axis[1])(_offset[1])
                      << "\taxis[2]: " << (*_axis[2])(_offset[2]) << endl;
             #endif
             double v = location[0] - (*_axis[0])(_offset[0]) ;
@@ -201,7 +221,9 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
                 double s ;
 
                 for(int i=0; i<4; ++i) {
-                    fast_index[0] = _offset[0]+i-1;
+                    if(_offset[0]+i-1 == kmin) {fast_index[0] = _offset[0]+i;}
+                    else if(_offset[0]+i-1 >= kzmax ) {fast_index[0] = kzmax;}
+                    else {fast_index[0] = _offset[0]+i-1;}
                     temp_index[0] = fast_index[0];
                     temp_index[1] = _offset[1];
                     temp_index[2] = _offset[2];
@@ -243,7 +265,9 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
                     interp_values[i] = result;
                 }
                 #ifdef FAST_GRID_DEBUG
-                    cout << "_offset[0]: " << _offset[0] << "\tlocation[0]: " << location[0] << endl;
+                    cout << "_offset[0]: " << _offset[0] << "\tlocation[0]: " ;
+                    (location[0]>=1e6) ? (cout << location[0]-wposition::earth_radius) : cout << location[0] ;
+                    cout << endl;
                     cout << "interp_values: (" << interp_values[0] << "," << interp_values[1] << "," <<
                         interp_values[2] << "," << interp_values[3] << ")" << endl;
                 #endif
@@ -288,7 +312,6 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
                     location[2] = z(n, m);
                     if (dx == NULL || dy == NULL || dz == NULL) {
                         (*result)(n, m) = (double) interpolate(location);
-                        cout << "result in void interp: " << (*result)(n, m) << endl;
                     } else {
                         (*result)(n, m)
                                 = (double) interpolate(location, derivative);

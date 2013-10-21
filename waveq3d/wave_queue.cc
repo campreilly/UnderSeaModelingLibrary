@@ -17,6 +17,7 @@
 
 //#define DEBUG_EIGENRAYS
 //#define DEBUG_CAUSTICS
+//#define DEBUG_REFLECT
 
 using namespace usml::waveq3d ;
 
@@ -167,9 +168,9 @@ void wave_queue::step() {
     _next = save ;
     _time += _time_step ;
 
-//    #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS)
-//        cout << "*** wave_queue::step: time=" << time() << endl ;
-//    #endif
+    #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS) || defined(DEBUG_REFLECT)
+        cout << "*** wave_queue::step: time=" << time() << endl ;
+    #endif
 
     // compute position, direction, and environment parameters for next entry
 
@@ -215,7 +216,15 @@ void wave_queue::detect_reflections() {
  * Detect and process reflection for a single (DE,AZ) combination.
  */
 bool wave_queue::detect_reflections_surface( unsigned de, unsigned az ) {
+    #ifdef DEBUG_REFLECT
+        cout << "***Entering wave_queue::detect_reflect_surf***" << endl;
+        cout << "\t_next->position.alt: " << _next->position.altitude(de,az) << endl;
+    #endif
     if (_next->position.altitude(de,az) > 0.0) {
+    #ifdef DEBUG_REFLECT
+        cout << "\t\t\t===surface reflection_detected===" << endl;
+        cout << "\t_next->position.alt: " << _next->position.altitude(de,az) << endl;
+    #endif
         if (_reflection_model->surface_reflection(de,az)) {
             _next->surface(de,az) += 1;
             _curr->surface(de,az) = _prev->surface(de,az)
@@ -235,7 +244,21 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
     wposition1 pos( _next->position, de, az ) ;
     _ocean.bottom().height( pos, &height, NULL, true ) ;
     const double depth = height - _next->position.rho(de,az) ;
+    #ifdef DEBUG_REFLECT
+        cout << "***Entering wave_queue::detect_reflect_bot***" << endl;
+        cout << "\t_next->position.rho: " << _next->position.rho(de,az) - wposition::earth_radius
+                                          << endl;
+        cout << "\theight: " << height - wposition::earth_radius << "\tdepth: " << depth << endl;
+    #endif
     if ( depth > 0.0 ) {
+    #ifdef DEBUG_REFLECT
+        cout << "\t\t\t===bottom reflection_detected===" << endl;
+        cout << "\tpos(rho,alt): (" << pos.rho() - wposition::earth_radius
+                                    << ", " << pos.altitude() << ")" << endl;
+        cout << "\t_next->position.rho: " << _next->position.rho(de,az) - wposition::earth_radius
+                                          << endl;
+        cout << "\theight: " << height - wposition::earth_radius << "\tdepth: " << depth << endl;
+    #endif
         if ( _reflection_model->bottom_reflection( de, az, depth ) ) {
             _next->bottom(de,az) += 1 ;
             _curr->bottom(de,az) = _prev->bottom(de,az)
