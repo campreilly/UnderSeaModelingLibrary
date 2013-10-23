@@ -10,6 +10,7 @@
 
 //#define FAST_GRID_DEBUG
 //#define FAST_PCHIP_GRID_DEBUG
+#define FAST_NaN_GRID_DEBUG
 
 namespace usml {
 namespace types {
@@ -40,74 +41,37 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
     private:
 
         /**
-        * Holds the offsets from each axis
+        * Create all variables needed for each calculation once
+        * to same time and memory.
         */
 
         unsigned _offset[3];
-        unsigned fast_index[3];
-        unsigned kmin ;
-        unsigned kzmax ;
+        unsigned kmin ;                 //minimum value on an axis
+        unsigned kzmax, kxmax, kymax ;  //max index on z-axis (depth)
+        unsigned k0, k1, k2 ;           //indecies of he offset data
+        double result ;                 //interpolated value
+            //bi-linear variables
+        double f11, f21, f12, f22, x_diff, y_diff ;
+        double x, x1, x2, y, y1, y2 ;
+        c_matrix<double,2,2> interp_plane ;
+            //pchip variables
+        c_matrix<double,2,2> dz ;
+        double v0, v1, v2, v3 ;
+        double inc0, inc1, inc2 ;
+        double d0, d1, d2 ;
+        double t, t_2, t_3 ;
+        double w0, w1, w2, w3 ;
+        double slope_1, slope_2 ;
+        double h00, h10, h01, h11 ;
+        double*** derv_z ;
 
-        double pchip_part(const unsigned _k, const double _location,
-                          const double* _data, double* _deriv) const
-        {
-            double y0 = _data[0], y1 = _data[1], y2 = _data[2], y3 = _data[3];
-
-            double inc0 ;
-            if(_k-1==kmin) {inc0 = _axis[0]->increment(_k) ;}
-            else {inc0 = _axis[0]->increment(_k-1) ;}
-            double inc1 = _axis[0]->increment(_k) ;
-            double inc2 ;
-            if(_k+1>=kzmax) {inc2 = _axis[0]->increment(kzmax) ;}
-            else {inc2 = _axis[0]->increment(_k+1) ;}
-            double d0 = (y1 - y0) / inc0 ;
-            double d1 = (y2 - y1) / inc1 ;
-            double d2 = (y3 - y2) / inc2 ;
-
-            double t = ( _location - (*_axis[0])(_k) ) / inc1 ;
-            double t_2 = t*t ;
-            double t_3 = t_2*t ;
-
-                //weighted harmonic mean calculation for slope
-            double w0 = 2.0*inc0 + inc1 ;
-            double w1 = inc0 + 2.0*inc1 ;
-            double w2 = 2.0*inc1 + inc2 ;
-            double w3 = inc1 + 2.0*inc2 ;
-            double slope_1 = (w0 + w1) / (w0/d0 + w1/d1) ;
-            double slope_2 = (w2 + w3) / (w2/d1 + w3/d2) ;
-            double dslope_1 = (d1 - d0) / inc0 ;
-            double dslope_2 = (d2 - d1) / inc1 ;
-
-            double h00 = ( 2*t_3 - 3*t_2 + 1 ) ;
-            double h10 = ( t_3 - 2*t_2 + t ) ;
-            double h01 = ( 3*t_2 - 2*t_3 ) ;
-            double h11 = ( t_3 - t_2 ) ;
-
-            double _result = h00 * y1 + h10 * slope_1 +
-                             h01 * y2 + h11 * slope_2 ;
-
-            #ifdef FAST_PCHIP_GRID_DEBUG
-                cout << "y0: " << y0 << "\ty1: " << y1
-                     << "\ty2: " << y2 << "\ty3: " << y3 << endl;
-                cout << "t: " << t << "\tt_2: " << t_2
-                     << "\tt_3: " << t_3 << endl;
-                cout << "inc0: " << inc0 << "\tinc1: " << inc1
-                     << "\tinc2: " << inc2 << endl;
-                cout << "slope_1: " << slope_1
-                     << "\tslope_2: " << slope_2 << endl;
-                cout << "h00: " << h00 << "\th10: " << h10
-                     << "\th01: " << h01 << "\th11: " << h11 << endl;
-                cout << "_result is: " << _result << endl;
-            #endif
-
-            if(_deriv) {
-                _deriv[0] = ( 6*t_2 - 6*t ) * slope_1 +
-                            ( 3*t_2 - 4*t + 1 ) * dslope_1 +
-                            ( 6*t - 6*t_2 ) * slope_2 +
-                            ( 3*t_2 - 2*t ) * dslope_2 ;
-            }
-
-            return _result;
+        /** Utility accessor function for data grid values */
+        inline double data_3d(unsigned dim0, unsigned dim1, unsigned dim2) {
+            unsigned _grid_index[3] ;
+            _grid_index[0] = dim0 ;
+            _grid_index[1] = dim1 ;
+            _grid_index[2] = dim2 ;
+            return data(_grid_index) ;
         }
 
     public:
@@ -122,11 +86,121 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
         */
 
         data_grid_fast_3d( const data_grid<double,3>& grid, bool copy_data = true) :
-                data_grid(grid,copy_data), kmin(-1), kzmax(_axis[0]->size()-1u)
+                data_grid(grid,copy_data), kmin(-1), kzmax(_axis[0]->size()-1u),
+                kxmax(_axis[1]->size()-1u), kymax(_axis[2]->size()-1u)
         {
-            fast_index[0] = 0;
-            fast_index[1] = 0;
-            fast_index[2] = 0;
+            if( interp_type(0)!=GRID_INTERP_PCHIP ) { interp_type(0, GRID_INTERP_PCHIP) ; }
+            if( (interp_type(1)!=GRID_INTERP_LINEAR) || (interp_type(1)!=GRID_INTERP_LINEAR) ) {
+                interp_type(1, GRID_INTERP_LINEAR) ;
+                interp_type(2, GRID_INTERP_LINEAR) ;
+            }
+            derv_z = new double**[kzmax+1u] ;
+            for(int i=0; i<kzmax+1u; ++i) {
+                derv_z[i] = new double*[kxmax+1u] ;
+                for(int j=0; j<kxmax+1u; ++j) {
+                    derv_z[i][j] = new double[kymax+1u] ;
+                }
+            }
+            for(int i=0; i<kzmax+1u; ++i) {
+                for(int j=0; j<kxmax+1u; ++j) {
+                    for(int k=0; k<kymax+1u; ++k) {
+                        if(i==0) {
+                            inc1 = _axis[0]->increment(i) ;
+                            inc2 = _axis[0]->increment(i+1) ;
+                            slope_1 = ( data_3d(i+1,j,k) - data_3d(i,j,k) ) /
+                                      inc1 ;
+                            slope_2 = ( data_3d(i+2,j,k) - data_3d(i+1,j,k) ) /
+                                      inc2 ;
+                            result = ( (2.0*inc1 + inc2)*slope_1 - inc1*slope_2 ) /
+                                    ( inc1 + inc2 ) ;
+                            derv_z[i][j][k] = result ;
+                            if(result*slope_1 <= 0.0) {
+                                derv_z[i][j][k] = 0.0 ;
+                            } else
+                            if( (slope_1*slope_2 <=0.0) && (abs(result) > abs(3.0*slope_1)) ) {
+                                derv_z[i][j][k] = 3.0*slope_1 ;
+                            }
+                            #ifdef FAST_NaN_GRID_DEBUG
+                                if(abs(derv_z[i][j][k])>=20.0) {
+                                    cout << "***Warning: bogus derivative in the z-direction***" << endl;
+                                    cout << "---i==0 condition---" << endl;
+                                    cout << "inc1: " << inc1 << "\tinc2: " << inc2 << endl;
+                                    cout << "data(" << i << "," << j << "," << k << "): " << data_3d(i,j,k)
+                                         << "\tdata(" << i+1 << "," << j << "," << k << "): " << data_3d(i+1,j,k)
+                                         << "\tdata(" << i+2 << "," << j << "," << k << "): " << data_3d(i+2,j,k)
+                                         << endl;
+                                    cout << "slope1: " << slope_1 << "\tslope2: " << slope_2 << endl;
+                                    cout << "result: " << result << endl;
+                                    cout << "derv_z[" << i << "][" << j << "][" << k << "]: "
+                                         << derv_z[i][j][k] << endl;
+                                }
+                            #endif
+                        } else
+                        if(i==kzmax) {
+                            inc1 = _axis[0]->increment(i-1) ;
+                            inc2 = _axis[0]->increment(i) ;
+                            slope_1 = ( data_3d(i-1,j,k) - data_3d(i-2,j,k) ) /
+                                      inc1 ;
+                            slope_2 = ( data_3d(i,j,k) - data_3d(i-1,j,k) ) /
+                                      inc2 ;
+                            result = ( (2.0*inc1 + inc2)*slope_2 - inc1*slope_1 ) /
+                                    ( inc1 + inc2 ) ;
+                            derv_z[i][j][k] = result ;
+                            if(result*slope_1 <= 0.0) {
+                                derv_z[i][j][k] = 0.0 ;
+                            } else
+                            if( (slope_1*slope_2 <=0.0) && (abs(result) > abs(3.0*slope_1)) ) {
+                                derv_z[i][j][k] = 3.0*slope_1 ;
+                            }
+                            #ifdef FAST_NaN_GRID_DEBUG
+                                if(abs(derv_z[i][j][k])>=20.0) {
+                                    cout << "***Warning: bogus derivative in the z-direction***" << endl;
+                                    cout << "---i==kzmax condition---" << endl;
+                                    cout << "inc1: " << inc1 << "\tinc2: " << inc2 << endl;
+                                    cout << "data(" << i-2 << "," << j << "," << k << "): " << data_3d(i-2,j,k)
+                                         << "\tdata(" << i-1 << "," << j << "," << k << "): " << data_3d(i-1,j,k)
+                                         << "\tdata(" << i << "," << j << "," << k << "): " << data_3d(i,j,k)
+                                         << endl;
+                                    cout << "slope1: " << slope_1 << "\tslope2: " << slope_2 << endl;
+                                    cout << "result: " << result << endl;
+                                    cout << "derv_z[" << i << "][" << j << "][" << k << "]: "
+                                         << derv_z[i][j][k] << endl;
+                                }
+                            #endif
+                        } else {
+                            inc1 = _axis[0]->increment(i-1) ;
+                            inc2 = _axis[0]->increment(i) ;
+                            w1 = 2.0*inc2 + inc1 ;
+                            w2 = inc2 + 2.0*inc1 ;
+                            slope_1 = ( data_3d(i,j,k) - data_3d(i-1,j,k) ) /
+                                      inc1 ;
+                            slope_2 = ( data_3d(i+1,j,k) - data_3d(i,j,k) ) /
+                                      inc2 ;
+                            if(slope_1*slope_2 <= 0.0 ) {
+                                derv_z[i][j][k] = 0.0 ;
+                            } else {
+                                derv_z[i][j][k] = (w1 + w2) /
+                                                  ( (w1 / slope_1) + (w2 / slope_2) ) ;
+                            }
+                            #ifdef FAST_NaN_GRID_DEBUG
+                                if(abs(derv_z[i][j][k])>=20.0) {
+                                    cout << "***Warning: bogus derivative in the z-direction***" << endl;
+                                    cout << "---else condition---" << endl;
+                                    cout << "inc1: " << inc1 << "\tinc2: " << inc2 << endl;
+                                    cout << "data(" << i-1 << "," << j << "," << k << "): " << data_3d(i-1,j,k)
+                                         << "\tdata(" << i << "," << j << "," << k << "): " << data_3d(i,j,k)
+                                         << "\tdata(" << i+1 << "," << j << "," << k << "): " << data_3d(i+1,j,k)
+                                         << endl;
+                                    cout << "slope1: " << slope_1 << "\tslope2: " << slope_2 << endl;
+                                    cout << "w1: " << w1 << "\tw2: " << w2 << endl;
+                                    cout << "derv_z[" << i << "][" << j << "][" << k << "]: "
+                                         << derv_z[i][j][k] << endl;
+                                }
+                            #endif
+                        }
+                    } //end for-loop in k
+                } //end for-loop in j
+            } //end for-loop in i
         }
 
         /**
@@ -143,7 +217,6 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
         */
 
         double interpolate(double* location, double* derivative = NULL) {
-            double result = 0;
             // find the interval index in each dimension
 
             for (unsigned dim = 0; dim < 3; ++dim) {
@@ -191,98 +264,100 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
                             : cout << (*_axis[0])(_offset[0]) ;
                 cout << "\taxis[1]: " << (*_axis[1])(_offset[1])
                      << "\taxis[2]: " << (*_axis[2])(_offset[2]) << endl;
+                cout << "derv_z: (" << derv_z[_offset[0]][_offset[1]][_offset[2]]
+                     << ", " << derv_z[_offset[0]+1][_offset[1]][_offset[2]]
+                     << ", " << derv_z[_offset[0]+2][_offset[1]][_offset[2]]
+                     << ", " << derv_z[_offset[0]+3][_offset[1]][_offset[2]] << ")" <<  endl;
             #endif
-            double v = location[0] - (*_axis[0])(_offset[0]) ;
-            if(derivative) {derivative[1] = derivative[2] = 0;}
 
-            switch(interp_type(1)) {
+                /** PCHIP contribution in zeroth dimension */
+            if(derivative) {derivative[0] = 0 ;}
+            k0 = _offset[0] ;
+            k1 = _offset[1] ;
+            k2 = _offset[2] ;
 
-                ///****nearest****
-            case -1:
-                for(int dim = 0 ; dim < 3; ++dim) {
-                    double inc = _axis[dim]->increment(0) ;
-                    double u = abs(location[dim]-(*_axis[dim])(_offset[dim])) / inc ;
-                    if(u < 0.5) {
-                        fast_index[dim] = _offset[dim];
-                    } else {
-                        fast_index[dim] = _offset[dim]+1;
-                    }
-                }
-                if(derivative) derivative[0] = derivative[1] = derivative[2] = 0;
-                return data(fast_index);
-                break;
+            //construct the interpolated plane to which the final bi-linear
+            //interoplation will happen
+            for(int i=0; i<2; ++i) {
+                for(int j=0; j<2; ++j) {
+                        //extract data and take precautions when at boundaries of the axis
+                    v1 = data_3d(k0,k1+i,k2+j) ;
+                    v2 = data_3d(k0+1,k1+i,k2+j) ;
+                    inc1 = _axis[0]->increment(k0) ;
 
-                ///****linear****
-            case 0:
-                double f11, f21, f12, f22, x_diff, y_diff;
-                double x, x1, x2, y, y1, y2;
-                double interp_values[4];
-                unsigned temp_index [3];
-                double s ;
+                    t = ( location[0] - (*_axis[0])(k0) ) / inc1 ;
+                    t_2 = t*t ;
+                    t_3 = t_2*t ;
 
-                for(int i=0; i<4; ++i) {
-                    if(_offset[0]+i-1 == kmin) {fast_index[0] = _offset[0]+i;}
-                    else if(_offset[0]+i-1 >= kzmax ) {fast_index[0] = kzmax;}
-                    else {fast_index[0] = _offset[0]+i-1;}
-                    temp_index[0] = fast_index[0];
-                    temp_index[1] = _offset[1];
-                    temp_index[2] = _offset[2];
-                    x = location[1];
-                    x1 = (*_axis[1])(temp_index[1]) ;
-                    x2 = (*_axis[1])(temp_index[1]+1) ;
-                    y = location[2];
-                    y1 = (*_axis[2])(temp_index[2]) ;
-                    y2 = (*_axis[2])(temp_index[2]+1) ;
-                    f11 = data(temp_index);
-                    fast_index[1] = temp_index[1]+1 ; fast_index[2] = temp_index[2] ;
-                    f21 = data(fast_index);
-                    fast_index[1] = temp_index[1] ; fast_index[2] = temp_index[2]+1 ;
-                    f12 = data(fast_index);
-                    fast_index[1] = temp_index[1]+1 ; fast_index[2] = temp_index[2]+1 ;
-                    f22 = data(fast_index);
-                    x_diff = x2 - x1 ;
-                    y_diff = y2 - y1 ;
-                    #ifdef FAST_GRID_DEBUG
-                        cout << "iteration: " << i << endl;
-                        cout << "temp_index: (" << temp_index[0] << ", " << temp_index[1] << ", " << temp_index[2] << ")" << endl;
-                        cout << "x: " << x << "\tx1: " << x1 << "\tx2: " << x2 << endl;
-                        cout << "y: " << y << "\ty1: " << y1 << "\ty2: " << y2 << endl;
-                        cout << "f11: " << f11 << "\tf21: " << f21 << "\tf12: " << f12 << "\tf22: " << f22 << endl;
+                        //construct the hermite polynomials
+                    h00 = ( 2*t_3 - 3*t_2 + 1 ) ;
+                    h10 = ( t_3 - 2*t_2 + t ) ;
+                    h01 = ( 3*t_2 - 2*t_3 ) ;
+                    h11 = ( t_3 - t_2 ) ;
+
+                    interp_plane(i,j) = h00 * v1 + h10 * derv_z[k0][k1+i][k2+j] +
+                                        h01 * v2 + h11 * derv_z[k0+1][k1+i][k2+j] ;
+
+                    #ifdef FAST_PCHIP_GRID_DEBUG
+                        cout << "v1: " << v1 << "\tv2: " << v2 << endl;
+                        cout << "inc1: " << inc1 << endl;
+                        cout << "t: " << t << "\tt_2: " << t_2
+                             << "\tt_3: " << t_3 << endl;
+                        cout << "slope_1: " << derv_z[k0][k1+i][k2+j]
+                             << "\tslope_2: " << derv_z[k0+1][k1+i][k2+j] << endl;
+                        cout << "h00: " << h00 << "\th10: " << h10
+                             << "\th01: " << h01 << "\th11: " << h11 << endl;
+                        cout << "interp_plane(" << i << ", " << j << "): "
+                             << interp_plane(i,j) << endl;
                     #endif
-                    result = ( f11*(x2-x)*(y2-y) +
-                               f21*(x-x1)*(y2-y) +
-                               f12*(x2-x)*(y-y1) +
-                               f22*(x-x1)*(y-y1) ) / (x_diff*y_diff);
+
                     if(derivative) {
-                        if(i==1) {s = (1 - v);}
-                        else if(i==2) {s = v;}
-                        else {s = 0;}
-                        derivative[1] += s * ( -f11*(y2-y) + f21*(y2-y) - f12*(y-y1) + f22*(y-y1) )
-                                        / ( x_diff * y_diff );
-                        derivative[2] += s * ( -f11*(x2-x) - f21*(x-x1) + f12*(x2-x) + f22*(x-x1) )
-                                        / ( x_diff * y_diff );
+                        dz(i,j) = ( 6*t_2 - 6*t ) * v1/inc1 +
+                                  ( 3*t_2 - 4*t + 1 ) * derv_z[k0][k1+i][k2+j]/inc1 +
+                                  ( 6*t - 6*t_2 ) * v2/inc1 +
+                                  ( 3*t_2 - 2*t ) * derv_z[k0+1][k1+i][k2+j]/inc1 ;
                     }
-                    interp_values[i] = result;
                 }
-                #ifdef FAST_GRID_DEBUG
-                    cout << "_offset[0]: " << _offset[0] << "\tlocation[0]: " ;
-                    (location[0]>=1e6) ? (cout << location[0]-wposition::earth_radius) : cout << location[0] ;
-                    cout << endl;
-                    cout << "interp_values: (" << interp_values[0] << "," << interp_values[1] << "," <<
-                        interp_values[2] << "," << interp_values[3] << ")" << endl;
-                #endif
-                return pchip_part(_offset[0],location[0],interp_values,derivative);
-                break;
-
-            case 1:
-                throw std::invalid_argument("Interpolation of Pchip in 3 dimensions not yet implemented.");
-                break;
-
-            default:
-                throw std::invalid_argument("Invalid grid type");
-                break;
-
             }
+
+                /** Bi-Linear contributions from first/second dimensions */
+                //extract data around field point
+            x = location[1];
+            x1 = (*_axis[1])(k1) ;
+            x2 = (*_axis[1])(k1+1) ;
+            y = location[2];
+            y1 = (*_axis[2])(k2) ;
+            y2 = (*_axis[2])(k2+1) ;
+            f11 = interp_plane(0,0) ;
+            f21 = interp_plane(1,0) ;
+            f12 = interp_plane(0,1) ;
+            f22 = interp_plane(1,1) ;
+            x_diff = x2 - x1 ;
+            y_diff = y2 - y1 ;
+
+            #ifdef FAST_GRID_DEBUG
+                cout << "k_indecies: (" << k0 << ", " << k1 << ", " << k2 << ")" << endl;
+                cout << "x: " << x << "\tx1: " << x1 << "\tx2: " << x2 << endl;
+                cout << "y: " << y << "\ty1: " << y1 << "\ty2: " << y2 << endl;
+                cout << "f11: " << f11 << "\tf21: " << f21 << "\tf12: " << f12 << "\tf22: " << f22 << endl;
+            #endif
+
+            result = ( f11*(x2-x)*(y2-y) +
+                       f21*(x-x1)*(y2-y) +
+                       f12*(x2-x)*(y-y1) +
+                       f22*(x-x1)*(y-y1) ) / (x_diff*y_diff);
+
+            if(derivative) {
+                derivative[0] = ( dz(0,0)*(x2-x)*(y2-y) + dz(1,0)*(x-x1)*(y2-y) +
+                                  dz(0,1)*(x2-x)*(y-y1) + dz(1,1)*(x-x1)*(y-y1) )
+                                / (x_diff*y_diff) ;
+                derivative[1] = ( -f11*(y2-y) + f21*(y2-y) - f12*(y-y1) + f22*(y-y1) )
+                                / ( x_diff * y_diff ) ;
+                derivative[2] = ( -f11*(x2-x) - f21*(x-x1) + f12*(x2-x) + f22*(x-x1) )
+                                / ( x_diff * y_diff ) ;
+            }
+
+            return result;
         }
 
         /**
