@@ -1,6 +1,6 @@
 /**
  * @file profile_grid_fast.h
- * Creates a sound speed model from a data_grid_fast_3d.
+ * Creates a sound speed model from a data_grid_svp.
  */
 
 #ifndef USML_OCEAN_PROFILE_GRID_FAST_H
@@ -15,7 +15,7 @@ namespace ocean {
 /// @{
 
 /**
- * Sound speed model constructed from a data_grid_fast_3d.
+ * Sound speed model constructed from a data_grid_svp.
  * The coordinate system for each kind of data set is:
  *
  *      - 3-D: Assumes that the order of axes in the grid is
@@ -37,7 +37,7 @@ class profile_grid_fast : public profile_model
     // sound speed model
 
     /** Sound speed for all locations. */
-    data_grid_fast_3d* _sound_speed ;
+    data_grid_svp* _sound_speed ;
 
   public:
 
@@ -84,7 +84,7 @@ class profile_grid_fast : public profile_model
      *                      reference and deletes it as part of its destructor.
      */
     profile_grid_fast(
-        data_grid_fast_3d* speed, attenuation_model* attmodel=NULL)
+        data_grid_svp* speed, attenuation_model* attmodel=NULL)
         : profile_model(attmodel), _sound_speed(speed) { }
 
     /**

@@ -41,7 +41,7 @@
 #include <usml/types/seq_rayfan.h>
 
 #include <usml/types/data_grid.h>
-#include <usml/types/data_grid_fast_2d.h>
-#include <usml/types/data_grid_fast_3d.h>
+#include <usml/types/data_grid_bathy.h>
+#include <usml/types/data_grid_svp.h>
 
 #endif

@@ -1,10 +1,10 @@
 /**
- * @file data_grid_fast_2d.h
+ * @file data_grid_bathy.h
  * Wrapper for a data_grid in 2d that uses the fast non-recursive
  * interpolation algorithm.
  */
-#ifndef USML_TYPES_DATA_GRID_FAST_2D_H
-#define USML_TYPES_DATA_GRID_FAST_2D_H
+#ifndef USML_TYPES_DATA_GRID_BATHY_H
+#define USML_TYPES_DATA_GRID_BATHY_H
 
 #include <usml/types/data_grid.h>
 #include <usml/types/seq_vector.h>
@@ -28,7 +28,7 @@ namespace types {
 *
 * WARNING: This wrapper is specific to 2-dimensional grids
 *          only. For 3-dimensional grids, the user should
-*          implement the data_grid_fast_3d wrapper instead.
+*          implement the data_grid_svp wrapper instead.
 *
 * Since the data is passed in and referenced by this wrapper,
 * the data is taken control of and destroyed at the end of its
@@ -36,7 +36,7 @@ namespace types {
 */
 
 
-class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
+class USML_DECLSPEC data_grid_bathy : public data_grid<double,2>
 {
 
     private:
@@ -247,7 +247,7 @@ class USML_DECLSPEC data_grid_fast_2d : public data_grid<double,2>
         * @param _grid      The data_grid that is to be wrapped.
         */
 
-        data_grid_fast_2d( const data_grid<double,2>& grid, bool copy_data = true ) :
+        data_grid_bathy( const data_grid<double,2>& grid, bool copy_data = true ) :
             data_grid(grid,copy_data), bicubic_coeff(16,1), field(16,1), xyloc(1,16),
             result_pchip(1,1), value(4,4), kmin(0u), k0max(_axis[0]->size()-1u),
             k1max(_axis[1]->size()-1u)

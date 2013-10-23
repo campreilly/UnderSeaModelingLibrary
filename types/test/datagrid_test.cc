@@ -334,7 +334,7 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
 	cout << "Time to complete interpolation using data_grid method was "
 		 << (complete-start) << " sec." << endl;
 
-//    data_grid_fast_2d* fast_grid = new data_grid_fast_2d(*grid, true);
+//    data_grid_bathy* fast_grid = new data_grid_bathy(*grid, true);
 //    counter = 0 ;
 //    gettimeofday( &time, &zone ) ;
 //    start = time.tv_sec + time.tv_usec * 1e-6 ;
@@ -397,7 +397,7 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
         test_grid->edge_limit(i, true);
     }
 
-    data_grid_fast_2d* test_grid_fast = new data_grid_fast_2d(*test_grid, true);
+    data_grid_bathy* test_grid_fast = new data_grid_bathy(*test_grid, true);
 
     double spot[2];
     spot[1] = 10.3265; spot[0] = 9.8753;
@@ -427,7 +427,7 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
 //        grid->interp_type(i, GRID_INTERP_PCHIP);
 //        grid->edge_limit(i, true);
 //    }
-//    data_grid_fast_2d* fast_grid = new data_grid_fast_2d(*grid, true) ;
+//    data_grid_bathy* fast_grid = new data_grid_bathy(*grid, true) ;
 //
 //    cout << "grid->axis0: " << *(grid->axis(0)) << endl;
 //    cout << "grid->axis1: " << *(grid->axis(1)) << endl;
@@ -487,7 +487,7 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
 //            test_grid_3d->interp_type(i, GRID_INTERP_LINEAR);
 //        test_grid_3d->edge_limit(i, true);
 //    }
-//    data_grid_fast_3d* test_grid_fast_3d = new data_grid_fast_3d(*test_grid_3d,true);
+//    data_grid_svp* test_grid_fast_3d = new data_grid_svp(*test_grid_3d,true);
 //
 //    double loc[3];
 //    loc[1] = 1.24449;

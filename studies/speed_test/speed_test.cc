@@ -128,7 +128,7 @@ int main() {
 //	cout << "Time to complete interpolation using data_grid method was "
 //		 << (complete-start) << " sec." << endl;
 //
-//    data_grid_fast_2d* fast_grid = new data_grid_fast_2d(*grid, true);
+//    data_grid_bathy* fast_grid = new data_grid_bathy(*grid, true);
 //    counter = 0 ;
 //    gettimeofday( &time, &zone ) ;
 //    start = time.tv_sec + time.tv_usec * 1e-6 ;
@@ -225,7 +225,7 @@ int main() {
 //	cout << "Time to complete interpolation using data_grid method was "
 //		 << (complete-start) << " sec." << endl;
 //
-//    data_grid_fast_3d* fast_grid = new data_grid_fast_3d(*grid, true);
+//    data_grid_svp* fast_grid = new data_grid_svp(*grid, true);
 //    counter = 0 ;
 //    gettimeofday( &time, &zone ) ;
 //    start = time.tv_sec + time.tv_usec * 1e-6 ;
@@ -330,8 +330,8 @@ int main() {
         cout << endl;
     }
 
-        //data_grid_fast_3d
-    data_grid_fast_3d* fast_grid = new data_grid_fast_3d(*grid, true);
+        //data_grid_svp
+    data_grid_svp* fast_grid = new data_grid_svp(*grid, true);
     profile_model* ssp_fast = new profile_grid_fast(fast_grid) ;
 
     gettimeofday( &time, &zone ) ;

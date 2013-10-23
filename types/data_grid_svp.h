@@ -1,16 +1,16 @@
 /**
- * @file data_grid_fast_3d.h
+ * @file data_grid_svp.h
  * Wrapper for a data_grid in 3d that uses the fast non-recursive
  * interpolation algorithm.
  */
-#ifndef USML_TYPES_DATA_GRID_FAST_3D_H
-#define USML_TYPES_DATA_GRID_FAST_3D_H
+#ifndef USML_TYPES_DATA_GRID_SVP_H
+#define USML_TYPES_DATA_GRID_SVP_H
 
 #include <usml/types/data_grid.h>
 
 //#define FAST_GRID_DEBUG
 //#define FAST_PCHIP_GRID_DEBUG
-#define FAST_NaN_GRID_DEBUG
+//#define FAST_NaN_GRID_DEBUG
 
 namespace usml {
 namespace types {
@@ -28,7 +28,7 @@ namespace types {
 *
 * WARNING: This wrapper is specific to 3-dimensional grids
 *          only. For 2-dimensional grids, the user should
-*          implement the data_grid_fast_2d wrapper instead.
+*          implement the data_grid_bathy wrapper instead.
 *
 * Since the data is passed in and referenced by this wrapper,
 * the data is taken control of and destroyed at the end of its
@@ -36,7 +36,7 @@ namespace types {
 */
 
 
-class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
+class USML_DECLSPEC data_grid_svp : public data_grid<double,3>
 {
     private:
 
@@ -85,7 +85,7 @@ class USML_DECLSPEC data_grid_fast_3d : public data_grid<double,3>
         *                  fields as well as the axises.
         */
 
-        data_grid_fast_3d( const data_grid<double,3>& grid, bool copy_data = true) :
+        data_grid_svp( const data_grid<double,3>& grid, bool copy_data = true) :
                 data_grid(grid,copy_data), kmin(-1), kzmax(_axis[0]->size()-1u),
                 kxmax(_axis[1]->size()-1u), kymax(_axis[2]->size()-1u)
         {

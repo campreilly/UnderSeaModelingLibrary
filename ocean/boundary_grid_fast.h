@@ -13,7 +13,7 @@ namespace usml {
 namespace ocean {
 
 /**
- * Bottom model constructed from 2-D data_grid_fast_2d.
+ * Bottom model constructed from 2-D data_grid_bathy.
  * The coordinate system for each kind of data set is:
  *
  *      - 2-D: Assumes that the order of axes in the grid is
@@ -34,7 +34,7 @@ class boundary_grid_fast : public boundary_model
 protected:
 
     /** Boundary for all locations. */
-    data_grid_fast_2d* _height;
+    data_grid_bathy* _height;
 
 public:
 
@@ -127,7 +127,7 @@ public:
      *                          The boundary_model takes over ownship of this
      *                          reference and deletes it as part of its destructor.
      */
-    boundary_grid_fast(data_grid_fast_2d* height,
+    boundary_grid_fast(data_grid_bathy* height,
         reflect_loss_model* reflect_loss = NULL) :
         boundary_model(reflect_loss), _height(height) {
         this->_height->interp_type(0,GRID_INTERP_PCHIP);
