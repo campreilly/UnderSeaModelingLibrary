@@ -41,7 +41,7 @@ int main( int argc, char* argv[] ) {
     wposition::compute_earth_radius( 19.52 ) ;
     wposition1 src_pos( 19.52, -160.5, -200.0 ) ;
     seq_rayfan de( -90.0, 90.0, 181 ) ;
-    seq_linear az( 0.0, 51.4, 360.0 ) ;
+    seq_linear az( 0.0, 15.0, 360.0 ) ;
 //    seq_linear de( -90.0, 1.0, -90.0 ) ;
 //    seq_linear az( 0.0, 1.0, 0.0 ) ;
     const double target_depth = 100.0; // Meters
