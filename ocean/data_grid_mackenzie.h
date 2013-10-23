@@ -70,25 +70,25 @@ class data_grid_mackenzie {
      *
      */
     static data_grid<double,3>* construct(
-        const data_grid<DATA_TYPE,NUM_DIMS>* temperature,
-        const data_grid<DATA_TYPE,NUM_DIMS>* salinity )
+        const data_grid<double,3>* temperature,
+        const data_grid<double,3>* salinity )
     {
-        data_grid<double,3>* ssp = new data_grid<double,3>(temperature,false) ;
+        data_grid<double,3>* ssp = new data_grid<double,3>(*temperature,false) ;
         ssp->interp_type(0,GRID_INTERP_PCHIP) ;
         ssp->interp_type(1,GRID_INTERP_LINEAR) ;
         ssp->interp_type(2,GRID_INTERP_LINEAR) ;
 
         unsigned index[3] ;
-        for ( index[0]=0 ; index[0] < temperature.axis(0)->size() ; ++index[0] ) {
-            for ( index[1]=0 ; index[1] < temperature.axis(1)->size() ; ++index[1] ) {
-                for ( index[2]=0 ; index[2] < temperature.axis(2)->size() ; ++index[2] ) {
+        for ( index[0]=0 ; index[0] < temperature->axis(0)->size() ; ++index[0] ) {
+            for ( index[1]=0 ; index[1] < temperature->axis(1)->size() ; ++index[1] ) {
+                for ( index[2]=0 ; index[2] < temperature->axis(2)->size() ; ++index[2] ) {
 
                     // extract depth, temperature, and salinity at this point
 
                     double D = wposition::earth_radius -
-                               (*temperature.axis(0))[ index[0] ] ;
-                    double T = (double) temperature.data( index ) ;
-                    double S = (double) salinity.data( index ) ;
+                               (*temperature->axis(0))[ index[0] ] ;
+                    double T = temperature->data( index ) ;
+                    double S = salinity->data( index ) ;
 
                     // compute sound speed
 
@@ -98,7 +98,7 @@ class data_grid_mackenzie {
                              + 1.630e-2 * D + 1.675e-7 * D*D
                              - 7.139e-13 * T * D*D*D ;
 
-                    ssp->data( index, (DATA_TYPE) c ) ;
+                    ssp->data( index, c ) ;
                 }
             }
         }
