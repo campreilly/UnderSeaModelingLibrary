@@ -6,8 +6,8 @@
 #define USML_TYPES_DATA_GRID_H
 
 #include <string.h>
+#include <usml/types/wvector.h>
 #include <usml/types/seq_vector.h>
-#include <usml/ublas/ublas.h>
 
 using namespace usml::ublas;
 
