@@ -47,7 +47,10 @@ wave_queue::wave_queue(
 
 	// create references between targets and wavefront objects.
     const matrix<double>* pTargets_sin_theta = NULL ;
-
+    double boundary_check = abs((*_source_az)(0))
+                            + abs((*_source_az)(_source_az->size()-1)) ;
+    if( boundary_check == 360.0 ) { az_boundary = true ; }
+    else { az_boundary = false ;}
     _intensity_threshold = 300.00; //In dB
 
     if ( _targets ) {
@@ -303,6 +306,10 @@ void wave_queue::detect_eigenrays() {
 
     double distance2[3][3][3] ;
     double& center = distance2[1][1][1] ;
+    unsigned za_counter ;
+    unsigned az_reinit ;
+    bool reinit ;
+    unsigned parent_az ;
 
     // loop over all targets
 
@@ -312,7 +319,11 @@ void wave_queue::detect_eigenrays() {
             // loop over all ray paths
 
             for ( unsigned de=1 ; de < num_de()-1 ; ++de ) {
-                for ( unsigned az=1 ; az < num_az()-1 ; ++az ) {
+                parent_az = num_az() - 1 ;
+                za_counter = 0 ;
+                az_reinit = 1 ;
+                for ( unsigned az=1 ; az < parent_az ; ++az ) {
+                    reinit = false ;
 
                 	// *******************************************
                 	// When central ray is at the edge of ray family
@@ -323,21 +334,45 @@ void wave_queue::detect_eigenrays() {
 					}
 
 					// get the central ray for testing
-					center = _curr->distance2(t1,t2)(de,az) ;
+                    center = _curr->distance2(t1,t2)(de,az) ;
+                    if(az_boundary) {
+                        unsigned za = parent_az - az ;
+                        ++za_counter ;
+                        double retnec = _curr->distance2(t1,t2)(de,za) ;
+                        if(center == retnec) {
+                            az_reinit = az ;
+                            az = za ;
+                            parent_az -= za_counter ;
+                            za_counter = 0 ;
+                            reinit = true ;
+                        }
+                    }
 
-					distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
-					if ( distance2[2][1][1] <= center ) {
-						continue;
-					}
+                    distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
+                    if ( distance2[2][1][1] <= center ) {
+                        if(reinit) {
+                            az = az_reinit ;
+                            reinit = false ;
+                        }
+                        continue;
+                    }
 
-					distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
-					if ( distance2[0][1][1] < center ) {
-						continue;
-					}
+                    distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
+                    if ( distance2[0][1][1] < center ) {
+                        if(reinit) {
+                            az = az_reinit ;
+                            reinit = false ;
+                        }
+                        continue;
+                    }
 
-                	// *******************************************
+                    // *******************************************
                     if ( is_closest_ray(t1,t2,de,az,center,distance2) ) {
                         build_eigenray(t1,t2,de,az,distance2) ;
+                    }
+                    if(reinit) {
+                        az = az_reinit ;
+                        reinit = false ;
                     }
                 }
             }

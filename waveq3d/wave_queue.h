@@ -155,6 +155,14 @@ class USML_DECLSPEC wave_queue {
 	*/
     std::vector<proplossListener *> m_ProplossListenerVec;
 
+    /**
+     * Create an Azimuthal boundary loop condition upon initialization.
+     * This condition will prevent the production of multiple eigenrays
+     * for instances where the first azimuthal angle is equivalent to
+     * the last azimuthal angle in the AZ vector that is passed.
+     */
+    bool az_boundary ;
+
   public:
 
     /**

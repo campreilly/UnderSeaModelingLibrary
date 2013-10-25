@@ -363,12 +363,12 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
     seq_log freq( 1000.0, 1.0, 1 );
     wposition1 pos( 0.0, 0.0, src_alt );
     seq_linear de( -60.0, 1.0, 60.0 );
-    seq_linear az( 0.0, 1.0, 360.0 );
+    seq_linear az( -45.0, 1.0, 315.0 );
 //    seq_linear az( 0.0, 15.0, 360.0 );
 
     // build a single target
 
-    wposition target( 1, 1, tar_lat, 0.0, src_alt );
+    wposition target( 1, 1, 0.0, tar_lat, src_alt );
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
