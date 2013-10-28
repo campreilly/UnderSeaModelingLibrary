@@ -309,7 +309,11 @@ void wave_queue::detect_eigenrays() {
     double& center = distance2[1][1][1] ;
     unsigned parent_az = num_az() - 1 ;
 
-    // check for az_boundary conditions
+    /**
+     * In order to speed up the code, it required splitting the code
+     * to run faster. This then only checks the az_boundary condition
+     * once per function call.
+     */
     if(az_boundary) {
         // loop over all targets
         for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
@@ -411,8 +415,13 @@ bool wave_queue::is_closest_ray(
    double distance2[3][3][3]
 ) {
 
-    // test all neighbors that are not the central ray
+    /**
+     * In order to speed up the code, it required splitting the code
+     * to run faster. This then only checks the az_boundary condition
+     * once per function call.
+     */
     if(az_boundary) {
+        // test all neighbors that are not the central ray
         for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
             for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
                 if ( nde == 1 && naz == 1 ) continue ;
@@ -613,6 +622,11 @@ void wave_queue::build_eigenray(
     const int surface = _curr->surface(de,az) ;
     const int bottom = _curr->bottom(de,az) ;
     const int caustic = _curr->caustic(de,az) ;
+    /**
+     * In order to speed up the code, it required splitting the code
+     * to run faster. This then only checks the az_boundary condition
+     * once per function call.
+     */
     if(az_boundary) {
         for ( unsigned nde=0 ; nde < 3 && !unstable ; ++nde ) {
             unsigned d = de + nde -1 ;
@@ -742,6 +756,11 @@ void wave_queue::build_eigenray(
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles
+    /**
+     * In order to speed up the code, it required splitting the code
+     * to run faster. This then only checks the az_boundary condition
+     * once per function call.
+     */
     if(az_boundary) {
         for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
             for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
