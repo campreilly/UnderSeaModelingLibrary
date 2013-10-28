@@ -343,11 +343,11 @@ BOOST_AUTO_TEST_CASE( eigenray_concave ) {
  *      RESULTS: Show that the new implementation of finding eigenrays
  *      has resolved this second issue.
  */
-BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
-    cout << "=== eigenray_test: eigenray_branch_pt ===" << endl;
-    const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_branch_pt.csv";
-    const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_branch_pt.nc";
-    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/eigenray_branch_pt_wave.nc";
+BOOST_AUTO_TEST_CASE( eigenray_az_branch_pt ) {
+    cout << "=== eigenray_test: eigenray_az_branch_pt ===" << endl;
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_az_branch_pt.csv";
+    const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_az_branch_pt.nc";
+    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/eigenray_az_branch_pt_wave.nc";
     const double src_alt = -1000.0;
     const double target_range = 2226.0;
     const double time_max = 3.5;
@@ -412,7 +412,7 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
 
     loss.sum_eigenrays();
     cout << "writing proploss to " << ncname << endl;
-    loss.write_netcdf(ncname,"eigenray_basic test");
+    loss.write_netcdf(ncname,"eigenray_az_branch_pt test");
 
     // save results to spreadsheet and compare to analytic results
 
@@ -448,6 +448,116 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
                << "," << ray.surface
                << "," << ray.bottom
                << "," << ray.caustic
+               << endl;
+        }
+    }
+
+//    cout << "writing tables to " << csvname << endl;
+//    std::ofstream os(csvname);
+//    os << "target,direct,surface,bottom"
+//    << endl;
+//    os << std::setprecision(18);
+//    cout << std::setprecision(18);
+//
+//    for ( int i=0; i < num_targets; ++i ) {
+//        os << i ;
+//        const eigenray_list *raylist = loss.eigenrays(i,0);
+//        int n=0;
+//        for ( eigenray_list::const_iterator iter = raylist->begin();
+//                iter != raylist->end(); ++n, ++iter )
+//        {
+//            const eigenray &ray = *iter ;
+//               os << "," << ray.intensity(0) ;
+//        }
+//        os << endl;
+//    }
+}
+
+/**
+ * This test looks at the ability of the system to detect a single
+ * eigenray for a target that lies directly below a source.
+ */
+
+BOOST_AUTO_TEST_CASE( eigenray_de_branch_pt ) {
+    cout << "=== eigenray_test: eigenray_de_branch_pt ===" << endl;
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_de_branch_pt.csv";
+    const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_de_branch_pt.nc";
+    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/eigenray_de_branch_pt_wave.nc";
+    const double src_alt = -500.0 ;
+    const double time_max = 3.5 ;
+
+    // initialize propagation model
+
+    wposition::compute_earth_radius( 0.0 );
+    attenuation_model* attn = new attenuation_constant(0.0);
+    profile_model* profile = new profile_linear(c0,attn);
+    boundary_model* surface = new boundary_flat();
+    boundary_model* bottom = new boundary_flat(3000.0);
+    ocean_model ocean( surface, bottom, profile );
+
+    seq_log freq( 1000.0, 1.0, 1 );
+    wposition1 pos( 0.0, 0.0, src_alt );
+//    seq_rayfan de;
+    seq_linear de( -85.0, 1.0, 90.0 );
+    seq_linear az( 0.0, 15.0, 360.0 );
+
+    // build a single target
+    wposition target( 1, 1, 0.0, 0.0, -1000.0 ) ;
+    proploss loss(freq, pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
+    wave.addProplossListener(&loss);
+
+    // propagate rays and record wavefronts to disk.
+
+    cout << "propagate wavefronts for " << time_max << " seconds" << endl;
+    cout << "writing wavefronts to " << ncname_wave << endl;
+
+    wave.init_netcdf( ncname_wave );
+    wave.save_netcdf();
+    while ( wave.time() < time_max ) {
+        wave.step();
+        wave.save_netcdf();
+    }
+    wave.close_netcdf();
+
+   // compute coherent propagation loss and write eigenrays to disk
+
+    loss.sum_eigenrays();
+    cout << "writing proploss to " << ncname << endl;
+    loss.write_netcdf(ncname,"eigenray_de_branch_pt test");
+
+    // save results to spreadsheet and compare to analytic results
+
+    cout << "writing tables to " << csvname << endl;
+    std::ofstream os(csvname);
+    os << "target,time,intensity,phase,s_de,s_az,t_de,t_az,srf,btm"
+    << endl;
+    os << std::setprecision(18);
+    cout << std::setprecision(18);
+
+    for ( int i=0; i < 1; ++i ) {
+        os << "#" << i ;
+        cout << "===Target #" << i << "===" << endl;
+        const eigenray_list *raylist = loss.eigenrays(i,0);
+        int n=0;
+        for ( eigenray_list::const_iterator iter = raylist->begin();
+                iter != raylist->end(); ++n, ++iter )
+        {
+            const eigenray &ray = *iter ;
+            cout << "ray #" << n
+                 << " tl=" << ray.intensity(0)
+                 << " t=" << ray.time
+                 << " de=" << -ray.target_de
+                 << endl;
+            os << "," << ray.time
+               << "," << ray.intensity(0)
+               << "," << ray.phase(0)
+               << "," << ray.source_de
+               << "," << ray.source_az
+               << "," << ray.target_de
+               << "," << ray.target_az
+               << "," << ray.surface
+               << "," << ray.bottom
                << endl;
         }
     }
