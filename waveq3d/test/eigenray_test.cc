@@ -351,7 +351,7 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
     const double src_alt = -1000.0;
     const double target_range = 2226.0;
     const double time_max = 3.5;
-    const int num_targets = 100 ;
+    const int num_targets = 12 ;
 
     // initialize propagation model
 
@@ -372,17 +372,8 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
 
     wposition target( num_targets, 1, 0.0, 0.0, src_alt ) ;
     // build a series of targets at 100 km
-//    double angle = TWO_PI/num_targets;
-//    double bearing_inc = 0 ;
-//    for (unsigned n = 0; n < num_targets; ++n) {
-//        wposition1 aTarget( pos, target_range, bearing_inc) ;
-//        target.latitude( n, 0, aTarget.latitude());
-//        target.longitude( n, 0, aTarget.longitude());
-//        target.altitude( n, 0, aTarget.altitude());
-//        bearing_inc = bearing_inc + angle;
-//    }
-    double angle = (30.0*M_PI/180.0)/num_targets;
-    double bearing_inc = (165.0*M_PI/180.0) ;
+    double angle = TWO_PI/num_targets;
+    double bearing_inc = 0 ;
     for (unsigned n = 0; n < num_targets; ++n) {
         wposition1 aTarget( pos, target_range, bearing_inc) ;
         target.latitude( n, 0, aTarget.latitude());
@@ -390,6 +381,15 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
         target.altitude( n, 0, aTarget.altitude());
         bearing_inc = bearing_inc + angle;
     }
+//    double angle = (30.0*M_PI/180.0)/num_targets;
+//    double bearing_inc = (165.0*M_PI/180.0) ;
+//    for (unsigned n = 0; n < num_targets; ++n) {
+//        wposition1 aTarget( pos, target_range, bearing_inc) ;
+//        target.latitude( n, 0, aTarget.latitude());
+//        target.longitude( n, 0, aTarget.longitude());
+//        target.altitude( n, 0, aTarget.altitude());
+//        bearing_inc = bearing_inc + angle;
+//    }
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
@@ -418,40 +418,59 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
 
     cout << "writing tables to " << csvname << endl;
     std::ofstream os(csvname);
-    os << "target,direct,surface,bottom"
+    os << "target,time,intensity,phase,s_de,s_az,t_de,t_az,srf,btm,cst"
     << endl;
     os << std::setprecision(18);
     cout << std::setprecision(18);
 
     for ( int i=0; i < num_targets; ++i ) {
-        os << i ;
-//        cout << "===Target #" << i << "===" << endl;
+        os << "#" << i ;
+        cout << "===Target #" << i << "===" << endl;
         const eigenray_list *raylist = loss.eigenrays(i,0);
         int n=0;
-//        BOOST_CHECK_EQUAL( raylist->size(), 3 ) ;
+        BOOST_CHECK_EQUAL( raylist->size(), 3 ) ;
         for ( eigenray_list::const_iterator iter = raylist->begin();
                 iter != raylist->end(); ++n, ++iter )
         {
             const eigenray &ray = *iter ;
-//            cout << "ray #" << n
-//                 << " tl=" << ray.intensity(0)
-//                 << " t=" << ray.time
-//                 << " de=" << -ray.target_de
-//                 << endl;
-//            os << "," << ray.time
-               os << "," << ray.intensity(0) ;
-//               << "," << ray.phase(0)
-//               << "," << ray.source_de
-//               << "," << ray.source_az
-//               << "," << ray.target_de
-//               << "," << ray.target_az
-//               << "," << ray.surface
-//               << "," << ray.bottom
-//               << "," << ray.caustic
-//               << endl;
+            cout << "ray #" << n
+                 << " tl=" << ray.intensity(0)
+                 << " t=" << ray.time
+                 << " de=" << -ray.target_de
+                 << endl;
+            os << "," << ray.time
+               << "," << ray.intensity(0)
+               << "," << ray.phase(0)
+               << "," << ray.source_de
+               << "," << ray.source_az
+               << "," << ray.target_de
+               << "," << ray.target_az
+               << "," << ray.surface
+               << "," << ray.bottom
+               << "," << ray.caustic
+               << endl;
         }
-        os << endl;
     }
+
+//    cout << "writing tables to " << csvname << endl;
+//    std::ofstream os(csvname);
+//    os << "target,direct,surface,bottom"
+//    << endl;
+//    os << std::setprecision(18);
+//    cout << std::setprecision(18);
+//
+//    for ( int i=0; i < num_targets; ++i ) {
+//        os << i ;
+//        const eigenray_list *raylist = loss.eigenrays(i,0);
+//        int n=0;
+//        for ( eigenray_list::const_iterator iter = raylist->begin();
+//                iter != raylist->end(); ++n, ++iter )
+//        {
+//            const eigenray &ray = *iter ;
+//               os << "," << ray.intensity(0) ;
+//        }
+//        os << endl;
+//    }
 }
 
 /// @}
