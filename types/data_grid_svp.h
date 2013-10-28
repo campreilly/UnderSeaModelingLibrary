@@ -86,7 +86,7 @@ class USML_DECLSPEC data_grid_svp : public data_grid<double,3>
         */
 
         data_grid_svp( const data_grid<double,3>& grid, bool copy_data = true) :
-                data_grid(grid,copy_data), kmin(-1), kzmax(_axis[0]->size()-1u),
+                data_grid<double,3>(grid,copy_data), kmin(-1), kzmax(_axis[0]->size()-1u),
                 kxmax(_axis[1]->size()-1u), kymax(_axis[2]->size()-1u)
         {
             if( interp_type(0)!=GRID_INTERP_PCHIP ) { interp_type(0, GRID_INTERP_PCHIP) ; }

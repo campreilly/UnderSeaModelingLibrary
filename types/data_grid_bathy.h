@@ -248,7 +248,7 @@ class USML_DECLSPEC data_grid_bathy : public data_grid<double,2>
         */
 
         data_grid_bathy( const data_grid<double,2>& grid, bool copy_data = true ) :
-            data_grid(grid,copy_data), bicubic_coeff(16,1), field(16,1), xyloc(1,16),
+            data_grid<double,2>(grid,copy_data), bicubic_coeff(16,1), field(16,1), xyloc(1,16),
             result_pchip(1,1), value(4,4), kmin(0u), k0max(_axis[0]->size()-1u),
             k1max(_axis[1]->size()-1u)
         {
