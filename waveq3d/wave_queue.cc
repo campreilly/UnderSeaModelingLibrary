@@ -51,6 +51,7 @@ wave_queue::wave_queue(
                             + abs((*_source_az)(_source_az->size()-1)) ;
     if( boundary_check == 360.0 ) { az_boundary = true ; }
     else { az_boundary = false ;}
+    skip_az = matrix<bool> ( num_az()-1, 1 ) ;
     _intensity_threshold = 300.00; //In dB
 
     if ( _targets ) {
@@ -306,10 +307,7 @@ void wave_queue::detect_eigenrays() {
 
     double distance2[3][3][3] ;
     double& center = distance2[1][1][1] ;
-    unsigned za_counter ;
-    unsigned az_reinit ;
-    bool reinit ;
-    unsigned parent_az ;
+    unsigned parent_az = num_az() - 1 ;
 
     // loop over all targets
 
@@ -319,11 +317,8 @@ void wave_queue::detect_eigenrays() {
             // loop over all ray paths
 
             for ( unsigned de=1 ; de < num_de()-1 ; ++de ) {
-                parent_az = num_az() - 1 ;
-                za_counter = 0 ;
-                az_reinit = 1 ;
-                for ( unsigned az=1 ; az < parent_az ; ++az ) {
-                    reinit = false ;
+                skip_az.clear() ;
+                for ( unsigned az=0 ; az < parent_az ; ++az ) {
 
                 	// *******************************************
                 	// When central ray is at the edge of ray family
@@ -336,43 +331,29 @@ void wave_queue::detect_eigenrays() {
 					// get the central ray for testing
                     center = _curr->distance2(t1,t2)(de,az) ;
                     if(az_boundary) {
-                        unsigned za = parent_az - az ;
-                        ++za_counter ;
-                        double retnec = _curr->distance2(t1,t2)(de,za) ;
-                        if(center == retnec) {
-                            az_reinit = az ;
-                            az = za ;
-                            parent_az -= za_counter ;
-                            za_counter = 0 ;
-                            reinit = true ;
-                        }
+//                        skip_az(parent_az-1,0) = skip_az(1,0) = true ;
+                        if(!skip_az(az,0)) {
+                            unsigned za = parent_az - az ;
+                            double retnec = _curr->distance2(t1,t2)(de,za) ;
+                            if(center <= retnec) {
+                                skip_az(za,0) = true ;
+                            }
+                        } else { continue ; }
                     }
 
                     distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
                     if ( distance2[2][1][1] <= center ) {
-                        if(reinit) {
-                            az = az_reinit ;
-                            reinit = false ;
-                        }
                         continue;
                     }
 
                     distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
                     if ( distance2[0][1][1] < center ) {
-                        if(reinit) {
-                            az = az_reinit ;
-                            reinit = false ;
-                        }
                         continue;
                     }
 
                     // *******************************************
                     if ( is_closest_ray(t1,t2,de,az,center,distance2) ) {
                         build_eigenray(t1,t2,de,az,distance2) ;
-                    }
-                    if(reinit) {
-                        az = az_reinit ;
-                        reinit = false ;
                     }
                 }
             }
@@ -402,6 +383,14 @@ bool wave_queue::is_closest_ray(
 
             unsigned d = de + nde - 1 ;
             unsigned a = az + naz - 1 ;
+            if(az_boundary) {
+                if( (int)a < 0.0 ) {
+                    a = num_az() - 2 ;
+                } else
+                if( (int)a >= (num_az() - 1) ) {
+                    a = 0 ;
+                }
+            }
             distance2[0][nde][naz] = _prev->distance2(t1,t2)(d,a) ;
             distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
             distance2[2][nde][naz] = _next->distance2(t1,t2)(d,a) ;
@@ -425,7 +414,7 @@ bool wave_queue::is_closest_ray(
             // skip to next iteration if tested ray is on edge of ray family
             // allows extrapolation outside of ray family
 
-            if ( a == 0 || a == num_az()-1 ) continue;
+            if ( a == num_az()-1 ) continue;
             if ( _curr->on_edge(d,a) ) continue ;
 
             // test to see if the center value is the smallest
@@ -476,14 +465,24 @@ void wave_queue::build_eigenray(
             }
             cout << " ]" << endl ;
         }
+
         cout << "\t de index: (slow) [ " << de-1 << " " << de << " " << de+1
-             << " ]\n\t az index: (fast) [ " << az-1 << " " << az << " " << az+1
-             << " ]" << endl;
+             << " ]\n\t az index: (fast) [ "  ;
+             if( (int)az-1 < 0 ) { cout << num_az()-2 ; }
+             else { cout << az-1 ; }
+             cout << " " << az << " " ;
+             if( az+1 >= (num_az()-1) ) { cout << 0 ; }
+             else{ cout << az+1 ; }
+        cout << " ]" << endl;
         cout << "\t prev  [";
         for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
             cout << " [" ;
-            for ( unsigned n3=az-1 ; n3 < az+2 ; ++n3 ) {
-               cout << " " << _past->on_edge(n2,n3) ;
+            for ( int n3=int(az-1) ; n3 < int(az+2) ; ++n3 ) {
+                int wrap ;
+                if( n3 < 0 ) { wrap = num_az()-2 ; }
+                else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
+                else { wrap = n3 ; }
+                cout << " " << _past->on_edge(n2,wrap) ;
             }
             cout << " ];";
         }
@@ -491,8 +490,12 @@ void wave_queue::build_eigenray(
         cout << "\t curr  [";
         for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
             cout << " [" ;
-            for ( unsigned n3=az-1 ; n3 < az+2 ; ++n3 ) {
-               cout << " " << _curr->on_edge(n2,n3) ;
+            for ( int n3=int(az-1) ; n3 < int(az+2) ; ++n3 ) {
+                int wrap ;
+                if( n3 < 0 ) { wrap = num_az()-2 ; }
+                else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
+                else { wrap = n3 ; }
+                cout << " " << _curr->on_edge(n2,wrap) ;
             }
             cout << " ];";
         }
@@ -500,8 +503,12 @@ void wave_queue::build_eigenray(
         cout << "\t next  [";
         for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
             cout << " [" ;
-            for ( unsigned n3=az-1 ; n3 < az+2 ; ++n3 ) {
-               cout << " " << _next->on_edge(n2,n3) ;
+            for ( int n3=int(az-1) ; n3 < int(az+2) ; ++n3 ) {
+                int wrap ;
+                if( n3 < 0 ) { wrap = num_az()-2 ; }
+                else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
+                else { wrap = n3 ; }
+                cout << " " << _next->on_edge(n2,wrap) ;
             }
             cout << " ];";
         }
@@ -524,6 +531,14 @@ void wave_queue::build_eigenray(
         unsigned d = de + nde -1 ;
         for ( unsigned naz=0 ; naz < 3 && !unstable ; ++naz ) {
             unsigned a = az + naz -1 ;
+            if(az_boundary) {
+                if( (int)a < 0.0 ) {
+                    a = num_az() - 2 ;
+                } else
+                if( (int)a >= (num_az() - 1) ) {
+                    a = 0 ;
+                }
+            }
             if ( _prev->surface(d,a) != surface ||
                  _curr->surface(d,a) != surface ||
                  _next->surface(d,a) != surface ||
@@ -622,6 +637,14 @@ void wave_queue::build_eigenray(
         for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
             unsigned d = de + nde - 1 ;
             unsigned a = az + naz - 1 ;
+            if(az_boundary) {
+                if( (int)a < 0.0 ) {
+                    a = num_az() - 2 ;
+                } else
+                if( (int)a >= (num_az() - 1) ) {
+                    a = 0 ;
+                }
+            }
             double dummy ;
             {
                 wvector1 ndir( _prev->ndirection, d, a ) ;
@@ -653,6 +676,14 @@ void wave_queue::build_eigenray(
             unsigned d = de + nde - 1 ;
             unsigned a = az + naz - 1 ;
             double dummy ;
+            if(az_boundary) {
+                if( (int)a < 0.0 ) {
+                    a = num_az() - 2 ;
+                } else
+                if( (int)a >= (num_az() - 1) ) {
+                    a = 0 ;
+                }
+            }
             {
                 wvector1 ndir( _prev->ndirection, d, a ) ;
                 ndir.direction( &dummy, &distance2[0][nde][naz] ) ;

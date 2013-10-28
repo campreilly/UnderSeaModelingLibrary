@@ -277,8 +277,8 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
 
     // contribution from AZ angle one lower than central cell
 
-    if( (az-1) < 0) {a = size - 1 ;}
-    else {a = (int) az - 1 ;}
+    if( int(az-1) < 0) {a = size - 1 ;}
+    else {a = int(az - 1) ;}
     cell_width = width_az(de, a, offset);   // half width of this cell
     cell_dist = L + cell_width;             // dist from center of this cell
     _intensity_az += gaussian(cell_dist, cell_width, _norm_az(de, a));
@@ -301,7 +301,8 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
     // stop after processing last entry in ray family
     // stop when lowest frequency PL changes by < threshold
 
-    a = (int) az - 1 ;
+    if( int(az-1) < 0) {a = size - 1 ;}
+    else {a = int(az - 1) ;}
     while ( a%size != az ) {
         if ( a == 0 ) { a += size - 1 ; }
         else { --a ;}
@@ -342,7 +343,7 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
              << " width=" << sqrt(_beam_width) << endl ;
     #endif
 
-    a = (int) az + 1 ;
+    a = az + 1 ;
     while ( a%size != az ) {
         if ( a == size ) { a = 0 ;}
         else { ++a ;}
