@@ -4,7 +4,7 @@
  */
 
 #ifndef USML_OCEAN_PROFILE_GRID_FAST_H
-#define USML_OCEAN_PROFILE_GRID_H
+#define USML_OCEAN_PROFILE_GRID_FAST_H
 
 #include <usml/ocean/profile_model.h>
 
