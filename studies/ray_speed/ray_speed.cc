@@ -19,6 +19,7 @@
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/netcdf/netcdf_files.h>
 #include <fstream>
+#include <iomanip>
 #include <sys/time.h>
 
 using namespace usml::waveq3d ;
@@ -64,25 +65,33 @@ int main( int argc, char* argv[] ) {
     // build sound velocity profile from World Ocean Atlas data
 
     cout << "load temperature & salinity data from World Ocean Atlas" << endl ;
-    netcdf_woa temperature(
+    netcdf_woa* temperature = new netcdf_woa(
 	USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
 	USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
         month, lat1, lat2, lng1, lng2 ) ;
-    netcdf_woa salinity(
+    netcdf_woa* salinity = new netcdf_woa(
 	USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
 	USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
         month, lat1, lat2, lng1, lng2 ) ;
-    profile_model* profile =
-    	new profile_mackenzie<double,3>( temperature, salinity ) ;
+//    profile_model* profile = new profile_grid<double,3>(
+//        data_grid_mackenzie::construct(temperature, salinity) ) ;
+    data_grid<double,3>* ssp = data_grid_mackenzie::construct( temperature, salinity ) ;
+    data_grid_svp* fast_ssp = new data_grid_svp(*ssp, true) ;
+    delete ssp ;
+    profile_model* profile = new profile_grid_fast( fast_ssp ) ;
 //    attenuation_model* attn = new attenuation_constant(0.0);
 //    profile_model* profile = new profile_linear(1500.0,attn);
 
     // load bathymetry from ETOPO1 database
 
+    data_grid<double,2>* grid = new netcdf_bathy( USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+        lat1, lat2, lng1, lng2 );
+    data_grid_bathy* fast_grid = new data_grid_bathy(*grid, true) ;
+    delete grid ;
     cout << "load bathymetry from ETOPO1 database" << endl ;
-    boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
-    	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
-	lat1, lat2, lng1, lng2 ) ) ;
+    boundary_model* bottom = new boundary_grid_fast( fast_grid ) ;
+//    boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
+//        USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd", lat1, lat2, lng1, lng2 ) );
 //	bottom->reflect_loss(new reflect_loss_constant(0.0));
 //    boundary_model* bottom = new boundary_flat(3000.0);
     double height ;
@@ -103,9 +112,10 @@ int main( int argc, char* argv[] ) {
         target.latitude(  n, 0, pos.latitude() + randgen::uniform() - 0.5 ) ;
         target.longitude( n, 0, pos.longitude() + randgen::uniform() - 0.5 ) ;
     }
-    proploss loss( &target ) ;
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss ) ;
-//    wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
+
+    proploss loss(freq, pos, de, az, time_step, &target);
+	wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
+	wave.addProplossListener(&loss);
 
     // propagate wavefront
 	#ifdef USML_DEBUG

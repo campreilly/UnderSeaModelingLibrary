@@ -17,16 +17,21 @@ cmake_minimum_required( VERSION 2.6 )
 project( usml CXX )
 
 set( PACKAGE_VERSION_MAJOR 0 )
-set( PACKAGE_VERSION_MINOR 3 )
+set( PACKAGE_VERSION_MINOR 4 )
 set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
-set( PACKAGE_MODULES ublas types netcdf ocean waveq3d )
+set( PACKAGE_MODULES ublas types netcdf ocean waveq3d)
 set( NETCDF_NCKS /usr/bin/ncks )
 
 ######################################################################
 # set USML defaults
 
-option( USML_PEDANTIC "maximize warnings, treat warning as errors" OFF )
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
+option( GPROF_PROFILER "build for profiling at function level timing" OFF )
+option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
+option( Boost_FORCE_SHAREDLIB "Use Boost shared libraries" OFF )
+option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
+option( USML_BUILD_TESTS "build all Tests" ON )
+option( USML_BUILD_STUDIES "build all Studies" ON )
 
 ######################################################################
 # Visual C++ compiler options
@@ -54,9 +59,19 @@ else( CMAKE_COMPILER_IS_GNUCXX )
         set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
     endif()
     if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) ) # no optimizations
-        add_definitions( -O0 )
+        if ( PROFILE_TIME )                	# Profile Function Timing
+            add_definitions( -pg -O0 )
+            set ( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg" )
+        else()
+            add_definitions( -O0 )
+        endif ( PROFILE_TIME )
     else()                              	# max optimizations
-        add_definitions( -g -ffast-math )
+        if ( PROFILE_TIME )                	# Profile Function Timing
+            add_definitions( -pg -ffast-math)
+            set ( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg" )
+        else()
+            add_definitions( -g -ffast-math )
+        endif ( PROFILE_TIME )
     endif()
     if ( USML_PEDANTIC )                	# standards compliance
         add_definitions( -std=c++98 -pedantic -Wall -Werror
@@ -79,20 +94,23 @@ include_directories( ${PROJECT_SOURCE_DIR}/.. )
 
 set( Boost_DEBUG OFF )
 unset( Boost_INCLUDE_DIR CACHE ) # force FindBoost.cmake to reload each time
+#include ( FindBoost )
 
 if ( BOOST_ROOT )
-    set( Boost_NO_SYSTEM_PATHS ON )
-    set( Boost_INCLUDE_DIR ${BOOST_ROOT}/include )
+    set( BOOST_NO_SYSTEM_PATHS ON )
+    set( BOOST_INCLUDEDIR ${BOOST_ROOT}/include )
     set( BOOST_LIBRARYDIR ${BOOST_ROOT}/lib )
 endif()
 
-if ( BUILD_SHARED_LIBS )
+if ( BUILD_SHARED_LIBS OR Boost_FORCE_SHAREDLIB )
     set( Boost_USE_STATIC_LIBS OFF )
     add_definitions( -DBOOST_ALL_DYN_LINK )
-    set( Boost_REALPATH ON )	# use version suffix in *.so name
+    set( BOOST_REALPATH ON )	# use version suffix in *.so name
 else ( BUILD_SHARED_LIBS )
+    set( Boost_REALPATH ON )	# use version suffix in *.so name
+else ()
     set( Boost_USE_STATIC_LIBS ON )
-endif ( BUILD_SHARED_LIBS )
+endif ( BUILD_SHARED_LIBS OR Boost_FORCE_SHAREDLIB )
 
 set(Boost_ADDITIONAL_VERSIONS
 	"1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.520")
@@ -120,13 +138,15 @@ add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 
 if( NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR} )
     set( NETCDF_DIR $ENV{NETCDF_DIR} CACHE PATH "Root of NetCDF library" )
-endif()
+endif(NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR})
+
 if( IS_DIRECTORY ${NETCDF_DIR}/include )
     list( APPEND CMAKE_INCLUDE_PATH $ENV{NETCDF_DIR}/include )
-endif()
+endif(IS_DIRECTORY ${NETCDF_DIR}/include)
+
 if( IS_DIRECTORY ${NETCDF_DIR}/lib )
     list( APPEND CMAKE_LIBRARY_PATH $ENV{NETCDF_DIR}/lib )
-endif()
+endif(IS_DIRECTORY ${NETCDF_DIR}/lib )
 
 set( NETCDF_CXX ON )
 find_package( NetCDF 3.6 REQUIRED )
@@ -168,96 +188,99 @@ install(FILES usml_config.h DESTINATION include/usml)
 ######################################################################
 # USML_TEST regression test suite
 
-# define standard input and output data files for USML regression tests
+if (USML_BUILD_TESTS)
 
-set( USML_DATA_DIR ${PROJECT_SOURCE_DIR}/data
-     CACHE PATH "directory for data used in testing" )
-set( USML_TEST_DIR ${PROJECT_SOURCE_DIR}
-     CACHE PATH "root directory for testing outputs" )
-foreach( MOD ${PACKAGE_MODULES} )
-    file(MAKE_DIRECTORY ${USML_TEST_DIR}/${MOD}/test)
-endforeach( MOD )
+	# define standard input and output data files for USML regression tests
 
-# generated data files for bathymetry tests
+	set( USML_DATA_DIR ${PROJECT_SOURCE_DIR}/data
+	     CACHE PATH "directory for data used in testing" )
+	set( USML_TEST_DIR ${PROJECT_SOURCE_DIR}
+	     CACHE PATH "root directory for testing outputs" )
+	foreach( MOD ${PACKAGE_MODULES} )
+	    file(MAKE_DIRECTORY ${USML_TEST_DIR}/${MOD}/test)
+	endforeach( MOD )
 
-#if ( EXISTS ${NETCDF_NCKS} )
-    set( USML_DATA_BATHYMETRY ${USML_DATA_DIR}/bathymetry/ETOPO1_Ice_g_gmt4.grd
-	CACHE FILEPATH "data file for ETOPO bathymetry" )
-    set( ETOPO_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp )
-    add_custom_command(
-        OUTPUT ${ETOPO_CMP}.nc ${ETOPO_CMP}.log
-        COMMAND ${NETCDF_NCKS} -O -a -d y,18.0,23.000001 -d x,-160.0,-154.0
-            "${USML_DATA_BATHYMETRY}" "${ETOPO_CMP}.nc"
-        COMMAND ncdump "${ETOPO_CMP}.nc" > "${ETOPO_CMP}.log"
-    )
+	# generated data files for bathymetry tests
 
-    set( ETOPO_CMP2W ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp2w )
-    add_custom_command(
-        OUTPUT ${ETOPO_CMP2W}.nc ${ETOPO_CMP2W}.log
-        COMMAND ${NETCDF_NCKS} -O -a -d y,-1.0,2.000001 -d x,179.0,180.0
-            "${USML_DATA_BATHYMETRY}" "${ETOPO_CMP2W}.nc"
-        COMMAND ncdump "${ETOPO_CMP2W}.nc" > "${ETOPO_CMP2W}.log"
-    )
+	if ( EXISTS ${NETCDF_NCKS} )
+	    set( USML_DATA_BATHYMETRY ${USML_DATA_DIR}/bathymetry/ETOPO1_Ice_g_gmt4.grd
+		CACHE FILEPATH "data file for ETOPO bathymetry" )
+	    set( ETOPO_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp )
+	    add_custom_command(
+	        OUTPUT ${ETOPO_CMP}.nc ${ETOPO_CMP}.log
+	        COMMAND ${NETCDF_NCKS} -O -a -d y,18.0,23.000001 -d x,-160.0,-154.0
+	            "${USML_DATA_BATHYMETRY}" "${ETOPO_CMP}.nc"
+	        COMMAND ncdump "${ETOPO_CMP}.nc" > "${ETOPO_CMP}.log"
+	    )
 
-    set( ETOPO_CMP2E ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp2e )
-    add_custom_command(
-        OUTPUT ${ETOPO_CMP2E}.nc ${ETOPO_CMP2E}.log
-        COMMAND ${NETCDF_NCKS} -O -a -d y,-1.0,2.000001 -d x,-179.9834,-178.0
-            "${USML_DATA_BATHYMETRY}" "${ETOPO_CMP2E}.nc"
-        COMMAND ncdump "${ETOPO_CMP2E}.nc" > "${ETOPO_CMP2E}.log"
-    )
+	    set( ETOPO_CMP2W ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp2w )
+	    add_custom_command(
+	        OUTPUT ${ETOPO_CMP2W}.nc ${ETOPO_CMP2W}.log
+	        COMMAND ${NETCDF_NCKS} -O -a -d y,-1.0,2.000001 -d x,179.0,180.0
+	            "${USML_DATA_BATHYMETRY}" "${ETOPO_CMP2W}.nc"
+	        COMMAND ncdump "${ETOPO_CMP2W}.nc" > "${ETOPO_CMP2W}.log"
+	    )
 
-    add_custom_target( ETOPO_TEST_DATA ALL DEPENDS
-	${ETOPO_CMP}.nc ${ETOPO_CMP2W}.nc ${ETOPO_CMP2E}.nc )
-#endif()
+	    set( ETOPO_CMP2E ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp2e )
+	    add_custom_command(
+	        OUTPUT ${ETOPO_CMP2E}.nc ${ETOPO_CMP2E}.log
+	        COMMAND ${NETCDF_NCKS} -O -a -d y,-1.0,2.000001 -d x,-179.9834,-178.0
+	            "${USML_DATA_BATHYMETRY}" "${ETOPO_CMP2E}.nc"
+	        COMMAND ncdump "${ETOPO_CMP2E}.nc" > "${ETOPO_CMP2E}.log"
+	    )
 
-# generated data files for profile tests
+	    add_custom_target( ETOPO_TEST_DATA ALL DEPENDS
+		${ETOPO_CMP}.nc ${ETOPO_CMP2W}.nc ${ETOPO_CMP2E}.nc )
+	endif()
 
-if ( EXISTS ${NETCDF_NCKS} )
-    set( USML_DATA_TEMP_MONTH ${USML_DATA_DIR}/woa09/temperature_monthly_1deg.nc
-	    CACHE FILEPATH "data file for shallow WOA temperature profile" )
-    set( WOA_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/woa_cmp )
-    add_custom_command(
-        OUTPUT ${WOA_CMP}.nc ${WOA_CMP}.log
-        COMMAND ${NETCDF_NCKS} -O -a -v depth,time,lat,lon,t_an
-            -d time,165.0,165.0 -d lat,18.0,23.0 -d lon,200.0,206.0
-            "${USML_DATA_TEMP_MONTH}" "${WOA_CMP}.nc"
-        COMMAND ncdump "${WOA_CMP}.nc" > "${WOA_CMP}.log"
-    )
+	# generated data files for profile tests
 
-    set( WOA_CMP2 ${PROJECT_SOURCE_DIR}/netcdf/test/woa_cmp2 )
-    add_custom_command(
-        OUTPUT ${WOA_CMP2}.nc ${WOA_CMP2}.log
-        COMMAND ${NETCDF_NCKS} -O -a -v depth,time,lat,lon,t_an
-            -d time,0.0,0.0 -d lat,0.5,0.5 -d lon,0.5,0.5
-            "${USML_DATA_TEMP_MONTH}" "${WOA_CMP2}.nc"
-        COMMAND ncdump "${WOA_CMP2}.nc" > "${WOA_CMP2}.log"
-    )
+	if ( EXISTS ${NETCDF_NCKS} )
+	    set( USML_DATA_TEMP_MONTH ${USML_DATA_DIR}/woa09/temperature_monthly_1deg.nc
+		    CACHE FILEPATH "data file for shallow WOA temperature profile" )
+	    set( WOA_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/woa_cmp )
+	    add_custom_command(
+	        OUTPUT ${WOA_CMP}.nc ${WOA_CMP}.log
+	        COMMAND ${NETCDF_NCKS} -O -a -v depth,time,lat,lon,t_an
+	            -d time,165.0,165.0 -d lat,18.0,23.0 -d lon,200.0,206.0
+	            "${USML_DATA_TEMP_MONTH}" "${WOA_CMP}.nc"
+	        COMMAND ncdump "${WOA_CMP}.nc" > "${WOA_CMP}.log"
+	    )
 
-    add_custom_target( WOA_TEST_DATA ALL DEPENDS ${WOA_CMP}.nc ${WOA_CMP2}.nc )
-endif()
+	    set( WOA_CMP2 ${PROJECT_SOURCE_DIR}/netcdf/test/woa_cmp2 )
+	    add_custom_command(
+	        OUTPUT ${WOA_CMP2}.nc ${WOA_CMP2}.log
+	        COMMAND ${NETCDF_NCKS} -O -a -v depth,time,lat,lon,t_an
+	            -d time,0.0,0.0 -d lat,0.5,0.5 -d lon,0.5,0.5
+	            "${USML_DATA_TEMP_MONTH}" "${WOA_CMP2}.nc"
+	        COMMAND ncdump "${WOA_CMP2}.nc" > "${WOA_CMP2}.log"
+	    )
 
-# build the USML regression tests
+	    add_custom_target( WOA_TEST_DATA ALL DEPENDS ${WOA_CMP}.nc ${WOA_CMP2}.nc )
+	endif()
 
-unset( HEADERS )
-file( GLOB SOURCES usml_test.cc )
-source_group( main FILES ${SOURCES} )
-FIND_SOURCES( "${PACKAGE_MODULES}" "/test" )
 
-add_executable( usml_test ${HEADERS} ${SOURCES} )
-target_link_libraries( usml_test usml )
-set_property(
-   TARGET usml_test
-   PROPERTY COMPILE_DEFINITIONS
-	USML_DATA_DIR="${USML_DATA_DIR}"
-	USML_TEST_DIR="${USML_TEST_DIR}"
+	# build the USML regression tests
+	unset( HEADERS )
+	file( GLOB SOURCES usml_test.cc )
+	source_group( main FILES ${SOURCES} )
+	FIND_SOURCES( "${PACKAGE_MODULES}" "/test" )
+
+	add_executable( usml_test ${HEADERS} ${SOURCES} )
+	target_link_libraries( usml_test usml )
+	set_property(
+	   TARGET usml_test
+	   PROPERTY COMPILE_DEFINITIONS
+		USML_DATA_DIR="${USML_DATA_DIR}"
+		USML_TEST_DIR="${USML_TEST_DIR}"
    )
+
+endif (USML_BUILD_TESTS)
 
 ######################################################################
 # USML studies
 
-set( USML_STUDIES_DIR ${PROJECT_SOURCE_DIR}/studies
-     CACHE PATH "directory for data used in testing" )
+if (USML_BUILD_STUDIES)
 
 #add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
 #target_link_libraries( cmp_speed usml )

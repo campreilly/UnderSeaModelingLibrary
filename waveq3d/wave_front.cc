@@ -4,6 +4,8 @@
  */
 #include <usml/waveq3d/wave_front.h>
 
+//#define SSP_DEBUG
+
 using namespace usml::waveq3d ;
 
 /**
@@ -221,8 +223,26 @@ void wave_front::compute_target_distance() {
  * Compute terms in the sound speed profile as fast as possible.
  */
 void wave_front::compute_profile() {
+    #ifdef SSP_DEBUG
+        cout << "***Entering wave_front::compute_profile()***" << endl;
+    #endif
     _ocean.profile().sound_speed( position, &sound_speed, &sound_gradient);
     _ocean.profile().attenuation( position, *_frequencies, distance, &attenuation);
+    #ifdef SSP_DEBUG
+        cout << "\tsound_speed: " << sound_speed << endl;
+        cout << "\t---sound_gradient---" << endl;
+        for ( unsigned n1=0 ; n1 < num_de() ; ++n1 ) {
+            cout << "\t\t" << n1 << ",:" << endl;
+            for ( unsigned n2=0 ; n2 < num_az() ; ++n2 ) {
+                if(n2!=0) {cout << "\t" ;}
+                else {cout << "\t\t\t" ;}
+                cout << "(" << sound_gradient.rho(n1,n2) << ", "
+                       << sound_gradient.theta(n1,n2) << ", "
+                       << sound_gradient.phi(n1,n2) << ")" ;
+            }
+            cout << endl;
+        }
+    #endif
     for (unsigned de = 0; de < position.size1(); ++de) {
         for (unsigned az = 0; az < position.size2(); ++az) {
             phase(de, az).clear();

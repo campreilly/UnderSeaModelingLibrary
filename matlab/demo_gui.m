@@ -24,15 +24,32 @@ function demo_gui
     global max_time ;
     global bathy_show ;
     global k ;
+<<<<<<< HEAD
+=======
+    global default_wavefront ;
+    global default_proploss ;
+    global initialize ;
+    global init_hbar ;
+>>>>>>> development0.04
     
     colors = {'b','r','g','y','m','k','w'};
 
     minlat = 28.9 ; maxlat=29.1 ;
     minlng = -80.1; maxlng=-79.9 ;
     bathymetry = load_bathymetry('lvcms_bathy_test_area.nc') ;
+<<<<<<< HEAD
 
     
 %%-------------------------------GUI SETUP---------------------------------
+=======
+    default_wavefront = 'WaveFrontPropertiesOutput.nc' ;
+    default_proploss = 'ProplossPropertiesOutput.nc' ;
+    initialize = true ;
+
+    
+%% ------------------------------GUI SETUP---------------------------------
+    init_hbar = waitbar(0,['Initializing GUI...']) ;
+>>>>>>> development0.04
     % Creates the default figure window
     f = figure('Units','characters',...
         'Position',[60 7 120 35],...
@@ -79,11 +96,19 @@ function demo_gui
     function botPanelResize(src, evt)
         bpos = get(botPanel,'Position');
         set(wavebox,'Position',...
+<<<<<<< HEAD
             [bpos(3)*15/120 bpos(4)*6/8 bpos(3)*24/120 1])
         set(wavebox_button,'Position',...
             [bpos(3)*41/120 bpos(4)*6/8 bpos(3)*15/120 1])
         set(propbox,'Position',...
             [bpos(3)*15/120 bpos(4)*4/8 bpos(3)*24/120 1])
+=======
+            [bpos(3)*3/120 bpos(4)*6/8 bpos(3)*35/120 1])
+        set(wavebox_button,'Position',...
+            [bpos(3)*41/120 bpos(4)*6/8 bpos(3)*15/120 1])
+        set(propbox,'Position',...
+            [bpos(3)*3/120 bpos(4)*4/8 bpos(3)*35/120 1])
+>>>>>>> development0.04
         set(propbox_button,'Position',...
             [bpos(3)*41/120 bpos(4)*4/8 bpos(3)*15/120 1])
     end
@@ -133,6 +158,39 @@ function demo_gui
             [rpos(3)*20/32 rpos(4)*12/27 rpos(3)*7/32 rpos(4)*1/27]);
     end
 
+<<<<<<< HEAD
+=======
+    % Create a field that allows the user to specify the filename for the
+    % wavefront and proploss file and then buttons to load the files
+    wavebox_button = uicontrol(f, 'Style','pushbutton', ...
+        'Units', 'characters', ...
+        'Position', [41 6 15 1], ...
+        'BackgroundColor', 'white', ...
+        'String', 'Load Wavefront', ...
+        'Parent', botPanel, ...
+        'Callback', @wavefront_load_Callback) ;
+    wavebox = uicontrol(f, 'Style', 'edit', ...
+        'Units', 'characters', ...
+        'Position', [5 6 34 1], ...
+        'BackgroundColor', 'white', ...
+        'String', default_wavefront, ...
+        'Parent', botPanel) ;
+
+    propbox_button = uicontrol(f, 'Style','pushbutton', ...
+        'Units', 'characters', ...
+        'Position', [41 4 15 1], ...
+        'BackgroundColor', 'white', ...
+        'String', 'Load Proploss', ...
+        'Parent', botPanel, ...
+        'Callback', @proploss_load_Callback) ;
+    propbox = uicontrol(f, 'Style', 'edit', ...
+        'Units', 'characters', ...
+        'Position', [5 4 34 1], ...
+        'BackgroundColor', 'white', ...
+        'String', default_proploss, ...
+        'Parent', botPanel) ;
+
+>>>>>>> development0.04
     % Setup a view buttons for specific angles of the plot
     td_button = uicontrol(f, 'Style', 'pushbutton', ...
         'Units', 'characters', ...
@@ -262,6 +320,7 @@ function demo_gui
         'String',{'Blue','Red','Green','Yellow','Magenta','Black','White'},...
         'Parent',rightPanel, ...
         'Callback', @LineColorCallback);
+<<<<<<< HEAD
     
     % Create a field that allows the user to specify the filename for the
     % wavefront and proploss file and then buttons to load the files
@@ -292,6 +351,10 @@ function demo_gui
         'Parent', botPanel) ;
     
 %%-------------------------Main Plot Area Setup----------------------------
+=======
+
+%% ------------------------Main Plot Area Setup----------------------------
+>>>>>>> development0.04
     a = axes('parent', centerPanel);
     view(a, 3);
     set(a,'XGrid','on','YGrid','on','ZGrid','on');
@@ -334,7 +397,11 @@ function demo_gui
                 wlon = squeeze(wavefront.longitude(t_index,new_de,new_az)) ;
                 walt = squeeze(wavefront.altitude(t_index,new_de,new_az)) ;
             end
+<<<<<<< HEAD
             k = surf( wlon, wlat, walt ) ;
+=======
+            k = surf( wlon, wlat, walt, 'FaceColor', 'interp' ) ;
+>>>>>>> development0.04
             colormap(winter(128)) ;
             if bathy_show == get(bathy_toggle,'Max')
                 bathy_plot
@@ -359,6 +426,17 @@ function demo_gui
                 walt = squeeze(wavefront.altitude(:,new_de,new_az)) ;
             end
                 l = plot3( wlon, wlat, walt, 'b' );
+<<<<<<< HEAD
+=======
+                hold on;
+                if ~isnan(t_index)
+                   t_lat = squeeze(wavefront.latitude(t_index,new_de,new_az)) ;
+                   t_lon = squeeze(wavefront.longitude(t_index,new_de,new_az)) ;
+                   t_alt = squeeze(wavefront.altitude(t_index,new_de,new_az)) ;
+                   plot3(t_lon, t_lat, t_alt, 'ro-') ;
+                end
+                hold off;
+>>>>>>> development0.04
                 if bathy_show == get(bathy_toggle,'Max')
                     bathy_plot
                 end
@@ -370,9 +448,15 @@ function demo_gui
                    ysource, xsource, zsource, 'ro');
         set(h(1),'MarkerEdgeColor','k','MarkerFaceColor','k');
         set(h(2),'MarkerEdgeColor','r','MarkerFaceColor','r');
+<<<<<<< HEAD
         set(gca,'XLim',[minlng maxlng])
         set(gca,'YLim',[minlat maxlat])
         set(gca,'ZLim',[-500 0])
+=======
+%         set(gca,'XLim',[minlng maxlng])
+%         set(gca,'YLim',[minlat maxlat])
+%         set(gca,'ZLim',[-500 0])
+>>>>>>> development0.04
         title(sprintf( 'LVCMS 3-D view' )) ; 
         xlabel('Longitude')
         ylabel('Latitude')
@@ -402,7 +486,69 @@ function demo_gui
         set(hb, 'FaceColor', 'interp') ; 
         hold(a,'off') ;        
     end
+<<<<<<< HEAD
     
+=======
+
+%% ------Callback functions for wavefronts and proploss/eigenrays----------
+    % All variables are set to global to allow use in any function
+    function wavefront_load_Callback(src,evt)
+        if initialize
+            filename = get(wavebox, 'string') ;
+%             init_hbar = waitbar(0,['Initializing GUI...']) ;
+            waitbar(2/11) ;
+            wavefront = load_wavefront(filename);
+        else
+            filename = get(wavebox, 'string') ;
+            if isempty(filename)
+                filename = uigetfile({'*.nc','NetCDF Files (*.nc)'; ...
+                    '*.*', 'All Files (*.*)'},'Choose the wavefront file.') ;
+            end
+            hbar = waitbar(0,['Loading Wavefront...']) ;
+            set(wavebox, 'String', filename);
+            waitbar(4/11);
+            clear wavefront;
+            wavefront = load_wavefront(filename);
+            if ~isempty(wavefront)
+                waitbar(1.0);
+                pause(0.1)
+                msgbox('Wavefront loaded successfully','Load Complete','modal')
+                close(hbar);
+            end
+        end
+    end
+
+    function proploss_load_Callback(src,evt)
+        if initialize
+            waitbar(7/11) ;
+            filename = get(propbox, 'string') ;
+            [proploss, eigenrays] = load_proploss(filename) ;
+            waitbar(1.0) ;
+            msgbox('GUI setup complete','Load Complete','modal')
+            close(init_hbar) ;
+            initialize = false ;
+        else
+            filename = get(propbox, 'string') ;
+            clear proploss ;
+            clear eigenrays ;
+            if isempty(filename)
+                filename = uigetfile({'*.nc','NetCDF Files (*.nc)'; ...
+                    '*.*', 'All Files (*.*)'},'Choose the wavefront file.') ;
+            end
+            set(propbox, 'String', filename);
+            [proploss, eigenrays] = load_proploss(filename);
+            if( ~isempty(proploss) && ~isempty(eigenrays) )
+                msgbox('Proploss and Eigenray information loaded successfully', ...
+                'Load Complete','modal') ;
+            end
+        end
+    end
+
+    % initialize the above buttons and callbacks
+    wavefront_load_Callback(wavebox_button,[]) ;
+    proploss_load_Callback(propbox_button,[]) ;
+
+>>>>>>> development0.04
     %% Callbacks for min/max of DE
     function ChangeDE_Callback_min(hObj, eventdata, handles)
         de_min = str2double(get(hObj,'string')) ;
@@ -490,8 +636,13 @@ function demo_gui
            create_plot ;
        end
     end
+<<<<<<< HEAD
     t_increase_Callback(t_box_increase,[]) ;
     t_decrease_Callback(t_box_decrease,[]) ;
+=======
+%     t_increase_Callback(t_box_increase,[]) ;
+%     t_decrease_Callback(t_box_decrease,[]) ;
+>>>>>>> development0.04
 
     function find_max_time
         max_time = length( wavefront.travel_time ) ;
@@ -572,8 +723,13 @@ function demo_gui
     end
 
     % initialize the above buttons and callbacks
+<<<<<<< HEAD
     TDView_Callback(td_button,[]) ;
     SideView_Callback(az_button,[]) ;
+=======
+%     TDView_Callback(td_button,[]) ;
+%     SideView_Callback(az_button,[]) ;
+>>>>>>> development0.04
     
     % Callback for hold state toggle button
     function bathy_Callback(src,evt)
@@ -592,6 +748,7 @@ function demo_gui
             end
         end
     end
+<<<<<<< HEAD
     bathy_Callback(bathy_toggle,[]) ;
 
     % Callback functions for wavefronts and proploss/eigenrays
@@ -635,6 +792,10 @@ function demo_gui
     wavefront_load_Callback(wavebox_button,[]) ;
     proploss_load_Callback(propbox_button,[]) ;
 
+=======
+%     bathy_Callback(bathy_toggle,[]) ;
+    
+>>>>>>> development0.04
     %% Callback for Line Color
     function LineColorCallback(src,evt)
         line_color = get(src, 'Value');

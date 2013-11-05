@@ -1,11 +1,11 @@
 /**
- * @file profile_mackenzie.h
+ * @file data_grid_mackenzie.h
  * Mackenzie model for the speed of sound vs. temperature and salinity.
  */
-#ifndef USML_OCEAN_PROFILE_MACKENZIE_H
-#define USML_OCEAN_PROFILE_MACKENZIE_H
+#ifndef USML_OCEAN_DATA_GRID_MACKENZIE_H
+#define USML_OCEAN_DATA_GRID_MACKENZIE_H
 
-#include <usml/ocean/profile_grid.h>
+#include <usml/types/data_grid.h>
 
 namespace usml {
 namespace ocean {
@@ -42,6 +42,9 @@ namespace ocean {
  * TRUE for any dimensional axis that uses the PCHIP interpolation. This is
  * because of PCHIP allowing for extreme values when extrapolating data.
  *
+ * NOTE: data_grid_mackenzie takes control of the two data_grids that are
+ * passed in and then deletes them before the sound speed data_grid is returned.
+ *
  * @xref R.J. Urick, Principles of Underwater Sound, 3rd Edition,
  *       (1983), p. 113.
  *
@@ -52,9 +55,7 @@ namespace ocean {
  *       Speed of Sound in Sea-Water," interactive website at
  *       http://resource.npl.co.uk/acoustics/techguides/soundseawater/
  */
-template< class DATA_TYPE, int NUM_DIMS > class profile_mackenzie
-    : public profile_grid<DATA_TYPE,NUM_DIMS>
-{
+class data_grid_mackenzie {
 
   public:
 
@@ -66,34 +67,28 @@ template< class DATA_TYPE, int NUM_DIMS > class profile_mackenzie
      *
      * @param temperature   Ocean temperature profile (degrees C).
      * @param salinity      Ocean salinity profile (ppt).
-     * @param attmodel      In-water attenuation model.  Defaults to Thorp.
-     *                      The profile_model takes over ownership of this
-     *                      reference and deletes it as part of its destructor.
+     *
      */
-    profile_mackenzie(
-        const data_grid<DATA_TYPE,NUM_DIMS>& temperature,
-        const data_grid<DATA_TYPE,NUM_DIMS>& salinity,
-        attenuation_model* attmodel=NULL
-        ) :
-        profile_grid<DATA_TYPE,NUM_DIMS>(
-            new data_grid<DATA_TYPE,NUM_DIMS>(temperature,false),
-            attmodel )
+    static data_grid<double,3>* construct(
+        const data_grid<double,3>* temperature,
+        const data_grid<double,3>* salinity )
     {
-        this->_sound_speed->interp_type(0,GRID_INTERP_PCHIP) ;
-        this->_sound_speed->interp_type(1,GRID_INTERP_NEAREST) ;
-        this->_sound_speed->interp_type(2,GRID_INTERP_NEAREST) ;
+        data_grid<double,3>* ssp = new data_grid<double,3>(*temperature,false) ;
+        ssp->interp_type(0,GRID_INTERP_PCHIP) ;
+        ssp->interp_type(1,GRID_INTERP_LINEAR) ;
+        ssp->interp_type(2,GRID_INTERP_LINEAR) ;
 
         unsigned index[3] ;
-        for ( index[0]=0 ; index[0] < temperature.axis(0)->size() ; ++index[0] ) {
-            for ( index[1]=0 ; index[1] < temperature.axis(1)->size() ; ++index[1] ) {
-                for ( index[2]=0 ; index[2] < temperature.axis(2)->size() ; ++index[2] ) {
+        for ( index[0]=0 ; index[0] < temperature->axis(0)->size() ; ++index[0] ) {
+            for ( index[1]=0 ; index[1] < temperature->axis(1)->size() ; ++index[1] ) {
+                for ( index[2]=0 ; index[2] < temperature->axis(2)->size() ; ++index[2] ) {
 
                     // extract depth, temperature, and salinity at this point
 
                     double D = wposition::earth_radius -
-                               (*temperature.axis(0))[ index[0] ] ;
-                    double T = (double) temperature.data( index ) ;
-                    double S = (double) salinity.data( index ) ;
+                               (*temperature->axis(0))[ index[0] ] ;
+                    double T = temperature->data( index ) ;
+                    double S = salinity->data( index ) ;
 
                     // compute sound speed
 
@@ -103,10 +98,13 @@ template< class DATA_TYPE, int NUM_DIMS > class profile_mackenzie
                              + 1.630e-2 * D + 1.675e-7 * D*D
                              - 7.139e-13 * T * D*D*D ;
 
-                    this->_sound_speed->data( index, (DATA_TYPE) c ) ;
+                    ssp->data( index, c ) ;
                 }
             }
         }
+        delete temperature ;
+        delete salinity ;
+        return ssp ;
     }
 
 };

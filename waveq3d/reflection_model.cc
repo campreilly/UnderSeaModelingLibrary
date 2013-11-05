@@ -5,6 +5,10 @@
 #include <usml/waveq3d/reflection_model.h>
 #include <usml/waveq3d/ode_integ.h>
 
+//#define REFLECT_BOT_DEBUG
+//#define REFLECT_SRF_DEBUG
+//#define COLLISION_DEBUG
+
 using namespace usml::waveq3d ;
 
 const double reflection_model::MIN_REFLECT = 6.0 ;
@@ -13,6 +17,9 @@ const double reflection_model::MIN_REFLECT = 6.0 ;
  * Reflect a single acoustic ray from the ocean bottom.
  */
 bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth ) {
+    #ifdef REFLECT_BOT_DEBUG
+        cout << "***Entering reflection_model::bottom_reflection***" << endl;
+    #endif
     double N ;
 
     // extract position, direction, and sound speed from this ray
@@ -66,6 +73,27 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     const double dot_water = -height_water * bottom_normal.rho() ;
     double time_water = max( 0.0, dot_water / dot_full ) ;
 
+    #ifdef REFLECT_BOT_DEBUG
+        cout << "\t===Information before calling bottom::COLLISION_LOCATION===" << endl;
+        cout << "\t\tposition(rho,theta,phi): (" << position.rho() - wposition::earth_radius << ", "
+                                            << position.theta() << ", "
+                                            << position.phi() << ")"
+                                            << endl;
+        cout << "\t\tndirection(rho,theta,phi): (" << ndirection.rho() << ", "
+                                            << ndirection.theta() << ", "
+                                            << ndirection.phi() << ")"
+                                            << endl;
+        cout << "\t\tsound_speed: " << c << "\tc_squared: " << c2 << endl;
+        cout << "\t\tbottom_rho: " << bottom_rho - wposition::earth_radius << endl;
+        cout << "\t\tbottom_normal(rho,theta,phi): (" << bottom_normal.rho() << ", "
+                                                    << bottom_normal.theta() << ", "
+                                                    << bottom_normal.phi() << ")"
+                                                    << endl;
+        cout << "\t\theight_water: " << height_water << endl;
+        cout << "\t\tdot_full: " << dot_full << "\tmax_dot: " << max_dot << endl;
+        cout << "\t\tdot_water: " << dot_water << "\ttime_water: " << time_water << endl;
+    #endif
+
     // compute the more precise values for position, direction,
     // sound speed, bottom height, bottom slope, and grazing angle at the point of collision.
     // reduces grazing angle errors in highly refractive environments.
@@ -91,6 +119,27 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     // invoke bottom reverberation callback
     // @todo THIS IS A STUB FOR FUTURE BEHAVIORS.
     // @todo Add grazing angle to this call.
+
+    #ifdef REFLECT_BOT_DEBUG
+        cout << "\t===Infromation after calling bottom::COLLISION_LOCATION===" << endl;
+        cout << "\t\tposition(rho,theta,phi): (" << position.rho() - wposition::earth_radius << ", "
+                                            << position.theta() << ", "
+                                            << position.phi() << ")"
+                                            << endl;
+        cout << "\t\tndirection(rho,theta,phi): (" << ndirection.rho() << ", "
+                                            << ndirection.theta() << ", "
+                                            << ndirection.phi() << ")"
+                                            << endl;
+        cout << "\t\tsound_speed: " << c << "\tc_squared: " << c2 << endl;
+        cout << "\t\tbottom_rho: " << bottom_rho - wposition::earth_radius << endl;
+        cout << "\t\tbottom_normal(rho,theta,phi): (" << bottom_normal.rho() << ", "
+                                                    << bottom_normal.theta() << ", "
+                                                    << bottom_normal.phi() << ")"
+                                                    << endl;
+        cout << "\t\theight_water: " << height_water << endl;
+        cout << "\t\tdot_full: " << dot_full << "\tmax_dot: " << max_dot << endl;
+        cout << "\t\tgrazing: " << grazing << endl;
+    #endif
 
     if ( _bottom_reverb ) {
         _bottom_reverb->collision(  de, az, _wave._time+time_water,
@@ -128,6 +177,23 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     ndirection.theta( ndirection.theta() / N ) ;
     ndirection.phi(   ndirection.phi() / N ) ;
 
+    #ifdef REFLECT_BOT_DEBUG
+        cout << "\t===Infromation before bottom::REFLECTION_REINIT===" << endl;
+        cout << "\t\tposition(rho,theta,phi): (" << position.rho() - wposition::earth_radius << ", "
+                                            << position.theta() << ", "
+                                            << position.phi() << ")"
+                                            << endl;
+        cout << "\t\tndirection(rho,theta,phi): (" << ndirection.rho() << ", "
+                                            << ndirection.theta() << ", "
+                                            << ndirection.phi() << ")"
+                                            << endl;
+        cout << "\t\tbottom_normal(rho,theta,phi): (" << bottom_normal.rho() << ", "
+                                                    << bottom_normal.theta() << ", "
+                                                    << bottom_normal.phi() << ")"
+                                                    << endl;
+        cout << "\t\tsound_speed: " << c << "\tdot_full: " << dot_full << "\tN: " << N << endl;
+    #endif
+
     reflection_reinit( de, az, time_water, position, ndirection, c ) ;
     return true ;
 }
@@ -136,6 +202,9 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
  * Reflect a single acoustic ray from the ocean surface.
  */
 bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
+    #ifdef REFLECT_SRF_DEBUG
+        cout << "***Entering reflection_model::surface_reflection***" << endl;
+    #endif
     boundary_model& boundary = _wave._ocean.surface() ;
 
     // compute fraction of time step needed to strike the point of collision
@@ -148,6 +217,12 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     // compute the precise values for position, direction,
     // sound speed, and grazing angle at the point of collision
 
+    #ifdef REFLECT_SRF_DEBUG
+        cout << "\t===Information before calling surface::COLLISION_LOCATION===" << endl;
+        cout << "\t\tsound_speed: " << c << "\td: " << d << endl;
+        cout << "\t\ttime_water: " << time_water << endl;
+    #endif
+
     wposition1 position ;
     wvector1 ndirection ;
     collision_location( de, az, time_water, &position, &ndirection, &c ) ;
@@ -157,10 +232,23 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
         _wave._curr->ndirection.phi(de,az) *
         _wave._curr->ndirection.phi(de,az)
     ) ) ;
+    #ifdef REFLECT_SRF_DEBUG
+        cout << "\t===Infromation after calling surface::COLLISION_LOCATION===" << endl;
+        cout << "\t\tposition(rho,theta,phi): (" << position.rho() - wposition::earth_radius << ", "
+                                            << position.theta() << ", "
+                                            << position.phi() << ")"
+                                            << endl;
+        cout << "\t\tndirection(rho,theta,phi): (" << ndirection.rho() << ", "
+                                            << ndirection.theta() << ", "
+                                            << ndirection.phi() << ")"
+                                            << endl;
+        cout << "\t\tsound_speed: " << c << "\tgrazing: " << grazing << endl;
+    #endif
     if ( grazing <= 0.0 ) return false ;	// near miss of the surface
 
     // invoke surface reverberation callback
     // @todo THIS IS A STUB FOR FUTURE BEHAVIORS.
+
 
     if ( _surface_reverb ) {
         _surface_reverb->collision(  de, az, _wave._time+time_water,
@@ -185,6 +273,18 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     // and reinit past, prev, curr, next entries
 
     ndirection.rho( -ndirection.rho() ) ;
+    #ifdef REFLECT_SRF_DEBUG
+        cout << "\t===Infromation before surface::REFLECTION_REINIT===" << endl;
+        cout << "\t\tposition(rho,theta,phi): (" << position.rho() - wposition::earth_radius << ", "
+                                            << position.theta() << ", "
+                                            << position.phi() << ")"
+                                            << endl;
+        cout << "\t\tndirection(rho,theta,phi): (" << ndirection.rho() << ", "
+                                            << ndirection.theta() << ", "
+                                            << ndirection.phi() << ")"
+                                            << endl;
+        cout << "\t\tsound_speed: " << c << "\ttime_water: " << time_water << endl;
+    #endif
     reflection_reinit(de, az, time_water, position, ndirection, c ) ;
     return true ;
 }
@@ -196,10 +296,30 @@ void reflection_model::collision_location(
     unsigned de, unsigned az, double time_water,
     wposition1* position, wvector1* ndirection, double* speed ) const
 {
+    #ifdef COLLISION_DEBUG
+        cout << "***Entering reflection_model::collision_location***" << endl;
+    #endif
     double drho, dtheta, dphi, d2rho, d2theta, d2phi ;
     const double time1 = 2.0 * _wave._time_step ;
     const double time2 = _wave._time_step * _wave._time_step ;
     const double dtime2 = time_water * time_water ;
+
+    #ifdef COLLISION_DEBUG
+        cout << "\t---Time values---" << endl;
+        cout << "\t\ttime1: " << time1
+             << "\ttime2: " << time2
+             << "\tdtime2: " << dtime2
+             << endl;
+        cout << "\t---sound speeds---" << endl;
+        cout << "\t\t_next sound speed: "
+             << _wave._next->sound_speed(de,az) << endl;
+        cout << "\t\t_curr sound speed: "
+             << _wave._curr->sound_speed(de,az) << endl;
+        cout << "\t\t_prev sound speed: "
+             << _wave._prev->sound_speed(de,az) << endl;
+        cout << "\t\t_past sound speed: "
+             << _wave._past->sound_speed(de,az) << endl;
+    #endif
 
     // second order Taylor series for sound speed
 
@@ -214,6 +334,12 @@ void reflection_model::collision_location(
 
     *speed = _wave._curr->sound_speed(de,az)
         + drho * time_water + 0.5 * d2rho * dtime2 ;
+
+    #ifdef COLLISION_DEBUG
+        cout << "\t---Taylor Series coeff for sound speed---" << endl;
+        cout << "\t\tdrho: " << drho << "\td2rho: " << d2rho << endl;
+        cout << "\t\t*speed: " << *speed << endl;
+    #endif
 
     // second order Taylor series for position
 
@@ -239,6 +365,18 @@ void reflection_model::collision_location(
         + _wave._prev->position.phi(de,az)
         - 2.0 * _wave._curr->position.phi(de,az) )
         / time2 ;
+
+    #ifdef COLLISION_DEBUG
+        cout << "\t---Taylor Series coeff for position---" << endl;
+        cout << "\t\tdrho: " << drho
+             << "\tdtheta: " << dtheta
+             << "\tdphi: " << dphi
+             << endl;
+        cout << "\t\td2rho: " << d2rho
+             << "\td2theta: " << d2theta
+             << "\td2phi: " << d2phi
+             << endl;
+    #endif
 
     position->rho( _wave._curr->position.rho(de,az)
         + drho * time_water + 0.5 * d2rho * dtime2 ) ;
@@ -271,6 +409,18 @@ void reflection_model::collision_location(
         + _wave._prev->ndirection.phi(de,az)
         - 2.0 * _wave._curr->ndirection.phi(de,az) )
         / time2 ;
+
+    #ifdef COLLISION_DEBUG
+        cout << "\t---Taylor Series coeff for ndirection---" << endl;
+        cout << "\t\tdrho: " << drho
+             << "\tdtheta: " << dtheta
+             << "\tdphi: " << dphi
+             << endl;
+        cout << "\t\td2rho: " << d2rho
+             << "\td2theta: " << d2theta
+             << "\td2phi: " << d2phi
+             << endl;
+    #endif
 
     ndirection->rho( _wave._curr->ndirection.rho(de,az)
         + drho * time_water + 0.5 * d2rho * dtime2 ) ;

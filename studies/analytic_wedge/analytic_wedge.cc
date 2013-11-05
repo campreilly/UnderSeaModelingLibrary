@@ -24,7 +24,7 @@ using namespace usml::ocean ;
 int main() {
     cout << "=== analytic_wedge ===" << endl ;
 
-    // define scenario parameters
+    /// define scenario parameters
     int num_targets = 200 ;
     double m_2_deg = 1.0 / ( 1852.0 * 60.0 ) ;            // conversion factor from meters to degree lat
     const double wedge_length = 4000.0 ;
@@ -37,63 +37,60 @@ int main() {
     wposition1 pos ;
     pos.altitude(-100.0) ;
 
-    // setup fan parameters
-//    seq_linear de( -90.0, 1.0, 90.0 ) ;
-    seq_rayfan de( -90.0, 0.0, 91 ) ;
+    /// setup fan parameters
+    seq_rayfan de ;
     seq_linear az( 0.0, 15.0, 360.0 ) ;
-//    seq_rayfan az( 0.0, 180.0, 181 ) ;
     seq_log freq( 250.0, 250.0, 1 ) ;
     const double time_max = 7.0 ;
     const double time_step = 0.05 ;
 
-    // setup files to output all data to
+    /// setup files to output all data to
+    const char* csvname = USML_STUDIES_DIR "/analytic_wedge/analytic_wedge_eigenray.csv";
+    const char* ncname = USML_STUDIES_DIR "/analytic_wedge/analytic_wedge_proploss.nc";
+    const char* ncname_wave = USML_STUDIES_DIR "/analytic_wedge/analytic_wedge_eigenray_wave.nc";
+//    const char* csvname = USML_STUDIES_DIR "/analytic_wedge/analytic_wedge_cxslope_eigenray.csv";
+//    const char* ncname = USML_STUDIES_DIR "/analytic_wedge/analytic_wedge_cxslope_proploss.nc";
+//    const char* ncname_wave = USML_STUDIES_DIR "/analytic_wedge/analytic_wedge_cxslope_eigenray_wave.nc";
 
-    const char* csvname = USML_STUDIES_DIR "/analytic_wedge/analytic_wedge_cxslope_eigenray.csv";
-    const char* ncname = USML_STUDIES_DIR "/analytic_wedge/analytic_wedge_cxslope_proploss.nc";
-    const char* ncname_wave = USML_STUDIES_DIR "/analytic_wedge/analytic_wedge_cxslope_eigenray_wave.nc";
-
-    // build sound velocity profile
-
+    /// build sound velocity profile
     const double c0 = 1500.0 ;
     attenuation_model* att_mod = new attenuation_constant(0.0);
     profile_model*  profile = new profile_linear(c0, att_mod) ;
-//    profile->flat_earth(true);
-    boundary_model* surface = new boundary_flat() ;
+    profile->flat_earth(true);
 
-//    boundary_model* bottom  = new boundary_slope(
-//        wedge_apex, 0.0, wedge_angle ) ;
-    reflect_loss_model* asa_wedge =
-        new reflect_loss_rayleigh( 1.5, 1700.0/c0, 0.5 ) ;        // Create rayleigh model similar to the ASA wedge geophysical params
-//    reflect_loss_model* constant = new reflect_loss_constant(0.0);
-    boundary_model* bottom  = new boundary_slope(
-        wedge_apex, 0.0, wedge_angle, 0.0, asa_wedge ) ;
+    /// Create rayleigh model similar to the ASA wedge geophysical params
+//    reflect_loss_model* asa_wedge = new reflect_loss_rayleigh( 1.5, 1700.0/c0, 0.5 ) ;
+//    boundary_model* bottom  = new boundary_slope( wedge_apex, 0.0, wedge_angle, 0.0, asa_wedge ) ;
+    boundary_model* bottom  = new boundary_slope( wedge_apex, 0.0, wedge_angle ) ;
+    bottom->reflect_loss( new reflect_loss_constant(0.0) ) ;
+
+    boundary_model* surface = new boundary_flat() ;
 
     ocean_model ocean( surface, bottom, profile ) ;
 
-    // initialize proploss targets and wavefront
-
-        // cross-slope targets
+    /// initialize proploss targets and wavefront
+        /// cross-slope targets
 //    double lat = pos.latitude() + 2000 * m_2_deg ;
 //    double far_left = pos.longitude() - (6000.0 * m_2_deg) ;
-    wposition target( num_targets, 1, pos.latitude(), pos.longitude(), -30.0 ) ;
-    double inc = ( 6000.0 * m_2_deg ) / num_targets ;
-    for( int n=1; n < target.size1(); ++n ) {
-        target.longitude( n, 0, pos.longitude() + (inc * n) ) ;
-    }
-        // Up slope targets
 //    wposition target( num_targets, 1, pos.latitude(), pos.longitude(), -30.0 ) ;
-//    double inc = ( 3400.0 * m_2_deg ) / num_targets ;
+//    double inc = ( 6000.0 * m_2_deg ) / num_targets ;
 //    for( int n=1; n < target.size1(); ++n ) {
-//        target.latitude( n, 0, inc * n );
-////        cout << "target(" << n << ",0) dist src_lat apex: " << target.latitude(n,0) / m_2_deg << endl;
-////        double dist = target.latitude(n,0) / m_2_deg ;
-////        target.altitude( n, 0, -100 + (dist * tan(wedge_angle / 2.0)) ) ;
-////        cout << "target.alt(" << n << ",0): " << target.altitude(n,0) << endl;
+//        target.longitude( n, 0, pos.longitude() + (inc * n) ) ;
 //    }
+        /// Up slope targets
+    wposition target( num_targets, 1, pos.latitude(), pos.longitude(), -30.0 ) ;
+    double inc = ( 3400.0 * m_2_deg ) / num_targets ;
+    for( int n=1; n < target.size1(); ++n ) {
+        target.latitude( n, 0, inc * n );
+//        cout << "target(" << n << ",0) dist src_lat apex: " << target.latitude(n,0) / m_2_deg << endl;
+//        double dist = target.latitude(n,0) / m_2_deg ;
+//        target.altitude( n, 0, -100 + (dist * tan(wedge_angle / 2.0)) ) ;
+//        cout << "target.alt(" << n << ",0): " << target.altitude(n,0) << endl;
+    }
     proploss loss( &target ) ;
     wave_queue wave( ocean, freq, pos, de, az, time_step, &loss ) ;
 
-    // propagate wavefront
+    /// propagate wavefront
     cout << "writing wavefronts to " << ncname_wave << endl;
 
     wave.init_netcdf( ncname_wave );
@@ -106,13 +103,13 @@ int main() {
 
     wave.close_netcdf();
 
-    //compute coherent propagation loss and write eigenrays to disk
+    ///compute coherent propagation loss and write eigenrays to disk
 
     loss.sum_eigenrays();
     cout << "writing proploss to " << ncname << endl;
     loss.write_netcdf(ncname,"ASA Anaylytic Wedge");
 
-    //save results to spreadsheet and compare to analytic results
+    ///save results to spreadsheet and compare to analytic results
 
     cout << "writing tables to " << csvname << endl;
     std::ofstream os(csvname);

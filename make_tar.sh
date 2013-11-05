@@ -6,8 +6,9 @@ tar -czf ../usml-doc-$version.tar.gz usml_api.html html/*
 tar -czf ../usml-data-$version.tar.gz data/*
 zip --quiet -r ../usml-src-$version.zip * \
     -x "data/*" -x "doc/*" -x "html/*" -x usml_api.html
-zip --quiet ../usml-doc-$version.zip usml_api.html html/*
-zip --quiet ../usml-data-$version.tar.gz data/*
+zip --quiet -r ../usml-doc-$version.zip usml_api.html html/*
+zip --quiet -r ../usml-data-$version.zip data/*
 cp usml_install.html ..
 cp usml_release_notes.html ..
 cp doc/usml_frontpage.html ..
+cp COPYRIGHT.txt ..

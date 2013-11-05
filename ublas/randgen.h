@@ -20,6 +20,8 @@ namespace ublas {
     using std::endl ;
     using std::complex ;
     using namespace boost::numeric::ublas ;
+    
+    using boost::numeric::ublas::vector;
 
     /// @ingroup randgen
     /// @{

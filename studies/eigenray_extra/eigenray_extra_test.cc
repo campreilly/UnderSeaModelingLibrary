@@ -125,7 +125,8 @@ static const double bot_depth = 1e5 ;
 BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
     cout << "=== eigenray_test: eigenray_lloyds ===" << endl;
     const char* ncname_wave = USML_STUDIES_DIR "/eigenray_extra/eigenray_lloyds_wave.nc";
-    const char* ncname = USML_STUDIES_DIR "/eigenray_extra/eigenray_lloyds.nc";
+    const char* ncname1 = USML_STUDIES_DIR "/eigenray_extra/eigenray_lloyds1.nc";
+    const char* ncname2 = USML_STUDIES_DIR "/eigenray_extra/eigenray_lloyds2.nc";
     const char* analytic_name = USML_STUDIES_DIR "/eigenray_extra/eigenray_lloyds_analytic.nc";
 
     const double src_alt = -200.0;      // source depth = 200 meters
@@ -164,8 +165,21 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
             target.altitude( t1, t2, -depth[t2] );
         }
     }
-    proploss loss( &target );
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss );
+
+    proploss loss1(freq, pos, de, az, time_step, &target);
+
+    proploss loss2(freq, pos, de, az, time_step, &target);
+
+	wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
+
+	if (!wave.addProplossListener(&loss1)) {
+		cout << "Error adding proploss listener 1 ! " << endl ;
+		exit(1);
+	}
+	if (!wave.addProplossListener(&loss2)) {
+		cout << "Error adding proploss listener 2! " << endl ;
+		exit(1);
+	}
 
     // propagate rays & record to log files
 
@@ -178,9 +192,14 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
         wave.save_netcdf();         // write ray data to log file
     }
     wave.close_netcdf();            // close log file for wavefront data
-    cout << "writing eigenrays to " << ncname << endl;
-    loss.sum_eigenrays();
-    loss.write_netcdf(ncname);
+
+    loss1.sum_eigenrays();
+    loss2.sum_eigenrays();
+
+    cout << "writing eigenrays to " << ncname1 << endl;
+    loss1.write_netcdf(ncname1);
+    cout << "writing eigenrays to " << ncname2 << endl;
+    loss2.write_netcdf(ncname2);
 
     //*********************************************************************
     // compare each target location to analytic results
@@ -199,7 +218,7 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
             const double D1 = R - d1 ;
             const double D2 = R - d2 ;
 
-            eigenray_list *raylist = loss.eigenrays(t1,t2);
+            eigenray_list *raylist = loss1.eigenrays(t1,t2);
             for ( eigenray_list::iterator iter=raylist->begin();
                   iter != raylist->end(); ++iter )
             {
@@ -283,7 +302,7 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
         }   // loop through target depths
     }   // loop through target ranges
 
-    loss.write_netcdf(analytic_name);
+    loss1.write_netcdf(analytic_name);
 
 }
 

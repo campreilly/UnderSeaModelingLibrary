@@ -149,18 +149,27 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
 
         // load temperature & salinity data from World Ocean Atlas
 
-        netcdf_woa temperature(
+        netcdf_woa temp(
 	    USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
    	    USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
             month, 18.5, 22.5, 200.5, 205.5 ) ;
-        netcdf_woa salinity(
+        netcdf_woa sal(
+	    USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
+	    USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
+            month, 18.5, 22.5, 200.5, 205.5 ) ;
+        netcdf_woa* temperature = new netcdf_woa(
+	    USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
+   	    USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
+            month, 18.5, 22.5, 200.5, 205.5 ) ;
+        netcdf_woa* salinity = new netcdf_woa(
 	    USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
 	    USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
             month, 18.5, 22.5, 200.5, 205.5 ) ;
 
         // compute sound speed
 
-        profile_mackenzie<double, 3> profile(temperature, salinity);
+        profile_grid<double,3> profile =
+            data_grid_mackenzie::construct(temperature, salinity) ;
 
         // print results for first lat/long entry
 
@@ -180,12 +189,12 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
 
         os << "Depth,Temp,Sal,Speed,Gradient" << endl;
 
-        for (unsigned d = 0; d < temperature.axis(0)->size(); ++d) {
+        for (unsigned d = 0; d < temp.axis(0)->size(); ++d) {
             index[0] = d;
-            location.rho(0, 0, (*temperature.axis(0))(d));
+            location.rho(0, 0, (*temp.axis(0))(d));
             profile.sound_speed(location, &speed, &gradient);
-            os << -location.altitude(0, 0) << "," << temperature.data(index)
-            << "," << salinity.data(index) << "," << speed(0, 0) << ","
+            os << -location.altitude(0, 0) << "," << temp.data(index)
+            << "," << sal.data(index) << "," << speed(0, 0) << ","
             << -gradient.rho(0, 0) << std::endl;
 
             // compare to UK National Physical Laboratory software

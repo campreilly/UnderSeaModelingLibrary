@@ -13,6 +13,8 @@ namespace waveq3d {
 
 using namespace usml::types ;
 
+using boost::numeric::ublas::vector;
+
 /// @ingroup waveq3d
 /// @{
 

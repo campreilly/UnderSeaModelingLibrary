@@ -74,8 +74,10 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
     {
         target.latitude(n, 0, src_lat + 0.01 * (n + 2.0));
     }
-    proploss loss(&target);
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss, wave_queue::CLASSIC_RAY ) ;
+
+    proploss loss(freq, pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target, wave_queue::CLASSIC_RAY ) ;
+    wave.addProplossListener(&loss);
 
     // propagate rays & record to log file
 
@@ -214,8 +216,10 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
         double degrees = src_lat + range(n) / (1852.0 * 60.0); // range in latitude
         target.latitude(n, 0, degrees);
     }
-    proploss loss(&target);
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss );
+
+    proploss loss(freq, pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
+    wave.addProplossListener(&loss);
 
     // propagate rays & record to log file
 
@@ -414,8 +418,10 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
         double degrees = src_lat + range(n) / (1852.0 * 60.0); // range in latitude
         target.latitude(n, 0, degrees);
     }
-    proploss loss(&target);
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss );
+
+    proploss loss(freq, pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
+    wave.addProplossListener(&loss);
 
     // propagate rays & record to log file
 
@@ -626,8 +632,10 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
         target.altitude(n, 0, depth(n));
     }
 //    wposition target(1,1,degrees,src_lng,-25.0);
-    proploss loss(&target);
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss );
+
+    proploss loss(freq, pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
+    wave.addProplossListener(&loss);
 
     // propagate rays & record to log file
 
@@ -884,8 +892,9 @@ BOOST_AUTO_TEST_CASE( surface_duct_tl_plot ) {
         }
     }
     proploss loss(&target);
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss );
-//    wave_queue wave( ocean, freq, pos, de, az, time_step );
+    proploss loss(freq, pos, de, az, 0.01, &target);
+    wave_queue wave( ocean, freq, pos, de, az, 0.01, &target ) ;
+    wave.addProplossListener(&loss);
 
     cout << "propagate wavefronts for " << time_max << endl;
     cout << "writing wavefronts to " << ncname_wave << endl;

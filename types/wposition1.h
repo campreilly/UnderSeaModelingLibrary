@@ -44,8 +44,7 @@ public:
      * @xref E. Williams, "Aviation Formulary V1.43",
      * http://williams.best.vwh.net/avform.htm , July 2010.
      *
-     * @param  lat          Latitude of the reference point (degrees).
-     * @param  lng          Latitude of the reference point (degrees).
+     * @param  location     Location of the reference point.
      * @param  range        Distance to the new point along the Earth's surface (meters).
      * @param  bearing      True bearing to the new point (radians).
      */
@@ -145,8 +144,7 @@ public:
      * @xref E. Williams, "Aviation Formulary V1.43",
      * http://williams.best.vwh.net/avform.htm , July 2010.
      *
-     * @param  lat          Latitude of the reference point (degrees).
-     * @param  lng          Latitude of the reference point (degrees).
+     * @param  location     Location of the reference point.
      * @param  bearing      True bearing to the new point (radians, optional).
      * @return              Distance to the new point along the Earth's surface (meters).
      */

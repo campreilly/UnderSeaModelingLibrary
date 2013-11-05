@@ -12,6 +12,8 @@
 namespace usml {
 namespace ocean {
 
+using boost::numeric::ublas::vector;
+
 /// @ingroup boundaries
 /// @{
 

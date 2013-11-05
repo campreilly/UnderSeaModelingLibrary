@@ -13,6 +13,8 @@ namespace waveq3d {
 
 using namespace usml::ocean ;
 
+using boost::numeric::ublas::vector;
+
 /**
  * A reverbation model listens for interface collision callbacks from
  * a wavefront.
