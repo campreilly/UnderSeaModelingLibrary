@@ -62,6 +62,8 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
     /** Intensity contribution in azimuthal direction. (temp workspace) */
     vector<double> _intensity_az ;
 
+    matrix<bool> _duplicate ;
+
     /**
      * Number of wavelengths that each Gaussian beam can be expected
      * spread into neighboring beams.  Equivalent to the

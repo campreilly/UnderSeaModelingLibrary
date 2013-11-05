@@ -483,7 +483,7 @@ BOOST_AUTO_TEST_CASE( eigenray_de_branch_pt ) {
     const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_de_branch_pt.csv";
     const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_de_branch_pt.nc";
     const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/eigenray_de_branch_pt_wave.nc";
-    const double src_alt = -500.0 ;
+    const double src_alt = -1000.0 ;
     const double time_max = 3.5 ;
 
     // initialize propagation model
@@ -498,11 +498,12 @@ BOOST_AUTO_TEST_CASE( eigenray_de_branch_pt ) {
     seq_log freq( 1000.0, 1.0, 1 );
     wposition1 pos( 0.0, 0.0, src_alt );
 //    seq_rayfan de;
-    seq_linear de( -85.0, 1.0, 90.0 );
+    seq_linear de( -90.0, 1.0, 90.0 );
     seq_linear az( 0.0, 15.0, 360.0 );
 
     // build a single target
-    wposition target( 1, 1, 0.0, 0.0, -1000.0 ) ;
+    wposition target( 2, 1, 0.0, 0.0, -500.0 ) ;
+    target.altitude( 1, 0, -1500.0 ) ;
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
     wave.addProplossListener(&loss);
@@ -535,7 +536,7 @@ BOOST_AUTO_TEST_CASE( eigenray_de_branch_pt ) {
     os << std::setprecision(18);
     cout << std::setprecision(18);
 
-    for ( int i=0; i < 1; ++i ) {
+    for ( int i=0; i < 2; ++i ) {
         os << "#" << i ;
         cout << "===Target #" << i << "===" << endl;
         const eigenray_list *raylist = loss.eigenrays(i,0);
@@ -583,6 +584,113 @@ BOOST_AUTO_TEST_CASE( eigenray_de_branch_pt ) {
 //    }
 }
 
+/**
+ * Scenario is the exact same as eigenray_basic, except that the
+ * target lies on the azimuthal branch point between 0 and 360, and
+ * the depression angle branch point of +90 and -90. Only one
+ * eigenray should be produced at these branch point for any given
+ * combination of time, bottom, and surface bounces.
+ */
+BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
+    cout << "=== eigenray_test: eigenray_branch_pt ===" << endl;
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_branch_pt.csv";
+    const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_branch_pt.nc";
+    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/eigenray_branch_pt_wave.nc";
+    const double src_alt = -1000.0;
+    const double target_range = 2226.0;
+    const double time_max = 3.5;
+    const int num_targets = 12 ;
+
+    // initialize propagation model
+
+    wposition::compute_earth_radius( 0.0 );
+    attenuation_model* attn = new attenuation_constant(0.0);
+    profile_model* profile = new profile_linear(c0,attn);
+    boundary_model* surface = new boundary_flat();
+    boundary_model* bottom = new boundary_flat(3000.0);
+    ocean_model ocean( surface, bottom, profile );
+
+    seq_log freq( 1000.0, 1.0, 1 );
+    wposition1 pos( 0.0, 0.0, src_alt );
+    seq_linear de( -90.0, 1.0, 90.0 );
+    seq_linear az( 0.0, 15.0, 360.0 );
+
+    // build a single target
+
+    wposition target( num_targets+2, 1, 0.0, 0.0, src_alt ) ;
+    target.altitude( 0, 0, src_alt-500 ) ;
+    target.altitude( 1, 0, src_alt+500 ) ;
+    // build a series of targets at 100 km
+    double angle = TWO_PI/num_targets;
+    double bearing_inc = 0 ;
+    for (unsigned n = 2; n < num_targets+2; ++n) {
+        wposition1 aTarget( pos, target_range, bearing_inc) ;
+        target.latitude( n, 0, aTarget.latitude());
+        target.longitude( n, 0, aTarget.longitude());
+        target.altitude( n, 0, aTarget.altitude());
+        bearing_inc = bearing_inc + angle;
+    }
+
+    proploss loss(freq, pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
+    wave.addProplossListener(&loss);
+
+    // propagate rays and record wavefronts to disk.
+
+    cout << "propagate wavefronts for " << time_max << " seconds" << endl;
+    cout << "writing wavefronts to " << ncname_wave << endl;
+
+    wave.init_netcdf( ncname_wave );
+    wave.save_netcdf();
+    while ( wave.time() < time_max ) {
+        wave.step();
+        wave.save_netcdf();
+    }
+    wave.close_netcdf();
+
+   // compute coherent propagation loss and write eigenrays to disk
+
+    loss.sum_eigenrays();
+    cout << "writing proploss to " << ncname << endl;
+    loss.write_netcdf(ncname,"eigenray_az_branch_pt test");
+
+    // save results to spreadsheet and compare to analytic results
+
+    cout << "writing tables to " << csvname << endl;
+    std::ofstream os(csvname);
+    os << "target,time,intensity,phase,s_de,s_az,t_de,t_az,srf,btm,cst"
+    << endl;
+    os << std::setprecision(18);
+    cout << std::setprecision(18);
+
+    for ( int i=0; i < num_targets; ++i ) {
+        os << "#" << i ;
+        cout << "===Target #" << i << "===" << endl;
+        const eigenray_list *raylist = loss.eigenrays(i,0);
+        int n=0;
+        for ( eigenray_list::const_iterator iter = raylist->begin();
+                iter != raylist->end(); ++n, ++iter )
+        {
+            const eigenray &ray = *iter ;
+            cout << "ray #" << n
+                 << " tl=" << ray.intensity(0)
+                 << " t=" << ray.time
+                 << " de=" << -ray.target_de
+                 << endl;
+            os << "," << ray.time
+               << "," << ray.intensity(0)
+               << "," << ray.phase(0)
+               << "," << ray.source_de
+               << "," << ray.source_az
+               << "," << ray.target_de
+               << "," << ray.target_az
+               << "," << ray.surface
+               << "," << ray.bottom
+               << "," << ray.caustic
+               << endl;
+        }
+    }
+}
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()
