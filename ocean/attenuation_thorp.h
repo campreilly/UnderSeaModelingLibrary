@@ -54,27 +54,12 @@ using boost::numeric::ublas::vector;
  */
 class USML_DECLSPEC attenuation_thorp : public attenuation_model {
 
-private:
-    /**
-     * Cache of attenuation coefficients from last update.
-     * Allows this routine to re-use attenuations that don't change.
-     */
-    matrix< vector<double> > att_coeff ;
-
-    /**
-     * Frequencies used in previous invokation of attenuation calculation.
-     * Re-compute attenuation if this changes.
-     */
-    const seq_vector* prev_freq ;
-
   public:
 
     /**
      * Default initializes does nothing.
      */
-    attenuation_thorp() {
-        prev_freq = NULL ;
-    }
+    attenuation_thorp(){}
 
     /**
      * Virtual destructor
@@ -86,7 +71,7 @@ private:
      *
      * @param location      Location at which to compute attenuation.
      * @param frequencies   Frequencies over which to compute loss. (Hz)
-     * @param distance      Distance travelled through the water (meters).
+     * @param distance      Distance traveled through the water (meters).
      * @param attenuation   Absorption loss of sea water in dB (output).
      */
     virtual void attenuation( 
