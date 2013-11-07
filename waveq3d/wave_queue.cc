@@ -51,7 +51,6 @@ wave_queue::wave_queue(
                             + abs((*_source_az)(_source_az->size()-1)) ;
     if( boundary_check == 360.0 ) { az_boundary = true ; }
     else { az_boundary = false ;}
-    skip_az = matrix<bool> ( num_de()-1, num_az()-1 ) ;
     _intensity_threshold = 300.00; //In dB
 
     if ( _targets ) {
@@ -307,111 +306,50 @@ void wave_queue::detect_eigenrays() {
 
     double distance2[3][3][3] ;
     double& center = distance2[1][1][1] ;
+    double az_start = 0 ;
+    bool found_eigenray ;
 
-    /**
-     * In order to speed up the code, it required splitting the code
-     * to run faster. This then only checks the az_boundary condition
-     * once per function call.
-     */
-    if(az_boundary) {
-        unsigned parent_az = num_az() - 2 ;
-        unsigned parent_de = num_de() - 2 ;
-        unsigned half_de = ceil(parent_de/2) ;
-        double retnec ;
-        unsigned za ;
-        // loop over all targets
-        for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
-            for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
+    if(!az_boundary) { az_start = 1 ; }
 
-                // Find all duplicate eigenray producing rays
-                skip_az.clear() ;
-                skip_az(parent_de,parent_az) = true ;
-                for ( unsigned de=1 ; de < parent_de ; ++de ) {
-                    for ( unsigned az=1 ; az < parent_az ; ++az ) {
-                        if(de == half_de) {continue ;}
-                        center = _curr->distance2(t1,t2)(de,az) ;
-                        za = parent_az - az ;
-                        retnec = _curr->distance2(t1,t2)(de,za) ;
-                        if( (center <= retnec) && (za!=az) ) {
-                            skip_az(de,za) = true ;
-                        }
+    // loop over all targets
+    for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
+        for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
+
+            // Loop over all rays
+            for ( unsigned de=1 ; de < num_de() - 1 ; ++de ) {
+                found_eigenray = false ;
+                for ( unsigned az=az_start ; az < num_az() - 1 ; ++az ) {
+                    if(found_eigenray) break ;
+
+                    // *******************************************
+                    // When central ray is at the edge of ray family
+                    // it prevents edges from acting as CPA, if so, go to next de/az
+                    // Also check to see if this ray is a duplicate.
+
+                    if ( _curr->on_edge(de,az) ) { continue; }
+
+                    // get the central ray for testing
+                    center = _curr->distance2(t1,t2)(de,az) ;
+
+                    distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
+                    if ( distance2[2][1][1] <= center ) {
+                        continue;
                     }
-                }
 
-                // Loop over all rays
-                for ( unsigned de=1 ; de < parent_de ; ++de ) {
-                    for ( unsigned az=0 ; az < parent_az ; ++az ) {
-
-                        // *******************************************
-                        // When central ray is at the edge of ray family
-                        // it prevents edges from acting as CPA, if so, go to next de/az
-                        // Also check to see if this ray is a duplicate.
-
-                        if ( _curr->on_edge(de,az) ) { continue; }
-                        if ( skip_az(de,az) ) { continue ; }
-
-                        // get the central ray for testing
-                        center = _curr->distance2(t1,t2)(de,az) ;
-
-                        distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
-                        if ( distance2[2][1][1] <= center ) {
-                            continue;
-                        }
-
-                        distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
-                        if ( distance2[0][1][1] < center ) {
-                            continue;
-                        }
-
-                        // *******************************************
-                        if ( is_closest_ray(t1,t2,de,az,center,distance2) ) {
-                            build_eigenray(t1,t2,de,az,distance2) ;
-                        }
+                    distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
+                    if ( distance2[0][1][1] < center ) {
+                        continue;
                     }
-                }
 
-            }   // end t2 loop
-        }   // end t1 loop
-    } else {
-        // loop over all targets
-        for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
-            for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
-
-                // loop over all ray paths
-
-                for ( unsigned de=1 ; de < num_de()-1 ; ++de ) {
-                    for ( unsigned az=1 ; az < num_az()-1 ; ++az ) {
-
-                        // *******************************************
-                        // When central ray is at the edge of ray family
-                        // it prevents edges from acting as CPA, if so, go to next de/az
-
-                        if ( _curr->on_edge(de,az) ) {
-                            continue;
-                        }
-
-                        // get the central ray for testing
-                        center = _curr->distance2(t1,t2)(de,az) ;
-
-                        distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
-                        if ( distance2[2][1][1] <= center ) {
-                            continue;
-                        }
-
-                        distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
-                        if ( distance2[0][1][1] < center ) {
-                            continue;
-                        }
-
-                        // *******************************************
-                        if ( is_closest_ray(t1,t2,de,az,center,distance2) ) {
-                            build_eigenray(t1,t2,de,az,distance2) ;
-                        }
+                    // *******************************************
+                    if ( is_closest_ray(t1,t2,de,az,center,distance2) ) {
+                        build_eigenray(t1,t2,de,az,distance2) ;
+                        found_eigenray = true ;
                     }
-                }
-            }   // end t2 loop
-        }   // end t1 loop
-    } // end if az_boundary
+                }   // end az loop
+            }   // end de loop
+        }   // end t2 loop
+    }   // end t1 loop
 }
 
 /**
@@ -489,7 +427,6 @@ bool wave_queue::is_closest_ray(
         for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
             for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
                 if ( nde == 1 && naz == 1 ) continue ;
-
                 // compute distances on the current, next, and previous wavefronts
 
                 unsigned d = de + nde - 1 ;
@@ -615,20 +552,6 @@ void wave_queue::build_eigenray(
                 else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
                 else { wrap = n3 ; }
                 cout << " " << _next->on_edge(n2,wrap) ;
-            }
-            cout << " ];";
-        }
-        cout << " ]"  << endl;
-        cout << "***skip_az***" << endl;
-        cout << "\t [";
-        for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
-            cout << " [" ;
-            for ( int n3=int(az-1) ; n3 < int(az+2) ; ++n3 ) {
-                int wrap ;
-                if( n3 < 0 ) { wrap = num_az()-2 ; }
-                else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
-                else { wrap = n3 ; }
-                cout << " " << skip_az(n2,wrap) ;
             }
             cout << " ];";
         }

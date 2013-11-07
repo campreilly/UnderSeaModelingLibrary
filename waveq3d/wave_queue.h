@@ -163,14 +163,6 @@ class USML_DECLSPEC wave_queue {
      */
     bool az_boundary ;
 
-    /**
-     * A matrix that stores whether a given mirrored azimuthal angle
-     * has already been looked at for being a CPA. This prevents the
-     * system from attempted to double count eigenrays at branch points
-     * up to half of the azimuthal spread going clockwise.
-     */
-    matrix<bool> skip_az ;
-
   public:
 
     /**
