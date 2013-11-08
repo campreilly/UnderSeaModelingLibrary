@@ -307,7 +307,6 @@ void wave_queue::detect_eigenrays() {
     double distance2[3][3][3] ;
     double& center = distance2[1][1][1] ;
     double az_start = 0 ;
-    bool found_eigenray ;
 
     if(!az_boundary) { az_start = 1 ; }
 
@@ -317,9 +316,7 @@ void wave_queue::detect_eigenrays() {
 
             // Loop over all rays
             for ( unsigned de=1 ; de < num_de() - 1 ; ++de ) {
-                found_eigenray = false ;
                 for ( unsigned az=az_start ; az < num_az() - 1 ; ++az ) {
-                    if(found_eigenray) break ;
 
                     // *******************************************
                     // When central ray is at the edge of ray family
@@ -344,7 +341,6 @@ void wave_queue::detect_eigenrays() {
                     // *******************************************
                     if ( is_closest_ray(t1,t2,de,az,center,distance2) ) {
                         build_eigenray(t1,t2,de,az,distance2) ;
-                        found_eigenray = true ;
                     }
                 }   // end az loop
             }   // end de loop
