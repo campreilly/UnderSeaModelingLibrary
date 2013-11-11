@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sys/time.h>
 
-#define USML_DEBUG
+//#define USML_DEBUG
 
 using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
