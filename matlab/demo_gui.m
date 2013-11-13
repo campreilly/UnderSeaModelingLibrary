@@ -1,6 +1,6 @@
 function demo_gui
     clear all; close all;
-    system_dependent(14,0) ;    % turn off the matlab error beep
+%     system_dependent(14,0) ;    % turn off the matlab error beep
 
 %%-----------------------------Global Variables----------------------------
     global wavefront ;
@@ -26,21 +26,24 @@ function demo_gui
     global k ;
     global default_wavefront ;
     global default_proploss ;
+    global default_bathy ;
     global initialize ;
     global init_hbar ;
     
-    colors = {'b','r','g','y','m','k','w'};
+    colors = {'b','r','g','y','m','k','w'} ;
+    line_color = 'b' ;
 
-    minlat = 28.9 ; maxlat=29.1 ;
-    minlng = -80.1; maxlng=-79.9 ;
-    bathymetry = load_bathymetry('lvcms_bathy_test_area.nc') ;
-    default_wavefront = 'WaveFrontPropertiesOutput.nc' ;
-    default_proploss = 'ProplossPropertiesOutput.nc' ;
+%     minlat = 28.9 ; maxlat=29.1 ;
+%     minlng = -80.1; maxlng=-79.9 ;
+%     bathymetry = load_bathymetry('lvcms_bathy_test_area.nc') ;
+    default_wavefront = 'gulf_oman_eigenray_wave.nc' ;
+    default_proploss = 'gulf_oman_eigenray.nc' ;
+    default_bathy = 'gulf_of_oman.nc' ;
     initialize = true ;
 
     
 %% ------------------------------GUI SETUP---------------------------------
-    init_hbar = waitbar(0,['Initializing GUI...']) ;
+
     % Creates the default figure window
     f = figure('Units','characters',...
         'Position',[60 7 120 35],...
@@ -49,7 +52,7 @@ function demo_gui
         'Renderer','painters',...
         'Toolbar','figure',...
         'NumberTitle','off',...
-        'Name','LVCMS 3-D Demo',...
+        'Name','WaveQ3D Visulization',...
         'ResizeFcn',@figResize);
     
     % Create the center panel
@@ -94,6 +97,10 @@ function demo_gui
             [bpos(3)*3/120 bpos(4)*4/8 bpos(3)*35/120 1])
         set(propbox_button,'Position',...
             [bpos(3)*41/120 bpos(4)*4/8 bpos(3)*15/120 1])
+        set(bathybox,'Position',...
+            [bpos(3)*3/120 bpos(4)*2/8 bpos(3)*35/120 1])
+        set(bathybox_button,'Position',...
+            [bpos(3)*41/120 bpos(4)*2/8 bpos(3)*15/120 1])
     end
 
     % Right panel resize function
@@ -142,7 +149,7 @@ function demo_gui
     end
 
     % Create a field that allows the user to specify the filename for the
-    % wavefront and proploss file and then buttons to load the files
+    % wavefront, proploss, and bathy file with buttons to load the files
     wavebox_button = uicontrol(f, 'Style','pushbutton', ...
         'Units', 'characters', ...
         'Position', [41 6 15 1], ...
@@ -171,6 +178,20 @@ function demo_gui
         'String', default_proploss, ...
         'Parent', botPanel) ;
 
+    bathybox_button = uicontrol(f, 'Style','pushbutton', ...
+        'Units', 'characters', ...
+        'Position', [41 2 15 1], ...
+        'BackgroundColor', 'white', ...
+        'String', 'Load Bathy', ...
+        'Parent', botPanel, ...
+        'Callback', @bathy_load_Callback) ;
+    bathybox = uicontrol(f, 'Style', 'edit', ...
+        'Units', 'characters', ...
+        'Position', [5 2 34 1], ...
+        'BackgroundColor', 'white', ...
+        'String', default_bathy, ...
+        'Parent', botPanel) ;
+    
     % Setup a view buttons for specific angles of the plot
     td_button = uicontrol(f, 'Style', 'pushbutton', ...
         'Units', 'characters', ...
@@ -197,7 +218,7 @@ function demo_gui
     debox_label = uicontrol(f, 'Style', 'text', ...
         'Units','characters', ...
         'Position', [1 1 1 1], ...        
-        'String', 'DE index (1:181)', ...
+        'String', 'DE index', ...
         'Parent', rightPanel) ;
     debox_min = uicontrol(f, 'Style', 'edit', ...
         'Units','characters', ...
@@ -216,7 +237,7 @@ function demo_gui
     azbox_label = uicontrol(f, 'Style', 'text', ...
         'Units','characters', ...
         'Position', [1 1 1 1], ...        
-        'String', 'AZ index (1:25)', ...
+        'String', 'AZ index', ...
         'Parent', rightPanel);
     azbox_min = uicontrol(f, 'Style', 'edit', ...
         'Units','characters', ...
@@ -328,7 +349,7 @@ function demo_gui
         ysource = proploss.source_longitude ;
         zsource = proploss.source_altitude ;
         [az,el] = view();
-        if ~isnan(t_index) & length(new_de) > 1 & ( isempty(new_az) || length(new_az) > 1 )
+        if ~isnan(t_index) & ( isempty(new_de) || length(new_de) > 1 ) & ( isempty(new_az) || length(new_az) > 1 )
             if az_min > az_max
                 A = squeeze(wavefront.latitude(t_index,new_de,az_min:length(wavefront.source_az)));
                 B = squeeze(wavefront.latitude(t_index,new_de,1:az_max)) ;
@@ -339,21 +360,45 @@ function demo_gui
                 A = squeeze(wavefront.altitude(t_index,new_de,az_min:length(wavefront.source_az)));
                 B = squeeze(wavefront.altitude(t_index,new_de,1:az_max)) ;
                 walt = cat(2, A, B);
+                k = surf( wlon, wlat, walt, 'FaceColor', 'interp' ) ;
+            elseif de_min > de_max
+                lat_A = squeeze(wavefront.latitude(t_index,de_min:length(wavefront.source_de),new_az));
+                lat_B = squeeze(wavefront.latitude(t_index,1:de_max,new_az)) ;
+                lon_A = squeeze(wavefront.longitude(t_index,de_min:length(wavefront.source_de),new_az));
+                lon_B = squeeze(wavefront.longitude(t_index,1:de_max,new_az)) ;
+                alt_A = squeeze(wavefront.altitude(t_index,de_min:length(wavefront.source_de),new_az));
+                alt_B = squeeze(wavefront.altitude(t_index,1:de_max,new_az)) ;
+                k = surf( lon_A, lat_A, alt_A, 'FaceColor', 'interp' ) ;
+                hold on ;
+                surf( lon_B, lat_B, alt_B, 'FaceColor', 'interp' ) ;
+                hold off ;
+%             elseif ( de_min > de_max & az_min > az_max )
+%                 lat_A = squeeze(wavefront.latitude(t_index,de_min:length(wavefront.source_de),az_min:length(wavefront.source_az)));
+%                 lat_B = squeeze(wavefront.latitude(t_index,1:de_max,1:az_max)) ;
+%                 lon_A = squeeze(wavefront.longitude(t_index,de_min:length(wavefront.source_de),az_min:length(wavefront.source_az)));
+%                 lon_B = squeeze(wavefront.longitude(t_index,1:de_max,1:az_max)) ;
+%                 alt_A = squeeze(wavefront.altitude(t_index,de_min:length(wavefront.source_de),az_min:length(wavefront.source_az)));
+%                 alt_B = squeeze(wavefront.altitude(t_index,1:de_max,1:az_max)) ;
+%                 k = surf( lon_A, lat_A, alt_A, 'FaceColor', 'interp' ) ;
+%                 hold on ;
+%                 surf( lon_B, lat_B, alt_B, 'FaceColor', 'interp' ) ;
+%                 hold off ;
             else
                 wlat = squeeze(wavefront.latitude(t_index,new_de,new_az)) ;
                 wlon = squeeze(wavefront.longitude(t_index,new_de,new_az)) ;
                 walt = squeeze(wavefront.altitude(t_index,new_de,new_az)) ;
+                k = surf( wlon, wlat, walt, 'FaceColor', 'interp' ) ;
+                axis vis3d ;
             end
-            k = surf( wlon, wlat, walt, 'FaceColor', 'interp' ) ;
             colormap(winter(128)) ;
             if bathy_show == get(bathy_toggle,'Max')
                 bathy_plot
             end
         else
-            if length(new_de) > 1 & length(new_az) > 1
+            if length(new_de) > 1 && length(new_az) > 1
                 uicontrol(t_box)
             else
-            if az_min > az_max
+                if az_min > az_max
                     A = squeeze(wavefront.latitude(:,new_de,az_min:length(wavefront.source_az)));
                     B = squeeze(wavefront.latitude(:,new_de,1:az_max)) ;
                     wlat = cat(2, A, B);
@@ -363,20 +408,75 @@ function demo_gui
                     A = squeeze(wavefront.altitude(:,new_de,az_min:length(wavefront.source_az)));
                     B = squeeze(wavefront.altitude(:,new_de,1:az_max)) ;
                     walt = cat(2, A, B);
-            else
-                wlat = squeeze(wavefront.latitude(:,new_de,new_az)) ;
-                wlon = squeeze(wavefront.longitude(:,new_de,new_az)) ;
-                walt = squeeze(wavefront.altitude(:,new_de,new_az)) ;
-            end
-                l = plot3( wlon, wlat, walt, 'b' );
-                hold on;
-                if ~isnan(t_index)
-                   t_lat = squeeze(wavefront.latitude(t_index,new_de,new_az)) ;
-                   t_lon = squeeze(wavefront.longitude(t_index,new_de,new_az)) ;
-                   t_alt = squeeze(wavefront.altitude(t_index,new_de,new_az)) ;
-                   plot3(t_lon, t_lat, t_alt, 'ro-') ;
+                    l = plot3( wlon, wlat, walt, 'b' );
+                    hold on;
+                    if ~isnan(t_index)
+                        A = squeeze(wavefront.latitude(t_index,new_de,az_min:length(wavefront.source_az)));
+                        B = squeeze(wavefront.latitude(t_index,new_de,1:az_max)) ;
+                        t_lat = cat(1, A, B);
+                        A = squeeze(wavefront.longitude(t_index,new_de,az_min:length(wavefront.source_az)));
+                        B = squeeze(wavefront.longitude(t_index,new_de,1:az_max)) ;
+                        t_lon = cat(1, A, B);
+                        A = squeeze(wavefront.altitude(t_index,new_de,az_min:length(wavefront.source_az)));
+                        B = squeeze(wavefront.altitude(t_index,new_de,1:az_max)) ;
+                        t_alt = cat(1, A, B);
+                        plot3( t_lon, t_lat, t_alt, 'ro-' ) ;
+                    end
+                    hold off;
+                elseif de_min > de_max
+                    lat_A = squeeze(wavefront.latitude(:,de_min:length(wavefront.source_de),new_az));
+                    lat_B = squeeze(wavefront.latitude(:,1:de_max,new_az)) ;
+                    lon_A = squeeze(wavefront.longitude(:,de_min:length(wavefront.source_de),new_az));
+                    lon_B = squeeze(wavefront.longitude(:,1:de_max,new_az)) ;
+                    alt_A = squeeze(wavefront.altitude(:,de_min:length(wavefront.source_de),new_az));
+                    alt_B = squeeze(wavefront.altitude(:,1:de_max,new_az)) ;
+                    l = plot3( lon_A, lat_A, alt_A, 'b', lon_B, lat_B, alt_B, 'b' );
+                    hold on;
+                    if ~isnan(t_index)
+                        t_lat_A = squeeze(wavefront.latitude(t_index,de_min:length(wavefront.source_de),new_az));
+                        t_lat_B = squeeze(wavefront.latitude(t_index,1:de_max,new_az)) ;
+                        t_lon_A = squeeze(wavefront.longitude(t_index,de_min:length(wavefront.source_de),new_az));
+                        t_lon_B = squeeze(wavefront.longitude(t_index,1:de_max,new_az)) ;
+                        t_alt_A = squeeze(wavefront.altitude(t_index,de_min:length(wavefront.source_de),new_az));
+                        t_alt_B = squeeze(wavefront.altitude(t_index,1:de_max,new_az)) ;
+                        plot3( t_lon_A, t_lat_A, t_alt_A, 'ro-', t_lon_B, t_lat_B, t_alt_B, 'ro-' ) ;
+                    end
+                    hold off;
+%                 elseif ( de_min > de_max & az_min > az_max )
+%                     lat_A = squeeze(wavefront.latitude(:,de_min:length(wavefront.source_de),az_min:length(wavefront.source_az)));
+%                     lat_B = squeeze(wavefront.latitude(:,1:de_max,1:az_max)) ;
+%                     lon_A = squeeze(wavefront.longitude(:,de_min:length(wavefront.source_de),az_min:length(wavefront.source_az)));
+%                     lon_B = squeeze(wavefront.longitude(:,1:de_max,1:az_max)) ;
+%                     alt_A = squeeze(wavefront.altitude(:,de_min:length(wavefront.source_de),az_min:length(wavefront.source_az)));
+%                     alt_B = squeeze(wavefront.altitude(:,1:de_max,1:az_max)) ;
+%                     l = plot3( lat_A, lon_A, alt_A, 'b', lat_B, lon_B, alt_B, 'b' );
+%                     hold on;
+%                     if ~isnan(t_index)
+%                         t_lat_A = squeeze(wavefront.latitude(t_index,de_min:length(wavefront.source_de),az_min:length(wavefront.source_az)));
+%                         t_lat_B = squeeze(wavefront.latitude(t_index,1:de_max,1:az_max)) ;
+%                         t_lon_A = squeeze(wavefront.longitude(t_index,de_min:length(wavefront.source_de),az_min:length(wavefront.source_az)));
+%                         t_lon_B = squeeze(wavefront.longitude(t_index,1:de_max,1:az_max)) ;
+%                         t_alt_A = squeeze(wavefront.altitude(t_index,de_min:length(wavefront.source_de),az_min:length(wavefront.source_az)));
+%                         t_alt_B = squeeze(wavefront.altitude(t_index,1:de_max,1:az_max)) ;
+%                         plot3( t_lat_A, t_lon_A, t_alt_A, 'ro-', t_lat_B, t_lon_B, t_alt_B, 'ro-' );
+%                     end
+%                     hold off;
+                else
+                    wlat = squeeze(wavefront.latitude(:,new_de,new_az)) ;
+                    wlon = squeeze(wavefront.longitude(:,new_de,new_az)) ;
+                    walt = squeeze(wavefront.altitude(:,new_de,new_az)) ;
+                    l = plot3( wlon, wlat, walt, line_color ) ;
+                    axis vis3d ;
+                    hold on;
+                    if ~isnan(t_index)
+                       t_lat = squeeze(wavefront.latitude(t_index,new_de,new_az)) ;
+                       t_lon = squeeze(wavefront.longitude(t_index,new_de,new_az)) ;
+                       t_alt = squeeze(wavefront.altitude(t_index,new_de,new_az)) ;
+                       plot3( t_lon, t_lat, t_alt, 'ro-' ) ;
+                       axis vis3d ;
+                    end
+                    hold off;
                 end
-                hold off;
                 if bathy_show == get(bathy_toggle,'Max')
                     bathy_plot
                 end
@@ -388,24 +488,27 @@ function demo_gui
                    ysource, xsource, zsource, 'ro');
         set(h(1),'MarkerEdgeColor','k','MarkerFaceColor','k');
         set(h(2),'MarkerEdgeColor','r','MarkerFaceColor','r');
+        axis vis3d ;
 %         set(gca,'XLim',[minlng maxlng])
 %         set(gca,'YLim',[minlat maxlat])
 %         set(gca,'ZLim',[-500 0])
-        title(sprintf( 'LVCMS 3-D view' )) ; 
+        title(sprintf( 'WaveQ3D Visualization' )) ; 
         xlabel('Longitude')
         ylabel('Latitude')
         zlabel('Depth (m)')
         grid on
+        set(gca,'color','none')
         hold off;
     end
 
     % Plot the bathymetry from the file
     function bathy_plot
         hold(a,'on') ;
-        minlat = 28.9 ; maxlat=29.1 ;
-        minlng = -80.1; maxlng=-79.9 ;
-
-        bathymetry = load_bathymetry('lvcms_bathy_test_area.nc') ;
+        minlat = 24.9 ; maxlat = 25.65 ;
+        minlng = 56.65 ; maxlng = 57.5 ;
+%         minlat = 25.0 ; maxlat = 25.8 ;
+%         minlng = 56.0 ; maxlng = 58.0 ;
+ 
         n = find( bathymetry.latitude >= minlat & bathymetry.latitude <= maxlat ) ;
         m = find( bathymetry.longitude >= minlng & bathymetry.longitude <= maxlng ) ;
         bathymetry.latitude = bathymetry.latitude(n) ;
@@ -417,18 +520,24 @@ function demo_gui
         ylabel('Latitude')
         zlabel('Depth (m)')
         colorbar ;
-        set(hb, 'FaceColor', 'interp') ; 
+        set(hb, 'FaceColor', 'interp') ;
         hold(a,'off') ;        
     end
 
-%% ------Callback functions for wavefronts and proploss/eigenrays----------
+%% ----Callback functions for wavefronts, proploss/eigenrays and bathy-----
     % All variables are set to global to allow use in any function
     function wavefront_load_Callback(src,evt)
         if initialize
+            init_hbar = waitbar(0,'Setting up framework','Name','Initializing GUI') ;
             filename = get(wavebox, 'string') ;
-%             init_hbar = waitbar(0,['Initializing GUI...']) ;
-            waitbar(2/11) ;
-            wavefront = load_wavefront(filename);
+            waitbar(2/11,init_hbar,'Loading Wavefront...') ;
+            wavefront = load_wavefront(filename) ;
+            num_de = length(wavefront.source_de) ;
+            label = strcat('DE index (1:',num2str(num_de),')') ;
+            set(debox_label,'String',label) ;
+            num_az = length(wavefront.source_az) ;
+            label = strcat('AZ index (1:',num2str(num_az),')') ;
+            set(azbox_label,'String',label) ;
         else
             filename = get(wavebox, 'string') ;
             if isempty(filename)
@@ -440,6 +549,12 @@ function demo_gui
             waitbar(4/11);
             clear wavefront;
             wavefront = load_wavefront(filename);
+            num_de = length(wavefront.source_de) ;
+            label = strcat('DE index (1:',num2str(num_de),')') ;
+            set(debox_label,'String',label) ;
+            num_az = length(wavefront.source_az) ;
+            label = strcat('AZ index (1:',num2str(num_az),')') ;
+            set(azbox_label,'String',label) ;
             if ~isempty(wavefront)
                 waitbar(1.0);
                 pause(0.1)
@@ -451,20 +566,17 @@ function demo_gui
 
     function proploss_load_Callback(src,evt)
         if initialize
-            waitbar(7/11) ;
+            waitbar(6/11,init_hbar,'Loading Proploss...') ;
+            pause(0.5);
             filename = get(propbox, 'string') ;
             [proploss, eigenrays] = load_proploss(filename) ;
-            waitbar(1.0) ;
-            msgbox('GUI setup complete','Load Complete','modal')
-            close(init_hbar) ;
-            initialize = false ;
         else
             filename = get(propbox, 'string') ;
             clear proploss ;
             clear eigenrays ;
             if isempty(filename)
                 filename = uigetfile({'*.nc','NetCDF Files (*.nc)'; ...
-                    '*.*', 'All Files (*.*)'},'Choose the wavefront file.') ;
+                    '*.*', 'All Files (*.*)'},'Choose the proploss file.') ;
             end
             set(propbox, 'String', filename);
             [proploss, eigenrays] = load_proploss(filename);
@@ -475,9 +587,35 @@ function demo_gui
         end
     end
 
+    function bathy_load_Callback(src,evt)
+        if initialize
+            waitbar(9/11,init_hbar,'Loading Bathymetry...') ;
+            pause(0.2);
+            filename = get(bathybox, 'string') ;
+            bathymetry = load_bathymetry(filename) ;
+            waitbar(1.0) ;
+            msgbox('GUI setup complete','Load Complete','modal')
+            close(init_hbar) ;
+            initialize = false ;
+        else
+            filename = get(bathybox, 'string') ;
+            clear bathymetry ;
+            if isempty(filename)
+                filename = uigetfile({'*.nc','NetCDF Files (*.nc)'; ...
+                    '*.*', 'All Files (*.*)'},'Choose the bathymetry file.') ;
+            end
+            set(bathybox, 'String', filename);
+            bathymetry = load_bathymetry(filename);
+            if( ~isempty(bathymetry) )
+                msgbox('Bathymetry loaded successfully', ...
+                'Load Complete','modal') ;
+            end
+        end
+    end
     % initialize the above buttons and callbacks
     wavefront_load_Callback(wavebox_button,[]) ;
     proploss_load_Callback(propbox_button,[]) ;
+    bathy_load_Callback(bathybox_button,[]) ;
 
     %% Callbacks for min/max of DE
     function ChangeDE_Callback_min(hObj, eventdata, handles)
@@ -651,7 +789,7 @@ function demo_gui
 %     TDView_Callback(td_button,[]) ;
 %     SideView_Callback(az_button,[]) ;
     
-    % Callback for hold state toggle button
+    % Callback for bathy toggle button
     function bathy_Callback(src,evt)
         bathy_show = get(src, 'Value') ;
         if bathy_show == get(src,'Max')
