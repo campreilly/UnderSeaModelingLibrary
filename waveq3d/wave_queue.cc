@@ -15,6 +15,7 @@
 
 #include <iomanip>
 
+//#define DEBUG_OUTPUT_EIGENRAYS
 //#define DEBUG_EIGENRAYS
 //#define DEBUG_CAUSTICS
 //#define DEBUG_REFLECT
@@ -814,10 +815,11 @@ void wave_queue::build_eigenray(
     ray.target_az = center + inner_prod( gradient, offset )
                   + 0.5 * inner_prod( offset, prod( hessian, offset ) ) ;
 
-    #ifdef DEBUG_EIGENRAYS
-        cout << "\ttarget(" << t1 << "," << t2 << "):"
-             << " t=" << ray.time << " de=" << ray.source_de << " az=" << ray.source_az
-             << " pl=" << ray.intensity << endl ;
+    #ifdef DEBUG_OUTPUT_EIGENRAYS
+    cout << "wave_queue::build_eigenray() " << endl
+    		 << "\ttarget(" << t1 << "," << t2 << "):" << endl
+             << "\tt=" << ray.time << " inten=" << ray.intensity << " de=" << ray.source_de << " az=" << ray.source_az << endl
+             << "\tsurface=" << ray.surface << " bottom=" << ray.bottom << " caustic=" << ray.caustic << endl ;
     #endif
 
     // Add eigenray to those objects which requested them
@@ -885,7 +887,7 @@ void wave_queue::compute_offsets(
 
     // compute distances from offsets
     // for each coordinate, assumes the other two offsets are zero
-    // fixes DE distance instablity outside of ray fan
+    // fixes DE distance instability outside of ray fan
 
     for ( unsigned n=0 ; n < 3 ; ++n ) {
         distance(n) = -gradient(n)*offset(n)
