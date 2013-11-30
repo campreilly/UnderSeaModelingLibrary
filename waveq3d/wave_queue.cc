@@ -15,6 +15,7 @@
 
 #include <iomanip>
 
+//#define DEBUG_OUTPUT_EIGENRAYS
 //#define DEBUG_EIGENRAYS
 //#define DEBUG_CAUSTICS
 //#define DEBUG_REFLECT
@@ -47,12 +48,10 @@ wave_queue::wave_queue(
 
 	// create references between targets and wavefront objects.
     const matrix<double>* pTargets_sin_theta = NULL ;
-
     double boundary_check = abs((*_source_az)(0))
                             + abs((*_source_az)(_source_az->size()-1)) ;
     if( boundary_check == 360.0 ) { az_boundary = true ; }
     else { az_boundary = false ;}
-    skip_az = matrix<bool> ( num_de()-1, num_az()-1 ) ;
     _intensity_threshold = 300.00; //In dB
 
     if ( _targets ) {
@@ -308,107 +307,44 @@ void wave_queue::detect_eigenrays() {
 
     double distance2[3][3][3] ;
     double& center = distance2[1][1][1] ;
+    double az_start = 0 ;
 
-    /**
-     * In order to speed up the code, it required splitting the code
-     * to run faster. This then only checks the az_boundary condition
-     * once per function call.
-     */
-    if(az_boundary) {
-        unsigned parent_az = num_az() - 2 ;
-        unsigned parent_de = num_de() - 2 ;
-        unsigned half_de = ceil(parent_de/2) ;
-        double retnec ;
-        unsigned za ;
-        // loop over all targets
-        for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
-            for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
-
-                // Find all duplicate eigenray producing rays
-                skip_az.clear() ;
-                skip_az(parent_de,parent_az) = true ;
-                for ( unsigned de=1 ; de < parent_de ; ++de ) {
-                    for ( unsigned az=1 ; az < parent_az ; ++az ) {
-                        if(de == half_de) {continue ;}
-                        center = _curr->distance2(t1,t2)(de,az) ;
-                        za = parent_az - az ;
-                        retnec = _curr->distance2(t1,t2)(de,za) ;
-                        if( (center <= retnec) && (za!=az) ) {
-                            skip_az(de,za) = true ;
-                        }
-                    }
-                }
-
-                // Loop over all rays
-                for ( unsigned de=1 ; de < parent_de ; ++de ) {
-                    for ( unsigned az=0 ; az < parent_az ; ++az ) {
-
-                        // *******************************************
-                        // When central ray is at the edge of ray family
-                        // it prevents edges from acting as CPA, if so, go to next de/az
-                        // Also check to see if this ray is a duplicate.
-
-                        if ( _curr->on_edge(de,az) ) { continue; }
-                        if ( skip_az(de,az) ) { continue ; }
-
-                        // get the central ray for testing
-                        center = _curr->distance2(t1,t2)(de,az) ;
-
-                        distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
-                        if ( distance2[2][1][1] <= center ) {
-                            continue;
-                        }
-
-                        distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
-                        if ( distance2[0][1][1] < center ) {
-                            continue;
-                        }
-
-                        // *******************************************
-                        if ( is_closest_ray(t1,t2,de,az,center,distance2) ) {
-                            build_eigenray(t1,t2,de,az,distance2) ;
-                        }
-                    }
-                }
+    if(!az_boundary) { az_start = 1 ; }
 
     // loop over all targets
-
     for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
         for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
 
-            // loop over all ray paths
+            // Loop over all rays
+            for ( unsigned de=1 ; de < num_de() - 1 ; ++de ) {
+                for ( unsigned az=az_start ; az < num_az() - 1 ; ++az ) {
 
-            for ( unsigned de=1 ; de < num_de()-1 ; ++de ) {
-                for ( unsigned az=1 ; az < num_az()-1 ; ++az ) {
+                    // *******************************************
+                    // When central ray is at the edge of ray family
+                    // it prevents edges from acting as CPA, if so, go to next de/az
+                    // Also check to see if this ray is a duplicate.
 
-                	// *******************************************
-                	// When central ray is at the edge of ray family
-                	// it prevents edges from acting as CPA, if so, go to next de/az
+                    if ( _curr->on_edge(de,az) ) { continue; }
 
-					if ( _curr->on_edge(de,az) ) {
-						continue;
-					}
+                    // get the central ray for testing
+                    center = _curr->distance2(t1,t2)(de,az) ;
 
-					// get the central ray for testing
-					center = _curr->distance2(t1,t2)(de,az) ;
+                    distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
+                    if ( distance2[2][1][1] <= center ) {
+                        continue;
+                    }
 
-					distance2[2][1][1] = _next->distance2(t1,t2)(de,az) ;
-					if ( distance2[2][1][1] <= center ) {
-						continue;
-					}
+                    distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
+                    if ( distance2[0][1][1] < center ) {
+                        continue;
+                    }
 
-					distance2[0][1][1] = _prev->distance2(t1,t2)(de,az) ;
-					if ( distance2[0][1][1] < center ) {
-						continue;
-					}
-
-                	// *******************************************
+                    // *******************************************
                     if ( is_closest_ray(t1,t2,de,az,center,distance2) ) {
                         build_eigenray(t1,t2,de,az,distance2) ;
                     }
-                }
-            }
-
+                }   // end az loop
+            }   // end de loop
         }   // end t2 loop
     }   // end t1 loop
 }
@@ -424,54 +360,114 @@ bool wave_queue::is_closest_ray(
    double distance2[3][3][3]
 ) {
 
-    // test all neighbors that are not the central ray
+    /**
+     * In order to speed up the code, it required splitting the code
+     * to run faster. This then only checks the az_boundary condition
+     * once per function call.
+     */
+    if(az_boundary) {
+        // test all neighbors that are not the central ray
+        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
+            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
+                if ( nde == 1 && naz == 1 ) continue ;
 
-    for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
-        for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
-            if ( nde == 1 && naz == 1 ) continue ;
+                // compute distances on the current, next, and previous wavefronts
 
-            // compute distances on the current, next, and previous wavefronts
-
-            unsigned d = de + nde - 1 ;
-            unsigned a = az + naz - 1 ;
-            distance2[0][nde][naz] = _prev->distance2(t1,t2)(d,a) ;
-            distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
-            distance2[2][nde][naz] = _next->distance2(t1,t2)(d,a) ;
-
-            #ifdef USML_DEBUG
-            // test all distances to make sure they are valid numbers
-                if( isnan(distance2[0][nde][naz]) ) {
-                    cout << "Oops, the distance for distance2[0"
-                    << "][" << nde << "][" << naz << "] is NaN!" << endl;
+                unsigned d = de + nde - 1 ;
+                unsigned a = az + naz - 1 ;
+                if( (int)a < 0.0 ) {
+                    a = num_az() - 2 ;
+                } else
+                if( a >= (num_az() - 1) ) {
+                    a = 0 ;
                 }
-                if( isnan(distance2[1][nde][naz]) ) {
-                    cout << "Oops, the distance for distance2[1"
-                    << "][" << nde << "][" << naz << "] is NaN!" << endl;
+
+                distance2[0][nde][naz] = _prev->distance2(t1,t2)(d,a) ;
+                distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
+                distance2[2][nde][naz] = _next->distance2(t1,t2)(d,a) ;
+
+                #ifdef USML_DEBUG
+                // test all distances to make sure they are valid numbers
+                    if( isnan(distance2[0][nde][naz]) ) {
+                        cout << "Oops, the distance for distance2[0"
+                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
+                    }
+                    if( isnan(distance2[1][nde][naz]) ) {
+                        cout << "Oops, the distance for distance2[1"
+                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
+                    }
+                    if( isnan(distance2[2][nde][naz]) ) {
+                        cout << "Oops, the distance for distance2[2"
+                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
+                    }
+                #endif
+
+                // skip to next iteration if tested ray is on edge of ray family
+                // allows extrapolation outside of ray family
+
+                if ( a == num_az()-1 ) continue;
+                if ( _curr->on_edge(d,a) ) continue ;
+
+                // test to see if the center value is the smallest
+
+                if ( nde == 2 || naz == 2 ) {
+                    if ( distance2[1][nde][naz] <= center ) return false ;
+                } else {
+                    if ( distance2[1][nde][naz] < center ) return false ;
                 }
-                if( isnan(distance2[2][nde][naz]) ) {
-                    cout << "Oops, the distance for distance2[2"
-                    << "][" << nde << "][" << naz << "] is NaN!" << endl;
-                }
-            #endif
-
-            // skip to next iteration if tested ray is on edge of ray family
-            // allows extrapolation outside of ray family
-
-            if ( a == 0 || a == num_az()-1 ) continue;
-            if ( _curr->on_edge(d,a) ) continue ;
-
-            // test to see if the center value is the smallest
-
-            if ( nde == 2 || naz == 2 ) {
-                if ( distance2[1][nde][naz] <= center ) return false ;
-            } else {
-                if ( distance2[1][nde][naz] < center ) return false ;
+                if ( distance2[2][nde][naz] <= center ) return false ;
+                if ( distance2[0][nde][naz] < center ) return false ;
             }
-            if ( distance2[2][nde][naz] <= center ) return false ;
-            if ( distance2[0][nde][naz] < center ) return false ;
         }
-    }
-    return true ;
+        return true ;
+    } else {
+        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
+            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
+                if ( nde == 1 && naz == 1 ) continue ;
+                // compute distances on the current, next, and previous wavefronts
+
+                unsigned d = de + nde - 1 ;
+                unsigned a = az + naz - 1 ;
+
+                distance2[0][nde][naz] = _prev->distance2(t1,t2)(d,a) ;
+                distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
+                distance2[2][nde][naz] = _next->distance2(t1,t2)(d,a) ;
+
+                #ifdef USML_DEBUG
+                // test all distances to make sure they are valid numbers
+                    if( isnan(distance2[0][nde][naz]) ) {
+                        cout << "Oops, the distance for distance2[0"
+                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
+                    }
+                    if( isnan(distance2[1][nde][naz]) ) {
+                        cout << "Oops, the distance for distance2[1"
+                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
+                    }
+                    if( isnan(distance2[2][nde][naz]) ) {
+                        cout << "Oops, the distance for distance2[2"
+                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
+                    }
+                #endif
+
+                // skip to next iteration if tested ray is on edge of ray family
+                // allows extrapolation outside of ray family
+
+                if ( a == 0 || a == num_az()-1 ) continue;
+                if ( _curr->on_edge(d,a) ) continue ;
+
+                // test to see if the center value is the smallest
+
+                if ( nde == 2 || naz == 2 ) {
+                    if ( distance2[1][nde][naz] <= center ) return false ;
+                } else {
+                    if ( distance2[1][nde][naz] < center ) return false ;
+                }
+                if ( distance2[2][nde][naz] <= center ) return false ;
+                if ( distance2[0][nde][naz] < center ) return false ;
+            }
+        }
+        return true ;
+    } // end if az_boundary
 }
 
 /**
@@ -511,37 +507,14 @@ void wave_queue::build_eigenray(
 
         cout << "***on_edge***" << endl;
         cout << "\t de index: (slow) [ " << de-1 << " " << de << " " << de+1
-             << " ]\n\t az index: (fast) [ " << az-1 << " " << az << " " << az+1
-             << " ]" << endl;
+             << " ]\n\t az index: (fast) [ "  ;
+             if( (int)az-1 < 0 ) { cout << num_az()-2 ; }
+             else { cout << az-1 ; }
+             cout << " " << az << " " ;
+             if( az+1 >= (num_az()-1) ) { cout << 0 ; }
+             else{ cout << az+1 ; }
+        cout << " ]" << endl;
         cout << "\t prev  [";
-        for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
-            cout << " [" ;
-            for ( unsigned n3=az-1 ; n3 < az+2 ; ++n3 ) {
-               cout << " " << _past->on_edge(n2,n3) ;
-            }
-            cout << " ];";
-        }
-        cout << " ]"  << endl;
-        cout << "\t curr  [";
-        for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
-            cout << " [" ;
-            for ( unsigned n3=az-1 ; n3 < az+2 ; ++n3 ) {
-               cout << " " << _curr->on_edge(n2,n3) ;
-            }
-            cout << " ];";
-        }
-        cout << " ]"  << endl;
-        cout << "\t next  [";
-        for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
-            cout << " [" ;
-            for ( unsigned n3=az-1 ; n3 < az+2 ; ++n3 ) {
-               cout << " " << _next->on_edge(n2,n3) ;
-            }
-            cout << " ];";
-        }
-        cout << " ]"  << endl;
-        cout << "***skip_az***" << endl;
-        cout << "\t [";
         for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
             cout << " [" ;
             for ( int n3=int(az-1) ; n3 < int(az+2) ; ++n3 ) {
@@ -549,7 +522,33 @@ void wave_queue::build_eigenray(
                 if( n3 < 0 ) { wrap = num_az()-2 ; }
                 else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
                 else { wrap = n3 ; }
-                cout << " " << skip_az(n2,wrap) ;
+                cout << " " << _past->on_edge(n2,wrap) ;
+            }
+            cout << " ];";
+        }
+        cout << " ]"  << endl;
+        cout << "\t curr  [";
+        for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
+            cout << " [" ;
+            for ( int n3=int(az-1) ; n3 < int(az+2) ; ++n3 ) {
+                int wrap ;
+                if( n3 < 0 ) { wrap = num_az()-2 ; }
+                else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
+                else { wrap = n3 ; }
+                cout << " " << _curr->on_edge(n2,wrap) ;
+            }
+            cout << " ];";
+        }
+        cout << " ]"  << endl;
+        cout << "\t next  [";
+        for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
+            cout << " [" ;
+            for ( int n3=int(az-1) ; n3 < int(az+2) ; ++n3 ) {
+                int wrap ;
+                if( n3 < 0 ) { wrap = num_az()-2 ; }
+                else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
+                else { wrap = n3 ; }
+                cout << " " << _next->on_edge(n2,wrap) ;
             }
             cout << " ];";
         }
@@ -568,27 +567,63 @@ void wave_queue::build_eigenray(
     const int surface = _curr->surface(de,az) ;
     const int bottom = _curr->bottom(de,az) ;
     const int caustic = _curr->caustic(de,az) ;
-    for ( unsigned nde=0 ; nde < 3 && !unstable ; ++nde ) {
-        unsigned d = de + nde -1 ;
-        for ( unsigned naz=0 ; naz < 3 && !unstable ; ++naz ) {
-            unsigned a = az + naz -1 ;
-            if ( _prev->surface(d,a) != surface ||
-                 _curr->surface(d,a) != surface ||
-                 _next->surface(d,a) != surface ||
-                 _prev->bottom(d,a) != bottom ||
-                 _curr->bottom(d,a) != bottom ||
-                 _next->bottom(d,a) != bottom ||
-                 _prev->caustic(d,a) != caustic ||
-                 _curr->caustic(d,a) != caustic ||
-                 _next->caustic(d,a) != caustic )
-            {
-                unstable = true ;
-                #ifdef DEBUG_EIGENRAYS
-                cout << "\tpath change" << endl ;
-                #endif
+    /**
+     * In order to speed up the code, it required splitting the code
+     * to run faster. This then only checks the az_boundary condition
+     * once per function call.
+     */
+    if(az_boundary) {
+        for ( unsigned nde=0 ; nde < 3 && !unstable ; ++nde ) {
+            unsigned d = de + nde -1 ;
+            for ( unsigned naz=0 ; naz < 3 && !unstable ; ++naz ) {
+                unsigned a = az + naz -1 ;
+                if( (int)a < 0.0 ) {
+                    a = num_az() - 2 ;
+                } else
+                if( a >= (num_az() - 1) ) {
+                    a = 0 ;
+                }
+                if ( _prev->surface(d,a) != surface ||
+                     _curr->surface(d,a) != surface ||
+                     _next->surface(d,a) != surface ||
+                     _prev->bottom(d,a) != bottom ||
+                     _curr->bottom(d,a) != bottom ||
+                     _next->bottom(d,a) != bottom ||
+                     _prev->caustic(d,a) != caustic ||
+                     _curr->caustic(d,a) != caustic ||
+                     _next->caustic(d,a) != caustic )
+                {
+                    unstable = true ;
+                    #ifdef DEBUG_EIGENRAYS
+                    cout << "\tpath change" << endl ;
+                    #endif
+                }
             }
         }
     }
+    else {
+        for ( unsigned nde=0 ; nde < 3 && !unstable ; ++nde ) {
+            unsigned d = de + nde -1 ;
+            for ( unsigned naz=0 ; naz < 3 && !unstable ; ++naz ) {
+                unsigned a = az + naz -1 ;
+                if ( _prev->surface(d,a) != surface ||
+                     _curr->surface(d,a) != surface ||
+                     _next->surface(d,a) != surface ||
+                     _prev->bottom(d,a) != bottom ||
+                     _curr->bottom(d,a) != bottom ||
+                     _next->bottom(d,a) != bottom ||
+                     _prev->caustic(d,a) != caustic ||
+                     _curr->caustic(d,a) != caustic ||
+                     _next->caustic(d,a) != caustic )
+                {
+                    unstable = true ;
+                    #ifdef DEBUG_EIGENRAYS
+                    cout << "\tpath change" << endl ;
+                    #endif
+                }
+            }
+        }
+    } // end if az_boundary
     compute_offsets( distance2, delta, offset, distance, unstable ) ;
 
     // build basic eigenray products
@@ -666,25 +701,58 @@ void wave_queue::build_eigenray(
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles
-    for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
-        for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
-            unsigned d = de + nde - 1 ;
-            unsigned a = az + naz - 1 ;
-            double dummy ;
-            {
-                wvector1 ndir( _prev->ndirection, d, a ) ;
-                ndir.direction( &distance2[0][nde][naz], &dummy ) ;
-            }
-            {
-                wvector1 ndir( _curr->ndirection, d, a ) ;
-                ndir.direction( &distance2[1][nde][naz], &dummy ) ;
-            }
-            {
-                wvector1 ndir( _next->ndirection, d, a ) ;
-                ndir.direction( &distance2[2][nde][naz], &dummy ) ;
+    /**
+     * In order to speed up the code, it required splitting the code
+     * to run faster. This then only checks the az_boundary condition
+     * once per function call.
+     */
+    if(az_boundary) {
+        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
+            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
+                unsigned d = de + nde - 1 ;
+                unsigned a = az + naz - 1 ;
+                if( (int)a < 0.0 ) {
+                    a = num_az() - 2 ;
+                } else
+                if( a >= (num_az() - 1) ) {
+                    a = 0 ;
+                }
+                double dummy ;
+                {
+                    wvector1 ndir( _prev->ndirection, d, a ) ;
+                    ndir.direction( &distance2[0][nde][naz], &dummy ) ;
+                }
+                {
+                    wvector1 ndir( _curr->ndirection, d, a ) ;
+                    ndir.direction( &distance2[1][nde][naz], &dummy ) ;
+                }
+                {
+                    wvector1 ndir( _next->ndirection, d, a ) ;
+                    ndir.direction( &distance2[2][nde][naz], &dummy ) ;
+                }
             }
         }
-    }
+    } else {
+        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
+            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
+                unsigned d = de + nde - 1 ;
+                unsigned a = az + naz - 1 ;
+                double dummy ;
+                {
+                    wvector1 ndir( _prev->ndirection, d, a ) ;
+                    ndir.direction( &distance2[0][nde][naz], &dummy ) ;
+                }
+                {
+                    wvector1 ndir( _curr->ndirection, d, a ) ;
+                    ndir.direction( &distance2[1][nde][naz], &dummy ) ;
+                }
+                {
+                    wvector1 ndir( _next->ndirection, d, a ) ;
+                    ndir.direction( &distance2[2][nde][naz], &dummy ) ;
+                }
+            }
+        }
+    } // end if az_boundary
 
     double center ;
     c_vector<double,3> gradient ;
@@ -696,34 +764,62 @@ void wave_queue::build_eigenray(
     // estimate target AZ angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store AZ angles
 
-    for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
-        for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
-            unsigned d = de + nde - 1 ;
-            unsigned a = az + naz - 1 ;
-            double dummy ;
-            {
-                wvector1 ndir( _prev->ndirection, d, a ) ;
-                ndir.direction( &dummy, &distance2[0][nde][naz] ) ;
-            }
-            {
-                wvector1 ndir( _curr->ndirection, d, a ) ;
-                ndir.direction( &dummy, &distance2[1][nde][naz] ) ;
-            }
-            {
-                wvector1 ndir( _next->ndirection, d, a ) ;
-                ndir.direction( &dummy, &distance2[2][nde][naz] ) ;
+    if(az_boundary) {
+        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
+            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
+                unsigned d = de + nde - 1 ;
+                unsigned a = az + naz - 1 ;
+                double dummy ;
+                if( (int)a < 0.0 ) {
+                    a = num_az() - 2 ;
+                } else
+                if( (int)a >= (num_az() - 1) ) {
+                    a = 0 ;
+                }
+                {
+                    wvector1 ndir( _prev->ndirection, d, a ) ;
+                    ndir.direction( &dummy, &distance2[0][nde][naz] ) ;
+                }
+                {
+                    wvector1 ndir( _curr->ndirection, d, a ) ;
+                    ndir.direction( &dummy, &distance2[1][nde][naz] ) ;
+                }
+                {
+                    wvector1 ndir( _next->ndirection, d, a ) ;
+                    ndir.direction( &dummy, &distance2[2][nde][naz] ) ;
+                }
             }
         }
-    }
-
+    } else {
+        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
+            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
+                unsigned d = de + nde - 1 ;
+                unsigned a = az + naz - 1 ;
+                double dummy ;
+                {
+                    wvector1 ndir( _prev->ndirection, d, a ) ;
+                    ndir.direction( &dummy, &distance2[0][nde][naz] ) ;
+                }
+                {
+                    wvector1 ndir( _curr->ndirection, d, a ) ;
+                    ndir.direction( &dummy, &distance2[1][nde][naz] ) ;
+                }
+                {
+                    wvector1 ndir( _next->ndirection, d, a ) ;
+                    ndir.direction( &dummy, &distance2[2][nde][naz] ) ;
+                }
+            }
+        }
+    }// end if az_boundary
     make_taylor_coeff( distance2, delta, center, gradient, hessian, unstable ) ;
     ray.target_az = center + inner_prod( gradient, offset )
                   + 0.5 * inner_prod( offset, prod( hessian, offset ) ) ;
 
-    #ifdef DEBUG_EIGENRAYS
-        cout << "\ttarget(" << t1 << "," << t2 << "):"
-             << " t=" << ray.time << " de=" << ray.source_de << " az=" << ray.source_az
-             << " pl=" << ray.intensity << endl ;
+    #ifdef DEBUG_OUTPUT_EIGENRAYS
+    cout << "wave_queue::build_eigenray() " << endl
+    		 << "\ttarget(" << t1 << "," << t2 << "):" << endl
+             << "\tt=" << ray.time << " inten=" << ray.intensity << " de=" << ray.source_de << " az=" << ray.source_az << endl
+             << "\tsurface=" << ray.surface << " bottom=" << ray.bottom << " caustic=" << ray.caustic << endl ;
     #endif
 
     // Add eigenray to those objects which requested them
@@ -791,7 +887,7 @@ void wave_queue::compute_offsets(
 
     // compute distances from offsets
     // for each coordinate, assumes the other two offsets are zero
-    // fixes DE distance instablity outside of ray fan
+    // fixes DE distance instability outside of ray fan
 
     for ( unsigned n=0 ; n < 3 ; ++n ) {
         distance(n) = -gradient(n)*offset(n)
@@ -799,7 +895,7 @@ void wave_queue::compute_offsets(
     }
     if ( unstable ) {
         #ifdef DEBUG_EIGENRAYS
-            if (unstable) cout << " unstable de" ;
+            cout << " unstable de" ;
         #endif
         distance(1) = center - distance(0) - distance(2) ;
     }
