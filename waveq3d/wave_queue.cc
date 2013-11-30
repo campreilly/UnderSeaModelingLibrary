@@ -49,7 +49,7 @@ wave_queue::wave_queue(
     const matrix<double>* pTargets_sin_theta = NULL ;
     double boundary_check = abs((*_source_az)(0))
                             + abs((*_source_az)(_source_az->size()-1)) ;
-    if( boundary_check == 360.0 ) { az_boundary = true ; }
+    if ( boundary_check == 360.0 ) { az_boundary = true ; }
     else { az_boundary = false ;}
     _intensity_threshold = 300.00; //In dB
 
@@ -313,6 +313,10 @@ void wave_queue::detect_eigenrays() {
     // loop over all targets
     for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
         for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
+            de_branch = false ;
+            if ( abs(_source_pos.latitude() - _targets->latitude(t1,t2)) < 1e-4 &&
+                 abs(_source_pos.longitude() - _targets->longitude(t1,t2)) < 1e-4 )
+                 { de_branch = true ; }
 
             // Loop over all rays
             for ( unsigned de=1 ; de < num_de() - 1 ; ++de ) {
@@ -358,7 +362,6 @@ bool wave_queue::is_closest_ray(
    const double& center,
    double distance2[3][3][3]
 ) {
-
     /**
      * In order to speed up the code, it required splitting the code
      * to run faster. This then only checks the az_boundary condition
@@ -410,7 +413,13 @@ bool wave_queue::is_closest_ray(
                 // test to see if the center value is the smallest
 
                 if ( nde == 2 || naz == 2 ) {
-                    if ( distance2[1][nde][naz] < center ) return false ;
+                    if ( de_branch ) {
+                        if ( az == 0 ) {
+                            if ( distance2[1][nde][naz] < center ) return false ;
+                        } else { return false ; }
+                    } else {
+                        if ( distance2[1][nde][naz] <= center ) return false ;
+                    }
                 } else {
                     if ( distance2[1][nde][naz] < center ) return false ;
                 }
@@ -548,20 +557,6 @@ void wave_queue::build_eigenray(
                 else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
                 else { wrap = n3 ; }
                 cout << " " << _next->on_edge(n2,wrap) ;
-            }
-            cout << " ];";
-        }
-        cout << " ]"  << endl;
-        cout << "***skip_az***" << endl;
-        cout << "\t [";
-        for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
-            cout << " [" ;
-            for ( int n3=int(az-1) ; n3 < int(az+2) ; ++n3 ) {
-                int wrap ;
-                if( n3 < 0 ) { wrap = num_az()-2 ; }
-                else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
-                else { wrap = n3 ; }
-                cout << " " << skip_az(n2,wrap) ;
             }
             cout << " ];";
         }
@@ -900,11 +895,13 @@ void wave_queue::compute_offsets(
     // compute distances from offsets
     // for each coordinate, assumes the other two offsets are zero
     // fixes DE distance instablity outside of ray fan
-
+//cout << "\nhessian: " << hessian << endl;
+//cout << "gradient: " << gradient << endl;
     for ( unsigned n=0 ; n < 3 ; ++n ) {
         distance(n) = -gradient(n)*offset(n)
                 -0.5*hessian(n,n)*offset(n)*offset(n) ;
     }
+//cout << "distances: " << distance << endl;
     if ( unstable ) {
         #ifdef DEBUG_EIGENRAYS
             cout << " unstable de" ;

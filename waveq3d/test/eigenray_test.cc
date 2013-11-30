@@ -502,10 +502,11 @@ BOOST_AUTO_TEST_CASE( eigenray_de_branch_pt ) {
     seq_linear az( 0.0, 15.0, 360.0 );
 
     // build a single target
-    wposition target( 2, 1, 0.0, 0.0, -500.0 ) ;
+    wposition target( 2, 1, 0.00000001, 0.0, -500.0 ) ;
     target.altitude( 1, 0, -1500.0 ) ;
-    proploss loss(freq, pos, de, az, time_step, &target);
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
+    double t_step = 0.1 ;
+    proploss loss(freq, pos, de, az, t_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, t_step, &target) ;
     wave.addProplossListener(&loss);
 
     // propagate rays and record wavefronts to disk.
@@ -538,7 +539,7 @@ BOOST_AUTO_TEST_CASE( eigenray_de_branch_pt ) {
 
     for ( int i=0; i < 2; ++i ) {
         os << "#" << i ;
-        cout << "===Target #" << i << "===" << endl;
+        cout << "===Target #" << i << " alt(" << target.altitude(i,0) << ")===" << endl;
         const eigenray_list *raylist = loss.eigenrays(i,0);
         int n=0;
         for ( eigenray_list::const_iterator iter = raylist->begin();

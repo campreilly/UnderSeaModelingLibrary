@@ -163,6 +163,48 @@ class USML_DECLSPEC wave_queue {
      */
     bool az_boundary ;
 
+    /**
+     * We define a "column space" within this context as, a region of space within
+     * the water column that exists between the source and a given target, bounded
+     * by the distance from the source in the radial direction projected onto the
+     * latitudinal and longitudinal plane, and then extended in the altitudinal
+     * direction both above and below the source.
+     *
+     * When a target is almost directly above the source, within the column space
+     * of (0.0, 0.0001), precision of the target appears to break down and fluctuate
+     * unexpectedly among the azimuthal rays in that direction. This is present only
+     * when the target is within this radial cone above and below the source rayfan.
+     *
+     * Therefore, to correct this issue it required a new logic to prevent the
+     * system from detecting multiple rays at these depression/elevation branch
+     * points because of the precision fluctuations.
+     *
+     * The current logic will attempt to verify that any given target is outside
+     * of this column space of the source, and if the target then is found to be within
+     * the column space, the logic for determining an eigenray is found directly
+     * above and below the source is chosen to be only generated from the azimuthal
+     * angle zero.
+     *
+     * This assumption of limiting the search for eigenrays to only one azimuthal angle
+     * is a valid choice as all rays directly above or below the source are arbitrarily
+     * the same ray. Therefore, it was chosen to use azimuthal zero as the default ray.
+     * Doing so, allows the detect_eigenrays algorithm to produce only one eigenray for
+     * a target that is almost directly above the target.
+     *
+     * It is important to note, so I present it again, that this precision error only
+     * presents itself within the open interval of 0.0 to 0.0001 column space of the
+     * source. Thus for targets directly above, 0.0 radial distance or values greater
+     * then or equal to 0.0001 radial distance, do not show these precision
+     * irregularities.
+     *
+     * CAUTION: Suppose the target were directly below the source and almost nearly on
+     * the bottom of the ocean with a sloped bottom. If the time step were set fine
+     * enough, it would be possible that the target's either bottom bounce or direct
+     * path could become blind to the system. This is because when the target is within
+     * the column space, the system is only allowed to check one azimuthal angle.
+     */
+    bool de_branch ;
+
   public:
 
     /**
