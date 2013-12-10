@@ -37,8 +37,10 @@ int main() {
     wposition::compute_earth_radius( (lat1+lat2)/2.0 ) ;
 
     wposition1 pos( 25.3, 57.1, -400.0 ) ;
-    seq_rayfan de( -90.0, 90.0, 181 ) ;
-    seq_linear az( 0.0, 15.0, 360.0 ) ;
+//    seq_rayfan de( -90.0, 90.0, 181 ) ;
+//    seq_linear az( 0.0, 15.0, 360.0 ) ;
+    seq_linear de( -90.0, 2.0, 90.0 ) ;
+    seq_linear az( 0.0, 2.0, 360.0 ) ;
     const double time_max = 25.0 ;
     const double time_step = 0.1 ;
 

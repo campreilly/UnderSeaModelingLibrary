@@ -406,7 +406,9 @@ bool wave_queue::is_closest_ray(
                 // allows extrapolation outside of ray family
 
                 if ( a == num_az()-1 ) continue;
-                if ( _curr->on_edge(d,a) ) continue ;
+                if ( naz == 1 ) {
+                    if ( _curr->on_edge(d,a) ) continue ;
+                }
 
                 // test to see if the center value is the smallest
 
