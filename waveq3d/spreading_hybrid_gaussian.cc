@@ -4,9 +4,9 @@
  */
 #include <usml/waveq3d/spreading_hybrid_gaussian.h>
 
-#define USML_WAVEQ3D_DEBUG_DE
-#define USML_WAVEQ3D_DEBUG_AZ
-#define USML_WAVEQ3D_DEBUG_AZ_WIDTH
+//#define USML_WAVEQ3D_DEBUG_DE
+//#define USML_WAVEQ3D_DEBUG_AZ
+//#define USML_WAVEQ3D_DEBUG_AZ_WIDTH
 
 using namespace usml::waveq3d;
 
@@ -107,13 +107,6 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
              << " offset=" << offset(1)
              << " distance=" << distance(1)
              << endl;
-//        for ( unsigned d=0 ; d < _wave.num_de() ; ) {
-//            cout << "\ton_edge=" ;
-//            for ( int n=0 ; n < 30 && d < _wave.num_de(); ++n, ++d ) {
-//                cout << " " << _wave._curr->on_edge(d,az) ;
-//            }
-//            cout << endl ;
-//        }
     #endif
 
     // compute contribution from center cell
@@ -272,11 +265,11 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
     const double initial_width = cell_width;    // save width for upper angles
     const double L = distance(2) ;              // AZ dist from nearest ray
     double cell_dist = L - cell_width ;         // dist from center of this cell
-    _intensity_az = gaussian(cell_dist, cell_width, _norm_az(de, a));
-//    double _new_norm ;
-//    if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
-//    else { _new_norm = _norm_az(de,a) ; }
-//    _intensity_az = gaussian(cell_dist, cell_width, _new_norm);
+//    _intensity_az = gaussian(cell_dist, cell_width, _norm_az(de, a));
+    double _new_norm ;
+    if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
+    else { _new_norm = _norm_az(de,a) ; }
+    _intensity_az = gaussian(cell_dist, cell_width, _new_norm);
 
     #ifdef USML_WAVEQ3D_DEBUG_AZ
         cout << "\t** center" << endl
@@ -285,8 +278,8 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
              << " cell_width=" << cell_width
              << " beam_width=" << sqrt(_beam_width)
              << std::setprecision(18)
-             << " norm=" << _norm_az(de,a)
-//             << " new_norm=" << _new_norm
+//             << " norm=" << _norm_az(de,a)
+             << " new_norm=" << _new_norm
              << " intensity=" << _intensity_az
              << endl
              << "\t** lower " << endl;
@@ -299,10 +292,10 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
     _duplicate(a,0) = true ;
     cell_width = width_az(de, a, offset);   // half width of this cell
     cell_dist = L + cell_width;             // dist from center of this cell
-    _intensity_az += gaussian(cell_dist, cell_width, _norm_az(de, a));
-//    if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
-//    else { _new_norm = _norm_az(de,a) ; }
-//    _intensity_az += gaussian(cell_dist, cell_width, _new_norm);
+//    _intensity_az += gaussian(cell_dist, cell_width, _norm_az(de, a));
+    if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
+    else { _new_norm = _norm_az(de,a) ; }
+    _intensity_az += gaussian(cell_dist, cell_width, _new_norm);
 
     #ifdef USML_WAVEQ3D_DEBUG_AZ
         cout << "\taz(" << a << ")=" << (*_wave._source_az)(a)
@@ -310,8 +303,8 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
              << " cell_width=" << cell_width
              << " beam_width=" << sqrt(_beam_width)
              << std::setprecision(18)
-             << " norm=" << _norm_az(de,a)
-//             << " new_norm=" << _new_norm
+//             << " norm=" << _norm_az(de,a)
+             << " new_norm=" << _new_norm
              << " intensity=" << _intensity_az
              << endl;
     #endif
@@ -340,10 +333,10 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
         // compute propagation loss contribution of this cell
 
         const double old_tl = _intensity_az(0);
-        _intensity_az += gaussian(cell_dist, cell_width, _norm_az(de, a));
-//    if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
-//    else { _new_norm = _norm_az(de,a) ; }
-//    _intensity_az += gaussian(cell_dist, cell_width, _new_norm);
+//        _intensity_az += gaussian(cell_dist, cell_width, _norm_az(de, a));
+    if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
+    else { _new_norm = _norm_az(de,a) ; }
+    _intensity_az += gaussian(cell_dist, cell_width, _new_norm);
 
         #ifdef USML_WAVEQ3D_DEBUG_AZ
             cout << "\taz(" << a << ")=" << (*_wave._source_az)(a)
@@ -351,8 +344,8 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
                  << " cell_width=" << cell_width
                  << " beam_width=" << sqrt(_beam_width)
                  << std::setprecision(18)
-                 << " norm=" << _norm_az(de,a)
-//                 << " new_norm=" << _new_norm
+//                 << " norm=" << _norm_az(de,a)
+                 << " new_norm=" << _new_norm
                  << " intensity=" << _intensity_az
                  << endl;
         #endif
@@ -390,10 +383,10 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
         // compute propagation loss contribution of this cell
 
         const double old_tl = _intensity_az(0);
-        _intensity_az += gaussian(cell_dist, cell_width, _norm_az(de, a));
-//    if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
-//    else { _new_norm = _norm_az(de,a) ; }
-//    _intensity_az += gaussian(cell_dist, cell_width, _new_norm);
+//        _intensity_az += gaussian(cell_dist, cell_width, _norm_az(de, a));
+    if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
+    else { _new_norm = _norm_az(de,a) ; }
+    _intensity_az += gaussian(cell_dist, cell_width, _new_norm);
 
         #ifdef USML_WAVEQ3D_DEBUG_AZ
             cout << "\taz(" << a << ")=" << (*_wave._source_az)(a)
@@ -401,8 +394,8 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
                  << " cell_width=" << cell_width
                  << " beam_width=" << sqrt(_beam_width)
                  << std::setprecision(18)
-                 << " norm=" << _norm_az(de,a)
-//                 << " new_norm=" << _new_norm
+//                 << " norm=" << _norm_az(de,a)
+                 << " new_norm=" << _new_norm
                  << " intensity=" << _intensity_az
                  << endl;
         #endif
@@ -477,7 +470,6 @@ double spreading_hybrid_gaussian::width_az(
     unsigned de, unsigned az, const vector<double>& offset )
 {
     double L1, L2, length1, length2 ;
-//cout << "***Entering width_az***" << endl;
     // compute relative offsets in time (u) and D/E (v)
 
     const double u = fabs(offset(0)) / _wave._time_step;
@@ -495,11 +487,11 @@ double spreading_hybrid_gaussian::width_az(
 
     const wposition& pos1 = _wave._curr->position;
     const int size = _wave._source_az->size() - 1 ;
-//    const int size_de = _wave._source_de->size() - 1 ;
+    const int size_de = _wave._source_de->size() - 1 ;
     int az_wrap ;
     int de_max = de ;
-//    if ( de+1 >= size_de ) { de_max = size_de - 2 ; }
-//    else { de_max = de ; }
+    if ( de+1 >= size_de ) { de_max = size_de - 2 ; }
+    else { de_max = de ; }
     if ( az+1 >= size ) {az_wrap = 0 ;}
     else { az_wrap = az + 1 ;}
     L1 = wvector1(pos1, de, az).distance( wvector1(pos1, de, az_wrap) );

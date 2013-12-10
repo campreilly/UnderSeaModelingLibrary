@@ -409,8 +409,12 @@ bool wave_queue::is_closest_ray(
                 // allows extrapolation outside of ray family
 
                 if ( a == num_az()-1 ) continue;
-                if ( naz == 1 ) {
+                if ( de_branch ) {
                     if ( _curr->on_edge(d,a) ) continue ;
+                } else {
+                    if ( naz == 1 ) {
+                        if ( _curr->on_edge(d,a) ) continue ;
+                    }
                 }
 
                 // test to see if the center value is the smallest
@@ -464,12 +468,24 @@ bool wave_queue::is_closest_ray(
                 // allows extrapolation outside of ray family
 
                 if ( a == 0 || a == num_az()-1 ) continue;
-                if ( _curr->on_edge(d,a) ) continue ;
+                if ( de_branch ) {
+                    if ( _curr->on_edge(d,a) ) continue ;
+                } else {
+                    if ( naz == 1 ) {
+                        if ( _curr->on_edge(d,a) ) continue ;
+                    }
+                }
 
                 // test to see if the center value is the smallest
 
                 if ( nde == 2 || naz == 2 ) {
-                    if ( distance2[1][nde][naz] <= center ) return false ;
+                    if ( de_branch ) {
+                        if ( az == 0 ) {
+                            if ( distance2[1][nde][naz] < center ) return false ;
+                        } else { return false ; }
+                    } else {
+                        if ( distance2[1][nde][naz] <= center ) return false ;
+                    }
                 } else {
                     if ( distance2[1][nde][naz] < center ) return false ;
                 }

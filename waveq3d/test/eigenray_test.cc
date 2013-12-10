@@ -502,7 +502,7 @@ BOOST_AUTO_TEST_CASE( eigenray_de_branch_pt ) {
     seq_linear az( 0.0, 15.0, 360.0 );
 
     // build a single target
-    wposition target( 2, 1, 0.00000001, 0.0, -500.0 ) ;
+    wposition target( 2, 1, 0.0, 0.0, -500.0 ) ;
     target.altitude( 1, 0, -1500.0 ) ;
     double t_step = 0.1 ;
     proploss loss(freq, pos, de, az, t_step, &target);
