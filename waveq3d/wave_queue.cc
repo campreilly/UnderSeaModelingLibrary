@@ -15,6 +15,7 @@
 
 #include <iomanip>
 
+//#define DEBUG_OUTPUT_EIGENRAYS
 //#define DEBUG_EIGENRAYS
 //#define DEBUG_CAUSTICS
 //#define DEBUG_REFLECT
@@ -408,7 +409,9 @@ bool wave_queue::is_closest_ray(
                 // allows extrapolation outside of ray family
 
                 if ( a == num_az()-1 ) continue;
-                if ( _curr->on_edge(d,a) ) continue ;
+                if ( naz == 1 ) {
+                    if ( _curr->on_edge(d,a) ) continue ;
+                }
 
                 // test to see if the center value is the smallest
 
@@ -823,10 +826,11 @@ void wave_queue::build_eigenray(
     ray.target_az = center + inner_prod( gradient, offset )
                   + 0.5 * inner_prod( offset, prod( hessian, offset ) ) ;
 
-    #ifdef DEBUG_EIGENRAYS
-        cout << "\ttarget(" << t1 << "," << t2 << "):"
-             << " t=" << ray.time << " de=" << ray.source_de << " az=" << ray.source_az
-             << " pl=" << ray.intensity << endl ;
+    #ifdef DEBUG_OUTPUT_EIGENRAYS
+    cout << "wave_queue::build_eigenray() " << endl
+    		 << "\ttarget(" << t1 << "," << t2 << "):" << endl
+             << "\tt=" << ray.time << " inten=" << ray.intensity << " de=" << ray.source_de << " az=" << ray.source_az << endl
+             << "\tsurface=" << ray.surface << " bottom=" << ray.bottom << " caustic=" << ray.caustic << endl ;
     #endif
 
     // Add eigenray to those objects which requested them

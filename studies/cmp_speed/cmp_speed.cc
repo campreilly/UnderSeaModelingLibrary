@@ -75,7 +75,7 @@ int main( int argc, char* argv[] ) {
 //            USML_STUDIES_DIR "/cmp_speed/std14bathy.nc", lat1, lat2, lng1, lng2,
 //            wposition::earth_radius ) ) ;
         //fast_grid_2d
-    data_grid<double,2>* grid = new netcdf_bathy( USML_DATA_DIR "/cmp_speed/std14bathy.nc",
+    data_grid<double,2>* grid = new netcdf_bathy( USML_STUDIES_DIR "/cmp_speed/std14bathy.nc",
         lat1, lat2, lng1, lng2, wposition::earth_radius );
     data_grid_bathy* fast_grid = new data_grid_bathy(*grid, true) ;
     delete grid ;

@@ -335,7 +335,7 @@ BOOST_AUTO_TEST_CASE( eigenray_concave ) {
  * target lies on the azimuthal branch point between 0 and 360. This
  * test is to show the following:
  * Firstly, confirm that the eigenrays produced on the branch
- * point of the azimuthal angles yeild the same eigenray values after
+ * point of the azimuthal angles yield the same eigenray values after
  * modifying the model to allow for crossing this loop boundary.
  *      RESULTS: Tests confirm that this does in fact produce the
  *      required results and therefore is resolved.
