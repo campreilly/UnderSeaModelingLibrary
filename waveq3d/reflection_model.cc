@@ -456,30 +456,36 @@ void reflection_model::reflection_reinit(
     temp.ndirection.rho(   0, 0, ndirection.rho()  ) ;
     temp.ndirection.theta( 0, 0, ndirection.theta() ) ;
     temp.ndirection.phi(   0, 0, ndirection.phi() ) ;
-
+//cout << "Calling temp.update()" << endl ;
     temp.update() ;
 
     // Runge-Kutta to initialize current entry "time_water" seconds in the past
     // adapted from wave_queue::init_wavefronts()
 
-    // cout << "time_water=" << time_water << endl ;
+//cout << "---beginning ode_integ call for curr---" << endl ;
+//cout << "time_water = " << time_water << endl ;
     ode_integ::rk1_pos(  - time_water, &temp, &next ) ;
     ode_integ::rk1_ndir( - time_water, &temp, &next ) ;
     next.update() ;
+//cout << "___finished next.update() for curr" << endl ;
 
     ode_integ::rk2_pos(  - time_water, &temp, &next, &past ) ;
     ode_integ::rk2_ndir( - time_water, &temp, &next, &past ) ;
     past.update() ;
+//cout << "___finished past.update() for curr" << endl ;
 
     ode_integ::rk3_pos(  - time_water, &temp, &next, &past, &curr ) ;
     ode_integ::rk3_ndir( - time_water, &temp, &next, &past, &curr ) ;
+//cout << "___starting curr.update() for curr" << endl ;
     curr.update() ;
+//cout << "___finished curr.update() for curr" << endl ;
     reflection_copy( _wave._curr, de, az, curr ) ;
 
     // Runge-Kutta to estimate prev wavefront from curr entry
     // adapted from wave_queue::init_wavefronts()
 
     double time_step = _wave._time_step ;
+//cout << "---beginning ode_integ call for prev---" << endl ;
     ode_integ::rk1_pos(  - time_step, &curr, &next ) ;
     ode_integ::rk1_ndir( - time_step, &curr, &next ) ;
     next.update() ;
@@ -496,6 +502,7 @@ void reflection_model::reflection_reinit(
     // Runge-Kutta to estimate past wavefront from prev entry
     // adapted from wave_queue::init_wavefronts()
 
+//cout << "---beginning ode_integ call for past---" << endl ;
     ode_integ::rk1_pos(  - time_step, &prev, &next ) ;
     ode_integ::rk1_ndir( - time_step, &prev, &next ) ;
     next.update() ;
@@ -513,8 +520,10 @@ void reflection_model::reflection_reinit(
     // from past, prev, and curr entries
     // adapted from wave_queue::init_wavefronts()
 
+//cout << "---beginning ode_integ call for next---" << endl ;
     ode_integ::ab3_pos(  time_step, &past, &prev, &curr, &next ) ;
     ode_integ::ab3_ndir( time_step, &past, &prev, &curr, &next ) ;
+//cout << "---beginning call for next.update()---" << endl ;
     next.update() ;
     reflection_copy( _wave._next, de, az, next ) ;
 }

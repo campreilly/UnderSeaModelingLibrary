@@ -11,6 +11,7 @@ using namespace usml::types;
  */
 wvector::wvector(unsigned rows, unsigned cols) :
 _rho(rows, cols), _theta(rows, cols), _phi(rows, cols) {
+    clear() ;
 }
 
 //*********************************

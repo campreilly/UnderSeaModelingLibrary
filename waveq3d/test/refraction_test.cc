@@ -1100,14 +1100,12 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
 
     cout << "writing sound speed profile to " << csvname << endl;
     matrix<double> speed(1,1);
-    wposition test(1,1);
-    test.latitude(0,0,45.0);
-    test.longitude(0,0,-45.0);
+    wposition test( 1, 1, 45.0, -45.0, 0.0 );
     std::ofstream file(csvname);
     file << "depth,speed,interp" << endl;
     for(int j=0; j <axis[0]->size(); ++j){
         index[0] = j;
-        test.rho(0,0,(*axis[0])(j));
+        test.rho( 0, 0, (*axis[0])(j) );
         profile->sound_speed( test, &speed );
         file << (*axis[0])(j)-wposition::earth_radius << "," << sound_profile->data(index) << "," << speed(0,0) << endl;
     }
@@ -1130,11 +1128,7 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
     cout << "writing wavefronts to " << ncname_wave << endl;
     wave.init_netcdf(ncname_wave);  // open a log file for wavefront data
     wave.save_netcdf();             // write ray data to log file
-
     while (wave.time() < 25.0) {
-
-        // increment wavefront by one time step
-
         wave.step();
         wave.save_netcdf();
     }
