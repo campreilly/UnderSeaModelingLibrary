@@ -256,6 +256,14 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
     #endif
 
     // compute contribution from center cell
+    unsigned az_upper, az_lower ;
+    double az_first = abs((*_wave._source_az)(0)) ;
+    double az_last = abs((*_wave._source_az)(_wave._source_az->size()-1)) ;
+    double boundary_check = az_first + az_last ;
+    if ( boundary_check == 360.0 &&
+        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) )
+    { az_lower = az_upper = az ; }
+    else { az_lower = _wave._source_az->size()-2 ; az_upper = 0 ; }
 
     _duplicate.clear() ;
     int a = (int) az;
@@ -319,7 +327,7 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
 
     if( int(a-1) < 0) {a = size - 1 ;}
     else { --a ;}
-    while ( a%size != az ) {
+    while ( a%size != az_lower ) {
         if ( _duplicate(a,0) ) break ;
         _duplicate(a,0) = true ;
         if ( _wave._curr->on_edge(de,a) ) break ;
@@ -334,9 +342,9 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
 
         const double old_tl = _intensity_az(0);
 //        _intensity_az += gaussian(cell_dist, cell_width, _norm_az(de, a));
-    if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
-    else { _new_norm = _norm_az(de,a) ; }
-    _intensity_az += gaussian(cell_dist, cell_width, _new_norm);
+        if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
+        else { _new_norm = _norm_az(de,a) ; }
+        _intensity_az += gaussian(cell_dist, cell_width, _new_norm);
 
         #ifdef USML_WAVEQ3D_DEBUG_AZ
             cout << "\taz(" << a << ")=" << (*_wave._source_az)(a)
@@ -367,9 +375,8 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
     #endif
 
     a = az + 1 ;
-    while ( a%size != az ) {
+    while ( a%size != az_upper ) {
         if ( a == size ) { a = 0 ;}
-        else { ++a ;}
         if ( _duplicate(a,0) ) break ;
         _duplicate(a,0) = true ;
         if ( _wave._curr->on_edge(de,a) ) break ;
@@ -384,9 +391,9 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
 
         const double old_tl = _intensity_az(0);
 //        _intensity_az += gaussian(cell_dist, cell_width, _norm_az(de, a));
-    if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
-    else { _new_norm = _norm_az(de,a) ; }
-    _intensity_az += gaussian(cell_dist, cell_width, _new_norm);
+        if ( de >= _wave._source_de->size() - 2 ) { _new_norm = _norm_az(1,a) ; }
+        else { _new_norm = _norm_az(de,a) ; }
+        _intensity_az += gaussian(cell_dist, cell_width, _new_norm);
 
         #ifdef USML_WAVEQ3D_DEBUG_AZ
             cout << "\taz(" << a << ")=" << (*_wave._source_az)(a)
@@ -400,6 +407,7 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
                  << endl;
         #endif
         if ( _intensity_az(0) / old_tl < THRESHOLD ) break;
+        ++a ;
     }
 }
 
@@ -492,7 +500,7 @@ double spreading_hybrid_gaussian::width_az(
     int de_max = de ;
     if ( de+1 >= size_de ) { de_max = size_de - 2 ; }
     else { de_max = de ; }
-    if ( az+1 >= size ) {az_wrap = 0 ;}
+    if ( az+1 > size ) {az_wrap = 0 ;}
     else { az_wrap = az + 1 ;}
     L1 = wvector1(pos1, de, az).distance( wvector1(pos1, de, az_wrap) );
     if ( v < 1e-10 || abs(v - 1.0) < 1e-10 ) {

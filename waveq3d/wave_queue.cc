@@ -48,9 +48,11 @@ wave_queue::wave_queue(
 
 	// create references between targets and wavefront objects.
     const matrix<double>* pTargets_sin_theta = NULL ;
-    double boundary_check = abs((*_source_az)(0))
-                            + abs((*_source_az)(_source_az->size()-1)) ;
-    if ( boundary_check == 360.0 ) { az_boundary = true ; }
+    double az_first = abs((*_source_az)(0)) ;
+    double az_last = abs((*_source_az)(_source_az->size()-1)) ;
+    double boundary_check = az_first + az_last ;
+    if ( boundary_check == 360.0 &&
+        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) { az_boundary = true ; }
     else { az_boundary = false ;}
     _intensity_threshold = 300.00; //In dB
 
@@ -412,7 +414,7 @@ bool wave_queue::is_closest_ray(
                 if ( de_branch ) {
                     if ( _curr->on_edge(d,a) ) continue ;
                 } else {
-                    if ( naz == 1 ) {
+                    if ( nde != 1 ) {
                         if ( _curr->on_edge(d,a) ) continue ;
                     }
                 }
@@ -471,7 +473,7 @@ bool wave_queue::is_closest_ray(
                 if ( de_branch ) {
                     if ( _curr->on_edge(d,a) ) continue ;
                 } else {
-                    if ( naz == 1 ) {
+                    if ( nde != 1 ) {
                         if ( _curr->on_edge(d,a) ) continue ;
                     }
                 }
@@ -915,20 +917,14 @@ void wave_queue::compute_offsets(
     // compute distances from offsets
     // for each coordinate, assumes the other two offsets are zero
     // fixes DE distance instablity outside of ray fan
-//cout << "\nhessian: " << hessian << endl;
-//cout << "gradient: " << gradient << endl;
     for ( unsigned n=0 ; n < 3 ; ++n ) {
         distance(n) = -gradient(n)*offset(n)
                 -0.5*hessian(n,n)*offset(n)*offset(n) ;
     }
-//cout << "distances: " << distance << endl;
     if ( unstable ) {
         #ifdef DEBUG_EIGENRAYS
             cout << " unstable de" ;
         #endif
-//        if ( abs(abs(offset(1))-1) < 1e-5 ) {distance(1) = distance(2);}
-//        else {distance(1) = center - distance(0) - distance(2) ;}
-//        distance(1) = min( center - distance(0) - distance(2), distance(2) ) ;
         distance(1) = center - distance(0) - distance(2) ;
     }
 
