@@ -72,6 +72,7 @@ class USML_DECLSPEC netcdf_bathy : public data_grid<double,2> {
      * @param  earth_radius Local earth radius of curvature (meters).
      *                      Set to zero if you want to make depths
      *                      relative to earth's surface.
+     * @throws				std:invalid_argument on invalid name or path of bathymetry file.
      */
     netcdf_bathy(
         const char* filename,

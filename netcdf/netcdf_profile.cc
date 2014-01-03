@@ -20,7 +20,7 @@ netcdf_profile::netcdf_profile(
     NcVar *time, *altitude, *latitude, *longitude, *value ;
     NcFile pfile( profile ) ;
     if (pfile.is_valid() == 0) {
-    	 throw std::invalid_argument("file not found") ;
+        throw std::invalid_argument("file not found") ;
     }
     decode_filetype( pfile, &missing, &time, &altitude,
                      &latitude, &longitude, &value ) ;
