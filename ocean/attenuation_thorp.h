@@ -43,9 +43,6 @@ using boost::numeric::ublas::vector;
  *      attenuation(d0) = attenuation at reference depth.
  * </pre>
  *
- * This implementation saves computation time by caching the attenuation
- * coefficients and only re-computing them if the frequency changes.
- *
  * @xref R.J. Urick, Principles of Underwater Sound, 3rd Edition, 
  * (1983), p. 108.
  *
