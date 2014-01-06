@@ -56,7 +56,7 @@ wave_queue::wave_queue(
 
     if ( _targets ) {
     	_targets_sin_theta = sin( _targets->theta() ) ;
-    	pTargets_sin_theta = &targets_sin_theta;
+    	pTargets_sin_theta = &_targets_sin_theta;
     }
 
     // create storage space for all wavefront elements
