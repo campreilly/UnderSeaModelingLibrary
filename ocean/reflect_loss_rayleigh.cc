@@ -83,20 +83,20 @@ void reflect_loss_rayleigh::reflect_loss(
 {
     if ( angle >= M_PI_2 ) angle = M_PI_2 - 1e-10 ;
 
-    // compute acoustic impedence in water
+    // compute acoustic impedance in water
 
     double Zw = _speed_water * _density_water / cos(angle) ;
 
     // compute compression wave reflection components
 
     complex<double> cosAp, cosAs ;
-    complex<double> Zb = impedence(
+    complex<double> Zb = impedance(
         _density_bottom, _speed_bottom, _att_bottom, angle, &cosAp ) ;
 
     // compute shear wave reflection components
 
     if ( _speed_shear != 0.0 || _att_shear != 0.0 ) {
-        const complex<double> Zs = impedence(
+        const complex<double> Zs = impedance(
             _density_bottom, _speed_shear, _att_shear, angle, &cosAs ) ;
         const complex<double> sinAs = sqrt( 1.0 - cosAs*cosAs ) ;
         const complex<double> cos2As = 2.0 * cosAs * cosAs - 1.0 ;
@@ -116,9 +116,9 @@ void reflect_loss_rayleigh::reflect_loss(
 }
 
 /**
- * Compute impendence for compression or shear waves with attenuation.
+ * Compute impedance for compression or shear waves with attenuation.
  */
-complex<double> reflect_loss_rayleigh::impedence(
+complex<double> reflect_loss_rayleigh::impedance(
     double density, double speed, double attenuation, double angle,
     complex< double >* cosA )
 {
