@@ -490,12 +490,12 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
 
     for(int i=0; i<10; ++i){
         double location[2];
-        location[0] = to_radians(90-(4.2 * randgen::uniform() + 18.2));
-        location[1] = to_radians(-4.45 * randgen::uniform() - 157.5);
+        location[0] = to_radians(90-(2.2 * randgen::uniform() + 18.2));
+        location[1] = to_radians(-2.45 * randgen::uniform() - 157.5);
         double v0 = grid->interpolate( location ) - wposition::earth_radius;
         double v1 = fast_grid->interpolate( location ) - wposition::earth_radius;
         cout << "location: (" << location[0] << ", " << location[1] << ")" << "\tgrid: " << v0 << "\tfast_grid: " << v1 << endl;
-        BOOST_CHECK_CLOSE(v0, v1, 3.0);
+        BOOST_CHECK_CLOSE(v0, v1, 5.0);
     }
 
     cout << "==========3d_data svp grid_test_pchip/bi-linear=============" << endl;
