@@ -539,6 +539,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
             case 100:
                 BOOST_CHECK( abs(bias) <= 1.0 );
                 BOOST_CHECK( dev <= 4.0 );
+                break;
             case 10000:
                 BOOST_CHECK( dev <= 5.0 );
                 break;
@@ -578,7 +579,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
  *
  * - "bias" is the mean difference and it measures offsets in level.
  * - "dev" is an estimate of the sqrt of the variance and it is a measure of
- *   the difference in flucuations of between the models.
+ *   the difference in fluctuations of between the models.
  * - "detcoef" is the coefficient of determination and it measure of the
  *   fraction of the model that is predicts the analytic solution.
  *
