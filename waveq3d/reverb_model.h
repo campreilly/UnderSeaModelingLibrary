@@ -16,7 +16,7 @@ using namespace usml::ocean ;
 using boost::numeric::ublas::vector;
 
 /**
- * A reverbation model listens for interface collision callbacks from
+ * A reverberation model listens for interface collision callbacks from
  * a wavefront.
  *
  * @todo The reverb_model class is currently just a stub for future behaviors.
@@ -26,7 +26,7 @@ class USML_DECLSPEC reverb_model {
   public:
 
     /**
-     * React to the collision of a single ray with a reverbation surface.
+     * React to the collision of a single ray with a reverberation surface.
      *
      * @param de            D/E angle index number.
      * @param az            AZ angle index number.

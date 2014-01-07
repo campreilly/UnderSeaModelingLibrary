@@ -35,10 +35,12 @@ public:
     /**
      * Initialize counter.
      */
-    reflection_callback() : counter(0) {}
+    reflection_callback() : counter(0), time (0.0){}
+
+    virtual ~reflection_callback() {}
 
     /**
-     * Record a collision of a single ray with a reverbation surface.
+     * Record a collision of a single ray with a reverberation surface.
      */
     virtual void collision(
         unsigned de, unsigned az, double time,
@@ -96,7 +98,7 @@ public:
  *      - \f$ \tau   \f$ = 7.450560973 sec
  *
  * Uses a 100 millisecond time step so that the time and location of the
- * collision can be compared to the analytic valaues without breaking
+ * collision can be compared to the analytic values without breaking
  * into the guts of the reflection model.
  */
 BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
@@ -133,7 +135,7 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
 
         const char* name = USML_TEST_DIR "/waveq3d/test/reflect_flat_test.csv" ;
         std::ofstream os(name) ;
-        cout << "writting tables to " << name << endl ;
+        cout << "Writing tables to " << name << endl ;
 
         os << "t,"
            << "lat,lng,alt,"
@@ -254,7 +256,7 @@ BOOST_AUTO_TEST_CASE( reflect_slope_test ) {
 
         const char* name = USML_TEST_DIR "/waveq3d/test/reflect_slope_test.csv" ;
         std::ofstream os(name) ;
-        cout << "writting tables to " << name << endl ;
+        cout << "Writing tables to " << name << endl ;
 
         os << "t,"
            << "lat,lng,alt,"
@@ -359,7 +361,7 @@ BOOST_AUTO_TEST_CASE( reflect_grid_test ) {
 
         const double c0 = 1500.0 ;  // speed of sound
 
-        const double lat1 = 35.5 ;  // mediterrian sea
+        const double lat1 = 35.5 ;  // Mediterranean sea
         const double lat2 = 36.5 ;  // malta escarpment
         const double lng1 = 15.25 ; // south-east of Sicily
         const double lng2 = 16.25 ;
@@ -407,7 +409,7 @@ BOOST_AUTO_TEST_CASE( reflect_grid_test ) {
         // propagate rays & record to netCDF file
 
         wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
-        cout << "writting wavefronts to " << ncname << endl ;
+        cout << "Writing wavefronts to " << ncname << endl ;
         wave.init_netcdf( ncname ) ;
         wave.save_netcdf() ;
         while ( wave.time() < time_max ) {
@@ -477,7 +479,7 @@ BOOST_AUTO_TEST_CASE( reflect_interp_spd_acc_test ){
 
     const double c0 = 1500.0 ;  // speed of sound
 
-    const double lat1 = 35.5 ;  // mediterrian sea
+    const double lat1 = 35.5 ;  // Mediterranean sea
     const double lat2 = 36.5 ;  // malta escarpment
     const double lng1 = 15.25 ; // south-east of Sicily
     const double lng2 = 16.25 ;
@@ -505,7 +507,7 @@ BOOST_AUTO_TEST_CASE( reflect_interp_spd_acc_test ){
     ocean_model ocean( surface, bottom, profile ) ;
 
     std::ofstream os(csvname) ;
-    cout << "writting tables to " << csvname << endl ;
+    cout << "Writing tables to " << csvname << endl ;
 
     os << "t,"
        << "lat,lng,alt,"
