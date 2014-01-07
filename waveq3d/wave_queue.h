@@ -305,7 +305,7 @@ class USML_DECLSPEC wave_queue {
 	}
 	/**
 	 * getIntensityThreshold
-	 * @param  dThreshold The new value of the intensity threshold in dB
+	 * @return  Returns current value of the intensity threshold in dB
 	 */
 	inline double getIntensityThreshold() {
 		return _intensity_threshold;
