@@ -266,7 +266,7 @@ public:
      *
      * @param location   Location to do the interpolation at
      * @param derivative Derivative at the location (output)
-     * @param return     Returns the value at the field location
+     * @return           Returns the value at the field location
      */
 
     double interpolate(double* location, double* derivative = NULL) {
