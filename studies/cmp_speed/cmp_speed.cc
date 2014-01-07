@@ -42,12 +42,9 @@ int main( int argc, char* argv[] ) {
     wposition1 src_pos( 19.52, -160.5, -200.0 ) ;
     seq_rayfan de( -90.0, 90.0, 181 ) ;
     seq_linear az( 0.0, 15.0, 360.0 ) ;
-//    seq_linear de( -90.0, 1.0, -90.0 ) ;
-//    seq_linear az( 0.0, 1.0, 0.0 ) ;
     const double target_depth = 100.0; // Meters
     const double target_range = 100000.0; // Meters
     const double time_max = 80.0 ;
-//    const double time_max = 0.0 ;
     const double time_step = 0.100 ;
 
     // load STD14 environmental data from netCDF files
@@ -58,31 +55,38 @@ int main( int argc, char* argv[] ) {
     const double lng2 = -155.5 ;
 
     cout << "load STD14 environmental profile data" << endl ;
+    
+// Original data_grid
 //    profile_model* profile = new profile_grid<double,3>( new netcdf_profile(
 //            USML_STUDIES_DIR "/cmp_speed/std14profile.nc", 0.0, lat1, lat2, lng1, lng2,
 //            wposition::earth_radius ) ) ;
-        //fast_grid_3d
+
+    //fast_grid_3d
     data_grid<double,3>* ssp = new netcdf_profile( USML_STUDIES_DIR "/cmp_speed/std14profile.nc",
             0.0, lat1, lat2, lng1, lng2, wposition::earth_radius ) ;
     data_grid_svp* fast_ssp = new data_grid_svp(*ssp,true) ;
     delete ssp ;
     profile_model* profile = new profile_grid_fast( fast_ssp ) ;
+    
 //  attenuation_model* attn = new attenuation_constant(0.0);
 //  profile_model* profile = new profile_linear(1500.0,attn);
 
     cout << "load STD14 environmental bathy data" << endl ;
+    
+// Original data_grid   
 //    boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
 //            USML_STUDIES_DIR "/cmp_speed/std14bathy.nc", lat1, lat2, lng1, lng2,
 //            wposition::earth_radius ) ) ;
-        //fast_grid_2d
+
+    //fast_grid_2d
     data_grid<double,2>* grid = new netcdf_bathy( USML_STUDIES_DIR "/cmp_speed/std14bathy.nc",
         lat1, lat2, lng1, lng2, wposition::earth_radius );
     data_grid_bathy* fast_grid = new data_grid_bathy(*grid, true) ;
     delete grid ;
     boundary_model* bottom = new boundary_grid_fast( fast_grid ) ;
+    
 //    boundary_model* bottom = new boundary_flat(4000.0) ;
 //    bottom->reflect_loss(new reflect_loss_constant(0.0)) ;
-
 //    bottom->reflect_loss(new reflect_loss_rayleigh(reflect_loss_rayleigh::MUD));
 
 //// Bathy Testing
@@ -116,7 +120,6 @@ int main( int argc, char* argv[] ) {
 
     proploss loss(freq, src_pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, src_pos, de, az, time_step, &target ) ;
-//    wave_queue wave( ocean, freq, src_pos, de, az, time_step ) ;
 
     if (!wave.addProplossListener(&loss)) {
     	cout << "Error adding proploss listener! " << endl ;
