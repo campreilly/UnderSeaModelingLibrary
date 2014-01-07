@@ -12,10 +12,8 @@
 //#define FAST_GRID_DEBUG
 //#define DERV_CONSTRUCT
 
-namespace usml
-{
-namespace types
-{
+namespace usml {
+namespace types {
 /// @ingroup data_grid
 /// @{
 
@@ -45,7 +43,9 @@ public:
      * Also constructs the inverse bicubic coefficient matrix to be
      * used at a later time during pchip calculations.
      *
-     * @param _grid      The data_grid that is to be wrapped.
+     * @param grid      The data_grid that is to be wrapped.
+     * @param copy_data If true, copies the data grids data
+     *                  fields as well as the axises.
      */
 
     data_grid_bathy(const data_grid<double, 2>& grid, bool copy_data = true) :
@@ -155,9 +155,9 @@ public:
         for (unsigned i = 0; i < _k0max + 1u; ++i) {
             for (unsigned j = 0; j < _k1max + 1u; ++j) {
                 if (i < 1 && j < 1) {                      //top-left corner
-#ifdef DERV_CONSTRUCT
+                    #ifdef DERV_CONSTRUCT
                         cout << "***Condition: i<1 && j<1***" << endl;
-#endif
+                    #endif
                     _derv_x(i, j) = (data_2d(i + 1, j) - data_2d(i, j))
                             / inc_x(i, 0);
                     _derv_y(i, j) = (data_2d(i, j + 1) - data_2d(i, j))
@@ -166,9 +166,9 @@ public:
                             - data_2d(i, j + 1) + data_2d(i, j))
                             / (inc_x(i, 0) * inc_y(j, 0));
                 } else if (i == _k0max && j == _k1max) {     //bottom-right corner
-#ifdef DERV_CONSTRUCT
+                    #ifdef DERV_CONSTRUCT
                         cout << "***Condition: i==_k0max && j==_k1max***" << endl;
-#endif
+                    #endif
                     _derv_x(i, j) = (data_2d(i, j) - data_2d(i - 1, j))
                             / inc_x(i, 0);
                     _derv_y(i, j) = (data_2d(i, j) - data_2d(i, j - 1))
@@ -177,9 +177,9 @@ public:
                             - data_2d(i - 1, j) + data_2d(i - 1, j - 1))
                             / (inc_x(i, 0) * inc_y(j, 0));
                 } else if (i < 1 && j == _k1max) {             //top-right corner
-#ifdef DERV_CONSTRUCT
+                    #ifdef DERV_CONSTRUCT
                         cout << "***Condition: i<1 && j==_k1max***" << endl;
-#endif
+                    #endif
                     _derv_x(i, j) = (data_2d(i + 1, j) - data_2d(i, j))
                             / inc_x(i, 0);
                     _derv_y(i, j) = (data_2d(i, j) - data_2d(i, j - 1))
@@ -188,9 +188,9 @@ public:
                             - data_2d(i, j) + data_2d(i, j - 1))
                             / (inc_x(i, 0) * inc_y(j, 0));
                 } else if (j < 1 && i == _k0max) {           //bottom-left corner
-#ifdef DERV_CONSTRUCT
+                    #ifdef DERV_CONSTRUCT
                         cout << "***Condition: j<1 && i==_k0max***" << endl;
-#endif
+                    #endif
                     _derv_x(i, j) = (data_2d(i, j) - data_2d(i - 1, j))
                             / inc_x(i, 0);
                     _derv_y(i, j) = (data_2d(i, j + 1) - data_2d(i, j))
@@ -199,9 +199,9 @@ public:
                             - data_2d(i - 1, j + 1) + data_2d(i - 1, j))
                             / (inc_x(i, 0) * inc_y(j, 0));
                 } else if (i < 1 && (1 <= j && j < _k1max)) {       //top row
-#ifdef DERV_CONSTRUCT
-                    cout << "***Condition: i<1 && (1<=j && j<_k1max)***" << endl;
-#endif
+                    #ifdef DERV_CONSTRUCT
+                        cout << "***Condition: i<1 && (1<=j && j<_k1max)***" << endl;
+                    #endif
                     _derv_x(i, j) = (data_2d(i + 1, j) - data_2d(i, j))
                             / inc_x(i, 0);
                     _derv_y(i, j) = (data_2d(i, j + 1) - data_2d(i, j - 1))
@@ -210,9 +210,9 @@ public:
                             - data_2d(i + 1, j - 1) - data_2d(i, j + 1)
                             + data_2d(i, j - 1)) / (inc_x(i, 0) * inc_y(j, 0));
                 } else if (j < 1 && (1 <= i && i < _k0max)) {  //left most column
-#ifdef DERV_CONSTRUCT
-                    cout << "***Condition: j<1 && (1<=i && i<_k0max)***" << endl;
-#endif
+                    #ifdef DERV_CONSTRUCT
+                        cout << "***Condition: j<1 && (1<=i && i<_k0max)***" << endl;
+                    #endif
                     _derv_x(i, j) = (data_2d(i + 1, j) - data_2d(i - 1, j))
                             / inc_x(i, 0);
                     _derv_y(i, j) = (data_2d(i, j + 1) - data_2d(i, j))
@@ -221,9 +221,9 @@ public:
                             - data_2d(i - 1, j + 1) + data_2d(i - 1, j))
                             / (inc_x(i, 0) * inc_y(j, 0));
                 } else if (j == _k1max && (1 <= i && i < _k0max)) { //right most column
-#ifdef DERV_CONSTRUCT
-                    cout << "***Condition: j>_k1max && (1<=i && i<_k0max)***" << endl;
-#endif
+                    #ifdef DERV_CONSTRUCT
+                        cout << "***Condition: j>_k1max && (1<=i && i<_k0max)***" << endl;
+                    #endif
                     _derv_x(i, j) = (data_2d(i + 1, j) - data_2d(i - 1, j))
                             / inc_x(i, 0);
                     _derv_y(i, j) = (data_2d(i, j) - data_2d(i, j - 1))
@@ -232,9 +232,9 @@ public:
                             - data_2d(i - 1, j) + data_2d(i - 1, j - 1))
                             / (inc_x(i, 0) * inc_y(j, 0));
                 } else if (i == _k0max && (1 <= j && j < _k1max)) {   //bottom row
-#ifdef DERV_CONSTRUCT
-                    cout << "***Condition: i>_k0max && (1<=j && j<_k1max)***" << endl;
-#endif
+                    #ifdef DERV_CONSTRUCT
+                        cout << "***Condition: i>_k0max && (1<=j && j<_k1max)***" << endl;
+                    #endif
                     _derv_x(i, j) = (data_2d(i, j) - data_2d(i - 1, j))
                             / inc_x(i, 0);
                     _derv_y(i, j) = (data_2d(i, j + 1) - data_2d(i, j - 1))
