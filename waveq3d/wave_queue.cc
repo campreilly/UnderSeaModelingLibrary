@@ -57,8 +57,8 @@ wave_queue::wave_queue(
     _intensity_threshold = 300.00; //In dB
 
     if ( _targets ) {
-    	targets_sin_theta = sin( _targets->theta() ) ;
-    	pTargets_sin_theta = &targets_sin_theta;
+    	_targets_sin_theta = sin( _targets->theta() ) ;
+    	pTargets_sin_theta = &_targets_sin_theta;
     }
 
     // create storage space for all wavefront elements

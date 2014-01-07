@@ -80,6 +80,10 @@ protected:
      */
     DATA_TYPE *_data;
 
+    /** Used during interpolation to hold the axis offsets. */
+    unsigned _offset[NUM_DIMS];
+
+
 public:
 
     /**
@@ -189,14 +193,11 @@ public:
 
 private:
 
-    /** Used during interpolation to hold the axis offsets. */
-    unsigned _offset[NUM_DIMS];
-
     /**
      * Private recursion engine for multi-dimensional interpolation.
      * The type of interpolation for each dimension is determined using
-     * the _interp_type[] field. Interpoaltion coefficients are computed on
-     * the fly to make arbitary combinations of interpolation types viable.
+     * the _interp_type[] field. Interpolation coefficients are computed on
+     * the fly to make arbitrary combinations of interpolation types viable.
      *
      * @param   dim         Index of the dimension currently being processed.
      *                      Recursion starts at dim=NUM_DIMS-1 and reduces to
@@ -207,7 +208,7 @@ private:
      *                      have the same NUM_DIM as the data grid or higher.
      * @param   deriv	    Derivative for this iteration.
      * @param	deriv_vec   Results vector for derivative.
-     *			            Derviative not computed if NULL.
+     *			            Derivative not computed if NULL.
      * @return              Estimate of the field after interpolation.
      */
     DATA_TYPE interp(int dim, const unsigned* index, const double* location,
@@ -225,7 +226,7 @@ private:
      * @param   deriv	    Derivative for this iteration. Always zero for
      *                      nearest neighbor interpolation.
      * @param	deriv_vec   Results vector for derivative.
-     *			            Derviative not computed if NULL.
+     *			            Derivative not computed if NULL.
      * @return              Estimate of the field after interpolation.
      */
     DATA_TYPE nearest(int dim, const unsigned* index, const double* location,
@@ -271,7 +272,7 @@ private:
      * @param   deriv	    Derivative for this iteration. Constant across the
      *                      interval for linear interpolation.
      * @param	deriv_vec   Results vector for derivative.
-     *			    		Derviative not computed if NULL.
+     *			    		Derivative not computed if NULL.
      * @return              Estimate of the field after interpolation.
      */
     DATA_TYPE linear(int dim, const unsigned* index, const double* location,
@@ -627,7 +628,7 @@ public:
      *
      * @param   x           First dimension of location.
      * @param   result      Interpolated values at each location (output).
-     * @param   dx          First dimension of derviative (output).
+     * @param   dx          First dimension of derivative (output).
      */
     void interpolate(const matrix<double>& x, matrix<double>* result, matrix<
             double>* dx = NULL)
@@ -656,8 +657,8 @@ public:
      * @param   x           First dimension of location.
      * @param   y           Second dimension of location.
      * @param   result      Interpolated values at each location (output).
-     * @param   dx          First dimension of derviative (output).
-     * @param   dy          Second dimension of derviative (output).
+     * @param   dx          First dimension of derivative (output).
+     * @param   dy          Second dimension of derivative (output).
      */
     void interpolate(const matrix<double>& x, const matrix<double>& y, matrix<
             double>* result, matrix<double>* dx = NULL, matrix<double>* dy =
@@ -690,9 +691,9 @@ public:
      * @param   y           Second dimension of location.
      * @param   z           Third dimension of location.
      * @param   result      Interpolated values at each location (output).
-     * @param   dx          First dimension of derviative (output).
-     * @param   dy          Second dimension of derviative (output).
-     * @param   dz          Third dimension of derviative (output).
+     * @param   dx          First dimension of derivative (output).
+     * @param   dy          Second dimension of derivative (output).
+     * @param   dz          Third dimension of derivative (output).
      */
     void interpolate(const matrix<double>& x, const matrix<double>& y,
             const matrix<double>& z, matrix<double>* result,
@@ -803,7 +804,8 @@ public:
         	delete[] _data;
         }
     }
-};
+
+}; // end data_grid class
 
 //*************************************************************************
 // implementation of forward methods

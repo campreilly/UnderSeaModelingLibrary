@@ -117,7 +117,7 @@ class USML_DECLSPEC wave_queue {
 	 * compute the distance squared from each target to each point
 	 * on the wavefront.
 	 */
-	matrix<double> targets_sin_theta ;
+	matrix<double> _targets_sin_theta ;
 
     /** Reference to the reflection loss model component. */
     reflection_model* _reflection_model ;

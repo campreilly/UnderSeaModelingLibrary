@@ -25,8 +25,8 @@ namespace netcdf {
  *
  * This class is a specialization of the netcdf_profile class that allows
  * monthly average to be constructed over the entire range from 0 to 5500 by
- * splicing shallow monthly averages into either the deep seaonal average or
- * the deep yearly average. Seaonal average are recommended over yearly
+ * splicing shallow monthly averages into either the deep seasonal average or
+ * the deep yearly average. Seasonal average are recommended over yearly
  * averages for this splicing process.
  *
  * WOA dates are given in terms of days since the start of the year for the
