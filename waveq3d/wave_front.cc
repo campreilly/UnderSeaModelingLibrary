@@ -41,6 +41,8 @@ wave_front::wave_front(
     _cot_theta( num_de, num_az ),
     _target_sin_theta( sin_theta )
 {
+    sound_speed.clear() ;
+    distance.clear() ;
     surface.clear() ;
     bottom.clear() ;
     caustic.clear() ;

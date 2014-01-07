@@ -414,59 +414,59 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
     cout << "true value: " << value << "\tderivative: " << derv[0] << ", " << derv[1] << endl;
 
         // Setup a complex example to compare results for pchip
-//    cout << "==========2d_data grid_test_pchip=============" << endl;
-//    wposition::compute_earth_radius( 19.52 ) ;
-//    const double lat1 = 16.2 ;
-//    const double lat2 = 24.6 ;
-//    const double lng1 = -164.4;
-//    const double lng2 = -155.5 ;
-//    cout << "load STD14 environmental bathy data" << endl ;
-//    data_grid<double,2>* grid = new usml::netcdf::netcdf_bathy( USML_DATA_DIR "/cmp_speed/std14bathy.nc",
-//        lat1, lat2, lng1, lng2, wposition::earth_radius );
-//    for(int i=0; i<2; i++){
-//        grid->interp_type(i, GRID_INTERP_PCHIP);
-//        grid->edge_limit(i, true);
-//    }
-//    data_grid_bathy* fast_grid = new data_grid_bathy(*grid, true) ;
-//
-//    cout << "grid->axis0: " << *(grid->axis(0)) << endl;
-//    cout << "grid->axis1: " << *(grid->axis(1)) << endl;
-//    const seq_vector* ax0 = grid->axis(0);
-//    const seq_vector* ax1 = grid->axis(1);
-//    cout << "axis0(13 to 21): (" << (*ax0)(13) << "," << (*ax0)(14) << ","
-//                                       << (*ax0)(15) << "," << (*ax0)(16) << ","
-//                                       << (*ax0)(17) << "," << (*ax0)(18) << ","
-//                                       << (*ax0)(19) << "," << (*ax0)(20) << ","
-//                                       << (*ax0)(21) << ")" << endl;
-//    cout << "axis1(36 to 44): (" << (*ax1)(36) << "," << (*ax1)(37) << ","
-//                                      << (*ax1)(38) << "," << (*ax1)(39) << ","
-//                                      << (*ax1)(40) << "," << (*ax1)(41) << ","
-//                                      << (*ax1)(42) << "," << (*ax1)(43) << ","
-//                                      << (*ax1)(44) << ")" << endl;
-//    cout << "===========Data=========== [axis0: rows & axis1: columns]" << endl;
-//    for(int i=13; i<22; ++i) {
-//        (i==13) ? cout << "[" : cout << "";
-//        for(int j=36; j<45; ++j) {
-//            (j==36) ? cout << "(" : cout << ", ";
-//            index[0] = i;
-//            index[1] = j;
-//            cout << grid->data(index) - wposition::earth_radius;
-//            (j!=44) ? cout << "" : cout << ")";
-//            (j==44 && i!=21) ? cout << endl : cout << "";
-//
-//        }
-//        (i==21) ? cout << "]" << endl : cout << "";
-//    }
+    cout << "==========2d_data grid_test_pchip=============" << endl;
+    wposition::compute_earth_radius( 19.52 ) ;
+    const double lat1 = 16.2 ;
+    const double lat2 = 24.6 ;
+    const double lng1 = -164.4;
+    const double lng2 = -155.5 ;
+    cout << "load STD14 environmental bathy data" << endl ;
+    data_grid<double,2>* grid = new usml::netcdf::netcdf_bathy( USML_DATA_DIR "/cmp_speed/std14bathy.nc",
+        lat1, lat2, lng1, lng2, wposition::earth_radius );
+    for(int i=0; i<2; i++){
+        grid->interp_type(i, GRID_INTERP_PCHIP);
+        grid->edge_limit(i, true);
+    }
+    data_grid_bathy* fast_grid = new data_grid_bathy(*grid, true) ;
 
-//    for(int i=0; i<10; ++i){
-//        double location[2];
-//        location[0] = to_radians(90-(4.2 * randgen::uniform() + 18.2));
-//        location[1] = to_radians(-4.45 * randgen::uniform() - 157.5);
-//        v0 = grid->interpolate( location ) - wposition::earth_radius;
-//        v1 = fast_grid->interpolate( location ) - wposition::earth_radius;
-//        cout << "location: (" << location[0] << ", " << location[1] << ")" << "\tgrid: " << v0 << "\tfast_grid: " << v1 << endl;
-//        BOOST_CHECK_CLOSE(v0, v1, 5.0);
-//    }
+    cout << "grid->axis0: " << *(grid->axis(0)) << endl;
+    cout << "grid->axis1: " << *(grid->axis(1)) << endl;
+    const seq_vector* ax0 = grid->axis(0);
+    const seq_vector* ax1 = grid->axis(1);
+    cout << "axis0(13 to 21): (" << (*ax0)(13) << "," << (*ax0)(14) << ","
+                                       << (*ax0)(15) << "," << (*ax0)(16) << ","
+                                       << (*ax0)(17) << "," << (*ax0)(18) << ","
+                                       << (*ax0)(19) << "," << (*ax0)(20) << ","
+                                       << (*ax0)(21) << ")" << endl;
+    cout << "axis1(36 to 44): (" << (*ax1)(36) << "," << (*ax1)(37) << ","
+                                      << (*ax1)(38) << "," << (*ax1)(39) << ","
+                                      << (*ax1)(40) << "," << (*ax1)(41) << ","
+                                      << (*ax1)(42) << "," << (*ax1)(43) << ","
+                                      << (*ax1)(44) << ")" << endl;
+    cout << "===========Data=========== [axis0: rows & axis1: columns]" << endl;
+    for(int i=13; i<22; ++i) {
+        (i==13) ? cout << "[" : cout << "";
+        for(int j=36; j<45; ++j) {
+            (j==36) ? cout << "(" : cout << ", ";
+            index[0] = i;
+            index[1] = j;
+            cout << grid->data(index) - wposition::earth_radius;
+            (j!=44) ? cout << "" : cout << ")";
+            (j==44 && i!=21) ? cout << endl : cout << "";
+
+        }
+        (i==21) ? cout << "]" << endl : cout << "";
+    }
+
+    for(int i=0; i<10; ++i){
+        double location[2];
+        location[0] = to_radians(90-(4.2 * randgen::uniform() + 18.2));
+        location[1] = to_radians(-4.45 * randgen::uniform() - 157.5);
+        double v0 = grid->interpolate( location ) - wposition::earth_radius;
+        double v1 = fast_grid->interpolate( location ) - wposition::earth_radius;
+        cout << "location: (" << location[0] << ", " << location[1] << ")" << "\tgrid: " << v0 << "\tfast_grid: " << v1 << endl;
+        BOOST_CHECK_CLOSE(v0, v1, 3.0);
+    }
 //    double location[2] ;
 //    location[0] = 1.24449;
 //    location[1] = -2.76108;

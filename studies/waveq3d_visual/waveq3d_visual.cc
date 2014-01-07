@@ -37,7 +37,9 @@ int main() {
     wposition::compute_earth_radius( (lat1+lat2)/2.0 ) ;
 
     wposition1 pos( 25.3, 57.1, -400.0 ) ;
-//    seq_rayfan de( -90.0, 90.0, 181 ) ;
+//    seq_rayfan de( -34.0, 36.0, 21 ) ;
+//    seq_linear az( 0.0, 15.0, 360.0 ) ;
+//    seq_rayfan de ;
 //    seq_linear az( 0.0, 15.0, 360.0 ) ;
     seq_linear de( -90.0, 2.0, 90.0 ) ;
     seq_linear az( 0.0, 2.0, 360.0 ) ;
@@ -85,7 +87,13 @@ int main() {
 
     // initialize proploss targets and wavefront
     cout << "initializing target" << endl ;
-    wposition target( 1, 1, 25.4089834, pos.longitude(), -10.0 ) ;
+    const double tar_range = 1000.0 ;
+    const double tar_alt = -10.0 ;
+    wposition target( 1, 1, 0.0, 0.0, tar_alt ) ;
+    wposition1 atarget( pos, tar_range, 0.0 ) ;
+    target.latitude( 0, 0, atarget.latitude() ) ;
+    target.longitude( 0, 0, atarget.longitude() ) ;
+
     proploss loss(freq, pos, de, az, time_step, &target);
 	wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
 	wave.addProplossListener(&loss);
