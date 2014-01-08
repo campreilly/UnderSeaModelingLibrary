@@ -54,7 +54,7 @@ wave_queue::wave_queue(
     if ( boundary_check == 360.0 &&
         ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) { az_boundary = true ; }
     else { az_boundary = false ;}
-    _intensity_threshold = 300.00; //In dB
+    _intensity_threshold = -300.00; //In dB
 
     if ( _targets ) {
     	_targets_sin_theta = sin( _targets->theta() ) ;
@@ -707,13 +707,13 @@ void wave_queue::build_eigenray(
             + _curr->attenuation(de,az) * dt ;
     }
 
-    // determine if intensity meets _intensity_threshold
+    // determine if intensity is weaker than the _intensity_threshold
     // if intensity at any frequency is less than _intensity_threshold
     // complete ray build and send to listeners; discard otherwise
 
     bool bKeepRay = false;
     for ( unsigned int i = 0; i < ray.intensity.size(); ++i) {
-		if ( abs(ray.intensity(i)) < _intensity_threshold  ) {
+		if ( ray.intensity(i) < _intensity_threshold  ) {
 			bKeepRay = true;
 			break ;
 		}
