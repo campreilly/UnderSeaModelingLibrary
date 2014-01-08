@@ -41,6 +41,8 @@ wave_front::wave_front(
     _cot_theta( num_de, num_az ),
     _target_sin_theta( sin_theta )
 {
+    sound_speed.clear() ;
+    distance.clear() ;
     surface.clear() ;
     bottom.clear() ;
     caustic.clear() ;
@@ -108,7 +110,7 @@ void wave_front::init_wave(
     ndirection.theta( ndirection.theta() / c(0,0), false ) ;
     ndirection.phi(   ndirection.phi()   / c(0,0), false ) ;
 }
-/**
+/*
  * Update properties based on the current position and direction vectors.
  */
 void wave_front::update() {
@@ -164,8 +166,8 @@ void wave_front::update() {
     if (targets) compute_target_distance();
 }
 
-/**
- * Find all edges in the ray fan.  Sets on_edge(de,az) to true if
+/*
+ * Find all edges in the ray fan. Sets on_edge(de,az) to true if
  * it is on the edge of the ray fan or one of its neighbors has
  * a different surface, bottom, or caustic count.
  */
@@ -201,7 +203,7 @@ void wave_front::find_edges() {
     }
 }
 
-/**
+/*
  * Compute a fast an approximation of the distance squared from each
  * target to each point on the wavefront.
  */

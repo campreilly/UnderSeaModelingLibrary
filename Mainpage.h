@@ -13,8 +13,9 @@ This library adopts the coding style used by Boost and the
 C++ standard library:
 
    - class names are lower case with underscores between words
-   - private member variables start with an underscore
-   - get/set accessors use the name of the property with no underscore
+   - class private/protected member variables start with an underscore
+   - get/set accessors use the name of the data member with no underscore
+   - local method variables will not start with and underscore
 
 This library supports the following additions that go beyond
 the Boost style elements:
@@ -31,15 +32,28 @@ Example:
      */
     class my_simple_class {
 
-    private:
-
-        /* Storage for the current value. */
-        int _value ;
-
     public:
 
         /**
-         * Retrieve the current value.
+        * Constructor - Create the my_simple_class
+        */
+        my_simple_class(int input_val) :
+            _special_value (0.0)    {
+
+             int local_val = 0;
+            _value = input_val + local_val;
+        }
+
+        /**
+        * Default Constructor - Create the my_simple_class with all members defaulted
+        */
+        my_simple_class() :
+            _special_value (0.0),
+            _value(0)   {
+        }
+
+        /**
+         * Get or retrieve the current value.
          *
          * @return         copy of the current value
          */
@@ -48,13 +62,24 @@ Example:
         }
 
         /**
-         * Define the current value.
+         * Set or define the current value.
          *
          * @param  v       new value to store
          */
         void value( int v ) {
             _value = v ;
         }
+
+    protected:
+
+        /* Storage for the special value */
+        double  _special_value ;
+
+    private:
+
+        /* Storage for the value. */
+        int _value ;
+
     } ;
 @endverbatim
 */

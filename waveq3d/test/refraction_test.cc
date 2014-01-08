@@ -758,7 +758,7 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
  *      Ocean:          Munk Profile: z1=1300, B=1300, c1=1500, e=7.37e-3
  *                      The profile_model::flat_earth() option turned on.
  *      Position:       1300 meters deep at 45:00N 45:00W
- *      D/E Angles:     -14 to 14 degrees (avoids surface relfection)
+ *      D/E Angles:     -14 to 14 degrees (avoids surface reflection)
  *      AZ Angles:      0 degrees (north)
  *      Time Step:      100 msec
  * </pre>
@@ -939,9 +939,9 @@ BOOST_AUTO_TEST_CASE(refraction_munk_range) {
  * one cycle is compared to an analytic solution computed using the
  * pedersen_range_compute.m routine.
  *
- * The profile and source depth parameters were choosen to force the
+ * The profile and source depth parameters were chosen to force the
  * creation of a caustic for launch angles > 44 deg. As Pedersen notes,
- * this profile is not physcially realistic at depths greater than 61 meters.
+ * this profile is not physically realistic at depths greater than 61 meters.
  * But it has been used by many authors, including those listed in the
  * references, to stress propagation loss models at the edge of a shadow zone.
  *
@@ -1100,14 +1100,12 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
 
     cout << "writing sound speed profile to " << csvname << endl;
     matrix<double> speed(1,1);
-    wposition test(1,1);
-    test.latitude(0,0,45.0);
-    test.longitude(0,0,-45.0);
+    wposition test( 1, 1, 45.0, -45.0, 0.0 );
     std::ofstream file(csvname);
     file << "depth,speed,interp" << endl;
     for(int j=0; j <axis[0]->size(); ++j){
         index[0] = j;
-        test.rho(0,0,(*axis[0])(j));
+        test.rho( 0, 0, (*axis[0])(j) );
         profile->sound_speed( test, &speed );
         file << (*axis[0])(j)-wposition::earth_radius << "," << sound_profile->data(index) << "," << speed(0,0) << endl;
     }
@@ -1130,11 +1128,7 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
     cout << "writing wavefronts to " << ncname_wave << endl;
     wave.init_netcdf(ncname_wave);  // open a log file for wavefront data
     wave.save_netcdf();             // write ray data to log file
-
     while (wave.time() < 25.0) {
-
-        // increment wavefront by one time step
-
         wave.step();
         wave.save_netcdf();
     }

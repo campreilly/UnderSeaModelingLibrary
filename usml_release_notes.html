@@ -1,66 +1,93 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" >
   <head>
     <title>Under Sea Modeling Library (USML)</title>
   </head>
   <body>
     <h1>Under Sea Modeling Library (USML) Release Notes</h1>
+    
+    <h2>Release 0.04</h2>
+    <ul>
+    	<li>Added specialized data_grids for sound speed profiling and bathymetry, optimized for speed, data_grid_svp and data_grid_bathy.
+    		Regression tests for both of these new data_grids can be found in datagrid_tests.
+    	<li>In order to use the above specialized data_grids, it required new implementations of boundary_grid and profile_grid. These new
+    		boundary_grid_fast and profile_grid_fast, now allow for data_grids of type bathy and svp, respectively, to be passed into 
+    		and used as the ocean's boundary and profile models.
+    	<li>Added new logic to correctly produce only one eigenray when the azimuthal angles overlap, ie 0.0 and 360.0 are the same. 
+    		Included new regression tests for this implementation in eigenray_test.
+    	<li>Added new logic to correctly produce appropriate number of eigenrays when a target is almost directly above the source. Also included
+    		new regression test for this implementation in eigenray_test.
+    	<li>Corrected gaussian intensity calculations to appropriately take into account the offset from the CPA, when choosing where to start
+    		looking for contributions.
+    	<li>Many changes to how the Hybrid Gaussian beam calculations are done when close to the rayfan edges. When close to boundaries we 
+    		previously had an inherent left-handed, all axis values prioritized to the left index, nature when doing calculations. This however, 
+    		created issues when close to the boundary, breaking previously conceived notions that symmetry would still hold. Added new logic to 
+    		correct, rebalance, and restore symmetry to the calculations at the rayfan edges.
+		<li>Modified wave_queue and proploss class to use the new class prolossListener. The proplossListener implements the Observer/Subject 
+			pattern which will allow multiple classes to  "listen" for updated proploss eigenrays.
+		<li>Added method setIntensityThreshold to wave_queue class to ignore transimission loss eigenrays weaker than the threshold. 
+			Default value of the threshold is -300 dB.
+		<li>Repurposed profile_mackenzie to now produce a data_grid instead of a profile_grid. This change allows us to use the
+			new data_grid_svp for speed optimization. 
+		<li>Added std::invalid_argument exception for netcdf_bathy and netcdf_profile. Exception thrown when filename argument conatins 
+			wrong path or filename.
+	</ul>
 
     <h2>Release 0.03</h2>
     <ul>
 	    <li>Introduced the ability to accumulate energy across ray families by adding virutal
-	    rays to the end of each ray family and allows the needed support at the edge of ray
-	    families. This first exhibited during the lloyds_depth_proploss test. As the TL was 
-	    calculated closer and closer to the surface, the TL got further and further from the 
-	    theoretical values and introducing these virtual rays rectified this issue.
+			rays to the end of each ray family and allows the needed support at the edge of ray
+			families. This first exhibited during the lloyds_depth_proploss test. As the TL was 
+			calculated closer and closer to the surface, the TL got further and further from the 
+			theoretical values and introducing these virtual rays rectified this issue.
 	    <li>Made a significant change to the way that wavefronts are collected into families.
-		The on_edge logic no longer uses the number of surface and bottom bounces to determine
-		the location of a fold in the wavefront. This logic fails in ducts because the bounces
-		do not always result in a fold. As a consequence of this change, the on_fold logic was
-		removed and significantly simplified the way that caustics are detected.
+			The on_edge logic no longer uses the number of surface and bottom bounces to determine
+			the location of a fold in the wavefront. This logic fails in ducts because the bounces
+			do not always result in a fold. As a consequence of this change, the on_fold logic was
+			removed and significantly simplified the way that caustics are detected.
 		<li>The reflect_loss_rayleigh mogdel had a bug where speed_shear was not being scaled
-		correctly. Now the results of the plot_rayleigh_sediments match Fig 1.24 in Jensen,
-		Kuperman, et al. Simplified the conversion from dB/wavelength to loss tanget by
-		defining ATT_CONVERT constant.
+			correctly. Now the results of the plot_rayleigh_sediments match Fig 1.24 in Jensen,
+			Kuperman, et al. Simplified the conversion from dB/wavelength to loss tanget by
+			defining ATT_CONVERT constant.
 		<li>Created the ascii_arc_bathy model to extract Coastal Relief Model (CRM) bathymetry
-		data. This data is produced by the NGDC web site as ASCII files with an ARC header.
+			data. This data is produced by the NGDC web site as ASCII files with an ARC header.
 		<li>Created reflect_loss_netcdf model to read provinced bottom loss data from netCDF
-		file. Assumes that each of the provinces and be modelled using the reflect_loss_rayleigh 
-		model, and that the provinces define the province number as a function of latitude
-		and logitude. Each province number corresponds to a specific comination of geophysical
-		properties (aka reflect_loss_rayleigh arguments).
+			file. Assumes that each of the provinces and be modelled using the reflect_loss_rayleigh 
+			model, and that the provinces define the province number as a function of latitude
+			and logitude. Each province number corresponds to a specific comination of geophysical
+			properties (aka reflect_loss_rayleigh arguments).
 		<li>The "too shallow" calculation in the reflection_model was not normalizing the theta
-		and phi components of the normal correctly. And this allowed them to be much greater 
-		than 1, which lead to crazy jumps.
+			and phi components of the normal correctly. And this allowed them to be much greater 
+			than 1, which lead to crazy jumps.
 		<li>The boundary_grid model has a sqrt() in the calculation of the rho component of 
-		the normal. If the gradients were very large, the sum of the squares of the theta and
-		phi componenets were slightly greater than 1. This leads to a rho value of NaN, and 
-		then everything turns bad.
+			the normal. If the gradients were very large, the sum of the squares of the theta and
+			phi componenets were slightly greater than 1. This leads to a rho value of NaN, and 
+			then everything turns bad.
 		<li>Enabled floating point exception traps when USML_DEBUG is set. Uses the GCC 
-		constructor attributes (a C language extension) to invoke the feenableexcept() 
-		function whent he shared library is loaded. Only supported by GCC compilers and shared
-		libraries at this time.
+			constructor attributes (a C language extension) to invoke the feenableexcept() 
+			function whent he shared library is loaded. Only supported by GCC compilers and shared
+			libraries at this time.
 		<li>Discovered math overflow using "float" for bathymetry. Replaced all "float" with
-		"double".
+			"double".
 		<li>Added the ability to limit interpolation locations to values inside of the lat/long
-		boundaries of the bathymetry and profile grids.
+			boundaries of the bathymetry and profile grids.
 		<li>Corrected an error in pchip algorithm in data_grid (y3=y2 and not y2=y2).
 		<li>Added great circle range/bearing calculations to wposition1. Frequently used 
-		during testing.
+			during testing.
 		<li>Developed a cmp_speed study to compare WaveQ3D speeds with CASS/GRAB scenario 
-		based on STD14. Built CASS runstreams to compute transmission loss for 1, 10, 20, 30, 
-		..., 100 targets. Implemented as a ring of receivers at 100 km from source.
+			based on STD14. Built CASS runstreams to compute transmission loss for 1, 10, 20, 30, 
+			..., 100 targets. Implemented as a ring of receivers at 100 km from source.
 		<li>Changed profile_mackenzie to set edge_limit in the depth direction to true. 
-		Eliminated cases where extrapolation outside of the water column was leading to NaN 
-		in ray trace of ray_speed. This, in turn, was causing ray_speed to run very slow.
+			Eliminated cases where extrapolation outside of the water column was leading to NaN 
+			in ray trace of ray_speed. This, in turn, was causing ray_speed to run very slow.
 		<li>Prevent the first longitude point in the extraction from netCDF files from using
-		lng_first index values that were smaller than zero. Effects netcdf_profile and 
-		netcdf_bathymetry models.
+			lng_first index values that were smaller than zero. Effects netcdf_profile and 
+			netcdf_bathymetry models.
 		<li>Updated CMake process to support: install targets, included the libraries for zlib, 
-		hdf5, and curl that were required for NetCDF 4.
+			hdf5, and curl that were required for NetCDF 4.
 		<li>Added reflect_loss_rayleigh parameters for MUD bottoms.
 		<li>In netccdf_profile, changed NcError to silent_nonfatal instead of verbose to prevent 
-		the extra line print out.
+			the extra line print out.
 		<li>Updated documentation to include BSD 2-Clauses License.
 		<li>Migrate test platform to Ubuntu 12.04 LTS from 10.04.</li>
     </ul>
@@ -78,7 +105,7 @@
     <li>Fix vector/matrix operations with scalars.</li>
         <ul>
         <li>Requires upgrade of Boost library to version 1.48.0 or better.</li>
-        <li>Use enable_if<> template like 1.48.0 version of ublas.</li>
+        <li>Use enable_if&lt;&gt; template like 1.48.0 version of ublas.</li>
         <li>Before this fix, scalar addition with vector/matrix just resulted
             in the original vector/matrix on Windows.<li>
         <li>This fix fixed the errors in dot_test and distance_test.</li>
@@ -87,7 +114,7 @@
         <ul>
         <li>Requires a bug fix in ublas itself.</li>
         <li>file: boost/numeric/ublas/vector_expression.hpp lines 1409 through 1417
-            Should be using the enable_if<> macros just like the operator*()
+            Should be using the enable_if&lt;&gt; macros just like the operator*()
             in lines 1397 through 1407 (just above it).  Doing so allows further
             overloading of operator/() for other types.</li>
         </ul>

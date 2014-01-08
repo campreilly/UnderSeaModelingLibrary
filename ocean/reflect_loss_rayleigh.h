@@ -182,7 +182,7 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
   private:
 
     /**
-     * Compute impendence for compression or shear waves with attenuation.
+     * Compute impedance for compression or shear waves with attenuation.
      * Includes the Snell's Law computation of transmitted angle.
      *
      * @param density       Ratio of bottom density to water density
@@ -196,7 +196,7 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
      * @param cosA          Returns the cosine of the transmitted angle
      *                      computed using Snell's Law.
      */
-    complex<double> impedence(
+    complex<double> impedance(
         double density, double speed, double attenuation, double angle,
         complex< double >* cosA, bool shear ) ;
 } ;

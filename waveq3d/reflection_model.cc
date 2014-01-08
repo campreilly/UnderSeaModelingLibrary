@@ -456,13 +456,11 @@ void reflection_model::reflection_reinit(
     temp.ndirection.rho(   0, 0, ndirection.rho()  ) ;
     temp.ndirection.theta( 0, 0, ndirection.theta() ) ;
     temp.ndirection.phi(   0, 0, ndirection.phi() ) ;
-
     temp.update() ;
 
     // Runge-Kutta to initialize current entry "time_water" seconds in the past
     // adapted from wave_queue::init_wavefronts()
 
-    // cout << "time_water=" << time_water << endl ;
     ode_integ::rk1_pos(  - time_water, &temp, &next ) ;
     ode_integ::rk1_ndir( - time_water, &temp, &next ) ;
     next.update() ;

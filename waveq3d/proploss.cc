@@ -18,9 +18,9 @@ proploss::proploss(
     const seq_vector& source_de,
     const seq_vector& source_az,
     double time_step,
-    const wposition* positions )
+    const wposition* targets )
 	:
-	_targets( positions ),
+	_targets( targets ),
 	_frequencies(frequencies.clone()),
 	_source_pos(source_pos),
 	_source_de (source_de.clone()),

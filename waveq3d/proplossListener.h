@@ -15,7 +15,8 @@ namespace waveq3d {
 /**
  * @class proplossListener
  * @brief This class is part of a Observer/Subject pattern for the wave_queue class
- * and allows the multiple proploss listener to be added to wave_queue.
+ * and allows for multiple proploss listeners to be added to wave_queue.
+ * The addEigenray call must be defined in each class which inherits it.
  */
 
 class proplossListener
@@ -28,10 +29,13 @@ public:
 	virtual ~proplossListener() {}
 
 	/**
-	 * AddEigenray
+	 * addEigenray
 	 * Pure virtual method to add eigenray to an object.
+	 *  @param   targetRow Index of the target row to add to list of eigenrays
+     *  @param   targetCol Index of the target row to add to list of eigenrays
+     *  @param   pRay      Pointer to eigenray data to add to list of eigenrays
 	 */
-	virtual bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pclRay ) = 0;
+	virtual bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pRay ) = 0;
 
 
 protected:

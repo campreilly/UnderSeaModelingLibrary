@@ -117,7 +117,7 @@ class USML_DECLSPEC wave_queue {
 	 * compute the distance squared from each target to each point
 	 * on the wavefront.
 	 */
-	matrix<double> targets_sin_theta ;
+	matrix<double> _targets_sin_theta ;
 
     /** Reference to the reflection loss model component. */
     reflection_model* _reflection_model ;
@@ -130,9 +130,10 @@ class USML_DECLSPEC wave_queue {
 
 
     /**
-     * The default value of the intensity threshold in dB
-     * Any eigenray intensity values that don't meet this threshold
-     * are not sent the proplossListner(s);
+     * The value of the intensity threshold in dB
+     * Any eigenray intensity values that are weaker than this
+     * threshold are not sent the proplossListner(s);
+     * Defaults to -300 dB
      */
     double _intensity_threshold; //In dB
 
@@ -154,6 +155,20 @@ class USML_DECLSPEC wave_queue {
 	* These classes must implement addEigenray method.
 	*/
     std::vector<proplossListener *> m_ProplossListenerVec;
+
+    /**
+     * Create an Azimuthal boundary loop condition upon initialization.
+     * This condition will prevent the production of multiple eigenrays
+     * for instances where the first azimuthal angle is equivalent to
+     * the last azimuthal angle in the AZ vector that is passed.
+     */
+    bool az_boundary ;
+
+    /**
+     * Treat all targets that are slightly away from directly above the
+     * source as special cases.
+     */
+    bool de_branch ;
 
   public:
 
@@ -289,7 +304,7 @@ class USML_DECLSPEC wave_queue {
 	}
 	/**
 	 * getIntensityThreshold
-	 * @param  dThreshold The new value of the intensity threshold in dB
+	 * @return  Returns current value of the intensity threshold in dB
 	 */
 	inline double getIntensityThreshold() {
 		return _intensity_threshold;
@@ -476,13 +491,13 @@ class USML_DECLSPEC wave_queue {
      * the 3-D Taylor series to find offsets in time, source D/E,
      * and source AZ that minimize the distance to the target.
      * \f[
-     *      d^2( \vec{\rho} ) = c + \vec{b} \bullet \vec{\rho}
-     *          + \frac{1}{2} \vec{\rho} \bullet A \bullet \vec{\rho}
+     *      d^2( \vec{\rho} ) = c + \vec{b} \cdot \vec{\rho}
+     *          + \frac{1}{2} \vec{\rho} \cdot A \cdot \vec{\rho}
      * \f]\f[
      *      \frac{ \delta d^2 }{ \delta \vec{\rho} } =
-     *          \vec{b} + A \bullet \vec{\rho} = 0
+     *          \vec{b} + A \cdot \vec{\rho} = 0
      * \f]\f[
-     *      A \bullet \vec{\rho} = - \vec{b}
+     *      A \cdot \vec{\rho} = - \vec{b}
      * \f]\f[
      *      \vec{\rho} = - A^{-1} \vec{b}
      * \f]

@@ -204,7 +204,7 @@ if (USML_BUILD_TESTS)
 
 	if ( EXISTS ${NETCDF_NCKS} )
 	    set( USML_DATA_BATHYMETRY ${USML_DATA_DIR}/bathymetry/ETOPO1_Ice_g_gmt4.grd
-		CACHE FILEPATH "data file for ETOPO bathymetry" )
+		FILEPATH "data file for ETOPO bathymetry" )
 	    set( ETOPO_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp )
 	    add_custom_command(
 	        OUTPUT ${ETOPO_CMP}.nc ${ETOPO_CMP}.log
@@ -237,7 +237,7 @@ if (USML_BUILD_TESTS)
 
 	if ( EXISTS ${NETCDF_NCKS} )
 	    set( USML_DATA_TEMP_MONTH ${USML_DATA_DIR}/woa09/temperature_monthly_1deg.nc
-		    CACHE FILEPATH "data file for shallow WOA temperature profile" )
+		    FILEPATH "data file for shallow WOA temperature profile" )
 	    set( WOA_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/woa_cmp )
 	    add_custom_command(
 	        OUTPUT ${WOA_CMP}.nc ${WOA_CMP}.log
@@ -307,7 +307,7 @@ add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 target_link_libraries( malta_rays usml )
 
 set_property(
-   TARGET analytic_wedge pekeris_waveguide ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays
+   TARGET analytic_wedge pekeris_waveguide ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays waveq3d_visual
    PROPERTY COMPILE_DEFINITIONS
 	USML_DATA_DIR="${USML_DATA_DIR}"
 	USML_STUDIES_DIR="${USML_STUDIES_DIR}"
