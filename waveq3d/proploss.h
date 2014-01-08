@@ -186,7 +186,7 @@ public:
 	 * @param   pRay               The eigenray to add.
 	 * @return                     True on success, false on failure.
 	 */
-	bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pclRay );
+	bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pRay );
 
 
     /**
