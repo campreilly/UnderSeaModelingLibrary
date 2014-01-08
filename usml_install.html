@@ -72,7 +72,7 @@
 	 <a href="http://www.unidata.ucar.edu/downloads/netcdf"> http://www.unidata.ucar.edu/downloads/netcdf <a/>
 	 and configure the install to disable netcdf-4 and dap.</li>
      <ul>
-     For Linux: <code> CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib ./configure --prefix=/usr/local --disable-netcdf-4 --disable-dap </code>
+     For Linux: <code> configure --disable-netcdf-4 --disable-dap </code>
     </ul>
 	 <li>The second option is if you wish to keep these features on for netcdf. In order to get USML 
 	 to run properly, you will need to alter the CMakeLists.txt to include HDF5/zLib/cURL packages. 
@@ -133,6 +133,9 @@
       <li>
         Change any options that you'd like. Note that the USML_PEDANTIC option
         is only used to search for questionable programming during our development.
+        <ul>
+        	<li>Note: Boost_FORCE_SHAREDLIB should be used if the Boost shared libraries are not installed.
+        </ul>
       </li>
       <li>
         Hit the "Configure" button a second time, even if you have not changed any
