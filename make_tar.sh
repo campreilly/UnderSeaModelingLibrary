@@ -1,5 +1,5 @@
 #!/bin/bash
-version=0.03
+version=0.04
 tar --exclude=data --exclude=doc --exclude=html --exclude=usml_api.html \
     -czf ../usml-src-$version.tar.gz *
 tar -czf ../usml-doc-$version.tar.gz usml_api.html html/*
