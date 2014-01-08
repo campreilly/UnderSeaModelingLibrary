@@ -306,6 +306,9 @@ target_link_libraries( malta_movie usml )
 add_executable( malta_rays studies/malta_movie/malta_rays.cc )
 target_link_libraries( malta_rays usml )
 
+add_executable( waveq3d_visual studies/waveq3d_visual/waveq3d_visual.cc )
+target_link_libraries( waveq3d_visual usml )
+
 set_property(
    TARGET analytic_wedge pekeris_waveguide ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays waveq3d_visual
    PROPERTY COMPILE_DEFINITIONS
@@ -313,3 +316,4 @@ set_property(
 	USML_STUDIES_DIR="${USML_STUDIES_DIR}"
    )
 
+endif (USML_BUILD_STUDIES)
