@@ -34,6 +34,7 @@ class USML_DECLSPEC spreading_model {
      * Initializes the spreading model.
      *
      * @param wave          Wavefront object associated with this model.
+     * @param num_freqs     Number of different frequencies.
      */
     spreading_model( wave_queue& wave, unsigned num_freqs ) :
         _wave(wave), _spread(num_freqs)
@@ -54,7 +55,7 @@ class USML_DECLSPEC spreading_model {
      * @param  distance     Offsets in distance units.
      * @return              Intensity of ray at this point.
      */
-    virtual const vector<double>& intensity( 
+    virtual const vector<double>& intensity(
         const wposition1& location, unsigned de, unsigned az,
         const vector<double>& offset, const vector<double>& distance ) = 0 ;
 } ;

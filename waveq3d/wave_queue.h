@@ -490,13 +490,13 @@ class USML_DECLSPEC wave_queue {
      * the 3-D Taylor series to find offsets in time, source D/E,
      * and source AZ that minimize the distance to the target.
      * \f[
-     *      d^2( \vec{\rho} ) = c + \vec{b} \bullet \vec{\rho}
-     *          + \frac{1}{2} \vec{\rho} \bullet A \bullet \vec{\rho}
+     *      d^2( \vec{\rho} ) = c + \vec{b} \cdot \vec{\rho}
+     *          + \frac{1}{2} \vec{\rho} \cdot A \cdot \vec{\rho}
      * \f]\f[
      *      \frac{ \delta d^2 }{ \delta \vec{\rho} } =
-     *          \vec{b} + A \bullet \vec{\rho} = 0
+     *          \vec{b} + A \cdot \vec{\rho} = 0
      * \f]\f[
-     *      A \bullet \vec{\rho} = - \vec{b}
+     *      A \cdot \vec{\rho} = - \vec{b}
      * \f]\f[
      *      \vec{\rho} = - A^{-1} \vec{b}
      * \f]

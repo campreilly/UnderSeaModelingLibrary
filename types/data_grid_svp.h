@@ -190,7 +190,7 @@ public:
      * Interpolate at a single location.
      *
      * @param location   Location to do the interpolation at
-     * @param derivative
+     * @param derivative Calculates first derivative if not NULL
      */
 
     double interpolate(double* location, double* derivative = NULL)
@@ -261,7 +261,7 @@ public:
             << ", " << derv_z[_offset[0]+3][_offset[1]][_offset[2]] << ")" << endl;
         #endif
 
-        /** PCHIP contribution in zeroth dimension */
+        //** PCHIP contribution in zeroth dimension */
         if (derivative) {
             derivative[0] = 0;
         }
@@ -314,7 +314,7 @@ public:
             }
         }
 
-        /** Bi-Linear contributions from first/second dimensions */
+        //** Bi-Linear contributions from first/second dimensions */
         //extract data around field point
         x = location[1];
         x1 = (*_axis[1])(k1);

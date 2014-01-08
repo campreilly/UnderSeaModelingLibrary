@@ -273,13 +273,6 @@ public:
      */
     void update() ;
 
-    /**
-     * Find all edges and caustics in the ray fan.  Sets on_edge(de,az)
-     * to true ifit is on the edge of the ray fan or one of its neighbors
-     * has a different surface, bottom, or caustic count.
-     */
-    void find_edges() ;
-
 private:
 
     /**
@@ -310,6 +303,13 @@ private:
      * an accumulated attenuation and phase.
      */
     void compute_profile() ;
+
+    /**
+     * Find all edges and caustics in the ray fan. Sets on_edge(de,az)
+     * to true if it is on the edge of the ray fan or one of its neighbors
+     * has a different surface, bottom, or caustic count.
+     */
+    void find_edges() ;
 
 };
 

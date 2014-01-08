@@ -314,7 +314,7 @@ public:
 
         switch (interp_type(0)) {
 
-        ///****nearest****
+        //****nearest****
         case -1:
             for (int dim = 0; dim < 2; ++dim) {
                 double inc = _axis[dim]->increment(0);
@@ -331,7 +331,7 @@ public:
             return data(_fast_index);
             break;
 
-            ///****linear****
+            //****linear****
         case 0:
             double f11, f21, f12, f22, x_diff, y_diff;
             double x, x1, x2, y, y1, y2;
@@ -366,7 +366,7 @@ public:
             return result;
             break;
 
-            ///****pchip****
+            //****pchip****
         case 1:
             result = fast_pchip(_offset, location, derivative);
             return result;
@@ -473,7 +473,7 @@ private:
      * @param interp_index  index on the grid for the closest data point
      * @param location      Location of the field calculation
      * @param derivative    Generate the derivative at the location (output)
-     * @param return        Returns the value at the field location
+     * @return              Returns the value at the field location
      */
     double fast_pchip(const unsigned* interp_index, double* location,
             double* derivative = NULL) {
