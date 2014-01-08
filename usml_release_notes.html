@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" >
   <head>
     <title>Under Sea Modeling Library (USML)</title>
@@ -10,17 +10,28 @@
     <ul>
     	<li>Added specialized data_grids for sound speed profiling and bathymetry, optimized for speed, data_grid_svp and data_grid_bathy.
     		Regression tests for both of these new data_grids can be found in datagrid_tests.
+    	<li>In order to use the above specialized data_grids, it required new implementations of boundary_grid and profile_grid. These new
+    		boundary_grid_fast and profile_grid_fast, now allow for data_grids of type bathy and svp, respectively, to be passed into 
+    		and used as the ocean's boundary and profile models.
     	<li>Added new logic to correctly produce only one eigenray when the azimuthal angles overlap, ie 0.0 and 360.0 are the same. 
     		Included new regression tests for this implementation in eigenray_test.
     	<li>Added new logic to correctly produce appropriate number of eigenrays when a target is almost directly above the source. Also included
     		new regression test for this implementation in eigenray_test.
-    	<li>Corrected gaussian intensity calculations to appropriately take into account the offset fromt he CPA, when choosing where to start
+    	<li>Corrected gaussian intensity calculations to appropriately take into account the offset from the CPA, when choosing where to start
     		looking for contributions.
     	<li>Many changes to how the Hybrid Gaussian beam calculations are done when close to the rayfan edges. When close to boundaries we 
     		previously had an inherent left-handed, all axis values prioritized to the left index, nature when doing calculations. This however, 
     		created issues when close to the boundary, breaking previously conceived notions that symmetry would still hold. Added new logic to 
-    		correct rebalance and restore symmetry to the calculations at the rayfan edges.
-    </ul>
+    		correct, rebalance, and restore symmetry to the calculations at the rayfan edges.
+		<li>Modified wave_queue and proploss class to use the new class prolossListener. The proplossListener implements the Observer/Subject 
+			pattern which will allow multiple classes to  "listen" for updated proploss eigenrays.
+		<li>Added method setIntensityThreshold to wave_queue class to ignore transimission loss eigenrays weaker than the threshold. 
+			Default value of the threshold is -300 dB.
+		<li>Repurposed profile_mackenzie to now produce a data_grid instead of a profile_grid. This change allows us to use the
+			new data_grid_svp for speed optimization. 
+		<li>Added std::invalid_argument exception for netcdf_bathy and netcdf_profile. Exception thrown when filename argument conatins 
+			wrong path or filename.
+	</ul>
 
     <h2>Release 0.03</h2>
     <ul>
