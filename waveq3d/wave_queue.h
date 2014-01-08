@@ -130,9 +130,10 @@ class USML_DECLSPEC wave_queue {
 
 
     /**
-     * The default value of the intensity threshold in dB
-     * Any eigenray intensity values that don't meet this threshold
-     * are not sent the proplossListner(s);
+     * The value of the intensity threshold in dB
+     * Any eigenray intensity values that are weaker than this
+     * threshold are not sent the proplossListner(s);
+     * Defaults to -300 dB
      */
     double _intensity_threshold; //In dB
 
