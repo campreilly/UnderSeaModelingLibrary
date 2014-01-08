@@ -105,7 +105,7 @@
     <li>Fix vector/matrix operations with scalars.</li>
         <ul>
         <li>Requires upgrade of Boost library to version 1.48.0 or better.</li>
-        <li>Use enable_if<> template like 1.48.0 version of ublas.</li>
+        <li>Use enable_if&lt;&gt; template like 1.48.0 version of ublas.</li>
         <li>Before this fix, scalar addition with vector/matrix just resulted
             in the original vector/matrix on Windows.<li>
         <li>This fix fixed the errors in dot_test and distance_test.</li>
@@ -114,7 +114,7 @@
         <ul>
         <li>Requires a bug fix in ublas itself.</li>
         <li>file: boost/numeric/ublas/vector_expression.hpp lines 1409 through 1417
-            Should be using the enable_if<> macros just like the operator*()
+            Should be using the enable_if&lt;&gt; macros just like the operator*()
             in lines 1397 through 1407 (just above it).  Doing so allows further
             overloading of operator/() for other types.</li>
         </ul>
