@@ -17,9 +17,6 @@ C++ standard library:
    - get/set accessors use the name of the data member with no underscore
    - local method variables will not start with and underscore
 
-   - public's defined followed by protected's then private's
-   - methods defined before data members
-
 This library supports the following additions that go beyond
 the Boost style elements:
 
