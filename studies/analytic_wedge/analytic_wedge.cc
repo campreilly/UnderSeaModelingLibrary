@@ -87,8 +87,9 @@ int main() {
 //        target.altitude( n, 0, -100 + (dist * tan(wedge_angle / 2.0)) ) ;
 //        cout << "target.alt(" << n << ",0): " << target.altitude(n,0) << endl;
     }
-    proploss loss( &target ) ;
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss ) ;
+    proploss loss( freq, pos, de, az, time_step, &target ) ;
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
+    wave.addProplossListener( &loss ) ;
 
     /// propagate wavefront
     cout << "writing wavefronts to " << ncname_wave << endl;

@@ -90,13 +90,13 @@ void reflect_loss_rayleigh::reflect_loss(
     // compute compression wave reflection components
 
     complex<double> cosAp, cosAs ;
-    complex<double> Zb = impedence(
+    complex<double> Zb = impedance(
         _density_bottom, _speed_bottom, _att_bottom, angle, &cosAp, false ) ;
 
     // compute shear wave reflection components
 
     if ( _speed_shear != 0.0 || _att_shear != 0.0 ) {
-        const complex<double> Zs = impedence(
+        const complex<double> Zs = impedance(
             _density_bottom, _speed_shear, _att_shear, angle, &cosAs, true ) ;
         const complex<double> sinAs = sqrt( 1.0 - cosAs*cosAs ) ;
         const complex<double> cos2As = 2.0 * cosAs * cosAs - 1.0 ;

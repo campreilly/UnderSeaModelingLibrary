@@ -90,8 +90,8 @@ BOOST_AUTO_TEST_CASE( thorp_test ) {
     }
 }
 
-BOOST_AUTO_TEST_CASE( complex_impedence ) {
-    cout << "=== attenuation_test: complex_impedence ===" << endl;
+BOOST_AUTO_TEST_CASE( complex_impedance ) {
+    cout << "=== attenuation_test: complex_impedance ===" << endl;
 
     const double speed = 1700 ;
     const double attenuation = 0.5 ;

@@ -68,8 +68,9 @@ int main() {
         target.longitude( n, 0, pos.longitude() + (inc * n) ) ;
     }
 
-    proploss loss( &target ) ;
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss ) ;
+    proploss loss( freq, pos, de, az, time_step, &target ) ;
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
+    wave.addProplossListener( &loss ) ;
 
     // propagate wavefront
     cout << "writing wavefronts to " << ncname_wave << endl;

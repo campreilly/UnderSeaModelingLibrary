@@ -750,6 +750,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
 
 /** Test in progress */
 BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
+    cout << "=== profile_model: bottom_type_effects ===" << endl;
     int month = 1 ;		        // January
     const double lat1 = 24.0 ;  // gulf of oman
     const double lat2 = 26.0 ;
@@ -1041,8 +1042,8 @@ BOOST_AUTO_TEST_CASE( munk_tl_plot ) {
     cout << "==== proploss_test: munk_tl_plot ====" << endl;
 
     // Setup scenario parameters
-    int num_range_tar = 100 ;
-    int num_alt_tar = 100 ;
+    int num_range_tar = 10 ;
+    int num_alt_tar = 10 ;
     double c0 = 1500.0 ;
     wposition1 pos( 45.0, -45.0, -1000.0 ) ;
     double range = 101000.0 ;
@@ -1082,8 +1083,9 @@ BOOST_AUTO_TEST_CASE( munk_tl_plot ) {
             target.altitude( i, j, -inc_alt * j ) ;
         }
     }
-    proploss loss(&target);
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss );
+    proploss loss( freq, pos, de, az, time_step, &target ) ;
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
+    wave.addProplossListener( &loss ) ;
 
     cout << "propagate wavefronts for " << time_max << endl;
     cout << "writing wavefronts to " << ncname_wave << endl;
@@ -1110,8 +1112,8 @@ BOOST_AUTO_TEST_CASE( surface_duct_tl_plot ) {
     cout << "==== proploss_test: surface_duct_tl_plot ====" << endl;
 
     // Setup scenario parameters
-    int num_range_tar = 100 ;
-    int num_alt_tar = 100 ;
+    int num_range_tar = 10 ;
+    int num_alt_tar = 10 ;
     double c0 = 1476.0 ;
     wposition1 pos( 45.0, -45.0, -25.0 ) ;
     double range = 151000.0 ;
@@ -1177,9 +1179,8 @@ BOOST_AUTO_TEST_CASE( surface_duct_tl_plot ) {
             target.altitude( i, j, -inc_alt * j ) ;
         }
     }
-    proploss loss(&target);
-    proploss loss(freq, pos, de, az, 0.01, &target);
-    wave_queue wave( ocean, freq, pos, de, az, 0.01, &target ) ;
+    proploss loss( freq, pos, de, az, time_step, &target );
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
     wave.addProplossListener(&loss);
 
     cout << "propagate wavefronts for " << time_max << endl;
@@ -1224,8 +1225,8 @@ BOOST_AUTO_TEST_CASE( lloyds_mirror_tl_plot ) {
     cout << asctime(&finish_time) ;
 
     // Setup scenario parameters
-    int num_range_tar = 100 ;
-    int num_alt_tar = 100 ;
+    int num_range_tar = 10 ;
+    int num_alt_tar = 10 ;
     double c0 = 1500.0 ;
     wposition1 pos( 45.0, -45.0, -25.0 ) ;
     double range = 1e4 ;
@@ -1263,9 +1264,9 @@ BOOST_AUTO_TEST_CASE( lloyds_mirror_tl_plot ) {
             target.altitude( i, j, -inc_alt * j ) ;
         }
     }
-    proploss loss(&target);
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &loss );
-//    wave_queue wave( ocean, freq, pos, de, az, time_step );
+    proploss loss( freq, pos, de, az, time_step, &target ) ;
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
+    wave.addProplossListener( &loss ) ;
 
     cout << "propagate wavefronts for " << time_max << endl;
     cout << "writing wavefronts to " << ncname_wave << endl;

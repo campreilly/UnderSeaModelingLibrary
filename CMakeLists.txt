@@ -203,8 +203,7 @@ if (USML_BUILD_TESTS)
 	# generated data files for bathymetry tests
 
 	if ( EXISTS ${NETCDF_NCKS} )
-	    set( USML_DATA_BATHYMETRY ${USML_DATA_DIR}/bathymetry/ETOPO1_Ice_g_gmt4.grd
-		FILEPATH "data file for ETOPO bathymetry" )
+	    set( USML_DATA_BATHYMETRY ${USML_DATA_DIR}/bathymetry/ETOPO1_Ice_g_gmt4.grd )
 	    set( ETOPO_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/etopo_cmp )
 	    add_custom_command(
 	        OUTPUT ${ETOPO_CMP}.nc ${ETOPO_CMP}.log
@@ -236,8 +235,7 @@ if (USML_BUILD_TESTS)
 	# generated data files for profile tests
 
 	if ( EXISTS ${NETCDF_NCKS} )
-	    set( USML_DATA_TEMP_MONTH ${USML_DATA_DIR}/woa09/temperature_monthly_1deg.nc
-		    FILEPATH "data file for shallow WOA temperature profile" )
+	    set( USML_DATA_TEMP_MONTH ${USML_DATA_DIR}/woa09/temperature_monthly_1deg.nc )
 	    set( WOA_CMP ${PROJECT_SOURCE_DIR}/netcdf/test/woa_cmp )
 	    add_custom_command(
 	        OUTPUT ${WOA_CMP}.nc ${WOA_CMP}.log
