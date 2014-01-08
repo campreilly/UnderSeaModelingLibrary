@@ -52,9 +52,13 @@ wave_queue::wave_queue(
     double az_last = abs((*_source_az)(_source_az->size()-1)) ;
     double boundary_check = az_first + az_last ;
     if ( boundary_check == 360.0 &&
-        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) { az_boundary = true ; }
-    else { az_boundary = false ;}
-    _intensity_threshold = -300.00; //In dB
+        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) {
+        _az_boundary = true ;
+    }
+    else {
+        _az_boundary = false ;
+    }
+    _intensity_threshold = 300.00; // -300 db Store internally as positive value
 
     if ( _targets ) {
     	_targets_sin_theta = sin( _targets->theta() ) ;
@@ -311,15 +315,18 @@ void wave_queue::detect_eigenrays() {
     double& center = distance2[1][1][1] ;
     double az_start = 0 ;
 
-    if(!az_boundary) { az_start = 1 ; }
+    if(!_az_boundary) {
+        az_start = 1 ;
+    }
 
     // loop over all targets
     for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
         for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
-            de_branch = false ;
+            _de_branch = false ;
             if ( abs(_source_pos.latitude() - _targets->latitude(t1,t2)) < 1e-4 &&
-                 abs(_source_pos.longitude() - _targets->longitude(t1,t2)) < 1e-4 )
-                 { de_branch = true ; }
+                 abs(_source_pos.longitude() - _targets->longitude(t1,t2)) < 1e-4 ) {
+                _de_branch = true ;
+            }
 
             // Loop over all rays
             for ( unsigned de=1 ; de < num_de() - 1 ; ++de ) {
@@ -367,10 +374,10 @@ bool wave_queue::is_closest_ray(
 ) {
     /**
      * In order to speed up the code, it required splitting the code
-     * to run faster. This then only checks the az_boundary condition
+     * to run faster. This then only checks the _az_boundary condition
      * once per function call.
      */
-    if(az_boundary) {
+    if(_az_boundary) {
         // test all neighbors that are not the central ray
         for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
             for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
@@ -411,7 +418,7 @@ bool wave_queue::is_closest_ray(
                 // allows extrapolation outside of ray family
 
                 if ( a == num_az()-1 ) continue;
-                if ( de_branch ) {
+                if ( _de_branch ) {
                     if ( _curr->on_edge(d,a) ) continue ;
                 } else {
                     if ( nde != 1 ) {
@@ -422,7 +429,7 @@ bool wave_queue::is_closest_ray(
                 // test to see if the center value is the smallest
 
                 if ( nde == 2 || naz == 2 ) {
-                    if ( de_branch ) {
+                    if ( _de_branch ) {
                         if ( az == 0 ) {
                             if ( distance2[1][nde][naz] < center ) return false ;
                         } else { return false ; }
@@ -470,7 +477,7 @@ bool wave_queue::is_closest_ray(
                 // allows extrapolation outside of ray family
 
                 if ( a == 0 || a == num_az()-1 ) continue;
-                if ( de_branch ) {
+                if ( _de_branch ) {
                     if ( _curr->on_edge(d,a) ) continue ;
                 } else {
                     if ( nde != 1 ) {
@@ -481,7 +488,7 @@ bool wave_queue::is_closest_ray(
                 // test to see if the center value is the smallest
 
                 if ( nde == 2 || naz == 2 ) {
-                    if ( de_branch ) {
+                    if ( _de_branch ) {
                         if ( az == 0 ) {
                             if ( distance2[1][nde][naz] < center ) return false ;
                         } else { return false ; }
@@ -496,8 +503,9 @@ bool wave_queue::is_closest_ray(
             }
         }
         return true ;
-    } // end if az_boundary
-}
+    } // end if _az_boundary
+
+} // end is_closest_ray
 
 /**
  * Used by detect_eigenrays() to compute eigenray parameters and
@@ -598,10 +606,10 @@ void wave_queue::build_eigenray(
     const int caustic = _curr->caustic(de,az) ;
     /**
      * In order to speed up the code, it required splitting the code
-     * to run faster. This then only checks the az_boundary condition
+     * to run faster. This then only checks the _az_boundary condition
      * once per function call.
      */
-    if(az_boundary) {
+    if(_az_boundary) {
         for ( unsigned nde=0 ; nde < 3 && !unstable ; ++nde ) {
             unsigned d = de + nde -1 ;
             for ( unsigned naz=0 ; naz < 3 && !unstable ; ++naz ) {
@@ -652,7 +660,8 @@ void wave_queue::build_eigenray(
                 }
             }
         }
-    } // end if az_boundary
+    } // end if _az_boundary
+
     compute_offsets( distance2, delta, offset, distance, unstable ) ;
 
     // build basic eigenray products
@@ -707,9 +716,10 @@ void wave_queue::build_eigenray(
             + _curr->attenuation(de,az) * dt ;
     }
 
-    // determine if intensity is weaker than the _intensity_threshold
-    // if intensity at any frequency is less than _intensity_threshold
-    // complete ray build and send to listeners; discard otherwise
+    // Determine if intensity is weaker than the _intensity_threshold.
+    // Note ray.intensity is a positive value.
+    // Thus if ray.intensity at any frequency is less than the _intensity_threshold
+    // complete the ray build and send to listeners; discard otherwise.
 
     bool bKeepRay = false;
     for ( unsigned int i = 0; i < ray.intensity.size(); ++i) {
@@ -732,10 +742,10 @@ void wave_queue::build_eigenray(
     // re-uses "distance2" variable to store D/E angles
     /**
      * In order to speed up the code, it required splitting the code
-     * to run faster. This then only checks the az_boundary condition
+     * to run faster. This then only checks the _az_boundary condition
      * once per function call.
      */
-    if(az_boundary) {
+    if(_az_boundary) {
         for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
             for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
                 unsigned d = de + nde - 1 ;
@@ -781,7 +791,7 @@ void wave_queue::build_eigenray(
                 }
             }
         }
-    } // end if az_boundary
+    } // end if _az_boundary
 
     double center ;
     c_vector<double,3> gradient ;
@@ -793,7 +803,7 @@ void wave_queue::build_eigenray(
     // estimate target AZ angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store AZ angles
 
-    if(az_boundary) {
+    if(_az_boundary) {
         for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
             for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
                 unsigned d = de + nde - 1 ;
@@ -839,7 +849,8 @@ void wave_queue::build_eigenray(
                 }
             }
         }
-    }// end if az_boundary
+    }// end if _az_boundary
+
     make_taylor_coeff( distance2, delta, center, gradient, hessian, unstable ) ;
     ray.target_az = center + inner_prod( gradient, offset )
                   + 0.5 * inner_prod( offset, prod( hessian, offset ) ) ;
@@ -1008,44 +1019,44 @@ void wave_queue::make_taylor_coeff(
 }
 
 /**
-* Add a proplossListener to the m_ProplossListenerVec vector
+* Add a proplossListener to the _proplossListenerVec vector
 */
 bool wave_queue::addProplossListener(proplossListener* pListener) {
 
-	std::vector<proplossListener*>::iterator iter = find(m_ProplossListenerVec.begin(), m_ProplossListenerVec.end(), pListener);
-	if ( iter != m_ProplossListenerVec.end() ) {
+	std::vector<proplossListener*>::iterator iter = find(_proplossListenerVec.begin(), _proplossListenerVec.end(), pListener);
+	if ( iter != _proplossListenerVec.end() ) {
 		return false;
 	}
-	m_ProplossListenerVec.push_back(pListener);
+	_proplossListenerVec.push_back(pListener);
 	return true;
 }
 
 
 /**
- * Remove a proplossListener from the m_ProplossListenerVec vector
+ * Remove a proplossListener from the _proplossListenerVec vector
  */
 bool wave_queue::removeProplossListener(proplossListener* pListener){
 
-	std::vector<proplossListener*>::iterator iter = find(m_ProplossListenerVec.begin(), m_ProplossListenerVec.end(), pListener);
-	if ( iter == m_ProplossListenerVec.end() ){
+	std::vector<proplossListener*>::iterator iter = find(_proplossListenerVec.begin(), _proplossListenerVec.end(), pListener);
+	if ( iter == _proplossListenerVec.end() ){
 		return false;
 	} else {
-		m_ProplossListenerVec.erase(remove(m_ProplossListenerVec.begin(), m_ProplossListenerVec.end(), pListener));
+		_proplossListenerVec.erase(remove(_proplossListenerVec.begin(), _proplossListenerVec.end(), pListener));
 	}
 	return true;
 }
 
 /**
- * For each proplossListener in the m_ProplossListenerVec vector
+ * For each proplossListener in the _proplossListenerVec vector
  * call the addEigenray method to provide eigenrays.
  */
 bool wave_queue::notifyProplossListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray){
 
-	for (std::vector<proplossListener*>::iterator iter = m_ProplossListenerVec.begin();
-												iter != m_ProplossListenerVec.end(); ++iter){
+	for (std::vector<proplossListener*>::iterator iter = _proplossListenerVec.begin();
+												iter != _proplossListenerVec.end(); ++iter){
 		proplossListener* proploss = *iter;
 		proploss->addEigenray(targetRow, targetCol, pEigenray);
 	}
 
-	return (m_ProplossListenerVec.size() > 0);
+	return (_proplossListenerVec.size() > 0);
 }

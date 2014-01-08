@@ -128,7 +128,6 @@ class USML_DECLSPEC wave_queue {
      */
     spreading_model* _spreading_model ;
 
-
     /**
      * The value of the intensity threshold in dB
      * Any eigenray intensity values that are weaker than this
@@ -154,7 +153,7 @@ class USML_DECLSPEC wave_queue {
 	* update classes that require eigenrays as they are built.
 	* These classes must implement addEigenray method.
 	*/
-    std::vector<proplossListener *> m_ProplossListenerVec;
+    std::vector<proplossListener *> _proplossListenerVec;
 
     /**
      * Create an Azimuthal boundary loop condition upon initialization.
@@ -162,13 +161,13 @@ class USML_DECLSPEC wave_queue {
      * for instances where the first azimuthal angle is equivalent to
      * the last azimuthal angle in the AZ vector that is passed.
      */
-    bool az_boundary ;
+    bool _az_boundary ;
 
     /**
      * Treat all targets that are slightly away from directly above the
      * source as special cases.
      */
-    bool de_branch ;
+    bool _de_branch ;
 
   public:
 
@@ -297,10 +296,14 @@ class USML_DECLSPEC wave_queue {
 
     /**
 	 * setIntensityThreshold
-	 * @param  dThreshold The new value of the intensity threshold in dB
+	 * @param  dThreshold The new value of the intensity threshold in dB.
+	 *
 	 */
 	inline void setIntensityThreshold(double dThreshold) {
-		_intensity_threshold = dThreshold;
+
+	    // Convert to absolute value for later comparison
+	    // with the positive ray.intensity value.
+		_intensity_threshold = abs(dThreshold);
 	}
 	/**
 	 * getIntensityThreshold
@@ -320,17 +323,17 @@ class USML_DECLSPEC wave_queue {
     void set_surface_reverb( reverb_model* model ) ;
 
     /**
-     * Add a proplossListener to the m_ProplossListenerVec vector
+     * Add a proplossListener to the _proplossListenerVec vector
      */
     bool addProplossListener(proplossListener* pListener);
 
     /**
-	 * Remove a proplossListener from the m_ProplossListenerVec vector
+	 * Remove a proplossListener from the _proplossListenerVec vector
 	 */
     bool removeProplossListener(proplossListener* pListener);
 
     /**
-     * For each proplossListener in the m_ProplossListenerVec vector
+     * For each proplossListener in the _proplossListenerVec vector
      * call the addEigenray method to provide eigenrays.
      */
     bool notifyProplossListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray);
