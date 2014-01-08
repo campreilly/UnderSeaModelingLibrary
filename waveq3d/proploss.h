@@ -160,7 +160,7 @@ public:
      *
      * @param   t1              Row number of the current target.
      * @param   t2              Column number of the current target.
-     * @return  eigenray_list   Pointer to eigenray list for single target.
+     * @return  eigenray_list   Pointer to eigenray_list for single target.
      */
     inline eigenray_list* eigenrays(unsigned t1, unsigned t2) {
         return &(_eigenrays(t1, t2));
@@ -172,7 +172,7 @@ public:
      *
      * @param   t1          Row number of the current target.
      * @param   t2          Column number of the current target.
-     * @return  eigenray    Updated eigenray pointer
+     * @return  eigenray*   Pointer to eigenray class.
      */
     inline const eigenray* total(unsigned t1, unsigned t2) {
         return &(_loss(t1, t2));
@@ -183,7 +183,7 @@ public:
 	 * implementation of the pure virtual method of proplossListener.
 	 * @param   targetRow          Row number of the current target.
 	 * @param   targetCol          Column number of the current target.
-	 * @param   pclRay             The eigenray to add.
+	 * @param   pRay               The eigenray to add.
 	 * @return                     True on success, false on failure.
 	 */
 	bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pclRay );
