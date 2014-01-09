@@ -811,16 +811,16 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
 
     pLoss->sum_eigenrays();
     cout << "\n\n=====Eigenrays --> Rayleigh::SILT=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
+    cout << "time (s)    bounces(s,b,c)    launch angle    arrival angle        TL            phase" << endl ;
     cout << std::setprecision(5) ;
     for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
     {
         cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
+        << "       (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
+        << "\t\t" << (*iter).source_de
+        << "\t\t" << (*iter).target_de
         << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
+        << "\t " << (*iter).phase(0)
         << endl;
     }
 
@@ -837,16 +837,16 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
 
     pLoss->sum_eigenrays();
     cout << "=====Eigenrays --> Rayleigh::SAND=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
+    cout << "time (s)    bounces(s,b,c)    launch angle    arrival angle        TL            phase" << endl ;
     cout << std::setprecision(5) ;
     for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
     {
         cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
+        << "       (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
+        << "\t\t" << (*iter).source_de
+        << "\t\t" << (*iter).target_de
         << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
+        << "\t " << (*iter).phase(0)
         << endl;
     }
 
@@ -863,16 +863,16 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
 
     pLoss->sum_eigenrays();
     cout << "=====Eigenrays --> Rayleigh::CLAY=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
+    cout << "time (s)    bounces(s,b,c)    launch angle    arrival angle        TL            phase" << endl ;
     cout << std::setprecision(5) ;
     for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
     {
         cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
+        << "       (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
+        << "\t\t" << (*iter).source_de
+        << "\t\t" << (*iter).target_de
         << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
+        << "\t " << (*iter).phase(0)
         << endl;
     }
 
@@ -889,16 +889,16 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
 
     pLoss->sum_eigenrays();
     cout << "=====Eigenrays --> Rayleigh::LIMESTONE=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
+    cout << "time (s)    bounces(s,b,c)    launch angle    arrival angle        TL            phase" << endl ;
     cout << std::setprecision(5) ;
     for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
     {
         cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
+        << "       (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
+        << "\t\t" << (*iter).source_de
+        << "\t\t" << (*iter).target_de
         << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
+        << "\t " << (*iter).phase(0)
         << endl;
     }
 
@@ -915,16 +915,16 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
 
     pLoss->sum_eigenrays();
     cout << "=====Eigenrays --> Rayleigh::BASALT=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
+    cout << "time (s)    bounces(s,b,c)    launch angle    arrival angle        TL            phase" << endl ;
     cout << std::setprecision(5) ;
     for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
     {
         cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
+        << "       (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
+        << "\t\t" << (*iter).source_de
+        << "\t\t" << (*iter).target_de
         << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
+        << "\t " << (*iter).phase(0)
         << endl;
     }
 
@@ -941,16 +941,16 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
 
     pLoss->sum_eigenrays();
     cout << "=====Eigenrays --> Rayleigh::GRAVEL=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
+    cout << "time (s)    bounces(s,b,c)    launch angle    arrival angle        TL            phase" << endl ;
     cout << std::setprecision(5) ;
     for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
     {
         cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
+        << "       (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
+        << "\t\t" << (*iter).source_de
+        << "\t\t" << (*iter).target_de
         << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
+        << "\t " << (*iter).phase(0)
         << endl;
     }
 
@@ -967,16 +967,16 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
 
     pLoss->sum_eigenrays();
     cout << "=====Eigenrays --> Rayleigh::MORAINE=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
+    cout << "time (s)    bounces(s,b,c)    launch angle    arrival angle        TL            phase" << endl ;
     cout << std::setprecision(5) ;
     for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
     {
         cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
+        << "       (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
+        << "\t\t" << (*iter).source_de
+        << "\t\t" << (*iter).target_de
         << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
+        << "\t " << (*iter).phase(0)
         << endl;
     }
 
@@ -993,16 +993,16 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
 
     pLoss->sum_eigenrays();
     cout << "=====Eigenrays --> Rayleigh::CHALK=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
+    cout << "time (s)    bounces(s,b,c)    launch angle    arrival angle        TL            phase" << endl ;
     cout << std::setprecision(5) ;
     for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
     {
         cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
+        << "       (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
+        << "\t\t" << (*iter).source_de
+        << "\t\t" << (*iter).target_de
         << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
+        << "\t " << (*iter).phase(0)
         << endl;
     }
 
@@ -1019,16 +1019,16 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
 
     pLoss->sum_eigenrays();
     cout << "=====Eigenrays --> Rayleigh::MUD=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
+    cout << "time (s)    bounces(s,b,c)    launch angle    arrival angle        TL            phase" << endl ;
     cout << std::setprecision(5) ;
     for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
     {
         cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
+        << "       (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
+        << "\t\t" << (*iter).source_de
+        << "\t\t" << (*iter).target_de
         << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
+        << "\t " << (*iter).phase(0)
         << endl;
     }
 }

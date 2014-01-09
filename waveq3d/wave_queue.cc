@@ -52,19 +52,9 @@ wave_queue::wave_queue(
     double az_last = abs((*_source_az)(_source_az->size()-1)) ;
     double boundary_check = az_first + az_last ;
     if ( boundary_check == 360.0 &&
-<<<<<<< HEAD
-        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) { az_boundary = true ; }
-    else { az_boundary = false ;}
+        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) { _az_boundary = true ; }
+    else { _az_boundary = false ;}
     _intensity_threshold = 300.0; //In dB
-=======
-        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) {
-        _az_boundary = true ;
-    }
-    else {
-        _az_boundary = false ;
-    }
-    _intensity_threshold = 300.00; // -300 db Store internally as positive value
->>>>>>> 7b304d877a37a23a965bacc3704b4130b4b35ca8
 
     if ( _targets ) {
     	_targets_sin_theta = sin( _targets->theta() ) ;
