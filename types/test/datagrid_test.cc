@@ -5,7 +5,11 @@
 #include <usml/types/types.h>
 #include <iostream>
 #include <stdio.h>
+#ifdef WIN32
+#include "sys_time_win32.h"
+#else
 #include <sys/time.h>
+#endif
 #include <usml/netcdf/netcdf_files.h>
 
 BOOST_AUTO_TEST_SUITE(datagrid_test)

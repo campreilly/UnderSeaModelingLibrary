@@ -19,7 +19,7 @@ namespace waveq3d {
  * The addEigenray call must be defined in each class which inherits it.
  */
 
-class proplossListener
+class USML_DECLSPEC proplossListener
 {
 public:
 
