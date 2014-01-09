@@ -8,7 +8,11 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#ifdef WIN32
+#include "sys_time_win32.h"
+#else
 #include <sys/time.h>
+#endif
 
 BOOST_AUTO_TEST_SUITE(reflection_test)
 

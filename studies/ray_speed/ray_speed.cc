@@ -20,7 +20,11 @@
 #include <usml/netcdf/netcdf_files.h>
 #include <fstream>
 #include <iomanip>
+#ifdef WIN32
+#include "sys_time_win32.h"
+#else
 #include <sys/time.h>
+#endif
 
 using namespace usml::waveq3d ;
 using namespace usml::netcdf ;

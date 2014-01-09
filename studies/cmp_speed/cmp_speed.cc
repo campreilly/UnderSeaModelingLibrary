@@ -19,7 +19,11 @@
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/netcdf/netcdf_files.h>
 #include <fstream>
+#ifdef WIN32
+#include "sys_time_win32.h"
+#else
 #include <sys/time.h>
+#endif
 
 using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
