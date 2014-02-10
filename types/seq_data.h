@@ -137,7 +137,14 @@ public:
      *
      * @param  size		  Length of the sequence to create.
      */
-    seq_data(size_type size) : seq_vector(size) {
+    seq_data(size_type size) :
+        seq_vector(size),
+        _index(0),
+        _value(NULL),
+        _index_data(NULL),
+        _sign(1.0)
+    {
+
     }
 
     /**
