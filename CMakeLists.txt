@@ -283,12 +283,6 @@ if (USML_BUILD_STUDIES)
 #add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
 #target_link_libraries( cmp_speed usml )
 
-add_executable( analytic_wedge studies/analytic_wedge/analytic_wedge.cc )
-target_link_libraries( analytic_wedge usml )
-
-add_executable( pekeris_waveguide studies/pekeris/pekeris_waveguide.cc )
-target_link_libraries( pekeris_waveguide usml )
-
 add_executable( ray_speed studies/ray_speed/ray_speed.cc )
 target_link_libraries( ray_speed usml )
 
@@ -308,7 +302,7 @@ add_executable( waveq3d_visual studies/waveq3d_visual/waveq3d_visual.cc )
 target_link_libraries( waveq3d_visual usml )
 
 set_property(
-   TARGET analytic_wedge pekeris_waveguide ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays waveq3d_visual
+   TARGET ray_speed eigenray_extra_test pedersen_test malta_movie malta_rays waveq3d_visual
    PROPERTY COMPILE_DEFINITIONS
 	USML_DATA_DIR="${USML_DATA_DIR}"
 	USML_STUDIES_DIR="${USML_STUDIES_DIR}"
