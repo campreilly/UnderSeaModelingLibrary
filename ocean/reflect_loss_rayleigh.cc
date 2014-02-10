@@ -37,15 +37,14 @@ struct reflect_loss_rayleigh::bottom_type_table
     { CHALK,      2.2, 1.60, 0.2, 0.67,  0.5  },
     { LIMESTONE,  2.4, 2.00, 0.1, 1.00,  0.2  },
     { BASALT,     2.7, 3.50, 0.1, 1.67,  0.2  },
-    { MUD,        1.1474189, 0.9848732, 0.0151946, 0.02, 0.02 },                    ///< CASS rayleigh MUD parameters
+  //  { MUD,        1.1474189, 0.9848732, 0.0151946, 0.02, 0.02 },                    ///< CASS rayleigh MUD parameters
 } ;
 
 /**
  * Initialize model with impedance mis-match factors.
  */
-reflect_loss_rayleigh::reflect_loss_rayleigh(
-    bottom_type_enum type
-) :
+reflect_loss_rayleigh::reflect_loss_rayleigh(bottom_type_enum type)
+    :
     _density_water(1000.0),
     _speed_water(1500.0),
     _density_bottom( _density_water * lookup[(int)type].density ),
@@ -53,6 +52,21 @@ reflect_loss_rayleigh::reflect_loss_rayleigh(
     _att_bottom( lookup[(int)type].att_bottom * ATT_CONVERT ),
     _speed_shear( _speed_water * lookup[(int)type].speed_shear ),
     _att_shear( lookup[(int)type].att_shear * ATT_CONVERT )
+{
+}
+
+/**
+ * Initialize model with impedance mis-match factors.
+ */
+reflect_loss_rayleigh::reflect_loss_rayleigh(int type)
+    :
+    _density_water(1000.0),
+    _speed_water(1500.0),
+    _density_bottom( _density_water * lookup[type].density ),
+    _speed_bottom( _speed_water * lookup[type].speed ),
+    _att_bottom( lookup[type].att_bottom * ATT_CONVERT ),
+    _speed_shear( _speed_water * lookup[type].speed_shear ),
+    _att_shear( lookup[type].att_shear * ATT_CONVERT )
 {
 }
 
