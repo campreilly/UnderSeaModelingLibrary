@@ -17,11 +17,11 @@ using namespace usml::ocean;
 
 /**
  * Test the basic features of the reflection loss model using
- * the netCDF bottom province file.
+ * the netCDF bottom type file.
  * Generate errors if values differ by more that 1E-5 percent.
  */
 BOOST_AUTO_TEST_CASE( reflect_loss_netcdf_test ) {
-	cout << " === reflection_loss_test: reflection_loss_netcdf bottom province file === " << endl;
+	cout << " === reflection_loss_test: reflection_loss_netcdf bottom type file === " << endl;
 	reflect_loss_netcdf netcdf( USML_DATA_DIR "/bottom_province/sediment_test.nc" );
 
     seq_linear frequency(1000.0, 10000.0, 0.01);
@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE( reflect_loss_netcdf_test ) {
     double sand = 10.166660;
     double tolerance = 1e-5;
 
-	/** province numbers in the center of the data field top left, right, bottom left, right */
+	/** bottom type numbers in the center of the data field top left, right, bottom left, right */
 	netcdf.reflect_loss(wposition1(29.5, -83.4), frequency, angle, &amplitude);
 	BOOST_CHECK_CLOSE(amplitude(0), limestone, tolerance);
 	netcdf.reflect_loss(wposition1(30.5, -83.4), frequency, angle, &amplitude);
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE( reflect_loss_netcdf_test ) {
 	BOOST_CHECK_CLOSE(amplitude(0), sand, tolerance);
 	netcdf.reflect_loss(wposition1(30.5, -84.2), frequency, angle, &amplitude);
 	BOOST_CHECK_CLOSE(amplitude(0), limestone, tolerance);
-	/** province numbers at the corners of the data field top left, bottom left, top right, bottom right */
+	/** bottom type numbers at the corners of the data field top left, bottom left, top right, bottom right */
 	netcdf.reflect_loss(wposition1(26, -80), frequency, angle, &amplitude);
 	BOOST_CHECK_CLOSE(amplitude(0), sand, tolerance);
 	netcdf.reflect_loss(wposition1(26, -89), frequency, angle, &amplitude);
