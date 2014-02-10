@@ -3,6 +3,7 @@
  */
 #include <boost/test/unit_test.hpp>
 #include <usml/ocean/ocean.h>
+#include <fstream>
 
 BOOST_AUTO_TEST_SUITE(attenuation_test)
 
@@ -56,8 +57,8 @@ BOOST_AUTO_TEST_CASE( constant_attenuation_test ) {
  * Jensen, et. al., we only expect the results to match
  * within 20% and only at 400 Hz and above.
  */
-BOOST_AUTO_TEST_CASE( thorp_test ) {
-    cout << "=== attenuation_test: thorp_test ===" << endl;
+BOOST_AUTO_TEST_CASE( thorp_test_a ) {
+    cout << "=== attenuation_test: thorp_test_a ===" << endl;
 
     // simple values for points and distance
 
@@ -87,6 +88,40 @@ BOOST_AUTO_TEST_CASE( thorp_test ) {
         if (freq(f) > 400.0) {
             BOOST_CHECK_CLOSE(atten(0, 0)(f), gsm_thorp[f], 20.0);
         }
+    }
+}
+
+/**
+ * Reproduce the plot shown in Jensen, et al. Computational
+ * Ocean Acoustics p37 Fig. 1.20
+ */
+BOOST_AUTO_TEST_CASE( thorp_test_b ) {
+    cout << "=== attenuation_test: thorp_test_b ===" << endl;
+
+    // simple values for points and distance
+
+    wposition points(1, 1);
+    points.altitude(0, 0, -1000.0);
+
+    matrix<double> distance(1, 1);
+    distance(0, 0) = 1000.0;
+
+    // compute attenuation
+
+    seq_linear freq(0.0, 10.0, 1e7);
+    matrix < vector<double> > atten(1, 1);
+    atten(0, 0).resize(freq.size());
+
+    attenuation_thorp model;
+    model.attenuation(points, freq, distance, &atten);
+
+    const char* name = USML_TEST_DIR "/ocean/test/attenuation_plot.csv" ;
+    std::ofstream os(name) ;
+    cout << "writing tables to " << name << endl ;
+
+    os << "freq,atten" << endl ;
+    for (unsigned f = 0; f < freq.size(); ++f) {
+        os << freq(f) << "," << atten(0, 0)(f) << endl ;
     }
 }
 

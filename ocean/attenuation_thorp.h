@@ -1,4 +1,4 @@
-/** 
+/**
  * @file attenuation_thorp.h
  * Models attenuation loss using Thorp's model.
  */
@@ -19,8 +19,8 @@ using boost::numeric::ublas::vector;
 /**
  * Models attenuation loss using the Thorp's model.
  * <pre>
- *      attenuation (dB/km) = 
- *            0.0033 + F2* ( 3.0e-4 + 44.0/(4100.0 + F2) 
+ *      attenuation (dB/km) =
+ *            0.0033 + F2* ( 3.0e-4 + 44.0/(4100.0 + F2)
  *          + 0.11/(1.0 + F2) );
  *
  * where:
@@ -34,7 +34,7 @@ using boost::numeric::ublas::vector;
  * The effect of pressure on absorption is taken into account with a depth
  * correction term:
  * <pre>
- *      attenuation(d0) = attenuation(d0) 
+ *      attenuation(d) = attenuation(d0)
  *                       ( 1 - 5.88264e-6 d ) / ( 1 - 5.88264e-6 d0 )
  *
  * where:
@@ -43,7 +43,7 @@ using boost::numeric::ublas::vector;
  *      attenuation(d0) = attenuation at reference depth.
  * </pre>
  *
- * @xref R.J. Urick, Principles of Underwater Sound, 3rd Edition, 
+ * @xref R.J. Urick, Principles of Underwater Sound, 3rd Edition,
  * (1983), p. 108.
  *
  * @xref R.H. Fisher, "Effect of High Pressure on Sound Absorption
@@ -71,12 +71,12 @@ class USML_DECLSPEC attenuation_thorp : public attenuation_model {
      * @param distance      Distance traveled through the water (meters).
      * @param attenuation   Absorption loss of sea water in dB (output).
      */
-    virtual void attenuation( 
-        const wposition& location, 
+    virtual void attenuation(
+        const wposition& location,
         const seq_vector& frequencies,
         const matrix<double>& distance,
         matrix< vector<double> >* attenuation ) ;
-        
+
 } ;
 
 /// @}

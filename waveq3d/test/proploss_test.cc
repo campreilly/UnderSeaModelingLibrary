@@ -367,9 +367,9 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
  *
  * - "bias" is the mean difference and it measures offsets in level.
  * - "dev" is an estimate of the sqrt of the variance and it is a measure of
- *   the difference in flucuations of between the models.
+ *   the difference in flucuations between the models.
  * - "detcoef" is the coefficient of determination and it measure of the
- *   fraction of the model that is predicts the analytic solution.
+ *   fraction of the model that predicts the analytic solution.
  *
  * An automatic error is thrown if abs(bias) > 0.5 dB, detcoef < 80% or dev > 4 db.
  * Special case for dev on 10 Hz and 10000 Hz; abs(dev) > 5 db.
@@ -458,7 +458,8 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
 
     for (unsigned f=0; f < freq.size(); ++f)
     {
-        const double wavenum = TWO_PI * freq(f) / c0;
+        const double wavenum = TWO_PI * freq(f) / c0 ;
+        os << "freq: " << freq(f) << endl;
 
         for (unsigned n = 0; n < range.size(); ++n)
         {
