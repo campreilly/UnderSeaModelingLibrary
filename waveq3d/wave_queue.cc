@@ -52,13 +52,9 @@ wave_queue::wave_queue(
     double az_last = abs((*_source_az)(_source_az->size()-1)) ;
     double boundary_check = az_first + az_last ;
     if ( boundary_check == 360.0 &&
-        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) {
-        _az_boundary = true ;
-    }
-    else {
-        _az_boundary = false ;
-    }
-    _intensity_threshold = 300.00; // -300 db Store internally as positive value
+        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) { _az_boundary = true ; }
+    else { _az_boundary = false ;}
+    _intensity_threshold = 300.0; //In dB
 
     if ( _targets ) {
     	_targets_sin_theta = sin( _targets->theta() ) ;
@@ -727,16 +723,25 @@ void wave_queue::build_eigenray(
 			bKeepRay = true;
 			break ;
 		}
+        if (!bKeepRay) {
+            #ifdef DEBUG_EIGENRAYS
+            std::cout << "warning: wave_queue::build_eigenray()"  << endl
+                      << "\tdiscards eigenray because intensity(" << i << ":"
+                      << ray.intensity(i) << ") at all freq's " << endl
+                      << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
+            #endif
+            return ;
+        }
 	}
 
-    if (!bKeepRay) {
-		#ifdef DEBUG_EIGENRAYS
-		std::cout << "warning: wave_queue::build_eigenray()"  << endl
-				  << "\tdiscards eigenray because intensity at all freq's " << endl
-				  << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
-		#endif
-		return ;
-    }
+//    if (!bKeepRay) {
+//		#ifdef DEBUG_EIGENRAYS
+//		std::cout << "warning: wave_queue::build_eigenray()"  << endl
+//				  << "\tdiscards eigenray because intensity(" << ray.intensity(0) << ") at all freq's " << endl
+//				  << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
+//		#endif
+//		return ;
+//    }
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles

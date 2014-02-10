@@ -161,10 +161,12 @@ private:
      * @param angle         Reflection angle relative to the normal (radians).
      * @param cosA          Returns the cosine of the transmitted angle
      *                      computed using Snell's Law.
+     * @param shear         Treat impendance for shear instances as special
+     *                      cases.
      */
     complex<double> impedance(
         double density, double speed, double attenuation, double angle,
-        complex< double >* cosA ) ;
+        complex< double >* cosA, bool shear ) ;
 
     // data members
 

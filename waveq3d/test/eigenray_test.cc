@@ -258,7 +258,6 @@ BOOST_AUTO_TEST_CASE( eigenray_concave ) {
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
     wave.addProplossListener(&loss);
-    wave.setIntensityThreshold(200.00);
 
     // propagate rays & record to log file
 
