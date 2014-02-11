@@ -21,7 +21,7 @@ reflect_loss_rayleigh_grid::reflect_loss_rayleigh_grid(data_grid<double, 2>* bot
 {
     unsigned int n_types;
 
-    n_types = reflect_loss_rayleigh::MUD+1; // number of elements of reflect_loss_rayleigh.bottom_type_enum
+    n_types = reflect_loss_rayleigh::BASALT+1; // number of elements of reflect_loss_rayleigh.bottom_type_enum
 
 #ifdef USML_DEBUG
 

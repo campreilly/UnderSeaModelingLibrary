@@ -1004,7 +1004,17 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
         << endl;
     }
 
-    bottom->reflect_loss( new reflect_loss_rayleigh( reflect_loss_rayleigh::MUD ) ) ;
+    ///< CASS rayleigh MUD parameters
+    //    type    den        spd       att      shear  satt
+    //  { MUD, 1.1474189, 0.9848732, 0.0151946, 0.02,  0.02 }
+
+    double density = 1.1474189;
+    double speed = 0.9848732;
+    double att_bottom =  0.0151946;
+    double speed_shear = 0.02;
+    double att_shear = 0.02;
+
+    bottom->reflect_loss( new reflect_loss_rayleigh(density, speed, att_bottom,  speed_shear, att_shear ) ) ;
     delete pLoss ;
     delete pWave ;
     pLoss = new proploss(freq, pos, de, az, dt, &target) ;
