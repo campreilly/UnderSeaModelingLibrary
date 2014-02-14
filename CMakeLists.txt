@@ -32,7 +32,7 @@ option( Boost_FORCE_SHAREDLIB "Use Boost shared libraries" OFF )
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
 option( USML_BUILD_TESTS "build all Tests" ON )
 option( USML_BUILD_STUDIES "build all Studies" ON )
-option( USML_BUILD_ADDITIONS "build all Additions" ON )
+option( USML_BUILD_ADDITIONS "build all Additions" OFF )
 
 ######################################################################
 # Visual C++ compiler options
@@ -174,12 +174,12 @@ set( USML_ADDITIONS_DIR ${USML_ADDITIONS_ROOT}
 macro( FIND_SOURCES MODULES SUFFIX )
     foreach( MOD ${MODULES} )
         message( STATUS "processing ${MOD}${SUFFIX}" )
-        file( GLOB HDR_LIST ${MOD}${SUFFIX}/*.h )
+		file( GLOB HDR_LIST ${MOD}${SUFFIX}/*.h )
         set( HEADERS ${HEADERS} ${HDR_LIST} )
         file( GLOB SRC_LIST ${MOD}${SUFFIX}/*.cc )
         set( SOURCES ${SOURCES} ${SRC_LIST} )
         source_group( ${MOD} FILES ${HDR_LIST} ${SRC_LIST} )
-	if ( NOT ${SUFFIX} MATCHES "" )
+	    if ( NOT ${SUFFIX} MATCHES "" )
             install(FILES ${HDR_LIST} DESTINATION include/usml/${MOD})
         endif()
     endforeach( MOD )
