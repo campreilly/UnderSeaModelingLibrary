@@ -89,7 +89,7 @@ public:
 
     /** Bottom types supported by table lookup feature. */
     typedef enum {
-        CLAY, SILT, SAND, GRAVEL, MORAINE, CHALK, LIMESTONE, BASALT, MUD
+        CLAY, SILT, SAND, GRAVEL, MORAINE, CHALK, LIMESTONE, BASALT
     } bottom_type_enum ;
 
 

@@ -1,11 +1,15 @@
 #!/bin/bash
-version=0.04
-tar --exclude=data --exclude=doc --exclude=html --exclude=usml_api.html \
-    -czf ../usml-src-$version.tar.gz *
+version=0.05b
+
+# Do not follow or archive symbolic links
+find * -type f | tar --exclude=data --exclude=doc --exclude=html --exclude=usml_api.html --exclude=make_tar* \
+    -czf ../usml-src-$version.tar.gz -T -
 tar -czf ../usml-doc-$version.tar.gz usml_api.html html/*
 tar -czf ../usml-data-$version.tar.gz data/*
-zip --quiet -r ../usml-src-$version.zip * \
-    -x "data/*" -x "doc/*" -x "html/*" -x usml_api.html
+
+# Do not follow or archive symbolic links
+find * -type f | zip --quiet -r  ../usml-src-$version.zip -@ \
+    -x "data/*" -x "doc/*" -x "html/*" -x usml_api.html -x make_tar*
 zip --quiet -r ../usml-doc-$version.zip usml_api.html html/*
 zip --quiet -r ../usml-data-$version.zip data/*
 cp usml_install.html ..
