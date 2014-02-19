@@ -161,12 +161,11 @@ endif( NETCDF_FOUND )
 # Uses the USML_ADDITIONS_ROOT (variable or environment) to
 # over-ride the root of the Additions directory.
 
-if( NOT DEFINED USML_ADDITIONS_ROOT AND DEFINED ENV{USML_ADDITIONS_ROOT} )
-    set( USML_ADDITIONS_ROOT $ENV{USML_ADDITIONS_ROOT} CACHE PATH "Root of USML Additions Dir" )
-endif(NOT DEFINED USML_ADDITIONS_ROOT AND DEFINED ENV{USML_ADDITIONS_ROOT})
-
-set( USML_ADDITIONS_DIR ${USML_ADDITIONS_ROOT}
-         CACHE PATH "USML Additions directory" )
+if( NOT DEFINED USML_ADDITIONS_DIR AND DEFINED ENV{USML_ADDITIONS_ROOT} )
+    set( USML_ADDITIONS_DIR $ENV{USML_ADDITIONS_ROOT} CACHE PATH "Root of USML Additions Dir" )
+else()
+	set( USML_ADDITIONS_DIR "" CACHE PATH "USML Additions directory" )
+endif( NOT DEFINED USML_ADDITIONS_DIR AND DEFINED ENV{USML_ADDITIONS_ROOT} )
 
 ######################################################################
 # macro: searches a module list for headers and sources
