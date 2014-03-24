@@ -19,6 +19,7 @@
 //#define DEBUG_EIGENRAYS
 //#define DEBUG_CAUSTICS
 //#define DEBUG_REFLECT
+//#define DEBUG_ATTEN
 
 using namespace usml::waveq3d ;
 
@@ -174,7 +175,7 @@ void wave_queue::step() {
     _next = save ;
     _time += _time_step ;
 
-    #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS) || defined(DEBUG_REFLECT)
+    #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS) || defined(DEBUG_REFLECT) || defined(DEBUG_ATTEN)
         cout << "*** wave_queue::step: time=" << time() << endl ;
     #endif
 
@@ -184,6 +185,10 @@ void wave_queue::step() {
     ode_integ::ab3_ndir( _time_step, _past, _prev, _curr, _next ) ;
 
     _next->update() ;
+
+    #ifdef DEBUG_ATTEN
+        cout << "_curr->attenuation: " << _curr->attenuation << endl ;
+    #endif
 
     _next->attenuation += _curr->attenuation ;
     _next->phase += _curr->phase ;
@@ -224,6 +229,8 @@ void wave_queue::detect_reflections() {
 bool wave_queue::detect_reflections_surface( unsigned de, unsigned az ) {
     #ifdef DEBUG_REFLECT
         cout << "***Entering wave_queue::detect_reflect_surf***" << endl;
+        cout << "\t(de,az): (" << de << "," << az << ")     de(" << (*_source_de)(de)
+             << "),az(" << (*_source_az)(az) << ")" << endl ;
         cout << "\t_next->position.alt: " << _next->position.altitude(de,az) << endl;
     #endif
     if (_next->position.altitude(de,az) > 0.0) {
@@ -252,6 +259,8 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
     const double depth = height - _next->position.rho(de,az) ;
     #ifdef DEBUG_REFLECT
         cout << "***Entering wave_queue::detect_reflect_bot***" << endl;
+        cout << "\t(de,az): (" << de << "," << az << ")     de(" << (*_source_de)(de)
+             << "),az(" << (*_source_az)(az) << ")" << endl ;
         cout << "\t_next->position.rho: " << _next->position.rho(de,az) - wposition::earth_radius
                                           << endl;
         cout << "\theight: " << height - wposition::earth_radius << "\tdepth: " << depth << endl;

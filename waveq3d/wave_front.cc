@@ -4,7 +4,7 @@
  */
 #include <usml/waveq3d/wave_front.h>
 
-//#define SSP_DEBUG
+//#define DBEUG_SSP
 
 using namespace usml::waveq3d ;
 
@@ -225,12 +225,12 @@ void wave_front::compute_target_distance() {
  * Compute terms in the sound speed profile as fast as possible.
  */
 void wave_front::compute_profile() {
-    #ifdef SSP_DEBUG
+    #ifdef DEBUG_SSP
         cout << "***Entering wave_front::compute_profile()***" << endl;
     #endif
     _ocean.profile().sound_speed( position, &sound_speed, &sound_gradient);
     _ocean.profile().attenuation( position, *_frequencies, distance, &attenuation);
-    #ifdef SSP_DEBUG
+    #ifdef DEBUG_SSP
         cout << "\tsound_speed: " << sound_speed << endl;
         cout << "\t---sound_gradient---" << endl;
         for ( unsigned n1=0 ; n1 < num_de() ; ++n1 ) {
