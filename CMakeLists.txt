@@ -17,7 +17,7 @@ cmake_minimum_required( VERSION 2.6 )
 project( usml CXX )
 
 set( PACKAGE_VERSION_MAJOR 0 )
-set( PACKAGE_VERSION_MINOR 4 )
+set( PACKAGE_VERSION_MINOR 5 )
 set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
 set( PACKAGE_MODULES ublas types netcdf ocean waveq3d)
 set( NETCDF_NCKS /usr/bin/ncks )
@@ -60,19 +60,19 @@ else( CMAKE_COMPILER_IS_GNUCXX )
         set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
     endif()
     if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) ) # no optimizations
-        if ( PROFILE_TIME )                	# Profile Function Timing
+        if ( GPROF_PROFILER )                	# Profile Function Timing
             add_definitions( -pg -O0 )
             set ( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg" )
         else()
             add_definitions( -O0 )
-        endif ( PROFILE_TIME )
+        endif ( GPROF_PROFILER )
     else()                              	# max optimizations
-        if ( PROFILE_TIME )                	# Profile Function Timing
+        if ( GPROF_PROFILER )                	# Profile Function Timing
             add_definitions( -pg -ffast-math)
             set ( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg" )
         else()
             add_definitions( -g -ffast-math )
-        endif ( PROFILE_TIME )
+        endif ( GPROF_PROFILER )
     endif()
     if ( USML_PEDANTIC )                	# standards compliance
         add_definitions( -std=c++98 -pedantic -Wall -Werror
@@ -114,7 +114,7 @@ else ()
 endif ( BUILD_SHARED_LIBS OR Boost_FORCE_SHAREDLIB )
 
 set(Boost_ADDITIONAL_VERSIONS
-	"1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.520")
+	"1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0")
 find_package( Boost 1.41 REQUIRED COMPONENTS
     unit_test_framework        # for usml_test.exe
     )
