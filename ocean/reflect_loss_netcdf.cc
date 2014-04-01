@@ -5,30 +5,32 @@
 #include <usml/ocean/reflect_loss_netcdf.h>
 #include <exception>
 
+//#define DEBUG_NETCDF
+
 using namespace usml::ocean ;
 
 reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 
 	NcFile file( filename );
-	NcVar *lat = file.get_var("lat");                       ///< lat : latitude in degrees
-	NcVar *lon = file.get_var("lon");                       ///< lon : longitude in degrees
-	NcVar *bot_num = file.get_var("type");                  ///< bot_num  : bottom province map
-	NcVar *bot_speed = file.get_var("speed_ratio");         ///< bot_speed  : speed ratio of the province
-	NcVar *bot_density = file.get_var("density_ratio");     ///< bot_density  : density ratio of the province
-	NcVar *bot_atten = file.get_var("atten");               ///< bot_atten  : attenuation value for the province
-	NcVar *bot_shear_speed = file.get_var("shear_speed");   ///< bot_shear_speed  : shear speed of the province
-	NcVar *bot_shear_atten = file.get_var("shear_atten");   ///< bot_shear_atten  : shear attenuation of the province
+	NcVar *bot_speed = file.get_var("speed_ratio");         // bot_speed  : speed ratio of the province
+	NcVar *bot_density = file.get_var("density_ratio");     // bot_density  : density ratio of the province
+	NcVar *bot_atten = file.get_var("atten");               // bot_atten  : attenuation value for the province
+	NcVar *bot_shear_speed = file.get_var("shear_speed");   // bot_shear_speed  : shear speed of the province
+	NcVar *bot_shear_atten = file.get_var("shear_atten");   // bot_shear_atten  : shear attenuation of the province
+	NcVar *lon = file.get_var("longitude");                 // lat : latitude in degrees
+	NcVar *lat = file.get_var("latitude");                  // lon : longitude in degrees
+	NcVar *bot_num = file.get_var("type");                  // bot_num  : bottom province map
 
     /** Gets the size of the dimensions to be used to create the data grid */
-    int ncid, latid, lonid, provid;
+    int ncid, latid, lonid, types;
     long latdim, londim, n_types;
     ncid = ncopen(filename, NC_NOWRITE);
-	latid = ncdimid(ncid, "lat");
+	latid = ncdimid(ncid, "latitude");
     ncdiminq(ncid, latid, 0, &latdim);
-    lonid = ncdimid(ncid, "lon");
+    lonid = ncdimid(ncid, "longitude");
     ncdiminq(ncid, lonid, 0, &londim);
-    provid = ncdimid(ncid, "num_types");
-    ncdiminq(ncid, provid, 0, &n_types);
+    types = ncdimid(ncid, "speed_ratio");
+    ncdiminq(ncid, types, 0, &n_types);
 
     /** Extracts the data for all of the variables from the netcdf file and stores them */
     double* latitude = new double[latdim];
@@ -55,14 +57,14 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
     double loninc = ( longitude[londim-1] - longitude[0] ) / londim ;
     axis[1] = new seq_linear(longitude[0], loninc, int(londim));
 
-#ifdef USML_DEBUG
-    cout << "===============axis layout=============" << endl;
-    cout << "lat first: " << latitude[0] << "\nlat last: " << latitude[latdim-1] << "\nlat inc: " << latinc <<  "\nnum elements: " << (*axis[0]).size() << endl;
-    cout << "lat axis: " << *axis[0] << endl;
-    cout << "lon first: " << longitude[0] << "\nlon last: " << longitude[londim-1] << "\nlon inc: " << loninc << endl;
-    cout << "lon axis: " << *axis[1] << endl;
-    cout << endl;
-#endif
+    #ifdef DEBUG_NETCDF
+        cout << "===============axis layout=============" << endl;
+        cout << "lat first: " << latitude[0] << "\nlat last: " << latitude[latdim-1] << "\nlat inc: " << latinc <<  "\nnum elements: " << (*axis[0]).size() << endl;
+        cout << "lat axis: " << *axis[0] << endl;
+        cout << "lon first: " << longitude[0] << "\nlon last: " << longitude[londim-1] << "\nlon inc: " << loninc << endl;
+        cout << "lon axis: " << *axis[1] << endl;
+        cout << endl;
+    #endif
 
     /** Creates a data grid with the above assigned axises and populates the grid with the data from the netcdf file */
     _bottom_grid = new data_grid<double,2>(axis);
@@ -75,20 +77,20 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
         }
     }
 
-#ifdef USML_DEBUG
-    cout << "==========data grid=============" << endl;
-    for(int i=0; i<londim; i++) {
-        for(int j=0; j<latdim; j++) {
-            index[0] = j;
-            index[1] = i;
-            cout << _bottom_grid->data(index) << ",";
-            if(j == latdim-1){
-                cout << endl;
+    #ifdef DEBUG_NETCDF
+        cout << "==========data grid=============" << endl;
+        for(int i=0; i<londim; i++) {
+            for(int j=0; j<latdim; j++) {
+                index[0] = j;
+                index[1] = i;
+                cout << _bottom_grid->data(index) << ",";
+                if(j == latdim-1){
+                    cout << endl;
+                }
             }
         }
-    }
-    cout << endl;
-#endif
+        cout << endl;
+    #endif
 
     /** Set the interpolation type to the nearest neighbor and restrict extrapolation */
     for(int i=0; i<2; i++){
@@ -98,20 +100,25 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 
     /** Builds a vector of reflect_loss_rayleigh values for all bottom province numbers */
     for(int i=0; i<int(n_types); i++) {
-        _rayleigh.push_back( new reflect_loss_rayleigh( density[i], speed[i]/1500, atten[i], shearspd[i]/1500, shearatten[i] ) );
+        _rayleigh.push_back( new reflect_loss_rayleigh( density[i], speed[i], atten[i], shearspd[i], shearatten[i] ) );
     }
 
-#ifdef USML_DEBUG
-    cout << "Sediment properties:" << endl;
-    cout << "\t\tSand\t\tLimestone" << endl;
-    cout << "density:\t" << density[0] << "\t\t" << density[1] << endl;
-    cout << "speed:\t\t" << speed[0] << "\t\t" << speed[1] << endl;
-    cout << "attenuation:\t" << atten[0] << "\t\t" << atten[1] << endl;
-    cout << "shear speed:\t" << shearspd[0] << "\t\t" << shearspd[1] << endl;
-    cout << "shear atten:\t" << shearatten[0] << "\t\t" << shearatten[1] << endl;
-    cout << "_bottom_grid:\t" << 0 << "\t\t" << 1 << endl;
-    cout << "_rayleigh:\t" << _rayleigh[0] << "\t" << _rayleigh[1] << endl << endl;
-#endif
+    #ifdef USML_DEBUG
+        cout << "***Sediment properties***" << endl;
+        cout << "type:\t" ;
+        for(int i=0; i<n_types; ++i) { cout << "\t" << i ; }
+        cout << "\ndensity: " ;
+        for(int i=0; i<n_types; ++i) { cout << "\t" << density[i] ; }
+        cout << "\nspeed:\t" ;
+        for(int i=0; i<n_types; ++i) { cout << "\t" << speed[i] ; }
+        cout << "\nattenuation: " ;
+        for(int i=0; i<n_types; ++i) { cout << "\t" << atten[i] ; }
+        cout << "\nshear_speed: " ;
+        for(int i=0; i<n_types; ++i) { cout << "\t" << shearspd[i] ; }
+        cout << "\nshear_atten: " ;
+        for(int i=0; i<n_types; ++i) { cout << "\t" << shearatten[i] ; }
+        cout << endl ;
+    #endif
 
 	delete[] latitude;
 	delete[] longitude;

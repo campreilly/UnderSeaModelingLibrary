@@ -243,8 +243,9 @@ BOOST_AUTO_TEST_CASE( reflect_slope_test ) {
         boundary_model* surface = new boundary_flat() ;
 
         wposition1 slope_ref( 45.1, -45.0, 0.0 ) ;
+        reflect_loss_model* slope_loss = new reflect_loss_rayleigh( reflect_loss_rayleigh::SILT ) ;
         boundary_model* bottom  = new boundary_slope(
-            slope_ref, 1000.0, to_radians(1.0) ) ;
+            slope_ref, 1000.0, to_radians(1.0), 0.0, slope_loss ) ;
 
         ocean_model ocean( surface, bottom, profile ) ;
 

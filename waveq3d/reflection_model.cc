@@ -126,9 +126,9 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
         + bottom_normal.phi() * ndirection.phi() ;  // negative #
     max_dot = - max( MIN_REFLECT, (height_water+depth)*bottom_normal.rho() ) ;
     if ( dot_full >= max_dot ) dot_full = max_dot ;
-    double grazing = 0.0;                                       //added proper logic to account for instances when abs(dot_full/c) >= 1
-    if ( dot_full / c >= 1.0 ) { grazing = -90.0; }
-    else if ( dot_full / c <= -1.0 ) { grazing = 90.0; }
+    double grazing = 0.0 ;                                       //added proper logic to account for instances when abs(dot_full/c) >= 1
+    if ( dot_full / c >= 1.0 ) { grazing = -M_PI_2 ; }
+    else if ( dot_full / c <= -1.0 ) { grazing = M_PI_2 ; }
     else { grazing = asin( -dot_full / c ) ; }
 
     // invoke bottom reverberation callback
@@ -153,7 +153,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
                                                     << endl;
         cout << "\t\theight_water: " << height_water << endl;
         cout << "\t\tdot_full: " << dot_full << "\tmax_dot: " << max_dot << endl;
-        cout << "\t\tgrazing: " << (90.0-grazing*180.0/M_PI) ;
+        cout << "\t\tgrazing: " << grazing*180.0/M_PI ;
     #endif
 
     if ( _bottom_reverb ) {

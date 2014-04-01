@@ -240,7 +240,7 @@ BOOST_AUTO_TEST_CASE( plot_rayleigh_sediments ) {
         for ( int n=0 ; n < 8 ; ++n ) {
             reflect_loss_rayleigh model( sediment[n] ) ;
             model.reflect_loss(
-                points, freq, to_radians(90-angle), &amplitude ) ;
+                points, freq, to_radians(angle), &amplitude ) ;
             os << "," << amplitude(0) ;
         }
         os << endl ;

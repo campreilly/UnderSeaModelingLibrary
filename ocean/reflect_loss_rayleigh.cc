@@ -97,6 +97,8 @@ void reflect_loss_rayleigh::reflect_loss(
 {
     if ( angle >= M_PI_2 ) angle = M_PI_2 - 1e-10 ;
 
+    angle = M_PI_2 - angle ;
+
     // compute acoustic impedance in water
 
     double Zw = cos(angle) / (_speed_water * _density_water) ;
