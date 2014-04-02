@@ -45,9 +45,9 @@ BOOST_AUTO_TEST_CASE( reflect_loss_netcdf_test ) {
 	netcdf.reflect_loss(wposition1(26, -80), frequency, angle, &amplitude) ;
 	BOOST_CHECK_CLOSE(amplitude(0), sand, tolerance) ;
 	netcdf.reflect_loss(wposition1(26, -89), frequency, angle, &amplitude) ;
-	BOOST_CHECK_CLOSE(amplitude(0), sand, tolerance) ;
-	netcdf.reflect_loss(wposition1(35, -80), frequency, angle, &amplitude) ;
 	BOOST_CHECK_CLOSE(amplitude(0), limestone, tolerance) ;
+	netcdf.reflect_loss(wposition1(35, -80), frequency, angle, &amplitude) ;
+	BOOST_CHECK_CLOSE(amplitude(0), sand, tolerance) ;
 	netcdf.reflect_loss(wposition1(35, -89), frequency, angle, &amplitude) ;
 	BOOST_CHECK_CLOSE(amplitude(0), limestone, tolerance) ;
 }
