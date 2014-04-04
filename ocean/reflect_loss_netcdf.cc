@@ -106,7 +106,7 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
                 density[i], speed[i], atten[i], shearspd[i], shearatten[i] ) ) ;
     }
 
-    #ifdef USML_DEBUG
+    #ifdef DEBUG_NETCDF
         cout << "***Sediment properties***" << endl;
         cout << "type:\t" ;
         for(int i=0; i<n_types; ++i) { cout << "\t" << i ; }
