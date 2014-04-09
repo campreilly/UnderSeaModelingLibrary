@@ -30,6 +30,7 @@ option( GPROF_PROFILER "build for profiling at function level timing" OFF )
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
 option( Boost_FORCE_SHAREDLIB "Use Boost shared libraries" OFF )
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
+option( USML_SAFE_BESSEL "Use Locally implemented Modified Bessel_IO" OFF )
 option( USML_BUILD_TESTS "build all Tests" ON )
 option( USML_BUILD_STUDIES "build all Studies" ON )
 option( USML_BUILD_ADDITIONS "build all Additions" OFF )
@@ -78,6 +79,11 @@ else( CMAKE_COMPILER_IS_GNUCXX )
         add_definitions( -std=c++98 -pedantic -Wall -Werror
 	    -Wno-long-long -Wno-sign-compare)
     endif ( USML_PEDANTIC )
+    if ( USML_SAFE_BESSEL ) # Use locally implemented modified BesselIO function
+                            # vs Boost modified BesselIO
+                            # The Boost Bessel caused runtime error with at least one external app
+        add_definitions( -DUSML_SAFE_BESSEL )
+    endif (USML_SAFE_BESSEL )
     if ( NOT BUILD_SHARED_LIBS )
         set(CMAKE_FIND_LIBRARY_SUFFIXES .a) 	# prefer static libraries
     endif ( NOT BUILD_SHARED_LIBS )
