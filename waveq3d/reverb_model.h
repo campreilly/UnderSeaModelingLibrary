@@ -25,6 +25,10 @@ class USML_DECLSPEC reverb_model {
 
   public:
 
+    reverb_model() {}
+
+    virtual ~reverb_model() {}
+
     /**
      * React to the collision of a single ray with a reverberation surface.
      *

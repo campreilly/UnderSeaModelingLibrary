@@ -36,7 +36,7 @@ using boost::numeric::ublas::vector;
 class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
 {
     //**************************************************
-    // type definisions
+    // type definitions
 
     typedef seq_vector self_type;
 public:
@@ -90,7 +90,7 @@ public:
     }
 
     /**
-     * Convert seqence into a normal C++ array,
+     * Convert sequence into a normal C++ array,
      */
     const array_type &data () const {
         return _data.data() ;

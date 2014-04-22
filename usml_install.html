@@ -128,7 +128,15 @@
         tar -xzf usml-data-#.##.tar.gz
       </pre>
       where #.## is the version number to be installed.
-    </p><p>
+    </p>
+	<p>
+      For installation from a GitHub zip file, after extraction the topmost directory will need to be
+	  changed from <code>"UnderSeaModelingLibrary-branchname"</code> to <code>"usml" </code> for 
+	  the CMake build system to function properly.  Also, if cloning the respository from GitHub ensure 
+	  the clone takes place from a toplevel directory named <code>"usml"</code>.   The CMake build 
+	  system and many of the include references expect the topmost directory  to be <code>"usml"</code>.
+    </p>
+	<p>
       This library is built using the CMake cross-platform, open-source build system.
       Users are strongly encouraged to configure their builds using the cmake-gui
       tool.  CMake makes it much easier to support cross-platform builds, but it

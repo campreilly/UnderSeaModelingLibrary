@@ -72,7 +72,7 @@ public:
     virtual void sound_speed( const wposition& location,
         matrix<double>* speed, wvector* gradient=NULL ) = 0 ;
 
-    /**
+   /**
 	* Define a new in-water attenuation model.
 	*
 	* @param attmodel      In-water attenuation model.
@@ -80,6 +80,27 @@ public:
    void attenuation( attenuation_model* attmodel ) {
 	   if ( _attenuation ) delete _attenuation ;
 	   _attenuation = attmodel ;
+   }
+
+
+   /**
+    * Set a new in-water attenuation model.
+    *
+    * @param attenuation_model      In-water attenuation model.
+    */
+   void set_attenuation_model( attenuation_model* attn_model ) {
+      if ( _attenuation ) delete _attenuation ;
+      _attenuation = attn_model ;
+   }
+
+
+   /**
+    * Get the in-water attenuation model.
+    *
+    * @return attenuation_model      In-water attenuation model.
+    */
+   attenuation_model* get_attenuation_model() {
+      return _attenuation;
    }
 
    /**

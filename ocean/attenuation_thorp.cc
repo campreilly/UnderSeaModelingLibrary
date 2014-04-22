@@ -1,4 +1,4 @@
-/** 
+/**
  * @file attenuation_thorp.cc
  * Models attenuation loss as a Thorp factor.
  */

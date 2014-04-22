@@ -38,6 +38,11 @@ Narragansett RI, USA\\
 Narragansett RI, USA\\
 \email{potty@egr.uri.edu} }
 
+\author{David Thibaudeau}
+\address{AEgis Technologies Group, Inc.,\\
+North Kingstown RI, USA\\
+\email{dthibaudeau@aegistg.com} }
+
 \author{Michael Goodrich}
 \address{Alion Science and Technology Corporation,\\
 Norfolk VA, USA\\
@@ -47,7 +52,7 @@ Norfolk VA, USA\\
 
 \begin{history}
 \received{(19 February 2012)}
-\revised{(1 January 2013)}
+\revised{(29 January 2014)}
 \end{history}
 
 \begin{abstract}
@@ -752,17 +757,27 @@ $2K+1$ are the number of significant beams in the azimuthal direction.
 
 The intensity of each Gaussian beam contribution is a function of the width
 of the beam and the distance along the wavefront to the eigenray target,
-normalized to the surface area of each beam at the source
+normalized to the average distance across the beam at the source
 \begin{equation}
-	g_{j'}(\vec{r}_p) = \frac{ \left( \mu_{j'+1} - \mu_{j'} \right) }
-		{\sqrt{2\pi w^2_{j'}}} 
+	N_{j'} = \frac{ \int_{\varphi_{k'}}^{\varphi_{k'+1}} \left( \mu_{j'+1} - \mu_{j'} \right) d\varphi }
+		{  \int_{\varphi_{k'}}^{\varphi_{k'+1}} d\varphi }
+		= \mu_{j'+1} - \mu_{j'}
+	\label{eq:gaussian_norm1} \:,
+\end{equation}
+\begin{equation}
+	 N_{k'}= \frac{ \int_{\mu_{j'}}^{\mu_{j'+1}} \left( \varphi_{k'+1} - \varphi_{k'} \right) cos \left( \mu \right) d\mu }
+		{  \int_{\mu_{j'}}^{\mu_{j'+1}} d\mu }
+		= \frac{ sin(\mu_{j'+1}) - sin(\mu_{j'}) }{\mu_{j'+1}-\mu_{j'}}
+		\left( \varphi_{k'+1} - \varphi_{k'} \right)  \:,
+	\label{eq:gaussian_norm2}
+\end{equation}
+\begin{equation}
+	g_{j'}(\vec{r}_p) = \frac{N_{j'}}{\sqrt{2\pi w^2_{j'}}} 
 		\: exp \left( - \frac{d^2_{j'}}{2w^2_{j'}} \right) \:,
 	\label{eq:gaussian_each1}
 \end{equation}
 \begin{equation}
-	g_{k'}(\vec{r}_p) = \frac{ \left( sin(\mu_{j'+1}) - sin(\mu_{j'}) \right) 
-		\left( \varphi_{k'+1} - \varphi_{k'} \right) }
-		{\sqrt{2\pi w^2_{k'}}} 
+	g_{k'}(\vec{r}_p) = \frac{ N_{k'} }{\sqrt{2\pi w^2_{k'}}} 
 		\: exp \left( - \frac{d^2_{k'}}{2w^2_{k'}} \right) \:,
 	\label{eq:gaussian_each2}
 \end{equation}
@@ -770,7 +785,9 @@ where
 \(w_{j'}\) and \(w_{k'}\) are the half-widths of the Gaussian beam (from the cell
 center to one edge) in the \(\mu\) and \(\varphi\) directions; and
 \(d^2_{j'}\) and \(d^2_{k'}\) are the distance in the \(\mu\) and \(\varphi\)
-directions from the Gaussian beam center to the eigenray target. The WaveQ3D model aligns the ray paths with the edges of the Gaussian beam (full-width at half maximum).  Distance terms in the \(\mu\) direction are calculated using the following pattern
+directions from the Gaussian beam center to the eigenray target. 
+
+The WaveQ3D model aligns the ray paths with the edges of the Gaussian beam (full-width at half maximum).  Distance terms in the \(\mu\) direction are calculated using the following pattern
 \begin{equation}
 	L = 2 \: w_j \: \frac{\delta \mu}{\Delta \mu_j} \:,
 	\label{eq:gaussian_width1}

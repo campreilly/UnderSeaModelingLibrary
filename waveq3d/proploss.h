@@ -110,6 +110,17 @@ public:
               const seq_vector& source_de, const seq_vector& source_az,
               double time_step, const wposition* targets);
 
+    /**
+      * Destructor delete all data stored on the heap
+      *
+      */
+    virtual ~proploss(){
+
+        delete _frequencies;
+        delete _source_de;
+        delete _source_az;
+    }
+
 private:
 
     /**

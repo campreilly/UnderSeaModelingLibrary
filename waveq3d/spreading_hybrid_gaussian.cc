@@ -79,7 +79,7 @@ const vector<double>& spreading_hybrid_gaussian::intensity(
 
     unsigned a ;
     if(offset(1) < 0.0) {
-        if( (int)(az-1) ) {
+        if( (int)(az-1) < 0 ) {
             a = _wave._source_az->size() - 2 ;
         } else { a = az - 1 ; }
     } else { a = az ; }
