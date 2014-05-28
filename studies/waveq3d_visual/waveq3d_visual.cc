@@ -13,10 +13,12 @@
  *      - Travel Time: 25 seconds
  *
  */
-#include <usml/waveq3d/waveq3d.h>
-#include <usml/netcdf/netcdf_files.h>
+
 #include <fstream>
 #include <iomanip>
+
+#include <usml/waveq3d/waveq3d.h>
+#include <usml/netcdf/netcdf_files.h>
 
 using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
@@ -63,12 +65,14 @@ int main() {
                             USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
                             USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
                             month, lat1, lat2, lng1, lng2 ) ;
-    profile_model* profile = new profile_grid<double,3>(
-        data_grid_mackenzie::construct(temperature, salinity) ) ;
-//    data_grid<double,3>* ssp = data_grid_mackenzie::construct( temperature, salinity ) ;
-//    data_grid_svp* fast_ssp = new data_grid_svp(*ssp, true) ;
-//    delete ssp ;
-//    profile_model* profile = new profile_grid_fast( fast_ssp ) ;
+
+//    profile_model* profile = new profile_grid<double,3>(
+//        data_grid_mackenzie::construct(temperature, salinity) ) ;
+
+    data_grid<double,3>* ssp = data_grid_mackenzie::construct( temperature, salinity ) ;
+    data_grid_svp* fast_ssp = new data_grid_svp(*ssp, true) ;
+    delete ssp ;
+    profile_model* profile = new profile_grid_fast( fast_ssp ) ;
 
     // load bathymetry from ETOPO1 database
     cout << "loading bathymetry from ETOPO1 database" << endl ;
