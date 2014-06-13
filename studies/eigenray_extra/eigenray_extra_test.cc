@@ -172,11 +172,11 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
 
 	wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
 
-	if (!wave.addProplossListener(&loss1)) {
+	if (!wave.addEigenrayListener(&loss1)) {
 		cout << "Error adding proploss listener 1 ! " << endl ;
 		exit(1);
 	}
-	if (!wave.addProplossListener(&loss2)) {
+	if (!wave.addEigenrayListener(&loss2)) {
 		cout << "Error adding proploss listener 2! " << endl ;
 		exit(1);
 	}
