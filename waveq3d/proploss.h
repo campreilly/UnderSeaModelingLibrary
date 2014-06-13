@@ -6,7 +6,7 @@
 #define USML_WAVEQ3D_PROPLOSS_H
 
 #include <usml/ocean/ocean.h>
-#include <usml/waveq3d/proplossListener.h>
+#include <usml/waveq3d/eigenrayListener.h>
 #include <usml/waveq3d/wave_queue.h>
 
 namespace usml {
@@ -24,7 +24,7 @@ using namespace usml::ocean;
  * complete, the sum_eigenrays() method is used to collect the results
  * into a phasor-summed propagation loss and phase at each target point.
  */
-class USML_DECLSPEC proploss : public proplossListener {
+class USML_DECLSPEC proploss : public eigenrayListener {
 
 private:
 

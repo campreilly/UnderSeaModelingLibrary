@@ -877,7 +877,7 @@ void wave_queue::build_eigenray(
     #endif
 
     // Add eigenray to those objects which requested them
-    notifyProplossListeners(t1,t2,ray);
+    notifyEigenrayListeners(t1,t2,ray);
 
 }
 
@@ -1033,44 +1033,44 @@ void wave_queue::make_taylor_coeff(
 }
 
 /**
-* Add a proplossListener to the _proplossListenerVec vector
+* Add a eigenrayListener to the _eigenrayListenerVec vector
 */
-bool wave_queue::addProplossListener(proplossListener* pListener) {
+bool wave_queue::addEigenrayListener(eigenrayListener* pListener) {
 
-	std::vector<proplossListener*>::iterator iter = find(_proplossListenerVec.begin(), _proplossListenerVec.end(), pListener);
-	if ( iter != _proplossListenerVec.end() ) {
+	std::vector<eigenrayListener*>::iterator iter = find(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener);
+	if ( iter != _eigenrayListenerVec.end() ) {
 		return false;
 	}
-	_proplossListenerVec.push_back(pListener);
+	_eigenrayListenerVec.push_back(pListener);
 	return true;
 }
 
 
 /**
- * Remove a proplossListener from the _proplossListenerVec vector
+ * Remove a eigenrayListener from the _eigenrayListenerVec vector
  */
-bool wave_queue::removeProplossListener(proplossListener* pListener){
+bool wave_queue::removeEigenrayListener(eigenrayListener* pListener){
 
-	std::vector<proplossListener*>::iterator iter = find(_proplossListenerVec.begin(), _proplossListenerVec.end(), pListener);
-	if ( iter == _proplossListenerVec.end() ){
+	std::vector<eigenrayListener*>::iterator iter = find(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener);
+	if ( iter == _eigenrayListenerVec.end() ){
 		return false;
 	} else {
-		_proplossListenerVec.erase(remove(_proplossListenerVec.begin(), _proplossListenerVec.end(), pListener));
+		_eigenrayListenerVec.erase(remove(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener));
 	}
 	return true;
 }
 
 /**
- * For each proplossListener in the _proplossListenerVec vector
+ * For each eigenrayListener in the _eigenrayListenerVec vector
  * call the addEigenray method to provide eigenrays.
  */
-bool wave_queue::notifyProplossListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray){
+bool wave_queue::notifyEigenrayListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray){
 
-	for (std::vector<proplossListener*>::iterator iter = _proplossListenerVec.begin();
-												iter != _proplossListenerVec.end(); ++iter){
-		proplossListener* proploss = *iter;
-		proploss->addEigenray(targetRow, targetCol, pEigenray);
+	for (std::vector<eigenrayListener*>::iterator iter = _eigenrayListenerVec.begin();
+												iter != _eigenrayListenerVec.end(); ++iter){
+		eigenrayListener* pListener = *iter;
+		pListener->addEigenray(targetRow, targetCol, pEigenray);
 	}
 
-	return (_proplossListenerVec.size() > 0);
+	return (_eigenrayListenerVec.size() > 0);
 }
