@@ -692,7 +692,7 @@ BOOST_AUTO_TEST_CASE( eigenray_special ) {
 
     proploss loss(freq, pos, de, az, dt, &target) ;
     wave_queue wave( ocean, freq, pos, de, az, dt, &target) ;
-    wave.addProplossListener(&loss) ;
+    wave.addEigenrayListener(&loss) ;
 
     // propagate rays and record wavefronts to disk.
 
