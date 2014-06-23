@@ -1,8 +1,8 @@
 /*
- * @file proplossListener.h
+ * @file eigenrayListener.h
  *
  *  Created on: Sep 9, 2013
- *      Author: safuser
+ *      Author: Ted Burns (EGB) AEgis Technologies Group, Inc.
  */
 
 #pragma once
@@ -13,20 +13,20 @@ namespace usml {
 namespace waveq3d {
 
 /**
- * @class proplossListener
+ * @class eigenrayListener
  * @brief This class is part of a Observer/Subject pattern for the wave_queue class
- * and allows for multiple proploss listeners to be added to wave_queue.
+ * and allows for multiple eigenray listeners to be added to wave_queue.
  * The addEigenray call must be defined in each class which inherits it.
  */
 
-class USML_DECLSPEC proplossListener
+class USML_DECLSPEC eigenrayListener
 {
 public:
 
 	/**
 	 * Destructor.
 	 */
-	virtual ~proplossListener() {}
+	virtual ~eigenrayListener() {}
 
 	/**
 	 * addEigenray
@@ -43,7 +43,7 @@ protected:
 	/**
 	 * Constructor - protected
 	 */
-	proplossListener() {}
+	eigenrayListener() {}
 
 
 
@@ -53,8 +53,8 @@ private:
 	// Disabling default copy constructor and default
 	// assignment operator.
 	// -------------------------
-	proplossListener(const proplossListener& yRef);
-	proplossListener& operator=(const proplossListener& yRef);
+	eigenrayListener(const eigenrayListener& yRef);
+	eigenrayListener& operator=(const eigenrayListener& yRef);
 
 };
 

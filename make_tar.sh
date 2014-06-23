@@ -1,5 +1,5 @@
 #!/bin/bash
-version=0.05b
+version=0.051b
 
 # Do not follow or archive symbolic links
 find * -type f | tar --exclude=data --exclude=doc --exclude=html --exclude=usml_api.html --exclude=make_tar* \

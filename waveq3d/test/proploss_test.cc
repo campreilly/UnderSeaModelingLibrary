@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target, wave_queue::CLASSIC_RAY ) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays & record to log file
 
@@ -220,7 +220,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays & record to log file
 
@@ -422,7 +422,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays & record to log file
 
@@ -638,7 +638,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays & record to log file
 
@@ -804,7 +804,7 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
 
     proploss* pLoss = new proploss(freq, pos, de, az, dt, &target) ;
     wave_queue* pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss);
+    pWave->addEigenrayListener(pLoss);
 
     while(pWave->time() < time_max) {
         pWave->step();
@@ -830,7 +830,7 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
     delete pWave ;
     pLoss = new proploss(freq, pos, de, az, dt, &target) ;
     pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
+    pWave->addEigenrayListener(pLoss) ;
 
     while(pWave->time() < time_max) {
         pWave->step();
@@ -856,7 +856,7 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
     delete pWave ;
     pLoss = new proploss(freq, pos, de, az, dt, &target) ;
     pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
+    pWave->addEigenrayListener(pLoss) ;
 
     while(pWave->time() < time_max) {
         pWave->step();
@@ -882,7 +882,7 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
     delete pWave ;
     pLoss = new proploss(freq, pos, de, az, dt, &target) ;
     pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
+    pWave->addEigenrayListener(pLoss) ;
 
     while(pWave->time() < time_max) {
         pWave->step();
@@ -908,7 +908,7 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
     delete pWave ;
     pLoss = new proploss(freq, pos, de, az, dt, &target) ;
     pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
+    pWave->addEigenrayListener(pLoss) ;
 
     while(pWave->time() < time_max) {
         pWave->step();
@@ -934,7 +934,7 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
     delete pWave ;
     pLoss = new proploss(freq, pos, de, az, dt, &target) ;
     pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
+    pWave->addEigenrayListener(pLoss) ;
 
     while(pWave->time() < time_max) {
         pWave->step();
@@ -960,7 +960,7 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
     delete pWave ;
     pLoss = new proploss(freq, pos, de, az, dt, &target) ;
     pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
+    pWave->addEigenrayListener(pLoss) ;
 
     while(pWave->time() < time_max) {
         pWave->step();
@@ -986,7 +986,7 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
     delete pWave ;
     pLoss = new proploss(freq, pos, de, az, dt, &target) ;
     pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
+    pWave->addEigenrayListener(pLoss) ;
 
     while(pWave->time() < time_max) {
         pWave->step();
@@ -1022,7 +1022,7 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
     delete pWave ;
     pLoss = new proploss(freq, pos, de, az, dt, &target) ;
     pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
+    pWave->addEigenrayListener(pLoss) ;
 
     while(pWave->time() < time_max) {
         pWave->step();
@@ -1096,7 +1096,7 @@ BOOST_AUTO_TEST_CASE( munk_tl_plot ) {
     }
     proploss loss( freq, pos, de, az, time_step, &target ) ;
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
-    wave.addProplossListener( &loss ) ;
+    wave.addEigenrayListener( &loss ) ;
 
     cout << "propagate wavefronts for " << time_max << endl;
     cout << "writing wavefronts to " << ncname_wave << endl;
@@ -1192,7 +1192,7 @@ BOOST_AUTO_TEST_CASE( surface_duct_tl_plot ) {
     }
     proploss loss( freq, pos, de, az, time_step, &target );
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     cout << "propagate wavefronts for " << time_max << endl;
     cout << "writing wavefronts to " << ncname_wave << endl;
@@ -1277,7 +1277,7 @@ BOOST_AUTO_TEST_CASE( lloyds_mirror_tl_plot ) {
     }
     proploss loss( freq, pos, de, az, time_step, &target ) ;
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
-    wave.addProplossListener( &loss ) ;
+    wave.addEigenrayListener( &loss ) ;
 
     cout << "propagate wavefronts for " << time_max << endl;
     cout << "writing wavefronts to " << ncname_wave << endl;

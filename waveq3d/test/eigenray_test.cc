@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays and record wavefronts to disk.
 
@@ -258,7 +258,7 @@ BOOST_AUTO_TEST_CASE( eigenray_concave ) {
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays & record to log file
 
@@ -387,7 +387,7 @@ BOOST_AUTO_TEST_CASE( eigenray_tl_az ) {
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays and record wavefronts to disk.
 
@@ -490,7 +490,7 @@ BOOST_AUTO_TEST_CASE( eigenray_tl_grid ) {
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays and record wavefronts to disk.
 
@@ -583,7 +583,7 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays and record wavefronts to disk.
 

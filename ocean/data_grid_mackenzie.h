@@ -102,8 +102,6 @@ class data_grid_mackenzie {
                 }
             }
         }
-        delete temperature ;
-        delete salinity ;
         return ssp ;
     }
 

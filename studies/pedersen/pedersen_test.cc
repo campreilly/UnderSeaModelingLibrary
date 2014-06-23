@@ -297,7 +297,7 @@ void analyze_proploss(
 
     wave_queue wave( *ocean, freq, pos, de, az, time_inc, &target ) ;
 
-    if (!wave.addProplossListener(&loss)) {
+    if (!wave.addEigenrayListener(&loss)) {
     	cout << "Error adding proploss listener! " << endl ;
     	exit(1);
     }

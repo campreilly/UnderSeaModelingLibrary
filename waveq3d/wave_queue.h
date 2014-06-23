@@ -8,7 +8,7 @@
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/reverb_model.h>
 #include <usml/waveq3d/wave_front.h>
-#include <usml/waveq3d/proplossListener.h>
+#include <usml/waveq3d/eigenrayListener.h>
 #include <netcdfcpp.h>
 
 namespace usml {
@@ -20,7 +20,7 @@ class reflection_model ;
 class spreading_model ;
 class spreading_ray ;
 class spreading_hybrid_gaussian ;
-class proplossListener ;
+class eigenrayListener ;
 
 /// @ingroup waveq3d
 /// @{
@@ -153,7 +153,7 @@ class USML_DECLSPEC wave_queue {
 	* update classes that require eigenrays as they are built.
 	* These classes must implement addEigenray method.
 	*/
-    std::vector<proplossListener *> _proplossListenerVec;
+    std::vector<eigenrayListener *> _eigenrayListenerVec;
 
     /**
      * Create an Azimuthal boundary loop condition upon initialization.
@@ -323,20 +323,15 @@ class USML_DECLSPEC wave_queue {
     void set_surface_reverb( reverb_model* model ) ;
 
     /**
-     * Add a proplossListener to the _proplossListenerVec vector
+     * Add a eigenrayListener to the _eigenrayListenerVec vector
      */
-    bool addProplossListener(proplossListener* pListener);
+    bool addEigenrayListener(eigenrayListener* pListener);
 
     /**
-	 * Remove a proplossListener from the _proplossListenerVec vector
+	 * Remove a eigenrayListener from the _eigenrayListenerVec vector
 	 */
-    bool removeProplossListener(proplossListener* pListener);
+    bool removeEigenrayListener(eigenrayListener* pListener);
 
-    /**
-     * For each proplossListener in the _proplossListenerVec vector
-     * call the addEigenray method to provide eigenrays.
-     */
-    bool notifyProplossListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray);
 
   private:
 
@@ -543,6 +538,12 @@ class USML_DECLSPEC wave_queue {
         unsigned t1, unsigned t2,
         unsigned de, unsigned az,
         double distance2[3][3][3] ) ;
+
+    /**
+	 * For each eigenrayListener in the _eigenrayListenerVec vector
+	 * call the addEigenray method to provide eigenrays to object that requested them.
+	 */
+	bool notifyEigenrayListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray);
 
     /**
      * Find relative offsets and true distances in time, D/E, and AZ.
