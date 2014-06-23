@@ -1006,42 +1006,6 @@ BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
         << "\t " << (*iter).phase(0)
         << endl;
     }
-
-    ///< CASS rayleigh MUD parameters
-    //    type    den        spd       att      shear  satt
-    //  { MUD, 1.1474189, 0.9848732, 0.0151946, 0.02,  0.02 }
-
-    double density = 1.1474189;
-    double speed = 0.9848732;
-    double att_bottom =  0.0151946;
-    double speed_shear = 0.02;
-    double att_shear = 0.02;
-
-    bottom->reflect_loss( new reflect_loss_rayleigh(density, speed, att_bottom,  speed_shear, att_shear ) ) ;
-    delete pLoss ;
-    delete pWave ;
-    pLoss = new proploss(freq, pos, de, az, dt, &target) ;
-    pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addEigenrayListener(pLoss) ;
-
-    while(pWave->time() < time_max) {
-        pWave->step();
-    }
-
-    pLoss->sum_eigenrays();
-    cout << "=====Eigenrays --> Rayleigh::MUD=====" << endl ;
-    cout << "time (s)    bounces(s,b,c)    launch angle    arrival angle        TL            phase" << endl ;
-    cout << std::setprecision(5) ;
-    for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
-    {
-        cout << (*iter).time
-        << "       (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t\t" << (*iter).source_de
-        << "\t\t" << (*iter).target_de
-        << "\t\t  " << (*iter).intensity(0)
-        << "\t " << (*iter).phase(0)
-        << endl;
-    }
 }
 
 /**

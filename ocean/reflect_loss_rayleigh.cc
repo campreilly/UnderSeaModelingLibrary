@@ -37,7 +37,6 @@ struct reflect_loss_rayleigh::bottom_type_table
     { CHALK,      2.2, 1.60, 0.2, 0.67,  0.5  },
     { LIMESTONE,  2.4, 2.00, 0.1, 1.00,  0.2  },
     { BASALT,     2.7, 3.50, 0.1, 1.67,  0.2  },
-  //  { MUD,        1.1474189, 0.9848732, 0.0151946, 0.02, 0.02 },                    ///< CASS rayleigh MUD parameters
 } ;
 
 /**
