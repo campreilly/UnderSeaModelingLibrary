@@ -206,13 +206,15 @@ void wave_queue::step() {
  */
 void wave_queue::detect_reflections() {
 
-    // process all surface and bottom reflections
+    // process all surface and bottom reflections, and vertices
     // note that multiple rays can reflect in the same time step
 
     for (unsigned de = 0; de < num_de(); ++de) {
         for (unsigned az = 0; az < num_az(); ++az) {
             if ( !detect_reflections_surface(de,az) ) {
-                detect_reflections_bottom(de,az) ;
+                if( !detect_reflections_bottom(de,az) ) {
+                    detect_vertices(de,az) ;
+                }
             }
         }
     }
@@ -283,6 +285,17 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
         }
     }
     return false ;	// indicates no reflection
+}
+
+/**
+ *  Detects upper and lower vertices along the wavefront
+ */
+void wave_queue::detect_vertices( unsigned de, unsigned az ) {
+    double A = _prev->position.rho(de,az) ;
+    double B = _curr->position.rho(de,az) ;
+    double C = _next->position.rho(de,az) ;
+    if( A < B && C < B ) { _curr->upper(de,az)++ ; }
+    else if( B < A && B < C ) { _curr->lower(de,az)++ ; }
 }
 
 /**

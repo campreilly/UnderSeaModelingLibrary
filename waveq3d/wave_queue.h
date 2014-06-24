@@ -428,6 +428,15 @@ class USML_DECLSPEC wave_queue {
     bool detect_reflections_bottom( unsigned de, unsigned az ) ;
 
     /**
+     * Upper and lower vertices are present when the wavefront undergoes a
+     * change in direction in the water column but does not interact with
+     * the surface or bottom. A lower vertex is present if this point on the
+     * wavefront is a local minimum in time. Conversely, an upper vertex
+     * is present if it is a local maximum in time.
+     */
+    void detect_vertices( unsigned de. unsigned az ) ;
+
+    /**
      * Detects and processes all of the logic necessary to determine
      * points along the wavefronts that have folded over and mark them
      * as caustics. This logic determines if any two points have crossed

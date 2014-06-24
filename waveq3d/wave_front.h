@@ -138,6 +138,16 @@ public:
     matrix<int> bottom ;
 
     /**
+     * Cumulative # of upper vertices encountered at this point in time
+     */
+    matrix<int> upper ;
+
+    /**
+     * Cumulative # of lower vertices encountered at this point in time
+     */
+    matrix<int> lower ;
+
+    /**
      * Cumulative # of caustics encountered at this point in time.
      * A caustic is defined as a place on the wavefront where a ray is tangent
      * to the boundary of a shadow zone. The wave_queue::find_edges()
