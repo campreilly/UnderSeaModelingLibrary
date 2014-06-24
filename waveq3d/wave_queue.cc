@@ -418,15 +418,15 @@ bool wave_queue::is_closest_ray(
 
                 #ifdef USML_DEBUG
                 // test all distances to make sure they are valid numbers
-                    if( isnan(distance2[0][nde][naz]) ) {
+                    if( boost::math::isnan(distance2[0][nde][naz]) ) {
                         cout << "Oops, the distance for distance2[0"
                         << "][" << nde << "][" << naz << "] is NaN!" << endl;
                     }
-                    if( isnan(distance2[1][nde][naz]) ) {
+                    if( boost::math::isnan(distance2[1][nde][naz]) ) {
                         cout << "Oops, the distance for distance2[1"
                         << "][" << nde << "][" << naz << "] is NaN!" << endl;
                     }
-                    if( isnan(distance2[2][nde][naz]) ) {
+                    if( boost::math::isnan(distance2[2][nde][naz]) ) {
                         cout << "Oops, the distance for distance2[2"
                         << "][" << nde << "][" << naz << "] is NaN!" << endl;
                     }
@@ -477,15 +477,15 @@ bool wave_queue::is_closest_ray(
 
                 #ifdef USML_DEBUG
                 // test all distances to make sure they are valid numbers
-                    if( isnan(distance2[0][nde][naz]) ) {
+                    if( boost::math::isnan(distance2[0][nde][naz]) ) {
                         cout << "Oops, the distance for distance2[0"
                         << "][" << nde << "][" << naz << "] is NaN!" << endl;
                     }
-                    if( isnan(distance2[1][nde][naz]) ) {
+                    if( boost::math::isnan(distance2[1][nde][naz]) ) {
                         cout << "Oops, the distance for distance2[1"
                         << "][" << nde << "][" << naz << "] is NaN!" << endl;
                     }
-                    if( isnan(distance2[2][nde][naz]) ) {
+                    if( boost::math::isnan(distance2[2][nde][naz]) ) {
                         cout << "Oops, the distance for distance2[2"
                         << "][" << nde << "][" << naz << "] is NaN!" << endl;
                     }
@@ -699,7 +699,7 @@ void wave_queue::build_eigenray(
     const vector<double> spread_intensity =
         _spreading_model->intensity(
             wposition1( *(_curr->targets), t1, t2 ), de, az, offset, distance );
-    if ( isnan(spread_intensity(0)) ) {
+    if ( boost::math::isnan(spread_intensity(0)) ) {
         #ifdef DEBUG_EIGENRAYS
             std::cerr << "warning: wave_queue::build_eigenray()"  << endl
                       << "\tignores eigenray because intensity is NaN" << endl
