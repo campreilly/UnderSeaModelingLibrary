@@ -1111,8 +1111,8 @@ BOOST_AUTO_TEST_CASE( surface_duct_tl_plot ) {
                            1487.0, 1490.0, 1498.7, 1506.8, 1523.9} ;
     _axis[0] = new seq_data(depths, sizeof(depths)/sizeof(double)) ;
     data_grid<double,1>* duct_ssp = new data_grid<double,1>(_axis) ;
-    for(int i=0; i<19; ++i) {
-        unsigned index [1] = {i};
+    for(unsigned int i=0; i<19; ++i) {
+        unsigned int index [1] = {i};
         duct_ssp->data(index, ssp[i]) ;
     }
 

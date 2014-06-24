@@ -141,7 +141,7 @@ netcdf_profile::netcdf_profile(
     // change missing values in the file to NaN in memory
     // don't execute if netCDF file didn't specify a "missing" value
 
-    if ( ! isnan(missing) ) {
+    if ( ! boost::math::isnan(missing) ) {
         const int N = alt_num * lat_num * lng_num ;
         double* ptr = this->_data ;
         while ( ptr < this->_data + N ) {
@@ -176,7 +176,7 @@ void netcdf_profile::fill_missing() {
             for ( int lng = 0 ; lng < lng_num ; ++lng ) {
                 index[2] = lng ;
                 double value = data(index) ;
-                if ( ! isnan( value ) ) {
+                if ( ! boost::math::isnan( value ) ) {
                     average.data( index, average.data(index)+value ) ;
                     number.data( index, number.data(index)+1.0 ) ;
                 }
@@ -208,7 +208,7 @@ void netcdf_profile::fill_missing() {
             for ( int lng = 0 ; lng < lng_num ; ++lng ) {
                 index[2] = lng ;
                 double value = data(index) ;
-                if ( isnan( value ) ) {
+                if ( boost::math::isnan( value ) ) {
                     data( index, average.data(index) ) ;
                 }
             }
