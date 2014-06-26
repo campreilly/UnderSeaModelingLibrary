@@ -11,6 +11,7 @@ namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
+class reverberation_model ;
 
 /**
  * @internal
@@ -44,6 +45,7 @@ using namespace usml::ocean ;
 class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
 
     friend class wave_queue ;
+    friend class reverberation_model ;
 
   private:
 

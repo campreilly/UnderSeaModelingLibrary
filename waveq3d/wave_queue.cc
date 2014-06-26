@@ -43,7 +43,8 @@ wave_queue::wave_queue(
     _source_az( az.clone() ),
     _time_step( time_step ),
     _time( 0.0 ),
-    _targets(targets),
+    _targets( targets ),
+    _origin( 999 ),
     _nc_file( NULL )
 {
 
@@ -104,14 +105,14 @@ wave_queue::~wave_queue() {
 /**
  * Register a bottom reverberation model.
  */
-void wave_queue::set_bottom_reverb( reverb_model* model ) {
+void wave_queue::set_bottom_reverb( reverberation_model* model ) {
     _reflection_model->_bottom_reverb = model ;
 }
 
 /**
  * Register a surface reverberation model.
  */
-void wave_queue::set_surface_reverb( reverb_model* model ) {
+void wave_queue::set_surface_reverb( reverberation_model* model ) {
     _reflection_model->_surface_reverb = model ;
 }
 

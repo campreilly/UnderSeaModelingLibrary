@@ -4,7 +4,7 @@
 #include <boost/test/unit_test.hpp>
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/waveq3d/waveq3d.h>
-#include <usml/waveq3d/reverb_model.h>
+#include <usml/waveq3d/reverberation_model.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -28,7 +28,7 @@ using namespace usml::waveq3d ;
 /**
  * Monitor callbacks from reflection model.
  */
-class reflection_callback : public reverb_model {
+class reflection_callback : public reverberation_model {
 
 public:
     int counter ;

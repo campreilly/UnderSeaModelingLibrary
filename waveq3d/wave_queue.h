@@ -6,7 +6,7 @@
 #define USML_WAVEQ3D_WAVE_QUEUE_H
 
 #include <usml/ocean/ocean.h>
-#include <usml/waveq3d/reverb_model.h>
+#include <usml/waveq3d/reverberation_model.h>
 #include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/eigenrayListener.h>
 #include <netcdfcpp.h>
@@ -15,7 +15,7 @@ namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
-class reverb_model ;    // forward references for friend declarations
+class reverberation_model ;    // forward references for friend declarations
 class reflection_model ;
 class spreading_model ;
 class spreading_ray ;
@@ -169,6 +169,16 @@ class USML_DECLSPEC wave_queue {
      */
     bool _de_branch ;
 
+    /**
+     * Type of wavefront this wave_queue is generating information for.
+     * This is exclusively used by reverberation generation, to
+     * distinguish source wavefronts from receiver wavefronts in the
+     * bistatic cause.
+     *
+     *              Source = 10, Receiver = 20
+     */
+     int _origin ;
+
   public:
 
     /**
@@ -213,6 +223,35 @@ class USML_DECLSPEC wave_queue {
 
     /** Destroy all temporary memory. */
     virtual ~wave_queue() ;
+
+    /**
+     * Used to get the type of spreading model that is being used
+     * by the wavefront. This is used exclusively by reverberation
+     * models.
+     * @return          pointer to the spreading model
+     */
+    inline const spreading_model* getSpreading_Model() {
+        return _spreading_model ;
+    }
+
+    /**
+     * Set the type of wavefront that this is, i.e. a wavefront
+     * originating from a source or receiver. This is exclusively
+     * used within the reverbation models.
+     */
+    inline void setOrigin( int origin ) {
+        _origin = origin ;
+    }
+
+    /**
+     * Get the type of wavefront that this is, i.e. a wavefront
+     * originating from a source or receiver. This is exclusively
+     * used within the reverbation models.
+     * @return      Type of wavefront (receiver/source)
+     */
+    inline const int getOrigin() {
+        return _origin ;
+    }
 
     /**
      * Location of the wavefront source in spherical earth coordinates.
@@ -315,12 +354,12 @@ class USML_DECLSPEC wave_queue {
     /**
      * Register a bottom reverberation model.
      */
-    void set_bottom_reverb( reverb_model* model ) ;
+    void set_bottom_reverb( reverberation_model* model ) ;
 
     /**
      * Register a surface reverberation model.
      */
-    void set_surface_reverb( reverb_model* model ) ;
+    void set_surface_reverb( reverberation_model* model ) ;
 
     /**
      * Add a eigenrayListener to the _eigenrayListenerVec vector

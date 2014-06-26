@@ -1,4 +1,4 @@
-/** 
+/**
  * @file spreading_ray.cc
  * Spreading loss based on classic ray theory.
  */
@@ -93,7 +93,7 @@ const vector<double>& spreading_ray::intensity(
 
     double u = fabs(offset(0)) / _wave._time_step;
     const double area = (1.0 - u) * area1 + u * area2;
-//    cout << " area1=" << area1 << " area2=" << area2 
+//    cout << " area1=" << area1 << " area2=" << area2
 //         << " u=" << u << " area=" << area << endl ;
     const double loss = _init_area(de, az) * sound_speed(0, 0) / area;
     for (unsigned f = 0; f < _wave._frequencies->size(); ++f) {
@@ -110,4 +110,20 @@ const vector<double>& spreading_ray::intensity(
     if ( u > 4.0 ) _spread *= 0.0 ;
 
     return _spread ;
+}
+
+/**
+ * Find the distance between de-1/de and de/de+1, then add half of each to
+ * find the distance centered at de.
+ */
+double width_de( unsigned de, unsigned az, const vector<double>& offset ) {
+
+}
+
+/**
+ * Find the distance between az-1/az and az/az+1, then add half of each to
+ * find the distance centered at az.
+ */
+double width_az( unsigned de, unsigned az, const vector<double>& offset ) {
+
 }
