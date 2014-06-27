@@ -204,7 +204,8 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * @param   offset      Offsets in time, DE, and AZ at collision.
      * @return              Half-width of cell in the DE direction.
      */
-    double width_de( unsigned de, unsigned az, const vector<double>& offset ) ;
+    virtual double width_de(
+        unsigned de, unsigned az, const vector<double>& offset ) ;
 
     /**
      * Interpolate the half-width of a cell in the AZ direction.
@@ -219,7 +220,8 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * @param   offset      Offsets in time, DE, and AZ at collision.
      * @return              Half-width of cell in the AZ direction.
      */
-    double width_az( unsigned de, unsigned az, const vector<double>& offset ) ;
+    virtual double width_az(
+        unsigned de, unsigned az, const vector<double>& offset ) ;
 
 } ;
 
