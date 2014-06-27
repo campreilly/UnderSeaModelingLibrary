@@ -22,64 +22,85 @@ class USML_DECLSPEC spreading_model {
 
     friend class wave_queue ;
 
-  protected:
+    public:
 
-    /** Wavefront object associated with this model. */
-    wave_queue& _wave ;
+        double getWidth_DE(
+            unsigned de, unsigned az, const vector<double>& offset )
+        {
+            return width_de( de, az, offset ) ;
+        }
 
-    /** Frequency dependent part of beam spreading. */
-    vector<double> _spread ;
+        double getWidth_AZ(
+            unsigned de, unsigned az, const vector<double>& offset )
+        {
+            return width_az( de, az, offset ) ;
+        }
 
-    /**
-     * Initializes the spreading model.
-     *
-     * @param wave          Wavefront object associated with this model.
-     * @param num_freqs     Number of different frequencies.
-     */
-    spreading_model( wave_queue& wave, unsigned num_freqs ) :
-        _wave(wave), _spread(num_freqs)
-    {}
+        const vector<double>& getIntensity(
+            const wposition1& location, unsigned de, unsigned az,
+            const vector<double>& offset, const vector<double>& distance )
+        {
+            return intensity( location, de, az, offset, distance ) ;
+        }
 
-    /**
-     * Virtual destructor
-     */
-    virtual ~spreading_model() {}
+    protected:
 
-    /**
-     * Estimate intensity at a specific target location.
-     *
-     * @param  location     Target location.
-     * @param  de           DE index of closest point of approach.
-     * @param  az           AZ index of closest point of approach.
-     * @param  offset       Offsets in time, DE, and AZ at collision.
-     * @param  distance     Offsets in distance units.
-     * @return              Intensity of ray at this point.
-     */
-    virtual const vector<double>& intensity(
-        const wposition1& location, unsigned de, unsigned az,
-        const vector<double>& offset, const vector<double>& distance ) = 0 ;
+        /** Wavefront object associated with this model. */
+        wave_queue& _wave ;
 
-    /**
-     * Interpolate the half-width of a cell in the D/E direction.
-     *
-     * @param   de          DE index of contributing cell.
-     * @param   az          AZ index of contributing cell.
-     * @param   offset      Offsets in time, DE, and AZ at collision.
-     * @return              Half-width of cell in the DE direction.
-     */
-    virtual double width_de(
-        unsigned de, unsigned az, const vector<double>& offset ) = 0 ;
+        /** Frequency dependent part of beam spreading. */
+        vector<double> _spread ;
 
-    /**
-     * Interpolate the half-width of a cell in the AZ direction.
-     *
-     * @param   de          DE index of contributing cell.
-     * @param   az          AZ index of contributing cell.
-     * @param   offset      Offsets in time, DE, and AZ at collision.
-     * @return              Half-width of cell in the AZ direction.
-     */
-    virtual double width_az(
-        unsigned de, unsigned az, const vector<double>& offset ) = 0 ;
+        /**
+         * Initializes the spreading model.
+         *
+         * @param wave          Wavefront object associated with this model.
+         * @param num_freqs     Number of different frequencies.
+         */
+        spreading_model( wave_queue& wave, unsigned num_freqs ) :
+            _wave(wave), _spread(num_freqs)
+        {}
+
+        /**
+         * Virtual destructor
+         */
+        virtual ~spreading_model() {}
+
+        /**
+         * Estimate intensity at a specific target location.
+         *
+         * @param  location     Target location.
+         * @param  de           DE index of closest point of approach.
+         * @param  az           AZ index of closest point of approach.
+         * @param  offset       Offsets in time, DE, and AZ at collision.
+         * @param  distance     Offsets in distance units.
+         * @return              Intensity of ray at this point.
+         */
+        virtual const vector<double>& intensity(
+            const wposition1& location, unsigned de, unsigned az,
+            const vector<double>& offset, const vector<double>& distance ) = 0 ;
+
+        /**
+         * Interpolate the half-width of a cell in the D/E direction.
+         *
+         * @param   de          DE index of contributing cell.
+         * @param   az          AZ index of contributing cell.
+         * @param   offset      Offsets in time, DE, and AZ at collision.
+         * @return              Half-width of cell in the DE direction.
+         */
+        virtual double width_de(
+            unsigned de, unsigned az, const vector<double>& offset ) = 0 ;
+
+        /**
+         * Interpolate the half-width of a cell in the AZ direction.
+         *
+         * @param   de          DE index of contributing cell.
+         * @param   az          AZ index of contributing cell.
+         * @param   offset      Offsets in time, DE, and AZ at collision.
+         * @return              Half-width of cell in the AZ direction.
+         */
+        virtual double width_az(
+            unsigned de, unsigned az, const vector<double>& offset ) = 0 ;
 } ;
 
 }  // end of namespace waveq3d

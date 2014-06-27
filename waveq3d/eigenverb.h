@@ -20,7 +20,7 @@ using boost::numeric::ublas::vector;
 /**
  * A single acoustic path between a source or receiver and a boundary.
  */
-struct eigenrverb {
+struct eigenverb {
 
     /**
      * One way travel time for this path (sec).
@@ -53,7 +53,7 @@ struct eigenrverb {
     /**
      * Frequeinces of the wavefront (Hz)
      */
-     const seq_vector* frequiences ;
+     const seq_vector* frequencies ;
 
     /**
      * The DE of the path from launch.

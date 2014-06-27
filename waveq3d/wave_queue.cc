@@ -103,17 +103,10 @@ wave_queue::~wave_queue() {
 }
 
 /**
- * Register a bottom reverberation model.
+ * Register a reverberation model.
  */
-void wave_queue::set_bottom_reverb( reverberation_model* model ) {
-    _reflection_model->_bottom_reverb = model ;
-}
-
-/**
- * Register a surface reverberation model.
- */
-void wave_queue::set_surface_reverb( reverberation_model* model ) {
-    _reflection_model->_surface_reverb = model ;
+void wave_queue::set_reverberation_model( reverberation_model* model ) {
+    _reflection_model->_reverberation = model ;
 }
 
 /**

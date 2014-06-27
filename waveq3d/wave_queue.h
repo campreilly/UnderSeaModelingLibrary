@@ -230,7 +230,7 @@ class USML_DECLSPEC wave_queue {
      * models.
      * @return          pointer to the spreading model
      */
-    inline const spreading_model* getSpreading_Model() {
+    inline spreading_model* getSpreading_Model() {
         return _spreading_model ;
     }
 
@@ -251,13 +251,6 @@ class USML_DECLSPEC wave_queue {
      */
     inline const int getOrigin() {
         return _origin ;
-    }
-
-    /**
-     * Passes back a reference to the wave's current time variable.
-     */
-    inline const double& getTimeRef() {
-        return _time ;
     }
 
     /**
@@ -359,14 +352,9 @@ class USML_DECLSPEC wave_queue {
 		return _intensity_threshold;
 	}
     /**
-     * Register a bottom reverberation model.
+     * Register a reverberation model.
      */
-    void set_bottom_reverb( reverberation_model* model ) ;
-
-    /**
-     * Register a surface reverberation model.
-     */
-    void set_surface_reverb( reverberation_model* model ) ;
+    void set_reverberation_model( reverberation_model* model ) ;
 
     /**
      * Add a eigenrayListener to the _eigenrayListenerVec vector
@@ -480,7 +468,7 @@ class USML_DECLSPEC wave_queue {
      * wavefront is a local minimum in time. Conversely, an upper vertex
      * is present if it is a local maximum in time.
      */
-    void detect_vertices( unsigned de. unsigned az ) ;
+    void detect_vertices( unsigned de, unsigned az ) ;
 
     /**
      * Detects and processes all of the logic necessary to determine

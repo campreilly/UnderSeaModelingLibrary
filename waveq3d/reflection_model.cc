@@ -158,8 +158,8 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
 
     if ( _reverberation ) {
         int ID = _wave.getOrigin() ;
-        _reverberation->notifyLowerCollision( de, az, time_water, grazing,
-            c, *(_wave._frequencies), position,  ndirection, ID ) ;
+        _reverberation->notifyLowerCollision( de, az, _wave._time, time_water,
+            grazing, c, *(_wave._frequencies), position,  ndirection, ID ) ;
             // Still need to calculate eigenray ampltiude and phase for
             // reverberation callback. Just passing bogus values currently.
     }
@@ -270,8 +270,8 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
 
     if ( _reverberation ) {
         int ID = _wave.getOrigin() ;
-        _reverberation->notifyUpperCollision( de, az, time_water, grazing,
-            c, *(_wave._frequencies), position,  ndirection, ID ) ;
+        _reverberation->notifyUpperCollision( de, az, _wave._time, time_water,
+            grazing, c, *(_wave._frequencies), position,  ndirection, ID ) ;
             // Still need to calculate eigenray ampltiude and phase for
             // reverberation callback. Just passing bogus values currently.
     }

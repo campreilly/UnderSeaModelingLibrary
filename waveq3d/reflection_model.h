@@ -56,7 +56,7 @@ class USML_DECLSPEC reflection_model {
     wave_queue& _wave ;
 
     /** Callback model for reverberation */
-    reverberation_model* _reverberation
+    reverberation_model* _reverberation ;
 
     /**
      * If the water is too shallow, bottom_reflection() uses a horizontal

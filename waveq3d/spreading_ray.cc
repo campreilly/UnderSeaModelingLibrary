@@ -131,7 +131,7 @@ double spreading_ray::width_de(
     } else if ( de == 0 ) {
         de_max = de + 2 ;
         de_center = 1 ;
-        de_min = 0
+        de_min = 0 ;
     } else {
         de_max = de + 1 ;
         de_center = de ;
@@ -141,9 +141,9 @@ double spreading_ray::width_de(
     // Find the distances from these points on the wavefront to
     // each other
     const wposition& pos1 = _wave._curr->position ;
-    const wvector A(pos1, de_min, az) ;
-    const wvector B(pos1, de_center, az) ;
-    const wvector C(pos1, de_max, az) ;
+    const wvector1 A(pos1, de_min, az) ;
+    const wvector1 B(pos1, de_center, az) ;
+    const wvector1 C(pos1, de_max, az) ;
     double width1 = A.distance(B) ;
     double width2 = B.distance(C) ;
 
@@ -179,9 +179,9 @@ double spreading_ray::width_az(
     // Find the distances from these points on the wavefront to
     // each other
     const wposition& pos1 = _wave._curr->position ;
-    const wvector A(pos1, de, az_min) ;
-    const wvector B(pos1, de, az) ;
-    const wvector C(pos1, de, az_max) ;
+    const wvector1 A(pos1, de, az_min) ;
+    const wvector1 B(pos1, de, az) ;
+    const wvector1 C(pos1, de, az_max) ;
     double width1 = A.distance(B) ;
     double width2 = B.distance(C) ;
 

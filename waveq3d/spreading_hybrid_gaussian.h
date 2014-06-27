@@ -161,36 +161,6 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
         const wposition1& location, unsigned de, unsigned az,
         const vector<double>& offset, const vector<double>& distance ) ;
 
-  private:
-
-    /**
-     * Summation of Gaussian beam contributions from all cells in
-     * the D/E direction.  Iteration stops when lowest frequency contribution
-     * makes less than a THRESHOLD difference relative to the overall result.
-     *
-     * @param  de           DE index of contributing cell.
-     * @param  az           AZ index of contributing cell.
-     * @param  offset       Offsets in time, DE, and AZ at collision.
-     * @param  distance     Offsets in distance units.
-     * @return              Intensity of ray at this point.
-     */
-    void intensity_de( unsigned de, unsigned az,
-        const vector<double>& offset, const vector<double>& distance ) ;
-
-    /**
-     * Summation of Gaussian beam contributions from all cells in
-     * the AZ direction.  Iteration stops when lowest frequency contribution
-     * makes less than a THRESHOLD difference relative to the overall result.
-     *
-     * @param  de           DE index of contributing cell.
-     * @param  az           AZ index of contributing cell.
-     * @param  offset       Offsets in time, DE, and AZ at collision.
-     * @param  distance     Offsets in distance units.
-     * @return              Intensity of ray at this point.
-     */
-    void intensity_az( unsigned de, unsigned az,
-        const vector<double>& offset, const vector<double>& distance ) ;
-
     /**
      * Interpolate the half-width of a cell in the D/E direction.
      * At each AZ, compute the distance between the D/E corner
@@ -222,6 +192,36 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      */
     virtual double width_az(
         unsigned de, unsigned az, const vector<double>& offset ) ;
+
+  private:
+
+    /**
+     * Summation of Gaussian beam contributions from all cells in
+     * the D/E direction.  Iteration stops when lowest frequency contribution
+     * makes less than a THRESHOLD difference relative to the overall result.
+     *
+     * @param  de           DE index of contributing cell.
+     * @param  az           AZ index of contributing cell.
+     * @param  offset       Offsets in time, DE, and AZ at collision.
+     * @param  distance     Offsets in distance units.
+     * @return              Intensity of ray at this point.
+     */
+    void intensity_de( unsigned de, unsigned az,
+        const vector<double>& offset, const vector<double>& distance ) ;
+
+    /**
+     * Summation of Gaussian beam contributions from all cells in
+     * the AZ direction.  Iteration stops when lowest frequency contribution
+     * makes less than a THRESHOLD difference relative to the overall result.
+     *
+     * @param  de           DE index of contributing cell.
+     * @param  az           AZ index of contributing cell.
+     * @param  offset       Offsets in time, DE, and AZ at collision.
+     * @param  distance     Offsets in distance units.
+     * @return              Intensity of ray at this point.
+     */
+    void intensity_az( unsigned de, unsigned az,
+        const vector<double>& offset, const vector<double>& distance ) ;
 
 } ;
 

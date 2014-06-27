@@ -35,6 +35,8 @@ public:
     double time ;
     wposition1 position ;
     wvector1 ndirection ;
+    bool surface ;
+    bool bottom ;
 
     /**
      * Initialize counter.
@@ -46,17 +48,30 @@ public:
     /**
      * Record a collision of a single ray with a reverberation surface.
      */
-    virtual void collision(
-        unsigned de, unsigned az, double time,
-        const wposition1& position, const wvector1& ndirection, double speed,
-        const seq_vector& frequencies,
-        const vector<double>& amplitude, const vector<double>& phase )
+    virtual void notifyUpperCollision( unsigned de, unsigned az, double time,
+               double dt, double grazing, double speed, const seq_vector& frequencies,
+               const wposition1& position, const wvector1& ndirection, int ID )
     {
         ++counter ;
-        this->time = time ;
+        this->surface = true ;
+        this->time = time + dt ;
         this->position = position ;
         this->ndirection = ndirection ;
     }
+
+    virtual void notifyLowerCollision( unsigned de, unsigned az, double time,
+               double dt, double grazing, double speed, const seq_vector& frequencies,
+               const wposition1& position, const wvector1& ndirection, int ID )
+    {
+        ++counter ;
+        this->bottom = true ;
+        this->time = time + dt ;
+        this->position = position ;
+        this->ndirection = ndirection ;
+    }
+
+    virtual void compute_reverberation() {}
+
 
 };
 
@@ -129,8 +144,7 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
 
         wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
         reflection_callback callback ;
-        wave.set_bottom_reverb( &callback ) ;
-        wave.set_surface_reverb( &callback ) ;
+        wave.set_reverberation_model( &callback ) ;
         int old_counter = callback.counter ;
         double max_time_error = 0.0 ;
         double max_lat_error = 0.0 ;
@@ -203,8 +217,9 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
                 double predict_lat = 45.0 + bounce * 0.1 ;
                 double current_lat = callback.position.latitude() ;
 
-                cout << (( callback.ndirection.rho() < 0.0 ) ? "bottom " : "surface")
-                     << " reflection at t=" << current_time
+                if ( callback.surface ) { cout << "surface" ; callback.surface = false ; }
+                if ( callback.bottom ) { cout << "bottom " ; callback.bottom = false ; }
+                cout << " reflection at t=" << current_time
                      << " lat=" << current_lat
                      << endl ;
 
