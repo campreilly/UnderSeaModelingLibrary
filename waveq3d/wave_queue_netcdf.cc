@@ -43,6 +43,10 @@ void wave_queue::init_netcdf( const char* filename, const char* long_name ) {
                       time_dim, de_dim, az_dim ) ;
     _nc_caustic     = _nc_file->add_var( "caustic", ncShort,
                       time_dim, de_dim, az_dim ) ;
+    _nc_upper       = _nc_file->add_var( "upper_vertex", ncShort,
+                      time_dim, de_dim, az_dim ) ;
+    _nc_lower       = _nc_file->add_var( "lower_vertex", ncShort,
+                      time_dim, de_dim, az_dim ) ;
     _nc_on_edge     = _nc_file->add_var( "on_edge", ncByte,
                       time_dim, de_dim, az_dim ) ;
 
@@ -61,6 +65,8 @@ void wave_queue::init_netcdf( const char* filename, const char* long_name ) {
     _nc_surface->add_att("units", "count") ;
     _nc_bottom->add_att("units", "count") ;
     _nc_caustic->add_att("units", "count") ;
+    _nc_upper->add_att("units", "count") ;
+    _nc_lower->add_att("units", "count") ;
     _nc_on_edge->add_att("units", "bool") ;
 
     // coordinate data
@@ -85,6 +91,8 @@ void wave_queue::save_netcdf() {
     _nc_surface->put_rec(_curr->surface.data().begin(),_nc_rec);
     _nc_bottom->put_rec(_curr->bottom.data().begin(),_nc_rec);
     _nc_caustic->put_rec(_curr->caustic.data().begin(),_nc_rec);
+    _nc_upper->put_rec(_curr->upper.data().begin(),_nc_rec);
+    _nc_lower->put_rec(_curr->lower.data().begin(),_nc_rec);
     _nc_on_edge->put_rec((const ncbyte*)_curr->on_edge.data().begin(),_nc_rec);
     ++_nc_rec ;
 }

@@ -674,7 +674,8 @@ class USML_DECLSPEC wave_queue {
 
     /** The netCDF variables used to record the wavefront log. */
     NcVar *_nc_time, *_nc_latitude, *_nc_longitude, *_nc_altitude,
-          *_nc_surface, *_nc_bottom, *_nc_caustic, *_nc_on_edge;
+          *_nc_surface, *_nc_bottom, *_nc_caustic, *_nc_upper,
+          *_nc_lower, *_nc_on_edge ;
 
     /** Current record number in netDCF file. */
     int _nc_rec ;
