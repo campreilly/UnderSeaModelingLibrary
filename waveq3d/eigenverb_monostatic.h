@@ -72,6 +72,11 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
     private:
 
         /**
+         * Reference to the wavefront's time variable.
+         */
+        const double& _wave_time ;
+
+        /**
          * Defines the type of spreading model that is used to compute
          * one-way TLs and sigma of each dimension.
          */

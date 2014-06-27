@@ -8,6 +8,7 @@
 /**  Constructor  **/
 eigenverb_bistatic::eigenverb_bistatic( wave_queue& wave ) {
     _spreading_model = wave.getSpreading_Model() ;
+    _wave_time = wave.getTimeRef() ;
 }
 
 /**
@@ -22,7 +23,7 @@ bool eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
     eigenverb verb ;
     verb.de = de ;
     verb.az = az ;
-    verb.time = _wave._time + time ;
+    verb.time = _wave_time + time ;
     verb.grazing = grazing ;
     verb.c = speed ;
     verb.pos = position ;

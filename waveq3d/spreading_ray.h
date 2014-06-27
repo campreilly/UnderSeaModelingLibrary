@@ -94,32 +94,26 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
         const vector<double>& offset, const vector<double>& distance ) ;
 
     /**
-     * Interpolate the half-width of a cell in the D/E direction.
-     * At each AZ, compute the distance between the D/E corner
-     * and the D/E+1 corner.  Use the AZ offset to linearly interpolate
-     * between these sides.  Then repeat this process with the next
-     * (or previous) wavefront and use the time offset to linearly
-     * interpolate between times.
+     * Compute the harmonic mean of the distance between the position
+     * on the wavefront that is DE+1 and DE-1 from DE. Divides the result
+     * by 1/2, as the width of the gaussian cell is half of the distance.
      *
      * @param   de          DE index of contributing cell.
      * @param   az          AZ index of contributing cell.
-     * @param   offset      Offsets in time, DE, and AZ at collision.
+     * @param   offset      (Not used in this calculation)
      * @return              Half-width of cell in the DE direction.
      */
     virtual double width_de(
         unsigned de, unsigned az, const vector<double>& offset ) ;
 
     /**
-     * Interpolate the half-width of a cell in the AZ direction.
-     * At each DE, compute the distance between the AZ corner
-     * and the AZ+1 corner.  Use the D/E offset to linearly interpolate
-     * between these sides.  Then repeat this process with the next
-     * (or previous) wavefront and use the time offset to linearly
-     * interpolate between times.
+     * Compute the harmonic mean of the distance between the position
+     * on the wavefront that is AZ+1 and AZ-1 from AZ. Divides the result
+     * by 1/2, as the width of the gaussian cell is half of the distance.
      *
      * @param   de          DE index of contributing cell.
      * @param   az          AZ index of contributing cell.
-     * @param   offset      Offsets in time, DE, and AZ at collision.
+     * @param   offset      (Not used in this calculation)
      * @return              Half-width of cell in the AZ direction.
      */
     virtual double width_az(

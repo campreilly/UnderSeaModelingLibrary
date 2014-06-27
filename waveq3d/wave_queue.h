@@ -254,6 +254,13 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
+     * Passes back a reference to the wave's current time variable.
+     */
+    inline const double& getTimeRef() {
+        return _time ;
+    }
+
+    /**
      * Location of the wavefront source in spherical earth coordinates.
      *
      * @return              Common origin of all points on the wavefront
