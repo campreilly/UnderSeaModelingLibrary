@@ -101,6 +101,9 @@ class USML_DECLSPEC reverberation_model {
          *
          * This produces the area of the intersection of the gaussians, used during the production
          * of the reverberation curve.
+         * @param mu            mu_c described above
+         * @param sigma         Sigma_c described above
+         * @return              c_c described above
          */
         inline double gaussian( matrix<double> mu, matrix<double> sigma ) {
             matrix<double> mu_trans = boost::numeric::ublas::trans(mu) ;
