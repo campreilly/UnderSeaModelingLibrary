@@ -34,7 +34,7 @@ bool eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
         // at the time of impact with the boundary.
     c_vector<double,3> offset, distance ;
     offset(0) = time ;                                      // Temporal offset still exists
-    offset(1) = offset(2) = 0.0 ;                           // No offset
+    offset(1) = offset(2) = 0.0 ;                           // No offset in DE and AZ
     distance(0) = distance(1) = distance(2) = 0.0 ;         // Zero distance
     const vector<double> amp = _spreading_model->intensity( position, de, az, offset, distance ) ;
     verb.intensity = - 10.0 * log10( amp ) ;
@@ -42,16 +42,16 @@ bool eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
     verb.sigma_az = _spreading_model->width_az( de, az, offset ) ;
 
     switch ID:
-        // Interactions from the volume reverberation will use
-        // IDs to distinguish where they will be cataloged to.
-        case 0:
-            _upper(ID).push_back( verb )
-            status = false ;
-            break ;
         // No ID present, means this is a generic surface interaction.
-        default:
+        case 0:
             _surface.push_back( verb ) ;
             status = true ;
+            break ;
+        // Interactions from the volume reverberation will use
+        // IDs to distinguish where they will be cataloged to.
+        default:
+            _upper(ID).push_back( verb )
+            status = false ;
             break ;
 
     return status ;
@@ -80,7 +80,7 @@ bool eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
         // at the time of impact with the boundary.
     c_vector<double,3> offset, distance ;
     offset(0) = time ;                                      // Temporal offset still exists
-    offset(1) = offset(2) = 0.0 ;                           // No offset
+    offset(1) = offset(2) = 0.0 ;                           // No offset in DE and AZ
     distance(0) = distance(1) = distance(2) = 0.0 ;         // Zero distance
     const vector<double> amp = _spreading_model->intensity( position, de, az, offset, distance ) ;
     verb.intensity = - 10.0 * log10( amp ) ;
@@ -88,19 +88,19 @@ bool eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
     verb.sigma_az = _spreading_model->width_az( de, az, offset ) ;
 
     switch ID:
-        // Interactions from the volume reverberation will use
-        // IDs to distinguish where they will be cataloged to.
-        case 0:
-            _lower(ID).push_back( verb )
-            status = false ;
-            break ;
         // No ID present, means this is a generic bottom interaction.
-        default:
+        case 0:
             _bottom.push_back( verb ) ;
             status = true ;
+            break ;
+        // Interactions from the volume reverberation will use
+        // IDs to distinguish where they will be cataloged to.
+        default:
+            _lower(ID).push_back( verb )
+            status = false ;
             break ;
 
     return status ;
 }
 
-void eigenverb_monostatic::compute_reverberation() {} ;
+void eigenverb_monostatic::compute_reverberation() {}

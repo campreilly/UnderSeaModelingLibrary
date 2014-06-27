@@ -44,7 +44,7 @@ wave_queue::wave_queue(
     _time_step( time_step ),
     _time( 0.0 ),
     _targets( targets ),
-    _origin( 999 ),
+    _origin( 0 ),
     _nc_file( NULL )
 {
 

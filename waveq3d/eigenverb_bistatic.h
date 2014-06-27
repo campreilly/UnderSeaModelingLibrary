@@ -67,6 +67,10 @@ class USML_DECLSPEC eigenverb_bistatic : public reverberation_model {
                double grazing, double speed, const seq_vector& frequencies,
                const wposition1& position, const wvector1& ndirection, int ID = 999 ) ;
 
+        /**
+         * Computes the reverberation curve from the data cataloged from the
+         * wavefront(s).
+         */
         virtual void compute_reverberation() ;
 
     private:
