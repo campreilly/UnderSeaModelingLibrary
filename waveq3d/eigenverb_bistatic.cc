@@ -38,7 +38,7 @@ void eigenverb_bistatic::notifyUpperCollision( unsigned de, unsigned az, double 
     offset(1) = offset(2) = 0.0 ;                           // No offset in DE and AZ
     distance(0) = distance(1) = distance(2) = 0.0 ;         // Zero distance
     const vector<double> amp = _spreading_model->getIntensity( position, de, az, offset, distance ) ;
-    verb.intensity = - 10.0 * log10( amp ) ;
+    verb.intensity = amp ;
     verb.sigma_de = _spreading_model->getWidth_DE( de, az, offset ) ;
     verb.sigma_az = _spreading_model->getWidth_AZ( de, az, offset ) ;
 

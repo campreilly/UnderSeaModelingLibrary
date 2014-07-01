@@ -11,6 +11,7 @@
 #include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
 #include <vector>
+#include <cstring>
 
 namespace usml {
 namespace waveq3d {
@@ -30,9 +31,12 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
 
     public:
 
-        eigenverb_monostatic( wave_queue& wave ) ;
+        eigenverb_monostatic( wave_queue& wave,
+                              double pulse,
+                              unsigned num_bins,
+                              double max_time ) ;
 
-        virtual ~eigenverb_monostatic() {}
+        virtual ~eigenverb_monostatic() ;
 
         /**
          * React to the collision of a single ray with a reverberation
@@ -76,9 +80,29 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          * Computes the reverberation curve from the data cataloged from the
          * wavefront(s).
          */
-        virtual void compute_reverberation() = 0 ;
+        virtual void compute_reverberation() ;
 
     private:
+
+        /**
+         * Pulse length of the signal (sec)
+         */
+        double _pulse ;
+
+        /**
+         * Number of time bins to store the energy distribution
+         */
+        unsigned _num_bins ;
+
+        /**
+         * Max time for the reverberation curve
+         */
+        double _max_time ;
+
+        /**
+         * The reverberation energy distribution curve.
+         */
+        double* _energy ;
 
         /**
          * Defines the type of spreading model that is used to compute
