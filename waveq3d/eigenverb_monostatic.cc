@@ -5,21 +5,26 @@
 #include <usml/waveq3d/eigenverb_monostatic.h>
 #include <usml/waveq3d/spreading_hybrid_gaussian.h>
 
+# define TWO_PI_2 (4.0*M_PI*M_PI)
+
 using namespace usml::waveq3d ;
 
 /**  Constructor  **/
-eigenverb_monostatic::eigenverb_monostatic(
+eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
     wave_queue& wave, double pulse, unsigned num_bins, double max_time ) :
     _pulse(pulse),
     _num_bins(num_bins),
     _max_time(max_time)
 {
     _spreading_model = wave.getSpreading_Model() ;
+    _bottom_scatter = ocean.bottom().getScattering_Model() ;
+    _surface_scatter = ocean.surface().getScattering_Model() ;
+//    _volume_scatter = ocean.volume().getScattering_Model() ;        // Volume layers of the ocean have yet to be implemented
     _energy = new double[_num_bins] ;
     memset(_energy,0.0,_num_bins) ;
 }
 
-/** Destructor **/
+/**  Destructor  **/
 eigenverb_monostatic::~eigenverb_monostatic()
 {
     delete _energy ;
@@ -108,11 +113,23 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
     }
 }
 
+/**
+ * Computes the reverberation curve from the data cataloged from the
+ * wavefront(s).
+ */
 void eigenverb_monostatic::compute_reverberation() {
 
-    // define a 2pi squared for use multiple times
-    double TWO_PI_2 = TWO_PI * TWO_PI ;
+    compute_bottom_energy() ;
+    compute_surface_energy() ;
+    compute_volume_energy() ;
 
+}
+
+/**
+ * Computes the energy contributions to the reverberation
+ * energy curve from the bottom interactions.
+ */
+void eigenverb_monostatic::compute_bottom_energy() {
     // Convolution of all bottom paths
     for(std::vector<eigenverb>::iterator i=_bottom.begin();
             i!=_bottom.end(); ++i)
@@ -155,11 +172,80 @@ void eigenverb_monostatic::compute_reverberation() {
 
             double e = gaussian(mu,sigma) ;
             double tl_2way = v.intensity(0) * v.intensity(0) ;
-            double s_sr = 1.0 ;         /// @todo add scatter_strength function
+            vector<double> s_sr ;
+            vector<double> phase ;
+            _bottom_scatter->scattering_strength( v.pos,
+                (*v.frequencies), u.grazing, v.grazing, u.az, v.az, &s_sr, &phase ) ;
             unsigned t = floor( _num_bins * travel_time / _max_time ) ;
-            _energy[t] = TWO_PI_2 * _pulse * tl_2way * s_sr
+            _energy[t] += TWO_PI_2 * _pulse * tl_2way * s_sr(0)      /// @todo _energy is not a vector of freq
                             * det1 * det2 * e ;
         }
     }
 
+}
+
+/**
+ * Computes the energy contributions to the reverberation
+ * energy curve from the surface interactions.
+ */
+void eigenverb_monostatic::compute_surface_energy() {
+    // Convolution of all surface paths
+    for(std::vector<eigenverb>::iterator i=_surface.begin();
+            i!=_surface.end(); ++i)
+    {
+            // Gather data for the out path to the surface
+        eigenverb u = (*i) ;
+        matrix<double> mu1(2,1) ;
+        matrix<double> sigma1(2,2) ;
+        mu1(0,0) = u.pos.latitude() ;
+        mu1(1,0) = u.pos.longitude() ;
+        sigma1(0,1) = sigma1(1,0) = 0.0 ;
+        double de_2 = u.de * u.de ;
+        sigma1(0,0) = 1.0 / de_2 ;
+        double az_2 = u.az * u.az ;
+        sigma1(1,1) = 1.0 / az_2 ;
+        double det1 = sigma1(0,0) * sigma1(1,1) ;
+
+        for(std::vector<eigenverb>::iterator j=_surface.begin();
+                j!=_surface.end(); ++j)
+        {
+                // Gather data for the return path from the surface
+            eigenverb v = (*j) ;
+            double travel_time = u.time + v.time ;
+                // Don't make contributions anymore if the travel time
+                // is greater then the max reverberation curve time
+            if( _max_time < travel_time ) break ;
+            matrix<double> mu2(2,1) ;
+            matrix<double> sigma2(2,2) ;
+            mu2(0,0) = v.pos.latitude() ;
+            mu2(1,0) = v.pos.longitude() ;
+            sigma2(0,1) = sigma2(1,0) = 0.0 ;
+            double de_2 = v.de * v.de ;
+            sigma2(0,0) = 1.0 / de_2 ;
+            double az_2 = v.az * v.az ;
+            sigma2(1,1) = 1.0 / az_2 ;
+            double det2 = sigma2(0,0) * sigma2(1,1) ;
+
+            matrix<double> mu = mu1 - mu2 ;
+            matrix<double> sigma = sigma1 + sigma2 ;
+
+            double e = gaussian(mu,sigma) ;
+            double tl_2way = v.intensity(0) * v.intensity(0) ;
+            vector<double> s_sr ;
+            vector<double> phase ;
+            _surface_scatter->scattering_strength( v.pos,
+                (*v.frequencies), u.grazing, v.grazing, u.az, v.az, &s_sr, &phase ) ;
+            unsigned t = floor( _num_bins * travel_time / _max_time ) ;
+            _energy[t] += TWO_PI_2 * _pulse * tl_2way * s_sr(0)      /// @todo _energy is not a vector of freq
+                            * det1 * det2 * e ;
+        }
+    }
+}
+
+/**
+ * Computes the energy contributions to the reverberation
+ * energy curve from the volume interactions.
+ */
+void eigenverb_monostatic::compute_volume_energy() {
+    /// @todo figure out how to do these contributions
 }

@@ -112,9 +112,8 @@ class USML_DECLSPEC reverberation_model {
             matrix<double> mu_trans = boost::numeric::ublas::trans(mu) ;
             matrix<double> mu_prod = prod( mu_trans, sigma ) ;
             matrix<double> kappa = prod( mu_prod, mu ) ;
-            double det = TWO_PI * sigma(0,0)*sigma(1,1)
-                         - TWO_PI * sigma(0,1)*sigma(1,0) ;
-            det = 1.0 / sqrt(det) ;
+            double det = sigma(0,0) * sigma(1,1) - sigma(0,1) * sigma(1,0) ;
+            det = 1.0 / sqrt(TWO_PI*TWO_PI*det) ;
             kappa *= -0.5 ;
             return det * exp( kappa(0,0) ) ;
         }

@@ -31,7 +31,8 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
 
     public:
 
-        eigenverb_monostatic( wave_queue& wave,
+        eigenverb_monostatic( ocean_model& ocean,
+                              wave_queue& wave,
                               double pulse,
                               unsigned num_bins,
                               double max_time ) ;
@@ -85,6 +86,24 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
     private:
 
         /**
+         * Computes the energy contributions to the reverberation
+         * energy curve from the bottom interactions.
+         */
+        void compute_bottom_energy() ;
+
+        /**
+         * Computes the energy contributions to the reverberation
+         * energy curve from the surface interactions.
+         */
+        void compute_surface_energy() ;
+
+        /**
+         * Computes the energy contributions to the reverberation
+         * energy curve from the volume interactions.
+         */
+        void compute_volume_energy() ;
+
+        /**
          * Pulse length of the signal (sec)
          */
         double _pulse ;
@@ -109,6 +128,24 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          * one-way TLs and sigma of each dimension.
          */
         spreading_model* _spreading_model ;
+
+        /**
+         * Defines the type of scattering model that is used to compute
+         * the scattering strength off the boundary.
+         */
+        scattering_model* _bottom_scatter ;
+
+        /**
+         * Defines the type of scattering model that is used to compute
+         * the scattering strength off the boundary.
+         */
+        scattering_model* _surface_scatter ;
+
+        /**
+         * Defines the type of scattering model that is used to compute
+         * the scattering strength off the boundary.
+         */
+//        scattering_model* _volume_scatter ;
 
         /**
          * Vector of eigenverbs that impacted the surface.

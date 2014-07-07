@@ -7,6 +7,7 @@
 #define USML_OCEAN_BOUNDARY_MODEL_H
 
 #include <usml/ocean/reflect_loss_constant.h>
+#include <usml/ocean/scattering_model.h>
 
 namespace usml {
 namespace ocean {
@@ -89,13 +90,6 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
     //**************************************************
     // reflection loss model
 
-  protected:
-
-    /** Reference to the reflection loss model. */
-    reflect_loss_model* _reflect_loss_model ;
-
-  public:
-
     /**
      * Define a new reflection loss model.
      *
@@ -124,6 +118,23 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
             frequencies, angle, amplitude, phase ) ;
     }
 
+    /**
+     * Setter for the scattering_model.
+     * @param scatter   Scattering model for this boundary
+     */
+    void setScattering_Model( scattering_model* scatter ) {
+        if( _scattering_model ) delete _scattering_model ;
+        _scattering_model = scatter ;
+    }
+
+    /**
+     * Getter for the scattering model of this boundary.
+     * @return  pointer to the scattering_model
+     */
+    inline scattering_model* getScattering_Model() {
+        return _scattering_model ;
+    }
+
     //**************************************************
     // initialization
 
@@ -132,8 +143,10 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
      *
      * @param reflect_loss  Reflection loss model.
      */
-    boundary_model( reflect_loss_model* reflect_loss=NULL ) :
-        _reflect_loss_model( reflect_loss )
+    boundary_model( reflect_loss_model* reflect_loss=NULL,
+                    scattering_model* scatter=NULL ) :
+        _reflect_loss_model( reflect_loss ),
+        _scattering_model( scatter )
     {
     }
 
@@ -143,6 +156,15 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
     virtual ~boundary_model() {
         if ( _reflect_loss_model ) delete _reflect_loss_model ;
     }
+
+  protected:
+
+    /** Reference to the reflection loss model **/
+    reflect_loss_model* _reflect_loss_model ;
+
+    /** Reference to the scattering strength model **/
+    scattering_model* _scattering_model ;
+
 };
 
 /// @}
