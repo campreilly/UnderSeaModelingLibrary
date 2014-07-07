@@ -156,10 +156,10 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
         cout << "\t\tgrazing: " << grazing*180.0/M_PI ;
     #endif
 
-    if ( _bottom_reverb ) {
-        _bottom_reverb->collision(  de, az, _wave._time+time_water,
-            position,  ndirection, c, *(_wave._frequencies),
-            _wave._curr->attenuation(de,az), _wave._curr->phase(de,az) ) ;
+    if ( _reverberation ) {
+        int ID = _wave.getOrigin() ;
+        _reverberation->notifyLowerCollision( de, az, _wave._time, time_water,
+            grazing, c, *(_wave._frequencies), position,  ndirection, ID ) ;
             // Still need to calculate eigenray ampltiude and phase for
             // reverberation callback. Just passing bogus values currently.
     }
@@ -268,10 +268,10 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     // @todo THIS IS A STUB FOR FUTURE BEHAVIORS.
 
 
-    if ( _surface_reverb ) {
-        _surface_reverb->collision(  de, az, _wave._time+time_water,
-            position,  ndirection, c, *(_wave._frequencies),
-            _wave._curr->attenuation(de,az), _wave._curr->phase(de,az) ) ;
+    if ( _reverberation ) {
+        int ID = _wave.getOrigin() ;
+        _reverberation->notifyUpperCollision( de, az, _wave._time, time_water,
+            grazing, c, *(_wave._frequencies), position,  ndirection, ID ) ;
             // Still need to calculate eigenray ampltiude and phase for
             // reverberation callback. Just passing bogus values currently.
     }

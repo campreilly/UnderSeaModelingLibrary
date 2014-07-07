@@ -11,6 +11,7 @@ namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
+class reverberation_model ;
 
 /**
  * @internal
@@ -44,6 +45,7 @@ using namespace usml::ocean ;
 class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
 
     friend class wave_queue ;
+    friend class reverberation_model ;
 
   private:
 
@@ -159,6 +161,38 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
         const wposition1& location, unsigned de, unsigned az,
         const vector<double>& offset, const vector<double>& distance ) ;
 
+    /**
+     * Interpolate the half-width of a cell in the D/E direction.
+     * At each AZ, compute the distance between the D/E corner
+     * and the D/E+1 corner.  Use the AZ offset to linearly interpolate
+     * between these sides.  Then repeat this process with the next
+     * (or previous) wavefront and use the time offset to linearly
+     * interpolate between times.
+     *
+     * @param   de          DE index of contributing cell.
+     * @param   az          AZ index of contributing cell.
+     * @param   offset      Offsets in time, DE, and AZ at collision.
+     * @return              Half-width of cell in the DE direction.
+     */
+    virtual double width_de(
+        unsigned de, unsigned az, const vector<double>& offset ) ;
+
+    /**
+     * Interpolate the half-width of a cell in the AZ direction.
+     * At each DE, compute the distance between the AZ corner
+     * and the AZ+1 corner.  Use the D/E offset to linearly interpolate
+     * between these sides.  Then repeat this process with the next
+     * (or previous) wavefront and use the time offset to linearly
+     * interpolate between times.
+     *
+     * @param   de          DE index of contributing cell.
+     * @param   az          AZ index of contributing cell.
+     * @param   offset      Offsets in time, DE, and AZ at collision.
+     * @return              Half-width of cell in the AZ direction.
+     */
+    virtual double width_az(
+        unsigned de, unsigned az, const vector<double>& offset ) ;
+
   private:
 
     /**
@@ -188,36 +222,6 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      */
     void intensity_az( unsigned de, unsigned az,
         const vector<double>& offset, const vector<double>& distance ) ;
-
-    /**
-     * Interpolate the half-width of a cell in the D/E direction.
-     * At each AZ, compute the distance between the D/E corner
-     * and the D/E+1 corner.  Use the AZ offset to linearly interpolate
-     * between these sides.  Then repeat this process with the next
-     * (or previous) wavefront and use the time offset to linearly
-     * interpolate between times.
-     *
-     * @param   de          DE index of contributing cell.
-     * @param   az          AZ index of contributing cell.
-     * @param   offset      Offsets in time, DE, and AZ at collision.
-     * @return              Half-width of cell in the DE direction.
-     */
-    double width_de( unsigned de, unsigned az, const vector<double>& offset ) ;
-
-    /**
-     * Interpolate the half-width of a cell in the AZ direction.
-     * At each DE, compute the distance between the AZ corner
-     * and the AZ+1 corner.  Use the D/E offset to linearly interpolate
-     * between these sides.  Then repeat this process with the next
-     * (or previous) wavefront and use the time offset to linearly
-     * interpolate between times.
-     *
-     * @param   de          DE index of contributing cell.
-     * @param   az          AZ index of contributing cell.
-     * @param   offset      Offsets in time, DE, and AZ at collision.
-     * @return              Half-width of cell in the AZ direction.
-     */
-    double width_az( unsigned de, unsigned az, const vector<double>& offset ) ;
 
 } ;
 

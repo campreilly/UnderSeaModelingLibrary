@@ -43,7 +43,8 @@ wave_queue::wave_queue(
     _source_az( az.clone() ),
     _time_step( time_step ),
     _time( 0.0 ),
-    _targets(targets),
+    _targets( targets ),
+    _origin( 0 ),
     _nc_file( NULL )
 {
 
@@ -102,17 +103,10 @@ wave_queue::~wave_queue() {
 }
 
 /**
- * Register a bottom reverberation model.
+ * Register a reverberation model.
  */
-void wave_queue::set_bottom_reverb( reverb_model* model ) {
-    _reflection_model->_bottom_reverb = model ;
-}
-
-/**
- * Register a surface reverberation model.
- */
-void wave_queue::set_surface_reverb( reverb_model* model ) {
-    _reflection_model->_surface_reverb = model ;
+void wave_queue::set_reverberation_model( reverberation_model* model ) {
+    _reflection_model->_reverberation = model ;
 }
 
 /**
@@ -206,13 +200,15 @@ void wave_queue::step() {
  */
 void wave_queue::detect_reflections() {
 
-    // process all surface and bottom reflections
+    // process all surface and bottom reflections, and vertices
     // note that multiple rays can reflect in the same time step
 
     for (unsigned de = 0; de < num_de(); ++de) {
         for (unsigned az = 0; az < num_az(); ++az) {
             if ( !detect_reflections_surface(de,az) ) {
-                detect_reflections_bottom(de,az) ;
+                if( !detect_reflections_bottom(de,az) ) {
+                    detect_vertices(de,az) ;
+                }
             }
         }
     }
@@ -283,6 +279,17 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
         }
     }
     return false ;	// indicates no reflection
+}
+
+/**
+ *  Detects upper and lower vertices along the wavefront
+ */
+void wave_queue::detect_vertices( unsigned de, unsigned az ) {
+    double A = _prev->position.rho(de,az) ;
+    double B = _curr->position.rho(de,az) ;
+    double C = _next->position.rho(de,az) ;
+    if( A < B && C < B ) { _curr->upper(de,az)++ ; }
+    else if( B < A && B < C ) { _curr->lower(de,az)++ ; }
 }
 
 /**

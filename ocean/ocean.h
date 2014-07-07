@@ -76,6 +76,9 @@
 #include <usml/ocean/boundary_grid_fast.h>
 #include <usml/ocean/ascii_arc_bathy.h>
 
+#include <usml/ocean/scattering_model.h>
+#include <usml/ocean/scattering_lambert.h>
+
 #include <usml/ocean/ocean_model.h>
 
 #endif

@@ -30,6 +30,8 @@ wave_front::wave_front(
     distance( num_de, num_az ),
     surface( num_de, num_az ),
     bottom( num_de, num_az ),
+    upper( num_de, num_az ),
+    lower( num_de, num_az ),
     caustic( num_de, num_az ),
     on_edge( num_de, num_az ),
     targets( targets ),
@@ -45,6 +47,8 @@ wave_front::wave_front(
     distance.clear() ;
     surface.clear() ;
     bottom.clear() ;
+    upper.clear() ;
+    lower.clear() ;
     caustic.clear() ;
     on_edge.clear() ;
 

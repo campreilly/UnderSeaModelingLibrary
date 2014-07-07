@@ -92,6 +92,33 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
     virtual const vector<double>& intensity(
         const wposition1& location, unsigned de, unsigned az,
         const vector<double>& offset, const vector<double>& distance ) ;
+
+    /**
+     * Compute the harmonic mean of the distance between the position
+     * on the wavefront that is DE+1 and DE-1 from DE. Divides the result
+     * by 1/2, as the width of the gaussian cell is half of the distance.
+     *
+     * @param   de          DE index of contributing cell.
+     * @param   az          AZ index of contributing cell.
+     * @param   offset      (Not used in this calculation)
+     * @return              Half-width of cell in the DE direction.
+     */
+    virtual double width_de(
+        unsigned de, unsigned az, const vector<double>& offset ) ;
+
+    /**
+     * Compute the harmonic mean of the distance between the position
+     * on the wavefront that is AZ+1 and AZ-1 from AZ. Divides the result
+     * by 1/2, as the width of the gaussian cell is half of the distance.
+     *
+     * @param   de          DE index of contributing cell.
+     * @param   az          AZ index of contributing cell.
+     * @param   offset      (Not used in this calculation)
+     * @return              Half-width of cell in the AZ direction.
+     */
+    virtual double width_az(
+        unsigned de, unsigned az, const vector<double>& offset ) ;
+
 } ;
 
 }  // end of namespace waveq3d

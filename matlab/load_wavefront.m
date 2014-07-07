@@ -13,6 +13,9 @@
 %       surface         surface reflections (count)
 %       bottom          bottom reflections (count)
 %       caustic         caustics encounters (count)
+%       upper          	upper vertices (count)
+%       lower          	lower vertices (count)
+%       on_edge         on edge (bool)
 %
 function wavefront = load_wavefront( filename )
 
@@ -28,7 +31,9 @@ altitude = wave.VarArray(7).Data ;
 surface = wave.VarArray(8).Data ;
 bottom = wave.VarArray(9).Data ;
 caustic = wave.VarArray(10).Data ;
-on_edge = wave.VarArray(11).Data ;
+upper = wave.VarArray(11).Data ;
+lower = wave.VarArray(12).Data ;
+on_edge = wave.VarArray(13).Data ;
 
 wavefront = struct( ...
     'frequency', frequency, ...
@@ -41,4 +46,6 @@ wavefront = struct( ...
     'surface', surface, ...
     'bottom', bottom, ...
     'caustic', caustic, ...
+    'upper', upper, ...
+    'lower', lower, ...
     'on_edge', on_edge ) ;

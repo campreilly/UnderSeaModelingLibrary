@@ -6,7 +6,7 @@
 #define USML_WAVEQ3D_WAVE_QUEUE_H
 
 #include <usml/ocean/ocean.h>
-#include <usml/waveq3d/reverb_model.h>
+#include <usml/waveq3d/reverberation_model.h>
 #include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/eigenrayListener.h>
 #include <netcdfcpp.h>
@@ -15,7 +15,7 @@ namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
-class reverb_model ;    // forward references for friend declarations
+class reverberation_model ;    // forward references for friend declarations
 class reflection_model ;
 class spreading_model ;
 class spreading_ray ;
@@ -169,6 +169,16 @@ class USML_DECLSPEC wave_queue {
      */
     bool _de_branch ;
 
+    /**
+     * Type of wavefront this wave_queue is generating information for.
+     * This is exclusively used by reverberation generation, to
+     * distinguish source wavefronts from receiver wavefronts in the
+     * bistatic cause.
+     *
+     *              Source = 10, Receiver = 20
+     */
+     int _origin ;
+
   public:
 
     /**
@@ -213,6 +223,35 @@ class USML_DECLSPEC wave_queue {
 
     /** Destroy all temporary memory. */
     virtual ~wave_queue() ;
+
+    /**
+     * Used to get the type of spreading model that is being used
+     * by the wavefront. This is used exclusively by reverberation
+     * models.
+     * @return          pointer to the spreading model
+     */
+    inline spreading_model* getSpreading_Model() {
+        return _spreading_model ;
+    }
+
+    /**
+     * Set the type of wavefront that this is, i.e. a wavefront
+     * originating from a source or receiver. This is exclusively
+     * used within the reverbation models.
+     */
+    inline void setOrigin( int origin ) {
+        _origin = origin ;
+    }
+
+    /**
+     * Get the type of wavefront that this is, i.e. a wavefront
+     * originating from a source or receiver. This is exclusively
+     * used within the reverbation models.
+     * @return      Type of wavefront (receiver/source)
+     */
+    inline const int getOrigin() {
+        return _origin ;
+    }
 
     /**
      * Location of the wavefront source in spherical earth coordinates.
@@ -313,14 +352,9 @@ class USML_DECLSPEC wave_queue {
 		return _intensity_threshold;
 	}
     /**
-     * Register a bottom reverberation model.
+     * Register a reverberation model.
      */
-    void set_bottom_reverb( reverb_model* model ) ;
-
-    /**
-     * Register a surface reverberation model.
-     */
-    void set_surface_reverb( reverb_model* model ) ;
+    void set_reverberation_model( reverberation_model* model ) ;
 
     /**
      * Add a eigenrayListener to the _eigenrayListenerVec vector
@@ -426,6 +460,15 @@ class USML_DECLSPEC wave_queue {
      * @return		True if first recursion reflects from bottom.
      */
     bool detect_reflections_bottom( unsigned de, unsigned az ) ;
+
+    /**
+     * Upper and lower vertices are present when the wavefront undergoes a
+     * change in direction in the water column but does not interact with
+     * the surface or bottom. A lower vertex is present if this point on the
+     * wavefront is a local minimum in time. Conversely, an upper vertex
+     * is present if it is a local maximum in time.
+     */
+    void detect_vertices( unsigned de, unsigned az ) ;
 
     /**
      * Detects and processes all of the logic necessary to determine
@@ -631,7 +674,8 @@ class USML_DECLSPEC wave_queue {
 
     /** The netCDF variables used to record the wavefront log. */
     NcVar *_nc_time, *_nc_latitude, *_nc_longitude, *_nc_altitude,
-          *_nc_surface, *_nc_bottom, *_nc_caustic, *_nc_on_edge;
+          *_nc_surface, *_nc_bottom, *_nc_caustic, *_nc_upper,
+          *_nc_lower, *_nc_on_edge ;
 
     /** Current record number in netDCF file. */
     int _nc_rec ;

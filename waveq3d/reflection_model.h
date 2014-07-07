@@ -55,11 +55,8 @@ class USML_DECLSPEC reflection_model {
     /** Wavefront object associated with this model. */
     wave_queue& _wave ;
 
-    /** Callback model for bottom reverberation */
-    reverb_model* _bottom_reverb ;
-
-    /** Callback model for surface reverberation */
-    reverb_model* _surface_reverb ;
+    /** Callback model for reverberation */
+    reverberation_model* _reverberation ;
 
     /**
      * If the water is too shallow, bottom_reflection() uses a horizontal
@@ -94,7 +91,7 @@ class USML_DECLSPEC reflection_model {
      * Hide default constructor to prohibit use by non-friends.
      */
     reflection_model( wave_queue& wave )
-    	: _wave( wave ), _bottom_reverb(0), _surface_reverb(0),
+    	: _wave( wave ), _reverberation( NULL ),
         TOO_SHALLOW( 300.0 * wave._time_step )
     	{}
 

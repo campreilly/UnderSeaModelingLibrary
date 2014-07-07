@@ -1,4 +1,4 @@
-/** 
+/**
  * @file spreading_ray.cc
  * Spreading loss based on classic ray theory.
  */
@@ -93,7 +93,7 @@ const vector<double>& spreading_ray::intensity(
 
     double u = fabs(offset(0)) / _wave._time_step;
     const double area = (1.0 - u) * area1 + u * area2;
-//    cout << " area1=" << area1 << " area2=" << area2 
+//    cout << " area1=" << area1 << " area2=" << area2
 //         << " u=" << u << " area=" << area << endl ;
     const double loss = _init_area(de, az) * sound_speed(0, 0) / area;
     for (unsigned f = 0; f < _wave._frequencies->size(); ++f) {
@@ -110,4 +110,83 @@ const vector<double>& spreading_ray::intensity(
     if ( u > 4.0 ) _spread *= 0.0 ;
 
     return _spread ;
+}
+
+/**
+ * Compute the harmonic mean of the distance between the position
+ * on the wavefront that is DE+1 and DE-1 from DE. Divides the result
+ * by 1/2, as the width of the gaussian cell is half of the distance.
+ */
+double spreading_ray::width_de(
+        unsigned de, unsigned az, const vector<double>& offset )
+{
+    // Prevent the algorithm from running into problems with the
+    // DE is at the edge of the index array.
+    const unsigned size_de = _wave._source_de->size() - 1 ;
+    unsigned de_max, de_min, de_center ;
+    if ( de >= size_de ) {
+        de_max = size_de ;
+        de_center = size_de - 1 ;
+        de_min = size_de - 2 ;
+    } else if ( de == 0 ) {
+        de_max = de + 2 ;
+        de_center = 1 ;
+        de_min = 0 ;
+    } else {
+        de_max = de + 1 ;
+        de_center = de ;
+        de_min = de - 1 ;
+    }
+
+    // Find the distances from these points on the wavefront to
+    // each other
+    const wposition& pos1 = _wave._curr->position ;
+    const wvector1 A(pos1, de_min, az) ;
+    const wvector1 B(pos1, de_center, az) ;
+    const wvector1 C(pos1, de_max, az) ;
+    double width1 = A.distance(B) ;
+    double width2 = B.distance(C) ;
+
+    // Compute half the harmonic mean
+    double u =  1.0 / width1 + 1.0 / width2 ;
+    u = 1.0 / u ;
+    return u ;
+}
+
+/**
+ * Compute the harmonic mean of the distance between the position
+ * on the wavefront that is AZ+1 and AZ-1 from AZ. Divides the result
+ * by 1/2, as the width of the gaussian cell is half of the distance.
+ */
+double spreading_ray::width_az(
+        unsigned de, unsigned az, const vector<double>& offset )
+{
+    // Prevent the algorithm from running into problems with the
+    // AZ is at the edge of the index array.
+    const unsigned size = _wave._source_az->size() - 1 ;
+    unsigned az_min, az_max ;
+    if ( az >= size ) {
+        az_max = 0 ;
+        az_min = az - 1 ;
+    } else if ( az == 0 ) {
+        az_max = az + 1 ;
+        az_min = size ;
+    } else {
+        az_max = az + 1 ;
+        az_min = az - 1 ;
+    }
+
+    // Find the distances from these points on the wavefront to
+    // each other
+    const wposition& pos1 = _wave._curr->position ;
+    const wvector1 A(pos1, de, az_min) ;
+    const wvector1 B(pos1, de, az) ;
+    const wvector1 C(pos1, de, az_max) ;
+    double width1 = A.distance(B) ;
+    double width2 = B.distance(C) ;
+
+    // Compute half the harmonic mean
+    double u =  1.0 / width1 + 1.0 / width2 ;
+    u = 1.0 / u ;
+    return u ;
 }
