@@ -50,6 +50,26 @@ class USML_DECLSPEC scattering_lambert : public scattering_model {
             double azI, double azS, vector<double>* amplitude,
             vector<double>* phase ) ;
 
+        /**
+         * Constructor
+         */
+        scattering_lambert( double bss ) : _bss(bss) {}
+
+        /**
+         * Default Constructor
+         */
+        scattering_lambert() {
+            _bss = pow(10.0,-27.0/10.0) ;
+        }
+
+    private:
+
+        /**
+         * Back scattering strength
+         */
+        double _bss ;
+
+
 };
 
 }   // end of namespace ocean

@@ -11,8 +11,7 @@ void scattering_lambert::scattering_strength( const wposition1& location,
     double azI, double azS, vector<double>* amplitude,
     vector<double>* phase )
 {
-    double coeff = 1.0 ;
     for(unsigned i=0; i<frequencies.size(); ++i) {
-        (*amplitude)(i) = coeff * sin( angleI ) * sin( angleS ) ;       /// @todo define coeff I_0*dA
+        (*amplitude)(i) = _bss * sin( angleI ) * sin( angleS ) ;
     }
 }
