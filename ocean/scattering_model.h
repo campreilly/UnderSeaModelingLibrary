@@ -46,6 +46,10 @@ class USML_DECLSPEC scattering_model {
             double azI, double azS, vector<double>* amplitude,
             vector<double>* phase ) = 0 ;
 
+        /**
+         * Virtual destructor
+         */
+        virtual ~scattering_model() {}
 
 };
 

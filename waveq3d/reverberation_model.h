@@ -27,8 +27,9 @@ class USML_DECLSPEC reverberation_model {
 
     public:
 
-        reverberation_model() {}
-
+        /**
+         * Virtual destructor
+         */
         virtual ~reverberation_model() {}
 
         /**
