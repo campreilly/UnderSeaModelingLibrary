@@ -19,7 +19,7 @@ eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
     _spreading_model = wave.getSpreading_Model() ;
     _bottom_scatter = ocean.bottom().getScattering_Model() ;
     _surface_scatter = ocean.surface().getScattering_Model() ;
-//    _volume_scatter = ocean.volume().getScattering_Model() ;        // Volume layers of the ocean have yet to be implemented
+    _volume_scatter = ocean.volume()->getScattering_Model() ;        // Volume layers of the ocean have yet to be implemented
     _energy = new double[_num_bins] ;
     memset(_energy,0.0,_num_bins) ;
 }

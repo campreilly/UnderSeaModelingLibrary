@@ -147,7 +147,7 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          * Defines the type of scattering model that is used to compute
          * the scattering strength off the boundary.
          */
-//        scattering_model* _volume_scatter ;
+        scattering_model* _volume_scatter ;
 
         /**
          * Vector of eigenverbs that impacted the surface.

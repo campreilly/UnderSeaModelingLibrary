@@ -106,6 +106,28 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
 
         void detect_volume_reflections() ;
 
+        void collide_from_above( unsigned de, unsigned az, double depth, unsigned layer ) ;
+
+        void collide_from_below( unsigned de, unsigned az, double depth, unsigned layer ) ;
+
+        /**
+         * Computes a refined location and direction at the point of collision.
+         * Uses a second order Taylor series around the current location to
+         * estimate these values.
+         *
+         * @param de            D/E angle index number.
+         * @param az            AZ angle index number.
+         * @param dtime         The distance (in time) from the "current"
+         *                      wavefront to the boundary collision.
+         * @param position      Refined position of the reflection (output).
+         * @param ndirection    Normalized direction at the point
+         *                      of reflection (output).
+         * @param speed         Speed of sound at the point of reflection (output).
+         */
+        void collision_location(
+            unsigned de, unsigned az, double dtime,
+            wposition1* position, wvector1* ndirection, double* speed ) const ;
+
     private:
 
         /**
