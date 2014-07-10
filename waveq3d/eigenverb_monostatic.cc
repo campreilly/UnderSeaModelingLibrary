@@ -11,7 +11,7 @@ using namespace usml::waveq3d ;
 
 /**  Constructor  **/
 eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
-    wave_queue& wave, double pulse, unsigned num_bins, double max_time ) :
+    wave_queue_reverb& wave, double pulse, unsigned num_bins, double max_time ) :
     _pulse(pulse),
     _num_bins(num_bins),
     _max_time(max_time)
@@ -35,7 +35,7 @@ eigenverb_monostatic::~eigenverb_monostatic()
  */
 void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, int ID ) {
+               const wposition1& position, const wvector1& ndirection, unsigned ID ) {
 
     eigenverb verb ;
     verb.de = de ;
@@ -60,7 +60,7 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
 
     switch (ID) {
         // No ID present, means this is a generic surface interaction.
-        case 0:
+        case 10:
             _surface.push_back( verb ) ;
             break ;
         // Interactions from the volume reverberation will use
@@ -77,7 +77,7 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
  */
 void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, int ID ) {
+               const wposition1& position, const wvector1& ndirection, unsigned ID ) {
 
     eigenverb verb ;
     verb.de = de ;
@@ -102,7 +102,7 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
 
     switch (ID) {
         // No ID present, means this is a generic bottom interaction.
-        case 0:
+        case 10:
             _bottom.push_back( verb ) ;
             break ;
         // Interactions from the volume reverberation will use

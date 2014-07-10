@@ -3,12 +3,11 @@
  */
 
 #include <usml/waveq3d/eigenverb_bistatic.h>
-#include <usml/waveq3d/spreading_hybrid_gaussian.h>
 
 using namespace usml::waveq3d ;
 
 /**  Constructor  **/
-eigenverb_bistatic::eigenverb_bistatic( wave_queue& wave ) {
+eigenverb_bistatic::eigenverb_bistatic( wave_queue_reverb& wave ) {
     _spreading_model = wave.getSpreading_Model() ;
 }
 
@@ -18,7 +17,7 @@ eigenverb_bistatic::eigenverb_bistatic( wave_queue& wave ) {
  */
 void eigenverb_bistatic::notifyUpperCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, int ID ) {
+               const wposition1& position, const wvector1& ndirection, unsigned ID ) {
 
     eigenverb verb ;
     verb.de = de ;
@@ -62,7 +61,7 @@ void eigenverb_bistatic::notifyUpperCollision( unsigned de, unsigned az, double 
  */
 void eigenverb_bistatic::notifyLowerCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, int ID ) {
+               const wposition1& position, const wvector1& ndirection, unsigned ID ) {
 
     eigenverb verb ;
     verb.de = de ;

@@ -5,6 +5,7 @@
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/waveq3d/reverberation_model.h>
+#include <usml/waveq3d/wave_queue_reverb.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -50,7 +51,7 @@ public:
      */
     virtual void notifyUpperCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, int ID )
+               const wposition1& position, const wvector1& ndirection, unsigned ID )
     {
         ++counter ;
         this->surface = true ;
@@ -61,7 +62,7 @@ public:
 
     virtual void notifyLowerCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, int ID )
+               const wposition1& position, const wvector1& ndirection, unsigned ID )
     {
         ++counter ;
         this->bottom = true ;
@@ -141,10 +142,12 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
         seq_linear de( -5.183617057, 0.0, 1 ) ;  // steer down
         seq_linear az( 0.0, 0.0, 1 ) ;           // north
         const double time_step = 0.1 ;           // 100 msec
+        const double T = 0.1 ;                   // pulse length, 100 msec
+        const unsigned bins = 10 ;               // number of time bins
+        const double max_time = 60.0 ;           // maximum travel time
 
-        wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
         reflection_callback callback ;
-        wave.set_reverberation_model( &callback ) ;
+        wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T, bins, max_time, &callback ) ;
         int old_counter = callback.counter ;
         double max_time_error = 0.0 ;
         double max_lat_error = 0.0 ;
@@ -171,7 +174,7 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
         // propagate rays to stimulate bottom and surface reflections
 
         int bounce = 0 ;
-        while ( wave.time() < 60.0 ) {
+        while ( wave.time() < max_time ) {
 
             // write to spreadsheet file
 

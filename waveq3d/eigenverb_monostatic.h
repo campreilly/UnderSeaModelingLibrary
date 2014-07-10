@@ -8,6 +8,8 @@
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/waveq3d/eigenverb.h>
 #include <usml/waveq3d/reverberation_model.h>
+#include <usml/waveq3d/wave_queue_reverb.h>
+#include <usml/waveq3d/spreading_hybrid_gaussian.h>
 #include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
 #include <vector>
@@ -32,7 +34,7 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
     public:
 
         eigenverb_monostatic( ocean_model& ocean,
-                              wave_queue& wave,
+                              wave_queue_reverb& wave,
                               double pulse,
                               unsigned num_bins,
                               double max_time ) ;
@@ -43,7 +45,6 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          * React to the collision of a single ray with a reverberation
          * when colliding from below the boundary.
          *
-         * @param ID            (Used to identify source/receiver/volume layer)
          * @param de            D/E angle index number.
          * @param az            AZ angle index number.
          * @param time          Current time of the wavefront (sec)
@@ -53,16 +54,16 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
+         * @param ID            (Used to identify source/receiver/volume layer)
          */
         virtual void notifyUpperCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, int ID ) ;
+               const wposition1& position, const wvector1& ndirection, unsigned ID ) ;
 
         /**
          * React to the collision of a single ray with a reverberation
          * when colliding from above the boundary.
          *
-         * @param ID            (Used to identify source/receiver/volume layer)
          * @param de            D/E angle index number.
          * @param az            AZ angle index number.
          * @param time          Current time of the wavefront (sec)
@@ -72,10 +73,11 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
+         * @param ID            (Used to identify source/receiver/volume layer)
          */
         virtual void notifyLowerCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, int ID ) ;
+               const wposition1& position, const wvector1& ndirection, unsigned ID ) ;
 
         /**
          * Computes the reverberation curve from the data cataloged from the

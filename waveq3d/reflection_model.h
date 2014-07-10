@@ -12,6 +12,7 @@ namespace waveq3d {
 
 using namespace usml::ocean ;
 class wave_queue ;      // forward reference for friend declaration
+class wave_queue_reverb ;
 
 /**
  * @internal
@@ -49,13 +50,14 @@ class wave_queue ;      // forward reference for friend declaration
 class USML_DECLSPEC reflection_model {
 
     friend class wave_queue ;
+    friend class wave_queue_reverb ;
 
   private:
 
     /** Wavefront object associated with this model. */
     wave_queue& _wave ;
 
-    /** Callback model for reverberation */
+    /** Associated reverbation model **/
     reverberation_model* _reverberation ;
 
     /**
@@ -90,8 +92,8 @@ class USML_DECLSPEC reflection_model {
     /**
      * Hide default constructor to prohibit use by non-friends.
      */
-    reflection_model( wave_queue& wave )
-    	: _wave( wave ), _reverberation( NULL ),
+    reflection_model( wave_queue& wave, reverberation_model* reverberation=NULL )
+    	: _wave( wave ), _reverberation( reverberation ),
         TOO_SHALLOW( 300.0 * wave._time_step )
     	{}
 

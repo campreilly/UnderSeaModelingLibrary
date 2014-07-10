@@ -21,6 +21,7 @@ class spreading_model ;
 class spreading_ray ;
 class spreading_hybrid_gaussian ;
 class eigenrayListener ;
+class wave_queue_reverb ;
 
 /// @ingroup waveq3d
 /// @{
@@ -65,119 +66,7 @@ class USML_DECLSPEC wave_queue {
     friend class reflection_model ;
     friend class spreading_ray ;
     friend class spreading_hybrid_gaussian ;
-
-  private:
-
-    /**
-     * Reference to the environmental parameters.
-     * Assumes that the storage for this data is managed by calling routine.
-     */
-    ocean_model& _ocean ;
-
-    /**
-     * Frequencies over which to compute propagation loss (Hz).
-     * Defined as a pointer to support virtual methods in seq_vector class.
-     */
-    const seq_vector* _frequencies ;
-
-    /**
-     * Location of the wavefront source in spherical earth coordinates.
-     */
-    const wposition1 _source_pos ;
-
-    /**
-     * Initial depression/elevation angle (D/E) at the
-     * source location (degrees, positive is up).
-     * Defined as a pointer to support virtual methods in seq_vector class.
-     */
-    const seq_vector *_source_de ;
-
-    /**
-     * Initial azimuthal angle (AZ) at the source location
-     * (degrees, clockwise from true north).
-     * Defined as a pointer to support virtual methods in seq_vector class.
-     */
-    const seq_vector *_source_az ;
-
-    /** Propagation step size (seconds). */
-    double _time_step ;
-
-    /** Time for current entry in the wave_front circular queue (seconds). */
-    double _time ;
-
-    /**
-     * List of acoustic targets.
-     */
-    const wposition* _targets;
-
-	/**
-	 * Intermediate term: sin of colatitude for targets.
-	 * By caching this value here, we avoid re-calculating it each time
-	 * the that wave_front::compute_target_distance() needs to
-	 * compute the distance squared from each target to each point
-	 * on the wavefront.
-	 */
-	matrix<double> _targets_sin_theta ;
-
-    /** Reference to the reflection loss model component. */
-    reflection_model* _reflection_model ;
-
-    /**
-     * Reference to the spreading loss model component.
-     * Supports either classic ray theory or Hybrid Gaussian Beams.
-     */
-    spreading_model* _spreading_model ;
-
-    /**
-     * The value of the intensity threshold in dB
-     * Any eigenray intensity values that are weaker than this
-     * threshold are not sent the proplossListner(s);
-     * Defaults to -300 dB
-     */
-    double _intensity_threshold; //In dB
-
-    /**
-     * Circular queue of wavefront elements needed by the
-     * third order Adams-Bashforth algorithm.
-     *
-     *    - _past is for iteration n-2
-     *    - _prev is for iteration n-1
-     *    - _curr is for iteration n (the current wavefront)
-     *    - _next is for iteration n+1
-     */
-    wave_front *_past, *_prev, *_curr, *_next ;
-
-
-    /**
-	* Vector containing the references of objects that will be used to
-	* update classes that require eigenrays as they are built.
-	* These classes must implement addEigenray method.
-	*/
-    std::vector<eigenrayListener *> _eigenrayListenerVec;
-
-    /**
-     * Create an Azimuthal boundary loop condition upon initialization.
-     * This condition will prevent the production of multiple eigenrays
-     * for instances where the first azimuthal angle is equivalent to
-     * the last azimuthal angle in the AZ vector that is passed.
-     */
-    bool _az_boundary ;
-
-    /**
-     * Treat all targets that are slightly away from directly above the
-     * source as special cases.
-     */
-    bool _de_branch ;
-
-    /**
-     * Type of wavefront this wave_queue is generating information for.
-     * This is exclusively used by reverberation generation, to
-     * distinguish source wavefronts from receiver wavefronts in the
-     * bistatic cause.
-     *
-     *              Source = 10, Receiver = 20
-     */
-     int _origin ;
+    friend class wave_queue_reverb ;
 
   public:
 
@@ -223,35 +112,6 @@ class USML_DECLSPEC wave_queue {
 
     /** Destroy all temporary memory. */
     virtual ~wave_queue() ;
-
-    /**
-     * Used to get the type of spreading model that is being used
-     * by the wavefront. This is used exclusively by reverberation
-     * models.
-     * @return          pointer to the spreading model
-     */
-    inline spreading_model* getSpreading_Model() {
-        return _spreading_model ;
-    }
-
-    /**
-     * Set the type of wavefront that this is, i.e. a wavefront
-     * originating from a source or receiver. This is exclusively
-     * used within the reverbation models.
-     */
-    inline void setOrigin( int origin ) {
-        _origin = origin ;
-    }
-
-    /**
-     * Get the type of wavefront that this is, i.e. a wavefront
-     * originating from a source or receiver. This is exclusively
-     * used within the reverbation models.
-     * @return      Type of wavefront (receiver/source)
-     */
-    inline const int getOrigin() {
-        return _origin ;
-    }
 
     /**
      * Location of the wavefront source in spherical earth coordinates.
@@ -334,6 +194,13 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
+     * Reverberation model accessor
+     */
+    inline reverberation_model* getReverberation_model() {
+        return _reverberation_model ;
+    }
+
+    /**
 	 * setIntensityThreshold
 	 * @param  dThreshold The new value of the intensity threshold in dB.
 	 *
@@ -351,10 +218,6 @@ class USML_DECLSPEC wave_queue {
 	inline double getIntensityThreshold() {
 		return _intensity_threshold;
 	}
-    /**
-     * Register a reverberation model.
-     */
-    void set_reverberation_model( reverberation_model* model ) ;
 
     /**
      * Add a eigenrayListener to the _eigenrayListenerVec vector
@@ -365,28 +228,6 @@ class USML_DECLSPEC wave_queue {
 	 * Remove a eigenrayListener from the _eigenrayListenerVec vector
 	 */
     bool removeEigenrayListener(eigenrayListener* pListener);
-
-
-  private:
-
-    /**
-     * Initialize wavefronts at the start of propagation using a
-     * 3rd order Runge-Kutta algorithm.  The Runge-Kutta algorithm is
-     * much more computationally expensive than the Adams-Bashforth algorithm
-     * used during propagation. But Runge-Kutta is self starting,
-     * only happens at initialization, and it avoids introducing the start-up
-     * errors that would be present with cheaper methods.
-     *
-     * Assumes that all of the elements of the _curr wavefront have been
-     * initialized prior to this initialization. When this method is complete,
-     * the wavefront elements for _past, _prev, _and _next will all have
-     * valid position, direction, and closest point of approach data.
-     * However, the _next element will not have been checked for interface
-     * collisions or eigenray collisions with targets.
-     */
-    void init_wavefronts() ;
-
-  public:
 
     /**
      * Marches to the next integration step in the acoustic propagation.
@@ -411,7 +252,128 @@ class USML_DECLSPEC wave_queue {
      */
     void step() ;
 
-  private:
+  protected:
+
+    /**
+     * Reference to the environmental parameters.
+     * Assumes that the storage for this data is managed by calling routine.
+     */
+    ocean_model& _ocean ;
+
+    /**
+     * Frequencies over which to compute propagation loss (Hz).
+     * Defined as a pointer to support virtual methods in seq_vector class.
+     */
+    const seq_vector* _frequencies ;
+
+    /**
+     * Location of the wavefront source in spherical earth coordinates.
+     */
+    const wposition1 _source_pos ;
+
+    /**
+     * Initial depression/elevation angle (D/E) at the
+     * source location (degrees, positive is up).
+     * Defined as a pointer to support virtual methods in seq_vector class.
+     */
+    const seq_vector *_source_de ;
+
+    /**
+     * Initial azimuthal angle (AZ) at the source location
+     * (degrees, clockwise from true north).
+     * Defined as a pointer to support virtual methods in seq_vector class.
+     */
+    const seq_vector *_source_az ;
+
+    /** Propagation step size (seconds). */
+    double _time_step ;
+
+    /** Time for current entry in the wave_front circular queue (seconds). */
+    double _time ;
+
+    /**
+     * List of acoustic targets.
+     */
+    const wposition* _targets;
+
+	/**
+	 * Intermediate term: sin of colatitude for targets.
+	 * By caching this value here, we avoid re-calculating it each time
+	 * the that wave_front::compute_target_distance() needs to
+	 * compute the distance squared from each target to each point
+	 * on the wavefront.
+	 */
+	matrix<double> _targets_sin_theta ;
+
+    /** Reference to the reflection model component. */
+    reflection_model* _reflection_model ;
+
+    /** Reference to the reflection model component. */
+    reverberation_model* _reverberation_model ;
+
+    /**
+     * Reference to the spreading loss model component.
+     * Supports either classic ray theory or Hybrid Gaussian Beams.
+     */
+    spreading_model* _spreading_model ;
+
+    /**
+     * The value of the intensity threshold in dB
+     * Any eigenray intensity values that are weaker than this
+     * threshold are not sent the proplossListner(s);
+     * Defaults to -300 dB
+     */
+    double _intensity_threshold; //In dB
+
+    /**
+     * Circular queue of wavefront elements needed by the
+     * third order Adams-Bashforth algorithm.
+     *
+     *    - _past is for iteration n-2
+     *    - _prev is for iteration n-1
+     *    - _curr is for iteration n (the current wavefront)
+     *    - _next is for iteration n+1
+     */
+    wave_front *_past, *_prev, *_curr, *_next ;
+
+
+    /**
+	* Vector containing the references of objects that will be used to
+	* update classes that require eigenrays as they are built.
+	* These classes must implement addEigenray method.
+	*/
+    std::vector<eigenrayListener *> _eigenrayListenerVec;
+
+    /**
+     * Create an Azimuthal boundary loop condition upon initialization.
+     * This condition will prevent the production of multiple eigenrays
+     * for instances where the first azimuthal angle is equivalent to
+     * the last azimuthal angle in the AZ vector that is passed.
+     */
+    bool _az_boundary ;
+
+    /**
+     * Treat all targets that are slightly away from directly above the
+     * source as special cases.
+     */
+    bool _de_branch ;
+
+    /**
+     * Initialize wavefronts at the start of propagation using a
+     * 3rd order Runge-Kutta algorithm.  The Runge-Kutta algorithm is
+     * much more computationally expensive than the Adams-Bashforth algorithm
+     * used during propagation. But Runge-Kutta is self starting,
+     * only happens at initialization, and it avoids introducing the start-up
+     * errors that would be present with cheaper methods.
+     *
+     * Assumes that all of the elements of the _curr wavefront have been
+     * initialized prior to this initialization. When this method is complete,
+     * the wavefront elements for _past, _prev, _and _next will all have
+     * valid position, direction, and closest point of approach data.
+     * However, the _next element will not have been checked for interface
+     * collisions or eigenray collisions with targets.
+     */
+    void init_wavefronts() ;
 
     //**************************************************
     // reflections and caustics

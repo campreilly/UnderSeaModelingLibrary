@@ -44,7 +44,6 @@ wave_queue::wave_queue(
     _time_step( time_step ),
     _time( 0.0 ),
     _targets( targets ),
-    _origin( 0 ),
     _nc_file( NULL )
 {
 
@@ -76,6 +75,7 @@ wave_queue::wave_queue(
     _curr->update() ;
     init_wavefronts() ;
     _reflection_model = new reflection_model( *this ) ;
+    _reverberation_model = NULL ;
     _spreading_model = NULL ;
     if ( _targets ) {
         switch( type ) {
@@ -93,6 +93,7 @@ wave_queue::wave_queue(
 wave_queue::~wave_queue() {
     delete _frequencies ;
     if ( _spreading_model ) delete _spreading_model ;
+    if ( _reverberation_model ) delete _reverberation_model ;
     delete _reflection_model ;
     delete _source_de ;
     delete _source_az ;
@@ -100,13 +101,6 @@ wave_queue::~wave_queue() {
     delete _prev ;
     delete _curr ;
     delete _next ;
-}
-
-/**
- * Register a reverberation model.
- */
-void wave_queue::set_reverberation_model( reverberation_model* model ) {
-    _reflection_model->_reverberation = model ;
 }
 
 /**
