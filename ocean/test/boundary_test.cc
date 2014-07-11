@@ -280,6 +280,34 @@ BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
     BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 681.0, 0.3);
 }
 
+/**
+ * Computes the broad spectrum scattering strength from a flat
+ * boundary interface, using lambert's law.
+ */
+BOOST_AUTO_TEST_CASE( scattering_strength_test ) {
+    cout << "=== boundary_test: scattering_strength_test ===" << endl;
+
+    const wposition1 pos ;
+    const seq_linear freq( 100.0, 0.0, 1 ) ;
+    vector<double> amplitude( freq.size() ) ;
+    vector<double> phase( freq.size() ) ;
+    scattering_model* s = new scattering_lambert() ;
+    const double angleS = M_PI / 4.0 ;
+
+    const char* csv_name = USML_TEST_DIR "/ocean/test/scattering_lambert_test.csv" ;
+    std::ofstream os(csv_name) ;
+    cout << "writing tables to " << csv_name << endl ;
+    os << "angleI,angleS,amp" << endl ;
+    for(int i=0; i<90; ++i) {
+        double angleI = i * M_PI / 180.0 ;
+        s->scattering_strength( pos, freq, angleI, angleS,
+                                0.0, 0.0, &amplitude, &phase ) ;
+        os << angleI << ","
+           << angleS << ","
+           << amplitude(0) << endl ;
+    }
+}
+
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()

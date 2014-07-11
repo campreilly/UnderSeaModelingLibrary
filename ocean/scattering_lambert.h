@@ -59,7 +59,7 @@ class USML_DECLSPEC scattering_lambert : public scattering_model {
          * Default Constructor
          */
         scattering_lambert() {
-            _bss = pow(10.0,-27.0/10.0) ;
+            _bss = pow(10.0,-2.7) ;
         }
 
     private:
