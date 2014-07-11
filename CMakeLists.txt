@@ -34,6 +34,7 @@ option( USML_SAFE_BESSEL "Use Locally implemented Modified Bessel_IO" OFF )
 option( USML_BUILD_TESTS "build all Tests" ON )
 option( USML_BUILD_STUDIES "build all Studies" ON )
 option( USML_BUILD_ADDITIONS "build all Additions" OFF )
+option( USML_EARTH_RADIUS "use the USML earth radius instead of FAI standard" OFF )
 
 ######################################################################
 # Visual C++ compiler options
