@@ -106,6 +106,18 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
         void compute_volume_energy() ;
 
         /**
+         * Calculate the contributions due to collisions from below
+         * a volume layer.
+         */
+        void compute_upper_volume() ;
+
+        /**
+         * Calculate the contributions due to collisions from above
+         * a volume layer.
+         */
+        void compute_lower_volume() ;
+
+        /**
          * Pulse length of the signal (sec)
          */
         double _pulse ;
@@ -124,6 +136,12 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          * The reverberation energy distribution curve.
          */
         double* _energy ;
+
+        /**
+         * Origin of the wavefront
+         * In monostatic this will always be 10.
+         */
+        unsigned _origin ;
 
         /**
          * Defines the type of spreading model that is used to compute
@@ -163,13 +181,13 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          * Vector of eigenverbs that collide with the volume
          * boundarys from below.
          */
-        std::vector< vector< eigenverb > > _upper ;
+        std::vector< std::vector< eigenverb > > _upper ;
 
         /**
          * Vector of eigenverbs that collide with the volume
          * boundarys from above.
          */
-        std::vector< vector< eigenverb > > _lower ;
+        std::vector< std::vector< eigenverb > > _lower ;
 
 };
 

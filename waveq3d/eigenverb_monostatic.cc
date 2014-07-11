@@ -19,7 +19,11 @@ eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
     _spreading_model = wave.getSpreading_Model() ;
     _bottom_scatter = ocean.bottom().getScattering_Model() ;
     _surface_scatter = ocean.surface().getScattering_Model() ;
-    _volume_scatter = ocean.volume()->getScattering_Model() ;        // Volume layers of the ocean have yet to be implemented
+    _volume_scatter = ocean.volume()->getScattering_Model() ;
+    unsigned n = ocean.volume()->getNumberOfLayers() ;
+    _upper.resize(n) ;
+    _lower.resize(n) ;
+    _origin = wave.getOrigin() ;
     _energy = new double[_num_bins] ;
     memset(_energy,0.0,_num_bins) ;
 }
@@ -59,14 +63,12 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
     verb.sigma_az = _spreading_model->getWidth_AZ( de, az, offset ) ;
 
     switch (ID) {
-        // No ID present, means this is a generic surface interaction.
         case 10:
             _surface.push_back( verb ) ;
             break ;
-        // Interactions from the volume reverberation will use
-        // IDs to distinguish where they will be cataloged to.
         default:
-//            _upper(ID).push_back( verb ) ;
+            ID -= _origin ;
+            _upper.at(ID).push_back( verb ) ;
             break ;
     }
 }
@@ -101,14 +103,12 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
     verb.sigma_az = _spreading_model->getWidth_AZ( de, az, offset ) ;
 
     switch (ID) {
-        // No ID present, means this is a generic bottom interaction.
         case 10:
             _bottom.push_back( verb ) ;
             break ;
-        // Interactions from the volume reverberation will use
-        // IDs to distinguish where they will be cataloged to.
         default:
-//            _lower(ID).push_back( verb ) ;
+            ID -= _origin ;
+            _lower.at(ID).push_back( verb ) ;
             break ;
     }
 }
@@ -118,11 +118,12 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
  * wavefront(s).
  */
 void eigenverb_monostatic::compute_reverberation() {
-
+        // Contributions from the bottom collisions
     compute_bottom_energy() ;
+        // Contributions from the surface collisions
     compute_surface_energy() ;
+        // Contributions from the volume layers
     compute_volume_energy() ;
-
 }
 
 /**
@@ -247,5 +248,124 @@ void eigenverb_monostatic::compute_surface_energy() {
  * energy curve from the volume interactions.
  */
 void eigenverb_monostatic::compute_volume_energy() {
-    /// @todo figure out how to do these contributions
+        // Contributions from the upper volume layer collisions
+    compute_upper_volume() ;
+        // Contributions from the lower volume layer collisions
+    compute_lower_volume() ;
+}
+
+/** Compute all of the upper collision contributions**/
+void eigenverb_monostatic::compute_upper_volume() {
+    for(std::vector<std::vector<eigenverb> >::iterator k=_upper.begin();
+            k!=_upper.end(); ++k)
+    {
+        for(std::vector<eigenverb>::iterator i=k->begin();
+                i!=k->end(); ++i)
+        {
+                // Gather data for the out path to the upper collision
+            eigenverb u = (*i) ;
+            matrix<double> mu1(2,1) ;
+            matrix<double> sigma1(2,2) ;
+            mu1(0,0) = u.pos.latitude() ;
+            mu1(1,0) = u.pos.longitude() ;
+            sigma1(0,1) = sigma1(1,0) = 0.0 ;
+            double de_2 = u.de * u.de ;
+            sigma1(0,0) = 1.0 / de_2 ;
+            double az_2 = u.az * u.az ;
+            sigma1(1,1) = 1.0 / az_2 ;
+            double det1 = sigma1(0,0) * sigma1(1,1) ;
+
+            for(std::vector<eigenverb>::iterator j=k->begin();
+                    j!=k->end(); ++j)
+            {
+                    // Gather data for the return path from the upper collision
+                eigenverb v = (*j) ;
+                double travel_time = u.time + v.time ;
+                    // Don't make contributions anymore if the travel time
+                    // is greater then the max reverberation curve time
+                if( _max_time < travel_time ) break ;
+                matrix<double> mu2(2,1) ;
+                matrix<double> sigma2(2,2) ;
+                mu2(0,0) = v.pos.latitude() ;
+                mu2(1,0) = v.pos.longitude() ;
+                sigma2(0,1) = sigma2(1,0) = 0.0 ;
+                double de_2 = v.de * v.de ;
+                sigma2(0,0) = 1.0 / de_2 ;
+                double az_2 = v.az * v.az ;
+                sigma2(1,1) = 1.0 / az_2 ;
+                double det2 = sigma2(0,0) * sigma2(1,1) ;
+
+                matrix<double> mu = mu1 - mu2 ;
+                matrix<double> sigma = sigma1 + sigma2 ;
+
+                double e = gaussian(mu,sigma) ;
+                double tl_2way = v.intensity(0) * v.intensity(0) ;
+                vector<double> s_sr ;
+                vector<double> phase ;
+                _surface_scatter->scattering_strength( v.pos,
+                    (*v.frequencies), u.grazing, v.grazing, u.az, v.az, &s_sr, &phase ) ;
+                unsigned t = floor( _num_bins * travel_time / _max_time ) ;
+                _energy[t] += TWO_PI_2 * _pulse * tl_2way * s_sr(0)      /// @todo _energy is not a vector of freq
+                                * det1 * det2 * e ;
+            }
+        }
+    }
+}
+
+/** Compute all of the lower collision contributions**/
+void eigenverb_monostatic::compute_lower_volume() {
+    for(std::vector<std::vector<eigenverb> >::iterator k=_lower.begin();
+            k!=_lower.end(); ++k)
+    {
+        for(std::vector<eigenverb>::iterator i=k->begin();
+                i!=k->end(); ++i)
+        {
+                // Gather data for the out path to the lower collision
+            eigenverb u = (*i) ;
+            matrix<double> mu1(2,1) ;
+            matrix<double> sigma1(2,2) ;
+            mu1(0,0) = u.pos.latitude() ;
+            mu1(1,0) = u.pos.longitude() ;
+            sigma1(0,1) = sigma1(1,0) = 0.0 ;
+            double de_2 = u.de * u.de ;
+            sigma1(0,0) = 1.0 / de_2 ;
+            double az_2 = u.az * u.az ;
+            sigma1(1,1) = 1.0 / az_2 ;
+            double det1 = sigma1(0,0) * sigma1(1,1) ;
+
+            for(std::vector<eigenverb>::iterator j=k->begin();
+                    j!=k->end(); ++j)
+            {
+                    // Gather data for the return path from the lower collision
+                eigenverb v = (*j) ;
+                double travel_time = u.time + v.time ;
+                    // Don't make contributions anymore if the travel time
+                    // is greater then the max reverberation curve time
+                if( _max_time < travel_time ) break ;
+                matrix<double> mu2(2,1) ;
+                matrix<double> sigma2(2,2) ;
+                mu2(0,0) = v.pos.latitude() ;
+                mu2(1,0) = v.pos.longitude() ;
+                sigma2(0,1) = sigma2(1,0) = 0.0 ;
+                double de_2 = v.de * v.de ;
+                sigma2(0,0) = 1.0 / de_2 ;
+                double az_2 = v.az * v.az ;
+                sigma2(1,1) = 1.0 / az_2 ;
+                double det2 = sigma2(0,0) * sigma2(1,1) ;
+
+                matrix<double> mu = mu1 - mu2 ;
+                matrix<double> sigma = sigma1 + sigma2 ;
+
+                double e = gaussian(mu,sigma) ;
+                double tl_2way = v.intensity(0) * v.intensity(0) ;
+                vector<double> s_sr ;
+                vector<double> phase ;
+                _surface_scatter->scattering_strength( v.pos,
+                    (*v.frequencies), u.grazing, v.grazing, u.az, v.az, &s_sr, &phase ) ;
+                unsigned t = floor( _num_bins * travel_time / _max_time ) ;
+                _energy[t] += TWO_PI_2 * _pulse * tl_2way * s_sr(0)      /// @todo _energy is not a vector of freq
+                                * det1 * det2 * e ;
+            }
+        }
+    }
 }

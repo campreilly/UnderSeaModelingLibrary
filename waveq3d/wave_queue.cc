@@ -202,6 +202,7 @@ void wave_queue::detect_reflections() {
             if ( !detect_reflections_surface(de,az) ) {
                 if( !detect_reflections_bottom(de,az) ) {
                     detect_vertices(de,az) ;
+                    detect_caustics(de,az) ;
                 }
             }
         }
@@ -210,7 +211,6 @@ void wave_queue::detect_reflections() {
     // search for other changes in wavefront
 
     _next->find_edges() ;
-    detect_caustics() ;
 }
 
 /**
@@ -289,23 +289,20 @@ void wave_queue::detect_vertices( unsigned de, unsigned az ) {
 /**
  *  Detects and processes the caustics along the next wavefront
  */
-void wave_queue::detect_caustics() {
+void wave_queue::detect_caustics( unsigned de, unsigned az ) {
     const unsigned max_de = num_de() - 1 ;
-
-    for ( unsigned a=0 ; a < num_az() ; a++ ) {
-        for ( unsigned d=1 ; d < max_de ; d++ ) {
-            double A = _curr->position.rho(d+1,a) ;
-            double B = _curr->position.rho(d,a) ;
-            double C = _next->position.rho(d+1,a) ;
-            double D = _next->position.rho(d,a) ;
-            bool fold = false ;
-            if ( (_next->surface(d+1,a) == _next->surface(d,a)) &&
-                 (_next->bottom(d+1,a) == _next->bottom(d,a)) ) { fold = true; }
-            if ( (C-D)*(A-B) < 0 && fold ) {
-                _next->caustic(d+1,a)++;
-                for (unsigned f = 0; f < _frequencies->size(); ++f) {
-                    _next->phase(d+1,a)(f) -= M_PI_2;
-                }
+    if ( de < max_de ) {
+        double A = _curr->position.rho(de+1,az) ;
+        double B = _curr->position.rho(de,az) ;
+        double C = _next->position.rho(de+1,az) ;
+        double D = _next->position.rho(de,az) ;
+        bool fold = false ;
+        if ( (_next->surface(de+1,az) == _next->surface(de,az)) &&
+             (_next->bottom(de+1,az) == _next->bottom(de,az)) ) { fold = true; }
+        if ( (C-D)*(A-B) < 0 && fold ) {
+            _next->caustic(de+1,az)++;
+            for (unsigned f = 0; f < _frequencies->size(); ++f) {
+                _next->phase(de+1,az)(f) -= M_PI_2;
             }
         }
     }

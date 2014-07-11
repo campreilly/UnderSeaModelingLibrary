@@ -439,7 +439,7 @@ class USML_DECLSPEC wave_queue {
      * over each other when going from current wavefront to the next.
      */
 
-    void detect_caustics() ;
+    void detect_caustics( unsigned de, unsigned az ) ;
 
     //**************************************************
     // eigenray estimation routines

@@ -60,6 +60,7 @@ void wave_queue_reverb::detect_reflections() {
             if ( !detect_reflections_surface(de,az) ) {
                 if( !detect_reflections_bottom(de,az) ) {
                     detect_vertices(de,az) ;
+                    detect_caustics(de,az) ;
                 }
             }
         }
@@ -69,7 +70,6 @@ void wave_queue_reverb::detect_reflections() {
 
     // search for other changes in wavefront
     _next->find_edges() ;
-    detect_caustics() ;
 }
 
 /**
@@ -88,7 +88,7 @@ void wave_queue_reverb::detect_volume_reflections() {
                 double d1 = height - pos_next.rho() ;
                 double d2 = height - pos_curr.rho() ;
                 if ( d1 > 0 && d2 < 0 ) { collide_from_above(de,az, d1, i) ; }
-                if ( d1 < 0 && d2 > 0 ) { collide_from_below(de,az, d2, i) ; }
+                else if ( d1 < 0 && d2 > 0 ) { collide_from_below(de,az, d2, i) ; }
             }
         }
     }
@@ -170,7 +170,6 @@ void wave_queue_reverb::collide_from_above(
         // reverberation callback. Just passing bogus values currently.
 }
 
-/// @todo correct the logic for colliding from below the layer, this should be opposite of colliding from above
 void wave_queue_reverb::collide_from_below(
         unsigned de, unsigned az, double depth, unsigned layer )
 {
@@ -190,7 +189,7 @@ void wave_queue_reverb::collide_from_below(
     wvector1 layer_normal ;
     boundary_model* boundary = _ocean.volume()->getLayer(layer) ;
     boundary->height( position, &layer_rho, &layer_normal ) ;
-    double height_water = layer_rho - position.rho() ;
+    double height_water = position.rho() - layer_rho ;
 
     // compute dot_full = dot product of the full dr/dt with layer_normal (negative #)
     // converts ndirection to dr/dt in rectangular coordinates relative to reflection point
@@ -205,7 +204,7 @@ void wave_queue_reverb::collide_from_below(
     // compute the smallest "dot_full" that could have led to this penetration depth
     // assume minimum depth change, along normal, of 1.0 meters
 
-    double max_dot = - max( MIN_REFLECT, (height_water-depth)*layer_normal.rho() ) ;
+    double max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
     if ( dot_full >= max_dot ) dot_full = max_dot ;
 
     // compute time_water = fraction of time step needed to strike the layer
@@ -222,7 +221,7 @@ void wave_queue_reverb::collide_from_below(
     collision_location( de, az, time_water, &position, &ndirection, &c ) ;
     boundary->height( position, &layer_rho, &layer_normal ) ;
     c2 = c*c ;
-    height_water = layer_rho - position.rho() ;
+    height_water = position.rho() - layer_rho ;
 
     ndirection.rho(   c2 * ndirection.rho() ) ;
     ndirection.theta( c2 * ndirection.theta() ) ;
@@ -230,7 +229,7 @@ void wave_queue_reverb::collide_from_below(
     dot_full = layer_normal.rho() * ndirection.rho()
         + layer_normal.theta() * ndirection.theta()
         + layer_normal.phi() * ndirection.phi() ;  // negative #
-    max_dot = - max( MIN_REFLECT, (height_water-depth)*layer_normal.rho() ) ;
+    max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
     if ( dot_full >= max_dot ) dot_full = max_dot ;
     double grazing = 0.0 ;                                       //added proper logic to account for instances when abs(dot_full/c) >= 1
     if ( dot_full / c >= 1.0 ) { grazing = -M_PI_2 ; }

@@ -26,7 +26,14 @@ class USML_DECLSPEC volume_layer {
         }
 
         /** Destructor **/
-        virtual ~volume_layer() ;
+        virtual ~volume_layer() {
+            for(vector<boundary_model*>::iterator i=_layers.begin();
+                    i!=_layers.end(); ++i)
+            {
+                    delete *i ;
+            }
+            delete _scatter ;
+        }
 
         /** Layer Accessor **/
         inline boundary_model* getLayer( unsigned n ) {
