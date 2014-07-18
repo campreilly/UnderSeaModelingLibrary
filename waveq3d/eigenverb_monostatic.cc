@@ -302,7 +302,7 @@ void eigenverb_monostatic::compute_upper_volume() {
                 double tl_2way = v.intensity(0) * v.intensity(0) ;
                 vector<double> s_sr ;
                 vector<double> phase ;
-                _surface_scatter->scattering_strength( v.pos,
+                _volume_scatter->scattering_strength( v.pos,
                     (*v.frequencies), u.grazing, v.grazing, u.az, v.az, &s_sr, &phase ) ;
                 unsigned t = floor( _num_bins * travel_time / _max_time ) ;
                 _energy[t] += TWO_PI_2 * _pulse * tl_2way * s_sr(0)      /// @todo _energy is not a vector of freq
@@ -360,7 +360,7 @@ void eigenverb_monostatic::compute_lower_volume() {
                 double tl_2way = v.intensity(0) * v.intensity(0) ;
                 vector<double> s_sr ;
                 vector<double> phase ;
-                _surface_scatter->scattering_strength( v.pos,
+                _volume_scatter->scattering_strength( v.pos,
                     (*v.frequencies), u.grazing, v.grazing, u.az, v.az, &s_sr, &phase ) ;
                 unsigned t = floor( _num_bins * travel_time / _max_time ) ;
                 _energy[t] += TWO_PI_2 * _pulse * tl_2way * s_sr(0)      /// @todo _energy is not a vector of freq
