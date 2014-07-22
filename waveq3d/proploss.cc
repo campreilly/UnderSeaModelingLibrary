@@ -135,7 +135,7 @@ void proploss::sum_eigenrays( bool coherent ) {
 /**
  * Add eigenray via proplossListener
  */
-bool proploss::addEigenray( unsigned targetRow, unsigned targetCol, eigenray pRay ) {
+bool proploss::addEigenray( unsigned targetRow, unsigned targetCol, eigenray pRay, unsigned long run_id ) {
 
 	 _eigenrays(targetRow, targetCol).push_back( pRay ) ;
 	 ++_num_eigenrays ;
