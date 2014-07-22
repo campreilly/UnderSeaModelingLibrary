@@ -34,6 +34,7 @@ wave_queue::wave_queue(
     const seq_vector& az,
     double time_step,
     const wposition* targets,
+    const unsigned long run_id,
     spreading_type type
 ) :
     _ocean( ocean ),
@@ -44,6 +45,7 @@ wave_queue::wave_queue(
     _time_step( time_step ),
     _time( 0.0 ),
     _targets( targets ),
+    _run_id(run_id),
     _nc_file( NULL )
 {
 
@@ -1067,7 +1069,7 @@ bool wave_queue::notifyEigenrayListeners(unsigned targetRow, unsigned targetCol,
 	for (std::vector<eigenrayListener*>::iterator iter = _eigenrayListenerVec.begin();
 												iter != _eigenrayListenerVec.end(); ++iter){
 		eigenrayListener* pListener = *iter;
-		pListener->addEigenray(targetRow, targetCol, pEigenray);
+		pListener->addEigenray(targetRow, targetCol, pEigenray, _run_id);
 	}
 
 	return (_eigenrayListenerVec.size() > 0);

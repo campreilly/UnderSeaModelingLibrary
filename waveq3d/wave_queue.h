@@ -107,6 +107,7 @@ class USML_DECLSPEC wave_queue {
         const seq_vector& de, const seq_vector& az,
         double time_step,
         const wposition* targets=NULL,
+        const unsigned long run_id=1,
         spreading_type type=HYBRID_GAUSSIAN
         ) ;
 
@@ -295,6 +296,9 @@ class USML_DECLSPEC wave_queue {
      * List of acoustic targets.
      */
     const wposition* _targets;
+
+     /** Run Identification */
+    const unsigned long _run_id ;
 
 	/**
 	 * Intermediate term: sin of colatitude for targets.

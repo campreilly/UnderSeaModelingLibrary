@@ -34,8 +34,9 @@ public:
 	 *  @param   targetRow Index of the target row to add to list of eigenrays
      *  @param   targetCol Index of the target row to add to list of eigenrays
      *  @param   pRay      Pointer to eigenray data to add to list of eigenrays
+     *  @param   run_id    Run Identification number.
 	 */
-	virtual bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pRay ) = 0;
+	virtual bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pRay, unsigned long run_id) = 0;
 
 
 protected:
