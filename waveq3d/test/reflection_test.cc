@@ -20,6 +20,7 @@ BOOST_AUTO_TEST_SUITE(reflection_test)
 using namespace boost::unit_test ;
 using namespace usml::netcdf ;
 using namespace usml::waveq3d ;
+using namespace boost::numeric::ublas ;
 
 /**
  * @ingroup waveq3d_test
@@ -73,6 +74,10 @@ public:
 
     virtual void compute_reverberation() {}
 
+    virtual const vector<double> getReverberation_curve() {
+        vector<double> c ;
+        return c ;
+    }
 
 };
 

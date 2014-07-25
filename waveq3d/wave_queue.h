@@ -6,7 +6,6 @@
 #define USML_WAVEQ3D_WAVE_QUEUE_H
 
 #include <usml/ocean/ocean.h>
-#include <usml/waveq3d/reverberation_model.h>
 #include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/eigenrayListener.h>
 #include <netcdfcpp.h>
@@ -15,13 +14,11 @@ namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
-class reverberation_model ;    // forward references for friend declarations
 class reflection_model ;
 class spreading_model ;
 class spreading_ray ;
 class spreading_hybrid_gaussian ;
 class eigenrayListener ;
-class wave_queue_reverb ;
 
 /// @ingroup waveq3d
 /// @{
@@ -66,7 +63,6 @@ class USML_DECLSPEC wave_queue {
     friend class reflection_model ;
     friend class spreading_ray ;
     friend class spreading_hybrid_gaussian ;
-    friend class wave_queue_reverb ;
 
   public:
 
@@ -195,13 +191,6 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
-     * Reverberation model accessor
-     */
-    inline reverberation_model* getReverberation_model() {
-        return _reverberation_model ;
-    }
-
-    /**
 	 * setIntensityThreshold
 	 * @param  dThreshold The new value of the intensity threshold in dB.
 	 *
@@ -229,6 +218,26 @@ class USML_DECLSPEC wave_queue {
 	 * Remove a eigenrayListener from the _eigenrayListenerVec vector
 	 */
     bool removeEigenrayListener(eigenrayListener* pListener);
+
+
+    /**
+     * Set the type of wavefront that this is, i.e. a wavefront
+     * originating from a source or receiver. This is exclusively
+     * used within the reverbation models.
+     */
+    inline void setID( unsigned long id ) {
+        _run_id = id ;
+    }
+
+    /**
+     * Get the type of wavefront that this is, i.e. a wavefront
+     * originating from a source or receiver. This is exclusively
+     * used within the reverbation models.
+     * @return      Type of wavefront (receiver/source)
+     */
+    inline const unsigned long getID() {
+        return _run_id ;
+    }
 
     /**
      * Marches to the next integration step in the acoustic propagation.
@@ -298,7 +307,7 @@ class USML_DECLSPEC wave_queue {
     const wposition* _targets;
 
      /** Run Identification */
-    const unsigned long _run_id ;
+    unsigned long _run_id ;
 
 	/**
 	 * Intermediate term: sin of colatitude for targets.
@@ -311,9 +320,6 @@ class USML_DECLSPEC wave_queue {
 
     /** Reference to the reflection model component. */
     reflection_model* _reflection_model ;
-
-    /** Reference to the reflection model component. */
-    reverberation_model* _reverberation_model ;
 
     /**
      * Reference to the spreading loss model component.

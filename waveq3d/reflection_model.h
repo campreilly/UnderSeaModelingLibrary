@@ -6,6 +6,9 @@
 #define USML_WAVEQ3D_REFLECTION_MODEL_H
 
 #include <usml/waveq3d/wave_queue.h>
+#include <usml/waveq3d/wave_queue_reverb.h>
+#include <usml/waveq3d/eigenverb_monostatic.h>
+#include <usml/waveq3d/eigenverb_bistatic.h>
 
 namespace usml {
 namespace waveq3d {
@@ -92,10 +95,29 @@ class USML_DECLSPEC reflection_model {
     /**
      * Hide default constructor to prohibit use by non-friends.
      */
-    reflection_model( wave_queue& wave, reverberation_model* reverberation=NULL )
-    	: _wave( wave ), _reverberation( reverberation ),
-        TOO_SHALLOW( 300.0 * wave._time_step )
+    reflection_model( wave_queue& wave )
+    	: _wave( wave ), _reverberation(NULL),
+    	  TOO_SHALLOW( 300.0 * wave._time_step )
     	{}
+
+    virtual ~reflection_model() {
+        delete _reverberation ;
+    }
+
+    /**
+     * Sets the reverberation model
+     */
+    inline void setReverberation_Model( reverberation_model* reverb ) {
+        if( _reverberation ) delete _reverberation ;
+        _reverberation = reverb ;
+    }
+
+    /**
+     * Gets the revereberation model pointer.
+     */
+    inline reverberation_model* getReverberation_Model() {
+        return _reverberation ;
+    }
 
     /**
      * Reflect a single acoustic ray from the ocean bottom.

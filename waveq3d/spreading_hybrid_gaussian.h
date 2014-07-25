@@ -45,6 +45,7 @@ class reverberation_model ;
 class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
 
     friend class wave_queue ;
+    friend class wave_queue_reverb ;
     friend class reverberation_model ;
 
   private:

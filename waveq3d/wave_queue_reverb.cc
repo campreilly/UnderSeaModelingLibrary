@@ -30,23 +30,49 @@ wave_queue_reverb::wave_queue_reverb(
     unsigned num_bins,
     double max_time,
     reverberation_model* reverb,
-    unsigned origin,
     const wposition* targets,
     spreading_type type
 ) :
-    wave_queue(ocean, freq, pos, de, az, time_step, targets, type),
-    _origin( origin )
+    wave_queue(ocean, freq, pos, de, az, time_step, targets, 10, type)
 {
-    // Define reverberation model
-    if ( reverb ) { _reverberation_model = reverb ; }
-    else {
-        _reverberation_model = new
-        eigenverb_monostatic( ocean, *this, pulse, num_bins, max_time ) ;
+    // Define spreading model
+    switch( type ) {
+        case HYBRID_GAUSSIAN :
+            _spreading_model = new spreading_hybrid_gaussian( *this ) ;
+            break ;
+        default :
+            _spreading_model = new spreading_ray( *this ) ;
+            break ;
     }
-    delete _reflection_model ;
-    _reflection_model = new reflection_model( *this, _reverberation_model ) ;
+
+    // Define reverberation model
+    if ( reverb ) {
+        _reflection_model->setReverberation_Model( reverb ) ;
+    } else {
+        _reflection_model->setReverberation_Model(
+            new eigenverb_monostatic( ocean, *this, pulse, num_bins, max_time ) ) ;
+    }
 }
 
+/**
+ * Used to get the type of spreading model that is being used
+ * by the wavefront. This is used exclusively by reverberation
+ * models.
+*/
+spreading_model* wave_queue_reverb::getSpreading_Model()
+{
+    return _spreading_model ;
+}
+
+/**
+ * Used to get the type of reverberation model that is being used
+ * by the wavefront. This is used exclusively by reverberation
+ * models.
+ */
+reverberation_model* wave_queue_reverb::getReverberation_Model()
+{
+    return _reflection_model->getReverberation_Model() ;
+}
 /**
  * Detect and process boundary reflections and caustics.
  */
@@ -81,6 +107,7 @@ void wave_queue_reverb::detect_volume_reflections() {
         boundary_model* layer = _ocean.volume()->getLayer(i) ;
         for (unsigned de = 0; de < num_de(); ++de) {
             for (unsigned az = 0; az < num_az(); ++az) {
+                if( _curr->on_edge(de,az) ) continue ;
                 double height ;
                 wposition1 pos_curr( _curr->position, de, az ) ;
                 wposition1 pos_next( _next->position, de, az ) ;
@@ -160,16 +187,15 @@ void wave_queue_reverb::collide_from_above(
     else if ( dot_full / c <= -1.0 ) { grazing = M_PI_2 ; }
     else { grazing = asin( -dot_full / c ) ; }
 
-    /// @todo create a reflection class purely for reverberation
-    unsigned ID = 10 ;
-//    unsigned ID = _origin ;
-    ID += layer ;
-    _reverberation_model->notifyLowerCollision( de, az, _time, time_water,
+    unsigned ID = _run_id ;
+    ID += layer + 1 ;
+    _reflection_model->getReverberation_Model()->notifyLowerCollision( de, az, _time, time_water,
         grazing, c, *(_frequencies), position,  ndirection, ID ) ;
         // Still need to calculate eigenray ampltiude and phase for
         // reverberation callback. Just passing bogus values currently.
 }
 
+/** @todo correct logic/signs for collisions from below the boundary **/
 void wave_queue_reverb::collide_from_below(
         unsigned de, unsigned az, double depth, unsigned layer )
 {
@@ -236,11 +262,9 @@ void wave_queue_reverb::collide_from_below(
     else if ( dot_full / c <= -1.0 ) { grazing = M_PI_2 ; }
     else { grazing = asin( -dot_full / c ) ; }
 
-    /// @todo create a reflection class purely for reverberation
-    unsigned ID = 10 ;
-//    unsigned ID = _origin ;
-    ID += layer ;
-    _reverberation_model->notifyUpperCollision( de, az, _time, time_water,
+    unsigned ID = _run_id ;
+    ID += layer + 1 ;
+    _reflection_model->getReverberation_Model()->notifyUpperCollision( de, az, _time, time_water,
         grazing, c, *(_frequencies), position,  ndirection, ID ) ;
         // Still need to calculate eigenray ampltiude and phase for
         // reverberation callback. Just passing bogus values currently.
