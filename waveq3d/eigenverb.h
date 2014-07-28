@@ -33,11 +33,6 @@ struct eigenverb {
     vector< double > intensity ;
 
     /**
-     * Culmulative boundary_loss (linear units)
-     */
-    vector< double > boundary_loss ;
-
-    /**
      * The grazing angle of this path at impact of the
      * boundary. (radians)
      */

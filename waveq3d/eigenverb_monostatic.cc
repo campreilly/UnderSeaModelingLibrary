@@ -55,7 +55,6 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
     eigenverb verb ;
     verb.de = de ;
     verb.az = az ;
-    verb.boundary_loss = boundary_loss ;
     verb.time = time + dt ;
     verb.grazing = grazing ;
     verb.c = speed ;
@@ -77,7 +76,7 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
     #endif
 
     const vector<double> amp = _spreading_model->getIntensity( position, de, az, offset, distance ) ;
-    verb.intensity = amp ;
+    verb.intensity = element_prod( amp, boundary_loss ) ;
     verb.sigma_de = _spreading_model->getWidth_DE( de, az, offset ) ;
     verb.sigma_az = _spreading_model->getWidth_AZ( de, az, offset ) ;
 
@@ -86,7 +85,7 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
         std::cout << "\tverb de: " << verb.de << " az: " << verb.az
                   << " time: " << verb.time << std::endl ;
         std::cout << "\tgrazing: " << verb.grazing << " speed: " << verb.c << std::endl ;
-        std::cout << "\tintensity: " << verb.intensity(0) << " sigma_de: " << verb.sigma_de
+        std::cout << "\tintensity: " << verb.intensity << " sigma_de: " << verb.sigma_de
                   << " sigma_az: " << verb.sigma_az << std::endl ;
     #endif
     switch (ID) {
@@ -118,7 +117,6 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
     eigenverb verb ;
     verb.de = de ;
     verb.az = az ;
-    verb.boundary_loss = boundary_loss ;
     verb.time = time + dt ;
     verb.grazing = grazing ;
     verb.c = speed ;
@@ -140,7 +138,7 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
     #endif
 
     const vector<double> amp = _spreading_model->getIntensity( position, de, az, offset, distance ) ;
-    verb.intensity = amp ;
+    verb.intensity = element_prod( amp, boundary_loss ) ;
     verb.sigma_de = _spreading_model->getWidth_DE( de, az, offset ) ;
     verb.sigma_az = _spreading_model->getWidth_AZ( de, az, offset ) ;
 
@@ -149,7 +147,7 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
         std::cout << "\tverb de: " << verb.de << " az: " << verb.az
                   << " time: " << verb.time << std::endl ;
         std::cout << "\tgrazing: " << verb.grazing << " speed: " << verb.c << std::endl ;
-        std::cout << "\tintensity: " << verb.intensity(0) << " sigma_de: " << verb.sigma_de
+        std::cout << "\tintensity: " << verb.intensity << " sigma_de: " << verb.sigma_de
                   << " sigma_az: " << verb.sigma_az << std::endl ;
     #endif
     switch (ID) {
@@ -437,8 +435,7 @@ void eigenverb_monostatic::compute_lower_volume() {
 /****/
 inline matrix<double> eigenverb_monostatic::mu( const eigenverb& e ) {
     matrix<double> t (2,1) ;
-//    t(0,0) = e.pos.longitude() ;
-    t(0,0) = 0.0 ;
+    t(0,0) = e.pos.longitude() ;
     t(1,0) = e.pos.latitude() ;
     return t ;
 }
@@ -492,7 +489,7 @@ inline double eigenverb_monostatic::area( const matrix<double>& mu1, const matri
         // calculate the area
     double a = 0.5 * d1 * d2 * det * exp( kappa(0,0) ) ;
     #ifdef MONOSTATIC_DEBUG
-        std::cout << "\tmu: " << mu << " sigma: " << s << std::endl ;
+        std::cout << "\tmu: " << mu << " sigma: " << sigma << std::endl ;
         std::cout << "\tarea: " << a << std::endl ;
     #endif
     return  a ;
@@ -509,17 +506,23 @@ inline double eigenverb_monostatic::energy( const eigenverb& in, const eigenverb
     for(unsigned f=0; f<(*in.frequencies).size(); ++f) {
         _loss(f) = pow( 10.0, _loss(f) / -20.0 ) ;
     }
-    vector<double> TL_in = element_prod( in.intensity,
-                                         element_prod( in.boundary_loss, _loss ) ) ;
-    vector<double> TL_out = element_prod( out.intensity, out.boundary_loss ) ;
+    vector<double> TL_in = element_prod( in.intensity, _loss ) ;
+    vector<double> two_way_TL = element_prod( TL_in, out.intensity ) ;
         // calculate the scattering loss from the interface
     vector<double> s_sr( (*out.frequencies).size() ) ;
     vector<double> phase( (*out.frequencies).size() ) ;
     b->getScattering_Model()->scattering_strength( out.pos, (*out.frequencies),
-        in.grazing, out.grazing, in.az, out.az, &s_sr, &phase ) ;
-    double _e = 0.5 * _pulse * TL_in(0) * TL_out(0) * s_sr(0) * dA ;
+            in.grazing, out.grazing, in.az, out.az, &s_sr, &phase ) ;
+        // caluclate the total energy reflected from this patch
+    double _e = 0.5 * _pulse * two_way_TL(0) * s_sr(0) * dA ;
     #ifdef MONOSTATIC_DEBUG
-        std::cout << "\tenergy: " << _e ;
+        std::cout << "\tbottom loss: " << _loss
+                  << " scattering strength: " << s_sr
+                  << std::endl ;
+        std::cout << "\tTL to patch: " << in.intensity
+                  << " TL from patch: " << out.intensity
+                  << std::endl ;
+        std::cout << "\tenergy: " << _e << std::endl ;
     #endif
     return _e ;
 }
@@ -537,7 +540,7 @@ inline double eigenverb_monostatic::time_spread( const eigenverb& out, const mat
     time += ( T_sr / 2.0 ) ;
     double time_exp = (two_way_time-time) / T_sr ;
     #ifdef MONOSTATIC_DEBUG
-        std::cout << " T_sr: " << T_sr << std::endl ;
+        std::cout << "\tT_sr: " << T_sr << std::endl ;
     #endif
     return exp( -0.5 * time_exp * time_exp ) / ( T_sr * sqrt(TWO_PI) ) ;
 }

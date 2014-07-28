@@ -39,8 +39,8 @@ class USML_DECLSPEC eigenverb_bistatic : public reverberation_model {
          * React to the collision of a single ray with a reverberation
          * when colliding from below the boundary.
          *
-         * @param de            D/E angle index number.
-         * @param az            AZ angle index number.
+         * @param de            D/E angle index
+         * @param az            AZ angle index
          * @param time          Current time of the wavefront (sec)
          * @param dt            Offset in time to collision with the boundary
          * @param grazing       The grazing angle at point of impact (rads)
@@ -60,8 +60,8 @@ class USML_DECLSPEC eigenverb_bistatic : public reverberation_model {
          * React to the collision of a single ray with a reverberation
          * when colliding from above the boundary.
          *
-         * @param de            D/E angle index number.
-         * @param az            AZ angle index number.
+         * @param de            D/E angle index
+         * @param az            AZ angle index
          * @param time          Current time of the wavefront (sec)
          * @param dt            Offset in time to collision with the boundary
          * @param grazing       The grazing angle at point of impact (rads)

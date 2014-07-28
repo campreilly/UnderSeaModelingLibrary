@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     const double c0 = 1500.0 ;              // constant sound speed
     const double depth = 200.0 ;
     unsigned bins = time_max / time_step ;
-    const double SL = pow( 10.0, 20.0 ) ;
+    const double SL = 200.0 ;
 
     // initialize propagation model
 
@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     cout << std::setprecision(18);
 
     const vector<double> reverb_tl = reverb->getReverberation_curve() ;
-    vector<double> r = 10.0*log10(SL*2.0*reverb_tl) ;
+    vector<double> r = SL + 10.0*log10(2.0*reverb_tl) ;
     for ( unsigned i=0; i < bins; ++i ) {
 //        double r = 10*log10(2.0*reverb_tl(i)) ;
         cout << "reverb_level(" << i << "): " << r(i) << endl ;
