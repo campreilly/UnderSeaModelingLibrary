@@ -39,7 +39,7 @@ class USML_DECLSPEC scattering_lambert : public scattering_model {
          * @param angleS        Depression scattered angle (radians).
          * @param azI           NOT USED
          * @param azS           NOT USED.
-         * @param amplitude     Change in ray strength in dB (output).
+         * @param amplitude     Change in ray strength in linear units (output).
          * @param phase         NOT USED
          *
          * NOTE: All angles are relative to the scattering interface.

@@ -265,7 +265,7 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
         ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) )
     { az_lower = az_upper = az ; }
     else { az_lower = 0 ; az_upper = _wave._source_az->size()-2 ; }
-    const int size = _wave._source_az->size() - 1;
+    const int size = _wave._source_az->size() - 1 ;
 
     #ifdef USML_WAVEQ3D_DEBUG_AZ
         cout << "\taz_upper=" << az_upper

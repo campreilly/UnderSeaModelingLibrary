@@ -157,7 +157,9 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     #endif
 
     if ( _reverberation ) {
-        if( (!_wave._curr->on_edge(de,az)) && (_wave._time > 0) ) {
+        if( (!_wave._curr->on_edge(de,az)) && (_wave._time > 0) &&
+            ( az < _max_az ) )
+        {
             int ID = _wave.getID() ;
             vector<double> loss = _wave._curr->attenuation(de,az) ;
             for(unsigned f=0; f<_wave._frequencies->size(); ++f) {
@@ -276,7 +278,9 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
 
 
     if ( _reverberation ) {
-        if ( (!_wave._curr->on_edge(de,az)) && (_wave._time > 0) ) {
+        if( (!_wave._curr->on_edge(de,az)) && (_wave._time > 0) &&
+            ( az < _max_az ) )
+        {
             int ID = _wave.getID() ;
             vector<double> loss = _wave._curr->attenuation(de,az) ;
             for(unsigned f=0; f<_wave._frequencies->size(); ++f) {

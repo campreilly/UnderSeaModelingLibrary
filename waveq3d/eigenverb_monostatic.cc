@@ -84,7 +84,7 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
         std::cout << "\t---Added eigenverb to _surface/_upper vector---" << endl ;
         std::cout << "\tverb de: " << verb.de << " az: " << verb.az
                   << " time: " << verb.time << std::endl ;
-        std::cout << "\tgrazing: " << verb.grazing << " speed: " << verb.c << std::endl ;
+        std::cout << "\tgrazing: " << verb.grazing*180.0/M_PI << " speed: " << verb.c << std::endl ;
         std::cout << "\tintensity: " << verb.intensity << " sigma_de: " << verb.sigma_de
                   << " sigma_az: " << verb.sigma_az << std::endl ;
     #endif
@@ -146,7 +146,7 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
         std::cout << "\t---Added eigenverb to _bottom/_lower vector---" << endl ;
         std::cout << "\tverb de: " << verb.de << " az: " << verb.az
                   << " time: " << verb.time << std::endl ;
-        std::cout << "\tgrazing: " << verb.grazing << " speed: " << verb.c << std::endl ;
+        std::cout << "\tgrazing: " << verb.grazing*180.0/M_PI << " speed: " << verb.c << std::endl ;
         std::cout << "\tintensity: " << verb.intensity << " sigma_de: " << verb.sigma_de
                   << " sigma_az: " << verb.sigma_az << std::endl ;
     #endif
@@ -183,56 +183,7 @@ void eigenverb_monostatic::compute_bottom_energy() {
         std::cout << "Entering eigenverb_monostatic::compute_bottom_energy()"
                   << std::endl ;
     #endif
-    // Convolution of all bottom paths
-    for(std::vector<eigenverb>::iterator i=_bottom.begin();
-            i!=_bottom.end(); ++i)
-    {
-            // Gather data for the out path to the bottom
-        eigenverb u = (*i) ;
-        matrix<double> mu1 = mu(u) ;
-        matrix<double> sigma1 = sigma(u) ;
-
-        for(std::vector<eigenverb>::iterator j=_bottom.begin();
-                j!=_bottom.end(); ++j)
-        {
-                // Gather data for the return path from the bottom
-            eigenverb v = (*j) ;
-            double travel_time = u.time + v.time ;
-                // Don't make contributions anymore if the travel time
-                // is greater then the max reverberation curve time
-            if( _max_time <= travel_time ) break ;
-            #ifdef MONOSTATIC_DEBUG
-                std::cout << "Contribution data:" << std::endl ;
-                std::cout << "\ttravel_time: " << travel_time << std::endl ;
-            #endif
-            matrix<double> mu2 = mu(v) ;
-            matrix<double> sigma2 = sigma(v) ;
-            double dA = area( mu1, sigma1, mu2, sigma2 ) ;
-
-                // Compute the energy reflected of of this patch
-            double _energy = energy( u, v, dA, _bottom_boundary ) ;
-
-                // Only added value if contribution is significant
-            if ( _energy > 1e-20 ) {
-                    // determine where on the temporally this contributions calls on the curve
-                    // and add it to the cumulative curve value.
-                unsigned t = floor( _max_index * travel_time / _max_time ) ;
-                double two_way = _max_time * t / _max_index ;
-
-                    // Calculate the time spread of the energy
-                double _time_spread = time_spread( v, sigma1, sigma2, travel_time, two_way ) ;
-
-                double value = _energy * _time_spread ;
-
-                #ifdef MONOSTATIC_DEBUG
-                    std::cout << "\tcontribution: " << value << " bin: " << t << std::endl ;
-                #endif
-
-                _reverberation_curve(t) += value ;
-            }
-        }
-    }
-
+    compute_contribution( _bottom, _bottom_boundary ) ;
 }
 
 /**
@@ -245,54 +196,7 @@ void eigenverb_monostatic::compute_surface_energy() {
                   << std::endl ;
     #endif
     // Convolution of all surface paths
-    for(std::vector<eigenverb>::iterator i=_surface.begin();
-            i!=_surface.end(); ++i)
-    {
-            // Gather data for the out path to the surface
-        eigenverb u = (*i) ;
-        matrix<double> mu1 = mu(u) ;
-        matrix<double> sigma1 = sigma(u) ;
-
-        for(std::vector<eigenverb>::iterator j=_surface.begin();
-                j!=_surface.end(); ++j)
-        {
-                // Gather data for the return path from the surface
-            eigenverb v = (*j) ;
-            double travel_time = u.time + v.time ;
-                // Don't make contributions anymore if the travel time
-                // is greater then the max reverberation curve time
-            if( _max_time <= travel_time ) break ;
-            #ifdef MONOSTATIC_DEBUG
-                std::cout << "Contribution data:" << std::endl ;
-                std::cout << "\ttravel_time: " << travel_time << std::endl ;
-            #endif
-            matrix<double> mu2 = mu(v) ;
-            matrix<double> sigma2 = sigma(v) ;
-            double dA = area( mu1, sigma1, mu2, sigma2 ) ;
-
-                // Compute the energy reflected of of this patch
-            double _energy = energy( u, v, dA, _surface_boundary ) ;
-
-                // Only added value if contribution is significant
-            if ( _energy > 1e-20 ) {
-                    // determine where on the temporally this contributions calls on the curve
-                    // and add it to the cumulative curve value.
-                unsigned t = floor( _max_index * travel_time / _max_time ) ;
-                double two_way = _max_time * t / _max_index ;
-
-                    // Calculate the time spread of the energy
-                double _time_spread = time_spread( v, sigma1, sigma2, travel_time, two_way ) ;
-
-                double value = _energy * _time_spread ;
-
-                #ifdef MONOSTATIC_DEBUG
-                    std::cout << "\tcontribution: " << value << " bin: " << t << std::endl ;
-                #endif
-
-                _reverberation_curve(t) += value ;
-            }
-        }
-    }
+    compute_contribution( _surface, _surface_boundary ) ;
 }
 
 /**
@@ -317,54 +221,7 @@ void eigenverb_monostatic::compute_upper_volume() {
             k!=_upper.end() && layer <= _n; ++k)
     {
         boundary_model* current_layer = _volume_boundary->getLayer(layer) ;
-        for(std::vector<eigenverb>::iterator i=k->begin();
-                i!=k->end(); ++i)
-        {
-            // Gather data for the out path to the upper collision
-            eigenverb u = (*i) ;
-            matrix<double> mu1 = mu(u) ;
-            matrix<double> sigma1 = sigma(u) ;
-
-            for(std::vector<eigenverb>::iterator j=k->begin();
-                    j!=k->end(); ++j)
-            {
-                    // Gather data for the return path from the upper collision
-                eigenverb v = (*j) ;
-                double travel_time = u.time + v.time ;
-                    // Don't make contributions anymore if the travel time
-                    // is greater then the max reverberation curve time
-                if( _max_time <= travel_time ) break ;
-                #ifdef MONOSTATIC_DEBUG
-                    std::cout << "Contribution data:" << std::endl ;
-                    std::cout << "\ttravel_time: " << travel_time << std::endl ;
-                #endif
-                matrix<double> mu2 = mu(v) ;
-                matrix<double> sigma2 = sigma(v) ;
-                double dA = area( mu1, sigma1, mu2, sigma2 ) ;
-
-                    // Compute the energy reflected of of this patch
-                double _energy = energy( u, v, dA, current_layer ) ;
-
-                    // Only added value if contribution is significant
-                if ( _energy > 1e-20 ) {
-                        // determine where on the temporally this contributions calls on the curve
-                        // and add it to the cumulative curve value.
-                    unsigned t = floor( _max_index * travel_time / _max_time ) ;
-                    double two_way = _max_time * t / _max_index ;
-
-                        // Calculate the time spread of the energy
-                    double _time_spread = time_spread( v, sigma1, sigma2, travel_time, two_way ) ;
-
-                    double value = _energy * _time_spread ;
-
-                    #ifdef MONOSTATIC_DEBUG
-                        std::cout << "\tcontribution: " << value << " bin: " << t << std::endl ;
-                    #endif
-
-                    _reverberation_curve(t) += value ;
-                }
-            }
-        }
+        compute_contribution( &k, current_layer) ;
         ++layer ;
     }
 }
@@ -380,55 +237,64 @@ void eigenverb_monostatic::compute_lower_volume() {
             k!=_upper.end() && layer <= _n; ++k)
     {
         boundary_model* current_layer = _volume_boundary->getLayer(layer) ;
-        for(std::vector<eigenverb>::iterator i=k->begin();
-                i!=k->end(); ++i)
+        compute_contribution( &k, current_layer) ;
+        ++layer ;
+    }
+}
+
+/****/
+void eigenverb_monostatic::compute_contribution( const std::vector<eigenverb>& set,
+                                                 const boundary_model* boundary )
+{
+    // Convolution of all paths on this boundary
+    for(std::vector<eigenverb>::iterator i=set.begin();
+            i!=set.end(); ++i)
+    {
+            // Gather data for the out path to the boundary
+        eigenverb u = (*i) ;
+        matrix<double> mu1 = mu(u) ;
+        matrix<double> sigma1 = sigma(u) ;
+
+        for(std::vector<eigenverb>::iterator j=set.begin();
+                j!=set.end(); ++j)
         {
-            // Gather data for the out path to the lower collision
-            eigenverb u = (*i) ;
-            matrix<double> mu1 = mu(u) ;
-            matrix<double> sigma1 = sigma(u) ;
+                // Gather data for the return path from the boundary
+            eigenverb v = (*j) ;
+    //            if ( u.az != v.az ) continue ;
+            double travel_time = u.time + v.time ;
+                // Don't make contributions anymore if the travel time
+                // is greater then the max reverberation curve time
+            if( _max_time <= travel_time ) break ;
+            #ifdef MONOSTATIC_DEBUG
+                std::cout << "Contribution data:" << std::endl ;
+                std::cout << "\ttravel_time: " << travel_time << std::endl ;
+            #endif
+            matrix<double> mu2 = mu(v) ;
+            matrix<double> sigma2 = sigma(v) ;
+            double dA = area( mu1, sigma1, mu2, sigma2 ) ;
 
-            for(std::vector<eigenverb>::iterator j=k->begin();
-                    j!=k->end(); ++j)
-            {
-                    // Gather data for the return path from the lower collision
-                eigenverb v = (*j) ;
-                double travel_time = u.time + v.time ;
-                    // Don't make contributions anymore if the travel time
-                    // is greater then the max reverberation curve time
-                if( _max_time <= travel_time ) break ;
+                // Compute the energy reflected of of this patch
+            double _energy = energy( u, v, dA, boundary ) ;
+
+                // Only added value if contribution is significant
+            if ( _energy > 1e-20 ) {
+                    // determine where on the temporally this contributions calls on the curve
+                    // and add it to the cumulative curve value.
+                unsigned t = floor( _max_index * travel_time / _max_time ) ;
+                double two_way = _max_time * t / _max_index ;
+
+                    // Calculate the time spread of the energy
+                double _time_spread = time_spread( v, sigma1, sigma2, travel_time, two_way ) ;
+
+                double value = _energy * _time_spread ;
+
                 #ifdef MONOSTATIC_DEBUG
-                    std::cout << "Contribution data:" << std::endl ;
-                    std::cout << "\ttravel_time: " << travel_time << std::endl ;
+                    std::cout << "\tcontribution: " << value << " bin: " << t << std::endl ;
                 #endif
-                matrix<double> mu2 = mu(v) ;
-                matrix<double> sigma2 = sigma(v) ;
-                double dA = area( mu1, sigma1, mu2, sigma2 ) ;
 
-                    // Compute the energy reflected of of this patch
-                double _energy = energy( u, v, dA, current_layer ) ;
-
-                    // Only added value if contribution is significant
-                if ( _energy > 1e-20 ) {
-                        // determine where on the temporally this contributions calls on the curve
-                        // and add it to the cumulative curve value.
-                    unsigned t = floor( _max_index * travel_time / _max_time ) ;
-                    double two_way = _max_time * t / _max_index ;
-
-                        // Calculate the time spread of the energy
-                    double _time_spread = time_spread( v, sigma1, sigma2, travel_time, two_way ) ;
-
-                    double value = _energy * _time_spread ;
-
-                    #ifdef MONOSTATIC_DEBUG
-                        std::cout << "\tcontribution: " << value << " bin: " << t << std::endl ;
-                    #endif
-
-                    _reverberation_curve(t) += value ;
-                }
+                _reverberation_curve(t) += value ;
             }
         }
-        ++layer ;
     }
 }
 
@@ -514,7 +380,7 @@ inline double eigenverb_monostatic::energy( const eigenverb& in, const eigenverb
     b->getScattering_Model()->scattering_strength( out.pos, (*out.frequencies),
             in.grazing, out.grazing, in.az, out.az, &s_sr, &phase ) ;
         // caluclate the total energy reflected from this patch
-    double _e = 0.5 * _pulse * two_way_TL(0) * s_sr(0) * dA ;
+    double _e = _pulse * two_way_TL(0) * s_sr(0) * dA ;
     #ifdef MONOSTATIC_DEBUG
         std::cout << "\tbottom loss: " << _loss
                   << " scattering strength: " << s_sr
@@ -536,8 +402,9 @@ inline double eigenverb_monostatic::time_spread( const eigenverb& out, const mat
     double l_r = 1.0 / s1(1,1) ;
     double l_s = 1.0 / s2(1,1) ;
     double sigma_p = sqrt( 1.0 / (l_r + l_s) ) ;
-    double T_sr = 0.25 * ( _pulse + sigma_p * sin(out.grazing) / out.c ) ;               /// @caution should this be sine or cosine of grazing angle????
-    time += ( T_sr / 2.0 ) ;
+    double Tarea = sigma_p * sin(out.grazing) / out.c ;
+    double T_sr = sqrt( _pulse*_pulse + Tarea*Tarea ) / 2.0 ;               /// @caution should this be sine or cosine of grazing angle????
+    time += T_sr ;
     double time_exp = (two_way_time-time) / T_sr ;
     #ifdef MONOSTATIC_DEBUG
         std::cout << "\tT_sr: " << T_sr << std::endl ;
