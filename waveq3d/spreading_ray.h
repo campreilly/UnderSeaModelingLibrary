@@ -33,6 +33,7 @@ using namespace usml::ocean ;
 class USML_DECLSPEC spreading_ray : public spreading_model {
 
     friend class wave_queue ;
+    friend class wave_queue_reverb ;
 
   private:
 

@@ -6,11 +6,12 @@
 #define USML_WAVEQ3D_WAVE_QUEUE_REVERB_H
 
 #include <usml/waveq3d/wave_queue.h>
-#include <usml/waveq3d/eigenverb_monostatic.h>
-#include <usml/waveq3d/eigenverb_bistatic.h>
+#include <usml/waveq3d/reverberation_model.h>
 
 namespace usml {
 namespace waveq3d {
+class reflection_model ;
+class spreading_model ;
 
 class USML_DECLSPEC wave_queue_reverb : public wave_queue {
 
@@ -45,8 +46,7 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
             const seq_vector& de, const seq_vector& az,
             double time_step, double pulse,
             unsigned num_bins, double max_time,
-            reverberation_model* reverb,
-            unsigned origin=10,
+            reverberation_model* reverb=NULL,
             const wposition* targets=NULL,
             spreading_type type=HYBRID_GAUSSIAN
             ) ;
@@ -60,28 +60,15 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          * models.
          * @return          pointer to the spreading model
          */
-        inline spreading_model* getSpreading_Model() {
-            return _spreading_model ;
-        }
+        spreading_model* getSpreading_Model() ;
 
         /**
-         * Set the type of wavefront that this is, i.e. a wavefront
-         * originating from a source or receiver. This is exclusively
-         * used within the reverbation models.
+         * Used to get the type of reverberation model that is being used
+         * by the wavefront. This is used exclusively by reverberation
+         * models.
+         * @return          pointer to the reverberation model
          */
-        inline void setOrigin( unsigned origin ) {
-            _origin = origin ;
-        }
-
-        /**
-         * Get the type of wavefront that this is, i.e. a wavefront
-         * originating from a source or receiver. This is exclusively
-         * used within the reverbation models.
-         * @return      Type of wavefront (receiver/source)
-         */
-        inline const unsigned getOrigin() {
-            return _origin ;
-        }
+        reverberation_model* getReverberation_Model() ;
 
     protected:
 
@@ -104,10 +91,32 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          */
         void detect_reflections() ;
 
+        /**
+         * Specialized call within wave_queue reverberation calculations. This call
+         * searches the volume layers of the ocean for layer collisions and sends the
+         * appropriate data to the reverberation model to be used in volume reverberation
+         * contributions.
+         *
+         * The function checks every point along the wavefront if the current altitude
+         * and the next time step altitude of the point cross a layer. If a point crosses
+         * a boundary in a time step, collide_from_above or collide_from_below are called.
+         */
         void detect_volume_reflections() ;
 
+        /**
+         * A modified version of the function reflection_model::bottom_reflection used
+         * to determine the infromation needed to produce a volume reverberation calculation
+         * from this layer when colliding from above the layer.
+         */
         void collide_from_above( unsigned de, unsigned az, double depth, unsigned layer ) ;
 
+        /**
+         * A modified version of the function reflection_model::surface_reflection used
+         * to determine the infromation needed to produce a volume reverberation calculation
+         * from this layer when colliding from below the layer.
+         *      @todo need to rectify this code, it mimics the bottom_reflection but signs
+         *            should be changed to adjust for approaching from below.
+         */
         void collide_from_below( unsigned de, unsigned az, double depth, unsigned layer ) ;
 
         /**
@@ -127,21 +136,6 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
         void collision_location(
             unsigned de, unsigned az, double dtime,
             wposition1* position, wvector1* ndirection, double* speed ) const ;
-
-    private:
-
-        /**
-         * Type of wavefront this wave_queue is generating information for.
-         * This is exclusively used by reverberation generation, to
-         * distinguish source wavefronts from receiver wavefronts in the
-         * bistatic cause.
-         *
-         *              Source = 10, Receiver = 20
-         */
-        unsigned _origin ;
-
-        /** Reference to the reverberation model component. */
-        reverberation_model* _reverberation_model ;
 
 };
 

@@ -155,6 +155,7 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
      */
     virtual ~boundary_model() {
         if ( _reflect_loss_model ) delete _reflect_loss_model ;
+        if ( _scattering_model ) delete _scattering_model ;
     }
 
   protected:

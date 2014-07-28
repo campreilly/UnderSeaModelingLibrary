@@ -5,7 +5,6 @@
 #ifndef USML_WAVEQ3D_EIGENVERB_BISTATIC_H
 #define USML_WAVEQ3D_EIGENVERB_BISTATIC_H
 
-#include <usml/waveq3d/waveq3d.h>
 #include <usml/waveq3d/eigenverb.h>
 #include <usml/waveq3d/reverberation_model.h>
 #include <usml/waveq3d/wave_queue_reverb.h>

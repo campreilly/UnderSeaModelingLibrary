@@ -9,13 +9,14 @@
 #include <usml/ublas/ublas.h>
 #include <usml/ublas/math_traits.h>
 #include <usml/types/types.h>
+#include <boost/numeric/ublas/lu.hpp>
 
 namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
 
-using boost::numeric::ublas::vector;
+using namespace boost::numeric::ublas ;
 
 /**
  * A reverberation model listens for interface collision callbacks from
@@ -76,6 +77,11 @@ class USML_DECLSPEC reverberation_model {
          */
         virtual void compute_reverberation() = 0 ;
 
+        /**
+         * Returns the reverberation data
+         */
+        virtual const vector<double> getReverberation_curve() = 0 ;
+
     protected:
 
         /**
@@ -109,16 +115,45 @@ class USML_DECLSPEC reverberation_model {
          * @param sigma         Sigma_c described above
          * @return              c_c described above
          */
-        inline double gaussian( matrix<double> mu, matrix<double> sigma ) {
-            matrix<double> mu_trans = boost::numeric::ublas::trans(mu) ;
-            matrix<double> mu_prod = prod( mu_trans, sigma ) ;
+        inline double gaussian( const matrix<double>& mu, const matrix<double>& sigma ) {
+            matrix<double> mu_trans = trans(mu) ;
+            matrix<double> s_inv(sigma) ;
+            inverse(sigma, s_inv) ;
+            matrix<double> mu_prod = prod( mu_trans, s_inv ) ;
             matrix<double> kappa = prod( mu_prod, mu ) ;
-            double det = sigma(0,0) * sigma(1,1) - sigma(0,1) * sigma(1,0) ;
+            double det = determinent(sigma) ;
             det = 1.0 / sqrt(TWO_PI*TWO_PI*det) ;
             kappa *= -0.5 ;
             return det * exp( kappa(0,0) ) ;
         }
 
+        /**
+         * Calculates the matrix determinent of a uBlas matrix
+         */
+        inline double determinent( const matrix<double>& m ) {
+            matrix<double> a(m) ;
+            permutation_matrix<size_t> pivot( a.size1() ) ;
+            if( lu_factorize(a,pivot) ) return 0.0 ;
+            double det = 1.0 ;
+            for(size_t i=0; i<pivot.size(); ++i) {
+                if (pivot(i) != i) det *= -1.0 ;
+                det *= a(i,i) ;
+            }
+            return det ;
+        }
+
+        /**
+         * Computes the inverse of a matrix.
+         */
+        inline bool inverse( const matrix<double>& m, matrix<double>& i) {
+            matrix<double> a(m) ;
+            permutation_matrix<size_t> pm(a.size1()) ;
+            int result = lu_factorize(a, pm) ;
+            if( result != 0 ) return false ;
+            i.assign(identity_matrix<double>(a.size1())) ;
+            lu_substitute(a, pm, i) ;
+            return true ;
+        }
 };
 
 /// @}

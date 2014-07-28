@@ -77,7 +77,6 @@ wave_queue::wave_queue(
     _curr->update() ;
     init_wavefronts() ;
     _reflection_model = new reflection_model( *this ) ;
-    _reverberation_model = NULL ;
     _spreading_model = NULL ;
     if ( _targets ) {
         switch( type ) {
@@ -95,7 +94,6 @@ wave_queue::wave_queue(
 wave_queue::~wave_queue() {
     delete _frequencies ;
     if ( _spreading_model ) delete _spreading_model ;
-    if ( _reverberation_model ) delete _reverberation_model ;
     delete _reflection_model ;
     delete _source_de ;
     delete _source_az ;

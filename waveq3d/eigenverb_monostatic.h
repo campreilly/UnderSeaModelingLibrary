@@ -5,11 +5,10 @@
 #ifndef USML_WAVEQ3D_EIGENVERB_MONOSTATIC_H
 #define USML_WAVEQ3D_EIGENVERB_MONOSTATIC_H
 
-#include <usml/waveq3d/waveq3d.h>
 #include <usml/waveq3d/eigenverb.h>
 #include <usml/waveq3d/reverberation_model.h>
 #include <usml/waveq3d/wave_queue_reverb.h>
-#include <usml/waveq3d/spreading_hybrid_gaussian.h>
+#include <usml/waveq3d/spreading_model.h>
 #include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
 #include <vector>
@@ -39,7 +38,7 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
                               unsigned num_bins,
                               double max_time ) ;
 
-        virtual ~eigenverb_monostatic() ;
+        virtual ~eigenverb_monostatic() {}
 
         /**
          * React to the collision of a single ray with a reverberation
@@ -85,6 +84,16 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          */
         virtual void compute_reverberation() ;
 
+        /**
+         * Gains access to the reverberation data. The user should first execute
+         * compute_reverberation() prior to requesting access to the entire
+         * reverberation curve.
+         * @return      pointer to _reverberation_curve
+         */
+         virtual const vector<double> getReverberation_curve() {
+            return _reverberation_curve ;
+         }
+
     private:
 
         /**
@@ -117,6 +126,19 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          */
         void compute_lower_volume() ;
 
+        inline matrix<double> mu( const eigenverb& e ) ;
+
+        inline matrix<double> sigma( const eigenverb& e ) ;
+
+        inline double area( const matrix<double>& mu1, const matrix<double>& sigma1,
+                            const matrix<double>& mu2, const matrix<double>& sigma2 ) ;
+
+        inline double energy( const eigenverb& in, const eigenverb& out,
+                              const double area, scattering_model* s ) ;
+
+        inline double time_spread( const eigenverb& out, const matrix<double>& s1,
+                                   const matrix<double>& s2, const double travel_time ) ;
+
         /**
          * Pulse length of the signal (sec)
          */
@@ -133,9 +155,10 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
         double _max_time ;
 
         /**
-         * The reverberation energy distribution curve.
+         * The reverberation energy distribution curve. The values in this
+         * array are in linear units.
          */
-        double* _energy ;
+        vector<double> _reverberation_curve ;
 
         /**
          * Origin of the wavefront
