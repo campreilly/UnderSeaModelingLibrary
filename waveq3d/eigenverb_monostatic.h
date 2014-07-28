@@ -130,8 +130,7 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
         void compute_lower_volume() ;
 
         /****/
-        void compute_contribution( const std::vector<eigenverb>& set,
-                                   const boundary_model* boundary )
+        void compute_contribution( std::vector<eigenverb>& set, boundary_model* boundary ) ;
 
         /****/
         inline matrix<double> mu( const eigenverb& e ) ;

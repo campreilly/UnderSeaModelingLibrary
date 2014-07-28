@@ -221,7 +221,7 @@ void eigenverb_monostatic::compute_upper_volume() {
             k!=_upper.end() && layer <= _n; ++k)
     {
         boundary_model* current_layer = _volume_boundary->getLayer(layer) ;
-        compute_contribution( &k, current_layer) ;
+        compute_contribution( *k, current_layer) ;
         ++layer ;
     }
 }
@@ -237,14 +237,14 @@ void eigenverb_monostatic::compute_lower_volume() {
             k!=_upper.end() && layer <= _n; ++k)
     {
         boundary_model* current_layer = _volume_boundary->getLayer(layer) ;
-        compute_contribution( &k, current_layer) ;
+        compute_contribution( *k, current_layer) ;
         ++layer ;
     }
 }
 
 /****/
-void eigenverb_monostatic::compute_contribution( const std::vector<eigenverb>& set,
-                                                 const boundary_model* boundary )
+void eigenverb_monostatic::compute_contribution( std::vector<eigenverb>& set,
+                                                 boundary_model* boundary )
 {
     // Convolution of all paths on this boundary
     for(std::vector<eigenverb>::iterator i=set.begin();
