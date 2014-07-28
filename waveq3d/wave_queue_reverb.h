@@ -70,6 +70,8 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          */
         reverberation_model* getReverberation_Model() ;
 
+        const unsigned getFreqSize() ;
+
     protected:
 
         /**

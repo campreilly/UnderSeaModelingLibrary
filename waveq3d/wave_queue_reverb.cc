@@ -73,6 +73,15 @@ reverberation_model* wave_queue_reverb::getReverberation_Model()
 {
     return _reflection_model->getReverberation_Model() ;
 }
+
+/**
+ * Get the size of the frequency vector. Used to scale the size of
+ * the _loss/_phase vectors inside of eigenverb classes.
+ */
+const unsigned wave_queue_reverb::getFreqSize() {
+    return _frequencies->size() ;
+}
+
 /**
  * Detect and process boundary reflections and caustics.
  */
@@ -190,7 +199,7 @@ void wave_queue_reverb::collide_from_above(
     unsigned ID = _run_id ;
     ID += layer + 1 ;
     _reflection_model->getReverberation_Model()->notifyLowerCollision( de, az, _time, time_water,
-        grazing, c, *(_frequencies), position,  ndirection, ID ) ;
+        grazing, c, *(_frequencies), position,  ndirection, _curr->attenuation(de,az), ID ) ;
         // Still need to calculate eigenray ampltiude and phase for
         // reverberation callback. Just passing bogus values currently.
 }
@@ -265,7 +274,7 @@ void wave_queue_reverb::collide_from_below(
     unsigned ID = _run_id ;
     ID += layer + 1 ;
     _reflection_model->getReverberation_Model()->notifyUpperCollision( de, az, _time, time_water,
-        grazing, c, *(_frequencies), position,  ndirection, ID ) ;
+        grazing, c, *(_frequencies), position,  ndirection, _curr->attenuation(de,az), ID ) ;
         // Still need to calculate eigenray ampltiude and phase for
         // reverberation callback. Just passing bogus values currently.
 }

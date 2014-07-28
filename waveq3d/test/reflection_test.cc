@@ -52,7 +52,8 @@ public:
      */
     virtual void notifyUpperCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, unsigned ID )
+               const wposition1& position, const wvector1& ndirection,
+               const vector<double>& boundary_loss, unsigned ID )
     {
         ++counter ;
         this->surface = true ;
@@ -63,7 +64,8 @@ public:
 
     virtual void notifyLowerCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, unsigned ID )
+               const wposition1& position, const wvector1& ndirection,
+               const vector<double>& boundary_loss, unsigned ID )
     {
         ++counter ;
         this->bottom = true ;

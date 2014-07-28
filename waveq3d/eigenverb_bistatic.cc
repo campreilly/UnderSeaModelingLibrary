@@ -17,7 +17,8 @@ eigenverb_bistatic::eigenverb_bistatic( wave_queue_reverb& wave ) {
  */
 void eigenverb_bistatic::notifyUpperCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, unsigned ID ) {
+               const wposition1& position, const wvector1& ndirection,
+               const vector<double>& boundary_loss, unsigned ID ) {
 
     eigenverb verb ;
     verb.de = de ;
@@ -61,7 +62,8 @@ void eigenverb_bistatic::notifyUpperCollision( unsigned de, unsigned az, double 
  */
 void eigenverb_bistatic::notifyLowerCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, unsigned ID ) {
+               const wposition1& position, const wvector1& ndirection,
+               const vector<double>& boundary_loss, unsigned ID ) {
 
     eigenverb verb ;
     verb.de = de ;

@@ -48,11 +48,13 @@ class USML_DECLSPEC eigenverb_bistatic : public reverberation_model {
          * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
+         * @param boundary_loss Cumulative attenuation/boundary loss
          * @param ID            (Used to identify source/receiver/volume layer)
          */
         virtual void notifyUpperCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, unsigned ID ) ;
+               const wposition1& position, const wvector1& ndirection,
+               const vector<double>& boundary_loss, unsigned ID ) ;
 
         /**
          * React to the collision of a single ray with a reverberation
@@ -67,11 +69,13 @@ class USML_DECLSPEC eigenverb_bistatic : public reverberation_model {
          * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
+         * @param boundary_loss Cumulative attenuation/boundary loss
          * @param ID            (Used to identify source/receiver/volume layer)
          */
         virtual void notifyLowerCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, unsigned ID ) ;
+               const wposition1& position, const wvector1& ndirection,
+               const vector<double>& boundary_loss, unsigned ID ) ;
 
         /**
          * Computes the reverberation curve from the data cataloged from the

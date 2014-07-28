@@ -36,6 +36,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     const double c0 = 1500.0 ;              // constant sound speed
     const double depth = 200.0 ;
     unsigned bins = time_max / time_step ;
+    const double SL = pow( 10.0, 20.0 ) ;
 
     // initialize propagation model
 
@@ -55,17 +56,17 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
 
     // create a simple volume layer
     boundary_model* v1 = new boundary_flat( 100.0 ) ;
+    v1->setScattering_Model( new scattering_lambert() ) ;
     vector<boundary_model*> v(1) ;
     v[0] = v1 ;
-    scattering_model* s = new scattering_lambert() ;
-    volume_layer* volume = new volume_layer( v, s ) ;
+    volume_layer* volume = new volume_layer( v ) ;
 
     ocean_model ocean( surface, bottom, profile, volume ) ;
 
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( lat, lng, alt ) ;
     seq_rayfan de( -90.0, 0.0, 361 ) ;
-    seq_linear az( -1.0, 1.0, 1.0 ) ;
+    seq_linear az( -0.01, 0.01, 0.01 ) ;
 
     wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T0, bins, time_max ) ;
 
@@ -88,7 +89,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     cout << std::setprecision(18);
 
     const vector<double> reverb_tl = reverb->getReverberation_curve() ;
-    vector<double> r = 10.0*log10(2.0*reverb_tl) ;
+    vector<double> r = 10.0*log10(SL*2.0*reverb_tl) ;
     for ( unsigned i=0; i < bins; ++i ) {
 //        double r = 10*log10(2.0*reverb_tl(i)) ;
         cout << "reverb_level(" << i << "): " << r(i) << endl ;

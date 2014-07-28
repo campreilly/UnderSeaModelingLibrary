@@ -12,14 +12,13 @@
 #include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
 #include <vector>
-#include <cstring>
 
 namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
 
-using boost::numeric::ublas::vector;
+using namespace boost::numeric::ublas ;
 
 /**
  * A reverberation model listens for interface collision callbacks from
@@ -53,11 +52,13 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
+         * @param boundary_loss Cumulative attenuation/boundary loss
          * @param ID            (Used to identify source/receiver/volume layer)
          */
         virtual void notifyUpperCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, unsigned ID ) ;
+               const wposition1& position, const wvector1& ndirection,
+               const vector<double>& boundary_loss, unsigned ID ) ;
 
         /**
          * React to the collision of a single ray with a reverberation
@@ -72,11 +73,13 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
+         * @param boundary_loss Cumulative attenuation/boundary loss
          * @param ID            (Used to identify source/receiver/volume layer)
          */
         virtual void notifyLowerCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, unsigned ID ) ;
+               const wposition1& position, const wvector1& ndirection,
+               const vector<double>& boundary_loss, unsigned ID ) ;
 
         /**
          * Computes the reverberation curve from the data cataloged from the
@@ -128,16 +131,17 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
 
         inline matrix<double> mu( const eigenverb& e ) ;
 
-        inline matrix<double> sigma( const eigenverb& e ) ;
+        inline matrix<double> sigma( const eigenverb& e, double theta=0.0 ) ;
 
         inline double area( const matrix<double>& mu1, const matrix<double>& sigma1,
                             const matrix<double>& mu2, const matrix<double>& sigma2 ) ;
 
         inline double energy( const eigenverb& in, const eigenverb& out,
-                              const double area, scattering_model* s ) ;
+                              const double area, boundary_model* s ) ;
 
         inline double time_spread( const eigenverb& out, const matrix<double>& s1,
-                                   const matrix<double>& s2, const double travel_time ) ;
+                                   const matrix<double>& s2, const double travel_time,
+                                   const double two_way_time ) ;
 
         /**
          * Pulse length of the signal (sec)
@@ -147,12 +151,17 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
         /**
          * Number of time bins to store the energy distribution
          */
-        unsigned _num_bins ;
+        unsigned _max_index ;
 
         /**
          * Max time for the reverberation curve
          */
         double _max_time ;
+
+        /**
+         * Number of layers within the volume
+         */
+        unsigned _n ;
 
         /**
          * The reverberation energy distribution curve. The values in this
@@ -173,22 +182,34 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
         spreading_model* _spreading_model ;
 
         /**
-         * Defines the type of scattering model that is used to compute
-         * the scattering strength off the boundary.
+         * Defines the type of boundary model for the bottom.
          */
-        scattering_model* _bottom_scatter ;
+        boundary_model* _bottom_boundary ;
 
         /**
-         * Defines the type of scattering model that is used to compute
-         * the scattering strength off the boundary.
+         * Defines the type of boundary model for the surface.
          */
-        scattering_model* _surface_scatter ;
+        boundary_model* _surface_boundary ;
 
         /**
-         * Defines the type of scattering model that is used to compute
-         * the scattering strength off the boundary.
+         * Defines the type(s) of boundary model(s) for the volume.
          */
-        scattering_model* _volume_scatter ;
+        volume_layer* _volume_boundary ;
+
+        /**
+         * Loss due to colliding with the bottom boundary
+         */
+        vector<double> _bottom_loss ;
+
+        /**
+         * Loss due to colliding with the surface boundary
+         */
+        vector<double> _surface_loss ;
+
+        /**
+         * Loss due to colliding with the volume boundary
+         */
+        vector<double> _volume_loss ;
 
         /**
          * Vector of eigenverbs that impacted the surface.

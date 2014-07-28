@@ -28,9 +28,14 @@ struct eigenverb {
     double time ;
 
     /**
-     * One way transmission loss for this path (dB,positive).
+     * One way transmission loss for this path (linear units).
      */
     vector< double > intensity ;
+
+    /**
+     * Culmulative boundary_loss (linear units)
+     */
+    vector< double > boundary_loss ;
 
     /**
      * The grazing angle of this path at impact of the

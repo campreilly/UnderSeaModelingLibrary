@@ -50,7 +50,8 @@ class USML_DECLSPEC reverberation_model {
          */
         virtual void notifyUpperCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, unsigned ID ) = 0 ;
+               const wposition1& position, const wvector1& ndirection,
+               const vector<double>& boundary_loss, unsigned ID ) = 0 ;
 
         /**
          * React to the collision of a single ray with a reverberation
@@ -69,7 +70,8 @@ class USML_DECLSPEC reverberation_model {
          */
         virtual void notifyLowerCollision( unsigned de, unsigned az, double time,
                double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, unsigned ID ) = 0 ;
+               const wposition1& position, const wvector1& ndirection,
+               const vector<double>& boundary_loss, unsigned ID ) = 0 ;
 
         /**
          * Computes the reverberation curve from the data cataloged from the
@@ -116,13 +118,13 @@ class USML_DECLSPEC reverberation_model {
          * @return              c_c described above
          */
         inline double gaussian( const matrix<double>& mu, const matrix<double>& sigma ) {
-            matrix<double> mu_trans = trans(mu) ;
             matrix<double> s_inv(sigma) ;
-            inverse(sigma, s_inv) ;
+            inverse( sigma, s_inv ) ;
+            double det = determinent(TWO_PI*sigma) ;
+            matrix<double> mu_trans = trans(mu) ;
             matrix<double> mu_prod = prod( mu_trans, s_inv ) ;
             matrix<double> kappa = prod( mu_prod, mu ) ;
-            double det = determinent(sigma) ;
-            det = 1.0 / sqrt(TWO_PI*TWO_PI*det) ;
+            det = 1.0 / sqrt(det) ;
             kappa *= -0.5 ;
             return det * exp( kappa(0,0) ) ;
         }
@@ -131,10 +133,10 @@ class USML_DECLSPEC reverberation_model {
          * Calculates the matrix determinent of a uBlas matrix
          */
         inline double determinent( const matrix<double>& m ) {
+            double det = 1.0 ;
             matrix<double> a(m) ;
             permutation_matrix<size_t> pivot( a.size1() ) ;
             if( lu_factorize(a,pivot) ) return 0.0 ;
-            double det = 1.0 ;
             for(size_t i=0; i<pivot.size(); ++i) {
                 if (pivot(i) != i) det *= -1.0 ;
                 det *= a(i,i) ;
