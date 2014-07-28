@@ -27,7 +27,6 @@ set( NETCDF_NCKS /usr/bin/ncks )
 
 option( BUILD_SHARED_LIBS "build and utilize shared libraries" ON )
 option( GPROF_PROFILER "build for profiling at function level timing" OFF )
-option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
 option( Boost_FORCE_SHAREDLIB "Use Boost shared libraries" OFF )
 option( USML_PEDANTIC "maximize warnings, treat warning as errors" ON )
 option( USML_SAFE_BESSEL "Use Locally implemented Modified Bessel_IO" OFF )
