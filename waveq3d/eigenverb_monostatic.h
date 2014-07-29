@@ -5,13 +5,7 @@
 #ifndef USML_WAVEQ3D_EIGENVERB_MONOSTATIC_H
 #define USML_WAVEQ3D_EIGENVERB_MONOSTATIC_H
 
-#include <usml/waveq3d/eigenverb.h>
-#include <usml/waveq3d/reverberation_model.h>
-#include <usml/waveq3d/wave_queue_reverb.h>
-#include <usml/waveq3d/spreading_model.h>
-#include <usml/ublas/ublas.h>
-#include <usml/types/types.h>
-#include <vector>
+#include <usml/waveq3d/eigenverb_model.h>
 
 namespace usml {
 namespace waveq3d {
@@ -27,7 +21,7 @@ using namespace boost::numeric::ublas ;
  *
  * @todo The reverberation_model class is currently just a stub for future behaviors.
  */
-class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
+class USML_DECLSPEC eigenverb_monostatic : public eigenverb_model {
 
     public:
 
@@ -81,22 +75,6 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
                const wposition1& position, const wvector1& ndirection,
                const vector<double>& boundary_loss, unsigned ID ) ;
 
-        /**
-         * Computes the reverberation curve from the data cataloged from the
-         * wavefront(s).
-         */
-        virtual void compute_reverberation() ;
-
-        /**
-         * Gains access to the reverberation data. The user should first execute
-         * compute_reverberation() prior to requesting access to the entire
-         * reverberation curve.
-         * @return      pointer to _reverberation_curve
-         */
-         virtual const vector<double> getReverberation_curve() {
-            return _reverberation_curve ;
-         }
-
     private:
 
         /**
@@ -112,112 +90,24 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
         void compute_surface_energy() ;
 
         /**
-         * Computes the energy contributions to the reverberation
-         * energy curve from the volume interactions.
-         */
-        void compute_volume_energy() ;
-
-        /**
          * Calculate the contributions due to collisions from below
          * a volume layer.
          */
-        void compute_upper_volume() ;
+        void compute_upper_volume_energy() ;
 
         /**
          * Calculate the contributions due to collisions from above
          * a volume layer.
          */
-        void compute_lower_volume() ;
-
-        /****/
-        void compute_contribution( std::vector<eigenverb>& set, boundary_model* boundary ) ;
-
-        /****/
-        inline matrix<double> mu( const eigenverb& e ) ;
-
-        /****/
-        inline matrix<double> sigma( const eigenverb& e, double theta=0.0 ) ;
-
-        /****/
-        inline double area( const matrix<double>& mu1, const matrix<double>& sigma1,
-                            const matrix<double>& mu2, const matrix<double>& sigma2 ) ;
-
-        /****/
-        inline double energy( const eigenverb& in, const eigenverb& out,
-                              const double area, boundary_model* s ) ;
-
-        /****/
-        inline double time_spread( const eigenverb& out, const matrix<double>& s1,
-                                   const matrix<double>& s2, const double travel_time,
-                                   const double two_way_time ) ;
+        void compute_lower_volume_energy() ;
 
         /**
-         * Pulse length of the signal (sec)
+         * Takes a set of eigenrays, boundary model, and convolves the set of
+         * eigenverbs with itself and makes contributions to the reverebation
+         * level curve.
          */
-        double _pulse ;
-
-        /**
-         * Number of time bins to store the energy distribution
-         */
-        unsigned _max_index ;
-
-        /**
-         * Max time for the reverberation curve
-         */
-        double _max_time ;
-
-        /**
-         * Number of layers within the volume
-         */
-        unsigned _n ;
-
-        /**
-         * The reverberation energy distribution curve. The values in this
-         * array are in linear units.
-         */
-        vector<double> _reverberation_curve ;
-
-        /**
-         * Origin of the wavefront
-         * In monostatic this will always be 10.
-         */
-        unsigned _origin ;
-
-        /**
-         * Defines the type of spreading model that is used to compute
-         * one-way TLs and sigma of each dimension.
-         */
-        spreading_model* _spreading_model ;
-
-        /**
-         * Defines the type of boundary model for the bottom.
-         */
-        boundary_model* _bottom_boundary ;
-
-        /**
-         * Defines the type of boundary model for the surface.
-         */
-        boundary_model* _surface_boundary ;
-
-        /**
-         * Defines the type(s) of boundary model(s) for the volume.
-         */
-        volume_layer* _volume_boundary ;
-
-        /**
-         * Loss due to colliding with the bottom boundary
-         */
-        vector<double> _bottom_loss ;
-
-        /**
-         * Loss due to colliding with the surface boundary
-         */
-        vector<double> _surface_loss ;
-
-        /**
-         * Loss due to colliding with the volume boundary
-         */
-        vector<double> _volume_loss ;
+        void convolve_eigenverbs( std::vector<eigenverb>& set,
+                                  boundary_model* boundary ) ;
 
         /**
          * Vector of eigenverbs that impacted the surface.

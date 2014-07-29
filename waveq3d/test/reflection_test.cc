@@ -77,8 +77,8 @@ public:
     virtual void compute_reverberation() {}
 
     virtual const vector<double> getReverberation_curve() {
-        vector<double> c ;
-        return c ;
+        vector<double> t ;
+        return t ;
     }
 
 };

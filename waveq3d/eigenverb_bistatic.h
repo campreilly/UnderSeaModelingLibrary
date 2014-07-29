@@ -5,13 +5,7 @@
 #ifndef USML_WAVEQ3D_EIGENVERB_BISTATIC_H
 #define USML_WAVEQ3D_EIGENVERB_BISTATIC_H
 
-#include <usml/waveq3d/eigenverb.h>
-#include <usml/waveq3d/reverberation_model.h>
-#include <usml/waveq3d/wave_queue_reverb.h>
-#include <usml/waveq3d/spreading_hybrid_gaussian.h>
-#include <usml/ublas/ublas.h>
-#include <usml/types/types.h>
-#include <vector>
+#include <usml/waveq3d/eigenverb_model.h>
 
 namespace usml {
 namespace waveq3d {
@@ -27,11 +21,15 @@ using boost::numeric::ublas::vector;
  *
  * @todo The reverberation_model class is currently just a stub for future behaviors.
  */
-class USML_DECLSPEC eigenverb_bistatic : public reverberation_model {
+class USML_DECLSPEC eigenverb_bistatic : public eigenverb_model {
 
     public:
 
-        eigenverb_bistatic( wave_queue_reverb& wave ) ;
+        eigenverb_bistatic( ocean_model& ocean,
+                            wave_queue_reverb& wave_source,
+                            wave_queue_reverb& wave_receiver,
+                            double pulse, unsigned num_bins,
+                            double max_time ) ;
 
         virtual ~eigenverb_bistatic() {}
 
@@ -77,19 +75,39 @@ class USML_DECLSPEC eigenverb_bistatic : public reverberation_model {
                const wposition1& position, const wvector1& ndirection,
                const vector<double>& boundary_loss, unsigned ID ) ;
 
-        /**
-         * Computes the reverberation curve from the data cataloged from the
-         * wavefront(s).
-         */
-        virtual void compute_reverberation() ;
-
     private:
 
         /**
-         * Defines the type of spreading model that is used to compute
-         * one-way TLs and sigma of each dimension.
+         * Computes the energy contributions to the reverberation
+         * energy curve from the bottom interactions.
          */
-        spreading_model* _spreading_model ;
+        void compute_bottom_energy() ;
+
+        /**
+         * Computes the energy contributions to the reverberation
+         * energy curve from the surface interactions.
+         */
+        void compute_surface_energy() ;
+
+        /**
+         * Calculate the contributions due to collisions from below
+         * a volume layer.
+         */
+        void compute_upper_volume_energy() ;
+
+        /**
+         * Calculate the contributions due to collisions from above
+         * a volume layer.
+         */
+        void compute_lower_volume_energy() ;
+
+        /**
+         * Takes a set of eigenrays, boundary model, and convolves the set of
+         * eigenverbs with itself and makes contributions to the reverebation
+         * level curve.
+         */
+        void convolve_eigenverbs( std::vector<eigenverb>& set1,
+                std::vector<eigenverb>& set2, boundary_model* boundary ) ;
 
         /**
          * Vector of eigenverbs that originate from the
@@ -114,6 +132,31 @@ class USML_DECLSPEC eigenverb_bistatic : public reverberation_model {
          * receiver and impact the bottom.
          */
         std::vector< eigenverb > _receiver_bottom ;
+
+        /**
+         * Vector of eigenverbs that originate from the
+         * source and impact the volume layer from below.
+         */
+        std::vector< std::vector< eigenverb > > _source_upper ;
+
+        /**
+         * Vector of eigenverbs that originate from the
+         * receiver and impact the volume layer from below.
+         */
+        std::vector< std::vector< eigenverb > > _receiver_upper ;
+
+        /**
+         * Vector of eigenverbs that originate from the
+         * source and impact the volume layer from above.
+         */
+        std::vector< std::vector< eigenverb > > _source_lower ;
+
+        /**
+         * Vector of eigenverbs that originate from the
+         * receiver and impact the volume layer from above.
+         */
+        std::vector< std::vector< eigenverb > > _receiver_lower ;
+
 
 };
 

@@ -33,7 +33,7 @@ wave_queue_reverb::wave_queue_reverb(
     const wposition* targets,
     spreading_type type
 ) :
-    wave_queue(ocean, freq, pos, de, az, time_step, targets, 10, type)
+    wave_queue(ocean, freq, pos, de, az, time_step, targets, SOURCE_ID, type)
 {
     // Define spreading model
     switch( type ) {

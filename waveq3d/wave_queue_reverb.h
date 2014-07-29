@@ -10,8 +10,14 @@
 
 namespace usml {
 namespace waveq3d {
+
 class reflection_model ;
 class spreading_model ;
+
+/**
+ * ID value used for source and receivers.
+ */
+enum ORIGIN { SOURCE_ID = 10, RECEIVER_ID = 20 } ;
 
 class USML_DECLSPEC wave_queue_reverb : public wave_queue {
 
@@ -34,7 +40,7 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          * @param  pulse        Pulse length of the signal (seconds).
          * @param  num_bins     Number of time bins on the reverberation curce.
          * @param  max_time     Maximum listening time for reverberation (seconds).
-         * @param  origin       Type of wave_queue, source/receiver, used in bistatic
+         * @param  reverb       Pointer to reverberation model used for this wave_queue
          * @param  targets      List of acoustic targets.
          * @param  type         Type of spreading model to use: CLASSIC_RAY
          *                      or HYBRID_GAUSSIAN.
@@ -48,8 +54,7 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
             unsigned num_bins, double max_time,
             reverberation_model* reverb=NULL,
             const wposition* targets=NULL,
-            spreading_type type=HYBRID_GAUSSIAN
-            ) ;
+            spreading_type type=HYBRID_GAUSSIAN ) ;
 
         /** Destroy all temporary memory. */
         virtual ~wave_queue_reverb() {}
