@@ -81,25 +81,25 @@ class USML_DECLSPEC eigenverb_bistatic : public eigenverb_model {
          * Computes the energy contributions to the reverberation
          * energy curve from the bottom interactions.
          */
-        void compute_bottom_energy() ;
+        virtual void compute_bottom_energy() ;
 
         /**
          * Computes the energy contributions to the reverberation
          * energy curve from the surface interactions.
          */
-        void compute_surface_energy() ;
+        virtual void compute_surface_energy() ;
 
         /**
          * Calculate the contributions due to collisions from below
          * a volume layer.
          */
-        void compute_upper_volume_energy() ;
+        virtual void compute_upper_volume_energy() ;
 
         /**
          * Calculate the contributions due to collisions from above
          * a volume layer.
          */
-        void compute_lower_volume_energy() ;
+        virtual void compute_lower_volume_energy() ;
 
         /**
          * Takes a set of eigenrays, boundary model, and convolves the set of

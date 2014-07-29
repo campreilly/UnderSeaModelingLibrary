@@ -43,7 +43,7 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
                const wposition1& position, const wvector1& ndirection,
                const vector<double>& boundary_loss, unsigned ID )
 {
-    #ifdef COLLISION_DEBUG
+    #ifdef EIGENVERB_COLLISION_DEBUG
         std::cout << "**** Entering eigenverb_monostatic::notifyUpperCollision" << std::endl ;
         std::cout << "de: " << de << " az: " << az << " time: " << time << std::endl ;
         std::cout << "grazing: " << grazing << " ID: " << ID << std::endl ;
@@ -71,7 +71,7 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
                const wposition1& position, const wvector1& ndirection,
                const vector<double>& boundary_loss, unsigned ID )
 {
-    #ifdef COLLISION_DEBUG
+    #ifdef EIGENVERB_COLLISION_DEBUG
         std::cout << "**** Entering eigenverb_monostatic::notifyLowerCollision" << std::endl ;
         std::cout << "de: " << de << " az: " << az << " time: " << time << std::endl ;
         std::cout << "grazing: " << grazing << " ID: " << ID << std::endl ;
@@ -95,6 +95,10 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
  * energy curve from the bottom interactions.
  */
 void eigenverb_monostatic::compute_bottom_energy() {
+    #ifdef EIGENVERB_MODEL_DEBUG
+        cout << "**** Entering eigenverb_monostatic::compute_bottom_energy()"
+             << endl ;
+    #endif
     convolve_eigenverbs( _bottom, _bottom_boundary ) ;
 }
 
@@ -103,6 +107,10 @@ void eigenverb_monostatic::compute_bottom_energy() {
  * energy curve from the surface interactions.
  */
 void eigenverb_monostatic::compute_surface_energy() {
+    #ifdef EIGENVERB_MODEL_DEBUG
+        cout << "**** Entering eigenverb_monostatic::compute_surface_energy()"
+             << endl ;
+    #endif
     convolve_eigenverbs( _surface, _surface_boundary ) ;
 }
 
@@ -111,6 +119,10 @@ void eigenverb_monostatic::compute_surface_energy() {
  * to interactions with the volume layers
  */
 void eigenverb_monostatic::compute_upper_volume_energy() {
+    #ifdef EIGENVERB_MODEL_DEBUG
+        cout << "**** Entering eigenverb_monostatic::compute_upper_volume_energy()"
+             << endl ;
+    #endif
     unsigned layer = 0 ;
     for(std::vector<std::vector<eigenverb> >::iterator k=_upper.begin();
             k!=_upper.end() && layer <= _n; ++k)
@@ -126,6 +138,10 @@ void eigenverb_monostatic::compute_upper_volume_energy() {
  * to interactions with the volume layers
  */
 void eigenverb_monostatic::compute_lower_volume_energy() {
+    #ifdef EIGENVERB_MODEL_DEBUG
+        cout << "**** Entering eigenverb_monostatic::compute_lower_volume_energy()"
+             << endl ;
+    #endif
     unsigned layer = 0 ;
     for(std::vector<std::vector<eigenverb> >::iterator k=_upper.begin();
             k!=_upper.end() && layer <= _n; ++k)

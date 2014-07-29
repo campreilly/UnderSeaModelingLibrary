@@ -92,7 +92,6 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     const vector<double> reverb_tl = reverb->getReverberation_curve() ;
     vector<double> r = SL + 10.0*log10(2.0*reverb_tl) ;
     for ( unsigned i=0; i < bins; ++i ) {
-//        double r = 10*log10(2.0*reverb_tl(i)) ;
         cout << "reverb_level(" << i << "): " << r(i) << endl ;
         os << ( i * time_max / bins )
            << "," << r(i)

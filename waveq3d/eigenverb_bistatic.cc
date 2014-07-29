@@ -4,8 +4,6 @@
 
 #include <usml/waveq3d/eigenverb_bistatic.h>
 
-//#define COLLISION_DEBUG
-
 using namespace usml::waveq3d ;
 
 /**  Constructor  **/
@@ -47,8 +45,8 @@ void eigenverb_bistatic::notifyUpperCollision( unsigned de, unsigned az, double 
                const wposition1& position, const wvector1& ndirection,
                const vector<double>& boundary_loss, unsigned ID )
 {
-    #ifdef COLLISION_DEBUG
-        std::cout << "**** Entering eigenverb_bistatic::notifyUpperCollision" << std::endl ;
+    #ifdef EIGENVERB_COLLISION_DEBUG
+        std::cout << "**** Entering eigenverb_bistatic::notifyUpperCollision()" << std::endl ;
         std::cout << "de: " << de << " az: " << az << " time: " << time << std::endl ;
         std::cout << "grazing: " << grazing << " ID: " << ID << std::endl ;
     #endif
@@ -78,8 +76,8 @@ void eigenverb_bistatic::notifyLowerCollision( unsigned de, unsigned az, double 
                const wposition1& position, const wvector1& ndirection,
                const vector<double>& boundary_loss, unsigned ID )
 {
-    #ifdef COLLISION_DEBUG
-        std::cout << "**** Entering eigenverb_bistatic::notifyLowerCollision" << std::endl ;
+    #ifdef EIGENVERB_COLLISION_DEBUG
+        std::cout << "**** Entering eigenverb_bistatic::notifyLowerCollision()" << std::endl ;
         std::cout << "de: " << de << " az: " << az << " time: " << time << std::endl ;
         std::cout << "grazing: " << grazing << " ID: " << ID << std::endl ;
     #endif
@@ -105,6 +103,10 @@ void eigenverb_bistatic::notifyLowerCollision( unsigned de, unsigned az, double 
  * energy curve from the bottom interactions.
  */
 void eigenverb_bistatic::compute_bottom_energy() {
+    #ifdef EIGENVERB_MODEL_DEBUG
+        cout << "**** Entering eigenverb_static::compute_bottom_energy()"
+             << endl ;
+    #endif
     convolve_eigenverbs( _source_bottom, _receiver_bottom,
                          _bottom_boundary ) ;
 }
@@ -114,6 +116,10 @@ void eigenverb_bistatic::compute_bottom_energy() {
  * energy curve from the surface interactions.
  */
 void eigenverb_bistatic::compute_surface_energy() {
+    #ifdef EIGENVERB_MODEL_DEBUG
+        cout << "**** Entering eigenverb_static::compute_surface_energy()"
+             << endl ;
+    #endif
     convolve_eigenverbs( _source_surface, _receiver_surface,
                          _surface_boundary ) ;
 }
@@ -123,6 +129,10 @@ void eigenverb_bistatic::compute_surface_energy() {
  * to interactions with the volume layers
  */
 void eigenverb_bistatic::compute_upper_volume_energy() {
+    #ifdef EIGENVERB_MODEL_DEBUG
+        cout << "**** Entering eigenverb_static::compute_upper_volume_energy()"
+             << endl ;
+    #endif
     unsigned layer = 0 ;
     std::vector<std::vector<eigenverb> >::iterator i ;
     std::vector<std::vector<eigenverb> >::iterator j ;
@@ -141,6 +151,10 @@ void eigenverb_bistatic::compute_upper_volume_energy() {
  * to interactions with the volume layers
  */
 void eigenverb_bistatic::compute_lower_volume_energy() {
+    #ifdef EIGENVERB_MODEL_DEBUG
+        cout << "**** Entering eigenverb_static::compute_lower_volume_energy()"
+             << endl ;
+    #endif
     unsigned layer = 0 ;
     std::vector<std::vector<eigenverb> >::iterator i ;
     std::vector<std::vector<eigenverb> >::iterator j ;

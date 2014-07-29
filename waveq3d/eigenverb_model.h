@@ -5,7 +5,7 @@
 #ifndef USML_WAVEQ3D_EIGENVERB_MODEL_H
 #define USML_WAVEQ3D_EIGENVERB_MODEL_H
 
-//#define COLLISION_DEBUG
+//#define EIGENVERB_COLLISION_DEBUG
 //#define EIGENVERB_MODEL_DEBUG
 
 #include <usml/ocean/ocean.h>
@@ -80,21 +80,9 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
          * wavefront(s).
          */
         virtual void compute_reverberation() {
-//            #ifdef EIGENVERB_MODEL_DEBUG
-//                std::cout << "Entering compute_bottom_energy()" << std::endl ;
-//            #endif
             compute_bottom_energy() ;
-//            #ifdef EIGENVERB_MODEL_DEBUG
-//                std::cout << "Entering compute_surface_energy()" << std::endl ;
-//            #endif
             compute_surface_energy() ;
-//            #ifdef EIGENVERB_MODEL_DEBUG
-//                std::cout << "Entering compute_upper_volume_energy()" << std::endl ;
-//            #endif
             compute_upper_volume_energy() ;
-//            #ifdef EIGENVERB_MODEL_DEBUG
-//                std::cout << "Entering compute_lower_volume_energy()" << std::endl ;
-//            #endif
             compute_lower_volume_energy() ;
         }
 
@@ -132,7 +120,7 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
             offset(1) = offset(2) = 0.0 ;                           // No offset in DE and AZ
             distance(0) = distance(1) = distance(2) = 0.0 ;         // Zero distance
 
-            #ifdef COLLISION_DEBUG
+            #ifdef EIGENVERB_COLLISION_DEBUG
                 std::cout << "\t---Calling _spreading_model->getIntensity()---" << std::endl ;
                 std::cout << "de: " << de << " az: " << az << std::endl ;
                 std::cout << "offset: " << offset << " distance: " << distance << std::endl ;
@@ -143,7 +131,7 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
             verb.sigma_de = _spreading_model->getWidth_DE( de, az, offset ) ;
             verb.sigma_az = _spreading_model->getWidth_AZ( de, az, offset ) ;
 
-            #ifdef COLLISION_DEBUG
+            #ifdef EIGENVERB_COLLISION_DEBUG
                 std::cout << "\t---Added eigenverb to collection---" << endl ;
                 std::cout << "\tverb de: " << verb.de << " az: " << verb.az
                           << " time: " << verb.time << std::endl ;
@@ -393,31 +381,29 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
             return true ;
         }
 
-    /**** Member functions that are overridden by the inherited eigenverb class ****/
-
         /**
          * Computes the energy contributions to the reverberation
          * energy curve from the bottom interactions.
          */
-        void compute_bottom_energy() {}
+        virtual void compute_bottom_energy() = 0 ;
 
         /**
          * Computes the energy contributions to the reverberation
          * energy curve from the surface interactions.
          */
-        void compute_surface_energy() {}
+        virtual void compute_surface_energy() = 0 ;
 
         /**
          * Calculate the contributions due to collisions from below
          * a volume layer.
          */
-        void compute_upper_volume_energy() {}
+        virtual void compute_upper_volume_energy() = 0 ;
 
         /**
          * Calculate the contributions due to collisions from above
          * a volume layer.
          */
-        void compute_lower_volume_energy() {}
+        virtual void compute_lower_volume_energy() = 0 ;
 
     /**** Member Variables ****/
 
