@@ -207,10 +207,13 @@ inline double eigenverb_model::time_spread(
         const double two_way_time )
 {
     double time = travel_time ;
-    double l_r = 1.0 / s1(1,1) ;
-    double l_s = 1.0 / s2(1,1) ;
-    double sigma_p = sqrt( 1.0 / (l_r + l_s) ) ;
-    double Tarea = sigma_p * sin(out.grazing) / out.c ;
+    matrix<double> s1_inv( s1 ) ;
+    matrix<double> s2_inv( s2 ) ;
+    inverse( s1, s1_inv ) ;
+    inverse( s2, s2_inv ) ;
+    matrix<double> sigma_p( s1 ) ;
+    inverse( s1_inv + s2_inv, sigma_p ) ;
+    double Tarea = sigma_p(1,1) * sin(out.grazing) / out.c ;
     double T_sr = sqrt( _pulse*_pulse + Tarea*Tarea ) / 2.0 ;               /// @caution should this be sine or cosine of grazing angle????
     time += T_sr ;
     double time_exp = (two_way_time-time) / T_sr ;
