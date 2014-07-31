@@ -79,8 +79,6 @@ class USML_DECLSPEC reflection_model {
      */
     const double TOO_SHALLOW ;
 
-    const unsigned _max_az ;
-
     /**
      * The assumption that the surface normal is constant across the time step
      * breaks down when the incident ray is nearly parallel to the bottom.
@@ -99,8 +97,7 @@ class USML_DECLSPEC reflection_model {
      */
     reflection_model( wave_queue& wave )
     	: _wave( wave ), _reverberation(NULL),
-    	  TOO_SHALLOW( 300.0 * wave._time_step ),
-    	  _max_az( _wave._source_az->size()-2 )
+    	  TOO_SHALLOW( 300.0 * wave._time_step )
     	{}
 
     virtual ~reflection_model() {

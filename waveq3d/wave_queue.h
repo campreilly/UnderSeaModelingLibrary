@@ -240,6 +240,14 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
+     * Protoype of the function that is needed during reflections
+     * and only implemented in reverberation wave_queues.
+     */
+    virtual bool is_ray_valid( unsigned de, unsigned az ) {
+        return false ;
+    }
+
+    /**
      * Marches to the next integration step in the acoustic propagation.
      * Uses the third order Adams-Bashforth algorithm to estimate the position
      * and direction of each point on the next wavefront from the previous
@@ -405,7 +413,7 @@ class USML_DECLSPEC wave_queue {
      * A ray family is defined by a set of rays that have the same
      * surface, bottom, or caustic count.
      */
-    void detect_reflections() ;
+    virtual void detect_reflections() ;
 
     /**
      * Detect and process surface reflection for a single (DE,AZ) combination.

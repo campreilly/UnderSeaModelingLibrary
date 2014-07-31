@@ -33,7 +33,8 @@ wave_queue_reverb::wave_queue_reverb(
     const wposition* targets,
     spreading_type type
 ) :
-    wave_queue(ocean, freq, pos, de, az, time_step, targets, SOURCE_ID, type)
+    wave_queue(ocean, freq, pos, de, az, time_step, targets, SOURCE_ID, type),
+    _invalid_ray( de.size(), az.size() )
 {
     // Define spreading model
     switch( type ) {
@@ -87,6 +88,8 @@ const unsigned wave_queue_reverb::getFreqSize() {
  */
 void wave_queue_reverb::detect_reflections() {
 
+    mark_invalid_rays() ;
+
     // process all surface and bottom reflections, and vertices
     // note that multiple rays can reflect in the same time step
 
@@ -101,10 +104,35 @@ void wave_queue_reverb::detect_reflections() {
         }
     }
 
-    detect_volume_reflections() ;
+        // Don't check for volume interactions if volume layers
+        // were not included in the ocean
+    if ( _ocean.volume() ) {
+        detect_volume_reflections() ;
+    }
 
     // search for other changes in wavefront
     _next->find_edges() ;
+}
+
+void wave_queue_reverb::mark_invalid_rays() {
+    _invalid_ray.clear() ;
+    const unsigned max_de = num_de() - 1 ;
+    const unsigned max_az = num_az() - 1 ;
+    if ( 0 < _time ) {
+        for(unsigned i=0; i<num_az(); ++i) {
+            _invalid_ray( 0, i ) = true ;
+            _invalid_ray( max_de, i ) = true ;
+        }
+        for(unsigned i=0; i<num_de(); ++i) {
+            _invalid_ray( i, max_az ) = true ;
+        }
+    } else {
+        for(unsigned i=0; i<num_de(); ++i) {
+            for(unsigned j=0; j<num_az(); ++j) {
+                _invalid_ray( i, j ) = true ;
+            }
+        }
+    }
 }
 
 /**
@@ -196,12 +224,12 @@ void wave_queue_reverb::collide_from_above(
     else if ( dot_full / c <= -1.0 ) { grazing = M_PI_2 ; }
     else { grazing = asin( -dot_full / c ) ; }
 
-    unsigned ID = _run_id ;
-    ID += layer + 1 ;
-    _reflection_model->getReverberation_Model()->notifyLowerCollision( de, az, _time, time_water,
-        grazing, c, *(_frequencies), position,  ndirection, _curr->attenuation(de,az), ID ) ;
-        // Still need to calculate eigenray ampltiude and phase for
-        // reverberation callback. Just passing bogus values currently.
+    if ( !is_ray_valid(de,az) ) {
+        unsigned ID = _run_id ;
+        ID += layer + 1 ;
+        _reflection_model->getReverberation_Model()->notifyLowerCollision( de, az, _time, time_water,
+            grazing, c, *(_frequencies), position,  ndirection, _curr->attenuation(de,az), ID ) ;
+    }
 }
 
 /** @todo correct logic/signs for collisions from below the boundary **/
@@ -271,12 +299,12 @@ void wave_queue_reverb::collide_from_below(
     else if ( dot_full / c <= -1.0 ) { grazing = M_PI_2 ; }
     else { grazing = asin( -dot_full / c ) ; }
 
-    unsigned ID = _run_id ;
-    ID += layer + 1 ;
-    _reflection_model->getReverberation_Model()->notifyUpperCollision( de, az, _time, time_water,
-        grazing, c, *(_frequencies), position,  ndirection, _curr->attenuation(de,az), ID ) ;
-        // Still need to calculate eigenray ampltiude and phase for
-        // reverberation callback. Just passing bogus values currently.
+    if ( !is_ray_valid(de,az) ) {
+        unsigned ID = _run_id ;
+        ID += layer + 1 ;
+        _reflection_model->getReverberation_Model()->notifyUpperCollision( de, az, _time, time_water,
+            grazing, c, *(_frequencies), position,  ndirection, _curr->attenuation(de,az), ID ) ;
+    }
 }
 
 /**

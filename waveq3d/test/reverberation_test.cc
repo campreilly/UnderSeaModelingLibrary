@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     double time_max = 7.0 ;
     double time_step = 0.01 ;
     double T0 = 0.25 ;                 // Pulse length
-    const double f0 = 2000 ;
+    const double f0 = 2000.0 ;
     const double lat = 0.0 ;
     const double lng = 0.0 ;
     const double alt = 0.0 ;
@@ -55,17 +55,19 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     bottom->setScattering_Model( new scattering_lambert() ) ;
 
     // create a simple volume layer
-    boundary_model* v1 = new boundary_flat( 100.0 ) ;
-    v1->setScattering_Model( new scattering_lambert() ) ;
-    vector<boundary_model*> v(1) ;
-    v[0] = v1 ;
-    volume_layer* volume = new volume_layer( v ) ;
-
-    ocean_model ocean( surface, bottom, profile, volume ) ;
+//    boundary_model* v1 = new boundary_flat( 100.0 ) ;
+//    v1->setScattering_Model( new scattering_lambert() ) ;
+//    vector<boundary_model*> v(1) ;
+//    v[0] = v1 ;
+//    volume_layer* volume = new volume_layer( v ) ;
+//
+//    ocean_model ocean( surface, bottom, profile, volume ) ;
+    ocean_model ocean( surface, bottom, profile ) ;
 
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( lat, lng, alt ) ;
-    seq_rayfan de( -90.0, 0.0, 361 ) ;
+    seq_rayfan de( -90.0, 0.0, 91 ) ;
+//    seq_linear de( -90.0, 1.5, 0.0 ) ;
     seq_linear az( 0.0, 15.0, 360.0 ) ;
 
     wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T0, bins, time_max ) ;

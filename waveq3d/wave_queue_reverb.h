@@ -75,9 +75,35 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          */
         reverberation_model* getReverberation_Model() ;
 
+        /**
+         * Returns the number of frequencies in _frequencies.
+         */
         const unsigned getFreqSize() ;
 
+        /**
+         * Accessor to validate a ray for reverberation contributions
+         */
+        virtual bool is_ray_valid( unsigned de, unsigned az ) {
+            return _invalid_ray(de,az) ;
+        }
+
     protected:
+
+        /**
+         * Marks rays within the ray fan that are not to be valid rays that can contribute
+         * to the overall contributions of the reverberation level. These rays are not
+         * valid because of the limitations of the model producing a valid spreading
+         * loss for these rays using the, at this time, available spreading models.
+         */
+        matrix<bool> _invalid_ray ;
+
+        /**
+         * Marks all rays to either be valid rays to contribute to reverberation levels
+         * or not. All rays at time zero are invalid because of the zero distance between
+         * them initially, and after time zero, only rays that are _source_de(0), last
+         * two _source_de's and last two _source_az's.
+         */
+        void mark_invalid_rays() ;
 
         /**
          * Detect and process boundary reflections and caustics.  Loops through all
@@ -96,7 +122,7 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          * A ray family is defined by a set of rays that have the same
          * surface, bottom, or caustic count.
          */
-        void detect_reflections() ;
+        virtual void detect_reflections() ;
 
         /**
          * Specialized call within wave_queue reverberation calculations. This call
