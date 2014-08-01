@@ -31,9 +31,9 @@ void eigenverb_model::create_eigenverb( unsigned de, unsigned az, double time,
     distance(0) = distance(1) = distance(2) = 0.0 ;         // Zero distance
 
     #ifdef EIGENVERB_COLLISION_DEBUG
-        std::cout << "\t---Calling _spreading_model->getIntensity()---" << std::endl ;
-        std::cout << "de: " << de << " az: " << az << std::endl ;
-        std::cout << "offset: " << offset << " distance: " << distance << std::endl ;
+        cout << "\t---Calling _spreading_model->getIntensity()---" << endl ;
+        cout << "de: " << de << " az: " << az << endl ;
+        cout << "offset: " << offset << " distance: " << distance << endl ;
     #endif
 
     const vector<double> amp = _spreading_model->getIntensity( position, de, az, offset, distance ) ;
@@ -42,12 +42,12 @@ void eigenverb_model::create_eigenverb( unsigned de, unsigned az, double time,
     verb.sigma_az = _spreading_model->getWidth_AZ( de, az, offset ) ;
 
     #ifdef EIGENVERB_COLLISION_DEBUG
-        std::cout << "\t---Added eigenverb to collection---" << endl ;
-        std::cout << "\tverb de: " << verb.de << " az: " << verb.az
-                  << " time: " << verb.time << std::endl ;
-        std::cout << "\tgrazing: " << verb.grazing*180.0/M_PI << " speed: " << verb.c << std::endl ;
-        std::cout << "\tintensity: " << verb.intensity << " sigma_de: " << verb.sigma_de
-                  << " sigma_az: " << verb.sigma_az << std::endl ;
+        cout << "\t---Added eigenverb to collection---" << endl ;
+        cout << "\tverb de: " << verb.de << " az: " << verb.az
+             << " time: " << verb.time << endl ;
+        cout << "\tgrazing: " << verb.grazing*180.0/M_PI << " speed: " << verb.c << endl ;
+        cout << "\tintensity: " << verb.intensity << " sigma_de: " << verb.sigma_de
+             << " sigma_az: " << verb.sigma_az << endl ;
     #endif
 }
 
@@ -58,11 +58,16 @@ void eigenverb_model::compute_contribution( const eigenverb& u, const eigenverb&
                                             boundary_model* boundary )
 {
     double travel_time = u.time + v.time ;
+    double de1, double az1 ;
+    u.ndir.direction( &de1, &az1 ) ;
+    double de2, double az2 ;
+    v.ndir.direction( &de2, &az2 ) ;
+    double theta = abs( az2 - az1 ) ;
     #ifdef EIGENVERB_MODEL_DEBUG
-        std::cout << "Contribution data:" << std::endl ;
-        std::cout << "\ttravel_time: " << travel_time << std::endl ;
+        cout << "Contribution data:" << endl ;
+        cout << "\ttravel_time: " << travel_time
+                  << " theta: " << theta << endl ;
     #endif
-    double theta = 0.0 ;                                                        /// @todo add angle calculation between u relative to v
     matrix<double> mu1 = mu( u ) ;
     matrix<double> sigma1 = sigma( u, theta ) ;
     matrix<double> mu2 = mu( v ) ;
@@ -86,7 +91,7 @@ void eigenverb_model::compute_contribution( const eigenverb& u, const eigenverb&
         double value = _energy * _time_spread ;
 
         #ifdef EIGENVERB_MODEL_DEBUG
-            std::cout << "\tcontribution: " << value << " bin: " << t << std::endl ;
+            cout << "\tcontribution: " << value << " bin: " << t << endl ;
         #endif
 
         _reverberation_curve(t) += value ;
@@ -158,8 +163,8 @@ inline double eigenverb_model::area(
         // calculate the area
     double a = 0.5 * d1 * d2 * det * exp( kappa(0,0) ) ;
     #ifdef EIGENVERB_MODEL_DEBUG
-        std::cout << "\tmu: " << mu << " sigma: " << sigma << std::endl ;
-        std::cout << "\tarea: " << a << std::endl ;
+        cout << "\tmu: " << mu << " sigma: " << sigma << endl ;
+        cout << "\tarea: " << a << endl ;
     #endif
     return  a ;
 }
@@ -187,13 +192,13 @@ inline double eigenverb_model::energy( const eigenverb& in,
         // caluclate the total energy reflected from this patch
     double _e = _pulse * two_way_TL(0) * s_sr(0) * dA ;
     #ifdef EIGENVERB_MODEL_DEBUG
-        std::cout << "\tboundary loss: " << _loss
-                  << " scattering strength: " << s_sr
-                  << std::endl ;
-        std::cout << "\tTL to patch: " << in.intensity
-                  << " TL from patch: " << out.intensity
-                  << std::endl ;
-        std::cout << "\tenergy: " << _e << std::endl ;
+        cout << "\tboundary loss: " << _loss
+             << " scattering strength: " << s_sr
+             << endl ;
+        cout << "\tTL to patch: " << in.intensity
+             << " TL from patch: " << out.intensity
+             << endl ;
+        cout << "\tenergy: " << _e << endl ;
     #endif
     return _e ;
 }
@@ -218,7 +223,7 @@ inline double eigenverb_model::time_spread(
     time += T_sr ;
     double time_exp = (two_way_time-time) / T_sr ;
     #ifdef EIGENVERB_MODEL_DEBUG
-        std::cout << "\tT_sr: " << T_sr << std::endl ;
+        cout << "\tT_sr: " << T_sr << endl ;
     #endif
     return exp( -0.5 * time_exp * time_exp ) / ( T_sr * sqrt(TWO_PI) ) ;
 }

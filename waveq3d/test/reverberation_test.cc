@@ -27,9 +27,9 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     cout << "=== reverberation_test: monostatic ===" << endl;
     const char* csvname = USML_TEST_DIR "/waveq3d/test/monostatic.csv" ;
     double time_max = 7.0 ;
-    double time_step = 0.01 ;
+    double time_step = 0.001 ;
     double T0 = 0.25 ;                 // Pulse length
-    const double f0 = 2000.0 ;
+    const double f0 = 1000.0 ;
     const double lat = 0.0 ;
     const double lng = 0.0 ;
     const double alt = 0.0 ;
@@ -66,9 +66,9 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
 
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( lat, lng, alt ) ;
-    seq_rayfan de( -90.0, 0.0, 91 ) ;
-//    seq_linear de( -90.0, 1.5, 0.0 ) ;
-    seq_linear az( 0.0, 15.0, 360.0 ) ;
+//    seq_rayfan de( -90.0, 0.0, 91 ) ;
+    seq_linear de( -90.0, 1.0, -0.5 ) ;
+    seq_linear az( 0.0, 30.0, 360.0 ) ;
 
     wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T0, bins, time_max ) ;
     wave.setID( SOURCE_ID ) ;

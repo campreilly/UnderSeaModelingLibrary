@@ -44,9 +44,9 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
                const vector<double>& boundary_loss, unsigned ID )
 {
     #ifdef EIGENVERB_COLLISION_DEBUG
-        std::cout << "**** Entering eigenverb_monostatic::notifyUpperCollision" << std::endl ;
-        std::cout << "de: " << de << " az: " << az << " time: " << time << std::endl ;
-        std::cout << "grazing: " << grazing << " ID: " << ID << std::endl ;
+        cout << "**** Entering eigenverb_monostatic::notifyUpperCollision" << endl ;
+        cout << "de: " << de << " az: " << az << " time: " << time << endl ;
+        cout << "grazing: " << grazing << " ID: " << ID << endl ;
     #endif
     eigenverb verb ;
     create_eigenverb( de, az, time, dt, grazing, speed, frequencies,
@@ -75,9 +75,9 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
                const vector<double>& boundary_loss, unsigned ID )
 {
     #ifdef EIGENVERB_COLLISION_DEBUG
-        std::cout << "**** Entering eigenverb_monostatic::notifyLowerCollision" << std::endl ;
-        std::cout << "de: " << de << " az: " << az << " time: " << time << std::endl ;
-        std::cout << "grazing: " << grazing << " ID: " << ID << std::endl ;
+        cout << "**** Entering eigenverb_monostatic::notifyLowerCollision" << endl ;
+        cout << "de: " << de << " az: " << az << " time: " << time << endl ;
+        cout << "grazing: " << grazing << " ID: " << ID << endl ;
     #endif
     eigenverb verb ;
     create_eigenverb( de, az, time, dt, grazing, speed, frequencies,
