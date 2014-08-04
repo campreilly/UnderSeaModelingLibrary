@@ -58,10 +58,14 @@ void eigenverb_model::compute_contribution( const eigenverb& u, const eigenverb&
                                             boundary_model* boundary )
 {
     double travel_time = u.time + v.time ;
-    double de1, double az1 ;
-    u.ndir.direction( &de1, &az1 ) ;
-    double de2, double az2 ;
-    v.ndir.direction( &de2, &az2 ) ;
+    double de1 ;
+    double az1 ;
+    eigenverb e1 = u ;
+    e1.ndir.direction( &de1, &az1 ) ;
+    double de2 ;
+    double az2 ;
+    eigenverb e2 = v ;
+    e2.ndir.direction( &de2, &az2 ) ;
     double theta = abs( az2 - az1 ) ;
     #ifdef EIGENVERB_MODEL_DEBUG
         cout << "Contribution data:" << endl ;

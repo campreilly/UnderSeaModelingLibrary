@@ -53,7 +53,7 @@ struct eigenverb {
     /**
      * Frequeinces of the wavefront (Hz)
      */
-     const seq_vector* frequencies ;
+    const seq_vector* frequencies ;
 
     /**
      * The DE of the path from launch.
