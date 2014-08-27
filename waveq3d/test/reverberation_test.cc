@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <fstream>
 #include <cstdio>
+#include <sys/time.h>
 
 BOOST_AUTO_TEST_SUITE(reverberation_test)
 
@@ -26,8 +27,9 @@ using namespace usml::waveq3d ;
 BOOST_AUTO_TEST_CASE( monostatic ) {
     cout << "=== reverberation_test: monostatic ===" << endl;
     const char* csvname = USML_TEST_DIR "/waveq3d/test/monostatic.csv" ;
-    double time_max = 7.0 ;
-    double time_step = 0.001 ;
+    double time_max = 7.1 ;
+    double time_step = 0.1 ;
+    double resolution = 0.1 ;
     double T0 = 0.25 ;                 // Pulse length
     const double f0 = 1000.0 ;
     const double lat = 0.0 ;
@@ -35,7 +37,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     const double alt = 0.0 ;
     const double c0 = 1500.0 ;              // constant sound speed
     const double depth = 200.0 ;
-    unsigned bins = time_max / time_step ;
+    unsigned bins = time_max / resolution ;
     const double SL = 200.0 ;
 
     // initialize propagation model
@@ -66,9 +68,9 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
 
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( lat, lng, alt ) ;
-//    seq_rayfan de( -90.0, 0.0, 91 ) ;
-    seq_linear de( -90.0, 1.0, -0.5 ) ;
-    seq_linear az( 0.0, 30.0, 360.0 ) ;
+    seq_rayfan de( -90.0, -10.0, 121, -105.0 ) ;
+//    seq_linear de( -90.0, 1.0, -1.0 ) ;
+    seq_linear az( 0.0, 45.0, 360.0 ) ;
 
     wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T0, bins, time_max ) ;
     wave.setID( SOURCE_ID ) ;
@@ -84,7 +86,17 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
 
     reverberation_model* reverb = wave.getReverberation_Model() ;
     cout << "computing reverberation levels" << endl ;
+    struct timeval time ;
+    struct timezone zone ;
+    gettimeofday( &time, &zone ) ;
+    double start = time.tv_sec + time.tv_usec * 1e-6 ;
     reverb->compute_reverberation() ;
+    gettimeofday( &time, &zone ) ;
+    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
+    cout << "Computation of reverberation curve took "
+         << (complete-start) << " sec."
+         << endl ;
+
     cout << "writing reverberation curve to " << csvname << endl;
     std::ofstream os(csvname);
     os << "time,intensity" << endl ;
@@ -94,7 +106,9 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     const vector<double> reverb_tl = reverb->getReverberation_curve() ;
     vector<double> r = SL + 10.0*log10(2.0*reverb_tl) ;
     for ( unsigned i=0; i < bins; ++i ) {
-        cout << "reverb_level(" << i << "): " << r(i) << endl ;
+        if( i % 10 == 0 ) {
+            cout << "reverb_level(" << i << "): " << r(i) << endl ;
+        }
         os << ( i * time_max / bins )
            << "," << r(i)
            << endl ;

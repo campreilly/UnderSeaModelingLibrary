@@ -179,12 +179,10 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
          * @param s1            gaussian standard deviation values for first eigenverb
          * @param s2            gaussian standard deviation values for second eigenverb
          * @param travel_time   Sum of the travel times from the two eigenverbs
-         * @param two_way_time  Actual time on the reverberation curve that this contribution is made
-         * @return              total energy spread
+         * @return              total energy spread out in time
          */
-        inline double time_spread( const eigenverb& out, const matrix<double>& s1,
-                                   const matrix<double>& s2, const double travel_time,
-                                   const double two_way_time ) ;
+        inline vector<double> time_spread( const eigenverb& out, const matrix<double>& s1,
+                                   const matrix<double>& s2, const double travel_time ) ;
 
         /**
          * Let \mathcal{N}_x( \mu, \Sigma ) denote a gaussian density in \mathrm{x},
@@ -309,6 +307,12 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
          * array are in linear units.
          */
         vector<double> _reverberation_curve ;
+
+        /**
+         * Time resolution of the reverberation curve. This is used to spread
+         * the energy from a contribution out in time along the curve.
+         */
+        vector<double> _two_way_time ;
 
 };
 

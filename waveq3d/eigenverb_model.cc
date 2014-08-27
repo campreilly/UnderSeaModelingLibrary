@@ -76,6 +76,7 @@ void eigenverb_model::compute_contribution( const eigenverb& u, const eigenverb&
     matrix<double> sigma1 = sigma( u, theta ) ;
     matrix<double> mu2 = mu( v ) ;
     matrix<double> sigma2 = sigma( v ) ;
+
         // Compute the intersection of the gaussian profiles
     double dA = area( mu1, sigma1, mu2, sigma2 ) ;
 
@@ -84,21 +85,15 @@ void eigenverb_model::compute_contribution( const eigenverb& u, const eigenverb&
 
         // Only added value if contribution is significant
     if ( _energy > 1e-20 ) {
-            // determine where on the temporally this contributions calls on the curve
-            // and add it to the cumulative curve value.
-        unsigned t = floor( _max_index * travel_time / _max_time ) ;
-        double two_way = _max_time * t / _max_index ;
-
             // Calculate the time spread of the energy
-        double _time_spread = time_spread( v, sigma1, sigma2, travel_time, two_way ) ;
-
-        double value = _energy * _time_spread ;
+        vector<double> _time_spread = time_spread( v, sigma1, sigma2, travel_time ) ;
+        _time_spread *= _energy ;
 
         #ifdef EIGENVERB_MODEL_DEBUG
-            cout << "\tcontribution: " << value << " bin: " << t << endl ;
+            cout << "\tcontribution: " << _time_spread << " bin: " << t << endl ;
         #endif
 
-        _reverberation_curve(t) += value ;
+        _reverberation_curve += _time_spread ;
     }
 }
 
@@ -183,9 +178,10 @@ inline double eigenverb_model::energy( const eigenverb& in,
         // for only one direction of the transmission
     vector<double> _loss( (*in.frequencies).size() ) ;
     b->reflect_loss( in.pos, *(in.frequencies), in.grazing, &_loss ) ;
-    for(unsigned f=0; f<(*in.frequencies).size(); ++f) {
-        _loss(f) = pow( 10.0, _loss(f) / -20.0 ) ;
-    }
+    _loss = pow( 10.0, -0.05 * _loss ) ;
+//    for(unsigned f=0; f<(*in.frequencies).size(); ++f) {
+//        _loss(f) = pow( 10.0, _loss(f) / -20.0 ) ;
+//    }
     vector<double> TL_in = element_prod( in.intensity, _loss ) ;
     vector<double> two_way_TL = element_prod( TL_in, out.intensity ) ;
         // calculate the scattering loss from the interface
@@ -210,10 +206,9 @@ inline double eigenverb_model::energy( const eigenverb& in,
 /**
  * Spread the energy back out over time
  */
-inline double eigenverb_model::time_spread(
+inline vector<double> eigenverb_model::time_spread(
         const eigenverb& out, const matrix<double>& s1,
-        const matrix<double>& s2, const double travel_time,
-        const double two_way_time )
+        const matrix<double>& s2, const double travel_time )
 {
     double time = travel_time ;
     matrix<double> s1_inv( s1 ) ;
@@ -225,11 +220,12 @@ inline double eigenverb_model::time_spread(
     double Tarea = sigma_p(1,1) * sin(out.grazing) / out.c ;
     double T_sr = sqrt( _pulse*_pulse + Tarea*Tarea ) / 2.0 ;               /// @caution should this be sine or cosine of grazing angle????
     time += T_sr ;
-    double time_exp = (two_way_time-time) / T_sr ;
+    vector<double> time_exp = (_two_way_time-time) * ( 1.0 / T_sr ) ;
+    time_exp = element_prod( time_exp, time_exp ) ;
     #ifdef EIGENVERB_MODEL_DEBUG
         cout << "\tT_sr: " << T_sr << endl ;
     #endif
-    return exp( -0.5 * time_exp * time_exp ) / ( T_sr * sqrt(TWO_PI) ) ;
+    return exp( -0.5 * time_exp ) * ( 1.0 / ( T_sr * sqrt(TWO_PI) ) ) ;
 }
 
 /**

@@ -84,7 +84,7 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          * Accessor to validate a ray for reverberation contributions
          */
         virtual bool is_ray_valid( unsigned de, unsigned az ) {
-            return _invalid_ray(de,az) ;
+            return !_invalid_ray(de,az) ;
         }
 
     protected:

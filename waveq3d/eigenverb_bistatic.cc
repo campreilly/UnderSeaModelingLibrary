@@ -36,6 +36,11 @@ eigenverb_bistatic::eigenverb_bistatic( ocean_model& ocean,
             i!=_reverberation_curve.end(); ++i) {
         (*i) = 1e-20 ;
     }
+    _two_way_time.resize( num_bins ) ;
+    double resolution = max_time / num_bins ;
+    for(size_t i=0; i<num_bins; ++i) {
+        _two_way_time[i] = i * resolution ;
+    }
 }
 
 /**
@@ -196,10 +201,8 @@ void eigenverb_bistatic::convolve_eigenverbs( std::vector<eigenverb>& set1,
                 j!=set2.end(); ++j)
         {
             eigenverb v = (*j) ;
-            double travel_time = u.time + v.time ;
                 // Don't make contributions anymore if the travel time
                 // is greater then the max reverberation curve time
-            if( _max_time <= travel_time ) continue ;
             compute_contribution( u, v, boundary ) ;
         }
     }

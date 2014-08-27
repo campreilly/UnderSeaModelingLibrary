@@ -157,13 +157,10 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     #endif
 
     if ( _reverberation ) {
-        if ( !_wave.is_ray_valid(de,az) )
+        if ( _wave.is_ray_valid(de,az) )
         {
             int ID = _wave.getID() ;
-            vector<double> loss = _wave._curr->attenuation(de,az) ;
-            for(unsigned f=0; f<_wave._frequencies->size(); ++f) {
-                loss(f) = pow( 10.0, loss(f) / -20.0 ) ;
-            }
+            vector<double> loss = pow( 10.0, -0.05 * _wave._curr->attenuation(de,az) ) ;
             _reverberation->notifyLowerCollision( de, az, _wave._time, time_water,
                 grazing, c, *(_wave._frequencies), position,  ndirection,
                 loss, ID ) ;
@@ -277,13 +274,10 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
 
 
     if ( _reverberation ) {
-        if( !_wave.is_ray_valid(de,az) )
+        if( _wave.is_ray_valid(de,az) )
         {
             int ID = _wave.getID() ;
-            vector<double> loss = _wave._curr->attenuation(de,az) ;
-            for(unsigned f=0; f<_wave._frequencies->size(); ++f) {
-                loss(f) = pow( 10.0, loss(f) / -20.0 ) ;
-            }
+            vector<double> loss = pow( 10.0, -0.05 * _wave._curr->attenuation(de,az) ) ;
             _reverberation->notifyUpperCollision( de, az, _wave._time, time_water,
                 grazing, c, *(_wave._frequencies), position,  ndirection,
                 loss, ID ) ;

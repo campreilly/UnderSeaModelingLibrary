@@ -32,6 +32,11 @@ eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
             i!=_reverberation_curve.end(); ++i) {
         (*i) = 1e-20 ;
     }
+    _two_way_time.resize( num_bins ) ;
+    double resolution = max_time / num_bins ;
+    for(size_t i=0; i<num_bins; ++i) {
+        _two_way_time[i] = i * resolution ;
+    }
 }
 
 /**
@@ -52,7 +57,7 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az, doubl
     create_eigenverb( de, az, time, dt, grazing, speed, frequencies,
                       position, ndirection, boundary_loss, verb ) ;
         // Don't bother adding the ray it its too quiet
-    if ( 1e-20 < verb.intensity(0) ) {
+    if ( 1e-10 < verb.intensity(0) ) {
         switch (ID) {
             case SOURCE_ID:
                 _surface.push_back( verb ) ;
@@ -83,7 +88,7 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
     create_eigenverb( de, az, time, dt, grazing, speed, frequencies,
                       position, ndirection, boundary_loss, verb ) ;
         // Don't bother adding the ray it its too quiet
-    if ( 1e-20 < verb.intensity(0) ) {
+    if ( 1e-10 < verb.intensity(0) ) {
         switch (ID) {
             case SOURCE_ID:
                 _bottom.push_back( verb ) ;
@@ -101,9 +106,10 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az, doubl
  * energy curve from the bottom interactions.
  */
 void eigenverb_monostatic::compute_bottom_energy() {
-    #ifdef EIGENVERB_MODEL_DEBUG
+    #ifndef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_monostatic::compute_bottom_energy()"
              << endl ;
+        cout << "Number of bottom eigenverbs: " << _bottom.size() << endl ;
     #endif
     convolve_eigenverbs( _bottom, _bottom_boundary ) ;
 }
@@ -113,11 +119,12 @@ void eigenverb_monostatic::compute_bottom_energy() {
  * energy curve from the surface interactions.
  */
 void eigenverb_monostatic::compute_surface_energy() {
-    #ifdef EIGENVERB_MODEL_DEBUG
+    #ifndef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_monostatic::compute_surface_energy()"
              << endl ;
+        cout << "Number of surface eigenverbs: " << _surface.size() << endl ;
     #endif
-    convolve_eigenverbs( _surface, _surface_boundary ) ;
+//    convolve_eigenverbs( _surface, _surface_boundary ) ;
 }
 
 /**
@@ -152,8 +159,8 @@ void eigenverb_monostatic::compute_lower_volume_energy() {
                  << endl ;
         #endif
         unsigned layer = 0 ;
-        for(std::vector<std::vector<eigenverb> >::iterator k=_upper.begin();
-                k!=_upper.end() && layer <= _n; ++k)
+        for(std::vector<std::vector<eigenverb> >::iterator k=_lower.begin();
+                k!=_lower.end() && layer <= _n; ++k)
         {
             boundary_model* current_layer = _volume_boundary->getLayer(layer) ;
             convolve_eigenverbs( *k, current_layer) ;
@@ -178,10 +185,9 @@ void eigenverb_monostatic::convolve_eigenverbs( std::vector<eigenverb>& set,
                 j!=set.end(); ++j)
         {
             eigenverb v = (*j) ;
-            double travel_time = u.time + v.time ;
+            if( u.az != v.az ) continue ;
                 // Don't make contributions anymore if the travel time
                 // is greater then the max reverberation curve time
-            if( _max_time <= travel_time ) continue ;
             compute_contribution( u, v, boundary ) ;
         }
     }

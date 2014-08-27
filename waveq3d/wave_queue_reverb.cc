@@ -126,6 +126,14 @@ void wave_queue_reverb::mark_invalid_rays() {
         for(unsigned i=0; i<num_de(); ++i) {
             _invalid_ray( i, max_az ) = true ;
         }
+            // artificially limit the valid rays by the number of boundary interactions
+        for(unsigned i=1; i<max_de; ++i) {
+            for(unsigned j=0; j<max_az; ++j) {
+                if ( (_curr->bottom(i,j) > 2) && (_curr->surface(i,j) > 2) ) {
+                    _invalid_ray( i, j ) = true ;
+                }
+            }
+        }
     } else {
         for(unsigned i=0; i<num_de(); ++i) {
             for(unsigned j=0; j<num_az(); ++j) {

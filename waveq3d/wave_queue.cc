@@ -724,31 +724,23 @@ void wave_queue::build_eigenray(
     // Thus if ray.intensity at any frequency is less than the _intensity_threshold
     // complete the ray build and send to listeners; discard otherwise.
 
-    bool bKeepRay = false;
+    bool bKeepRay = false ;
     for ( unsigned int i = 0; i < ray.intensity.size(); ++i) {
 		if ( ray.intensity(i) < _intensity_threshold  ) {
-			bKeepRay = true;
+			bKeepRay = true ;
 			break ;
 		}
-        if (!bKeepRay) {
-            #ifdef DEBUG_EIGENRAYS
-            std::cout << "warning: wave_queue::build_eigenray()"  << endl
-                      << "\tdiscards eigenray because intensity(" << i << ":"
-                      << ray.intensity(i) << ") at all freq's " << endl
-                      << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
-            #endif
-            return ;
-        }
 	}
 
-//    if (!bKeepRay) {
-//		#ifdef DEBUG_EIGENRAYS
-//		std::cout << "warning: wave_queue::build_eigenray()"  << endl
-//				  << "\tdiscards eigenray because intensity(" << ray.intensity(0) << ") at all freq's " << endl
-//				  << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
-//		#endif
-//		return ;
-//    }
+    if (!bKeepRay) {
+        #ifdef DEBUG_EIGENRAYS
+        std::cout << "warning: wave_queue::build_eigenray()"  << endl
+                  << "\tdiscards eigenray because intensity(" << i << ":"
+                  << ray.intensity(i) << ") at all freq's " << endl
+                  << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
+        #endif
+        return ;
+    }
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles
