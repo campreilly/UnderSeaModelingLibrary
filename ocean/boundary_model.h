@@ -119,6 +119,27 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
     }
 
     /**
+     * Computes the broadband reflection loss and phase change for
+     * multiple locations.
+     *
+     * @param location      Location at which to compute attenuation.
+     * @param frequencies   Frequencies over which to compute loss. (Hz)
+     * @param angle         Reflection angle relative to the normal (radians).
+     * @param amplitude     Change in ray strength in dB (output).
+     * @param phase         Change in ray phase in radians (output).
+     *                      Phase change not computed if this is NULL.
+     * @param linear        returns the value back in linear or log units.
+     */
+    virtual void reflect_loss( const wposition& location,
+        const seq_vector& frequencies, vector<double>* angle,
+        vector<vector<double> >* amplitude,
+        vector<vector<double> >* phase=NULL, bool linear=false )
+    {
+        _reflect_loss_model->reflect_loss( location,
+            frequencies, angle, amplitude, phase, linear ) ;
+    }
+
+    /**
      * Setter for the scattering_model.
      * @param scatter   Scattering model for this boundary
      */

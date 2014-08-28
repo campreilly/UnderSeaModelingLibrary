@@ -47,6 +47,28 @@ class USML_DECLSPEC scattering_model {
             vector<double>* phase ) = 0 ;
 
         /**
+         * Computes the broadband reflection loss and phase change.
+         *
+         * @param location      Locations at which to compute attenuation.
+         * @param frequencies   Frequencies over which to compute loss. (Hz)
+         * @param angleI        vector of Depression incident angle (radians).
+         * @param angleS        vector of Depression scattered angle (radians).
+         * @param azI           vector of Azimuthal incident angle (radians).
+         * @param azS           vector of Azimuthal scattered angle (radians).
+         * @param amplitude     vector of the change in ray strength in
+         *                      linear units (output).
+         * @param phase         Change in ray phase in radians (output).
+         *                      Phase change not computed if this is NULL.
+         *
+         * NOTE: All angles are relative to the scattering interface.
+         */
+        virtual void scattering_strength( const wposition& location,
+            const seq_vector& frequencies, const vector<double>& angleI,
+            const vector<double>& angleS, const vector<double>& azI,
+            const vector<double>& azS, vector<vector<double> >* amplitude,
+            vector<vector<double> >* phase ) = 0 ;
+
+        /**
          * Virtual destructor
          */
         virtual ~scattering_model() {}

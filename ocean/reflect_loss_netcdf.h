@@ -29,45 +29,70 @@ using boost::numeric::ublas::vector;
  */
 class USML_DECLSPEC reflect_loss_netcdf : public reflect_loss_model {
 
-public:
+    public:
 
-     /**
-      * Constructor
-      * Loads bottom province data from a netCDF formatted file.
-      *
-      * @param filename     Filename of the NetCDF file to ingest
-      *
-      * The information stored in "type" is set to a double with the value from 1 to
-      * the number of different bottom provinces for the profile.
-      *
-      */
-        reflect_loss_netcdf(const char *filename);
+        /**
+        * Constructor
+        * Loads bottom province data from a netCDF formatted file.
+        *
+        * @param filename     Filename of the NetCDF file to ingest
+        *
+        * The information stored in "type" is set to a double with the value from 1 to
+        * the number of different bottom provinces for the profile.
+        *
+        */
+        reflect_loss_netcdf( const char *filename ) ;
 
-    /**
-     * Gets a rayleigh reflection loss value for the bottom type number
-     * at a specific location then computes the broadband reflection loss and phase change.
-     *
-     * @param location      Location at which to compute attenuation.
-     * @param frequencies   Frequencies over which to compute loss. (Hz)
-     * @param angle         Reflection angle relative to the normal (radians).
-     * @param amplitude     Change in ray strength in dB (output).
-     * @param phase         Change in ray phase in radians (output).
-     *                      Phase change not computed if this is NULL.
-     */
-		virtual void reflect_loss(
-			const wposition1& location,
-			const seq_vector& frequencies, double angle,
-			vector<double>* amplitude, vector<double>* phase=NULL ) ;
+        /**
+        * Gets a rayleigh reflection loss value for the bottom type number
+        * at a specific location then computes the broadband reflection loss and phase change.
+        *
+        * @param location      Location at which to compute attenuation.
+        * @param frequencies   Frequencies over which to compute loss. (Hz)
+        * @param angle         Reflection angle relative to the normal (radians).
+        * @param amplitude     Change in ray strength in dB (output).
+        * @param phase         Change in ray phase in radians (output).
+        *                      Phase change not computed if this is NULL.
+        */
+        virtual void reflect_loss(
+            const wposition1& location,
+            const seq_vector& frequencies, double angle,
+            vector<double>* amplitude, vector<double>* phase=NULL ) ;
 
-    /**
-     * Destructor
-     */
-        virtual ~reflect_loss_netcdf();
+        /**
+         * Computes the broadband reflection loss and phase change for
+         * multiple locations.
+         *
+         * @param location      Location at which to compute attenuation.
+         * @param frequencies   Frequencies over which to compute loss. (Hz)
+         * @param angle         Reflection angle relative to the normal (radians).
+         * @param amplitude     Change in ray strength in dB (output).
+         * @param phase         Change in ray phase in radians (output).
+         *                      Phase change not computed if this is NULL.
+         * @param linear        returns the value back in linear or log units.
+         * @TODO    add this implementation
+         */
+        virtual void reflect_loss( const wposition& location,
+            const seq_vector& frequencies, vector<double>* angle,
+            vector<vector<double> >* amplitude,
+            vector<vector<double> >* phase=NULL, bool linear=false ) {}
 
-private:
+        /**
+         * Destructor
+         */
+        virtual ~reflect_loss_netcdf() ;
 
-        std::vector<reflect_loss_rayleigh*> _rayleigh;   ///< _rayleigh : vector of reflect_loss_rayleigh objects
-        data_grid<double, 2>* _bottom_grid;              ///< _bottom_grid : data_grid2 object
+    private:
+
+        /**
+         * Stored rayleigh models for bottom reflections
+         */
+        std::vector<reflect_loss_rayleigh*> _rayleigh ;
+
+        /**
+         * Data grid that stores all of the bottom province information.
+         */
+        data_grid<double, 2>* _bottom_grid ;
 
 } ;
 
