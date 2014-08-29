@@ -186,9 +186,8 @@ inline double eigenverb_model::energy( const eigenverb& in,
     vector<double> two_way_TL = element_prod( TL_in, out.intensity ) ;
         // calculate the scattering loss from the interface
     vector<double> s_sr( (*out.frequencies).size() ) ;
-    vector<double> phase( (*out.frequencies).size() ) ;
     b->getScattering_Model()->scattering_strength( out.pos, (*out.frequencies),
-            in.grazing, out.grazing, in.az, out.az, &s_sr, &phase ) ;
+            in.grazing, out.grazing, in.az, out.az, &s_sr ) ;
         // caluclate the total energy reflected from this patch
     double _e = _pulse * two_way_TL(0) * s_sr(0) * dA ;
     #ifdef EIGENVERB_MODEL_DEBUG

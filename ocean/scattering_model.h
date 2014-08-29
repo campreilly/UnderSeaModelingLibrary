@@ -44,7 +44,7 @@ class USML_DECLSPEC scattering_model {
         virtual void scattering_strength( const wposition1& location,
             const seq_vector& frequencies, double angleI, double angleS,
             double azI, double azS, vector<double>* amplitude,
-            vector<double>* phase ) = 0 ;
+            vector<double>* phase=NULL ) = 0 ;
 
         /**
          * Computes the broadband reflection loss and phase change.
@@ -66,7 +66,7 @@ class USML_DECLSPEC scattering_model {
             const seq_vector& frequencies, const vector<double>& angleI,
             const vector<double>& angleS, const vector<double>& azI,
             const vector<double>& azS, vector<vector<double> >* amplitude,
-            vector<vector<double> >* phase ) = 0 ;
+            vector<vector<double> >* phase=NULL ) = 0 ;
 
         /**
          * Virtual destructor

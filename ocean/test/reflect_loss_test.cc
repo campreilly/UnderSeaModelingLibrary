@@ -291,7 +291,7 @@ BOOST_AUTO_TEST_CASE( plot_rayleigh_sediments_2 ) {
     model.reflect_loss( points, freq, &angles, &amplitude ) ;
     for (int a = 0 ; a < angles.size() ; ++a) {
         os << a ;
-        os << "," << amplitude(0)(a) ;
+        os << "," << amplitude(a)(0) ;
         os << endl ;
     }
 }
