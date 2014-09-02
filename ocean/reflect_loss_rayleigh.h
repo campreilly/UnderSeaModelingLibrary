@@ -154,7 +154,7 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
          * @param frequencies   Frequencies over which to compute loss. (Hz)
          * @param angle         Reflection angle relative to the normal (radians).
          * @param amplitude     Change in ray strength in dB (output).
-         *                      Where vector<vector<double>(size freqs)>(size locations)
+         *                      Where vector<vector<double>(size locations)>(size freqs)
          * @param phase         Change in ray phase in radians (output).
          *                      Phase change not computed if this is NULL.
          * @param linear        returns the value back in linear or log units.

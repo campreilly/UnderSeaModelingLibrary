@@ -77,6 +77,7 @@ class USML_DECLSPEC scattering_lambert : public scattering_model {
          * @param azS           NOT USED.
          * @param amplitude     vector of the change in ray strength in
          *                      linear units (output).
+         *                      Where vector<vector<double>(size locations)>(size freqs)
          * @param phase         NOT USED
          *
          * NOTE: All angles are relative to the scattering interface.
