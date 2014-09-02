@@ -139,13 +139,13 @@ inline double eigenverb_model::area(
         const matrix<double>& mu1, const matrix<double>& sigma1,
         const matrix<double>& mu2, const matrix<double>& sigma2 )
 {
-    matrix<double> mu = mu1 - mu2 ;
-    matrix<double> sigma = sigma1 + sigma2 ;
-    double d1 = sqrt( sigma1(0,0)*sigma1(1,1) - sigma1(0,1)*sigma1(1,0) ) ;
-    double d2 = sqrt( sigma2(0,0)*sigma2(1,1) - sigma2(0,1)*sigma2(1,0) ) ;
+    matrix<double> mu = mu1 - mu2 ;                                                 /// DET: already available
+    matrix<double> sigma = sigma1 + sigma2 ;                                        /// DET: already available
+    double d1 = sqrt( sigma1(0,0)*sigma1(1,1) - sigma1(0,1)*sigma1(1,0) ) ;         /// DET: component_determinant
+    double d2 = sqrt( sigma2(0,0)*sigma2(1,1) - sigma2(0,1)*sigma2(1,0) ) ;         /// DET: component_determinant
 
         // determinent and inverse of sigma
-    double det = sigma(0,0)*sigma(1,1) - sigma(0,1)*sigma(1,0) ;
+    double det = sigma(0,0)*sigma(1,1) - sigma(0,1)*sigma(1,0) ;                    /// DET: component_determinant
     matrix<double> s_inv(sigma) ;
     s_inv(0,0) = sigma(1,1) ;
     s_inv(1,1) = sigma(0,0) ;
@@ -178,18 +178,15 @@ inline double eigenverb_model::energy( const eigenverb& in,
         // for only one direction of the transmission
     vector<double> _loss( (*in.frequencies).size() ) ;
     b->reflect_loss( in.pos, *(in.frequencies), in.grazing, &_loss ) ;
-    _loss = pow( 10.0, -0.05 * _loss ) ;
-//    for(unsigned f=0; f<(*in.frequencies).size(); ++f) {
-//        _loss(f) = pow( 10.0, _loss(f) / -20.0 ) ;
-//    }
-    vector<double> TL_in = element_prod( in.intensity, _loss ) ;
-    vector<double> two_way_TL = element_prod( TL_in, out.intensity ) ;
+    _loss = pow( 10.0, -0.05 * _loss ) ;                                            /// DET: created vector<vector> > returns
+    vector<double> TL_in = element_prod( in.intensity, _loss ) ;                    /// DET: created layer_prod
+    vector<double> two_way_TL = element_prod( TL_in, out.intensity ) ;              /// DET: created layer_prod
         // calculate the scattering loss from the interface
     vector<double> s_sr( (*out.frequencies).size() ) ;
     b->getScattering_Model()->scattering_strength( out.pos, (*out.frequencies),
-            in.grazing, out.grazing, in.az, out.az, &s_sr ) ;
+            in.grazing, out.grazing, in.az, out.az, &s_sr ) ;                       /// DET: created vector<vector> > returns
         // caluclate the total energy reflected from this patch
-    double _e = _pulse * two_way_TL(0) * s_sr(0) * dA ;
+    double _e = _pulse * two_way_TL(0) * s_sr(0) * dA ;                             /// DET: created layer_prod
     #ifdef EIGENVERB_MODEL_DEBUG
         cout << "\tboundary loss: " << _loss
              << " scattering strength: " << s_sr
