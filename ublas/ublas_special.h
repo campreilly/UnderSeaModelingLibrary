@@ -17,11 +17,26 @@ namespace ublas {
 /** FUNCTIONALS **/
 
     /**
+     * Used to take the modular of a vector.
+     */
+    template<class T1, class T2>
+    struct scalar_fmod{
+        typedef T1	argument_type1 ;
+        typedef T2  argument_type2 ;
+        typedef argument_type1	result_type ;
+
+        static BOOST_UBLAS_INLINE
+        result_type apply(argument_type1 t1, argument_type2 t2) {
+            return fmod( t1, t2 ) ;
+        }
+    };
+
+    /**
      * Used to take the element-wise product of two
      * vector of vectors.
      */
     template<class E1, class E2>
-    struct component_prod{
+    struct vector_prod{
         typedef E1			argument_type1 ;
         typedef E2			argument_type2 ;
         typedef E1			result_type ;
@@ -33,10 +48,26 @@ namespace ublas {
     };
 
     /**
+     * Used to take the element-wise product of two
+     * vector of matrices.
+     */
+    template<class E1, class E2>
+    struct matrix_prod{
+        typedef E1			argument_type1 ;
+        typedef E2			argument_type2 ;
+        typedef E2			result_type ;           /// need to figure out how to return the correct size of matrix. does it matter?
+
+        static BOOST_UBLAS_INLINE
+        result_type apply(argument_type1 t1, argument_type2 t2) {
+            return prod( t1, t2 ) ;
+        }
+    };
+
+    /**
      * Used to take the exponent of a vector of vectors.
      */
     template<class E>
-    struct component_exp{
+    struct element_exp{
         typedef E	argument_type ;
         typedef E	result_type ;
 
@@ -46,13 +77,26 @@ namespace ublas {
         }
     };
 
+    /**
+     * Used to take the exponent of a vector of vectors.
+     */
+    template<class E>
+    struct element_trans{
+        typedef E	argument_type ;
+        typedef E	result_type ;
+
+        static BOOST_UBLAS_INLINE
+        result_type apply(argument_type t) {
+            return trans( t ) ;
+        }
+    };
 
     /**
      * Used to produce the determinant of a matrix. The input matrix
      * must be a 2x2.
      */
     template<class E>
-    struct component_determinant{
+    struct element_determinant{
         typedef E			argument_type ;
         typedef typename E::value_type			result_type ;
 
@@ -68,9 +112,20 @@ namespace ublas {
      * Allows for the exponentiation of a vector of vectors.
      */
     template<class E> BOOST_UBLAS_INLINE
-    typename vector_unary_traits<E, component_exp<E> >::result_type
+    typename vector_unary_traits<E, element_exp<E> >::result_type
     layer_exp( const vector_expression<E>& e ) {
-        typedef typename vector_unary_traits<E, component_exp<E> >
+        typedef typename vector_unary_traits<E, element_exp<E> >
+            ::expression_type expression_type ;
+        return expression_type( e() ) ;
+    }
+
+    /**
+     * Allows for the transposition of a vector of matrices.
+     */
+    template<class E> BOOST_UBLAS_INLINE
+    typename vector_unary_traits<E, element_trans<E> >::result_type
+    layer_trans( const vector_expression<E>& e ) {
+        typedef typename vector_unary_traits<E, element_trans<E> >
             ::expression_type expression_type ;
         return expression_type( e() ) ;
     }
@@ -78,14 +133,37 @@ namespace ublas {
     /**
      * Allows for the product of two vector of vectors.
      */
+    template<class E, class T> BOOST_UBLAS_INLINE
+    typename vector_binary_scalar2_traits<E, T, scalar_fmod<typename E::value_type, T> >::result_type
+    vector_fmod( const vector_expression<E>& e, const T& t ) {
+        typedef typename vector_binary_scalar2_traits<E, T, scalar_fmod<
+            typename E::value_type, T> >::expression_type expression_type ;
+        return expression_type( e(), t ) ;
+    }
+
+    /**
+     * Allows for the product of two vector of vectors.
+     */
     template<class E1, class E2> BOOST_UBLAS_INLINE
-    typename vector_binary_traits<E1, E2, component_prod<typename E1::value_type,
+    typename vector_binary_traits<E1, E2, vector_prod<typename E1::value_type,
         typename E2::value_type> >::result_type
-    layer_prod( const vector_expression<E1>& e1, const vector_expression<E2>& e2 ) {
-        typedef typename vector_binary_traits<E1, E2, component_prod<
+    layer_vector_prod( const vector_expression<E1>& e1, const vector_expression<E2>& e2 ) {
+        typedef typename vector_binary_traits<E1, E2, vector_prod<
             typename E1::value_type, typename E2::value_type> >::expression_type expression_type ;
         return expression_type( e1(), e2() ) ;
     }
+
+    /**
+     * Allows for the product of two vector of matrices.
+     */
+    template<class E1, class E2> BOOST_UBLAS_INLINE
+    typename vector_binary_traits<E1, E2, matrix_prod<E1,E2> >::result_type
+    layer_matrix_prod( const vector_expression<E1>& e1, const vector_expression<E2>& e2 ) {
+        typedef typename vector_binary_traits<E1, E2, matrix_prod<E1, E2> >
+            ::expression_type expression_type ;
+        return expression_type( e1(), e2() ) ;
+    }
+
 
     /**
      * Specialized class similar to vector_unary, but the input class
@@ -144,9 +222,9 @@ namespace ublas {
      * determinant(v[i]) = v(determinant[i])
      */
     template<class E>
-    typename vector_unary_special_traits<E,	component_determinant<typename E::value_type> >::result_type
+    typename vector_unary_special_traits<E,	element_determinant<typename E::value_type> >::result_type
     layer_determinant( const vector_expression<E>& e ) {
-        typedef typename vector_unary_special_traits<E, component_determinant<
+        typedef typename vector_unary_special_traits<E, element_determinant<
             typename E::value_type> >::expression_type expression_type ;
         return expression_type( e() ) ;
     }

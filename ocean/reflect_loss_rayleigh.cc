@@ -158,7 +158,7 @@ void reflect_loss_rayleigh::reflect_loss( const wposition& location,
     vector<vector<double> >* amplitude,
     vector<vector<double> >* phase, bool linear )
 {
-//    if ( angle >= M_PI_2 ) angle = M_PI_2 - 1e-10 ;
+    (*angle) = vector_fmod( (*angle), M_PI_2 ) ;
 
     (*angle) = M_PI_2 - (*angle) ;
 
