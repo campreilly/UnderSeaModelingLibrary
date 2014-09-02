@@ -15,13 +15,13 @@ C++ standard library:
    - class names are lower case with underscores between words
    - class private/protected member variables start with an underscore
    - get/set accessors use the name of the data member with no underscore
-   - local method variables will not start with and underscore
+   - local method variables will not start with an underscore
 
 This library supports the following additions that go beyond
 the Boost style elements:
 
    - classes, attributes, and methods are documented with 
-     JavaDoc compatible comments in the code
+     JavaDoc compatible comments in the code.
 
 Example:
 
