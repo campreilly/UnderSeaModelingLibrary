@@ -29,8 +29,9 @@ void scattering_lambert::scattering_strength( const wposition& location,
     const vector<double>& azS, vector<vector<double> >* amplitude,
     vector<vector<double> >* phase )
 {
-    (*amplitude)(0) = _bss * element_prod( sin( angleI ), sin( angleS ) ) ;
-    for(unsigned i=1; i<frequencies.size(); ++i) {
-        (*amplitude)(i) = (*amplitude)(0) ;
+    vector<double> S = _bss * element_prod( sin( angleI ), sin( angleS ) ) ;
+    scalar_vector<double> f( frequencies.size(), 1.0 ) ;
+    for(unsigned i=0; i<amplitude->size(); ++i) {
+        (*amplitude)(i) = S(i) * f ;
     }
 }

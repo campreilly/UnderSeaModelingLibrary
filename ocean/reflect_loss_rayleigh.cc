@@ -186,19 +186,16 @@ void reflect_loss_rayleigh::reflect_loss( const wposition& location,
     vector<complex<double> > R = element_div( ( Zb - Zw ), ( Zb + Zw ) ) ;
     scalar_vector<double> f( frequencies.size(), 1.0 ) ;
     if( !linear ) {
-        (*amplitude)(0) = -20.0 * log10( abs(R(0)) ) * f ;
-        for(unsigned i=1; i<amplitude->size(); ++i) {
+        for(unsigned i=0; i<amplitude->size(); ++i) {
             (*amplitude)(i) = -20.0 * log10( abs(R(i)) ) * f ;
         }
     } else {
-        (*amplitude)(0) = abs(R(0)) * f ;
-        for(unsigned i=1; i<amplitude->size(); ++i) {
+        for(unsigned i=0; i<amplitude->size(); ++i) {
             (*amplitude)(i) = abs(R(i)) * f ;
         }
     }
     if ( phase ) {
-        (*phase)(0) = arg(R(0)) * f ;
-        for(unsigned i=1; i<amplitude->size(); ++i) {
+        for(unsigned i=0; i<amplitude->size(); ++i) {
             (*phase)(i) = arg(R(i)) * f ;
         }
     }
