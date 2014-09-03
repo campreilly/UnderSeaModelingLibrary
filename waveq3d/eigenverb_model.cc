@@ -61,7 +61,7 @@ void eigenverb_model::compute_contribution( const eigenverb& u, const eigenverb&
     double de1 ;
     double az1 ;
     eigenverb e1 = u ;
-    e1.ndir.direction( &de1, &az1 ) ;
+    e1.ndir.direction( &de1, &az1 ) ;                       /// DET: to_degrees(atan2(_phi, -_theta)) already has ability to perform on vector
     double de2 ;
     double az2 ;
     eigenverb e2 = v ;
@@ -87,13 +87,13 @@ void eigenverb_model::compute_contribution( const eigenverb& u, const eigenverb&
     if ( _energy > 1e-20 ) {
             // Calculate the time spread of the energy
         vector<double> _time_spread = time_spread( v, sigma1, sigma2, travel_time ) ;
-        _time_spread *= _energy ;
+        _time_spread *= _energy ;                                       /// DET: layer_vector_prod
 
         #ifdef EIGENVERB_MODEL_DEBUG
             cout << "\tcontribution: " << _time_spread << " bin: " << t << endl ;
         #endif
 
-        _reverberation_curve += _time_spread ;
+        _reverberation_curve += _time_spread ;                          /// DET: created nested_vector_assign<nested_plus_assign>
     }
 }
 

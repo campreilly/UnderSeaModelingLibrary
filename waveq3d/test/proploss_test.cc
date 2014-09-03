@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
     }
 
     proploss loss(freq, pos, de, az, time_step, &target);
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &target, wave_queue::CLASSIC_RAY ) ;
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target, 0, wave_queue::CLASSIC_RAY ) ;
     wave.addEigenrayListener(&loss);
 
     // propagate rays & record to log file

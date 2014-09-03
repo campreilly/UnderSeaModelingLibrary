@@ -153,9 +153,9 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
         const unsigned bins = 10 ;               // number of time bins
         const double max_time = 60.0 ;           // maximum travel time
 
-        reflection_callback callback ;
-        wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T, bins, max_time, &callback ) ;
-        int old_counter = callback.counter ;
+        reflection_callback* callback  = new reflection_callback() ;
+        wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T, bins, max_time, callback ) ;
+        int old_counter = callback->counter ;
         double max_time_error = 0.0 ;
         double max_lat_error = 0.0 ;
 
@@ -218,17 +218,17 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
 
             // check location and time of reflections against analytic result
 
-            if ( old_counter != callback.counter ) {
-                old_counter = callback.counter ;
+            if ( old_counter != callback->counter ) {
+                old_counter = callback->counter ;
                 ++bounce ;
 
                 double predict_time = bounce * 7.450560973 ;
-                double current_time = callback.time ;
+                double current_time = callback->time ;
                 double predict_lat = 45.0 + bounce * 0.1 ;
-                double current_lat = callback.position.latitude() ;
+                double current_lat = callback->position.latitude() ;
 
-                if ( callback.surface ) { cout << "surface" ; callback.surface = false ; }
-                if ( callback.bottom ) { cout << "bottom " ; callback.bottom = false ; }
+                if ( callback->surface ) { cout << "surface" ; callback->surface = false ; }
+                if ( callback->bottom ) { cout << "bottom " ; callback->bottom = false ; }
                 cout << " reflection at t=" << current_time
                      << " lat=" << current_lat
                      << endl ;
