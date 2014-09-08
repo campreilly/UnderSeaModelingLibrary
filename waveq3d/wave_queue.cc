@@ -733,14 +733,15 @@ void wave_queue::build_eigenray(
 	}
 
     if (!bKeepRay) {
-        #ifdef DEBUG_EIGENRAYS
-        std::cout << "warning: wave_queue::build_eigenray()"  << endl
-                  << "\tdiscards eigenray because intensity(" << i << ":"
-                  << ray.intensity(i) << ") at all freq's " << endl
-                  << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
-        #endif
-        return ;
-    }
+		#ifdef DEBUG_EIGENRAYS
+		std::cout << "warning: wave_queue::build_eigenray()"  << endl
+			  << "\tdiscards eigenray because intensity at all freq's " << endl
+			  << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
+		#endif
+		return ;
+	}
+
+
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles
