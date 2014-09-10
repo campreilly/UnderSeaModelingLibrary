@@ -24,29 +24,19 @@ class USML_DECLSPEC seq_linear : public seq_vector {
         typedef vector_reference<self_type> closure_type;
 
         /**
-         * Construct sequence using first value, last value, and size.
-         *
-         * @param  first        Value at the start of sequence.
-         * @param  last         Value at the end of the sequence.
-         * @param  size         Number of elements in this sequence.
-         */
-        seq_linear( value_type first, value_type last, size_type size ) :
-            seq_vector( size )
-        {
-            value_type increment = ( last - first ) / size ;
-            initialize( first, increment, size ) ;
-        }
-
-        /**
-         * Construct sequence using first value, increment, and size.
+         * Construct sequence using first value, increment/last, and size.
          *
          * @param  first        Value at start of sequence.
-         * @param  increment    Spacing between elements.
+         * @param  temp         Increment or the last value in the sequence.
          * @param  size         Number of elements in this sequence.
+         * @param  first_last   if true, the second constructor element is the last value in
+         *                      the sequence, otherwise it is the increment value.
          */
-        seq_linear( value_type first, value_type increment, size_type size ) :
+        seq_linear( value_type first, value_type temp, size_type size, bool first_last=false ) :
             seq_vector( size )
         {
+            value_type increment ;
+            first_last ? (increment = ( temp - first ) / size) : (increment = temp) ;
             initialize( first, increment, size ) ;
         }
 
