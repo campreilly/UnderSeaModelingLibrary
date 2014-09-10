@@ -107,6 +107,41 @@ namespace ublas {
     };
 
     /**
+     * Returns the inverse of a 2x2 matrix. ONLY for 2x2 matricies
+     */
+    template<class E>
+    struct matrix_inverse {
+        typedef E		argument_type ;
+        typedef argument_type	result_type ;
+        typedef typename E::value_type	value_type ;
+
+        static
+        result_type apply(argument_type t) {
+            argument_type tmp(t) ;
+            value_type d = t(0,0)*t(1,1) - t(0,1)*t(1,0) ;
+            tmp(0,0) = t(1,1) / d ;
+            tmp(1,0) = -t(1,0) / d ;
+            tmp(0,1) = -t(0,1) / d ;
+            tmp(1,1) = t(0,0) / d ;
+            return tmp ;
+        }
+    };
+
+    /**
+     * Allows access to elements of a matrix within a vector.
+     */
+    template<class E, std::size_t I1, std::size_t I2>
+    struct nested_index {
+        typedef E			argument_type ;
+        typedef typename E::value_type		result_type ;
+
+        static
+        result_type apply(argument_type t) {
+            return t(I1,I2) ;
+        }
+    };
+
+    /**
      * Plus assign for nested vectors to another vector.
      */
     template<class E1, class E2>
@@ -158,6 +193,17 @@ namespace ublas {
     nested_trans( const vector_expression<E>& e ) {
         typedef typename vector_unary_traits<E, element_trans<E> >
             ::expression_type expression_type ;
+        return expression_type( e() ) ;
+    }
+
+    /**
+     * Produces the inverse matrix within a vector of matricies
+     */
+    template<class E>
+    typename vector_unary_traits<E, matrix_inverse<typename E::value_type> >::result_type
+    inverse( const vector_expression<E>& e ) {
+        typedef typename vector_unary_traits<E, matrix_inverse<typename E::value_type> >::expression_type
+            expression_type ;
         return expression_type( e() ) ;
     }
 
@@ -263,6 +309,18 @@ namespace ublas {
     nested_determinant( const vector_expression<E>& e ) {
         typedef typename vector_unary_special_traits<E, element_determinant<
             typename E::value_type> >::expression_type expression_type ;
+        return expression_type( e() ) ;
+    }
+
+    /**
+     * Returns a vector of the elements of the vector's entries' index I1,I2.
+     * v[i] = v[i](I1,I2)
+     */
+    template<class E, std::size_t I1, std::size_t I2>
+    typename vector_unary_special_traits<E, nested_index<typename E::value_type, I1, I2> >::result_type
+    nested_access( const vector_expression<E>& e ) {
+        typedef typename vector_unary_special_traits<E, nested_index<typename E::value_type,
+            I1, I2> >::expression_type	expression_type ;
         return expression_type( e() ) ;
     }
 

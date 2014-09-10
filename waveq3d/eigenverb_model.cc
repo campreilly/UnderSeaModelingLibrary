@@ -61,7 +61,7 @@ void eigenverb_model::compute_contribution( const eigenverb& u, const eigenverb&
     double de1 ;
     double az1 ;
     eigenverb e1 = u ;
-    e1.ndir.direction( &de1, &az1 ) ;                       /// DET: to_degrees(atan2(_phi, -_theta)) already has ability to perform on vector
+    e1.ndir.direction( &de1, &az1 ) ;                       /// DET: to_degrees(atan2(_phi, -_theta)) already has ability to perform on vector, need function to perform on a vector<wvector1>
     double de2 ;
     double az2 ;
     eigenverb e2 = v ;
@@ -146,7 +146,7 @@ inline double eigenverb_model::area(
 
         // determinent and inverse of sigma
     double det = sigma(0,0)*sigma(1,1) - sigma(0,1)*sigma(1,0) ;                    /// DET: component_determinant
-    matrix<double> s_inv(sigma) ;
+    matrix<double> s_inv(sigma) ;                                                   /// DET: inverse/matrix_inverse
     s_inv(0,0) = sigma(1,1) ;
     s_inv(1,1) = sigma(0,0) ;
     s_inv(0,1) = -sigma(0,1) ;
@@ -209,12 +209,12 @@ inline vector<double> eigenverb_model::time_spread(
     double time = travel_time ;
     matrix<double> s1_inv( s1 ) ;
     matrix<double> s2_inv( s2 ) ;
-    inverse( s1, s1_inv ) ;
-    inverse( s2, s2_inv ) ;
+    inverse( s1, s1_inv ) ;                                                     /// DET: inverse/matrix_inverse
+    inverse( s2, s2_inv ) ;                                                     /// DET: inverse/matrix_inverse
     matrix<double> sigma_p( s1 ) ;
-    inverse( s1_inv + s2_inv, sigma_p ) ;
-    double Tarea = sigma_p(1,1) * sin(out.grazing) / out.c ;
-    double T_sr = sqrt( _pulse*_pulse + Tarea*Tarea ) / 2.0 ;               /// @caution should this be sine or cosine of grazing angle????
+    inverse( s1_inv + s2_inv, sigma_p ) ;                                       /// DET: inverse/matrix_inverse
+    double Tarea = sigma_p(1,1) * sin(out.grazing) / out.c ;                    /// DET: sigma_p(1,1) added nested_access
+    double T_sr = sqrt( _pulse*_pulse + Tarea*Tarea ) / 2.0 ;                   /// @caution should this be sine or cosine of grazing angle????
     time += T_sr ;
     vector<double> time_exp = (_two_way_time-time) * ( 1.0 / T_sr ) ;
     time_exp = element_prod( time_exp, time_exp ) ;
