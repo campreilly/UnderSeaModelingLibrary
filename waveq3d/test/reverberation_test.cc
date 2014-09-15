@@ -68,8 +68,8 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
 
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( lat, lng, alt ) ;
-    seq_rayfan de( -90.0, -10.0, 121, -105.0 ) ;
-//    seq_linear de( -90.0, 1.0, -1.0 ) ;
+//    seq_rayfan de( -90.0, 0.0, 91, -45.0 ) ;
+    seq_linear de( -90.0, -1.0, 30, true ) ;
     seq_linear az( 0.0, 45.0, 360.0 ) ;
 
     wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T0, bins, time_max ) ;

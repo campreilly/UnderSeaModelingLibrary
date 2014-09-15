@@ -36,7 +36,7 @@ class USML_DECLSPEC seq_linear : public seq_vector {
             seq_vector( size )
         {
             value_type increment ;
-            first_last ? (increment = ( temp - first ) / size) : (increment = temp) ;
+            increment = first_last ? ( temp - first ) / size : temp ;
             initialize( first, increment, size ) ;
         }
 
