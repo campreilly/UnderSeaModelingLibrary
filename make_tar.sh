@@ -1,9 +1,9 @@
 #!/bin/bash
-version=0.051b
+version=0.05.5
 
 # Do not follow or archive symbolic links
 find * -type f | tar --exclude=data --exclude=doc --exclude=html --exclude=usml_api.html --exclude=make_tar* \
-	 --exclude '*.nc' --exclude '*.csv' --exclude '*.grd' --exclude '*.asc' \
+	--exclude '*.nc' --exclude '*.csv' --exclude '*.grd' --exclude '*.asc' \
     -czf ../usml-src-$version.tar.gz -T -
 tar -czf ../usml-doc-$version.tar.gz usml_api.html html/*
 tar -czf ../usml-data-$version.tar.gz data/*
