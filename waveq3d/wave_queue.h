@@ -115,8 +115,17 @@ class USML_DECLSPEC wave_queue {
      *
      * @return              Common origin of all points on the wavefront
      */
-    inline const wposition1& source_pos() {
+    inline const wposition1& source_pos() const {
         return _source_pos ;
+    }
+
+    /**
+     * List of frequencies for this wave queue.
+     *
+     * @return              Frequencies for this wavefront
+     */
+    inline const seq_vector* frequencies() const {
+        return _frequencies ;
     }
 
     /**
@@ -126,7 +135,7 @@ class USML_DECLSPEC wave_queue {
      * @return              Depression/elevation angle.
      *                      (degrees, positive is up)
      */
-    inline double source_de( unsigned de ) {
+    inline double source_de( unsigned de ) const {
         return (*_source_de)(de) ;
     }
 
@@ -137,14 +146,14 @@ class USML_DECLSPEC wave_queue {
      * @return              Depression/elevation angle.
      *                      (degrees, clockwise from true north)
      */
-    inline double source_az( unsigned az ) {
+    inline double source_az( unsigned az ) const {
         return (*_source_az)(az) ;
     }
 
     /**
      * Elapsed time for the current element in the wavefront.
      */
-    inline double time() {
+    inline double time() const {
         return _time ;
     }
 
@@ -156,9 +165,23 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
+     * Return const next element in the wavefront.
+     */
+    inline const wave_front* next() const {
+        return _next ;
+    }
+
+    /**
      * Return current element in the wavefront.
      */
     inline const wave_front* curr() {
+        return _curr ;
+    }
+
+    /**
+     * Return const current element in the wavefront.
+     */
+    inline const wave_front* curr() const {
         return _curr ;
     }
 
@@ -170,9 +193,23 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
+     * Return const previous element in the wavefront.
+     */
+    inline const wave_front* prev() const {
+        return _prev ;
+    }
+
+    /**
      * Return past element in the wavefront.
      */
     inline const wave_front* past() {
+        return _past ;
+    }
+
+    /**
+     * Return const past element in the wavefront.
+     */
+    inline const wave_front* past() const {
         return _past ;
     }
 

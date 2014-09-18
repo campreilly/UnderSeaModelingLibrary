@@ -188,7 +188,7 @@ public:
      * @param  az           Initial azimuthal angle at the source location
      *                      (degrees, clockwise from true north).
      */
-    void direction(double* de, double* az);
+    void direction(double* de, double* az) const ;
 
     /**
      * Compute acoustic ray direction in the local tangent plane using

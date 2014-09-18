@@ -83,7 +83,7 @@ double wvector1::distance2(const wvector1& origin) const {
  * Extract depression/elevation and azimuthal angles from
  * acoustic ray direction in the local tangent plane.
  */
-void wvector1::direction(double* de, double* az)
+void wvector1::direction(double* de, double* az) const
 {
     *de = to_degrees(atan2(_rho, sqrt(_theta*_theta + _phi*_phi)));
     *az = to_degrees(atan2(_phi, -_theta));

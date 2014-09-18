@@ -27,7 +27,8 @@ using namespace usml::waveq3d ;
 BOOST_AUTO_TEST_CASE( monostatic ) {
     cout << "=== reverberation_test: monostatic ===" << endl;
     const char* csvname = USML_TEST_DIR "/waveq3d/test/monostatic.csv" ;
-    double time_max = 7.1 ;
+    const char* nc_wave = USML_TEST_DIR "/waveq3d/test/monostatic_wave.nc" ;
+    double time_max = 7.5 ;
     double time_step = 0.1 ;
     double resolution = 0.1 ;
     double T0 = 0.25 ;                 // Pulse length
@@ -68,21 +69,30 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
 
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( lat, lng, alt ) ;
-//    seq_rayfan de( -90.0, 0.0, 91, -45.0 ) ;
-    seq_linear de( -90.0, -1.0, 30, true ) ;
-    seq_linear az( 0.0, 45.0, 360.0 ) ;
+    seq_rayfan de( -90.0, 0.0, 91 ) ;
+//    seq_linear de( -90.0, -1.0, 40, true ) ;
+    seq_linear az( 0.0, 120.0, 360.0 ) ;
 
     wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T0, bins, time_max ) ;
     wave.setID( SOURCE_ID ) ;
 
+    cout << "Saving wavefront to " << nc_wave << endl ;
+    wave.init_netcdf(nc_wave) ;
+    wave.save_netcdf() ;
     // propagate rays and record wavefronts to disk.
 
     cout << "propagate wavefront for " << time_max << " seconds" << endl ;
     while ( wave.time() < time_max ) {
         wave.step() ;
+        wave.save_netcdf() ;
     }
+    wave.close_netcdf() ;
 
    // compute coherent propagation loss and write eigenrays to disk
+    eigenverb_monostatic* verb_model = (eigenverb_monostatic*)wave.getReverberation_Model() ;
+    const char* eigenverb_file = "eigenverb_data.txt" ;
+    cout << "writing eigenverb data to " << eigenverb_file << endl ;
+    verb_model->save_eigenverbs(eigenverb_file) ;
 
     reverberation_model* reverb = wave.getReverberation_Model() ;
     cout << "computing reverberation levels" << endl ;

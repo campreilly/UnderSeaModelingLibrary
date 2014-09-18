@@ -50,10 +50,10 @@ public:
     /**
      * Record a collision of a single ray with a reverberation surface.
      */
-    virtual void notifyUpperCollision( unsigned de, unsigned az, double time,
-               double dt, double grazing, double speed, const seq_vector& frequencies,
+    virtual void notifyUpperCollision( unsigned de, unsigned az,
+               double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const vector<double>& boundary_loss, unsigned ID )
+               const wave_queue& wave, unsigned ID )
     {
         ++counter ;
         this->surface = true ;
@@ -62,10 +62,10 @@ public:
         this->ndirection = ndirection ;
     }
 
-    virtual void notifyLowerCollision( unsigned de, unsigned az, double time,
-               double dt, double grazing, double speed, const seq_vector& frequencies,
+    virtual void notifyLowerCollision( unsigned de, unsigned az,
+               double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const vector<double>& boundary_loss, unsigned ID )
+               const wave_queue& wave, unsigned ID )
     {
         ++counter ;
         this->bottom = true ;

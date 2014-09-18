@@ -143,6 +143,7 @@ void wave_queue::init_wavefronts() {
     ode_integ::ab3_pos(  _time_step, _past, _prev, _curr, _next ) ;
     ode_integ::ab3_ndir( _time_step, _past, _prev, _curr, _next ) ;
     _next->update() ;
+    _next->path_length = _next->distance + _curr->path_length ;
 }
 
 /**
@@ -173,6 +174,7 @@ void wave_queue::step() {
     ode_integ::ab3_ndir( _time_step, _past, _prev, _curr, _next ) ;
 
     _next->update() ;
+    _next->path_length = _next->distance + _curr->path_length ;
 
     #ifdef DEBUG_ATTEN
         cout << "_curr->attenuation: " << _curr->attenuation << endl ;

@@ -235,8 +235,8 @@ void wave_queue_reverb::collide_from_above(
     if ( !is_ray_valid(de,az) ) {
         unsigned ID = _run_id ;
         ID += layer + 1 ;
-        _reflection_model->getReverberation_Model()->notifyLowerCollision( de, az, _time, time_water,
-            grazing, c, *(_frequencies), position,  ndirection, _curr->attenuation(de,az), ID ) ;
+        _reflection_model->getReverberation_Model()->notifyLowerCollision( de, az, time_water, grazing, c,
+                position,  ndirection, *this, ID ) ;
     }
 }
 
@@ -310,8 +310,8 @@ void wave_queue_reverb::collide_from_below(
     if ( !is_ray_valid(de,az) ) {
         unsigned ID = _run_id ;
         ID += layer + 1 ;
-        _reflection_model->getReverberation_Model()->notifyUpperCollision( de, az, _time, time_water,
-            grazing, c, *(_frequencies), position,  ndirection, _curr->attenuation(de,az), ID ) ;
+        _reflection_model->getReverberation_Model()->notifyUpperCollision( de, az, time_water, grazing, c,
+                position,  ndirection, *this, ID ) ;
     }
 }
 

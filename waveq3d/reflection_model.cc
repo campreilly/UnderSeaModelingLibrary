@@ -123,7 +123,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     ndirection.phi(   c2 * ndirection.phi() ) ;
     dot_full = bottom_normal.rho() * ndirection.rho()
         + bottom_normal.theta() * ndirection.theta()
-        + bottom_normal.phi() * ndirection.phi() ;  // negative #
+        + bottom_normal.phi() * ndirection.phi() ;  // negative # I dot n hat
     max_dot = - max( MIN_REFLECT, (height_water+depth)*bottom_normal.rho() ) ;
     if ( dot_full >= max_dot ) dot_full = max_dot ;
     double grazing = 0.0 ;                                       //added proper logic to account for instances when abs(dot_full/c) >= 1
@@ -157,15 +157,11 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     #endif
 
     if ( _reverberation ) {
-        if ( _wave.is_ray_valid(de,az) )
+        if( _wave.is_ray_valid(de,az) && az == 0 )      // limit to only the first az
         {
             int ID = _wave.getID() ;
-            vector<double> loss = pow( 10.0, -0.05 * _wave._curr->attenuation(de,az) ) ;
-            _reverberation->notifyLowerCollision( de, az, _wave._time, time_water,
-                grazing, c, *(_wave._frequencies), position,  ndirection,
-                loss, ID ) ;
-                // Still need to calculate eigenray ampltiude and phase for
-                // reverberation callback. Just passing bogus values currently.
+            _reverberation->notifyLowerCollision( de, az, time_water, grazing, c,
+                position,  ndirection, _wave, ID ) ;
         }
     }
 
@@ -274,15 +270,11 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
 
 
     if ( _reverberation ) {
-        if( _wave.is_ray_valid(de,az) )
+        if( _wave.is_ray_valid(de,az) && az == 0 )      // limit to only the first az
         {
             int ID = _wave.getID() ;
-            vector<double> loss = pow( 10.0, -0.05 * _wave._curr->attenuation(de,az) ) ;
-            _reverberation->notifyUpperCollision( de, az, _wave._time, time_water,
-                grazing, c, *(_wave._frequencies), position,  ndirection,
-                loss, ID ) ;
-                // Still need to calculate eigenray ampltiude and phase for
-                // reverberation callback. Just passing bogus values currently.
+            _reverberation->notifyUpperCollision( de, az, time_water, grazing, c,
+                position,  ndirection, _wave, ID ) ;
         }
     }
 
@@ -574,4 +566,5 @@ void reflection_model::reflection_copy(
 
     element->sound_speed( de, az ) = results.sound_speed(0,0) ;
     element->distance( de, az ) = results.distance(0,0) ;
+    element->path_length( de, az ) += results.path_length(0,0) ;
 }

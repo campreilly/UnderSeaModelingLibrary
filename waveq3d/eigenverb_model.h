@@ -18,6 +18,8 @@
 #include <boost/numeric/ublas/lu.hpp>
 #include <usml/types/types.h>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 namespace usml {
 namespace waveq3d {
@@ -41,19 +43,18 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
          *
          * @param de            D/E angle index number.
          * @param az            AZ angle index number.
-         * @param time          Current time of the wavefront (sec)
          * @param dt            Offset in time to collision with the boundary
          * @param grazing       The grazing angle at point of impact (rads)
          * @param speed         Speed of sound at the point of collision.
-         * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
+         * @param wave          Wave queue, used to extract various data
          * @param ID            (Used to identify source/receiver/volume layer)
          */
-        virtual void notifyUpperCollision( unsigned de, unsigned az, double time,
-               double dt, double grazing, double speed, const seq_vector& frequencies,
+        virtual void notifyUpperCollision( unsigned de, unsigned az,
+               double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const vector<double>& boundary_loss, unsigned ID ) {}
+               const wave_queue& wave, unsigned ID ) {}
 
         /**
          * React to the collision of a single ray with a reverberation
@@ -61,19 +62,18 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
          *
          * @param de            D/E angle index number.
          * @param az            AZ angle index number.
-         * @param time          Current time of the wavefront (sec)
          * @param dt            Offset in time to collision with the boundary
          * @param grazing       The grazing angle at point of impact (rads)
          * @param speed         Speed of sound at the point of collision.
-         * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
+         * @param wave          Wave queue, used to extract various data
          * @param ID            (Used to identify source/receiver/volume layer)
          */
-        virtual void notifyLowerCollision( unsigned de, unsigned az, double time,
-               double dt, double grazing, double speed, const seq_vector& frequencies,
+        virtual void notifyLowerCollision( unsigned de, unsigned az,
+               double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const vector<double>& boundary_loss, unsigned ID ) {}
+               const wave_queue& wave, unsigned ID ) {}
 
         /**
          * Computes the reverberation curve from the data cataloged from the
@@ -96,34 +96,37 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
             return _reverberation_curve ;
          }
 
+         /**
+          * Saves the eigenverb data to a text file.
+          */
+         virtual void save_eigenverbs(const char* filename) {}
+
     protected:
 
         /**
          * Constructs and eigenverb from the data provided in a notify collision.
          *
-         * @param  de            D/E angle index number.
-         * @param  az            AZ angle index number.
-         * @param  time          Current time of the wavefront (sec)
-         * @param  dt            Offset in time to collision with the boundary
-         * @param  grazing       The grazing angle at point of impact (rads)
-         * @param  speed         Speed of sound at the point of collision.
-         * @param  frequencies   Frequencies over which to compute reverb. (Hz)
-         * @param  position      Location at which the collision occurs
-         * @param  ndirection    Normalized direction at the point of collision.
-         * @param  boundary_loss Cumulative attenuation/boundary loss
+         * @param de            D/E angle index number.
+         * @param az            AZ angle index number.
+         * @param dt            Offset in time to collision with the boundary
+         * @param grazing       The grazing angle at point of impact (rads)
+         * @param speed         Speed of sound at the point of collision.
+         * @param position      Location at which the collision occurs
+         * @param ndirection    Normalized direction at the point of collision.
+         * @param wave          Wave queue, used to extract various data
          * @return verb         newly constructed eigenverb
          */
-        void create_eigenverb( unsigned de, unsigned az, double time,
-               double dt, double grazing, double speed, const seq_vector& frequencies,
+        void create_eigenverb( unsigned de, unsigned az,
+               double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const vector<double>& boundary_loss, eigenverb& verb ) const ;
+               const wave_queue& wave, eigenverb& verb ) const ;
 
         /**
          * Computes the contribution value of two eigenverbs to the total
          * reverberation level.
          */
-        void compute_contribution( const eigenverb& u,
-                                   const eigenverb& v,
+        void compute_contribution( const eigenverb* u,
+                                   const eigenverb* v,
                                    boundary_model* boundary ) ;
 
         /**

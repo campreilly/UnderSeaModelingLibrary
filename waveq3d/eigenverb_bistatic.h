@@ -39,20 +39,18 @@ class USML_DECLSPEC eigenverb_bistatic : public eigenverb_model {
          *
          * @param de            D/E angle index
          * @param az            AZ angle index
-         * @param time          Current time of the wavefront (sec)
          * @param dt            Offset in time to collision with the boundary
          * @param grazing       The grazing angle at point of impact (rads)
          * @param speed         Speed of sound at the point of collision.
-         * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
-         * @param boundary_loss Cumulative attenuation/boundary loss
+         * @param wave          Wave queue, used to extract various data
          * @param ID            (Used to identify source/receiver/volume layer)
          */
-        virtual void notifyUpperCollision( unsigned de, unsigned az, double time,
-               double dt, double grazing, double speed, const seq_vector& frequencies,
+        virtual void notifyUpperCollision( unsigned de, unsigned az,
+               double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const vector<double>& boundary_loss, unsigned ID ) ;
+               const wave_queue& wave, unsigned ID ) ;
 
         /**
          * React to the collision of a single ray with a reverberation
@@ -60,20 +58,18 @@ class USML_DECLSPEC eigenverb_bistatic : public eigenverb_model {
          *
          * @param de            D/E angle index
          * @param az            AZ angle index
-         * @param time          Current time of the wavefront (sec)
          * @param dt            Offset in time to collision with the boundary
          * @param grazing       The grazing angle at point of impact (rads)
          * @param speed         Speed of sound at the point of collision.
-         * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
-         * @param boundary_loss Cumulative attenuation/boundary loss
+         * @param wave          Wave queue, used to extract various data
          * @param ID            (Used to identify source/receiver/volume layer)
          */
-        virtual void notifyLowerCollision( unsigned de, unsigned az, double time,
-               double dt, double grazing, double speed, const seq_vector& frequencies,
+        virtual void notifyLowerCollision( unsigned de, unsigned az,
+               double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const vector<double>& boundary_loss, unsigned ID ) ;
+               const wave_queue& wave, unsigned ID ) ;
 
     private:
 
@@ -106,8 +102,8 @@ class USML_DECLSPEC eigenverb_bistatic : public eigenverb_model {
          * eigenverbs with itself and makes contributions to the reverebation
          * level curve.
          */
-        void convolve_eigenverbs( std::vector<eigenverb>& set1,
-                std::vector<eigenverb>& set2, boundary_model* boundary ) ;
+        void convolve_eigenverbs( std::vector<eigenverb>* set1,
+                std::vector<eigenverb>* set2, boundary_model* boundary ) ;
 
         /**
          * Vector of eigenverbs that originate from the

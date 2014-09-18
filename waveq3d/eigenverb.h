@@ -39,6 +39,11 @@ struct eigenverb {
     double grazing ;
 
     /**
+     * Path length from to the boundary interaction
+     */
+    double distance ;
+
+    /**
      * Location of impact with the boundary.
      */
     wposition1 pos ;
@@ -56,14 +61,24 @@ struct eigenverb {
     const seq_vector* frequencies ;
 
     /**
+     * The index of the lanuch DE.
+     */
+    unsigned de_index ;
+
+    /**
+     * The index of the lanuch AZ.
+     */
+    unsigned az_index ;
+
+    /**
      * The DE of the path from launch.
      */
-    unsigned de ;
+    double launch_de ;
 
     /**
      * The AZ of the path from launch.
      */
-    unsigned az ;
+    double launch_az ;
 
     /**
      * Sigma in the DE dimension
