@@ -107,8 +107,7 @@ class USML_DECLSPEC eigenverb_monostatic : public eigenverb_model {
          * eigenverbs with itself and makes contributions to the reverebation
          * level curve.
          */
-        void convolve_eigenverbs( std::vector<eigenverb>* set,
-                                  boundary_model* boundary ) ;
+        void convolve_eigenverbs( std::vector<eigenverb>* set ) ;
 
         /**
          * Vector of eigenverbs that impacted the surface.

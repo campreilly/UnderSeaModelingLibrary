@@ -103,7 +103,7 @@ class USML_DECLSPEC eigenverb_bistatic : public eigenverb_model {
          * level curve.
          */
         void convolve_eigenverbs( std::vector<eigenverb>* set1,
-                std::vector<eigenverb>* set2, boundary_model* boundary ) ;
+                std::vector<eigenverb>* set2 ) ;
 
         /**
          * Vector of eigenverbs that originate from the

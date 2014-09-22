@@ -157,7 +157,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     #endif
 
     if ( _reverberation ) {
-        if( _wave.is_ray_valid(de,az) && az == 0 )      // limit to only the first az
+        if( _wave.is_ray_valid(de,az) )
         {
             int ID = _wave.getID() ;
             _reverberation->notifyLowerCollision( de, az, time_water, grazing, c,
@@ -270,7 +270,7 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
 
 
     if ( _reverberation ) {
-        if( _wave.is_ray_valid(de,az) && az == 0 )      // limit to only the first az
+        if( _wave.is_ray_valid(de,az) )
         {
             int ID = _wave.getID() ;
             _reverberation->notifyUpperCollision( de, az, time_water, grazing, c,

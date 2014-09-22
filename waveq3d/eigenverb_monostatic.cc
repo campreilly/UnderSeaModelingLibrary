@@ -109,7 +109,8 @@ void eigenverb_monostatic::compute_bottom_energy() {
              << endl ;
         cout << "Number of bottom eigenverbs: " << _bottom.size() << endl ;
     #endif
-    convolve_eigenverbs( &_bottom, _bottom_boundary ) ;
+    _current_boundary = _bottom_boundary ;
+    convolve_eigenverbs( &_bottom ) ;
 }
 
 /**
@@ -122,7 +123,8 @@ void eigenverb_monostatic::compute_surface_energy() {
              << endl ;
         cout << "Number of surface eigenverbs: " << _surface.size() << endl ;
     #endif
-//    convolve_eigenverbs( &_surface, _surface_boundary ) ;
+    _current_boundary = _surface_boundary ;
+    convolve_eigenverbs( &_surface ) ;
 }
 
 /**
@@ -139,8 +141,8 @@ void eigenverb_monostatic::compute_upper_volume_energy() {
         for(std::vector<std::vector<eigenverb> >::iterator k=_upper.begin();
                 k!=_upper.end() && layer <= _n; ++k)
         {
-            boundary_model* current_layer = _volume_boundary->getLayer(layer) ;
-            convolve_eigenverbs( &(*k), current_layer) ;
+            _current_boundary = _volume_boundary->getLayer(layer) ;
+            convolve_eigenverbs( &(*k) ) ;
             ++layer ;
         }
     }
@@ -160,8 +162,8 @@ void eigenverb_monostatic::compute_lower_volume_energy() {
         for(std::vector<std::vector<eigenverb> >::iterator k=_lower.begin();
                 k!=_lower.end() && layer <= _n; ++k)
         {
-            boundary_model* current_layer = _volume_boundary->getLayer(layer) ;
-            convolve_eigenverbs( &(*k), current_layer) ;
+            _current_boundary = _volume_boundary->getLayer(layer) ;
+            convolve_eigenverbs( &(*k) ) ;
             ++layer ;
         }
     }
@@ -172,8 +174,7 @@ void eigenverb_monostatic::compute_lower_volume_energy() {
  * and makes contributions to the reverberation levels curve when
  * a contribution is significant enough.
  */
-void eigenverb_monostatic::convolve_eigenverbs( std::vector<eigenverb>* set,
-                                                boundary_model* boundary )
+void eigenverb_monostatic::convolve_eigenverbs( std::vector<eigenverb>* set )
 {
     for(std::vector<eigenverb>::iterator i=set->begin();
             i!=set->end(); ++i)
@@ -181,11 +182,7 @@ void eigenverb_monostatic::convolve_eigenverbs( std::vector<eigenverb>* set,
         for(std::vector<eigenverb>::iterator j=set->begin();
                 j!=set->end(); ++j)
         {
-//            if( i->az_index != j->az_index ) continue ;
-//            if( (i->time + j->time) > _max_time ) continue ;
-                // Don't make contributions anymore if the travel time
-                // is greater then the max reverberation curve time
-            compute_contribution( &(*i), &(*j), boundary ) ;
+            compute_contribution( &(*i), &(*j) ) ;
         }
     }
 }

@@ -49,6 +49,23 @@ namespace ublas {
 
     /**
      * Used to take the element-wise product of two
+     * vector of vectors.
+     */
+    template<class E1, class E2>
+    struct vector_div{
+        typedef E1			argument_type1 ;
+        typedef E2			argument_type2 ;
+        typedef E1			result_type ;
+
+        static BOOST_UBLAS_INLINE
+        result_type apply(argument_type1 t1, argument_type2 t2) {
+            return element_div( t1, t2 ) ;
+        }
+    };
+
+
+    /**
+     * Used to take the element-wise product of two
      * vector of matrices.
      */
     template<class E1, class E2>
@@ -208,12 +225,23 @@ namespace ublas {
     }
 
     /**
-     * Allows for the product of two vector of vectors.
+     * Allows for the fmod of a vector.
      */
     template<class E, class T> BOOST_UBLAS_INLINE
     typename vector_binary_scalar2_traits<E, T, scalar_fmod<typename E::value_type, T> >::result_type
     vector_fmod( const vector_expression<E>& e, const T& t ) {
         typedef typename vector_binary_scalar2_traits<E, T, scalar_fmod<
+            typename E::value_type, T> >::expression_type expression_type ;
+        return expression_type( e(), t ) ;
+    }
+
+    /**
+     * Allows for the fmod of a vector.
+     */
+    template<class E, class T> BOOST_UBLAS_INLINE
+    typename vector_binary_scalar2_traits<E, T, scalar_multiplies<typename E::value_type, T> >::result_type
+    nested_scalar_prod( const vector_expression<E>& e, const T& t ) {
+        typedef typename vector_binary_scalar2_traits<E, T, scalar_multiplies<
             typename E::value_type, T> >::expression_type expression_type ;
         return expression_type( e(), t ) ;
     }
@@ -226,6 +254,18 @@ namespace ublas {
         typename E2::value_type> >::result_type
     nested_vector_prod( const vector_expression<E1>& e1, const vector_expression<E2>& e2 ) {
         typedef typename vector_binary_traits<E1, E2, vector_prod<
+            typename E1::value_type, typename E2::value_type> >::expression_type expression_type ;
+        return expression_type( e1(), e2() ) ;
+    }
+
+    /**
+     * Allows for the product of two vector of vectors.
+     */
+    template<class E1, class E2> BOOST_UBLAS_INLINE
+    typename vector_binary_traits<E1, E2, vector_div<typename E1::value_type,
+        typename E2::value_type> >::result_type
+    nested_vector_div( const vector_expression<E1>& e1, const vector_expression<E2>& e2 ) {
+        typedef typename vector_binary_traits<E1, E2, vector_div<
             typename E1::value_type, typename E2::value_type> >::expression_type expression_type ;
         return expression_type( e1(), e2() ) ;
     }

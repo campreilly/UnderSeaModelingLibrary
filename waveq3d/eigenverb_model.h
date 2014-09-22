@@ -125,9 +125,7 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
          * Computes the contribution value of two eigenverbs to the total
          * reverberation level.
          */
-        void compute_contribution( const eigenverb* u,
-                                   const eigenverb* v,
-                                   boundary_model* boundary ) ;
+        void compute_contribution( const eigenverb* u, const eigenverb* v ) ;
 
         /**
          * Computes the energy contributions to the reverberation
@@ -205,6 +203,11 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
         volume_layer* _volume_boundary ;
 
         /**
+         * The current boundary that computations need
+         */
+        boundary_model* _current_boundary ;
+
+        /**
          * The reverberation energy distribution curve. The values in this
          * array are in linear units.
          */
@@ -215,6 +218,33 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
          * the energy from a contribution out in time along the curve.
          */
         vector<double> _two_way_time ;
+
+        /****/
+        vector<double> __receiver_latitude ;
+
+        /****/
+        vector<double> __receiver_longitude ;
+
+        /****/
+        vector<double> __receiver_az ;
+
+        /****/
+        vector<double> __receiver_grazing ;
+
+        /****/
+        vector<double> __Wr ;
+
+        /****/
+        vector<double> __Lr ;
+
+        /****/
+        vector<double> __receiver_loss ;
+
+        /****/
+        vector<double> __receiver_launch_az ;
+
+        /****/
+        vector<double> __receiver_time ;
 
 };
 

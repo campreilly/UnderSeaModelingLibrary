@@ -42,11 +42,8 @@ void eigenverb_model::create_eigenverb( unsigned de, unsigned az,
     double mu_half2 = M_PI * ( wave.source_de(de) + wave.source_de(de+1) ) / 360.0 ;
     double delta_de = mu_half2 - mu_half1 ;
     verb.sigma_de = true_distance * delta_de / sin(grazing) ;
-//    double phi_half1 = M_PI * ( wave.source_az(az-1) + wave.source_az(az) ) / 360.0 ;
-//    double phi_half2 = M_PI * ( wave.source_az(az) + wave.source_az(az+1) ) / 360.0 ;
-//    double delta_az = phi_half2 - phi_half1 ;
-//    verb.sigma_az = delta_az * cos(grazing) * true_distance ;   // horizontal distance * azimuthal spacing
-    verb.sigma_az = TWO_PI * cos(grazing) * true_distance ;   // horizontal distance * azimuthal spacing
+    double delta_az = M_PI * ( wave.source_az(az) - wave.source_az(az+1) ) / 360.0 ;
+    verb.sigma_az = delta_az * cos(grazing) * true_distance ;   // horizontal distance * azimuthal spacing
 
     #ifdef EIGENVERB_COLLISION_DEBUG
         cout << "\t---Added eigenverb to collection---" << endl ;
@@ -61,11 +58,9 @@ void eigenverb_model::create_eigenverb( unsigned de, unsigned az,
 /**
  * Computes the contribution value
  */
-void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb* v,
-                                            boundary_model* boundary )
+void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb* v )
 {
-        // determine the relative angle of the projected incident gaussian to the
-        // projected reflected gaussian.
+        // determine the relative angle and distance between the projected gaussians
     double de1 ;
     double az1 ;
     u->direction.direction( &de1, &az1 ) ;
@@ -73,6 +68,8 @@ void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb*
     double az2 ;
     v->direction.direction( &de2, &az2 ) ;
     double alpha = abs( az2 - az1 ) ;
+    double xs = abs( v->position.longitude() - u->position.longitude() ) * 1852.0 * 60.0 ;
+    double ys = abs( v->position.latitude() - u->position.latitude() ) * 1852.0 * 60.0 ;
 
         // Compute the intersection of the gaussian profiles
     double Wr = v->sigma_az ;
@@ -86,17 +83,14 @@ void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb*
     double det_r = Wr2 * Lr2 ;
     double det_s = Ws2 * Ls2 ;
     double det_sr = 0.5 * ( 2.0*(Ls2*Ws2 + Lr2*Wr2) + (Ls2+Ws2)*(Lr2+Wr2) - (Ls2-Ws2)*(Lr2-Wr2)*cos(2.0*alpha) ) ;
-    double range = v->distance*cos(v->grazing) - u->distance*cos(u->grazing) ;
-    double xs = abs(range) * sin(alpha) ;
-    double ys = abs(range) * cos(alpha) ;
     double kappa = -0.25 * (xs*xs*((Ls2+Ws2)+(Ls2-Ws2)*cos(2.0*alpha)+2.0*Lr2)
                           + ys*ys*((Ls2+Ws2)-(Ls2-Ws2)*cos(2.0*alpha)+2.0*Wr2)
                           - xs*ys*(Ls2-Ws2)*sin(2.0*alpha)) / det_sr ;
     double _area = 0.5 * sqrt(det_r) * sqrt(det_s) * exp( kappa ) / sqrt(det_sr) ;
         // Compute the energy reflected off of this patch
         // and the scattering loss from the interface
-    vector<double> scatter( (*v->frequencies).size() ) ;
-    boundary->getScattering_Model()->scattering_strength( v->position, (*v->frequencies),
+    vector<double> scatter( (*u->frequencies).size() ) ;
+    _current_boundary->getScattering_Model()->scattering_strength( v->position, (*v->frequencies),
             u->grazing, v->grazing, u->launch_az, v->launch_az, &scatter ) ;
     double _energy = _pulse * u->intensity(0) * v->intensity(0) * scatter(0) * _area ;
 

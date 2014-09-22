@@ -118,8 +118,8 @@ void eigenverb_bistatic::compute_bottom_energy() {
         cout << "**** Entering eigenverb_static::compute_bottom_energy()"
              << endl ;
     #endif
-    convolve_eigenverbs( &_source_bottom, &_receiver_bottom,
-                         _bottom_boundary ) ;
+    _current_boundary = _bottom_boundary ;
+    convolve_eigenverbs( &_source_bottom, &_receiver_bottom ) ;
 }
 
 /**
@@ -131,8 +131,8 @@ void eigenverb_bistatic::compute_surface_energy() {
         cout << "**** Entering eigenverb_static::compute_surface_energy()"
              << endl ;
     #endif
-    convolve_eigenverbs( &_source_surface, &_receiver_surface,
-                         _surface_boundary ) ;
+    _current_boundary = _surface_boundary ;
+    convolve_eigenverbs( &_source_surface, &_receiver_surface ) ;
 }
 
 /**
@@ -152,8 +152,8 @@ void eigenverb_bistatic::compute_upper_volume_energy() {
             i!=_source_upper.end() && j!=_receiver_upper.end() && layer <= _n;
             ++i, ++j)
         {
-            boundary_model* current_layer = _volume_boundary->getLayer(layer) ;
-            convolve_eigenverbs( &(*i), &(*j), current_layer) ;
+            _current_boundary = _volume_boundary->getLayer(layer) ;
+            convolve_eigenverbs( &(*i), &(*j) ) ;
             ++layer ;
         }
     }
@@ -176,8 +176,8 @@ void eigenverb_bistatic::compute_lower_volume_energy() {
             i!=_source_lower.end() && j!=_receiver_lower.end() && layer <= _n;
             ++i, ++j)
         {
-            boundary_model* current_layer = _volume_boundary->getLayer(layer) ;
-            convolve_eigenverbs( &(*i), &(*j), current_layer) ;
+            _current_boundary = _volume_boundary->getLayer(layer) ;
+            convolve_eigenverbs( &(*i), &(*j) ) ;
             ++layer ;
         }
     }
@@ -189,7 +189,7 @@ void eigenverb_bistatic::compute_lower_volume_energy() {
  * a contribution is significant enough.
  */
 void eigenverb_bistatic::convolve_eigenverbs( std::vector<eigenverb>* set1,
-            std::vector<eigenverb>* set2, boundary_model* boundary )
+            std::vector<eigenverb>* set2 )
 {
     for(std::vector<eigenverb>::iterator i=set1->begin();
             i!=set1->end(); ++i)
@@ -197,9 +197,7 @@ void eigenverb_bistatic::convolve_eigenverbs( std::vector<eigenverb>* set1,
         for(std::vector<eigenverb>::iterator j=set2->begin();
                 j!=set2->end(); ++j)
         {
-                // Don't make contributions anymore if the travel time
-                // is greater then the max reverberation curve time
-            compute_contribution( &(*i), &(*j), boundary ) ;
+            compute_contribution( &(*i), &(*j) ) ;
         }
     }
 }

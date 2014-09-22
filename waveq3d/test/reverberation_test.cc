@@ -69,9 +69,9 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
 
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( lat, lng, alt ) ;
-    seq_rayfan de( -90.0, 0.0, 91 ) ;
-//    seq_linear de( -90.0, -1.0, 40, true ) ;
-    seq_linear az( 0.0, 120.0, 360.0 ) ;
+//    seq_rayfan de( -90.0, 0.0, 41, -15.0 ) ;
+    seq_linear de( -90.0, -1.0, 45, true ) ;
+    seq_linear az( 0.0, 45.0, 360.0 ) ;
 
     wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T0, bins, time_max ) ;
     wave.setID( SOURCE_ID ) ;
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     cout << std::setprecision(18);
 
     const vector<double> reverb_tl = reverb->getReverberation_curve() ;
-    vector<double> r = SL + 10.0*log10(2.0*reverb_tl) ;
+    vector<double> r = SL + 10.0*log10(reverb_tl) ;
     for ( unsigned i=0; i < bins; ++i ) {
         if( i % 10 == 0 ) {
             cout << "reverb_level(" << i << "): " << r(i) << endl ;
