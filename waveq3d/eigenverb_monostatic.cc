@@ -200,48 +200,48 @@ void eigenverb_monostatic::save_eigenverbs(const char* filename) {
        << "                                     *       EIGENVERBS     *\n"
        << "                                     ************************\n" << endl ;
     of << "                             ===== Bottom Boundary Eigenverbs =====" << endl ;
-    of << " Travel       Grazing       Launch      Launch      Path      Sigma      Sigma    Intensity    Frequency     Speed of   " << endl ;
-    of << " time(s)    angle (deg)    DE (deg)    AZ (deg)   Length (m)    DE         AZ        (dB)         (Hz)      Sound (m/s) " << endl ;
-    of << "---------  -------------  ----------  ---------- ----------- --------  ---------  ----------  -----------  -------------" << endl ;
+    of << " Travel    Collisions    Grazing       Launch      Launch      Path      Sigma      Sigma    Intensity    Frequency     Speed of   " << endl ;
+    of << " time(s)     (b,s)     angle (deg)    DE (deg)    AZ (deg)   Length (m)    DE         AZ        (dB)         (Hz)      Sound (m/s) " << endl ;
+    of << "---------  ---------- -------------  ----------  ---------- ----------- --------  ---------  ----------  -----------  -------------" << endl ;
     for(std::vector<eigenverb>::iterator b=_bottom.begin(); b!=_bottom.end(); ++b) {
         eigenverb e = (*b) ;
         char buff[256] ;
-        sprintf( buff,"%s %1.4f  %12.4f  %11.3f  %9.1f  %10.2f %11.2f  %9.2f  %10.4f  %9.0f  %13.2f\n",
-                 "", e.time, e.grazing*180.0/M_PI, e.launch_de, e.launch_az,
+        sprintf( buff,"%s %1.4f %5s %i,%i %13.4f  %12.3f  %9.1f  %10.2f %10.2f  %9.2f  %10.4f  %9.0f  %13.2f\n",
+                 "", e.travel_time, "", e.bottom, e.surface, e.grazing*180.0/M_PI, e.launch_de, e.launch_az,
                  e.distance, e.sigma_de, e.sigma_az, 10.0*log10(e.intensity(0)),
-                 (*e.frequencies)(0), e.c ) ;
+                 (*e.frequencies)(0), e.sound_speed ) ;
         of << buff ;
     }
     of << endl ;
     of << "                             ===== Surface Boundary Eigenverbs =====" << endl ;
-    of << " Travel       Grazing       Launch      Launch      Path      Sigma      Sigma    Intensity    Frequency     Speed of   " << endl ;
-    of << " time(s)    angle (deg)    DE (deg)    AZ (deg)   Length (m)    DE         AZ        (dB)         (Hz)      Sound (m/s) " << endl ;
-    of << "---------  -------------  ----------  ---------- ----------- --------  ---------  ----------  -----------  -------------" << endl ;
+    of << " Travel    Collisions    Grazing       Launch      Launch      Path      Sigma      Sigma    Intensity    Frequency     Speed of   " << endl ;
+    of << " time(s)     (b,s)     angle (deg)    DE (deg)    AZ (deg)   Length (m)    DE         AZ        (dB)         (Hz)      Sound (m/s) " << endl ;
+    of << "---------  ---------- -------------  ----------  ---------- ----------- --------  ---------  ----------  -----------  -------------" << endl ;
     for(std::vector<eigenverb>::iterator s=_surface.begin(); s!=_surface.end(); ++s) {
         eigenverb e = (*s) ;
         char buff[256] ;
-        sprintf( buff,"%s %1.4f  %12.4f  %11.3f  %9.1f  %10.2f %11.2f  %9.2f  %10.4f  %9.0f  %13.2f\n",
-                 "", e.time, e.grazing*180.0/M_PI, e.launch_de, e.launch_az,
+        sprintf( buff,"%s %1.4f %4s %i,%i %12.4f  %11.3f  %9.1f  %10.2f %11.2f  %9.2f  %10.4f  %9.0f  %13.2f\n",
+                 "", e.travel_time, "", e.bottom, e.surface, e.grazing*180.0/M_PI, e.launch_de, e.launch_az,
                  e.distance, e.sigma_de, e.sigma_az, 10.0*log10(e.intensity(0)),
-                 (*e.frequencies)(0), e.c ) ;
+                 (*e.frequencies)(0), e.sound_speed ) ;
         of << buff ;
     }
     of << endl ;
     if( !_upper.empty() ) {
         int layer = 0 ;
         of << "                             ===== Volume Upper Boundary Eigenverbs =====" << endl ;
-        of << " Travel       Grazing       Launch      Launch      Path      Sigma      Sigma    Intensity    Frequency     Speed of   " << endl ;
-        of << " time(s)    angle (deg)    DE (deg)    AZ (deg)   Length (m)    DE         AZ        (dB)         (Hz)      Sound (m/s) " << endl ;
-        of << "---------  -------------  ----------  ---------- ----------- --------  ---------  ----------  -----------  -------------" << endl ;
+        of << " Travel    Collisions    Grazing       Launch      Launch      Path      Sigma      Sigma    Intensity    Frequency     Speed of   " << endl ;
+        of << " time(s)     (b,s)     angle (deg)    DE (deg)    AZ (deg)   Length (m)    DE         AZ        (dB)         (Hz)      Sound (m/s) " << endl ;
+        of << "---------  ---------- -------------  ----------  ---------- ----------- --------  ---------  ----------  -----------  -------------" << endl ;
         for(std::vector<std::vector<eigenverb> >::iterator v=_upper.begin(); v!=_upper.end(); ++v, ++layer) {
             of << "Volume Layer " << layer << endl ;
             for(std::vector<eigenverb>::iterator u=v->begin(); u!=v->end(); ++u) {
                 eigenverb e = (*u) ;
                 char buff[256] ;
-                sprintf( buff,"%s %1.4f  %12.4f  %11.3f  %9.1f  %10.4f %10.4f  %9.4f  %10.4f  %9.0f  %13.2f\n",
-                         "", e.time, e.grazing*180.0/M_PI, e.launch_de, e.launch_az,
+                sprintf( buff,"%s %1.4f %4s %i,%i %12.4f  %11.3f  %9.1f  %10.2f %11.2f  %9.2f  %10.4f  %9.0f  %13.2f\n",
+                         "", e.travel_time, "", e.bottom, e.surface, e.grazing*180.0/M_PI, e.launch_de, e.launch_az,
                          e.distance, e.sigma_de, e.sigma_az, 10.0*log10(e.intensity(0)),
-                         (*e.frequencies)(0), e.c ) ;
+                         (*e.frequencies)(0), e.sound_speed ) ;
                 of << buff ;
             }
         }
@@ -250,18 +250,18 @@ void eigenverb_monostatic::save_eigenverbs(const char* filename) {
     if( !_lower.empty() ) {
         int layer = 0 ;
         of << "                             ===== Volume Lower Boundary Eigenverbs =====" << endl ;
-        of << " Travel       Grazing       Launch      Launch      Path      Sigma      Sigma    Intensity    Frequency     Speed of   " << endl ;
-        of << " time(s)    angle (deg)    DE (deg)    AZ (deg)   Length (m)    DE         AZ        (dB)         (Hz)      Sound (m/s) " << endl ;
-        of << "---------  -------------  ----------  ---------- ----------- --------  ---------  ----------  -----------  -------------" << endl ;
+        of << " Travel    Collisions    Grazing       Launch      Launch      Path      Sigma      Sigma    Intensity    Frequency     Speed of   " << endl ;
+        of << " time(s)     (b,s)     angle (deg)    DE (deg)    AZ (deg)   Length (m)    DE         AZ        (dB)         (Hz)      Sound (m/s) " << endl ;
+        of << "---------  ---------- -------------  ----------  ---------- ----------- --------  ---------  ----------  -----------  -------------" << endl ;
         for(std::vector<std::vector<eigenverb> >::iterator v=_upper.begin(); v!=_upper.end(); ++v, ++layer) {
             of << "Volume Layer " << layer << endl ;
             for(std::vector<eigenverb>::iterator l=v->begin(); l!=v->end(); ++l) {
                 eigenverb e = (*l) ;
                 char buff[256] ;
-                sprintf( buff,"%s %1.4f  %12.4f  %11.3f  %9.1f  %10.4f %10.4f  %9.4f  %10.4f  %9.0f  %13.2f\n",
-                         "", e.time, e.grazing*180.0/M_PI, e.launch_de, e.launch_az,
+                sprintf( buff,"%s %1.4f %4s %i,%i %12.4f  %11.3f  %9.1f  %10.2f %11.2f  %9.2f  %10.4f  %9.0f  %13.2f\n",
+                         "", e.travel_time, "", e.bottom, e.surface, e.grazing*180.0/M_PI, e.launch_de, e.launch_az,
                          e.distance, e.sigma_de, e.sigma_az, 10.0*log10(e.intensity(0)),
-                         (*e.frequencies)(0), e.c ) ;
+                         (*e.frequencies)(0), e.sound_speed ) ;
                 of << buff ;
             }
         }
