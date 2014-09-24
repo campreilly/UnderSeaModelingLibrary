@@ -76,6 +76,14 @@ reverberation_model* wave_queue_reverb::getReverberation_Model()
 }
 
 /**
+ * Allows for redefinite of the reverberation model dynamically.
+ */
+void wave_queue_reverb::setReverberation_Model( reverberation_model* model )
+{
+    _reflection_model->setReverberation_Model( model ) ;
+}
+
+/**
  * Get the size of the frequency vector. Used to scale the size of
  * the _loss/_phase vectors inside of eigenverb classes.
  */

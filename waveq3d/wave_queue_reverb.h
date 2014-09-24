@@ -76,6 +76,11 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
         reverberation_model* getReverberation_Model() ;
 
         /**
+         * Sets the reverberation model for the wave_queue.
+         */
+        void setReverberation_Model( reverberation_model* model ) ;
+
+        /**
          * Returns the number of frequencies in _frequencies.
          */
         const unsigned getFreqSize() ;

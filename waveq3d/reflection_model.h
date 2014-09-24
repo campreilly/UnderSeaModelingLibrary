@@ -101,7 +101,10 @@ class USML_DECLSPEC reflection_model {
     	{}
 
     virtual ~reflection_model() {
-        delete _reverberation ;
+        if( _reverberation ) {
+            delete _reverberation ;
+            _reverberation = NULL ;
+        }
     }
 
     /**
@@ -110,6 +113,15 @@ class USML_DECLSPEC reflection_model {
     inline void setReverberation_Model( reverberation_model* reverb ) {
         if( _reverberation ) delete _reverberation ;
         _reverberation = reverb ;
+    }
+
+    /**
+     * Sets the reverberation model pointer to NULL. This is to prevent
+     * a double free of memeory from the local cache of bistatic reverberation
+     * models.
+     */
+    void NullifyReverberation_Pointer() {
+        _reverberation = NULL ;
     }
 
     /**

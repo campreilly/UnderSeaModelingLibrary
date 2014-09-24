@@ -94,6 +94,7 @@ wave_queue::wave_queue(
 wave_queue::~wave_queue() {
     delete _frequencies ;
     if ( _spreading_model ) delete _spreading_model ;
+    if ( _run_id != SOURCE_ID ) _reflection_model->NullifyReverberation_Pointer() ;
     delete _reflection_model ;
     delete _source_de ;
     delete _source_az ;
