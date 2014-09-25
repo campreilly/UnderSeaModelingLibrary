@@ -306,6 +306,7 @@ BOOST_AUTO_TEST_CASE( scattering_strength_test ) {
            << angleS << ","
            << amplitude(0) << endl ;
     }
+    delete s ;
 }
 
 /// @}

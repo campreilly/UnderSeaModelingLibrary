@@ -559,6 +559,7 @@ BOOST_AUTO_TEST_CASE( eigenray_special ) {
     double svp[] = { 1532.071289, 1532.668945, 1534.328491, 1535.144775 } ;
     seq_vector* ax[] = { new seq_data( depths, 4 ) } ;
     data_grid<double,1>* grid = new data_grid<double,1>( ax ) ;
+    delete ax[0] ;
     for(unsigned i=0; i<4; ++i) {
         grid->data( &i, svp[i] ) ;
         cout << "depth: " << depths[i]-wposition::earth_radius << " svp: " << svp[i] << endl ;

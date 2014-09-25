@@ -12,6 +12,9 @@ using namespace usml::ocean ;
 reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 
 	NcFile file( filename ) ;
+    if (file.is_valid() == 0) {
+    	throw std::invalid_argument("file not found") ;
+    }
 	NcVar *bot_speed = file.get_var("speed_ratio") ;         // bot_speed  : speed ratio of the province
 	NcVar *bot_density = file.get_var("density_ratio") ;     // bot_density  : density ratio of the province
 	NcVar *bot_atten = file.get_var("atten") ;               // bot_atten  : attenuation value for the province
@@ -123,6 +126,9 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
         cout << endl ;
     #endif
 
+    ncclose( ncid ) ;
+    delete axis[0] ;
+    delete axis[1] ;
 	delete[] latitude ;
 	delete[] longitude ;
 	delete[] speed ;
@@ -165,4 +171,5 @@ reflect_loss_netcdf::~reflect_loss_netcdf() {
 	for(std::vector<reflect_loss_rayleigh*>::iterator iter =_rayleigh.begin(); iter != _rayleigh.end(); iter++) {
         delete *iter;
 	}
+	delete _bottom_grid ;
 }

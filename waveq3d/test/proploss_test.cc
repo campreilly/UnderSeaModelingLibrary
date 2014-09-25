@@ -128,6 +128,102 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
 }
 
 /**
+ * This test demonstrates that the frequency based accuracy of the model.
+ * - Scenario parameters
+ *   - Profile: constant 1500 m/s sound speed, no absorption
+ *   - Bottom: 3000 meters
+ *   - Source: 45N, 45W, -1000 meters
+ *   - Target: 45.02N, 45W, -1000 meters
+ *   - Time Step: 100 msec
+ *   - Launch D/E: 1 degree linear spacing from -60 to 60 degrees
+ *
+ * - Analytic Results
+ *   - Direct Path: 1.484018789 sec, -0.01 deg launch, 66.95 dB
+ *   - Surface Bounce: 1.995102731 sec, 41.93623171 deg launch, 69.52 dB
+ *   - Bottom Bounce: 3.051676949 sec, -60.91257162 deg launch, 73.21 dB
+ */
+BOOST_AUTO_TEST_CASE( proploss_freq )
+{
+    cout << "=== proploss_test: proploss_freq ===" << endl ;
+    const char* ncwave = USML_TEST_DIR "/waveq3d/test/proploss_freq_wave.nc" ;
+    const char* ncproploss = USML_TEST_DIR "/waveq3d/test/proploss_freq_proploss.nc" ;
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/proploss_freq.csv";
+    const double c0 = 1500.0 ;
+    const double src_lat = 45.0 ;
+    const double src_lng = -45.0 ;
+    const double src_alt = -1000.0 ;
+    const double trg_lat = 45.02 ;
+    const double time_max = 3.5 ;
+
+    // initialize propagation model
+
+    wposition::compute_earth_radius( src_lat ) ;
+    attenuation_model* attn = new attenuation_constant(0.0) ;
+    profile_model* profile = new profile_linear(c0,attn) ;
+    boundary_model* surface = new boundary_flat() ;
+    boundary_model* bottom = new boundary_flat(3000.0) ;
+    ocean_model ocean( surface, bottom, profile ) ;
+
+    seq_linear freq( 10.0, 10.0, 1000 ) ;
+    wposition1 pos( src_lat, src_lng, src_alt ) ;
+    seq_linear de( -90.0, 1.0, 90.0 ) ;
+    seq_linear az( -4.0, 1.0, 4.0 ) ;
+
+    // build a single target
+
+    wposition target( 1, 1, trg_lat, src_lng, src_alt );
+
+    proploss loss(freq, pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
+    wave.addEigenrayListener(&loss) ;
+
+    // propagate rays & record to log file
+
+    cout << "propagate wavefront for " << time_max << endl ;
+    cout << "writing wavefronts to " << ncwave << endl ;
+
+    wave.init_netcdf( ncwave ) ;
+    wave.save_netcdf() ;
+    while (wave.time() < time_max)
+    {
+        wave.step() ;
+        wave.save_netcdf() ;
+    }
+    wave.close_netcdf() ;
+
+    loss.sum_eigenrays() ;
+    cout << "writing proploss to " << ncproploss << endl ;
+    loss.write_netcdf(ncproploss,"proploss_freq test") ;
+
+    // save results to spreadsheet and compare to analytic results
+
+    cout << "writing data to " << csvname << endl ;
+    std::ofstream os(csvname) ;
+    os << "frequency,theory_direct,model_direct,theory_surface,model_surface,theory_bottom,theory_surface" << endl ;
+    os << std::setprecision(18) ;
+
+    const eigenray_list *raylist = loss.eigenrays(0, 0);
+    eigenray direct_ray, surface_ray, bottom_ray ;
+    for (eigenray_list::const_iterator iter = raylist->begin();
+            iter != raylist->end(); ++iter)
+    {
+        if( iter->bottom == 1 && iter->surface == 0 ) bottom_ray = *iter ;
+        else if( iter->bottom == 0 && iter->surface == 1 ) surface_ray = *iter ;
+        else direct_ray = *iter ;
+    }
+    for(size_t j=0; j<freq.size(); ++j) {
+        os << freq(j)
+           << "," << 66.95
+           << "," << direct_ray.intensity(j)
+           << "," << 69.52
+           << "," << surface_ray.intensity(j)
+           << "," << 73.21
+           << "," << bottom_ray.intensity(j)
+           << endl ;
+    }
+}
+
+/**
  * Compares modeled propagation loss as a function of range to the Lloyd's
  * mirror analytic expression for surface reflection in an isovelocity ocean.
  *

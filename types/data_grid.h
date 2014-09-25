@@ -793,7 +793,7 @@ public:
     /**
      * Destroys memory area for field data.
      */
-    ~data_grid()
+    virtual ~data_grid()
     {
         for (unsigned n = 0; n < NUM_DIMS; ++n) {
         	if (_axis[n] != NULL) {

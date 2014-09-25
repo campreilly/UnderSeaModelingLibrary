@@ -48,8 +48,8 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
          *                  fields as well as the axises.
          */
 
-        data_grid_svp(const data_grid<double, 3>& grid, bool copy_data = true)
-            :   data_grid<double, 3>(grid, copy_data),
+        data_grid_svp(const data_grid<double, 3>* grid, bool copy_data = true)
+            :   data_grid<double, 3>(*grid, copy_data),
                 _kzmax(_axis[0]->size() - 1u),
                 _kxmax(_axis[1]->size() - 1u),
                 _kymax(_axis[2]->size() - 1u)
@@ -178,15 +178,15 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
                     } //end for-loop in k
                 } //end for-loop in j
             } //end for-loop in i
-
+            delete grid ;
         } // end Constructor
 
         /**
          * Destructor
          */
         virtual ~data_grid_svp() {
-            for(size_t i=0; i<_kzmax; ++i) {
-                for(size_t j=0; j<_kxmax; ++j) {
+            for(size_t i=0; i<=_kzmax; ++i) {
+                for(size_t j=0; j<=_kxmax; ++j) {
                     delete[] derv_z[i][j] ;
                 }
                 delete[] derv_z[i] ;

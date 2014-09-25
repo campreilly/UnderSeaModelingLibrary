@@ -1083,8 +1083,9 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
     // environmental parameters
     data_grid<double,1>* sound_profile;
     seq_vector* axis[1];
-    axis[0] = new seq_linear( wposition::earth_radius, -0.5, 1000 );
-    sound_profile = new data_grid<double,1>(axis);
+    axis[0] = new seq_linear( wposition::earth_radius, -0.5, 1000 ) ;
+    sound_profile = new data_grid<double,1>(axis) ;
+    delete axis[0] ;
     unsigned index[1];
     for(int i=0; i < axis[0]->size(); ++i){
         index[0] = i;

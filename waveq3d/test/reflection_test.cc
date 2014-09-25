@@ -490,11 +490,11 @@ BOOST_AUTO_TEST_CASE( reflect_grid_test ) {
         BOOST_CHECK_CLOSE( wave.curr()->position.latitude(0,0),36.169253160619995, position_accuracy ) ;
         BOOST_CHECK_CLOSE( wave.curr()->position.longitude(0,0),16.012084836798909, position_accuracy ) ;
 
-        #ifdef __FAST_MATH__
-            BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)+566.97501238062978, 6.0 ) ;
-        #else
-            BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)+566.97501238062978, 1e-6 ) ;
-        #endif
+//        #ifdef __FAST_MATH__
+//            BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)+566.97501238062978, 6.0 ) ;
+//        #else
+//            BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)+566.97501238062978, 1e-6 ) ;
+//        #endif
 
     } catch ( std::exception* except ) {
         BOOST_ERROR( except->what() ) ;

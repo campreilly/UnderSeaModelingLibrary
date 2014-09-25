@@ -22,7 +22,7 @@ using namespace usml::ocean ;
  */
 BOOST_AUTO_TEST_CASE( reflect_loss_netcdf_test ) {
 	cout << " === reflection_loss_test: reflection_loss_netcdf bottom type file === " << endl;
-	reflect_loss_netcdf netcdf( USML_DATA_DIR "/bottom_province/sediment_test.nc" );
+	reflect_loss_netcdf netcdf( USML_DATA_DIR "/bottom_province/sediment_test.nc" ) ;
 
     seq_linear frequency(1000.0, 1000.0, 0.01) ;
     double angle = M_PI_2 ;

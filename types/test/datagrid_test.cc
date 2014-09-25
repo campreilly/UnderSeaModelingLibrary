@@ -283,7 +283,9 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
     seq_vector* ax[2] ;
     ax[0] = new seq_linear(1.0, 1.0, 5) ;
     ax[1] = new seq_linear(1.0, 1.0, 5) ;
-    data_grid<double,2>* grid = new data_grid<double,2>(ax);
+    data_grid<double,2>* grid = new data_grid<double,2>(ax) ;
+    delete ax[0] ;
+    delete ax[1] ;
 
     for(int i = 0; i<2; ++i) {
 //        grid->interp_type(i, GRID_INTERP_NEAREST);
@@ -337,7 +339,7 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
 	cout << "Time to complete interpolation using data_grid method was "
 		 << (complete-start) << " sec." << endl;
 
-    data_grid_bathy* fast_grid = new data_grid_bathy(*grid, true);
+    data_grid_bathy* fast_grid = new data_grid_bathy(grid, true);
     counter = 0 ;
     gettimeofday( &time, &zone ) ;
     start = time.tv_sec + time.tv_usec * 1e-6 ;
@@ -349,8 +351,8 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
     complete = time.tv_sec + time.tv_usec * 1e-6 ;
 
 	cout << "Time to complete interpolation using fast_grid method was "
-		 << (complete-start) << " sec." << endl;
-
+		 << (complete-start) << " sec." << endl ;
+    delete fast_grid ;
 }
 
 /**
@@ -364,12 +366,14 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
 BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
     cout << "=== datagrid_fast_accuracy_test ===" << endl;
 
-    seq_vector* axis[2];
+    seq_vector* axis[2] ;
     int N = 10 ;
-    axis[0] = new seq_linear(1.0, 1.0, N);
-    axis[1] = new seq_linear(1.0, 1.0, N);
-    data_grid<double,2>* test_grid = new data_grid<double,2>(axis);
-    unsigned index[2];
+    axis[0] = new seq_linear(1.0, 1.0, N) ;
+    axis[1] = new seq_linear(1.0, 1.0, N) ;
+    data_grid<double,2>* test_grid = new data_grid<double,2>(axis) ;
+    delete axis[0] ;
+    delete axis[1] ;
+    unsigned index[2] ;
     double vals[2] ;
     for(int i=0; i<(*axis[0]).size(); ++i) {
         for(int j=0; j<(*axis[1]).size(); ++j) {
@@ -400,7 +404,8 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
         test_grid->edge_limit(i, true);
     }
 
-    data_grid_bathy* test_grid_fast = new data_grid_bathy(*test_grid, true);
+    data_grid<double,2>* duplicate = new data_grid<double,2>(*test_grid, true) ;
+    data_grid_bathy* test_grid_fast = new data_grid_bathy(duplicate, true) ;
 
     double spot[2];
     spot[1] = 10.3265; spot[0] = 9.8753;
@@ -441,7 +446,8 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
         grid->interp_type(i, GRID_INTERP_PCHIP);
         grid->edge_limit(i, true);
     }
-    data_grid_bathy* fast_grid = new data_grid_bathy(*grid, true) ;
+    data_grid<double,2>* dummy = new data_grid<double,2>(*grid, true) ;
+    data_grid_bathy* fast_grid = new data_grid_bathy(dummy, true) ;
 
     const seq_vector* ax0 = grid->axis(0);
     const seq_vector* ax1 = grid->axis(1);
@@ -495,7 +501,8 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
             test_grid_3d->interp_type(i, GRID_INTERP_LINEAR);
         test_grid_3d->edge_limit(i, true);
     }
-    data_grid_svp* test_grid_fast_3d = new data_grid_svp(*test_grid_3d,true);
+    data_grid<double,3>* duplicate_3d = new data_grid<double,3>(*test_grid_3d, true) ;
+    data_grid_svp* test_grid_fast_3d = new data_grid_svp(duplicate_3d,true);
 
     double loc[3];
     loc[1] = 1.24449;
@@ -505,7 +512,14 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
     v1 = test_grid_fast_3d->interpolate( loc );
     cout << "location: (" << loc[0]-wposition::earth_radius << ", " << loc[1] << "," << loc[2] << ")" << "\tgrid: " << v0 << "\tfast_grid: " << v1 << endl;
 
-    BOOST_CHECK_CLOSE(v0, v1, 3.0);
+    BOOST_CHECK_CLOSE(v0, v1, 3.0) ;
+
+    delete test_grid_fast_3d ;
+    delete fast_grid ;
+    delete test_grid_fast ;
+    delete test_grid_3d ;
+    delete grid ;
+    delete test_grid ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
