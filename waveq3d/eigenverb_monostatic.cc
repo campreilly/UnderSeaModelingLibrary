@@ -104,7 +104,7 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az,
  * energy curve from the bottom interactions.
  */
 void eigenverb_monostatic::compute_bottom_energy() {
-    #ifndef EIGENVERB_MODEL_DEBUG
+    #ifdef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_monostatic::compute_bottom_energy()"
              << endl ;
         cout << "Number of bottom eigenverbs: " << _bottom.size() << endl ;
@@ -118,7 +118,7 @@ void eigenverb_monostatic::compute_bottom_energy() {
  * energy curve from the surface interactions.
  */
 void eigenverb_monostatic::compute_surface_energy() {
-    #ifndef EIGENVERB_MODEL_DEBUG
+    #ifdef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_monostatic::compute_surface_energy()"
              << endl ;
         cout << "Number of surface eigenverbs: " << _surface.size() << endl ;

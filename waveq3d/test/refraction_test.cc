@@ -1085,7 +1085,6 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
     seq_vector* axis[1];
     axis[0] = new seq_linear( wposition::earth_radius, -0.5, 1000 ) ;
     sound_profile = new data_grid<double,1>(axis) ;
-    delete axis[0] ;
     unsigned index[1];
     for(int i=0; i < axis[0]->size(); ++i){
         index[0] = i;
@@ -1134,6 +1133,8 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
         wave.save_netcdf();
     }
     wave.close_netcdf();
+
+    delete axis[0] ;
 }
 
 /// This test is not working as intended and therefore not yet ready

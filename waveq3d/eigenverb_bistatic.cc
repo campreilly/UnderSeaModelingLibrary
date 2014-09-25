@@ -114,7 +114,7 @@ void eigenverb_bistatic::notifyLowerCollision( unsigned de, unsigned az,
  * energy curve from the bottom interactions.
  */
 void eigenverb_bistatic::compute_bottom_energy() {
-    #ifndef EIGENVERB_MODEL_DEBUG
+    #ifdef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_bistatic::compute_bottom_energy()"
              << endl ;
         cout << "Number of source bottom verbs: " << _source_bottom.size() << endl ;
@@ -129,7 +129,7 @@ void eigenverb_bistatic::compute_bottom_energy() {
  * energy curve from the surface interactions.
  */
 void eigenverb_bistatic::compute_surface_energy() {
-    #ifndef EIGENVERB_MODEL_DEBUG
+    #ifdef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_bistatic::compute_surface_energy()"
              << endl ;
         cout << "Number of source surface verbs: " << _source_surface.size() << endl ;

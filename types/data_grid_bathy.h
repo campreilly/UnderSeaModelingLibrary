@@ -260,16 +260,7 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
         /**
          * Destructor
          */
-        virtual ~data_grid_bathy() {
-            for (unsigned n = 0; n < 2; ++n) {
-                if (_axis[n] != NULL) {
-                    delete _axis[n];
-                }
-            }
-            if (_data != NULL) {
-                delete[] _data;
-            }
-        }
+        virtual ~data_grid_bathy() {}
 
         /**
          * Overrides the interpolate function within data_grid using the

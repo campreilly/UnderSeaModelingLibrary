@@ -284,8 +284,6 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
     ax[0] = new seq_linear(1.0, 1.0, 5) ;
     ax[1] = new seq_linear(1.0, 1.0, 5) ;
     data_grid<double,2>* grid = new data_grid<double,2>(ax) ;
-    delete ax[0] ;
-    delete ax[1] ;
 
     for(int i = 0; i<2; ++i) {
 //        grid->interp_type(i, GRID_INTERP_NEAREST);
@@ -353,6 +351,8 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
 	cout << "Time to complete interpolation using fast_grid method was "
 		 << (complete-start) << " sec." << endl ;
     delete fast_grid ;
+    delete ax[0] ;
+    delete ax[1] ;
 }
 
 /**
@@ -371,8 +371,6 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
     axis[0] = new seq_linear(1.0, 1.0, N) ;
     axis[1] = new seq_linear(1.0, 1.0, N) ;
     data_grid<double,2>* test_grid = new data_grid<double,2>(axis) ;
-    delete axis[0] ;
-    delete axis[1] ;
     unsigned index[2] ;
     double vals[2] ;
     for(int i=0; i<(*axis[0]).size(); ++i) {
@@ -520,6 +518,8 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
     delete test_grid_3d ;
     delete grid ;
     delete test_grid ;
+    delete axis[0] ;
+    delete axis[1] ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
