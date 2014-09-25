@@ -115,7 +115,7 @@ void eigenverb_bistatic::notifyLowerCollision( unsigned de, unsigned az,
  */
 void eigenverb_bistatic::compute_bottom_energy() {
     #ifndef EIGENVERB_MODEL_DEBUG
-        cout << "**** Entering eigenverb_static::compute_bottom_energy()"
+        cout << "**** Entering eigenverb_bistatic::compute_bottom_energy()"
              << endl ;
         cout << "Number of source bottom verbs: " << _source_bottom.size() << endl ;
         cout << "Number of receiver bottom verbs: " << _receiver_bottom.size() << endl ;
@@ -130,7 +130,7 @@ void eigenverb_bistatic::compute_bottom_energy() {
  */
 void eigenverb_bistatic::compute_surface_energy() {
     #ifndef EIGENVERB_MODEL_DEBUG
-        cout << "**** Entering eigenverb_static::compute_surface_energy()"
+        cout << "**** Entering eigenverb_bistatic::compute_surface_energy()"
              << endl ;
         cout << "Number of source surface verbs: " << _source_surface.size() << endl ;
         cout << "Number of receiver surface verbs: " << _receiver_surface.size() << endl ;
@@ -146,7 +146,7 @@ void eigenverb_bistatic::compute_surface_energy() {
 void eigenverb_bistatic::compute_upper_volume_energy() {
     if ( _volume_boundary ) {
         #ifdef EIGENVERB_MODEL_DEBUG
-            cout << "**** Entering eigenverb_static::compute_upper_volume_energy()"
+            cout << "**** Entering eigenverb_bistatic::compute_upper_volume_energy()"
                  << endl ;
         #endif
         unsigned layer = 0 ;
@@ -170,7 +170,7 @@ void eigenverb_bistatic::compute_upper_volume_energy() {
 void eigenverb_bistatic::compute_lower_volume_energy() {
     if ( _volume_boundary ) {
         #ifdef EIGENVERB_MODEL_DEBUG
-            cout << "**** Entering eigenverb_static::compute_lower_volume_energy()"
+            cout << "**** Entering eigenverb_bistatic::compute_lower_volume_energy()"
                  << endl ;
         #endif
         unsigned layer = 0 ;

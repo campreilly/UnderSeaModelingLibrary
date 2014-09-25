@@ -135,6 +135,7 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     const char* csvname = USML_TEST_DIR "/waveq3d/test/bistatic.csv" ;
     const char* nc_source = USML_TEST_DIR "/waveq3d/test/bistatic_wave_source.nc" ;
     const char* nc_receiver = USML_TEST_DIR "/waveq3d/test/bistatic_wave_receiver.nc" ;
+    const char* ssp_file = USML_TEST_DIR "/waveq3d/test/bistatic_sound_speed.txt" ;
     double time_max = 10.0 ;
     double time_step = 0.1 ;
     double resolution = 0.1 ;
@@ -146,7 +147,6 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     const double rcvr_lat = 0.018 ;             // 2 km north of the source
     const double rcvr_lng = 0.0 ;
     const double rcvr_alt = 30.0 ;
-    const double c0 = 1500.0 ;              // constant sound speed
     const double depth = 1000.0 ;
     unsigned bins = time_max / resolution ;
     const double SL = 250.0 ;
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     // initialize propagation model
 
     attenuation_model* attn = new attenuation_constant( 0.0 ) ;
-    profile_model* profile = new profile_linear( c0, attn ) ;
+    profile_model* profile = new profile_grid<double,1>( new ascii_profile( ssp_file ), attn ) ;
 
     boundary_model* surface = new boundary_flat() ;
     surface->setScattering_Model( new scattering_lambert() ) ;
