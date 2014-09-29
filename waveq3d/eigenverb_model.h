@@ -182,12 +182,6 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
         unsigned _receiver_origin ;
 
         /**
-         * Defines the type of spreading model that is used to compute
-         * one-way TLs and sigma of each dimension.
-         */
-        spreading_model* _spreading_model ;
-
-        /**
          * Defines the type of boundary model for the bottom.
          */
         boundary_model* _bottom_boundary ;
@@ -218,33 +212,6 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
          * the energy from a contribution out in time along the curve.
          */
         vector<double> _two_way_time ;
-
-        /****/
-        vector<double> __receiver_latitude ;
-
-        /****/
-        vector<double> __receiver_longitude ;
-
-        /****/
-        vector<double> __receiver_az ;
-
-        /****/
-        vector<double> __receiver_grazing ;
-
-        /****/
-        vector<double> __Wr ;
-
-        /****/
-        vector<double> __Lr ;
-
-        /****/
-        vector<double> __receiver_loss ;
-
-        /****/
-        vector<double> __receiver_launch_az ;
-
-        /****/
-        vector<double> __receiver_time ;
 
 };
 

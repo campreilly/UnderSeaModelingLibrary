@@ -29,7 +29,6 @@ wave_queue_reverb::wave_queue_reverb(
     double pulse,
     unsigned num_bins,
     double max_time,
-    reverberation_model* reverb,
     const wposition* targets,
     spreading_type type
 ) :
@@ -45,42 +44,14 @@ wave_queue_reverb::wave_queue_reverb(
             _spreading_model = new spreading_ray( *this ) ;
             break ;
     }
-
-    // Define reverberation model
-    if ( reverb ) {
-        _reflection_model->setReverberation_Model( reverb ) ;
-    } else {
-        _reflection_model->setReverberation_Model(
-            new eigenverb_monostatic( ocean, *this, pulse, num_bins, max_time ) ) ;
-    }
-}
-
-/**
- * Used to get the type of spreading model that is being used
- * by the wavefront. This is used exclusively by reverberation
- * models.
-*/
-spreading_model* wave_queue_reverb::getSpreading_Model()
-{
-    return _spreading_model ;
-}
-
-/**
- * Used to get the type of reverberation model that is being used
- * by the wavefront. This is used exclusively by reverberation
- * models.
- */
-reverberation_model* wave_queue_reverb::getReverberation_Model()
-{
-    return _reflection_model->getReverberation_Model() ;
 }
 
 /**
  * Allows for redefinite of the reverberation model dynamically.
  */
-void wave_queue_reverb::setReverberation_Model( reverberation_model* model )
+void wave_queue_reverb::setReverberation_Model( Pointer_Manager m )
 {
-    _reflection_model->setReverberation_Model( model ) ;
+    _reflection_model->setReverberation_Model( m ) ;
 }
 
 /**
@@ -243,7 +214,7 @@ void wave_queue_reverb::collide_from_above(
     if ( !is_ray_valid(de,az) ) {
         unsigned ID = _run_id ;
         ID += layer + 1 ;
-        _reflection_model->getReverberation_Model()->notifyLowerCollision( de, az, time_water, grazing, c,
+        _reflection_model->_reverberation->notifyLowerCollision( de, az, time_water, grazing, c,
                 position,  ndirection, *this, ID ) ;
     }
 }
@@ -318,7 +289,7 @@ void wave_queue_reverb::collide_from_below(
     if ( !is_ray_valid(de,az) ) {
         unsigned ID = _run_id ;
         ID += layer + 1 ;
-        _reflection_model->getReverberation_Model()->notifyUpperCollision( de, az, time_water, grazing, c,
+        _reflection_model->_reverberation->notifyUpperCollision( de, az, time_water, grazing, c,
                 position,  ndirection, *this, ID ) ;
     }
 }

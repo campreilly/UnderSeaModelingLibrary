@@ -6,6 +6,7 @@
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/waveq3d/reverberation_model.h>
 #include <usml/waveq3d/wave_queue_reverb.h>
+#include <usml/utilities/SharedPointerManager.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -20,6 +21,7 @@ BOOST_AUTO_TEST_SUITE(reflection_test)
 using namespace boost::unit_test ;
 using namespace usml::netcdf ;
 using namespace usml::waveq3d ;
+using namespace usml::utilities ;
 using namespace boost::numeric::ublas ;
 
 /**
@@ -30,7 +32,7 @@ using namespace boost::numeric::ublas ;
 /**
  * Monitor callbacks from reflection model.
  */
-class reflection_callback : public reverberation_model {
+class reflection_callback : public usml::waveq3d::reverberation_model {
 
 public:
     int counter ;
@@ -43,7 +45,7 @@ public:
     /**
      * Initialize counter.
      */
-    reflection_callback() : counter(0), time (0.0){}
+    reflection_callback() : counter(0), time (0.0) {}
 
     virtual ~reflection_callback() {}
 
@@ -132,6 +134,9 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
     cout << "=== reflection_test: reflect_flat_test ===" << endl ;
     try {
 
+        typedef reflection_callback     test_callback ;
+        typedef SharedPointerManager<reverberation_model>    Manager ;
+
         const double src_lat = 45.0; // default to 45 degrees
 
         // initialize propagation model
@@ -153,8 +158,10 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
         const unsigned bins = 10 ;               // number of time bins
         const double max_time = 60.0 ;           // maximum travel time
 
-        reflection_callback* callback  = new reflection_callback() ;
-        wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T, bins, max_time, callback ) ;
+        wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T, bins, max_time ) ;
+        Manager test_reverb( new test_callback() ) ;
+        wave.setReverberation_Model( test_reverb ) ;
+        test_callback* callback = (test_callback*)test_reverb.getPointer() ;
         int old_counter = callback->counter ;
         double max_time_error = 0.0 ;
         double max_lat_error = 0.0 ;

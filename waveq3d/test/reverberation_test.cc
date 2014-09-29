@@ -3,6 +3,7 @@
  */
 #include <boost/test/unit_test.hpp>
 #include <usml/waveq3d/waveq3d_reverb.h>
+#include <usml/utilities/SharedPointerManager.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -13,6 +14,7 @@ BOOST_AUTO_TEST_SUITE(reverberation_test)
 
 using namespace boost::unit_test ;
 using namespace usml::waveq3d ;
+using namespace usml::utilities ;
 
 /**
  * @ingroup waveq3d_test
@@ -26,6 +28,7 @@ using namespace usml::waveq3d ;
  */
 BOOST_AUTO_TEST_CASE( monostatic ) {
     cout << "=== reverberation_test: monostatic ===" << endl;
+    typedef SharedPointerManager<reverberation_model>  Manager ;
     const char* csvname = USML_TEST_DIR "/waveq3d/test/monostatic.csv" ;
     const char* nc_wave = USML_TEST_DIR "/waveq3d/test/monostatic_wave.nc" ;
     double time_max = 7.5 ;
@@ -76,6 +79,10 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T0, bins, time_max ) ;
     wave.setID( SOURCE_ID ) ;
 
+        // Set the monostatic cache up
+    Manager monostatic( new eigenverb_monostatic( ocean, wave, T0, bins, time_max ) ) ;
+    wave.setReverberation_Model( monostatic ) ;
+
     cout << "Saving wavefront to " << nc_wave << endl ;
     wave.init_netcdf(nc_wave) ;
     wave.save_netcdf() ;
@@ -89,12 +96,12 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     wave.close_netcdf() ;
 
    // compute coherent propagation loss and write eigenrays to disk
-    eigenverb_monostatic* verb_model = (eigenverb_monostatic*)wave.getReverberation_Model() ;
+    eigenverb_monostatic* verb_model = (eigenverb_monostatic*)monostatic.getPointer() ;
     const char* eigenverb_file = "eigenverb_data.txt" ;
     cout << "writing eigenverb data to " << eigenverb_file << endl ;
     verb_model->save_eigenverbs(eigenverb_file) ;
 
-    reverberation_model* reverb = wave.getReverberation_Model() ;
+    reverberation_model* reverb = monostatic.getPointer() ;
     cout << "computing reverberation levels" << endl ;
     struct timeval time ;
     struct timezone zone ;
@@ -132,6 +139,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
  */
 BOOST_AUTO_TEST_CASE( bistatic ) {
     cout << "=== reverberation_test: bistatic ===" << endl;
+    typedef SharedPointerManager<reverberation_model>  Manager ;
     const char* csvname = USML_TEST_DIR "/waveq3d/test/bistatic.csv" ;
     const char* nc_source = USML_TEST_DIR "/waveq3d/test/bistatic_wave_source.nc" ;
     const char* nc_receiver = USML_TEST_DIR "/waveq3d/test/bistatic_wave_receiver.nc" ;
@@ -190,7 +198,7 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     wave_receiver.setID( RECEIVER_ID ) ;
 
         // Set the reverberation model to a bistatic common cache
-    reverberation_model* bistatic = new eigenverb_bistatic( ocean, wave_source, wave_receiver, T0, bins, time_max ) ;
+    Manager bistatic( new eigenverb_bistatic( ocean, wave_source, wave_receiver, T0, bins, time_max ) ) ;
     wave_source.setReverberation_Model( bistatic ) ;
     wave_receiver.setReverberation_Model( bistatic ) ;
 
@@ -213,7 +221,7 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     wave_receiver.close_netcdf() ;
 
    // compute coherent propagation loss and write eigenrays to disk
-    reverberation_model* reverb = wave_source.getReverberation_Model() ;
+    reverberation_model* reverb = bistatic.getPointer() ;
     cout << "computing reverberation levels" << endl ;
     struct timeval time ;
     struct timezone zone ;

@@ -9,6 +9,7 @@
 #include <usml/waveq3d/wave_queue_reverb.h>
 #include <usml/waveq3d/eigenverb_monostatic.h>
 #include <usml/waveq3d/eigenverb_bistatic.h>
+#include <usml/utilities/SharedPointerManager.h>
 
 namespace usml {
 namespace waveq3d {
@@ -50,12 +51,15 @@ class wave_queue_reverb ;
  * @xref S. M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
-class USML_DECLSPEC reflection_model {
+class USML_DECLSPEC reflection_model
+{
 
     friend class wave_queue ;
     friend class wave_queue_reverb ;
 
   private:
+
+    typedef usml::utilities::SharedPointerManager<reverberation_model>       Pointer_Manager ;
 
     /** Wavefront object associated with this model. */
     wave_queue& _wave ;
@@ -96,39 +100,17 @@ class USML_DECLSPEC reflection_model {
      * Hide default constructor to prohibit use by non-friends.
      */
     reflection_model( wave_queue& wave )
-    	: _wave( wave ), _reverberation(NULL),
+    	: _wave( wave ), _reverberation( NULL ),
     	  TOO_SHALLOW( 300.0 * wave._time_step )
     	{}
 
-    virtual ~reflection_model() {
-        if( _reverberation ) {
-            delete _reverberation ;
-            _reverberation = NULL ;
-        }
-    }
+    virtual ~reflection_model() {}
 
     /**
      * Sets the reverberation model
      */
-    inline void setReverberation_Model( reverberation_model* reverb ) {
-        if( _reverberation ) delete _reverberation ;
-        _reverberation = reverb ;
-    }
-
-    /**
-     * Sets the reverberation model pointer to NULL. This is to prevent
-     * a double free of memeory from the local cache of bistatic reverberation
-     * models.
-     */
-    void NullifyReverberation_Pointer() {
-        _reverberation = NULL ;
-    }
-
-    /**
-     * Gets the revereberation model pointer.
-     */
-    inline reverberation_model* getReverberation_Model() {
-        return _reverberation ;
+    inline void setReverberation_Model( Pointer_Manager m ) {
+        _reverberation = m.getPointer() ;
     }
 
     /**

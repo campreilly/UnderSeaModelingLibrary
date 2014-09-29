@@ -23,6 +23,8 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
 
     public:
 
+        typedef usml::utilities::SharedPointerManager<reverberation_model>      Pointer_Manager ;
+
         /**
          * Initialize a propagation scenario.
          *
@@ -52,7 +54,6 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
             const seq_vector& de, const seq_vector& az,
             double time_step, double pulse,
             unsigned num_bins, double max_time,
-            reverberation_model* reverb=NULL,
             const wposition* targets=NULL,
             spreading_type type=HYBRID_GAUSSIAN ) ;
 
@@ -60,25 +61,9 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
         virtual ~wave_queue_reverb() {}
 
         /**
-         * Used to get the type of spreading model that is being used
-         * by the wavefront. This is used exclusively by reverberation
-         * models.
-         * @return          pointer to the spreading model
-         */
-        spreading_model* getSpreading_Model() ;
-
-        /**
-         * Used to get the type of reverberation model that is being used
-         * by the wavefront. This is used exclusively by reverberation
-         * models.
-         * @return          pointer to the reverberation model
-         */
-        reverberation_model* getReverberation_Model() ;
-
-        /**
          * Sets the reverberation model for the wave_queue.
          */
-        void setReverberation_Model( reverberation_model* model ) ;
+        void setReverberation_Model( Pointer_Manager m ) ;
 
         /**
          * Returns the number of frequencies in _frequencies.

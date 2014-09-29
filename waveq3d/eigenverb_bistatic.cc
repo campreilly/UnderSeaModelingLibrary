@@ -16,7 +16,6 @@ eigenverb_bistatic::eigenverb_bistatic( ocean_model& ocean,
     _max_index = num_bins-1 ;
     _max_time = max_time ;
         // extract pointers to various spreading/boundary model(s)
-    _spreading_model = wave_source.getSpreading_Model() ;
     _bottom_boundary = &ocean.bottom() ;
     _surface_boundary = &ocean.surface() ;
     _volume_boundary = ocean.volume() ;

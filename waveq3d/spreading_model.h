@@ -22,27 +22,6 @@ class USML_DECLSPEC spreading_model {
 
     friend class wave_queue ;
 
-    public:
-
-        double getWidth_DE(
-            unsigned de, unsigned az, const vector<double>& offset )
-        {
-            return width_de( de, az, offset ) ;
-        }
-
-        double getWidth_AZ(
-            unsigned de, unsigned az, const vector<double>& offset )
-        {
-            return width_az( de, az, offset ) ;
-        }
-
-        const vector<double>& getIntensity(
-            const wposition1& location, unsigned de, unsigned az,
-            const vector<double>& offset, const vector<double>& distance )
-        {
-            return intensity( location, de, az, offset, distance ) ;
-        }
-
     protected:
 
         /** Wavefront object associated with this model. */
