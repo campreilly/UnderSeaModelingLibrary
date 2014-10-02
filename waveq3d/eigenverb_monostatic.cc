@@ -56,14 +56,11 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az,
     create_eigenverb( de, az, dt, grazing, speed, position, ndirection, wave, verb ) ;
         // Don't bother adding the ray it its too quiet
     if ( 1e-10 < verb.intensity(0) ) {
-        switch (ID) {
-            case SOURCE_ID:
-                _surface.push_back( verb ) ;
-                break ;
-            default:
-                unsigned layer = ID - _source_origin - 1 ;
-                _upper.at(layer).push_back( verb ) ;
-                break ;
+        if( ID == _source_origin ) {
+            _surface.push_back( verb ) ;
+        } else {
+            unsigned layer = ID - _source_origin - 1 ;
+            _upper.at(layer).push_back( verb ) ;
         }
     }
 }
@@ -86,14 +83,11 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az,
     create_eigenverb( de, az, dt, grazing, speed, position, ndirection, wave, verb ) ;
         // Don't bother adding the ray it its too quiet
     if ( 1e-10 < verb.intensity(0) ) {
-        switch (ID) {
-            case SOURCE_ID:
-                _bottom.push_back( verb ) ;
-                break ;
-            default:
-                unsigned layer = ID - _source_origin - 1 ;
-                _lower.at(layer).push_back( verb ) ;
-                break ;
+        if( ID == _source_origin ) {
+            _bottom.push_back( verb ) ;
+        } else {
+            unsigned layer = ID - _source_origin - 1 ;
+            _lower.at(layer).push_back( verb ) ;
         }
     }
 }

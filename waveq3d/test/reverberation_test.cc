@@ -151,10 +151,10 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     const double f0 = 13500.0 ;
     const double src_lat = 0.0 ;
     const double src_lng = 0.0 ;
-    const double src_alt = 8.0 ;
+    const double src_alt = -8.0 ;
     const double rcvr_lat = 0.018 ;             // 2 km north of the source
     const double rcvr_lng = 0.0 ;
-    const double rcvr_alt = 30.0 ;
+    const double rcvr_alt = -30.0 ;
     const double depth = 1000.0 ;
     unsigned bins = time_max / resolution ;
     const double SL = 250.0 ;
@@ -189,7 +189,7 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     wposition1 source( src_lat, src_lng, src_alt ) ;
     wposition1 receiver( rcvr_lat, rcvr_lng, rcvr_alt ) ;
 //    seq_rayfan de( -90.0, 0.0, 41, -15.0 ) ;
-    seq_linear de( -45.0, 0.1, 45.0 ) ;
+    seq_linear de( -45.0, 1.0, 45.0 ) ;
     seq_linear az( 0.0, 45.0, 360.0 ) ;
 
     wave_queue_reverb wave_source( ocean, freq, source, de, az, time_step ) ;
