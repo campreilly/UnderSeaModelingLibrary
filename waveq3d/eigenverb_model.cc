@@ -38,9 +38,7 @@ void eigenverb_model::create_eigenverb( unsigned de, unsigned az,
     vector<double> boundary_loss = pow( 10.0, -0.1 * wave.curr()->getAttenuation(de,az) ) ;
     verb.intensity = element_prod( amp, boundary_loss ) ;
 
-    double mu_half1 = M_PI * ( wave.source_de(de-1) + wave.source_de(de) ) / 360.0 ;
-    double mu_half2 = M_PI * ( wave.source_de(de) + wave.source_de(de+1) ) / 360.0 ;
-    double delta_de = mu_half2 - mu_half1 ;
+    double delta_de = M_PI * ( wave.source_de(de+1) - wave.source_de(de-1) ) / 360.0  ;
     verb.sigma_de = true_distance * delta_de / sin(grazing) ;
     double delta_az = M_PI * ( wave.source_az(az) - wave.source_az(az+1) ) / 360.0 ;
     verb.sigma_az = delta_az * cos(grazing) * true_distance ;   // horizontal distance * azimuthal spacing

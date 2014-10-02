@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     seq_linear de( -90.0, -1.0, 45, true ) ;
     seq_linear az( 0.0, 45.0, 360.0 ) ;
 
-    wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T0, bins, time_max ) ;
+    wave_queue_reverb wave( ocean, freq, pos, de, az, time_step ) ;
     wave.setID( SOURCE_ID ) ;
 
         // Set the monostatic cache up
@@ -189,11 +189,11 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     wposition1 source( src_lat, src_lng, src_alt ) ;
     wposition1 receiver( rcvr_lat, rcvr_lng, rcvr_alt ) ;
 //    seq_rayfan de( -90.0, 0.0, 41, -15.0 ) ;
-    seq_linear de( -90.0, 90.0, 91, true ) ;
+    seq_linear de( -45.0, 0.1, 45.0 ) ;
     seq_linear az( 0.0, 45.0, 360.0 ) ;
 
-    wave_queue_reverb wave_source( ocean, freq, source, de, az, time_step, T0, bins, time_max ) ;
-    wave_queue_reverb wave_receiver( ocean, freq, receiver, de, az, time_step, T0, bins, time_max ) ;
+    wave_queue_reverb wave_source( ocean, freq, source, de, az, time_step ) ;
+    wave_queue_reverb wave_receiver( ocean, freq, receiver, de, az, time_step ) ;
     wave_source.setID( SOURCE_ID ) ;
     wave_receiver.setID( RECEIVER_ID ) ;
 
