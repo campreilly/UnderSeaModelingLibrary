@@ -38,7 +38,7 @@ echo
 if [ -e $DEVEL_RPM_PATH$DEVEL_RPM_NAME ]; then
   rm $DEVEL_RPM_PATH$DEVEL_RPM_NAME
 fi
-#rpmbuild -bb $SPEC_FILE_PATH$SPEC_DEVEL_FILE_NAME
+rpmbuild -bb $SPEC_FILE_PATH$SPEC_DEVEL_FILE_NAME
 
 ###############################################
 #  Install the devel rpm
