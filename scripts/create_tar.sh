@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export VERSION=0.05.5
+export VERSION=0.5.6
 export NAME=usml
 
 if [ -d /var/tmp/$NAME ]; then 
