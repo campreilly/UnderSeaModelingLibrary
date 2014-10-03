@@ -154,11 +154,9 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
         seq_linear de( -5.183617057, 0.0, 1 ) ;  // steer down
         seq_linear az( 0.0, 0.0, 1 ) ;           // north
         const double time_step = 0.1 ;           // 100 msec
-        const double T = 0.1 ;                   // pulse length, 100 msec
-        const unsigned bins = 10 ;               // number of time bins
         const double max_time = 60.0 ;           // maximum travel time
 
-        wave_queue_reverb wave( ocean, freq, pos, de, az, time_step, T, bins, max_time ) ;
+        wave_queue_reverb wave( ocean, freq, pos, de, az, time_step ) ;
         Manager test_reverb( new test_callback() ) ;
         wave.setReverberation_Model( test_reverb ) ;
         test_callback* callback = (test_callback*)test_reverb.getPointer() ;

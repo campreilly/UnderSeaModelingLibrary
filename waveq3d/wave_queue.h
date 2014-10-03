@@ -8,7 +8,6 @@
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/eigenrayListener.h>
-#include <usml/utilities/SharedPointerManager.h>
 #include <netcdfcpp.h>
 
 namespace usml {
@@ -20,7 +19,6 @@ class spreading_model ;
 class spreading_ray ;
 class spreading_hybrid_gaussian ;
 class eigenrayListener ;
-class reverberation_model ;
 
 /// @ingroup waveq3d
 /// @{
@@ -72,7 +70,6 @@ class USML_DECLSPEC wave_queue {
      * Type of spreading model to be used.
      */
     typedef enum { CLASSIC_RAY, HYBRID_GAUSSIAN } spreading_type ;
-    typedef usml::utilities::SharedPointerManager<reverberation_model>       Pointer_Manager ;
 
     //**************************************************
     // methods

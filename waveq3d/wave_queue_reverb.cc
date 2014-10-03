@@ -26,13 +26,10 @@ wave_queue_reverb::wave_queue_reverb(
     const seq_vector& de,
     const seq_vector& az,
     double time_step,
-    double pulse,
-    unsigned num_bins,
-    double max_time,
     const wposition* targets,
     spreading_type type
 ) :
-    wave_queue(ocean, freq, pos, de, az, time_step, targets, SOURCE_ID, type),
+    wave_queue(ocean, freq, pos, de, az, time_step, targets),
     _invalid_ray( de.size(), az.size() )
 {
     // Define spreading model
@@ -43,6 +40,19 @@ wave_queue_reverb::wave_queue_reverb(
         default :
             _spreading_model = new spreading_ray( *this ) ;
             break ;
+    }
+
+    // prevent certain points on the wavefront from producing eigenverbs
+    // this is to prevent out of bounds errors on the de/az vectors.
+    _invalid_ray.clear() ;
+    const unsigned max_de = num_de() - 1 ;
+    const unsigned max_az = num_az() - 1 ;
+    for(unsigned i=0; i<num_az(); ++i) {
+        _invalid_ray( 0, i ) = true ;
+        _invalid_ray( max_de, i ) = true ;
+    }
+    for(unsigned i=0; i<num_de(); ++i) {
+        _invalid_ray( i, max_az ) = true ;
     }
 }
 
@@ -94,28 +104,12 @@ void wave_queue_reverb::detect_reflections() {
 }
 
 void wave_queue_reverb::mark_invalid_rays() {
-    _invalid_ray.clear() ;
     const unsigned max_de = num_de() - 1 ;
     const unsigned max_az = num_az() - 1 ;
-    if ( 0 < _time ) {
-        for(unsigned i=0; i<num_az(); ++i) {
-            _invalid_ray( 0, i ) = true ;
-            _invalid_ray( max_de, i ) = true ;
-        }
-        for(unsigned i=0; i<num_de(); ++i) {
-            _invalid_ray( i, max_az ) = true ;
-        }
-            // artificially limit the valid rays by the number of boundary interactions
-        for(unsigned i=1; i<max_de; ++i) {
-            for(unsigned j=0; j<max_az; ++j) {
-                if ( (_curr->bottom(i,j) > 2) && (_curr->surface(i,j) > 2) ) {
-                    _invalid_ray( i, j ) = true ;
-                }
-            }
-        }
-    } else {
-        for(unsigned i=0; i<num_de(); ++i) {
-            for(unsigned j=0; j<num_az(); ++j) {
+        // artificially limit the valid rays by the number of boundary interactions
+    for(unsigned i=1; i<max_de; ++i) {
+        for(unsigned j=0; j<max_az; ++j) {
+            if ( (_curr->bottom(i,j) > 2) && (_curr->surface(i,j) > 2) ) {
                 _invalid_ray( i, j ) = true ;
             }
         }

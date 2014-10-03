@@ -60,17 +60,20 @@ void eigenverb_bistatic::notifyUpperCollision( unsigned de, unsigned az,
     create_eigenverb( de, az, dt, grazing, speed, position, ndirection, wave, verb ) ;
         // Don't bother adding the ray it its too quiet
     if ( 1e-20 < verb.intensity(0) ) {
-        switch (ID) {
-            // Interactions from the volume reverberation will use
-            // IDs to distinguish where they will be cataloged to.
-            case SOURCE_ID:
-                _source_surface.push_back( verb ) ;
-                break ;
-            case RECEIVER_ID:
-                _receiver_surface.push_back( verb ) ;
-                break ;
-            default:
-                break ;
+        if( ID == _source_origin ) {
+            _source_surface.push_back( verb ) ;
+        } else
+        if( ID == _receiver_origin ) {
+            _receiver_surface.push_back( verb ) ;
+        } else {
+            unsigned layer ;
+            if( ID > _receiver_origin ) {
+                layer = ID - _receiver_origin - 1 ;
+                _receiver_upper.at(layer).push_back( verb ) ;
+            } else {
+                layer = ID - _source_origin - 1 ;
+                _source_upper.at(layer).push_back( verb ) ;
+            }
         }
     }
 }
@@ -93,17 +96,20 @@ void eigenverb_bistatic::notifyLowerCollision( unsigned de, unsigned az,
     create_eigenverb( de, az, dt, grazing, speed, position, ndirection, wave, verb ) ;
         // Don't bother adding the ray it its too quiet
     if ( 1e-20 < verb.intensity(0) ) {
-        switch (ID) {
-            // Interactions from the volume reverberation will use
-            // IDs to distinguish where they will be cataloged to.
-            case SOURCE_ID:
-                _source_bottom.push_back( verb ) ;
-                break ;
-            case RECEIVER_ID:
-                _receiver_bottom.push_back( verb ) ;
-                break ;
-            default:
-                break ;
+        if( ID == _source_origin ) {
+            _source_bottom.push_back( verb ) ;
+        } else
+        if( ID == _receiver_origin ) {
+            _receiver_bottom.push_back( verb ) ;
+        } else {
+            unsigned layer ;
+            if( ID > _receiver_origin ) {
+                layer = ID - _receiver_origin - 1 ;
+                _receiver_lower.at(layer).push_back( verb ) ;
+            } else {
+                layer = ID - _source_origin - 1 ;
+                _source_lower.at(layer).push_back( verb ) ;
+            }
         }
     }
 }

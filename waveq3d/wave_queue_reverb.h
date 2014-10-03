@@ -7,6 +7,7 @@
 
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/reverberation_model.h>
+#include <usml/utilities/SharedPointerManager.h>
 
 namespace usml {
 namespace waveq3d {
@@ -39,9 +40,6 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          *                      Ray fans that wrap around all azimuths should
          *                      include rays for both 0 and 360 degrees.
          * @param  time_step    Propagation step size (seconds).
-         * @param  pulse        Pulse length of the signal (seconds).
-         * @param  num_bins     Number of time bins on the reverberation curce.
-         * @param  max_time     Maximum listening time for reverberation (seconds).
          * @param  reverb       Pointer to reverberation model used for this wave_queue
          * @param  targets      List of acoustic targets.
          * @param  type         Type of spreading model to use: CLASSIC_RAY
@@ -51,9 +49,9 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
             ocean_model& ocean,
             const seq_vector& freq,
             const wposition1& pos,
-            const seq_vector& de, const seq_vector& az,
-            double time_step, double pulse,
-            unsigned num_bins, double max_time,
+            const seq_vector& de,
+            const seq_vector& az,
+            double time_step,
             const wposition* targets=NULL,
             spreading_type type=HYBRID_GAUSSIAN ) ;
 
