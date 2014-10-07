@@ -48,12 +48,14 @@ if [ -d %{buildroot} ]; then
 fi
 
 #Create the Directories
+mkdir -p %{buildroot}%{prefix}/include/usml
 mkdir -p %{buildroot}%{prefix}/include/usml/netcdf
 mkdir -p %{buildroot}%{prefix}/include/usml/ocean
 mkdir -p %{buildroot}%{prefix}/include/usml/types
 mkdir -p %{buildroot}%{prefix}/include/usml/ublas
 mkdir -p %{buildroot}%{prefix}/include/usml/waveq3d
 
+install -m 0644 $RPM_BUILD_DIR/usml/usml_config.h %{buildroot}%{prefix}/include/usml/.
 install -m 0644 $RPM_BUILD_DIR/usml/netcdf/*.h %{buildroot}%{prefix}/include/usml/netcdf/.
 install -m 0644 $RPM_BUILD_DIR/usml/ocean/*.h %{buildroot}%{prefix}/include/usml/ocean/.
 install -m 0644 $RPM_BUILD_DIR/usml/types/*.h %{buildroot}%{prefix}/include/usml/types/.
