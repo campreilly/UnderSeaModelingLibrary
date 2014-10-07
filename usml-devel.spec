@@ -83,7 +83,7 @@ install -m 0644 $RPM_BUILD_DIR/usml/config/*.hpp %{buildroot}%{boost_devel_locat
 #################### Files - Verify Files are installed  #########################################
 
 %files
-%defattr(644, root, root)
+%defattr(-,safuser,users)
 
 #verify the directories and files
 %dir %{prefix}/include/usml

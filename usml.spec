@@ -112,7 +112,7 @@ cd $RPM_INSTALL_PREFIX/lib
 #################### Files - Verify Files are installed  #########################################
 
 %files
-%defattr(644, root, root) 
+%defattr(-,safuser,users)
 
 ####################################### Verify #############################
 #verify the Under Sea Modeling Library
