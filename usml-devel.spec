@@ -31,10 +31,11 @@ This will install the devel headers for the usml and overlad two boost header fi
 
 %build
 
+# Does Not work unless defattr(644, root, root) below
 # Needed for boost header files that require a patch
 # boost/numeric/ublas/matrix_expression.hpp
 # boost/numeric/ublas/vector_expression.hpp
-%define boost_devel_location %(rpm -ql boost-devel | head -n 1)
+#%define boost_devel_location %(rpm -ql boost-devel | head -n 1)
 
 
 #################### INSTALL STEP  #######################################################
@@ -52,7 +53,6 @@ mkdir -p %{buildroot}%{prefix}/include/usml/ocean
 mkdir -p %{buildroot}%{prefix}/include/usml/types
 mkdir -p %{buildroot}%{prefix}/include/usml/ublas
 mkdir -p %{buildroot}%{prefix}/include/usml/waveq3d
-mkdir -p %{buildroot}%{boost_devel_location}/numeric/ublas
 
 install -m 0644 $RPM_BUILD_DIR/usml/netcdf/*.h %{buildroot}%{prefix}/include/usml/netcdf/.
 install -m 0644 $RPM_BUILD_DIR/usml/ocean/*.h %{buildroot}%{prefix}/include/usml/ocean/.
@@ -60,7 +60,7 @@ install -m 0644 $RPM_BUILD_DIR/usml/types/*.h %{buildroot}%{prefix}/include/usml
 install -m 0644 $RPM_BUILD_DIR/usml/ublas/*.h %{buildroot}%{prefix}/include/usml/ublas/.
 install -m 0644 $RPM_BUILD_DIR/usml/waveq3d/*.h %{buildroot}%{prefix}/include/usml/waveq3d/.
 
-install -m 0644 $RPM_BUILD_DIR/usml/config/*.hpp %{buildroot}%{boost_devel_location}/numeric/ublas/.
+#install -m 0644 $RPM_BUILD_DIR/usml/config/*.hpp %{buildroot}%{boost_devel_location}/numeric/ublas/.
 
 
 #################### Clean - Clean Up Phase  #####################################################
@@ -84,12 +84,13 @@ install -m 0644 $RPM_BUILD_DIR/usml/config/*.hpp %{buildroot}%{boost_devel_locat
 
 %files
 %defattr(-,safuser,users)
+#%defattr(644,root,root)
+
 
 #verify the directories and files
 %dir %{prefix}/include/usml
 %{prefix}/include/usml/*
-%dir %{boost_devel_location}/numeric/ublas/
-%{boost_devel_location}/numeric/ublas/*
+#%{boost_devel_location}/numeric/ublas/*
 
 
 ###################  Changelog #############
