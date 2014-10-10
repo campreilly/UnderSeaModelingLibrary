@@ -9,9 +9,9 @@ SCRIPT_FILE_PATH="./"
 SPEC_FILE_PATH="../"
 SPEC_FILE_NAME="usml.spec"
 SPEC_DEVEL_FILE_NAME="usml-devel.spec"
-RPM_NAME=`cat $SPEC_FILE_PATH$SPEC_FILE_NAME | grep Name: | sed s/^.*'\+ '//`
-DEVEL_RPM_VERSION=`cat $SPEC_FILE_PATH$SPEC_DEVEL_FILE_NAME | grep Version: | sed s/^.*": "//`
-DEVEL_RPM_RELEASE=`cat $SPEC_FILE_PATH$SPEC_DEVEL_FILE_NAME | grep Release: | sed s/^.*": "// | sed s/%{?dist}//`
+RPM_NAME=`cat $SPEC_FILE_PATH$SPEC_FILE_NAME | grep Name: | sed s/^.*": "// | sed 's/\s*$//g'`
+DEVEL_RPM_VERSION=`cat $SPEC_FILE_PATH$SPEC_DEVEL_FILE_NAME | grep Version: | sed s/^.*": "// | sed 's/\s*$//g'`
+DEVEL_RPM_RELEASE=`cat $SPEC_FILE_PATH$SPEC_DEVEL_FILE_NAME | grep Release: | sed s/^.*": "// | sed s/%{?dist}// | sed 's/\s*$//g'`
 DEVEL_RPM_PATH="~/rpmbuild/SRPMS/"
 DEVEL_RPM_NAME="$RPM_NAME-$DEVEL_RPM_VERSION-$DEVEL_RPM_RELEASE.el6.devel.rpm"
 

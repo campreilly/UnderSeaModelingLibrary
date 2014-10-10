@@ -102,6 +102,6 @@ install -m 0644 $RPM_BUILD_DIR/usml/waveq3d/*.h %{buildroot}%{prefix}/include/us
 Version 0.5.6
 	- Added boost header files that require a patch for usml to build
 * Thu Sep 25 2014 Scott Stallard <scott.stallard@navy.mil> 
-Version 0.5.6
+Version 0.5.5
 	- Created this install program for the usml-devel headers
 

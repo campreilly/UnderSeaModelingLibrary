@@ -1,6 +1,6 @@
 Summary:  The goal of this program is to package the USML files for delivery.  This spec file will generate an .rpm file after having the rpmbuild (-ba) command used upon it.
 
-Name:  usml 
+Name: usml
 Version: 0.5.6
 Release: 0%{dist}
 Source: usml-%{version}.tgz
