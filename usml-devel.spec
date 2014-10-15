@@ -1,7 +1,7 @@
 Summary:  The goal of this program is to be able to install the Under Sea Modeling Library (usml) devel files.
 
 Name:  usml-devel
-Version: 0.5.6
+Version: 0.5.7
 Release: 0%{dist}
 Source: usml-%{version}.tgz
 License: BSD 2
@@ -98,6 +98,9 @@ install -m 0644 $RPM_BUILD_DIR/usml/waveq3d/*.h %{buildroot}%{prefix}/include/us
 ###################  Changelog #############
 
 %changelog
+* Thu Oct 15 2014 Ted Burns, AEgis Technologies<tburns@aegistg.com>
+Version 0.5.7
+	- Added parameter to data_grid_mackenzie.constuct method to prevent deletion of temp & sal.
 * Thu Oct 2 2014 Ted Burns, AEgis Technologies<tburns@aegistg.com>
 Version 0.5.6
 	- Added boost header files that require a patch for usml to build

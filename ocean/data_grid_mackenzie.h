@@ -67,11 +67,13 @@ class data_grid_mackenzie {
      *
      * @param temperature   Ocean temperature profile (degrees C).
      * @param salinity      Ocean salinity profile (ppt).
+     * @param clean_up      Delete passed in temperature and salinity objects
      *
      */
     static data_grid<double,3>* construct(
         const data_grid<double,3>* temperature,
-        const data_grid<double,3>* salinity )
+        const data_grid<double,3>* salinity,
+        bool clean_up=true )
     {
         data_grid<double,3>* ssp = new data_grid<double,3>(*temperature,false) ;
         ssp->interp_type(0,GRID_INTERP_PCHIP) ;
@@ -102,8 +104,10 @@ class data_grid_mackenzie {
                 }
             }
         }
-        delete temperature ;
-        delete salinity ;
+        if (clean_up) {
+        	delete temperature ;
+        	delete salinity ;
+        }
         return ssp ;
     }
 

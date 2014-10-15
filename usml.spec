@@ -1,7 +1,7 @@
 Summary:  The goal of this program is to package the USML files for delivery.  This spec file will generate an .rpm file after having the rpmbuild (-ba) command used upon it.
 
 Name: usml
-Version: 0.5.6
+Version: 0.5.7
 Release: 0%{dist}
 Source: usml-%{version}.tgz
 Group: Development/Libraries
@@ -126,6 +126,9 @@ cd $RPM_INSTALL_PREFIX/lib
 ###################  Changelog #############
 
 %changelog
+* Thu Oct 15 2014 Ted Burns, AEgis Technologies<tburns@aegistg.com>
+Version 0.5.7
+	- Added parameter to data_grid_mackenzie.constuct method to prevent deletion of temp & sal.
 * Thu Oct 2 2014 Ted Burns, AEgis Technologies<tburns@aegistg.com>
 Version 0.5.6
 	- Updated for new distribution with Reverb.
