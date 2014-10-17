@@ -686,26 +686,19 @@ void wave_queue::build_eigenray(
     const vector<double> spread_intensity =
         _spreading_model->intensity(
             wposition1( *(_curr->targets), t1, t2 ), de, az, offset, distance );
-    if ( boost::math::isnan(spread_intensity(0)) ) {
-        #ifdef DEBUG_EIGENRAYS
-            std::cerr << "warning: wave_queue::build_eigenray()"  << endl
-                      << "\tignores eigenray because intensity is NaN" << endl
-                      << "\tt1=" << t1 << " t2=" << t2
-                      << " de=" << de << " az=" << az << endl ;
-        #endif
-        return ;
-    } else if ( spread_intensity(0) <= 1e-20 ) {
-        #ifdef DEBUG_EIGENRAYS
-            std::cerr << "warning: wave_queue::build_eigenray()" << endl
-                      << "\tignores eigenray because intensity is "
-                      << spread_intensity(0) << endl
-                      << "\tt1=" << t1 << " t2=" << t2
-                      << " de=" << de << " az=" << az << endl ;
-        #endif
-        return ;
+    for ( unsigned int i = 0; i < ray.intensity.size(); ++i) {
+        if ( boost::math::isnan(spread_intensity(i)) ) {
+            #ifdef DEBUG_EIGENRAYS
+                std::cerr << "warning: wave_queue::build_eigenray()"  << endl
+                          << "\tignores eigenray because intensity is NaN" << endl
+                          << "\tt1=" << t1 << " t2=" << t2
+                          << " de=" << de << " az=" << az << endl ;
+            #endif
+            return ;
+        }
     }
 
-    ray.intensity = -10.0 * log10( spread_intensity ) ; // positive value
+    ray.intensity = -10.0 * log10( max(spread_intensity,1e-30) ) ; // positive value
 
     // compute attenuation components of intensity
 
@@ -742,8 +735,6 @@ void wave_queue::build_eigenray(
 		#endif
 		return ;
 	}
-
-
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles

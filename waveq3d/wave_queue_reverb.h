@@ -85,13 +85,13 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          */
         matrix<bool> _invalid_ray ;
 
-        /**
-         * Marks all rays to either be valid rays to contribute to reverberation levels
-         * or not. All rays at time zero are invalid because of the zero distance between
-         * them initially, and after time zero, only rays that are _source_de(0), last
-         * two _source_de's and last two _source_az's.
-         */
-        void mark_invalid_rays() ;
+//        /**
+//         * Marks all rays to either be valid rays to contribute to reverberation levels
+//         * or not. All rays at time zero are invalid because of the zero distance between
+//         * them initially, and after time zero, only rays that are _source_de(0), last
+//         * two _source_de's and last two _source_az's.
+//         */
+//        void mark_invalid_rays() ;
 
         /**
          * Detect and process boundary reflections and caustics.  Loops through all

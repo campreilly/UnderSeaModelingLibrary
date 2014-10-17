@@ -148,13 +148,13 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     double time_step = 0.1 ;
     double resolution = 0.1 ;
     double T0 = 1.0 ;                 // Pulse length
-    const double f0 = 13500.0 ;
+    const double f0 = 1000.0 ;
     const double src_lat = 0.0 ;
     const double src_lng = 0.0 ;
-    const double src_alt = -8.0 ;
+    const double src_alt = -50.0 ;
     const double rcvr_lat = 0.018 ;             // 2 km north of the source
     const double rcvr_lng = 0.0 ;
-    const double rcvr_alt = -30.0 ;
+    const double rcvr_alt = -50.0 ;
     const double depth = 1000.0 ;
     unsigned bins = time_max / resolution ;
     const double SL = 250.0 ;
@@ -188,8 +188,7 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     seq_log freq( f0, 1.0, 1 );
     wposition1 source( src_lat, src_lng, src_alt ) ;
     wposition1 receiver( rcvr_lat, rcvr_lng, rcvr_alt ) ;
-//    seq_rayfan de( -90.0, 0.0, 41, -15.0 ) ;
-    seq_linear de( -45.0, 1.0, 45.0 ) ;
+    seq_linear de( -90.0, 1.0, 90.0 ) ;
     seq_linear az( 0.0, 45.0, 360.0 ) ;
 
     wave_queue_reverb wave_source( ocean, freq, source, de, az, time_step ) ;
@@ -251,7 +250,111 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
            << endl ;
     }
 }
-/// @}
 
+BOOST_AUTO_TEST_CASE( shallow_waveguide ) {
+    cout << "=== reverberation_test: shallow_waveguide ===" << endl;
+    typedef SharedPointerManager<reverberation_model>  Manager ;
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/shallow_waveguide.csv" ;
+    double time_max = 3.1 ;
+    double time_step = 0.1 ;
+    double resolution = 0.1 ;
+    double T0 = 0.25 ;                 // Pulse length
+    const double f0 = 250.0 ;
+    const double src_lat = 0.0 ;
+    const double src_lng = 0.0 ;
+    const double src_alt = -15.0 ;
+    const double rcvr_lat = 0.0 ;             // 2 km north of the source
+    const double rcvr_lng = 0.0 ;
+    const double rcvr_alt = -25.0 ;
+    const double depth = 50.0 ;
+    unsigned bins = time_max / resolution ;
+
+    // geophysical parameters
+    double c0 = 1500.0 ;
+    double water_rho = 1024.0 ;
+    double btm_density = 2048.0 ;
+    double btm_speed = 1700.0 ;
+    double btm_attenuation = 0.5 ;
+    double water[] = { water_rho, c0 } ;
+
+    // initialize propagation model
+    attenuation_model* attn = new attenuation_thorp() ;
+    profile_model* profile = new profile_linear( c0, attn ) ;
+
+    boundary_model* surface = new boundary_flat() ;
+    surface->setScattering_Model( new scattering_lambert() ) ;
+
+    reflect_loss_model* btm_rflt =
+        new reflect_loss_rayleigh( water, btm_density, btm_speed, btm_attenuation ) ;
+    boundary_model* bottom = new boundary_flat( depth, btm_rflt ) ;
+    bottom->setScattering_Model( new scattering_lambert() ) ;
+
+    // create a simple volume layer
+//    boundary_model* v1 = new boundary_flat( 100.0 ) ;
+//    v1->setScattering_Model( new scattering_lambert() ) ;
+//    vector<boundary_model*> v(1) ;
+//    v[0] = v1 ;
+//    volume_layer* volume = new volume_layer( v ) ;
+//
+//    ocean_model ocean( surface, bottom, profile, volume ) ;
+    ocean_model ocean( surface, bottom, profile ) ;
+
+    seq_log freq( f0, 1.0, 1 );
+    wposition1 source( src_lat, src_lng, src_alt ) ;
+    wposition1 receiver( rcvr_lat, rcvr_lng, rcvr_alt ) ;
+    seq_linear de( -90.0, 1.0, 90.0 ) ;
+    seq_linear az( 0.0, 45.0, 360.0 ) ;
+
+    wave_queue_reverb wave_source( ocean, freq, source, de, az, time_step ) ;
+    wave_queue_reverb wave_receiver( ocean, freq, receiver, de, az, time_step ) ;
+    wave_source.setID( SOURCE_ID ) ;
+    wave_receiver.setID( RECEIVER_ID ) ;
+
+        // Set the reverberation model to a bistatic common cache
+    Manager bistatic( new eigenverb_bistatic( ocean, wave_source, wave_receiver, T0, bins, time_max ) ) ;
+    wave_source.setReverberation_Model( bistatic ) ;
+    wave_receiver.setReverberation_Model( bistatic ) ;
+
+    // propagate wave_queues
+
+    cout << "propagate wavefront for " << time_max << " seconds" << endl ;
+    while ( wave_source.time() < time_max && wave_receiver.time() < time_max ) {
+        wave_source.step() ;
+        wave_receiver.step() ;
+    }
+
+   // compute coherent propagation loss and write eigenrays to disk
+    reverberation_model* reverb = bistatic.getPointer() ;
+    cout << "computing reverberation levels" << endl ;
+    struct timeval time ;
+    struct timezone zone ;
+    gettimeofday( &time, &zone ) ;
+    double start = time.tv_sec + time.tv_usec * 1e-6 ;
+    reverb->compute_reverberation() ;
+    gettimeofday( &time, &zone ) ;
+    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
+    cout << "Computation of reverberation curve took "
+         << (complete-start) << " sec."
+         << endl ;
+
+    cout << "writing reverberation curve to " << csvname << endl;
+    std::ofstream os(csvname);
+    os << "time,intensity" << endl ;
+    os << std::setprecision(18);
+    cout << std::setprecision(18);
+
+    const vector<double> reverb_tl = reverb->getReverberation_curve() ;
+    vector<double> r = 10.0*log10(reverb_tl) ;
+    for ( unsigned i=0; i < bins; ++i ) {
+        if( i % 10 == 0 ) {
+            cout << "reverb_level(" << i << "): " << r(i) << endl ;
+        }
+        os << ( i * time_max / bins )
+           << "," << r(i)
+           << endl ;
+    }
+}
+
+/// @}
 BOOST_AUTO_TEST_SUITE_END()
 

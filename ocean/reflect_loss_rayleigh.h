@@ -131,6 +131,22 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
             double speed_shear=0.0, double att_shear=0.0 ) ;
 
         /**
+         * Initialize model with impedance mis-match factors.
+         *
+         * @param water         Geophysical properties of water, first
+         *                      entry is density, second is speed
+         * @param density       Density of the bottom
+         * @param speed         Compressional sound speed in the bottom
+         * @param att_bottom    Compressional wave attenuation in bottom
+         *                      (dB/wavelength).  No attenuation if this is zero.
+         * @param speed_shear   Shear wave sound speed in the bottom
+         * @param att_shear     Shear wave attenuation in bottom (dB/wavelength).
+         */
+        reflect_loss_rayleigh( double* water,
+            double density, double speed, double att_bottom=0.0,
+            double speed_shear=0.0, double att_shear=0.0 ) ;
+
+        /**
          * Computes the broadband reflection loss and phase change for a
          * single location.
          *

@@ -59,15 +59,13 @@ void eigenverb_model::create_eigenverb( unsigned de, unsigned az,
 void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb* v )
 {
         // determine the relative angle and distance between the projected gaussians
-    double de1 ;
-    double az1 ;
-    u->direction.direction( &de1, &az1 ) ;
-    double de2 ;
-    double az2 ;
-    v->direction.direction( &de2, &az2 ) ;
-    double alpha = abs( az2 - az1 ) ;
-    double xs = abs( v->position.longitude() - u->position.longitude() ) * 1852.0 * 60.0 ;
-    double ys = abs( v->position.latitude() - u->position.latitude() ) * 1852.0 * 60.0 ;
+    double alpha, chi, beta, dummy ;
+    u->direction.direction( &dummy, &chi ) ;
+    v->direction.direction( &dummy, &beta ) ;
+    alpha = beta - chi ;
+    double range = v->position.gc_range( v->position ) ;
+    double xs = range * cos( alpha ) ;
+    double ys = range * sin( alpha ) ;
 
         // Compute the intersection of the gaussian profiles
     double Wr = v->sigma_az ;

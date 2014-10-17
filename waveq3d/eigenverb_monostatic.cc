@@ -169,12 +169,21 @@ void eigenverb_monostatic::compute_lower_volume_energy() {
  */
 void eigenverb_monostatic::convolve_eigenverbs( std::vector<eigenverb>* set )
 {
+    double a, b, r ;
+    double lat1, lat2 ;
+    double k = 1852.0 * 60.0 ;
     for(std::vector<eigenverb>::iterator i=set->begin();
             i!=set->end(); ++i)
     {
         for(std::vector<eigenverb>::iterator j=set->begin();
                 j!=set->end(); ++j)
         {
+            lat1 = i->position.latitude() ;
+            lat2 = j->position.latitude() ;
+            a = ( lat1 - lat2 ) * k ;
+            b = ( j->position.longitude() - i->position.longitude() ) * k * cos(0.5*(lat2+lat1)) ;
+            r = a*a + b*b ;
+            if( r == 0 ) continue ;
             compute_contribution( &(*i), &(*j) ) ;
         }
     }
