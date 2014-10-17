@@ -1,7 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 
-export VERSION=0.05.5
-export NAME=usml
+SPEC_FILE_PATH="../"
+SPEC_FILE_NAME="usml.spec"
+NAME=`cat $SPEC_FILE_PATH$SPEC_FILE_NAME | grep Name: | sed s/^.*": "// | sed 's/\s*$//g'`
+VERSION=`cat $SPEC_FILE_PATH$SPEC_FILE_NAME | grep Version: | sed s/^.*": "// | sed 's/\s*$//g'`
 
 if [ -d /var/tmp/$NAME ]; then 
 	rm -Rf /var/tmp/$NAME
@@ -10,7 +12,7 @@ fi
 cd ../..
 
 # Copy only src related items
-rsync -r --exclude '.metadata' --exclude '.settings' --exclude 'data' --exclude '.git*' --exclude 'doc' --exclude 'matlab' --exclude '*~' --exclude 'make_*' --copy-links $NAME /var/tmp
+rsync -r --exclude '.metadata' --exclude '.settings' --exclude 'data' --exclude '.git*' --exclude 'doc' --exclude 'html' --exclude 'matlab' --exclude '*~' --exclude 'make_*' --copy-links $NAME /var/tmp
 
 # Copy usml-release dir also
 rsync -r --exclude '.metadata' --exclude '.settings' --exclude 'data' --exclude '.git*' --exclude 'doc' --exclude 'matlab' --exclude '*~' --copy-links $NAME-release /var/tmp/$NAME
@@ -28,14 +30,12 @@ cd ..
 
 cd /var/tmp
 
-echo "Creating $NAME.tgz" 
+echo "Creating $NAME-$VERSION.tgz" 
 
-tar -czf $NAME.tgz $NAME
+tar -czf $NAME-$VERSION.tgz $NAME
 
 echo "Copying $NAME-$VERSION.tgz to ~/rpmbuild/SOURCES" 
-cp $NAME.tgz ~/rpmbuild/SOURCES
-cp ~/rpmbuild/SOURCES/$NAME.tgz ~/rpmbuild/SOURCES/$NAME-$VERSION.tgz
+cp $NAME-$VERSION.tgz ~/rpmbuild/SOURCES
 rm -rf /var/tmp/$NAME
-rm $NAME.tgz
 
 echo "Complete"

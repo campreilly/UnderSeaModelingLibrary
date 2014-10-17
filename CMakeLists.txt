@@ -18,7 +18,8 @@ project( usml CXX )
 
 set( PACKAGE_VERSION_MAJOR 0 )
 set( PACKAGE_VERSION_MINOR 5 )
-set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR} )
+set( PACKAGE_VERSION_DIST 6 )
+set( PACKAGE_VERSION ${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}.${PACKAGE_VERSION_DIST} )
 set( PACKAGE_MODULES ublas types netcdf ocean waveq3d)
 set( NETCDF_NCKS /usr/bin/ncks )
 
@@ -120,7 +121,7 @@ else ()
 endif ( BUILD_SHARED_LIBS OR Boost_FORCE_SHAREDLIB )
 
 set(Boost_ADDITIONAL_VERSIONS
-	"1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0")
+	"1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0" "1.55" "1.55.0")
 find_package( Boost 1.41 REQUIRED COMPONENTS
     unit_test_framework        # for usml_test.exe
     )
