@@ -107,6 +107,13 @@ public:
     }
 
     /**
+     * Extract a pointer to the data.
+     */
+    const inline DATA_TYPE* data() const {
+        return _data ;
+    }
+
+    /**
      * Define a new data value at a specific combination of indices.
      *
      * @param  index            Index number in each dimension.

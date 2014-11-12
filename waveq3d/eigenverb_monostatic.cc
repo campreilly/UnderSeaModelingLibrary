@@ -55,7 +55,7 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az,
     eigenverb verb ;
     create_eigenverb( de, az, dt, grazing, speed, position, ndirection, wave, verb ) ;
         // Don't bother adding the ray it its too quiet
-    if ( 1e-10 < verb.intensity(0) ) {
+    if ( verb.intensity(0) > 1e-10 ) {
         if( ID == _source_origin ) {
             _surface.push_back( verb ) ;
         } else {
@@ -97,7 +97,7 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az,
  * energy curve from the bottom interactions.
  */
 void eigenverb_monostatic::compute_bottom_energy() {
-    #ifdef EIGENVERB_MODEL_DEBUG
+    #ifndef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_monostatic::compute_bottom_energy()"
              << endl ;
         cout << "Number of bottom eigenverbs: " << _bottom.size() << endl ;
@@ -111,13 +111,13 @@ void eigenverb_monostatic::compute_bottom_energy() {
  * energy curve from the surface interactions.
  */
 void eigenverb_monostatic::compute_surface_energy() {
-    #ifdef EIGENVERB_MODEL_DEBUG
+    #ifndef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_monostatic::compute_surface_energy()"
              << endl ;
         cout << "Number of surface eigenverbs: " << _surface.size() << endl ;
     #endif
     _current_boundary = _surface_boundary ;
-    convolve_eigenverbs( &_surface ) ;
+//    convolve_eigenverbs( &_surface ) ;
 }
 
 /**
@@ -169,21 +169,42 @@ void eigenverb_monostatic::compute_lower_volume_energy() {
  */
 void eigenverb_monostatic::convolve_eigenverbs( std::vector<eigenverb>* set )
 {
-    double a, b, r ;
-    double lat1, lat2 ;
-    double k = 1852.0 * 60.0 ;
+//    double a, b, r, x, y, scale_x, scale_y ;
+//    double lat1, lat2, alpha_s, ir, is ;
+//    double k = 1852.0 * 60.0 ;
+//    double threshold = 1e-18 ;
     for(std::vector<eigenverb>::iterator i=set->begin();
             i!=set->end(); ++i)
     {
+            //rayfan
+//        scale_x = (i->sigma_de<400.0) ? 1.8 : 0.1 ;
+//        scale_y = (i->sigma_az<400.0) ? 1.8 : 0.1 ;
+            //linear
+//        scale_x = (i->sigma_de<3000.0) ? 0.65 : 0.2 ;
+//        scale_y = (i->sigma_az<3000.0) ? 0.65 : 0.2 ;
+//        scale_x = 1.0 ;
+//        scale_y = 1.0 ;
+//        scale_x *= i->sigma_de ;
+//        scale_y *= i->sigma_az ;
+//        ir = i->intensity(0) ;
+//        if( i->de_index == 91 ) continue ;
         for(std::vector<eigenverb>::iterator j=set->begin();
                 j!=set->end(); ++j)
         {
-            lat1 = i->position.latitude() ;
-            lat2 = j->position.latitude() ;
-            a = ( lat1 - lat2 ) * k ;
-            b = ( j->position.longitude() - i->position.longitude() ) * k * cos(0.5*(lat2+lat1)) ;
-            r = a*a + b*b ;
-            if( r == 0 ) continue ;
+//            is = j->intensity(0) ;
+//            if( is*ir < threshold ) continue ;
+//            lat1 = i->position.latitude() ;
+//            lat2 = j->position.latitude() ;
+//            a = ( lat1 - lat2 ) * k ;
+//            b = ( j->position.longitude() - i->position.longitude() ) * k * cos(0.5*(lat2+lat1)) ;
+//            alpha_s = std::abs(std::fmod(std::atan2( i->direction.phi(), -i->direction.theta() ), M_PI_2))
+//                    + std::abs(std::fmod(std::atan2( j->direction.phi(), -j->direction.theta() ), M_PI_2)) ;
+//            r = std::sqrt(a*a + b*b) ;
+//            x = r * sin(alpha_s) ;
+//            if( x > scale_x ) continue ;            // this gaussian is more then 5 sigma away in the x direction
+//            y = r * cos(alpha_s) ;
+//            if( y > scale_y ) continue ;            // this gaussian is more then 5 sigma away in the y direction
+//            if( j->de_index == 91 ) continue ;
             compute_contribution( &(*i), &(*j) ) ;
         }
     }

@@ -38,10 +38,16 @@ void eigenverb_model::create_eigenverb( unsigned de, unsigned az,
     vector<double> boundary_loss = pow( 10.0, -0.1 * wave.curr()->getAttenuation(de,az) ) ;
     verb.intensity = element_prod( amp, boundary_loss ) ;
 
-    double delta_de = M_PI * ( wave.source_de(de+1) - wave.source_de(de-1) ) / 360.0  ;
+    double delta_de ;
+    if( de == 0 ) {
+        delta_de = M_PI * ( wave.source_de(de+1) - wave.source_de(de) ) / 180.0  ;
+    } else {
+        delta_de = M_PI * ( wave.source_de(de+1) - wave.source_de(de-1) ) / 360.0  ;
+    }
     verb.sigma_de = true_distance * delta_de / sin(grazing) ;
-    double delta_az = M_PI * ( wave.source_az(az) - wave.source_az(az+1) ) / 360.0 ;
+    double delta_az = M_PI * ( wave.source_az(az+1) - wave.source_az(az) ) / 180.0 ;
     verb.sigma_az = delta_az * cos(grazing) * true_distance ;   // horizontal distance * azimuthal spacing
+    if( abs(grazing) > (M_PI_2 - 1e-10) ) verb.sigma_az = TWO_PI * true_distance ;
 
     #ifdef EIGENVERB_COLLISION_DEBUG
         cout << "\t---Added eigenverb to collection---" << endl ;
@@ -60,12 +66,12 @@ void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb*
 {
         // determine the relative angle and distance between the projected gaussians
     double alpha, chi, beta, dummy ;
-    u->direction.direction( &dummy, &chi ) ;
-    v->direction.direction( &dummy, &beta ) ;
-    alpha = beta - chi ;
-    double range = v->position.gc_range( v->position ) ;
-    double xs = range * cos( alpha ) ;
-    double ys = range * sin( alpha ) ;
+    u->direction.direction( &dummy, &beta ) ;
+    v->direction.direction( &dummy, &chi ) ;
+    alpha = std::abs(std::fmod(chi,M_PI_2)) + std::abs(std::fmod(beta,M_PI_2)) ;
+    double range = v->position.gc_range( u->position ) ;
+    double xs = range * sin( alpha ) ;
+    double ys = range * cos( alpha ) ;
 
         // Compute the intersection of the gaussian profiles
     double Wr = v->sigma_az ;
@@ -76,13 +82,11 @@ void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb*
     double Ws2 = Ws*Ws ;
     double Ls = u->sigma_de ;
     double Ls2 = Ls*Ls ;
-    double det_r = Wr2 * Lr2 ;
-    double det_s = Ws2 * Ls2 ;
     double det_sr = 0.5 * ( 2.0*(Ls2*Ws2 + Lr2*Wr2) + (Ls2+Ws2)*(Lr2+Wr2) - (Ls2-Ws2)*(Lr2-Wr2)*cos(2.0*alpha) ) ;
     double kappa = -0.25 * (xs*xs*((Ls2+Ws2)+(Ls2-Ws2)*cos(2.0*alpha)+2.0*Lr2)
                           + ys*ys*((Ls2+Ws2)-(Ls2-Ws2)*cos(2.0*alpha)+2.0*Wr2)
                           - xs*ys*(Ls2-Ws2)*sin(2.0*alpha)) / det_sr ;
-    double _area = 0.5 * sqrt(det_r) * sqrt(det_s) * exp( kappa ) / sqrt(det_sr) ;
+    double _area = 0.5 * Lr * Ls * Ws * Wr * exp( kappa ) / sqrt(det_sr) ;
         // Compute the energy reflected off of this patch
         // and the scattering loss from the interface
     vector<double> scatter( (*u->frequencies).size() ) ;
@@ -103,7 +107,7 @@ void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb*
         cout << "      Loss in:       " << 10.0*log10(u->intensity) << endl ;
         cout << "      Loss out:      " << 10.0*log10(v->intensity) << endl ;
         cout << "     Two-way TL:     " << 10.0*log10(element_prod(u->intensity, v->intensity)) << endl ;
-        cout << "scattering strength: " << 10.0*log10(s_sr) << endl ;
+        cout << "scattering strength: " << 10.0*log10(scatter) << endl ;
         cout << "      Energy:        " << 10.0*log10(_energy) << endl ;
     #endif
 

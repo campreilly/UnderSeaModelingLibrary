@@ -48,7 +48,6 @@ wave_queue_reverb::wave_queue_reverb(
     const unsigned max_de = num_de() - 1 ;
     const unsigned max_az = num_az() - 1 ;
     for(unsigned i=0; i<num_az(); ++i) {
-        _invalid_ray( 0, i ) = true ;
         _invalid_ray( max_de, i ) = true ;
     }
     for(unsigned i=0; i<num_de(); ++i) {
@@ -76,9 +75,6 @@ const unsigned wave_queue_reverb::getFreqSize() {
  * Detect and process boundary reflections and caustics.
  */
 void wave_queue_reverb::detect_reflections() {
-
-//    mark_invalid_rays() ;
-
     // process all surface and bottom reflections, and vertices
     // note that multiple rays can reflect in the same time step
 
@@ -102,19 +98,6 @@ void wave_queue_reverb::detect_reflections() {
     // search for other changes in wavefront
     _next->find_edges() ;
 }
-
-//void wave_queue_reverb::mark_invalid_rays() {
-//    const unsigned max_de = num_de() - 1 ;
-//    const unsigned max_az = num_az() - 1 ;
-//        // artificially limit the valid rays by the number of boundary interactions
-//    for(unsigned i=1; i<max_de; ++i) {
-//        for(unsigned j=0; j<max_az; ++j) {
-//            if ( (_curr->bottom(i,j) > 2) && (_curr->surface(i,j) > 2) ) {
-//                _invalid_ray( i, j ) = true ;
-//            }
-//        }
-//    }
-//}
 
 /**
  * Detect volume boundary reflections for reverberation contributions

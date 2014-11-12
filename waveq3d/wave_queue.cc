@@ -255,7 +255,7 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
              << "),az(" << (*_source_az)(az) << ")" << endl ;
         cout << "\t_next->position.rho: " << _next->position.rho(de,az) - wposition::earth_radius
                                           << endl;
-        cout << "\theight: " << height - wposition::earth_radius << "\tdepth: " << depth << endl;
+        cout << "\tbottom depth: " << height - wposition::earth_radius << "\tdistance (+ below bottom): " << depth << endl;
     #endif
     if ( depth > 0.0 ) {
     #ifdef DEBUG_REFLECT
@@ -264,7 +264,7 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
                                     << ", " << pos.altitude() << ")" << endl;
         cout << "\t_next->position.rho: " << _next->position.rho(de,az) - wposition::earth_radius
                                           << endl;
-        cout << "\theight: " << height - wposition::earth_radius << "\tdepth: " << depth << endl;
+        cout << "\tbottom depth: " << height - wposition::earth_radius << "\tdistance (+ below bottom): " << depth << endl;
     #endif
         if ( _reflection_model->bottom_reflection( de, az, depth ) ) {
             _next->bottom(de,az) += 1 ;

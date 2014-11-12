@@ -4,7 +4,7 @@
  */
 #include <usml/waveq3d/wave_front.h>
 
-//#define DBEUG_SSP
+//#define DEBUG_SSP
 
 using namespace usml::waveq3d ;
 

@@ -87,31 +87,14 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
                                     / inc1;
                             slope_2 = (data_3d(i + 2, j, k) - data_3d(i + 1, j, k))
                                     / inc2;
-                            result =
-                                    ((2.0 * inc1 + inc2) * slope_1 - inc1 * slope_2)
-                                            / (inc1 + inc2);
-                            derv_z[i][j][k] = result;
-                            if (result * slope_1 <= 0.0) {
-                                derv_z[i][j][k] = 0.0;
-                            } else if ((slope_1 * slope_2 <= 0.0)
-                                    && (abs(result) > abs(3.0 * slope_1))) {
-                                derv_z[i][j][k] = 3.0 * slope_1;
+                            result = ( (2.0 * inc1 + inc2) * slope_1 - inc1 * slope_2 )
+                                        / (inc1 + inc2) ;
+                            if ( result * slope_1 <= 0.0 ) {
+                                result = 0.0 ;
+                            } else if ( (slope_1 * slope_2 <= 0.0)
+                                    && (abs(result) > abs(3.0 * slope_1)) ) {
+                                result = 3.0 * slope_1 ;
                             }
-                            #ifdef FAST_NaN_GRID_DEBUG
-                                if(abs(derv_z[i][j][k])>=20.0) {
-                                    cout << "***Warning: bogus derivative in the z-direction***" << endl;
-                                    cout << "---i==0 condition---" << endl;
-                                    cout << "inc1: " << inc1 << "\tinc2: " << inc2 << endl;
-                                    cout << "data(" << i << "," << j << "," << k << "): " << data_3d(i,j,k)
-                                    << "\tdata(" << i+1 << "," << j << "," << k << "): " << data_3d(i+1,j,k)
-                                    << "\tdata(" << i+2 << "," << j << "," << k << "): " << data_3d(i+2,j,k)
-                                    << endl;
-                                    cout << "slope1: " << slope_1 << "\tslope2: " << slope_2 << endl;
-                                    cout << "result: " << result << endl;
-                                    cout << "derv_z[" << i << "][" << j << "][" << k << "]: "
-                                    << derv_z[i][j][k] << endl;
-                                }
-                            #endif
                         } else if (i == _kzmax) {
                             inc1 = _axis[0]->increment(i - 1);
                             inc2 = _axis[0]->increment(i);
@@ -119,31 +102,14 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
                                     / inc1;
                             slope_2 = (data_3d(i, j, k) - data_3d(i - 1, j, k))
                                     / inc2;
-                            result =
-                                    ((2.0 * inc1 + inc2) * slope_2 - inc1 * slope_1)
-                                            / (inc1 + inc2);
-                            derv_z[i][j][k] = result;
+                            result = ( (2.0 * inc1 + inc2) * slope_2 - inc1 * slope_1 )
+                                       / (inc1 + inc2) ;
                             if (result * slope_1 <= 0.0) {
-                                derv_z[i][j][k] = 0.0;
+                                result = 0.0;
                             } else if ((slope_1 * slope_2 <= 0.0)
                                     && (abs(result) > abs(3.0 * slope_1))) {
-                                derv_z[i][j][k] = 3.0 * slope_1;
+                                result = 3.0 * slope_1;
                             }
-                            #ifdef FAST_NaN_GRID_DEBUG
-                                if(abs(derv_z[i][j][k])>=20.0) {
-                                    cout << "***Warning: bogus derivative in the z-direction***" << endl;
-                                    cout << "---i==_kzmax condition---" << endl;
-                                    cout << "inc1: " << inc1 << "\tinc2: " << inc2 << endl;
-                                    cout << "data(" << i-2 << "," << j << "," << k << "): " << data_3d(i-2,j,k)
-                                    << "\tdata(" << i-1 << "," << j << "," << k << "): " << data_3d(i-1,j,k)
-                                    << "\tdata(" << i << "," << j << "," << k << "): " << data_3d(i,j,k)
-                                    << endl;
-                                    cout << "slope1: " << slope_1 << "\tslope2: " << slope_2 << endl;
-                                    cout << "result: " << result << endl;
-                                    cout << "derv_z[" << i << "][" << j << "][" << k << "]: "
-                                    << derv_z[i][j][k] << endl;
-                                }
-                            #endif
                         } else {
                             inc1 = _axis[0]->increment(i - 1);
                             inc2 = _axis[0]->increment(i);
@@ -154,30 +120,46 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
                             slope_2 = (data_3d(i + 1, j, k) - data_3d(i, j, k))
                                     / inc2;
                             if (slope_1 * slope_2 <= 0.0) {
-                                derv_z[i][j][k] = 0.0;
+                                result = 0.0;
                             } else {
-                                derv_z[i][j][k] = (w1 + w2)
+                                result = (w1 + w2)
                                         / ((w1 / slope_1) + (w2 / slope_2));
                             }
+                        }
+                        derv_z[i][j][k] = result ;
                         #ifdef FAST_NaN_GRID_DEBUG
-                            if(abs(derv_z[i][j][k])>=20.0) {
+                            if( (abs(derv_z[i][j][k]) >= 20.0) || result != result ) {
                                 cout << "***Warning: bogus derivative in the z-direction***" << endl;
-                                cout << "---else condition---" << endl;
                                 cout << "inc1: " << inc1 << "\tinc2: " << inc2 << endl;
-                                cout << "data(" << i-1 << "," << j << "," << k << "): " << data_3d(i-1,j,k)
-                                << "\tdata(" << i << "," << j << "," << k << "): " << data_3d(i,j,k)
+                                cout << "data(" << i << "," << j << "," << k << "): " << data_3d(i,j,k)
                                 << "\tdata(" << i+1 << "," << j << "," << k << "): " << data_3d(i+1,j,k)
+                                << "\tdata(" << i+2 << "," << j << "," << k << "): " << data_3d(i+2,j,k)
                                 << endl;
                                 cout << "slope1: " << slope_1 << "\tslope2: " << slope_2 << endl;
-                                cout << "w1: " << w1 << "\tw2: " << w2 << endl;
+                                cout << "result: " << result << endl;
                                 cout << "derv_z[" << i << "][" << j << "][" << k << "]: "
                                 << derv_z[i][j][k] << endl;
                             }
                         #endif
-                        }
                     } //end for-loop in k
                 } //end for-loop in j
             } //end for-loop in i
+            #ifdef FAST_GRID_DEBUG
+                cout << "max number of depths: " << _kzmax << endl ;
+                cout << "max number of latitudes: " << _kxmax << endl ;
+                cout << "max number of longitudes: " << _kymax << endl ;
+                cout << "derv_z: " ;
+                for (int i = 0; i < _kzmax + 1u; ++i) {
+                    for (int j = 0; j < _kxmax + 1u; ++j) {
+                        for (int k = 0; k < _kymax + 1u; ++k) {
+                            cout << derv_z[i][j][k] ;
+                            ( k < _kymax ) ? cout << ", " : cout << endl ;
+                        }
+                    }
+                    cout << endl ;
+                    cout << endl ;
+                }
+            #endif
             delete grid ;
         } // end Constructor
 

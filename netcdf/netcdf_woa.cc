@@ -27,7 +27,7 @@ netcdf_woa::netcdf_woa(
                 replace.axis(0)->size() *
                 replace.axis(1)->size() *
                 replace.axis(2)->size() ) ;
-        fill_missing() ;
-        interp_type(0,GRID_INTERP_PCHIP);// increase smoothness of depth interp
     }
+    fill_missing() ;
+    interp_type(0,GRID_INTERP_PCHIP) ; // increase smoothness of depth interp
 }
