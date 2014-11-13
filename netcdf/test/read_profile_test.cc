@@ -115,6 +115,9 @@ BOOST_AUTO_TEST_CASE( read_woa ) {
         }
         ofile << std::endl ;
     }
+    cout << "does boost::math::isnan work? "
+         << ( ( (boost::math::isnan(NAN)) ) ? "yes" : "no" )
+         << endl ;
 }
 
 /**
