@@ -4,7 +4,7 @@
  */
 #include <usml/waveq3d/wave_front.h>
 
-//#define DBEUG_SSP
+//#define DEBUG_SSP
 
 using namespace usml::waveq3d ;
 
@@ -28,6 +28,7 @@ wave_front::wave_front(
     attenuation( num_de, num_az ),
     phase( num_de, num_az ),
     distance( num_de, num_az ),
+    path_length( num_de, num_az ),
     surface( num_de, num_az ),
     bottom( num_de, num_az ),
     upper( num_de, num_az ),
@@ -45,6 +46,7 @@ wave_front::wave_front(
 {
     sound_speed.clear() ;
     distance.clear() ;
+    path_length.clear() ;
     surface.clear() ;
     bottom.clear() ;
     upper.clear() ;

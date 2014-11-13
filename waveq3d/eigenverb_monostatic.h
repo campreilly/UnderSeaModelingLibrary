@@ -5,20 +5,14 @@
 #ifndef USML_WAVEQ3D_EIGENVERB_MONOSTATIC_H
 #define USML_WAVEQ3D_EIGENVERB_MONOSTATIC_H
 
-#include <usml/waveq3d/waveq3d.h>
-#include <usml/waveq3d/eigenverb.h>
-#include <usml/waveq3d/reverberation_model.h>
-#include <usml/ublas/ublas.h>
-#include <usml/types/types.h>
-#include <vector>
-#include <cstring>
+#include <usml/waveq3d/eigenverb_model.h>
 
 namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
 
-using boost::numeric::ublas::vector;
+using namespace boost::numeric::ublas ;
 
 /**
  * A reverberation model listens for interface collision callbacks from
@@ -27,88 +21,93 @@ using boost::numeric::ublas::vector;
  *
  * @todo The reverberation_model class is currently just a stub for future behaviors.
  */
-class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
+class USML_DECLSPEC eigenverb_monostatic : public eigenverb_model {
 
     public:
 
-        eigenverb_monostatic( wave_queue& wave,
+        eigenverb_monostatic( ocean_model& ocean,
+                              wave_queue_reverb& wave,
                               double pulse,
                               unsigned num_bins,
                               double max_time ) ;
 
-        virtual ~eigenverb_monostatic() ;
+        virtual ~eigenverb_monostatic() {}
 
         /**
          * React to the collision of a single ray with a reverberation
          * when colliding from below the boundary.
          *
-         * @param ID            (Used to identify source/receiver/volume layer)
          * @param de            D/E angle index number.
          * @param az            AZ angle index number.
-         * @param time          Current time of the wavefront (sec)
          * @param dt            Offset in time to collision with the boundary
          * @param grazing       The grazing angle at point of impact (rads)
          * @param speed         Speed of sound at the point of collision.
-         * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
+         * @param wave          Wave queue, used to extract various data
+         * @param ID            (Used to identify source/receiver/volume layer)
          */
-        virtual void notifyUpperCollision( unsigned de, unsigned az, double time,
-               double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, int ID ) ;
+        virtual void notifyUpperCollision( unsigned de, unsigned az,
+               double dt, double grazing, double speed,
+               const wposition1& position, const wvector1& ndirection,
+               const wave_queue& wave, unsigned ID ) ;
 
         /**
          * React to the collision of a single ray with a reverberation
          * when colliding from above the boundary.
          *
-         * @param ID            (Used to identify source/receiver/volume layer)
          * @param de            D/E angle index number.
          * @param az            AZ angle index number.
-         * @param time          Current time of the wavefront (sec)
          * @param dt            Offset in time to collision with the boundary
          * @param grazing       The grazing angle at point of impact (rads)
          * @param speed         Speed of sound at the point of collision.
-         * @param frequencies   Frequencies over which to compute reverb. (Hz)
          * @param position      Location at which the collision occurs
          * @param ndirection    Normalized direction at the point of collision.
+         * @param wave          Wave queue, used to extract various data
+         * @param ID            (Used to identify source/receiver/volume layer)
          */
-        virtual void notifyLowerCollision( unsigned de, unsigned az, double time,
-               double dt, double grazing, double speed, const seq_vector& frequencies,
-               const wposition1& position, const wvector1& ndirection, int ID ) ;
+        virtual void notifyLowerCollision( unsigned de, unsigned az,
+               double dt, double grazing, double speed,
+               const wposition1& position, const wvector1& ndirection,
+               const wave_queue& wave, unsigned ID ) ;
 
-        /**
-         * Computes the reverberation curve from the data cataloged from the
-         * wavefront(s).
-         */
-        virtual void compute_reverberation() ;
+         /**
+          * Saves the eigenverb data to a text file.
+          */
+         virtual void save_eigenverbs(const char* filename) ;
 
     private:
 
         /**
-         * Pulse length of the signal (sec)
+         * Computes the energy contributions to the reverberation
+         * energy curve from the bottom interactions.
          */
-        double _pulse ;
+        virtual void compute_bottom_energy() ;
 
         /**
-         * Number of time bins to store the energy distribution
+         * Computes the energy contributions to the reverberation
+         * energy curve from the surface interactions.
          */
-        unsigned _num_bins ;
+        virtual void compute_surface_energy() ;
 
         /**
-         * Max time for the reverberation curve
+         * Calculate the contributions due to collisions from below
+         * a volume layer.
          */
-        double _max_time ;
+        virtual void compute_upper_volume_energy() ;
 
         /**
-         * The reverberation energy distribution curve.
+         * Calculate the contributions due to collisions from above
+         * a volume layer.
          */
-        double* _energy ;
+        virtual void compute_lower_volume_energy() ;
 
         /**
-         * Defines the type of spreading model that is used to compute
-         * one-way TLs and sigma of each dimension.
+         * Takes a set of eigenrays, boundary model, and convolves the set of
+         * eigenverbs with itself and makes contributions to the reverebation
+         * level curve.
          */
-        spreading_model* _spreading_model ;
+        void convolve_eigenverbs( std::vector<eigenverb>* set ) ;
 
         /**
          * Vector of eigenverbs that impacted the surface.
@@ -124,13 +123,13 @@ class USML_DECLSPEC eigenverb_monostatic : public reverberation_model {
          * Vector of eigenverbs that collide with the volume
          * boundarys from below.
          */
-        std::vector< vector< eigenverb > > _upper ;
+        std::vector< std::vector< eigenverb > > _upper ;
 
         /**
          * Vector of eigenverbs that collide with the volume
          * boundarys from above.
          */
-        std::vector< vector< eigenverb > > _lower ;
+        std::vector< std::vector< eigenverb > > _lower ;
 
 };
 

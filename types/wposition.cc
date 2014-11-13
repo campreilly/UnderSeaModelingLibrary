@@ -1,13 +1,13 @@
 /**
  * @file wposition.cc
- * World location in geodetic earth coordinates 
- * (latitude, longitude, and altitude). 
+ * World location in geodetic earth coordinates
+ * (latitude, longitude, and altitude).
  */
 #include <usml/types/wposition1.h>
 
 using namespace usml::types;
 
-/** 
+/**
  * Constructs a matrix of wpositions. Initializes each wposition to
  * the center of the earth.
  */
@@ -26,7 +26,11 @@ wposition::wposition(unsigned rows, unsigned cols, double latitude,
 /**
  * Local radius of curvature in the area of operations.
  */
+#ifdef USML_EARTH_RADIUS
 double wposition::earth_radius = 6378101.030201019;
+#else
+double wposition::earth_radius = 6371000.0 ;
+#endif
 
 /**
  * Compute the radius of the prime vertical using the WGS-84 formula.

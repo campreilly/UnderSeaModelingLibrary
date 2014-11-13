@@ -67,259 +67,286 @@ using boost::numeric::ublas::vector;
  */
 class USML_DECLSPEC wave_front {
 
-public:
+    public:
 
-    /**
-     * Location of each point on the wavefront in spherical earth coordinates.
-     * Updated by the propagator each time the wavefront is iterated.
-     */
-    wposition position ;
+        /**
+         * Create workspace for all properties.  Most of the real work of
+         * initialization is done after construction so that the previous,
+         * current, and next elements can each be initialized differently.
+         *
+         * @param  ocean        Environmental parameters.
+         * @param  freq         Frequencies over which to compute loss (Hz).
+         * @param  num_de       Number of D/E angles in the ray fan.
+         * @param  num_az       Number of AZ angles in the ray fan.
+         * @param  targets      Position of each eigenray target. Eigenrays are not
+         *                      computed if this reference is NULL.
+         * @param  sin_theta    Reference to sin(theta) for each target.
+         *                      Used to speed up compute_target_distance() calc.
+         *                      Not used if eigenrays are not being computed.
+         */
+        wave_front(
+            ocean_model& ocean,
+            const seq_vector* freq,
+            unsigned num_de, unsigned num_az,
+            const wposition* targets = NULL,
+            const matrix<double>* sin_theta = NULL
+            ) ;
 
-    /**
-     * First derivative of position with respect to time.
-     * Used by the Adams-Bashforth algorithm to compute the next position.
-     */
-    wposition pos_gradient ;
+        /**
+         * Number of D/E angles in the ray fan.
+         */
+        inline unsigned num_de() const {
+            return position.size1() ;
+        }
 
-    /**
-     * Normalized propagation direction of each point on the wavefront
-     * in spherical earth coordinates.  Equal to the true propagation
-     * direction divided by the speed of sound.  Also equal to the
-     * wavenumber vector divided by the angular frequency of the sound.
-     */
-    wvector ndirection ;
+        /**
+         * Number of AZ angles in the ray fan.
+         */
+        inline unsigned num_az() const {
+            return position.size2() ;
+        }
 
-    /**
-     * First derivative of normalized direction with respect to time.
-     * Used by the Adams-Bashforth algorithm to compute the next direction.
-     */
-    wvector ndir_gradient ;
+        /**
+         * Accessor to the attenuation matrix inside of a wavefront.
+         */
+        inline vector<double> getAttenuation( unsigned de, unsigned az) const {
+            return attenuation(de,az) ;
+        }
 
-    /**
-     * Speed of sound at each point on the wavefront.
-     */
-    matrix<double> sound_speed ;
+        /**
+         * Accessor to the path_length matrix inside of a wavefront.
+         */
+        inline double getPath_length( unsigned de, unsigned az) const {
+            return path_length(de,az) ;
+        }
 
-    /**
-     * Sound speed gradient at each point on the wavefront.
-     */
-    wvector sound_gradient ;
+        /**
+         * Accessor to the bottom matrix inside of a wavefront.
+         */
+        inline int getBottom( unsigned de, unsigned az) const {
+            return bottom(de,az) ;
+        }
 
-    /**
-     * Non-spreading component of propagation loss in dB.
-     * Stores the cumulative result of interface reflection losses
-     * and losses that result from the attenuation of sound in sea water.
-     */
-    matrix< vector< double > > attenuation ;
+        /**
+         * Accessor to the surface matrix inside of a wavefront.
+         */
+        inline int getSurface( unsigned de, unsigned az) const {
+            return surface(de,az) ;
+        }
 
-    /**
-     * Non-spreading component of phase change in radians.
-     * Stores the cumulative result of the phase changes from
-     * interface reflections and caustics.
-     */
-    matrix< vector< double > > phase ;
+        /**
+         * Initialize position and direction components of the wavefront.
+         * Computes normalized directions from depression/elevation
+         * and azimuthal angles.  Each row in the output corresponds
+         * to a new depression/elevation angle and and each column
+         * represents a new azimuth. Used during wave_queue class initialization.
+         *
+         * @param  pos          Initial location in spherical earth coordinates.
+         * @param  de           Initial depression/elevation angles at the
+         *                      source location (degrees, positive is up).
+         * @param  az           Initial azimuthal angles at the source
+         *                      location (degrees, clockwise from true north).
+         */
+        void init_wave(
+            const wposition1& pos, const seq_vector& de, const seq_vector& az ) ;
 
-    /**
-     * Distance from old location to this location.
-     * Used by wave_front::compute_profile() to compute the
-     * attenuation of sound in sea water for each position
-     * change in the wavefront.
-     */
-    matrix<double> distance ;
+        /**
+         * Update wave element properties based on the current position
+         * and direction vectors. For each point on the wavefront, it computes
+         * ocean profile parameters, Adams-Bashforth derivatives, and the
+         * distance to each eigenray target.
+         */
+        void update() ;
 
-    /**
-     * Cumulative # of surface reflections encountered at this point in time.
-     */
-    matrix<int> surface ;
+        /**
+         * Find all edges and caustics in the ray fan. Sets on_edge(de,az)
+         * to true if it is on the edge of the ray fan or one of its neighbors
+         * has a different surface, bottom, or caustic count.
+         */
+        void find_edges() ;
 
-    /**
-     * Cumulative # of bottom reflections encountered at this point in time.
-     */
-    matrix<int> bottom ;
+        /**
+         * Location of each point on the wavefront in spherical earth coordinates.
+         * Updated by the propagator each time the wavefront is iterated.
+         */
+        wposition position ;
 
-    /**
-     * Cumulative # of upper vertices encountered at this point in time
-     */
-    matrix<int> upper ;
+        /**
+         * First derivative of position with respect to time.
+         * Used by the Adams-Bashforth algorithm to compute the next position.
+         */
+        wposition pos_gradient ;
 
-    /**
-     * Cumulative # of lower vertices encountered at this point in time
-     */
-    matrix<int> lower ;
+        /**
+         * Normalized propagation direction of each point on the wavefront
+         * in spherical earth coordinates.  Equal to the true propagation
+         * direction divided by the speed of sound.  Also equal to the
+         * wavenumber vector divided by the angular frequency of the sound.
+         */
+        wvector ndirection ;
 
-    /**
-     * Cumulative # of caustics encountered at this point in time.
-     * A caustic is defined as a place on the wavefront where a ray is tangent
-     * to the boundary of a shadow zone. The wave_queue::find_edges()
-     * function updates this field whenever the closest ray to a edge in the
-     * wavefront crosses one of its neighbors without changing the number of
-     * bounces. Note that this model also subtracts a PI/2 phase shift from the
-     * next ray if caustic detected.
-     */
-    matrix<int> caustic ;
+        /**
+         * First derivative of normalized direction with respect to time.
+         * Used by the Adams-Bashforth algorithm to compute the next direction.
+         */
+        wvector ndir_gradient ;
 
-    /**
-     * Mark places where the wavefront changes the surface, bottom, or caustics.
-     */
-    matrix<bool> on_edge ;
+        /**
+         * Speed of sound at each point on the wavefront.
+         */
+        matrix<double> sound_speed ;
 
-    /**
-     * Position of each eigenray target.
-     * Reference to data managed by proploss class.
-     * Eigenrays are not computed if this reference is NULL.
-     */
-    const wposition* targets ;
+        /**
+         * Sound speed gradient at each point on the wavefront.
+         */
+        wvector sound_gradient ;
 
-    /**
-     * Distance squared from each target to each point on the wavefront.
-     * Not used if targets attribute is NULL.
-     */
-    matrix< matrix<double> > distance2 ;
+        /**
+         * Non-spreading component of propagation loss in dB.
+         * Stores the cumulative result of interface reflection losses
+         * and losses that result from the attenuation of sound in sea water.
+         */
+        matrix< vector< double > > attenuation ;
 
-private:
+        /**
+         * Non-spreading component of phase change in radians.
+         * Stores the cumulative result of the phase changes from
+         * interface reflections and caustics.
+         */
+        matrix< vector< double > > phase ;
 
-    /**
-     * Environmental parameters.
-     * Reference to data managed by wave_queue class.
-     */
-    ocean_model& _ocean ;
+        /**
+         * Distance from old location to this location.
+         * Used by wave_front::compute_profile() to compute the
+         * attenuation of sound in sea water for each position
+         * change in the wavefront.
+         */
+        matrix<double> distance ;
 
-    /**
-     * Frequencies over which to compute propagation effects (Hz).
-     * Reference to data managed by wave_queue class.
-     */
-    const seq_vector* _frequencies ;
+        /**
+         * Cumulative distance traveled for each point on the wavefront.
+         * Used for reverberation calculations.
+         */
+        matrix<double> path_length ;
 
-    /**
-     * Sound speed gradient divided by sound speed (cached intermediate term).
-     */
-    wvector _dc_c ;
+        /**
+         * Cumulative # of surface reflections encountered at this point in time.
+         */
+        matrix<int> surface ;
 
-    /**
-     * Square of the speed of sound divided by rho (cached intermediate term).
-     */
-    matrix<double> _c2_r ;
+        /**
+         * Cumulative # of bottom reflections encountered at this point in time.
+         */
+        matrix<int> bottom ;
 
-    /**
-     * Sine of colatitude (cached intermediate term).
-     */
-    matrix<double> _sin_theta ;
+        /**
+         * Cumulative # of upper vertices encountered at this point in time
+         */
+        matrix<int> upper ;
 
-    /**
-     * Cotangent of colatitude (cached intermediate term).
-     */
-    matrix<double> _cot_theta ;
+        /**
+         * Cumulative # of lower vertices encountered at this point in time
+         */
+        matrix<int> lower ;
 
-    /**
-     * Sin of colatitude for targets (cached intermediate term).
-     * Reference to data managed by proploss class.
-     * Not used if eigenrays are not being computed.
-     */
-    const matrix<double>* _target_sin_theta ;
+        /**
+         * Cumulative # of caustics encountered at this point in time.
+         * A caustic is defined as a place on the wavefront where a ray is tangent
+         * to the boundary of a shadow zone. The wave_queue::find_edges()
+         * function updates this field whenever the closest ray to a edge in the
+         * wavefront crosses one of its neighbors without changing the number of
+         * bounces. Note that this model also subtracts a PI/2 phase shift from the
+         * next ray if caustic detected.
+         */
+        matrix<int> caustic ;
 
-    //**************************************************
-    // methods
+        /**
+         * Mark places where the wavefront changes the surface, bottom, or caustics.
+         */
+        matrix<bool> on_edge ;
 
-public:
+        /**
+         * Position of each eigenray target.
+         * Reference to data managed by proploss class.
+         * Eigenrays are not computed if this reference is NULL.
+         */
+        const wposition* targets ;
 
-    /**
-     * Create workspace for all properties.  Most of the real work of
-     * initialization is done after construction so that the previous,
-     * current, and next elements can each be initialized differently.
-     *
-     * @param  ocean        Environmental parameters.
-     * @param  freq         Frequencies over which to compute loss (Hz).
-     * @param  num_de       Number of D/E angles in the ray fan.
-     * @param  num_az       Number of AZ angles in the ray fan.
-     * @param  targets      Position of each eigenray target. Eigenrays are not
-     *                      computed if this reference is NULL.
-     * @param  sin_theta    Reference to sin(theta) for each target.
-     *                      Used to speed up compute_target_distance() calc.
-     *                      Not used if eigenrays are not being computed.
-     */
-    wave_front(
-        ocean_model& ocean,
-        const seq_vector* freq,
-        unsigned num_de, unsigned num_az,
-        const wposition* targets = NULL,
-        const matrix<double>* sin_theta = NULL
-        ) ;
+        /**
+         * Distance squared from each target to each point on the wavefront.
+         * Not used if targets attribute is NULL.
+         */
+        matrix< matrix<double> > distance2 ;
 
-    /**
-     * Number of D/E angles in the ray fan.
-     */
-    inline unsigned num_de() const {
-        return position.size1() ;
-    }
+    private:
 
-    /**
-     * Number of AZ angles in the ray fan.
-     */
-    inline unsigned num_az() const {
-        return position.size2() ;
-    }
+        /**
+         * Environmental parameters.
+         * Reference to data managed by wave_queue class.
+         */
+        ocean_model& _ocean ;
 
-    /**
-     * Initialize position and direction components of the wavefront.
-     * Computes normalized directions from depression/elevation
-     * and azimuthal angles.  Each row in the output corresponds
-     * to a new depression/elevation angle and and each column
-     * represents a new azimuth. Used during wave_queue class initialization.
-     *
-     * @param  pos          Initial location in spherical earth coordinates.
-     * @param  de           Initial depression/elevation angles at the
-     *                      source location (degrees, positive is up).
-     * @param  az           Initial azimuthal angles at the source
-     *                      location (degrees, clockwise from true north).
-     */
-    void init_wave(
-        const wposition1& pos, const seq_vector& de, const seq_vector& az ) ;
+        /**
+         * Frequencies over which to compute propagation effects (Hz).
+         * Reference to data managed by wave_queue class.
+         */
+        const seq_vector* _frequencies ;
 
-    /**
-     * Update wave element properties based on the current position
-     * and direction vectors. For each point on the wavefront, it computes
-     * ocean profile parameters, Adams-Bashforth derivatives, and the
-     * distance to each eigenray target.
-     */
-    void update() ;
+        /**
+         * Sound speed gradient divided by sound speed (cached intermediate term).
+         */
+        wvector _dc_c ;
 
-    /**
-     * Find all edges and caustics in the ray fan. Sets on_edge(de,az)
-     * to true if it is on the edge of the ray fan or one of its neighbors
-     * has a different surface, bottom, or caustic count.
-     */
-    void find_edges() ;
+        /**
+         * Square of the speed of sound divided by rho (cached intermediate term).
+         */
+        matrix<double> _c2_r ;
 
-private:
+        /**
+         * Sine of colatitude (cached intermediate term).
+         */
+        matrix<double> _sin_theta ;
 
-    /**
-     * Compute a fast approximation of the distance squared from each
-     * target to each point on the wavefront.  The speed-up process uses
-     * the fact that the haversine distance formula can be replace
-     * sin(x/2)^2 with (x/2)^2 when the latitude and longitude differences
-     * between points is small.
-     * <pre>
-     *      distance^2 = r1*r1 + r2*r2 - 2*r1*r2
-     *          * { 1-2*( sin^2[(t1-t2)/2] + sin(t1)sin(t2)sin^2[(p1-p2)/2] ) }
-     *
-     *      distance^2 = r1*r1 + r2*r2 - 2*r1*r2
-     *          * { 1-2*( [(t1-t2)/2]^2 + sin(t1)sin(t2)[(p1-p2)/2]^2 ) }
-     * </pre>
-     * It also uses the fact that sin(x) is precomputed for each target and
-     * each point of the wavefront in an eariler step of the update() function.
-     * This approach allows us to approximation distances in spherical
-     * coordinates without the use of any transindental function.
-     */
-    void compute_target_distance() ;
+        /**
+         * Cotangent of colatitude (cached intermediate term).
+         */
+        matrix<double> _cot_theta ;
 
-    /**
-     * Compute the sound_speed, sound_gradient, and attenuation
-     * elements of the ocean profile.  It also clears the phase of the
-     * wavefront. Later, the reflection_model will incorporate
-     * reflection effects and wave_queue::step() will convert them into
-     * an accumulated attenuation and phase.
-     */
-    void compute_profile() ;
+        /**
+         * Sin of colatitude for targets (cached intermediate term).
+         * Reference to data managed by proploss class.
+         * Not used if eigenrays are not being computed.
+         */
+        const matrix<double>* _target_sin_theta ;
+
+        /**
+         * Compute a fast approximation of the distance squared from each
+         * target to each point on the wavefront.  The speed-up process uses
+         * the fact that the haversine distance formula can be replace
+         * sin(x/2)^2 with (x/2)^2 when the latitude and longitude differences
+         * between points is small.
+         * <pre>
+         *      distance^2 = r1*r1 + r2*r2 - 2*r1*r2
+         *          * { 1-2*( sin^2[(t1-t2)/2] + sin(t1)sin(t2)sin^2[(p1-p2)/2] ) }
+         *
+         *      distance^2 = r1*r1 + r2*r2 - 2*r1*r2
+         *          * { 1-2*( [(t1-t2)/2]^2 + sin(t1)sin(t2)[(p1-p2)/2]^2 ) }
+         * </pre>
+         * It also uses the fact that sin(x) is precomputed for each target and
+         * each point of the wavefront in an eariler step of the update() function.
+         * This approach allows us to approximation distances in spherical
+         * coordinates without the use of any transindental function.
+         */
+        void compute_target_distance() ;
+
+        /**
+         * Compute the sound_speed, sound_gradient, and attenuation
+         * elements of the ocean profile.  It also clears the phase of the
+         * wavefront. Later, the reflection_model will incorporate
+         * reflection effects and wave_queue::step() will convert them into
+         * an accumulated attenuation and phase.
+         */
+        void compute_profile() ;
 
 };
 

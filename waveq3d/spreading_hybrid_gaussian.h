@@ -45,6 +45,7 @@ class reverberation_model ;
 class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
 
     friend class wave_queue ;
+    friend class wave_queue_reverb ;
     friend class reverberation_model ;
 
   private:
@@ -64,6 +65,7 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
     /** Intensity contribution in azimuthal direction. (temp workspace) */
     vector<double> _intensity_az ;
 
+    /** Tracks the rays that have already made contributions to the intensity **/
     matrix<bool> _duplicate ;
 
     /**

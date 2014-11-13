@@ -107,6 +107,13 @@ public:
     }
 
     /**
+     * Extract a pointer to the data.
+     */
+    const inline DATA_TYPE* data() const {
+        return _data ;
+    }
+
+    /**
      * Define a new data value at a specific combination of indices.
      *
      * @param  index            Index number in each dimension.
@@ -793,7 +800,7 @@ public:
     /**
      * Destroys memory area for field data.
      */
-    ~data_grid()
+    virtual ~data_grid()
     {
         for (unsigned n = 0; n < NUM_DIMS; ++n) {
         	if (_axis[n] != NULL) {
