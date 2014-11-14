@@ -865,7 +865,7 @@ void wave_queue::build_eigenray(
     #ifdef DEBUG_OUTPUT_EIGENRAYS
     cout << "wave_queue::build_eigenray() " << endl
     		 << "\ttarget(" << t1 << "," << t2 << "):" << endl
-             << "\tt=" << ray.time << " inten=" << ray.intensity << " de=" << ray.source_de << " az=" << ray.source_az << endl
+             << "\tt=" << ray.time << " inten=" << ray.intensity << " phase=" << ray.phase << " de=" << ray.source_de << " az=" << ray.source_az << endl
              << "\tsurface=" << ray.surface << " bottom=" << ray.bottom << " caustic=" << ray.caustic << endl ;
     #endif
 
