@@ -7,30 +7,14 @@
 using namespace usml::ocean ;
 
 /**
- * Computes a single scattering strength
+ * Computes the broadband scattering strength for a single location.
  */
 void scattering_lambert::scattering_strength( const wposition1& location,
-    const seq_vector& frequencies, double angleI, double angleS,
-    double azI, double azS, vector<double>* amplitude,
-    vector<double>* phase )
+    const seq_vector& frequencies, double de_incident, double de_scattered,
+    double az_incident, double az_scattered, vector<double>* amplitude )
 {
-    (*amplitude)(0) = _bss * sin( angleI ) * sin( angleS ) ;
+    (*amplitude)(0) = abs( _bss * sin( de_incident ) * sin( de_scattered ) ) ;
     for(unsigned i=1; i<frequencies.size(); ++i) {
         (*amplitude)(i) = (*amplitude)(0) ;
-    }
-}
-
-/**
- * Computes a vector of scattering strengths at multiple locations
- */
-void scattering_lambert::scattering_strength( const wposition& location,
-    const seq_vector& frequencies, const vector<double>& angleI,
-    const vector<double>& angleS, const vector<double>& azI,
-    const vector<double>& azS, vector<vector<double> >* amplitude,
-    vector<vector<double> >* phase )
-{
-    vector<double> S = _bss * element_prod( sin( angleI ), sin( angleS ) ) ;
-    for(unsigned i=0; i<frequencies.size(); ++i) {
-        (*amplitude)(i) = S ;
     }
 }

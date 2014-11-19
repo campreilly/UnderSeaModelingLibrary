@@ -16,57 +16,37 @@ using namespace usml::types ;
 
 using boost::numeric::ublas::vector;
 
+/// @ingroup boundaries
+/// @{
+
 /**
- * Scattering strength abstract class. All scattering strength models
- * produce a specular reflection of energy when interacting with the
- * interface. The model then returns an amount of energy, given
- * incident and scattering angles, reflected in that direction.
+ * A scattering model computes the changes in amplitude that result from the
+ * non-specular scattering of a ray from a boundary. Scattering models are
+ * used to compute bistatic reverberation. The directions of the incoming
+ * and outgoing rays are specified in terms of depression/elevation (D/E)
+ * and azimuthal angles (AZ) at the scattering patch. Note that
+ * depression/elevation (D/E) is the negative of grazing angle. These models
+ * compute their results as a function of frequency to support broadband
+ * acoustics.
  */
 class USML_DECLSPEC scattering_model {
 
     public:
 
         /**
-         * Computes the broadband reflection loss and phase change.
+         * Computes the broadband scattering strength for a single location.
          *
          * @param location      Location at which to compute attenuation.
          * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param angleI        Depression incident angle (radians).
-         * @param angleS        Depression scattered angle (radians).
-         * @param azI           Azimuthal incident angle (radians).
-         * @param azS           Azimuthal scattered angle (radians).
+         * @param de_incident   Depression incident angle (radians).
+         * @param de_scattered  Depression scattered angle (radians).
+         * @param az_incident   Azimuthal incident angle (radians).
+         * @param az_scattered  Azimuthal scattered angle (radians).
          * @param amplitude     Change in ray strength in dB (output).
-         * @param phase         Change in ray phase in radians (output).
-         *                      Phase change not computed if this is NULL.
-         *
-         * NOTE: All angles are relative to the scattering interface.
          */
         virtual void scattering_strength( const wposition1& location,
-            const seq_vector& frequencies, double angleI, double angleS,
-            double azI, double azS, vector<double>* amplitude,
-            vector<double>* phase=NULL ) = 0 ;
-
-        /**
-         * Computes the broadband reflection loss and phase change.
-         *
-         * @param location      Locations at which to compute attenuation.
-         * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param angleI        vector of Depression incident angle (radians).
-         * @param angleS        vector of Depression scattered angle (radians).
-         * @param azI           vector of Azimuthal incident angle (radians).
-         * @param azS           vector of Azimuthal scattered angle (radians).
-         * @param amplitude     vector of the change in ray strength in
-         *                      linear units (output).
-         * @param phase         Change in ray phase in radians (output).
-         *                      Phase change not computed if this is NULL.
-         *
-         * NOTE: All angles are relative to the scattering interface.
-         */
-        virtual void scattering_strength( const wposition& location,
-            const seq_vector& frequencies, const vector<double>& angleI,
-            const vector<double>& angleS, const vector<double>& azI,
-            const vector<double>& azS, vector<vector<double> >* amplitude,
-            vector<vector<double> >* phase=NULL ) = 0 ;
+            const seq_vector& frequencies, double de_incident, double de_scattered,
+            double az_incident, double az_scattered, vector<double>* amplitude ) = 0 ;
 
         /**
          * Virtual destructor
@@ -75,6 +55,7 @@ class USML_DECLSPEC scattering_model {
 
 };
 
+/// @}
 }   // end namespace ocean
 }   // end namespace usml
 

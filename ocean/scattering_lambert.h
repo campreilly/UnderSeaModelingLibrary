@@ -5,8 +5,6 @@
 #ifndef USML_OCEAN_SCATTERING_LAMBERT_H
 #define USML_OCEAN_SCATTERING_LAMBERT_H
 
-#include <usml/ublas/ublas.h>
-#include <usml/types/types.h>
 #include <usml/ocean/scattering_model.h>
 
 namespace usml {
@@ -17,30 +15,36 @@ using namespace usml::types ;
 
 using boost::numeric::ublas::vector;
 
+/// @ingroup boundaries
+/// @{
+
 /**
- * Scattering model that follows Lambert's Law:
- *
+ * Lambert's Law defines the scattering strength from an ideal diffuse
+ * reflector. In optics, the radiant intensity (power per unit solid angle)
+ * is constant at all observed angle for diffuse reflectors. Mathematically,
+ * this leads to the relationship.
  *\f[
  * \mathcal{I}_{scat} \propto \mathcal{I}_{inc} sin(\alpha_I)
  * sin(\alpha_S) \delta A
  *\f]
+ * In acoustics, this is often referred to as the Mackenzie model, based on
+ * at-sea measurements that indicated that indicated that Lambert's Law
+ * was also a good fit for ocean bottom backscattering strength.
+ *
+ * @xref Mackenzie K. V., "Bottom reverberation for 530 and 1030 cps
+ * Sound in Deep Water," J. Acoust. Soc. Am. 33:1596 (1961).
  */
-
 class USML_DECLSPEC scattering_lambert : public scattering_model {
 
     public:
 
         /**
-         * Constructor
+         * Initializes scattering strength model with a Mackenzie coefficient.
+         * Defaults to -27 dB.
+         *
+         * @param	bss		Bottom scattering strength coefficent (dB)
          */
-        scattering_lambert( double bss ) : _bss(bss) {}
-
-        /**
-         * Default Constructor
-         */
-        scattering_lambert() {
-            _bss = pow(10.0,-2.7) ;
-        }
+        scattering_lambert( double bss = -27.0 ) : _bss(pow(10.0,bss/10.0)) {}
 
         /**
          * Destructor
@@ -48,56 +52,29 @@ class USML_DECLSPEC scattering_lambert : public scattering_model {
         virtual ~scattering_lambert() {} ;
 
         /**
-         * Computes the broadband reflection loss and phase change.
+         * Computes the broadband scattering strength for a single location.
          *
-         * @param location      NOT USED
+         * @param location      Location at which to compute attenuation.
          * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param angleI        Depression incident angle (radians).
-         * @param angleS        Depression scattered angle (radians).
-         * @param azI           NOT USED
-         * @param azS           NOT USED.
-         * @param amplitude     Change in ray strength in linear units (output).
-         * @param phase         NOT USED
-         *
-         * NOTE: All angles are relative to the scattering interface.
+         * @param de_incident   Depression incident angle (radians).
+         * @param de_scattered  Depression scattered angle (radians).
+         * @param az_incident   Azimuthal incident angle (radians).
+         * @param az_scattered  Azimuthal scattered angle (radians).
+         * @param amplitude     Change in ray strength in dB (output).
          */
         virtual void scattering_strength( const wposition1& location,
-            const seq_vector& frequencies, double angleI, double angleS,
-            double azI, double azS, vector<double>* amplitude,
-            vector<double>* phase=NULL ) ;
-
-        /**
-         * Computes the broadband reflection loss and phase change.
-         *
-         * @param location      NOT USED
-         * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param angleI        vector of Depression incident angle (radians).
-         * @param angleS        vector of Depression scattered angle (radians).
-         * @param azI           NOT USED
-         * @param azS           NOT USED.
-         * @param amplitude     vector of the change in ray strength in
-         *                      linear units (output).
-         *                      Where vector<vector<double>(size locations)>(size freqs)
-         * @param phase         NOT USED
-         *
-         * NOTE: All angles are relative to the scattering interface.
-         */
-        virtual void scattering_strength( const wposition& location,
-            const seq_vector& frequencies, const vector<double>& angleI,
-            const vector<double>& angleS, const vector<double>& azI,
-            const vector<double>& azS, vector<vector<double> >* amplitude,
-            vector<vector<double> >* phase=NULL ) ;
+            const seq_vector& frequencies, double de_incident, double de_scattered,
+            double az_incident, double az_scattered, vector<double>* amplitude ) ;
 
     private:
 
         /**
-         * Back scattering strength
+         * Bottom scattering strength coefficient in linear units.
          */
         double _bss ;
-
-
 };
 
+/// @}
 }   // end of namespace ocean
 }   // end of namespace usml
 

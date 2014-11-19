@@ -292,18 +292,17 @@ BOOST_AUTO_TEST_CASE( scattering_strength_test ) {
     vector<double> amplitude( freq.size() ) ;
     vector<double> phase( freq.size() ) ;
     scattering_model* s = new scattering_lambert() ;
-    const double angleS = M_PI / 4.0 ;
+    const double de_scattered = M_PI / 4.0 ;
 
     const char* csv_name = USML_TEST_DIR "/ocean/test/scattering_lambert_test.csv" ;
     std::ofstream os(csv_name) ;
     cout << "writing tables to " << csv_name << endl ;
-    os << "angleI,angleS,amp" << endl ;
+    os << "de_incident,de_scattered,amp" << endl ;
     for(int i=0; i<90; ++i) {
-        double angleI = i * M_PI / 180.0 ;
-        s->scattering_strength( pos, freq, angleI, angleS,
-                                0.0, 0.0, &amplitude, &phase ) ;
-        os << angleI << ","
-           << angleS << ","
+        double de_incident = i * M_PI / 180.0 ;
+        s->scattering_strength( pos, freq, de_incident, de_scattered, 0.0, 0.0, &amplitude ) ;
+        os << de_incident << ","
+           << de_scattered << ","
            << amplitude(0) << endl ;
     }
     delete s ;
