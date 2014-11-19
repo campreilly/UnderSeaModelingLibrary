@@ -2,6 +2,7 @@
  * @example waveq3d/test/reverberation_test.cc
  */
 #include <boost/test/unit_test.hpp>
+#include <usml/ocean/ocean.h>
 #include <usml/waveq3d/waveq3d_reverb.h>
 #include <usml/utilities/SharedPointerManager.h>
 #include <iostream>
@@ -50,7 +51,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     profile_model* profile = new profile_linear( c0, attn ) ;
 
     boundary_model* surface = new boundary_flat() ;
-    surface->setScattering_Model( new scattering_lambert() ) ;
+    surface->scattering( new usml::ocean::scattering_lambert() ) ;
 
     double btm_spd = 1.10 ;
     double btm_dsty = 1.9 ;
@@ -58,11 +59,11 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     reflect_loss_model* btm_rflt =
         new reflect_loss_rayleigh( btm_dsty, btm_spd, btm_atn ) ;
     boundary_model* bottom = new boundary_flat( depth, btm_rflt ) ;
-    bottom->setScattering_Model( new scattering_lambert() ) ;
+    bottom->scattering( new scattering_lambert() ) ;
 
     // create a simple volume layer
 //    boundary_model* v1 = new boundary_flat( 100.0 ) ;
-//    v1->setScattering_Model( new scattering_lambert() ) ;
+//    v1->scattering( new scattering_lambert() ) ;
 //    vector<boundary_model*> v(1) ;
 //    v[0] = v1 ;
 //    volume_layer* volume = new volume_layer( v ) ;
@@ -166,7 +167,7 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     profile_model* profile = new profile_grid<double,1>( new ascii_profile( ssp_file ), attn ) ;
 
     boundary_model* surface = new boundary_flat() ;
-    surface->setScattering_Model( new scattering_lambert() ) ;
+    surface->scattering( new scattering_lambert() ) ;
 
     double btm_spd = 0.9860893 ;
     double btm_dsty = 1.1480675 ;
@@ -174,11 +175,11 @@ BOOST_AUTO_TEST_CASE( bistatic ) {
     reflect_loss_model* btm_rflt =
         new reflect_loss_rayleigh( btm_dsty, btm_spd, btm_atn ) ;
     boundary_model* bottom = new boundary_flat( depth, btm_rflt ) ;
-    bottom->setScattering_Model( new scattering_lambert() ) ;
+    bottom->scattering( new scattering_lambert() ) ;
 
     // create a simple volume layer
 //    boundary_model* v1 = new boundary_flat( 100.0 ) ;
-//    v1->setScattering_Model( new scattering_lambert() ) ;
+//    v1->scattering( new scattering_lambert() ) ;
 //    vector<boundary_model*> v(1) ;
 //    v[0] = v1 ;
 //    volume_layer* volume = new volume_layer( v ) ;
@@ -283,16 +284,16 @@ BOOST_AUTO_TEST_CASE( shallow_waveguide ) {
     profile_model* profile = new profile_linear( c0, attn ) ;
 
     boundary_model* surface = new boundary_flat() ;
-    surface->setScattering_Model( new scattering_lambert() ) ;
+    surface->scattering( new scattering_lambert() ) ;
 
     reflect_loss_model* btm_rflt =
         new reflect_loss_rayleigh( water, btm_density, btm_speed, btm_attenuation ) ;
     boundary_model* bottom = new boundary_flat( depth, btm_rflt ) ;
-    bottom->setScattering_Model( new scattering_lambert() ) ;
+    bottom->scattering( new scattering_lambert() ) ;
 
     // create a simple volume layer
 //    boundary_model* v1 = new boundary_flat( 100.0 ) ;
-//    v1->setScattering_Model( new scattering_lambert() ) ;
+//    v1->scattering( new scattering_lambert() ) ;
 //    vector<boundary_model*> v(1) ;
 //    v[0] = v1 ;
 //    volume_layer* volume = new volume_layer( v ) ;

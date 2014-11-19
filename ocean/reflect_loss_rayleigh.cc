@@ -168,57 +168,6 @@ complex<double> reflect_loss_rayleigh::impedance(
 }
 
 /**
- * Computes the broadband reflection loss and phase change for
- * multiple locations at once.
- */
-void reflect_loss_rayleigh::reflect_loss( const wposition& location,
-    const seq_vector& frequencies, vector<double>* angle,
-    vector<vector<double> >* amplitude,
-    vector<vector<double> >* phase, bool linear )
-{
-    (*angle) = vector_fmod( (*angle), M_PI_2 ) ;
-
-    (*angle) = M_PI_2 - (*angle) ;
-
-    // compute acoustic impedance in water
-    vector<double> Zw = cos( (*angle) ) * (1.0 / (_speed_water * _density_water)) ;
-
-    // compute compression wave reflection components
-    vector<complex<double> > cosAp, cosAs ;
-    vector<complex<double> > Zb = impedance(
-        _density_bottom, _speed_bottom, _att_bottom, *angle, &cosAp, false ) ;
-
-    // compute shear wave reflection components
-    if ( _speed_shear != 0.0 || _att_shear != 0.0 ) {
-        const vector<complex<double> > Zs = impedance(
-            _density_bottom, _speed_shear, _att_shear, *angle, &cosAs, true ) ;
-        const vector<complex<double> > sinAs = sqrt( 1.0 - element_prod(cosAs,cosAs) ) ;
-        const vector<complex<double> > cos2As = 2.0 * element_prod(cosAs, cosAs) - 1.0 ;
-        const vector<complex<double> > sin2As = 2.0 * element_prod(sinAs, cosAs) ;
-        Zb =  1.0 / (element_prod((1.0/Zb), element_prod(cos2As,cos2As))
-                     + element_prod(Zs, element_prod(sin2As,sin2As)) ) ;
-    }
-
-    // compute complex reflection coefficient
-
-    vector<complex<double> > R = element_div( ( Zb - Zw ), ( Zb + Zw ) ) ;
-    if( !linear ) {
-        for(unsigned i=0; i<frequencies.size(); ++i) {
-            (*amplitude)(i) = -20.0 * log10( abs(R) ) ;
-        }
-    } else {
-        for(unsigned i=0; i<frequencies.size(); ++i) {
-            (*amplitude)(i) = abs(R) ;
-        }
-    }
-    if ( phase ) {
-        for(unsigned i=0; i<frequencies.size(); ++i) {
-            (*phase)(i) = arg(R) ;
-        }
-    }
-}
-
-/**
  * Compute impedance for compression or shear waves with attenuation.
  */
 vector<complex<double> > reflect_loss_rayleigh::impedance(

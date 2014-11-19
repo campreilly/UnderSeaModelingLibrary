@@ -17,9 +17,9 @@ eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
         // extract pointers to various spreading/boundary model(s)
     _bottom_boundary = &ocean.bottom() ;
     _surface_boundary = &ocean.surface() ;
-    _volume_boundary = ocean.volume() ;
-    if ( _volume_boundary ) {
-        unsigned _n = ocean.volume()->getNumberOfLayers() ;
+
+    unsigned _n = ocean.num_volume() ;
+    if ( _n > 0 ) {
         _upper.resize( _n ) ;
         _lower.resize( _n ) ;
     }
@@ -125,20 +125,21 @@ void eigenverb_monostatic::compute_surface_energy() {
  * to interactions with the volume layers
  */
 void eigenverb_monostatic::compute_upper_volume_energy() {
-    if ( _volume_boundary ) {
-        #ifdef EIGENVERB_MODEL_DEBUG
-            cout << "**** Entering eigenverb_monostatic::compute_upper_volume_energy()"
-                 << endl ;
-        #endif
-        unsigned layer = 0 ;
-        for(std::vector<std::vector<eigenverb> >::iterator k=_upper.begin();
-                k!=_upper.end() && layer <= _n; ++k)
-        {
-            _current_boundary = _volume_boundary->getLayer(layer) ;
-            convolve_eigenverbs( &(*k) ) ;
-            ++layer ;
-        }
-    }
+//@todo Fix volume reverberation
+//    if ( _volume_boundary ) {
+//        #ifdef EIGENVERB_MODEL_DEBUG
+//            cout << "**** Entering eigenverb_monostatic::compute_upper_volume_energy()"
+//                 << endl ;
+//        #endif
+//        unsigned layer = 0 ;
+//        for(std::vector<std::vector<eigenverb> >::iterator k=_upper.begin();
+//                k!=_upper.end() && layer <= _n; ++k)
+//        {
+//            _current_boundary = _volume_boundary->getLayer(layer) ;
+//            convolve_eigenverbs( &(*k) ) ;
+//            ++layer ;
+//        }
+//    }
 }
 
 /**
@@ -146,20 +147,21 @@ void eigenverb_monostatic::compute_upper_volume_energy() {
  * to interactions with the volume layers
  */
 void eigenverb_monostatic::compute_lower_volume_energy() {
-    if ( _volume_boundary ) {
-        #ifdef EIGENVERB_MODEL_DEBUG
-            cout << "**** Entering eigenverb_monostatic::compute_lower_volume_energy()"
-                 << endl ;
-        #endif
-        unsigned layer = 0 ;
-        for(std::vector<std::vector<eigenverb> >::iterator k=_lower.begin();
-                k!=_lower.end() && layer <= _n; ++k)
-        {
-            _current_boundary = _volume_boundary->getLayer(layer) ;
-            convolve_eigenverbs( &(*k) ) ;
-            ++layer ;
-        }
-    }
+//@todo Fix volume reverberation
+//    if ( _volume_boundary ) {
+//        #ifdef EIGENVERB_MODEL_DEBUG
+//            cout << "**** Entering eigenverb_monostatic::compute_lower_volume_energy()"
+//                 << endl ;
+//        #endif
+//        unsigned layer = 0 ;
+//        for(std::vector<std::vector<eigenverb> >::iterator k=_lower.begin();
+//                k!=_lower.end() && layer <= _n; ++k)
+//        {
+//            _current_boundary = _volume_boundary->getLayer(layer) ;
+//            convolve_eigenverbs( &(*k) ) ;
+//            ++layer ;
+//        }
+//    }
 }
 
 /**

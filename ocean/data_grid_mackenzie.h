@@ -2,8 +2,7 @@
  * @file data_grid_mackenzie.h
  * Mackenzie model for the speed of sound vs. temperature and salinity.
  */
-#ifndef USML_OCEAN_DATA_GRID_MACKENZIE_H
-#define USML_OCEAN_DATA_GRID_MACKENZIE_H
+#pragma once
 
 #include <usml/types/data_grid.h>
 
@@ -118,5 +117,3 @@ class data_grid_mackenzie {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

@@ -23,9 +23,6 @@ boundary_slope::boundary_slope( const wposition1& location,
     _normal.phi( -sin(lng_slope) ) ;
     _normal.rho( sqrt( 1.0
     	- _normal.theta()*_normal.theta() - _normal.phi()*_normal.phi() ) ) ;
-    if ( _reflect_loss_model == NULL ) {
-        _reflect_loss_model = new reflect_loss_constant( 0.0, 0.0 ) ;
-    }
 }
 
 /**

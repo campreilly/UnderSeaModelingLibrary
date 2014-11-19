@@ -37,7 +37,7 @@
  * @defgroup ocean_model Ocean Model
  * @ingroup ocean
  *
- * Combines the effects of surface, bottom, and profile into a single model.
+ * Combines the effects of surface, bottom, volume, and profile into a single model.
  *
  *      - ocean_model.h
  *
@@ -46,9 +46,7 @@
  *
  * Regression tests for the ocean package
  */
-
-#ifndef USML_OCEAN_OCEAN_H
-#define USML_OCEAN_OCEAN_H
+#pragma once
 
 #include <usml/ocean/attenuation_model.h>
 #include <usml/ocean/attenuation_constant.h>
@@ -68,6 +66,9 @@
 #include <usml/ocean/reflect_loss_constant.h>
 #include <usml/ocean/reflect_loss_netcdf.h>
 #include <usml/ocean/reflect_loss_rayleigh.h>
+#include <usml/ocean/reflect_loss_rayleigh_grid.h>
+#include <usml/ocean/reflect_loss_eckart.h>
+#include <usml/ocean/reflect_loss_beckmann.h>
 
 #include <usml/ocean/boundary_model.h>
 #include <usml/ocean/boundary_flat.h>
@@ -75,13 +76,13 @@
 #include <usml/ocean/boundary_grid.h>
 #include <usml/ocean/boundary_grid_fast.h>
 #include <usml/ocean/ascii_arc_bathy.h>
+#include <usml/ocean/wave_height_pierson.h>
 
 #include <usml/ocean/scattering_model.h>
+#include <usml/ocean/scattering_constant.h>
 #include <usml/ocean/scattering_lambert.h>
 
-#include <usml/ocean/volume_layer.h>
+#include <usml/ocean/volume_model.h>
+#include <usml/ocean/volume_flat.h>
 
 #include <usml/ocean/ocean_model.h>
-
-#endif
-

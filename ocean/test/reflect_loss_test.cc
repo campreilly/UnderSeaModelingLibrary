@@ -248,51 +248,184 @@ BOOST_AUTO_TEST_CASE( plot_rayleigh_sediments ) {
 }
 
 /**
- * Compute Rayleigh model values for generic sediments.
- * Write results to CSV file for processing in Excel or Matlab.
+ * Test the basic features of the reflection loss model using
+ * the netCDF bottom type file.
+ * Generate errors if values differ by more that 1E-5 percent.
  */
-BOOST_AUTO_TEST_CASE( plot_rayleigh_sediments_2 ) {
-    cout << "=== reflect_loss_test: plot_rayleigh_sediments_2 ===" << endl ;
-    const char* name = USML_TEST_DIR "/ocean/test/rayleigh_sediments_2.csv" ;
+BOOST_AUTO_TEST_CASE( reflect_loss_netcdf_test ) {
+	cout << " === reflection_loss_test: reflection_loss_netcdf bottom type file === " << endl;
+	reflect_loss_netcdf netcdf( USML_DATA_DIR "/bottom_province/sediment_test.nc" ) ;
+
+    seq_linear frequency(1000.0, 1000.0, 0.01) ;
+    double angle = M_PI_2 ;
+    vector<double> amplitude( frequency.size() ) ;
+
+    double limestone = 3.672875 ;
+    double sand = 10.166660 ;
+    double tolerance = 4e-4 ;
+
+	/** bottom type numbers in the center of the data field top left, right, bottom left, right */
+	netcdf.reflect_loss(wposition1(29.5, -83.4), frequency, angle, &amplitude) ;
+	BOOST_CHECK_CLOSE(amplitude(0), limestone, tolerance) ;
+	netcdf.reflect_loss(wposition1(30.5, -83.4), frequency, angle, &amplitude) ;
+	BOOST_CHECK_CLOSE(amplitude(0), sand, tolerance) ;
+	netcdf.reflect_loss(wposition1(29.5, -84.2), frequency, angle, &amplitude) ;
+	BOOST_CHECK_CLOSE(amplitude(0), sand, tolerance) ;
+	netcdf.reflect_loss(wposition1(30.5, -84.2), frequency, angle, &amplitude) ;
+	BOOST_CHECK_CLOSE(amplitude(0), limestone, tolerance) ;
+	/** bottom type numbers at the corners of the data field top left, bottom left, top right, bottom right */
+	netcdf.reflect_loss(wposition1(26, -80), frequency, angle, &amplitude) ;
+	BOOST_CHECK_CLOSE(amplitude(0), sand, tolerance) ;
+	netcdf.reflect_loss(wposition1(26, -89), frequency, angle, &amplitude) ;
+	BOOST_CHECK_CLOSE(amplitude(0), limestone, tolerance) ;
+	netcdf.reflect_loss(wposition1(35, -80), frequency, angle, &amplitude) ;
+	BOOST_CHECK_CLOSE(amplitude(0), sand, tolerance) ;
+	netcdf.reflect_loss(wposition1(35, -89), frequency, angle, &amplitude) ;
+	BOOST_CHECK_CLOSE(amplitude(0), limestone, tolerance) ;
+}
+
+/**
+ * Test the accuracy Pierson and Moskowitz model for computing wave height
+ * from wind speed. Compare to significant wave height plot from
+ * http://www.wikiwaves.org/Ocean-Wave_Spectra.
+ */
+BOOST_AUTO_TEST_CASE( wave_height_pierson_test ) {
+    cout << "=== reflect_loss_test: wave_height_pierson_test ===" << endl;
+
+    // display plotting data
+
+    const char* csv_name = USML_TEST_DIR "/ocean/test/wave_height_pierson_test.csv" ;
+    std::ofstream os(csv_name) ;
+    cout << "writing tables to " << csv_name << endl ;
+	os << "wind,Hsig" << endl ;
+    for ( double wind=0.0 ; wind <= 25.0 ; wind += 1.0 ) {
+    	os << wind << "," << 4*wave_height_pierson(wind) << endl ;
+    }
+
+    // check the answer against key points in plot
+
+    BOOST_CHECK_CLOSE(wave_height_pierson(0.0), 0.0, 1e-6);
+    BOOST_CHECK_CLOSE(wave_height_pierson(15.0), 5.0/4.0, 5.0 );
+    BOOST_CHECK_CLOSE(wave_height_pierson(25.0), 14.0/4.0, 5.0 );
+}
+
+/**
+ * Compare the results of the reflect_loss_eckart surface reflection loss model
+ * to Figures 2-5 in Jones et. al.  Returns error if the values at 10 degrees
+ * are different from those that we hand calculated.
+ * <pre>
+ * Figure	Wind Speed	Frequency	Loss at 10 deg
+ * ------	----------	---------	--------------
+ * 2		4.6 m/s		3150 Hz		1.15 dB
+ * 3		4.6 m/s		5000 Hz		2.90 dB
+ * 4		14.4 m/s	1000 Hz		11.15 dB
+ * 5		14.4 m/s	5000 Hz		278.76 dB
+ * </pre>
+ *
+ * @xref Adrian D. Jones, Janice Sendt, Alec J. Duncan, Paul A. Clarke and
+ * Amos Maggi, "Modelling the acoustic reflection loss at the rough
+ * ocean surface," Proceedings of ACOUSTICS 2009, Australian Acoustical Society,
+ * 23-25 November 2009, Adelaide, Australia.
+ */
+BOOST_AUTO_TEST_CASE( reflect_loss_eckart_test ) {
+    cout << "=== reflect_loss_test: reflect_loss_eckart_test ===" << endl;
+    const char* name = USML_TEST_DIR "/ocean/test/reflect_loss_eckart_test.csv" ;
     std::ofstream os(name) ;
     cout << "writing tables to " << name << endl ;
 
     // simple values for points and distance
 
-    wposition points ;
-    points.altitude( 0, 0, -1000.0) ;
+    wposition1 points ;
+    seq_log freqA( 1000.0, 1.0, 1 ) ;
+    seq_log freqB( 3150.0, 1.0, 1 ) ;
+    seq_log freqC( 5000.0, 1.0, 1 ) ;
+    vector<double> amplitude( freqA.size() ) ;
 
-    seq_log freq( 10.0, 10.0, 7 ) ;
-    cout << "freq:  " << freq << endl ;
-    vector<double> angles( 91 ) ;
-    for(int i=0; i<angles.size(); ++i) {
-        angles[i] = to_radians(i) ;
+    // variations with wind speed and frequency
+
+    os << "angle,figure2,figure3,figure4,figure5" << endl ;
+
+    reflect_loss_eckart trackQ( 4.6 ) ;
+    reflect_loss_eckart trackO( 14.4 ) ;
+
+    for ( double angle = 0.0 ; angle <= 10.0 ; angle += 0.1 ) {
+        os << angle ;
+
+        trackQ.reflect_loss( points, freqB, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) ;
+        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 1.15, 1.0 );
+
+        trackQ.reflect_loss( points, freqC, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) ;
+        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 2.90, 1.0 );
+
+        trackO.reflect_loss( points, freqA, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) ;
+        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 11.15, 1.0 );
+
+        trackO.reflect_loss( points, freqC, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) << endl ;
+        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 278.76, 1.0 );
     }
-    vector<vector<double> > amplitude( angles.size() ) ;
-    for(int i=0; i<amplitude.size(); ++i) {
-        amplitude(i).resize( freq.size() ) ;
-    }
+}
 
-    // test case (a) - variations with sediment sound speed
+/**
+ * Compare the results of the reflect_loss_beckmann surface reflection loss model
+ * to Figures 2-5 in Jones et. al.  Returns error if the values at 10 degrees
+ * are different from those that we hand calculated.
+ * <pre>
+ * Figure	Wind Speed	Frequency	Loss at 10 deg
+ * ------	----------	---------	--------------
+ * 2		4.6 m/s		3150 Hz		1.15 dB
+ * 3		4.6 m/s		5000 Hz		2.90 dB
+ * 4		14.4 m/s	1000 Hz		11.15 dB
+ * 5		14.4 m/s	5000 Hz		278.76 dB
+ * </pre>
+ *
+ * @xref Adrian D. Jones, Janice Sendt, Alec J. Duncan, Paul A. Clarke and
+ * Amos Maggi, "Modelling the acoustic reflection loss at the rough
+ * ocean surface," Proceedings of ACOUSTICS 2009, Australian Acoustical Society,
+ * 23-25 November 2009, Adelaide, Australia.
+ */
+BOOST_AUTO_TEST_CASE( reflect_loss_beckmann_test ) {
+    cout << "=== reflect_loss_test: reflect_loss_beckmann_test ===" << endl;
+    const char* name = USML_TEST_DIR "/ocean/test/reflect_loss_beckmann_test.csv" ;
+    std::ofstream os(name) ;
+    cout << "writing tables to " << name << endl ;
 
-//    static reflect_loss_rayleigh::bottom_type_enum sediment[] = {
-//        reflect_loss_rayleigh::CLAY,
-//        reflect_loss_rayleigh::SILT,
-//        reflect_loss_rayleigh::SAND,
-//        reflect_loss_rayleigh::GRAVEL,
-//        reflect_loss_rayleigh::MORAINE,
-//        reflect_loss_rayleigh::CHALK,
-//        reflect_loss_rayleigh::LIMESTONE,
-//        reflect_loss_rayleigh::BASALT
-//    } ;
+    // simple values for points and distance
 
-    os << "angle,clay" << endl ;
-    reflect_loss_rayleigh model( reflect_loss_rayleigh::CLAY ) ;
-    model.reflect_loss( points, freq, &angles, &amplitude ) ;
-    for (int a = 0 ; a < angles.size() ; ++a) {
-        os << a ;
-        os << "," << amplitude(0)(a) ;
-        os << endl ;
+    wposition1 points ;
+    seq_log freqA( 1000.0, 1.0, 1 ) ;
+    seq_log freqB( 3150.0, 1.0, 1 ) ;
+    seq_log freqC( 5000.0, 1.0, 1 ) ;
+    vector<double> amplitude( freqA.size() ) ;
+
+    // variations with wind speed and frequency
+
+    os << "angle,figure2,figure3,figure4,figure5" << endl ;
+
+    reflect_loss_beckmann trackQ( 4.6 ) ;
+    reflect_loss_beckmann trackO( 14.4 ) ;
+
+    for ( double angle = 0.0 ; angle <= 90.0 ; angle += 1.0 ) {
+        os << angle ;
+
+        trackQ.reflect_loss( points, freqB, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) ;
+//        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 1.15, 1.0 );
+
+        trackQ.reflect_loss( points, freqC, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) ;
+//        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 2.90, 1.0 );
+
+        trackO.reflect_loss( points, freqA, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) ;
+//        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 11.15, 1.0 );
+
+        trackO.reflect_loss( points, freqC, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) << endl ;
+//        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 278.76, 1.0 );
     }
 }
 

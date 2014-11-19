@@ -15,14 +15,11 @@ boundary_flat::boundary_flat(double depth, reflect_loss_model* reflect_loss)
 {
     if ( depth < 1e-6 ) {
         _normal_rho = -1.0 ;
-        if ( _reflect_loss_model == NULL ) {
-            _reflect_loss_model = new reflect_loss_constant( 0.0, M_PI ) ;
+        if ( reflect_loss == NULL ) {
+            this->reflect_loss( new reflect_loss_constant( 0.0, M_PI ) ) ;
         }
     } else {
         _normal_rho = 1.0 ;
-        if ( _reflect_loss_model == NULL ) {
-            _reflect_loss_model = new reflect_loss_constant( 0.0, 0.0 ) ;
-        }
     }
 }
 

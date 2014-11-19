@@ -90,7 +90,7 @@ void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb*
         // Compute the energy reflected off of this patch
         // and the scattering loss from the interface
     vector<double> scatter( (*u->frequencies).size() ) ;
-    _current_boundary->getScattering_Model()->scattering_strength( v->position, (*v->frequencies),
+    _current_boundary->scattering( v->position, (*v->frequencies),
             u->grazing, v->grazing, u->launch_az, v->launch_az, &scatter ) ;
     double _energy = _pulse * u->intensity(0) * v->intensity(0) * scatter(0) * _area ;
 

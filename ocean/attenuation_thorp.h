@@ -2,9 +2,7 @@
  * @file attenuation_thorp.h
  * Models attenuation loss using Thorp's model.
  */
-
-#ifndef USML_OCEAN_ATTENUATION_THORP_H
-#define USML_OCEAN_ATTENUATION_THORP_H
+#pragma once
 
 #include <usml/ocean/attenuation_model.h>
 
@@ -82,5 +80,3 @@ class USML_DECLSPEC attenuation_thorp : public attenuation_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

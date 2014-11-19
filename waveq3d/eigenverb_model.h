@@ -192,11 +192,6 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
         boundary_model* _surface_boundary ;
 
         /**
-         * Defines the type(s) of boundary model(s) for the volume.
-         */
-        volume_layer* _volume_boundary ;
-
-        /**
          * The current boundary that computations need
          */
         boundary_model* _current_boundary ;
