@@ -1,5 +1,6 @@
 /**
  * @file scattering_lambert.h
+ * Models diffuse scattering from ocean bottom using Lambert/Mackenzie model.
  */
 #pragma once
 
@@ -22,15 +23,19 @@ using boost::numeric::ublas::vector;
  * is constant at all observed angle for ideal diffuse reflectors.
  * Mathematically, this leads to the relationship below.
  * \f[
- *   \frac{I_{scat}}{I_{inc}} = \mu \: sin(\gamma_{scat}) * sin(\gamma_{inc}) \: \delta A
+ *   \frac{I_{scat}}{I_{inc}} = \mu \: sin(\gamma_{scat})
+ *   						  * sin(\gamma_{inc}) \: \delta A
  * \f]
  * where
- * 		\f$ \gamma \f$ = grazing angle,
- * 		\f$ \mu \f$ = scattering strength coefficient.
+ * 		\f$ \gamma_{inc} \f$ = incident grazing angle,
+ * 		\f$ \gamma_{scat} \f$ = scattered grazing angle,
+ * 		\f$ \mu \f$ = scattering strength coefficient, and
+ * 		\f$ \delta A \f$ = ensonified area.
  *
  * In underwater acoustics, this is often referred to as the Mackenzie model,
  * based on at-sea measurements which indicated that indicated that
  * Lambert's Law was also a good fit for ocean bottom backscattering strength.
+ * This model is not designed to be used for surface or volume reverberation.
  *
  * @xref Mackenzie K. V., "Bottom reverberation for 530 and 1030 cps
  * Sound in Deep Water," J. Acoust. Soc. Am. 33:1596 (1961).
@@ -58,7 +63,7 @@ public:
 	 * @param de_scattered  Depression scattered angle (radians).
 	 * @param az_incident   Azimuthal incident angle (radians).
 	 * @param az_scattered  Azimuthal scattered angle (radians).
-	 * @param amplitude     Change in ray strength in dB (output).
+     * @param amplitude     Reverberation scattering strength ratio (output).
 	 */
 	virtual void scattering( const wposition1& location,
 		const seq_vector& frequencies, double de_incident, double de_scattered,
@@ -68,6 +73,29 @@ public:
 				abs( _coeff * sin( de_incident ) * sin( de_scattered ) ) ) ;
 				// fast assignment of scalar to vector
 	}
+
+    /**
+     * Computes the broadband scattering strength for a collection of
+     * scattering angles from a common incoming ray. Each scattering
+     * has its own location, de_scattered, and az_scattered.
+     * The result is a broadband reverberation scattering strength for
+     * each scattering.
+     *
+     * @param location      Location at which to compute attenuation.
+     * @param frequencies   Frequencies over which to compute loss. (Hz)
+     * @param de_incident   Depression incident angle (radians).
+     * @param de_scattered  Depression scattered angle (radians).
+     * @param az_incident   Azimuthal incident angle (radians).
+     * @param az_scattered  Azimuthal scattered angle (radians).
+     * @param amplitude     Reverberation scattering strength ratio (output).
+     */
+    virtual void scattering( const wposition& location,
+        const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
+        double az_incident, matrix<double> az_scattered, vector< matrix<double> >* amplitude )
+    {
+		noalias(*amplitude) = scalar_vector< matrix<double> >( frequencies.size(),
+			abs( _coeff * sin( de_incident ) * sin( de_scattered ) ) ) ;
+    }
 
 private:
 

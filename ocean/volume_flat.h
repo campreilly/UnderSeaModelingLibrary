@@ -90,17 +90,23 @@ class USML_DECLSPEC volume_flat : public volume_model {
      *
      * @param depth         Depth of layer relative to mean sea level.
      * @param thickness     Height of the layer from the bottom to the top.
-     * @param amplitude         Water depth relative to mean sea level.
-     * @param reflect_loss  Reflection loss model.  Assumes depth=0 is used to
-     *                      define the water surface and any other depths
-     *                      define the ocean bottom. Use perfect surface or
-     *                      bottom reflection if no model specified.
-     *                      The boundary_model takes over ownship of this
-     *                      reference and deletes it as part of its
-     *                      destructor.
+     * @param amplitude     Reverberation scattering strength ratio.
      */
     volume_flat( double depth=0.0, double thickness=0.0, double amplitude=-300.0  ) :
     	volume_model( new scattering_constant(amplitude) )
+    {
+
+    }
+
+    /**
+     * Initialize depth and reflection loss components for a boundary.
+     *
+     * @param depth         Depth of layer relative to mean sea level.
+     * @param thickness     Height of the layer from the bottom to the top.
+     * @param amplitude     Reverberation scattering strength model.
+     */
+    volume_flat( double depth=0.0, double thickness=0.0, scattering_model* scattering ) :
+    	volume_model( scattering )
     {
 
     }

@@ -37,7 +37,7 @@
  * @defgroup ocean_model Ocean Model
  * @ingroup ocean
  *
- * Combines the effects of surface, bottom, and profile into a single model.
+ * Combines the effects of surface, bottom, volume, and profile into a single model.
  *
  *      - ocean_model.h
  *
@@ -46,9 +46,7 @@
  *
  * Regression tests for the ocean package
  */
-
-#ifndef USML_OCEAN_OCEAN_H
-#define USML_OCEAN_OCEAN_H
+#pragma once
 
 #include <usml/ocean/attenuation_model.h>
 #include <usml/ocean/attenuation_constant.h>
@@ -83,6 +81,3 @@
 #include <usml/ocean/volume_model.h>
 
 #include <usml/ocean/ocean_model.h>
-
-#endif
-

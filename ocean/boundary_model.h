@@ -171,6 +171,30 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model, scattering_model
 				az_incident, az_scattered, amplitude ) ;
     }
 
+    /**
+     * Computes the broadband scattering strength for a collection of
+     * scattering angles from a common incoming ray. Each scattering
+     * has its own location, de_scattered, and az_scattered.
+     * The result is a broadband reverberation scattering strength for
+     * each scattering.
+     *
+     * @param location      Location at which to compute attenuation.
+     * @param frequencies   Frequencies over which to compute loss. (Hz)
+     * @param de_incident   Depression incident angle (radians).
+     * @param de_scattered  Depression scattered angle (radians).
+     * @param az_incident   Azimuthal incident angle (radians).
+     * @param az_scattered  Azimuthal scattered angle (radians).
+     * @param amplitude     Reverberation scattering strength ratio (output).
+     */
+    virtual void scattering( const wposition& location,
+        const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
+        double az_incident, matrix<double> az_scattered, vector< matrix<double> >* amplitude )
+    {
+    	_scattering->scattering( location,
+    			frequencies, de_incident, de_scattered,
+				az_incident, az_scattered, amplitude ) ;
+    }
+
     //**************************************************
     // initialization
 

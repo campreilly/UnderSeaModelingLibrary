@@ -1,5 +1,6 @@
 /**
  * @file scattering_constant.h
+ * Models reverberation scattering strength as a constant factor.
  */
 #pragma once
 
@@ -27,7 +28,7 @@ public:
 	/**
 	 * Initialize model with a constant factors.
 	 *
-	 * @param amplitude     Reflection amplitude change (dB).
+     * @param amplitude     Reverberation scattering strength ratio (dB).
 	 */
 	scattering_constant( double amplitude=-300.0 ) :
 		_amplitude( pow(10.0,amplitude/10.0) ) {}
@@ -41,7 +42,7 @@ public:
 	 * @param de_scattered  Depression scattered angle (radians).
 	 * @param az_incident   Azimuthal incident angle (radians).
 	 * @param az_scattered  Azimuthal scattered angle (radians).
-	 * @param amplitude     Change in ray strength in dB (output).
+     * @param amplitude     Reverberation scattering strength ratio (output).
 	 */
 	virtual void scattering(const wposition1& location,
 			const seq_vector& frequencies, double de_incident,
@@ -51,6 +52,30 @@ public:
 		noalias(*amplitude) = scalar_vector<double>( frequencies.size(), _amplitude );
 			// fast assignment of scalar to vector
 	}
+
+    /**
+     * Computes the broadband scattering strength for a collection of
+     * scattering angles from a common incoming ray. Each scattering
+     * has its own location, de_scattered, and az_scattered.
+     * The result is a broadband reverberation scattering strength for
+     * each scattering.
+     *
+     * @param location      Location at which to compute attenuation.
+     * @param frequencies   Frequencies over which to compute loss. (Hz)
+     * @param de_incident   Depression incident angle (radians).
+     * @param de_scattered  Depression scattered angle (radians).
+     * @param az_incident   Azimuthal incident angle (radians).
+     * @param az_scattered  Azimuthal scattered angle (radians).
+     * @param amplitude     Reverberation scattering strength ratio (output).
+     */
+    virtual void scattering( const wposition& location,
+        const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
+        double az_incident, matrix<double> az_scattered, vector< matrix<double> >* amplitude )
+    {
+		noalias(*amplitude) = scalar_vector< matrix<double> >( frequencies.size(),
+			scalar_matrix<double>( location.size1(), location.size2(), _amplitude ) ) ;
+			// fast assignment of scalar to vector of matrices
+    }
 
 private:
 
