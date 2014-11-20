@@ -1411,7 +1411,7 @@ namespace boost { namespace numeric { namespace ublas {
     BOOST_UBLAS_INLINE
 #if defined (BOOST_UBLAS_CHECK_DIVISION_TYPE)
     typename enable_if< is_convertible<T2, typename E1::value_type >,    
-    typename vector_binary_scalar2_traits<E1, const T2, scalar_multiplies<typename E1::value_type, T2> >::result_type
+    typename vector_binary_scalar2_traits<E1, const T2, scalar_divides<typename E1::value_type, T2> >::result_type
     >::type
 #else
     typename vector_binary_scalar2_traits<E1, const T2, scalar_divides<typename E1::value_type, T2> >::result_type
