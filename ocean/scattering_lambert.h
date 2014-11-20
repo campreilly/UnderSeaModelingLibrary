@@ -66,7 +66,7 @@ public:
 		const seq_vector& frequencies, double de_incident, double de_scattered,
 		double az_incident, double az_scattered, vector<double>* amplitude )
 	{
-		*amplitude = scalar_vector<double>( frequencies.size(),
+		noalias(*amplitude) = scalar_vector<double>( frequencies.size(),
 				abs( _coeff * sin( de_incident ) * sin( de_scattered ) ) ) ;
 				// fast assignment of scalar to vector
 	}

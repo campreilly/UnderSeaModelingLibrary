@@ -91,7 +91,7 @@ void wave_queue_reverb::detect_reflections() {
 
         // Don't check for volume interactions if volume layers
         // were not included in the ocean
-    if ( _ocean.volume() ) {
+    if ( _ocean.num_volume() ) {
         detect_volume_reflections() ;
     }
 
@@ -103,16 +103,16 @@ void wave_queue_reverb::detect_reflections() {
  * Detect volume boundary reflections for reverberation contributions
  */
 void wave_queue_reverb::detect_volume_reflections() {
-    unsigned n = _ocean.volume()->getNumberOfLayers() ;
-    for(unsigned i=0; i<n; ++i) {
-        boundary_model* layer = _ocean.volume()->getLayer(i) ;
+    std::size_t n = _ocean.num_volume() ;
+    for(std::size_t i=0; i<n; ++i) {
+        volume_model& layer = _ocean.volume(i) ;
         for (unsigned de = 0; de < num_de(); ++de) {
             for (unsigned az = 0; az < num_az(); ++az) {
                 if( _curr->on_edge(de,az) ) continue ;
                 double height ;
                 wposition1 pos_curr( _curr->position, de, az ) ;
                 wposition1 pos_next( _next->position, de, az ) ;
-                layer->height( pos_next, &height, NULL, true ) ;
+                layer.depth( pos_next, &height, NULL ) ;
                 double d1 = height - pos_next.rho() ;
                 double d2 = height - pos_curr.rho() ;
                 if ( d1 > 0 && d2 < 0 ) { collide_from_above(de,az, d1, i) ; }
@@ -139,8 +139,8 @@ void wave_queue_reverb::collide_from_above(
 
     double layer_rho ;
     wvector1 layer_normal ;
-    boundary_model* boundary = _ocean.volume()->getLayer(layer) ;
-    boundary->height( position, &layer_rho, &layer_normal ) ;
+    volume_model& volume = _ocean.volume(layer) ;
+    volume.depth( position, &layer_rho ) ;
     double height_water = position.rho() - layer_rho ;
 
     // compute dot_full = dot product of the full dr/dt with layer_normal (negative #)
@@ -171,7 +171,7 @@ void wave_queue_reverb::collide_from_above(
     // reduces grazing angle errors in highly refractive environments.
 
     collision_location( de, az, time_water, &position, &ndirection, &c ) ;
-    boundary->height( position, &layer_rho, &layer_normal ) ;
+    volume.depth( position, &layer_rho ) ;
     c2 = c*c ;
     height_water = position.rho() - layer_rho ;
 
@@ -214,8 +214,8 @@ void wave_queue_reverb::collide_from_below(
 
     double layer_rho ;
     wvector1 layer_normal ;
-    boundary_model* boundary = _ocean.volume()->getLayer(layer) ;
-    boundary->height( position, &layer_rho, &layer_normal ) ;
+    volume_model& volume = _ocean.volume(layer) ;
+    volume.depth( position, &layer_rho ) ;
     double height_water = position.rho() - layer_rho ;
 
     // compute dot_full = dot product of the full dr/dt with layer_normal (negative #)
@@ -246,7 +246,7 @@ void wave_queue_reverb::collide_from_below(
     // reduces grazing angle errors in highly refractive environments.
 
     collision_location( de, az, time_water, &position, &ndirection, &c ) ;
-    boundary->height( position, &layer_rho, &layer_normal ) ;
+    volume.depth( position, &layer_rho ) ;
     c2 = c*c ;
     height_water = position.rho() - layer_rho ;
 

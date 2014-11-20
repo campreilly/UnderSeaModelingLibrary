@@ -50,7 +50,7 @@ public:
 			double de_scattered, double az_incident, double az_scattered,
 			vector<double>* amplitude)
 	{
-		*amplitude = scalar_vector<double>( frequencies.size(), _amplitude );
+		noalias(*amplitude) = scalar_vector<double>( frequencies.size(), _amplitude );
 			// fast assignment of scalar to vector
 	}
 

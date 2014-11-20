@@ -18,14 +18,15 @@ eigenverb_bistatic::eigenverb_bistatic( ocean_model& ocean,
         // extract pointers to various spreading/boundary model(s)
     _bottom_boundary = &ocean.bottom() ;
     _surface_boundary = &ocean.surface() ;
-    _volume_boundary = ocean.volume() ;
-    if ( _volume_boundary ) {
-        unsigned _n = ocean.volume()->getNumberOfLayers() ;
+
+    unsigned _n = ocean.num_volume() ;
+    if ( _n > 0 ) {
         _receiver_upper.resize( _n ) ;
         _receiver_lower.resize( _n ) ;
         _source_upper.resize( _n ) ;
         _source_lower.resize( _n ) ;
     }
+
         // Grab this wave's ID, used to determine volume layer interactions
     _source_origin = wave_source.getID() ;
     _receiver_origin = wave_receiver.getID() ;
@@ -149,23 +150,24 @@ void eigenverb_bistatic::compute_surface_energy() {
  * to interactions with the volume layers
  */
 void eigenverb_bistatic::compute_upper_volume_energy() {
-    if ( _volume_boundary ) {
-        #ifdef EIGENVERB_MODEL_DEBUG
-            cout << "**** Entering eigenverb_bistatic::compute_upper_volume_energy()"
-                 << endl ;
-        #endif
-        unsigned layer = 0 ;
-        std::vector<std::vector<eigenverb> >::iterator i ;
-        std::vector<std::vector<eigenverb> >::iterator j ;
-        for(i=_source_upper.begin(), j=_receiver_upper.begin();
-            i!=_source_upper.end() && j!=_receiver_upper.end() && layer <= _n;
-            ++i, ++j)
-        {
-            _current_boundary = _volume_boundary->getLayer(layer) ;
-            convolve_eigenverbs( &(*i), &(*j) ) ;
-            ++layer ;
-        }
-    }
+//@todo Fix volume reverberation
+//    if ( _volume_boundary ) {
+//        #ifdef EIGENVERB_MODEL_DEBUG
+//            cout << "**** Entering eigenverb_bistatic::compute_upper_volume_energy()"
+//                 << endl ;
+//        #endif
+//        unsigned layer = 0 ;
+//        std::vector<std::vector<eigenverb> >::iterator i ;
+//        std::vector<std::vector<eigenverb> >::iterator j ;
+//        for(i=_source_upper.begin(), j=_receiver_upper.begin();
+//            i!=_source_upper.end() && j!=_receiver_upper.end() && layer <= _n;
+//            ++i, ++j)
+//        {
+//            _current_boundary = _volume_boundary->getLayer(layer) ;
+//            convolve_eigenverbs( &(*i), &(*j) ) ;
+//            ++layer ;
+//        }
+//    }
 }
 
 /**
@@ -173,23 +175,24 @@ void eigenverb_bistatic::compute_upper_volume_energy() {
  * to interactions with the volume layers
  */
 void eigenverb_bistatic::compute_lower_volume_energy() {
-    if ( _volume_boundary ) {
-        #ifdef EIGENVERB_MODEL_DEBUG
-            cout << "**** Entering eigenverb_bistatic::compute_lower_volume_energy()"
-                 << endl ;
-        #endif
-        unsigned layer = 0 ;
-        std::vector<std::vector<eigenverb> >::iterator i ;
-        std::vector<std::vector<eigenverb> >::iterator j ;
-        for(i=_source_lower.begin(), j=_receiver_lower.begin();
-            i!=_source_lower.end() && j!=_receiver_lower.end() && layer <= _n;
-            ++i, ++j)
-        {
-            _current_boundary = _volume_boundary->getLayer(layer) ;
-            convolve_eigenverbs( &(*i), &(*j) ) ;
-            ++layer ;
-        }
-    }
+//@todo Fix volume reverberation
+//    if ( _volume_boundary ) {
+//        #ifdef EIGENVERB_MODEL_DEBUG
+//            cout << "**** Entering eigenverb_bistatic::compute_lower_volume_energy()"
+//                 << endl ;
+//        #endif
+//        unsigned layer = 0 ;
+//        std::vector<std::vector<eigenverb> >::iterator i ;
+//        std::vector<std::vector<eigenverb> >::iterator j ;
+//        for(i=_source_lower.begin(), j=_receiver_lower.begin();
+//            i!=_source_lower.end() && j!=_receiver_lower.end() && layer <= _n;
+//            ++i, ++j)
+//        {
+//            _current_boundary = _volume_boundary->getLayer(layer) ;
+//            convolve_eigenverbs( &(*i), &(*j) ) ;
+//            ++layer ;
+//        }
+//    }
 }
 
 /**

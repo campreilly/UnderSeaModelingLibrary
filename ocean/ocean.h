@@ -80,8 +80,7 @@
 #include <usml/ocean/scattering_constant.h>
 #include <usml/ocean/scattering_lambert.h>
 
-#include <usml/ocean/volume_layer_model.h>
-#include <usml/ocean/volume_layer.h>
+#include <usml/ocean/volume_model.h>
 
 #include <usml/ocean/ocean_model.h>
 
