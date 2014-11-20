@@ -20,14 +20,15 @@ using boost::numeric::ublas::vector;
 /// @{
 
 /**
- * A scattering model computes the changes in amplitude that result from the
- * non-specular scattering of a ray from a boundary. Scattering models are
- * used to compute bistatic reverberation. The directions of the incoming
- * and outgoing rays are specified in terms of depression/elevation (D/E)
+ * A "reverberation scattering strength model" computes the changes in
+ * amplitude that result from the non-specular scattering of a ray
+ * collision with an interface. The directions of the incoming and
+ * outgoing rays are specified in terms of bistatic depression/elevation (D/E)
  * and azimuthal angles (AZ) at the scattering patch. Note that
- * depression/elevation (D/E) is the negative of grazing angle. These models
- * compute their results as a function of frequency to support broadband
- * acoustics.
+ * depression/elevation (D/E) is the negative of grazing angle.
+ * Volume reverberation is modeled by integrating the interface scattering
+ * strength over the layer thickness. These models compute their results
+ * as a function of frequency to support broadband acoustics.
  */
 class USML_DECLSPEC scattering_model {
 
@@ -44,7 +45,7 @@ class USML_DECLSPEC scattering_model {
          * @param az_scattered  Azimuthal scattered angle (radians).
          * @param amplitude     Change in ray strength in dB (output).
          */
-        virtual void scattering_strength( const wposition1& location,
+        virtual void scattering( const wposition1& location,
             const seq_vector& frequencies, double de_incident, double de_scattered,
             double az_incident, double az_scattered, vector<double>* amplitude ) = 0 ;
 

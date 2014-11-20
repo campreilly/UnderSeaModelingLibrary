@@ -7,7 +7,7 @@
 #define USML_OCEAN_BOUNDARY_MODEL_H
 
 #include <usml/ocean/reflect_loss_constant.h>
-#include <usml/ocean/scattering_model.h>
+#include <usml/ocean/scattering_constant.h>
 
 namespace usml {
 namespace ocean {
@@ -20,14 +20,15 @@ using boost::numeric::ublas::vector;
 /**
  * A "boundary model" computes the environmental parameters of
  * the ocean's surface or bottom.  The modeled properties include
- * the depth and reflection properties of the interface.
+ * the depth, reflection properties, and reverberation scattering
+ * strength of the interface.
  * This class implements a reflection loss model through delegation.
  * The delegated model is defined separately and added to its host
  * during/after construction.  The host is defined as a reflect_loss_model
  * subclass so that it's children can share the reflection loss model
  * through this delegation.
  *
- * This implementation defines the unit normal using cartesian coordinates
+ * This implementation defines the unit normal using Cartesian coordinates
  * in the \f$(\rho,\theta,\phi)\f$ directions relative to its location.
  * Given this definition, the normal can be computed from the depth
  * derivatives or slope angles using:
@@ -56,7 +57,7 @@ using boost::numeric::ublas::vector;
  * This definition of the unit normal saves processing time during
  * reflection processing.
  */
-class USML_DECLSPEC boundary_model : public reflect_loss_model {
+class USML_DECLSPEC boundary_model : public reflect_loss_model, scattering_model {
 
     //**************************************************
     // height model
@@ -96,8 +97,8 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
      * @param reflect_loss   Reflection loss model.
      */
     void reflect_loss( reflect_loss_model* reflect_loss ) {
-        if ( _reflect_loss_model ) delete _reflect_loss_model ;
-        _reflect_loss_model = reflect_loss ;
+        if ( _reflect_loss ) delete _reflect_loss ;
+        _reflect_loss = reflect_loss ;
     }
 
    /**
@@ -114,7 +115,7 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
         const seq_vector& frequencies, double angle,
         vector<double>* amplitude, vector<double>* phase=NULL )
     {
-        _reflect_loss_model->reflect_loss( location,
+        _reflect_loss->reflect_loss( location,
             frequencies, angle, amplitude, phase ) ;
     }
 
@@ -135,25 +136,41 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
         vector<vector<double> >* amplitude,
         vector<vector<double> >* phase=NULL, bool linear=false )
     {
-        _reflect_loss_model->reflect_loss( location,
+        _reflect_loss->reflect_loss( location,
             frequencies, angle, amplitude, phase, linear ) ;
     }
 
+    //**************************************************
+    // reverberation scattering strength model
+
     /**
-     * Setter for the scattering_model.
-     * @param scatter   Scattering model for this boundary
+     * Define a new reverberation scattering strength model.
+     *
+     * @param _scattering	Scattering model for this boundary
      */
-    void setScattering_Model( scattering_model* scatter ) {
-        if( _scattering_model ) delete _scattering_model ;
-        _scattering_model = scatter ;
+    void scattering( scattering_model* scattering ) {
+        if( _scattering ) delete _scattering ;
+        _scattering = scattering ;
     }
 
     /**
-     * Getter for the scattering model of this boundary.
-     * @return  pointer to the scattering_model
+     * Computes the broadband scattering strength for a single location.
+     *
+     * @param location      Location at which to compute attenuation.
+     * @param frequencies   Frequencies over which to compute loss. (Hz)
+     * @param de_incident   Depression incident angle (radians).
+     * @param de_scattered  Depression scattered angle (radians).
+     * @param az_incident   Azimuthal incident angle (radians).
+     * @param az_scattered  Azimuthal scattered angle (radians).
+     * @param amplitude     Change in ray strength in dB (output).
      */
-    inline scattering_model* getScattering_Model() {
-        return _scattering_model ;
+    virtual void scattering( const wposition1& location,
+        const seq_vector& frequencies, double de_incident, double de_scattered,
+        double az_incident, double az_scattered, vector<double>* amplitude )
+    {
+    	_scattering->scattering( location,
+    			frequencies, de_incident, de_scattered,
+				az_incident, az_scattered, amplitude ) ;
     }
 
     //**************************************************
@@ -163,29 +180,39 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model {
      * Initialize reflection loss components for a boundary.
      *
      * @param reflect_loss  Reflection loss model.
+     * @param scatter		Reverberation scattering strength model
      */
     boundary_model( reflect_loss_model* reflect_loss=NULL,
-                    scattering_model* scatter=NULL ) :
-        _reflect_loss_model( reflect_loss ),
-        _scattering_model( scatter )
+                    scattering_model* scattering=NULL ) :
+        _reflect_loss( reflect_loss )
     {
+		if ( reflect_loss ) {
+			_reflect_loss = reflect_loss ;
+		} else {
+			_reflect_loss = new reflect_loss_constant( 0.0, 0.0 ) ;
+		}
+		if ( scattering ) {
+			_scattering = scattering ;
+		} else {
+			_scattering = new scattering_constant() ;
+		}
     }
 
     /**
      * Delete reflection loss model.
      */
     virtual ~boundary_model() {
-        if ( _reflect_loss_model ) delete _reflect_loss_model ;
-        if ( _scattering_model ) delete _scattering_model ;
+        if ( _reflect_loss ) delete _reflect_loss ;
+        if ( _scattering ) delete _scattering ;
     }
 
-  protected:
+  private:
 
     /** Reference to the reflection loss model **/
-    reflect_loss_model* _reflect_loss_model ;
+    reflect_loss_model* _reflect_loss ;
 
     /** Reference to the scattering strength model **/
-    scattering_model* _scattering_model ;
+    scattering_model* _scattering ;
 
 };
 

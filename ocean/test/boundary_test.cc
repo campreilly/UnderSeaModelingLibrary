@@ -300,7 +300,7 @@ BOOST_AUTO_TEST_CASE( scattering_strength_test ) {
     os << "de_incident,de_scattered,amp" << endl ;
     for(int i=0; i<90; ++i) {
         double de_incident = i * M_PI / 180.0 ;
-        s->scattering_strength( pos, freq, de_incident, de_scattered, 0.0, 0.0, &amplitude ) ;
+        s->scattering( pos, freq, de_incident, de_scattered, 0.0, 0.0, &amplitude ) ;
         os << de_incident << ","
            << de_scattered << ","
            << amplitude(0) << endl ;

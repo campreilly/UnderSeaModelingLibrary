@@ -36,7 +36,7 @@ namespace ocean {
 template< class DATA_TYPE, int NUM_DIMS > class profile_grid
     : public profile_model
 {
-  protected:
+  private:
 
     //**************************************************
     // sound speed model

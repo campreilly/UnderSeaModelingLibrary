@@ -51,9 +51,9 @@ public:
         this->_height->interp_type(1, GRID_INTERP_PCHIP);
         this->_height->edge_limit(0, true);
         this->_height->edge_limit(1, true);
-        if (_reflect_loss_model == NULL) {
-            _reflect_loss_model = new reflect_loss_rayleigh(
-                    reflect_loss_rayleigh::SAND);
+        if ( reflect_loss == NULL) {
+            this->reflect_loss( new reflect_loss_rayleigh(
+                    reflect_loss_rayleigh::SAND) ) ;
         }
     }
 
@@ -137,7 +137,7 @@ public:
         }
     }
 
-protected:
+private:
 
     /** Boundary for all locations. */
     data_grid_bathy* _height;

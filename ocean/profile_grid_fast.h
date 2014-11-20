@@ -83,7 +83,7 @@ public:
         this->adjust_speed(location, speed, gradient);
     }
 
-protected:
+private:
 
     /** Sound speed for all locations. */
     data_grid_svp* _sound_speed;
