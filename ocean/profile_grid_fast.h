@@ -2,9 +2,7 @@
  * @file profile_grid_fast.h
  * Creates a sound speed model from a data_grid_svp.
  */
-
-#ifndef USML_OCEAN_PROFILE_GRID_FAST_H
-#define USML_OCEAN_PROFILE_GRID_FAST_H
+#pragma once
 
 #include <usml/ocean/profile_model.h>
 
@@ -94,6 +92,3 @@ private:
 /// @}
 } // end of namespace ocean
 } // end of namespace usml
-
-#endif
-

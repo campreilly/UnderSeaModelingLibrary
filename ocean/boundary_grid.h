@@ -2,9 +2,7 @@
  * @file boundary_grid.h
  * Creates a bottom model from a 1-D or 2-D data grid.
  */
-
-#ifndef USML_OCEAN_BOUNDARY_GRID_H
-#define USML_OCEAN_BOUNDARY_GRID_H
+#pragma once
 
 #include <usml/ocean/boundary_model.h>
 #include <usml/ocean/reflect_loss_rayleigh.h>
@@ -227,5 +225,3 @@ public:
 
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

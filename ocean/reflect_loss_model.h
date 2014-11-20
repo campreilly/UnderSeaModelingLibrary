@@ -2,8 +2,7 @@
  * @file reflect_loss_model.h
  * Generic interface for reflection loss models.
  */
-#ifndef USML_OCEAN_REFLECT_LOSS_MODEL_H
-#define USML_OCEAN_REFLECT_LOSS_MODEL_H
+#pragma once
 
 #include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
@@ -74,5 +73,3 @@ class USML_DECLSPEC reflect_loss_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

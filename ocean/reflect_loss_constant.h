@@ -2,8 +2,7 @@
  * @file reflect_loss_constant.h
  * Models reflection loss as a constant factor.
  */
-#ifndef USML_OCEAN_REFLECT_LOSS_CONSTANT_H
-#define USML_OCEAN_REFLECT_LOSS_CONSTANT_H
+#pragma once
 
 #include <usml/ocean/reflect_loss_model.h>
 
@@ -79,5 +78,3 @@ class USML_DECLSPEC reflect_loss_constant : public reflect_loss_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

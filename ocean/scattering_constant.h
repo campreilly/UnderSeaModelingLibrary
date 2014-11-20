@@ -1,9 +1,7 @@
 /**
  * @file scattering_constant.h
  */
-
-#ifndef USML_OCEAN_SCATTERING_CONSTANT_H
-#define USML_OCEAN_SCATTERING_CONSTANT_H
+#pragma once
 
 #include <usml/ocean/scattering_model.h>
 
@@ -64,5 +62,3 @@ private:
 /// @}
 }	// end of namespace ocean
 }   // end of namespace usml
-
-#endif

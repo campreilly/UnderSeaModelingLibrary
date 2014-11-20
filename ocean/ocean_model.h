@@ -2,8 +2,7 @@
  * @file ocean_model.h
  * Combines the effects of surface, bottom, volume and profile into a single model.
  */
-#ifndef USML_OCEAN_OCEAN_MODEL_H
-#define USML_OCEAN_OCEAN_MODEL_H
+#pragma once
 
 #include <usml/ocean/boundary_model.h>
 #include <usml/ocean/profile_model.h>
@@ -102,5 +101,3 @@ class USML_DECLSPEC ocean_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

@@ -1,10 +1,10 @@
 /**
- * @file volume_model.h
- * Generic interface for volume scattering layers.
+ * @file volume_flat.h
+ * Models a simple volume reverberation layer in the ocean.
  */
 #pragma once
 
-#include <usml/ocean/scattering_constant.h>
+#include <usml/ocean/volume_model.h>
 
 namespace usml {
 namespace ocean {
@@ -15,16 +15,10 @@ using boost::numeric::ublas::vector;
 /// @{
 
 /**
- * A "volume scattering layer model" computes the environmental parameters of
- * a single volume scattering layer in the ocean.  The modeled properties
- * include the depth, thickness, and reverberation scattering strength
- * of the layer.  Depth is defined using the average (center) distance
- * of the layer relative to the center of the earth.  Thickness is
- * the full distance from the bottom to the top of the layer.
+ * Models a simple volume reverberation layer in the ocean
+ * with constant depth, thickness, and scattering strength.
  */
-class USML_DECLSPEC volume_model : public scattering_model {
-
-	// @todo Resolve differences between interface and volume scattering strength
+class USML_DECLSPEC volume_flat : public volume_model {
 
     //**************************************************
     // depth model
@@ -92,11 +86,34 @@ class USML_DECLSPEC volume_model : public scattering_model {
     // initialization
 
     /**
+     * Initialize depth and reflection loss components for a boundary.
+     *
+     * @param depth         Depth of layer relative to mean sea level.
+     * @param thickness     Height of the layer from the bottom to the top.
+     * @param amplitude         Water depth relative to mean sea level.
+     * @param reflect_loss  Reflection loss model.  Assumes depth=0 is used to
+     *                      define the water surface and any other depths
+     *                      define the ocean bottom. Use perfect surface or
+     *                      bottom reflection if no model specified.
+     *                      The boundary_model takes over ownship of this
+     *                      reference and deletes it as part of its
+     *                      destructor.
+     */
+    volume_flat( double depth=0.0, double thickness=0.0, double amplitude=-300.0  ) :
+    	volume_model( new scattering_constant(amplitude) )
+    {
+
+    }
+
+    //**************************************************
+    // initialization
+
+    /**
      * Initialize reflection loss components for a boundary.
      *
      * @param scatter		Reverberation scattering strength model
      */
-    volume_model( scattering_model* scatter=NULL ) :
+    volume_flat( scattering_model* scatter=NULL ) :
         _scattering( scatter )
     {
 		if ( scatter ) {

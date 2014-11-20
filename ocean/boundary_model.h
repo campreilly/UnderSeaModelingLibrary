@@ -2,9 +2,7 @@
  * @file boundary_model.h
  * Generic interface for the ocean's surface or bottom.
  */
-
-#ifndef USML_OCEAN_BOUNDARY_MODEL_H
-#define USML_OCEAN_BOUNDARY_MODEL_H
+#pragma once
 
 #include <usml/ocean/reflect_loss_constant.h>
 #include <usml/ocean/scattering_constant.h>
@@ -219,5 +217,3 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model, scattering_model
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

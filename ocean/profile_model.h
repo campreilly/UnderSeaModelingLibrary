@@ -2,8 +2,7 @@
  * @file profile_model.h
  * Generic interface for ocean water models.
  */
-#ifndef USML_OCEAN_PROFILE_MODEL_H
-#define USML_OCEAN_PROFILE_MODEL_H
+#pragma once
 
 #include <usml/ocean/attenuation_thorp.h>
 
@@ -152,5 +151,3 @@ public:
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

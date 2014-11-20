@@ -1,9 +1,7 @@
 /**
  * @file scattering_model.h
  */
-
-#ifndef USML_OCEAN_SCATTERING_MODEL_H
-#define USML_OCEAN_SCATTERING_MODEL_H
+#pragma once
 
 #include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
@@ -59,5 +57,3 @@ class USML_DECLSPEC scattering_model {
 /// @}
 }   // end namespace ocean
 }   // end namespace usml
-
-#endif

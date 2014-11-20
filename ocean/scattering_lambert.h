@@ -1,9 +1,7 @@
 /**
  * @file scattering_lambert.h
  */
-
-#ifndef USML_OCEAN_SCATTERING_LAMBERT_H
-#define USML_OCEAN_SCATTERING_LAMBERT_H
+#pragma once
 
 #include <usml/ocean/scattering_model.h>
 
@@ -82,5 +80,3 @@ private:
 /// @}
 }   // end of namespace ocean
 }   // end of namespace usml
-
-#endif

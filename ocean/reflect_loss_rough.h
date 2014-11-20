@@ -5,9 +5,7 @@
  * Created on: Feb 17, 2014
  *     Author: Ted Burns, AEgis Technologies, Inc.
  */
-
-#ifndef USML_OCEAN_REFLECT_LOSS_ROUGH_H
-#define USML_OCEAN_REFLECT_LOSS_ROUGH_H
+#pragma once
 
 #include <usml/ocean/reflect_loss_model.h>
 
@@ -122,5 +120,3 @@ class USML_DECLSPEC reflect_loss_rough : public reflect_loss_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

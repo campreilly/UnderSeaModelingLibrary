@@ -3,9 +3,7 @@
  * Builds rayleigh models for an imported data_grid bottom types.
  * Includes LaTEX documentation of formula for processing by Doxygen (not yet).
  */
-
-#ifndef USML_OCEAN_REFLECT_LOSS_RAYLEIGH_GRID_H
-#define USML_OCEAN_REFLECT_LOSS_RAYLEIGH_GRID_H
+#pragma once
 
 #include <usml/ocean/reflect_loss_model.h>
 #include <usml/ocean/reflect_loss_rayleigh.h>
@@ -98,5 +96,3 @@ class USML_DECLSPEC reflect_loss_rayleigh_grid : public reflect_loss_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif
