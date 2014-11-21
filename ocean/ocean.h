@@ -73,6 +73,7 @@
 #include <usml/ocean/boundary_grid.h>
 #include <usml/ocean/boundary_grid_fast.h>
 #include <usml/ocean/ascii_arc_bathy.h>
+#include <usml/ocean/wave_height_pierson.h>
 
 #include <usml/ocean/scattering_model.h>
 #include <usml/ocean/scattering_constant.h>

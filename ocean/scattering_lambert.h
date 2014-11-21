@@ -35,7 +35,7 @@ using boost::numeric::ublas::vector;
  * In underwater acoustics, this is often referred to as the Mackenzie model,
  * based on at-sea measurements which indicated that indicated that
  * Lambert's Law was also a good fit for ocean bottom backscattering strength.
- * This model is not designed to be used for surface or volume reverberation.
+ * This model is only used for bottom reverberation.
  *
  * @xref Mackenzie K. V., "Bottom reverberation for 530 and 1030 cps
  * Sound in Deep Water," J. Acoust. Soc. Am. 33:1596 (1961).

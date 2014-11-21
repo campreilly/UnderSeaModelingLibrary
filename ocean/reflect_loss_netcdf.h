@@ -59,25 +59,6 @@ class USML_DECLSPEC reflect_loss_netcdf : public reflect_loss_model {
             vector<double>* amplitude, vector<double>* phase=NULL ) ;
 
         /**
-         * Computes the broadband reflection loss and phase change for
-         * multiple locations.
-         *
-         * @param location      Location at which to compute attenuation.
-         * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param angle         Reflection angle relative to the normal (radians).
-         * @param amplitude     Change in ray strength in dB (output).
-         *                      Where vector<vector<double>(size locations)>(size freqs)
-         * @param phase         Change in ray phase in radians (output).
-         *                      Phase change not computed if this is NULL.
-         * @param linear        returns the value back in linear or log units.
-         * @TODO    add this implementation
-         */
-        virtual void reflect_loss( const wposition& location,
-            const seq_vector& frequencies, vector<double>* angle,
-            vector<vector<double> >* amplitude,
-            vector<vector<double> >* phase=NULL, bool linear=false ) {}
-
-        /**
          * Destructor
          */
         virtual ~reflect_loss_netcdf() ;

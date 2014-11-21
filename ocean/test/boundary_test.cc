@@ -308,6 +308,28 @@ BOOST_AUTO_TEST_CASE( scattering_strength_test ) {
     delete s ;
 }
 
+/**
+ * Test the accuracy Pierson and Moskowitz model for computing wave height
+ * from wind speed. Compare to significant wave height plot from
+ * http://www.wikiwaves.org/Ocean-Wave_Spectra.
+ */
+BOOST_AUTO_TEST_CASE( wave_height_pierson_test ) {
+    cout << "=== boundary_test: wave_height_pierson_test ===" << endl;
+
+    // display plotting data
+
+	cout << "wind\tHsig" << endl ;
+    for ( double wind=0.0 ; wind <= 25.0 ; wind += 1.0 ) {
+    	cout << wind << " \t" << 4*wave_height_pierson(wind) << endl ;
+    }
+
+    // check the answer against key points in plot
+
+    BOOST_CHECK_CLOSE(wave_height_pierson(0.0), 0.0, 1e-6);
+    BOOST_CHECK_CLOSE(wave_height_pierson(15.0), 5.0/4.0, 5.0 );
+    BOOST_CHECK_CLOSE(wave_height_pierson(25.0), 14.0/4.0, 5.0 );
+}
+
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()

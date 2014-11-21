@@ -247,55 +247,6 @@ BOOST_AUTO_TEST_CASE( plot_rayleigh_sediments ) {
     }
 }
 
-/**
- * Compute Rayleigh model values for generic sediments.
- * Write results to CSV file for processing in Excel or Matlab.
- */
-BOOST_AUTO_TEST_CASE( plot_rayleigh_sediments_2 ) {
-    cout << "=== reflect_loss_test: plot_rayleigh_sediments_2 ===" << endl ;
-    const char* name = USML_TEST_DIR "/ocean/test/rayleigh_sediments_2.csv" ;
-    std::ofstream os(name) ;
-    cout << "writing tables to " << name << endl ;
-
-    // simple values for points and distance
-
-    wposition points ;
-    points.altitude( 0, 0, -1000.0) ;
-
-    seq_log freq( 10.0, 10.0, 7 ) ;
-    cout << "freq:  " << freq << endl ;
-    vector<double> angles( 91 ) ;
-    for(int i=0; i<angles.size(); ++i) {
-        angles[i] = to_radians(i) ;
-    }
-    vector<vector<double> > amplitude( angles.size() ) ;
-    for(int i=0; i<amplitude.size(); ++i) {
-        amplitude(i).resize( freq.size() ) ;
-    }
-
-    // test case (a) - variations with sediment sound speed
-
-//    static reflect_loss_rayleigh::bottom_type_enum sediment[] = {
-//        reflect_loss_rayleigh::CLAY,
-//        reflect_loss_rayleigh::SILT,
-//        reflect_loss_rayleigh::SAND,
-//        reflect_loss_rayleigh::GRAVEL,
-//        reflect_loss_rayleigh::MORAINE,
-//        reflect_loss_rayleigh::CHALK,
-//        reflect_loss_rayleigh::LIMESTONE,
-//        reflect_loss_rayleigh::BASALT
-//    } ;
-
-    os << "angle,clay" << endl ;
-    reflect_loss_rayleigh model( reflect_loss_rayleigh::CLAY ) ;
-    model.reflect_loss( points, freq, &angles, &amplitude ) ;
-    for (int a = 0 ; a < angles.size() ; ++a) {
-        os << a ;
-        os << "," << amplitude(0)(a) ;
-        os << endl ;
-    }
-}
-
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()

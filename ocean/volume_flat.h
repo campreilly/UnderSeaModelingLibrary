@@ -103,7 +103,7 @@ class USML_DECLSPEC volume_flat : public volume_model {
      *
      * @param depth         Depth of layer relative to mean sea level.
      * @param thickness     Height of the layer from the bottom to the top.
-     * @param amplitude     Reverberation scattering strength model.
+     * @param scattering    Reverberation scattering strength model.
      */
     volume_flat( double depth=0.0, double thickness=0.0, scattering_model* scattering ) :
     	volume_model( scattering )

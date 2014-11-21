@@ -15,8 +15,8 @@ using boost::numeric::ublas::vector;
 /// @{
 
 /**
- * Models reflection loss as a constant factor that is independent
- * of grazing angle and frequency.
+ * Models surface or bottom reflection loss as a constant factor that is
+ * independent of grazing angle and frequency.
  */
 class USML_DECLSPEC reflect_loss_constant : public reflect_loss_model {
 
@@ -34,36 +34,23 @@ class USML_DECLSPEC reflect_loss_constant : public reflect_loss_model {
         /**
          * Computes the broadband reflection loss and phase change.
          *
-         * @param location      Location at which to compute attenuation.
+         * @param location      Location at which to compute reflection loss.
          * @param frequencies   Frequencies over which to compute loss. (Hz)
          * @param angle         Grazing angle relative to the interface (radians).
-         * @param amplitude     Change in ray strength in dB (output).
+         * @param amplitude     Change in ray intensity in dB (output).
          * @param phase         Change in ray phase in radians (output).
          *                      Phase change not computed if this is NULL.
          */
         virtual void reflect_loss(
             const wposition1& location,
             const seq_vector& frequencies, double angle,
-            vector<double>* amplitude, vector<double>* phase=NULL ) ;
-
-        /**
-         * Computes the broadband reflection loss and phase change for
-         * multiple locations.
-         *
-         * @param location      Location at which to compute attenuation.
-         * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param angle         Reflection angle relative to the normal (radians).
-         * @param amplitude     Change in ray strength in dB (output).
-         *                      Where vector<vector<double>(size locations)>(size freqs)
-         * @param phase         Change in ray phase in radians (output).
-         *                      Phase change not computed if this is NULL.
-         * @param linear        returns the value back in linear or log units.
-         * @TODO    add this implementation
-         */
-        virtual void reflect_loss( const wposition& location,
-            const seq_vector& frequencies, vector<double>* angle,
-            vector<vector<double> >* amplitude,
-            vector<vector<double> >* phase=NULL, bool linear=false ) {}
+            vector<double>* amplitude, vector<double>* phase=NULL )
+        {
+			noalias(*amplitude) = scalar_vector<double>(frequencies.size(),_amplitude);
+			if ( phase ) {
+				noalias(*phase) = scalar_vector<double>(frequencies.size(),_phase);
+			}
+        }
 
     private:
 
