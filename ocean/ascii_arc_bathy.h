@@ -13,7 +13,7 @@ namespace ocean {
 using namespace usml::ublas ;
 using namespace usml::types ;
 
-/// @ingroup ascii_arc_files
+/// @ingroup boundaries
 /// @{
 
 /**

@@ -30,19 +30,18 @@ namespace ocean {
  * \f$ H_{1/3} \f$ = significant wave height (m), and
  * \f$ H_{rms} \f$ = root mean squared of wave height (m).
  *
- * @xref Pierson W.J., Moskowitz L., "A proposed spectral form for fully
- *       developed wind seas based on the similarity theory of
- *       S.A. Kitaigordskii," Journal of Geophysical Research
- *       69: 5181–5190, 1964.
+ * @xref W. J. Pierson, L. Moskowitz, A proposed spectral form for fully
+ * developed wind seas based on the similarity theory of S.A. Kitaigordskii,
+ * Journal of Geophysical Research 69, pp. 5181–5190, 1964.
  *
- * @xref Stewart R. H. "Introduction to Physical Oceanography," Open source text book,
- *       http://oceanworld.tamu.edu/resources/ocng_textbook/contents.html, 2008.
+ * @xref R. H. Stewart, "Introduction to Physical Oceanography," Open source text book,
+ * http://oceanworld.tamu.edu/resources/ocng_textbook/contents.html , 2008.
  *
  * @xref Ocean-Wave Spectra entry on WikiWaves site,
- *       http://www.wikiwaves.org/Ocean-Wave_Spectra.
+ * http://www.wikiwaves.org/Ocean-Wave_Spectra .
  *
  * @param  wind_speed   Average wind speed at height of 10 m above surface (m/s).
- * @return 		RMS wave height (m).
+ * @return 				RMS wave height (m).
  */
 template<class T> T wave_height_pierson(T wind_speed) {
 	return (0.22 / 9.8 / 4) * wind_speed * wind_speed;
