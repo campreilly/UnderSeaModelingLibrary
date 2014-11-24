@@ -1,7 +1,7 @@
 Summary:  The goal of this program is to be able to install the Under Sea Modeling Library (usml) files.
 
 Name:  usml 
-Version: 0.5.8
+Version: 0.5.9
 Release: 0%{dist}
 Source: usml.tgz
 Group: Development/Libraries
@@ -21,6 +21,14 @@ Prefix: /usr/local
 %description
 This will install the binaries for the usml.
 
+%package devel 
+Group: Development/Headers
+Summary: Headers to compile against the usml library
+
+
+Requires: usml == %{version}-%{release}
+%description devel
+This will install the headers for the libdogapi.
 
 ################### PREP - Used to get source ready to build #######################
 
@@ -82,12 +90,26 @@ make usml install/fast
 
 %install
 
-#Remove the directory if it exists
+#non-devel files
+%{__mkdir_p} %{buildroot}%{prefix}/lib
 
-#Create the Directories
-mkdir -p %{buildroot}%{prefix}/lib
+%{__install} -m 0644 $RPM_BUILD_DIR/usml/libusml.so.%{version} %{buildroot}%{prefix}/lib
 
-install -m 0644 $RPM_BUILD_DIR/usml/libusml.so.%{version} %{buildroot}%{prefix}/lib
+#devel files
+%{__mkdir_p} %{buildroot}%{prefix}/include/usml/netcdf
+%{__mkdir_p} %{buildroot}%{prefix}/include/usml/ocean
+%{__mkdir_p} %{buildroot}%{prefix}/include/usml/types
+%{__mkdir_p} %{buildroot}%{prefix}/include/usml/ublas
+%{__mkdir_p} %{buildroot}%{prefix}/include/usml/waveq3d
+
+%{__install} -m 0644 $RPM_BUILD_DIR/usml/usml_config.h %{buildroot}%{prefix}/include/usml/.
+%{__install} -m 0644 $RPM_BUILD_DIR/usml/netcdf/*.h %{buildroot}%{prefix}/include/usml/netcdf/.
+%{__install} -m 0644 $RPM_BUILD_DIR/usml/ocean/*.h %{buildroot}%{prefix}/include/usml/ocean/.
+%{__install} -m 0644 $RPM_BUILD_DIR/usml/types/*.h %{buildroot}%{prefix}/include/usml/types/.
+%{__install} -m 0644 $RPM_BUILD_DIR/usml/ublas/*.h %{buildroot}%{prefix}/include/usml/ublas/.
+%{__install} -m 0644 $RPM_BUILD_DIR/usml/waveq3d/*.h %{buildroot}%{prefix}/include/usml/waveq3d/.
+
+
 
 
 #################### Clean - Clean Up Phase  #####################################################
@@ -96,21 +118,57 @@ install -m 0644 $RPM_BUILD_DIR/usml/libusml.so.%{version} %{buildroot}%{prefix}/
 rm -rf %{buildroot}
 
 
-#################### Optional pre and post Install/Uninstall Scripts  ############################
+#################### Optional pre and post Install Scripts  ############################
+%pre
+#if [ "$1" = "1" ]; then
+	#perform tasks to prepare for the initial installation
+	
 
-#%pre
+#elif [ "$1" = "2" ]; then
+if [ "$1" = "2" ]; then
+	#perform whatever maintenance must occur before the upgrade begins
+	#remove old sybolic link
+	%{__rm}  $RPM_INSTALL_PREFIX/lib/libusml.so
+fi
+
 
 %post
+#if [ "$1" = "1" ]; then
+	#perform tasks for after the initial installation
+
+#elif [ "$1" = "2" ]; then
+	#perform whatever maintenance must occur after the upgrade
+#fi
 cd $RPM_INSTALL_PREFIX/lib
-/bin/ln -sf libusml.so.%{version} libusml.so
+%{__ln_s} libusml.so.%{version} libusml.so
 
 /sbin/ldconfig $RPM_INSTALL_PREFIX/lib
 
-#%preun
+
+
+######################### Optional pre and post Uninstall sections ##################################################
+%preun
+#if [ "$1" = "1" ]; then
+	#perform tasks to prepare for an upgrade(called after the upgraded rpm has been installed)
+
+#if [ "$1" = "0" ]; then
+	#perform tasks to prepare for an uninstall
+	#%{__rm} %{prefix}/lib/libdogapi.so
+#fi
+
+
 
 %postun
 cd $RPM_INSTALL_PREFIX/lib
-/bin/rm libusml.so
+#if [ "$1" = "1" ]; then
+	#perform tasks to prepare for an upgrade(called after the upgraded rpm has been installed)
+	
+#elif [ "$1" = "0" ]; then
+if [ "$1" = "0" ]; then
+	#perform tasks to prepare for an uninstall
+	%{__rm} libusml.so
+fi
+
 
 
 #################### Files - Verify Files are installed  #########################################
@@ -118,14 +176,20 @@ cd $RPM_INSTALL_PREFIX/lib
 %files
 %defattr(644, root, root) 
 
-%dir %{prefix}
-%dir %{prefix}/lib
 %{prefix}/lib/libusml.so.%{version}
 
+%files devel
+%defattr(644, root, root) 
+
+%{prefix}/include/usml/*
 
 ###################  Changelog #############
 
 %changelog
+* Thu Nov 24 2014 Ted Burns, AEgis Technologies<tburns@aegistg.com>
+Version 0.5.9
+	- Added checkEigenray callback to the eigenrayListener.
+	- Updated scripts for new usml.spec file.
 * Thu Nov 12 2014 Ted Burns, AEgis Technologies<tburns@aegistg.com>
 Version 0.5.8
 	- Removed boost::math::isnan calls, replaced with std::isnan
