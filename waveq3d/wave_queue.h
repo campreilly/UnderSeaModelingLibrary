@@ -248,19 +248,32 @@ class USML_DECLSPEC wave_queue {
 
     /**
      * Add a eigenrayListener to the _eigenrayListenerVec vector
+     *  @param	pListener Instance of the eigenrayListener listener object.
+	 *  @return True on success, false on failure.
      */
     bool addEigenrayListener(eigenrayListener* pListener);
 
     /**
 	 * Remove a eigenrayListener from the _eigenrayListenerVec vector
+	 *  @param	pListener Instance of the eigenrayListener listener object.
+	 *  @return True on success, false on failure.
 	 */
     bool removeEigenrayListener(eigenrayListener* pListener);
+
+    /**
+	 * For each eigenrayListener in the _eigenrayListenerVec vector
+	 * call the checkEigenrays method to deliver all eigenrays after
+	 * a certain amount of time has passed.
+	 *  @param	waveTime Current Time of the WaveFront in msec
+	 *  @return True on success, false on failure.
+	 */
+	bool checkEigenrayListeners(long waveTime);
 
 
     /**
      * Set the type of wavefront that this is, i.e. a wavefront
      * originating from a source or receiver. This is exclusively
-     * used within the reverbation models.
+     * used within the reverberation models.
      */
     inline void setID( unsigned long id ) {
         _run_id = id ;
@@ -277,7 +290,7 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
-     * Protoype of the function that is needed during reflections
+     * Prototype of the function that is needed during reflections
      * and only implemented in reverberation wave_queues.
      */
     virtual bool is_ray_valid( unsigned de, unsigned az ) {
@@ -602,6 +615,10 @@ class USML_DECLSPEC wave_queue {
     /**
 	 * For each eigenrayListener in the _eigenrayListenerVec vector
 	 * call the addEigenray method to provide eigenrays to object that requested them.
+	 *  @param	targetRow Row number of the target to add eigenray.
+	 *  @param	targetCol Column number of the target to add eigenray.
+	 *  @param	eigenray Eigenray to add.
+	 *  @return true on success, false otherwise.
 	 */
 	bool notifyEigenrayListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray);
 

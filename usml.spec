@@ -1,35 +1,35 @@
-Summary:  The goal of this program is to package the USML files for delivery.  This spec file will generate an .rpm file after having the rpmbuild (-ba) command used upon it.
+Summary:  The goal of this program is to be able to install the Under Sea Modeling Library (usml) files.
 
-Name: usml
+Name:  usml 
 Version: 0.5.8
 Release: 0%{dist}
-Source: usml-%{version}.tgz
+Source: usml.tgz
 Group: Development/Libraries
 License: BSD 2
 Buildroot: /var/tmp/%{name}-buildroot
 
 BuildRequires: cmake >= 2.6
 BuildRequires: gcc
-BuildRequires: boost-devel
-BuildRequires: netcdf-devel
+BuildRequires: boost
+BuildRequires: netcdf
 
 Requires: libgcc
 Prefix: /usr/local
 
 %define debug_package %{nil}
 
-%description 
-This will install the Under Sea Modeling Library (USML)
+%description
+This will install the binaries for the usml.
+
 
 ################### PREP - Used to get source ready to build #######################
-#%prep
 
-# Set the QA_RPATHS as follows in the env
-# QA_RPATHS=0x0012; export QA_RPATHS
+#%prep
 
 %setup -n usml
 
 #%patch
+
 
 ################### BUILD - Shell script used to build source code #######################
 
@@ -38,7 +38,7 @@ if [ -d %{buildroot} ]; then
 	rm -Rf %{buildroot}
 fi
 
-%define boost_location %(rpm -ql boost | head -n 1)
+%define boost_location %(dirname $(rpm -ql boost | head -n 1))
 %define netcdf_location %(rpm -ql netcdf | head -n 1)
 %define cmake %(rpm -ql cmake | grep bin/cmake)
 %define cpack %(rpm -ql cmake | grep bin/cpack)
@@ -82,16 +82,19 @@ make usml install/fast
 
 %install
 
-#Create the USML Directories
+#Remove the directory if it exists
+
+#Create the Directories
 mkdir -p %{buildroot}%{prefix}/lib
 
-#Copy the files and set the Attributes
 install -m 0644 $RPM_BUILD_DIR/usml/libusml.so.%{version} %{buildroot}%{prefix}/lib
 
 
 #################### Clean - Clean Up Phase  #####################################################
+
 %clean
 rm -rf %{buildroot}
+
 
 #################### Optional pre and post Install/Uninstall Scripts  ############################
 
@@ -109,19 +112,16 @@ cd $RPM_INSTALL_PREFIX/lib
 cd $RPM_INSTALL_PREFIX/lib
 /bin/rm libusml.so
 
+
 #################### Files - Verify Files are installed  #########################################
 
 %files
-%defattr(-,safuser,users)
+%defattr(644, root, root) 
 
-####################################### Verify #############################
-#verify the Under Sea Modeling Library
 %dir %{prefix}
 %dir %{prefix}/lib
 %{prefix}/lib/libusml.so.%{version}
 
-#%dir %{prefix}/usml/data
-#%{prefix}/usml/data/*
 
 ###################  Changelog #############
 
@@ -135,6 +135,6 @@ Version 0.5.7
 * Thu Oct 2 2014 Ted Burns, AEgis Technologies<tburns@aegistg.com>
 Version 0.5.6
 	- Updated for new distribution with Reverb.
-* Thu Sep 25 2014 Scott Stallard <scott.stallard@navy.mil>
-Version 0.5.5
+* Thu Sep 25 2014 Scott Stallard <scott.stallard@navy.mil> 
 - Created this install program for the usml library
+
