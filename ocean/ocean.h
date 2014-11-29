@@ -66,6 +66,8 @@
 #include <usml/ocean/reflect_loss_constant.h>
 #include <usml/ocean/reflect_loss_netcdf.h>
 #include <usml/ocean/reflect_loss_rayleigh.h>
+#include <usml/ocean/reflect_loss_rayleigh_grid.h>
+#include <usml/ocean/reflect_loss_rough.h>
 
 #include <usml/ocean/boundary_model.h>
 #include <usml/ocean/boundary_flat.h>
@@ -80,5 +82,6 @@
 #include <usml/ocean/scattering_lambert.h>
 
 #include <usml/ocean/volume_model.h>
+#include <usml/ocean/volume_flat.h>
 
 #include <usml/ocean/ocean_model.h>

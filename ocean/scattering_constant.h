@@ -28,7 +28,8 @@ public:
 	/**
 	 * Initialize model with a constant factors.
 	 *
-     * @param amplitude     Reverberation scattering strength ratio (dB).
+     * @param amplitude     Reverberation scattering strength (dB).
+     * 						Provided in dB but converted to ratio internally.
 	 */
 	scattering_constant( double amplitude=-300.0 ) :
 		_amplitude( pow(10.0,amplitude/10.0) ) {}
@@ -70,16 +71,19 @@ public:
      */
     virtual void scattering( const wposition& location,
         const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
-        double az_incident, matrix<double> az_scattered, vector< matrix<double> >* amplitude )
+        double az_incident, matrix<double> az_scattered,
+		matrix< vector<double> >* amplitude )
     {
-		noalias(*amplitude) = scalar_vector< matrix<double> >( frequencies.size(),
-			scalar_matrix<double>( location.size1(), location.size2(), _amplitude ) ) ;
 			// fast assignment of scalar to vector of matrices
+		noalias(*amplitude) = scalar_matrix< vector<double> >(
+				location.size1(), location.size2(),
+				scalar_vector<double>( frequencies.size(), _amplitude ) );
+			// fast assignment of scalar to matrix of vectors
     }
 
 private:
 
-    /** Holds the interface scattering strength (dB). */
+    /** Holds the reverberation scattering strength ratio. */
     double _amplitude ;
 
 };

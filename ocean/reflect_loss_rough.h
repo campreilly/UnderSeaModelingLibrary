@@ -5,6 +5,7 @@
 #pragma once
 
 #include <usml/ocean/reflect_loss_model.h>
+#include <usml/ocean/wave_height_pierson.h>
 
 namespace usml {
 namespace ocean {
@@ -64,10 +65,12 @@ public:
 			const seq_vector& frequencies, double angle,
 			vector<double>* amplitude, vector<double>* phase = NULL)
 	{
-		*amplitude = exp( -TWO_PI / _sound_speed  * frequency * _wave_height
-				   * abs(sin(angle)) ) ;
+		noalias(*amplitude) = frequencies ;	// copy sequence into vector
+		noalias(*amplitude) = exp( ( -TWO_PI / _sound_speed
+				* _wave_height * abs(sin(angle)) )
+				* (*amplitude) ) ;
 		if ( phase ) {
-			noalias(*phase) = scalar_vector<double>(frequency.size(),M_PI);
+			noalias(*phase) = scalar_vector<double>( frequencies.size(), M_PI );
 		}
 	}
 

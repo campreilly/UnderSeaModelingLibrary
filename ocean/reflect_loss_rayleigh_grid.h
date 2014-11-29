@@ -1,7 +1,6 @@
 /**
  * @file reflect_loss_rayleigh_grid.h
  * Builds rayleigh models for an imported data_grid bottom types.
- * Includes LaTEX documentation of formula for processing by Doxygen (not yet).
  */
 #pragma once
 

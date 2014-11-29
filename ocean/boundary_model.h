@@ -167,7 +167,7 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model, scattering_model
      */
     virtual void scattering( const wposition& location,
         const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
-        double az_incident, matrix<double> az_scattered, vector< matrix<double> >* amplitude )
+        double az_incident, matrix<double> az_scattered, matrix< vector<double> >* amplitude )
     {
     	_scattering->scattering( location,
     			frequencies, de_incident, de_scattered,

@@ -91,7 +91,7 @@ class USML_DECLSPEC scattering_model {
          */
         virtual void scattering( const wposition& location,
             const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
-            double az_incident, matrix<double> az_scattered, vector< matrix<double> >* amplitude ) = 0 ;
+            double az_incident, matrix<double> az_scattered, matrix< vector<double> >* amplitude ) = 0 ;
 
         /**
          * Virtual destructor

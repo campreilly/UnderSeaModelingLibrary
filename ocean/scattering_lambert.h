@@ -91,10 +91,16 @@ public:
      */
     virtual void scattering( const wposition& location,
         const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
-        double az_incident, matrix<double> az_scattered, vector< matrix<double> >* amplitude )
+        double az_incident, matrix<double> az_scattered,
+		matrix< vector<double> >* amplitude )
     {
-		noalias(*amplitude) = scalar_vector< matrix<double> >( frequencies.size(),
-			abs( _coeff * sin( de_incident ) * sin( de_scattered ) ) ) ;
+    	for (size_t n = 0; n < location.size1 (); ++n ) {
+    		for (size_t m = 0; m < location.size2 (); ++ m) {
+    			(*amplitude).operator()(n,m) = scalar_vector<double>(
+					frequencies.size(),
+					abs( _coeff * sin(de_incident) * sin(de_scattered(n,m)) ) ) ;
+    		}
+    	}
     }
 
 private:

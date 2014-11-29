@@ -15,8 +15,8 @@ using boost::numeric::ublas::vector;
 /// @{
 
 /**
- * Models a simple volume reverberation layer in the ocean
- * with constant depth, thickness, and scattering strength.
+ * Models a simple volume reverberation layer with constant depth
+ * and thickness.
  */
 class USML_DECLSPEC volume_flat : public volume_model {
 
@@ -35,7 +35,15 @@ class USML_DECLSPEC volume_flat : public volume_model {
      * @param thickness     Layer thickness (output).
      */
     virtual void depth( const wposition& location,
-        matrix<double>* rho, matrix<double>* thickness=NULL ) = 0 ;
+        matrix<double>* rho, matrix<double>* thickness=NULL )
+    {
+    	noalias(*rho) = scalar_matrix<double>(
+    			rho->size1(), rho->size2(), _rho ) ;
+    	if ( thickness ) {
+    		noalias(*thickness) = scalar_matrix<double>(
+    			thickness->size1(), thickness->size2(), _thickness ) ;
+    	}
+    }
 
     /**
      * Compute the depth of the layer and it's thickness at
@@ -47,39 +55,13 @@ class USML_DECLSPEC volume_flat : public volume_model {
      * @param thickness     Layer thickness (output).
      */
     virtual void depth( const wposition1& location,
-        double* rho, double* thickness=NULL ) = 0 ;
-
-    //**************************************************
-    // reverberation scattering strength model
-
-    /**
-     * Define a new reverberation scattering strength model.
-     *
-     * @param scattering	Scattering model for this layer
-     */
-    void scattering( scattering_model* scattering ) {
-        if( _scattering ) delete _scattering ;
-        _scattering = scattering ;
-    }
-
-    /**
-     * Computes the broadband scattering strength for a single location.
-     *
-     * @param location      Location at which to compute attenuation.
-     * @param frequencies   Frequencies over which to compute loss. (Hz)
-     * @param de_incident   Depression incident angle (radians).
-     * @param de_scattered  Depression scattered angle (radians).
-     * @param az_incident   Azimuthal incident angle (radians).
-     * @param az_scattered  Azimuthal scattered angle (radians).
-     * @param amplitude     Change in ray strength in dB (output).
-     */
-    virtual void scattering( const wposition1& location,
-        const seq_vector& frequencies, double de_incident, double de_scattered,
-        double az_incident, double az_scattered, vector<double>* amplitude )
+        double* rho, double* thickness=NULL )
     {
-    	_scattering->scattering( location,
-    			frequencies, de_incident, de_scattered,
-				az_incident, az_scattered, amplitude ) ;
+    	*rho = _rho ;
+    	if ( thickness ) {
+    		*thickness = _thickness ;
+    	}
+
     }
 
     //**************************************************
@@ -93,9 +75,10 @@ class USML_DECLSPEC volume_flat : public volume_model {
      * @param amplitude     Reverberation scattering strength ratio.
      */
     volume_flat( double depth=0.0, double thickness=0.0, double amplitude=-300.0  ) :
-    	volume_model( new scattering_constant(amplitude) )
+    	volume_model( new scattering_constant(amplitude) ),
+		_rho( wposition::earth_radius - abs(depth) ),
+		_thickness( thickness)
     {
-
     }
 
     /**
@@ -105,41 +88,20 @@ class USML_DECLSPEC volume_flat : public volume_model {
      * @param thickness     Height of the layer from the bottom to the top.
      * @param scattering    Reverberation scattering strength model.
      */
-    volume_flat( double depth=0.0, double thickness=0.0, scattering_model* scattering ) :
-    	volume_model( scattering )
+    volume_flat( double depth, double thickness, scattering_model* scattering ) :
+    	volume_model( scattering ),
+		_rho( wposition::earth_radius - abs(depth) ),
+		_thickness( thickness)
     {
-
-    }
-
-    //**************************************************
-    // initialization
-
-    /**
-     * Initialize reflection loss components for a boundary.
-     *
-     * @param scatter		Reverberation scattering strength model
-     */
-    volume_flat( scattering_model* scatter=NULL ) :
-        _scattering( scatter )
-    {
-		if ( scatter ) {
-			_scattering = scatter ;
-		} else {
-			_scattering = new scattering_constant() ;
-		}
-    }
-
-    /**
-     * Delete reflection loss model.
-     */
-    virtual ~volume_model() {
-        if ( _scattering ) delete _scattering ;
     }
 
   private:
 
-    /** Reference to the scattering strength model **/
-    scattering_model* _scattering ;
+    /** Depth of layer relative to center of earth. (m) */
+    const double _rho ;
+
+    /** Height of the layer from the bottom to the top. (m) */
+    const double _thickness ;
 
 };
 
