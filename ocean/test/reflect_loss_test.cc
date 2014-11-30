@@ -284,6 +284,61 @@ BOOST_AUTO_TEST_CASE( reflect_loss_netcdf_test ) {
 	BOOST_CHECK_CLOSE(amplitude(0), limestone, tolerance) ;
 }
 
+/**
+ * Test the accuracy Pierson and Moskowitz model for computing wave height
+ * from wind speed. Compare to significant wave height plot from
+ * http://www.wikiwaves.org/Ocean-Wave_Spectra.
+ */
+BOOST_AUTO_TEST_CASE( wave_height_pierson_test ) {
+    cout << "=== reflect_loss_test: wave_height_pierson_test ===" << endl;
+
+    // display plotting data
+
+    const char* csv_name = USML_TEST_DIR "/ocean/test/wave_height_pierson_test.csv" ;
+    std::ofstream os(csv_name) ;
+    cout << "writing tables to " << csv_name << endl ;
+	os << "wind,Hsig" << endl ;
+    for ( double wind=0.0 ; wind <= 25.0 ; wind += 1.0 ) {
+    	os << wind << "," << 4*wave_height_pierson(wind) << endl ;
+    }
+
+    // check the answer against key points in plot
+
+    BOOST_CHECK_CLOSE(wave_height_pierson(0.0), 0.0, 1e-6);
+    BOOST_CHECK_CLOSE(wave_height_pierson(15.0), 5.0/4.0, 5.0 );
+    BOOST_CHECK_CLOSE(wave_height_pierson(25.0), 14.0/4.0, 5.0 );
+}
+
+/**
+ * Test the accuracy of the reflect_loss_eckart surface reflection loss model.
+ */
+BOOST_AUTO_TEST_CASE( reflect_loss_eckart_test ) {
+    cout << "=== reflect_loss_test: reflect_loss_eckart_test ===" << endl;
+    const char* name = USML_TEST_DIR "/ocean/test/reflect_loss_eckart_test.csv" ;
+    std::ofstream os(name) ;
+    cout << "writing tables to " << name << endl ;
+
+    // simple values for points and distance
+
+    wposition1 points ;
+    seq_log freq( 1000.0, 1.0, 1 ) ;
+    vector<double> amplitude( freq.size() ) ;
+
+    // variations with wind speed
+
+    os << "angle,wind=5,wind=10,wind=15" << endl ;
+    for ( double angle = 0.0 ; angle <= 90.0 ; angle += 1.0 ) {
+        os << angle ;
+        for ( double wind=5.0 ; wind <= 15.0 ; wind += 5.0 ) {
+        	reflect_loss_eckart model( wind ) ;
+            model.reflect_loss(
+                points, freq, to_radians(angle), &amplitude ) ;
+            os << "," << -amplitude(0) ;
+        }
+        os << endl ;
+    }
+}
+
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()

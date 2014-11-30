@@ -309,34 +309,7 @@ BOOST_AUTO_TEST_CASE( scattering_strength_test ) {
 }
 
 /**
- * Test the accuracy Pierson and Moskowitz model for computing wave height
- * from wind speed. Compare to significant wave height plot from
- * http://www.wikiwaves.org/Ocean-Wave_Spectra.
- */
-BOOST_AUTO_TEST_CASE( wave_height_pierson_test ) {
-    cout << "=== boundary_test: wave_height_pierson_test ===" << endl;
-
-    // display plotting data
-
-    const char* csv_name = USML_TEST_DIR "/ocean/test/wave_height_pierson_test.csv" ;
-    std::ofstream os(csv_name) ;
-    cout << "writing tables to " << csv_name << endl ;
-	os << "wind,Hsig" << endl ;
-    for ( double wind=0.0 ; wind <= 25.0 ; wind += 1.0 ) {
-    	os << wind << "," << 4*wave_height_pierson(wind) << endl ;
-    }
-
-    // check the answer against key points in plot
-
-    BOOST_CHECK_CLOSE(wave_height_pierson(0.0), 0.0, 1e-6);
-    BOOST_CHECK_CLOSE(wave_height_pierson(15.0), 5.0/4.0, 5.0 );
-    BOOST_CHECK_CLOSE(wave_height_pierson(25.0), 14.0/4.0, 5.0 );
-}
-
-/**
- * Test the accuracy Pierson and Moskowitz model for computing wave height
- * from wind speed. Compare to significant wave height plot from
- * http://www.wikiwaves.org/Ocean-Wave_Spectra.
+ * Test the basics of creating an ocean volume layer,
  */
 BOOST_AUTO_TEST_CASE( ocean_volume_test ) {
     cout << "=== boundary_test: ocean_volume_test ===" << endl;
@@ -345,8 +318,19 @@ BOOST_AUTO_TEST_CASE( ocean_volume_test ) {
 		new boundary_flat(),
 		new boundary_flat(2000.0),
 		new profile_linear() ) ;
-    ocean1.add_volume( new volume_flat(1000.0, 10.0, -30.0 ) ) ;
+    ocean1.add_volume( new volume_flat( 1000.0, 10.0, -30.0 ) ) ;
 
+    wposition1 location(0.0,0.0) ;
+    double depth, thickness ;
+    ocean1.volume(0).depth( location, &depth, &thickness ) ;
+    BOOST_CHECK_CLOSE(depth, wposition::earth_radius-1000.0, 1e-6);
+    BOOST_CHECK_CLOSE(thickness, 10.0, 1e-6);
+
+    seq_linear frequencies(10.0,10.0,3) ;
+    boost::numeric::ublas::vector<double> amplitude( frequencies.size() ) ;
+    ocean1.volume(0).scattering( location, frequencies,
+    		0.0, 0.0, 0.0, 0.0, &amplitude ) ;
+    BOOST_CHECK_CLOSE(amplitude(2), 1E-3, 1e-6);
 }
 
 /// @}

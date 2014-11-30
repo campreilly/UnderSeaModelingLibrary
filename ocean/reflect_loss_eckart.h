@@ -1,5 +1,5 @@
 /**
- * @file reflect_loss_rough.h
+ * @file reflect_loss_eckart.h
  * Models plane wave reflection loss from a rough ocean surface.
  */
 #pragma once
@@ -18,7 +18,7 @@ using boost::numeric::ublas::vector;
 /**
  * Models ocean surface reflection loss from a rough surface.
  * \f[
- *   	R = exp[ - k H sin( \theta ) ]
+ *   	R = exp[ - 2 k^2 H^2 sin^2( \theta ) ]
  * \f]
  * where
  * 		\f$ k = \frac{2 \pi f}{c} \f$ = wave number (1/m),
@@ -29,9 +29,10 @@ using boost::numeric::ublas::vector;
  * Note that the significant wave height (SWH or Hs) is defined
  * as four times the rms height of wave spectrum.
  *
- * @xref Urick R. J., "Principles of Underwater Sound, Third Edition, 1983", pp. 129.
+ * @xref C. Eckart, “The scattering of sound from the sea surface,”
+ * J. Acoust. Soc. Am. 25, 560–570 (1953).
  */
-class USML_DECLSPEC reflect_loss_rough: public reflect_loss_model {
+class USML_DECLSPEC reflect_loss_eckart: public reflect_loss_model {
 
 public:
 
@@ -44,7 +45,7 @@ public:
 	 * @param sound_speed	Speed of sound in water used for wave number (m/s).
 	 * 						Defaults to 1500 m/s when not specified.
 	 */
-	reflect_loss_rough(double wind_speed, double sound_speed = 1500.0) :
+	reflect_loss_eckart(double wind_speed, double sound_speed = 1500.0) :
 		_wave_height( wave_height_pierson(wind_speed) ),
 		_sound_speed( sound_speed )
 	{
@@ -66,9 +67,9 @@ public:
 			vector<double>* amplitude, vector<double>* phase = NULL)
 	{
 		noalias(*amplitude) = frequencies ;	// copy sequence into vector
-		noalias(*amplitude) = exp( ( -TWO_PI / _sound_speed
-				* _wave_height * abs(sin(angle)) )
-				* (*amplitude) ) ;
+		noalias(*amplitude) = 20.0 * log10(
+				exp( -2.0 * abs2( TWO_PI / _sound_speed
+				* (*amplitude) * _wave_height * sin(angle) ) ) ) ;
 		if ( phase ) {
 			noalias(*phase) = scalar_vector<double>( frequencies.size(), M_PI );
 		}
