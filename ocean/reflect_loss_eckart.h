@@ -16,18 +16,36 @@ using boost::numeric::ublas::vector;
 /// @{
 
 /**
- * Models ocean surface reflection loss from a rough surface.
+ * Models ocean surface reflection loss using Eckart's model of a rough surface.
  * \f[
- *   	R = exp[ - 2 k^2 H^2 sin^2( \theta ) ]
+ *   	RL = 20 log_{10} \{ exp[ - 0.5 \Gamma^2 ] \}
+ * \f]\f[
+ *   	\Gamma = 2 k h sin(\theta)
  * \f]
  * where
  * 		\f$ k = \frac{2 \pi f}{c} \f$ = wave number (1/m),
- * 		\f$ H \f$ = RMS height of wave spectrum (m),
- * 		\f$ \theta \f$ = grazing angle (rad), and
- * 		\f$ R \f$ = reflection coefficient (ratio).
+ * 		\f$ h \f$ = RMS height of wave spectrum (m),
+ * 		\f$ \theta \f$ = grazing angle (rad),
+ * 		\f$ \Gamma \f$ = Rayleigh roughness parameter, and
+ * 		\f$ RL \f$ = reflection loss (dB).
+ * Eckart's model arises from a Kirchhoff approximation to scattering
+ * and the assumption of a Gaussian probability of surface elevations
+ * of standard deviation h.
  *
- * Note that the significant wave height (SWH or Hs) is defined
- * as four times the rms height of wave spectrum.
+ * Jones et. al. has shown that many of the terms in this expression can
+ * be simplified if we assume that the speed of sound is 1500 m/s and
+ * that the wave height is related to wind speed by a Pierson-Moskowitz
+ * spectrum.
+ * \f[
+ *   	RL = 8.6x10^{-9} f^2 w^4 sin^2(\theta)
+ * \f]
+ * where
+ * 		\f$ w \f$ = wind speed (m/sec).
+ *
+ * @xref Adrian D. Jones, Janice Sendt, Alec J. Duncan, Paul A. Clarke and
+ * Amos Maggi, "Modelling the acoustic reflection loss at the rough
+ * ocean surface," Proceedings of ACOUSTICS 2009, Australian Acoustical Society,
+ * 23-25 November 2009, Adelaide, Australia.
  *
  * @xref C. Eckart, “The scattering of sound from the sea surface,”
  * J. Acoust. Soc. Am. 25, 560–570 (1953).
@@ -45,9 +63,8 @@ public:
 	 * @param sound_speed	Speed of sound in water used for wave number (m/s).
 	 * 						Defaults to 1500 m/s when not specified.
 	 */
-	reflect_loss_eckart(double wind_speed, double sound_speed = 1500.0) :
-		_wave_height( wave_height_pierson(wind_speed) ),
-		_sound_speed( sound_speed )
+	reflect_loss_eckart(double wind_speed ) :
+		_wind_speed2( wind_speed * wind_speed )
 	{
 	}
 
@@ -67,9 +84,7 @@ public:
 			vector<double>* amplitude, vector<double>* phase = NULL)
 	{
 		noalias(*amplitude) = frequencies ;	// copy sequence into vector
-		noalias(*amplitude) = 20.0 * log10(
-				exp( -2.0 * abs2( TWO_PI / _sound_speed
-				* (*amplitude) * _wave_height * sin(angle) ) ) ) ;
+		*amplitude = 8.6e-9 * abs2( (*amplitude) * _wind_speed2 * sin(angle) );
 		if ( phase ) {
 			noalias(*phase) = scalar_vector<double>( frequencies.size(), M_PI );
 		}
@@ -77,13 +92,10 @@ public:
 
 private:
 
-	/** RMS height of wave spectrum (m). */
-	const double _wave_height;
-
-	/** Speed of sound in water (m/s). */
-	const double _sound_speed;
+	/** Wind speed squared (m/sec)^2. */
+	const double _wind_speed2;
 };
 
 /// @}
-}// end of namespace ocean
+}  // end of namespace ocean
 }  // end of namespace usml

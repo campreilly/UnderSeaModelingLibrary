@@ -310,7 +310,22 @@ BOOST_AUTO_TEST_CASE( wave_height_pierson_test ) {
 }
 
 /**
- * Test the accuracy of the reflect_loss_eckart surface reflection loss model.
+ * Compare the results of the reflect_loss_eckart surface reflection loss model
+ * to Figures 2-5 in Jones et. al.  Returns error if the values at 10 degrees
+ * are different from those that we hand calculated.
+ * <pre>
+ * Figure	Wind Speed	Frequency	Loss at 10 deg
+ * ------	----------	---------	--------------
+ * 2		4.6 m/s		3150 Hz		1.15 dB
+ * 3		4.6 m/s		5000 Hz		2.90 dB
+ * 4		14.4 m/s	1000 Hz		11.15 dB
+ * 5		14.4 m/s	5000 Hz		278.76 dB
+ * </pre>
+ *
+ * @xref Adrian D. Jones, Janice Sendt, Alec J. Duncan, Paul A. Clarke and
+ * Amos Maggi, "Modelling the acoustic reflection loss at the rough
+ * ocean surface," Proceedings of ACOUSTICS 2009, Australian Acoustical Society,
+ * 23-25 November 2009, Adelaide, Australia.
  */
 BOOST_AUTO_TEST_CASE( reflect_loss_eckart_test ) {
     cout << "=== reflect_loss_test: reflect_loss_eckart_test ===" << endl;
@@ -321,21 +336,36 @@ BOOST_AUTO_TEST_CASE( reflect_loss_eckart_test ) {
     // simple values for points and distance
 
     wposition1 points ;
-    seq_log freq( 1000.0, 1.0, 1 ) ;
-    vector<double> amplitude( freq.size() ) ;
+    seq_log freqA( 1000.0, 1.0, 1 ) ;
+    seq_log freqB( 3150.0, 1.0, 1 ) ;
+    seq_log freqC( 5000.0, 1.0, 1 ) ;
+    vector<double> amplitude( freqA.size() ) ;
 
-    // variations with wind speed
+    // variations with wind speed and frequency
 
-    os << "angle,wind=5,wind=10,wind=15" << endl ;
-    for ( double angle = 0.0 ; angle <= 90.0 ; angle += 1.0 ) {
+    os << "angle,figure2,figure3,figure4,figure5" << endl ;
+
+    reflect_loss_eckart trackQ( 4.6 ) ;
+    reflect_loss_eckart trackO( 14.4 ) ;
+
+    for ( double angle = 0.0 ; angle <= 10.0 ; angle += 0.1 ) {
         os << angle ;
-        for ( double wind=5.0 ; wind <= 15.0 ; wind += 5.0 ) {
-        	reflect_loss_eckart model( wind ) ;
-            model.reflect_loss(
-                points, freq, to_radians(angle), &amplitude ) ;
-            os << "," << -amplitude(0) ;
-        }
-        os << endl ;
+
+        trackQ.reflect_loss( points, freqB, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) ;
+        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 1.15, 1.0 );
+
+        trackQ.reflect_loss( points, freqC, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) ;
+        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 2.90, 1.0 );
+
+        trackO.reflect_loss( points, freqA, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) ;
+        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 11.15, 1.0 );
+
+        trackO.reflect_loss( points, freqC, to_radians(angle), &amplitude ) ;
+        os << "," << amplitude(0) << endl ;
+        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 278.76, 1.0 );
     }
 }
 
