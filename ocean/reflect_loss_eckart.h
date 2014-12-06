@@ -1,6 +1,6 @@
 /**
  * @file reflect_loss_eckart.h
- * Models plane wave reflection loss from a rough ocean surface.
+ * Models ocean surface reflection loss using Eckart's model.
  */
 #pragma once
 
@@ -16,14 +16,16 @@ using boost::numeric::ublas::vector;
 /// @{
 
 /**
- * Models ocean surface reflection loss using Eckart's model of a rough surface.
+ * Models ocean surface reflection loss using Eckart's model.
  * \f[
- *   	RL = 20 log_{10} \{ exp[ - 0.5 \Gamma^2 ] \}
+ *   	RL = -20 \: log_{10} \left( exp[ - 0.5 \Gamma^2 ] \right)
  * \f]\f[
  *   	\Gamma = 2 k h sin(\theta)
  * \f]
  * where
  * 		\f$ k = \frac{2 \pi f}{c} \f$ = wave number (1/m),
+ * 		\f$ f \f$ = signal frequency (Hz),
+ * 		\f$ c \f$ = speed of sound (m/sec),
  * 		\f$ h \f$ = RMS height of wave spectrum (m),
  * 		\f$ \theta \f$ = grazing angle (rad),
  * 		\f$ \Gamma \f$ = Rayleigh roughness parameter, and
@@ -35,7 +37,7 @@ using boost::numeric::ublas::vector;
  * Jones et. al. has shown that many of the terms in this expression can
  * be simplified if we assume that the speed of sound is 1500 m/s and
  * that the wave height is related to wind speed by a Pierson-Moskowitz
- * spectrum.
+ * spectrum for fully developed, wind driven seas.
  * \f[
  *   	RL = 8.6x10^{-9} f^2 w^4 sin^2(\theta)
  * \f]
@@ -55,15 +57,11 @@ class USML_DECLSPEC reflect_loss_eckart: public reflect_loss_model {
 public:
 
 	/**
-	 * Builds a rough ocean surface assuming full developed, wind driven seas.
-	 * Uses the Pierson and Moskowitz model for computing wave height
-	 * from wind speed.
+	 * Initializes ocean surface reflection loss using Eckart's model.
 	 *
 	 * @param wind_speed	Wind_speed used to develop rough seas (m/s)
-	 * @param sound_speed	Speed of sound in water used for wave number (m/s).
-	 * 						Defaults to 1500 m/s when not specified.
 	 */
-	reflect_loss_eckart(double wind_speed ) :
+	reflect_loss_eckart( double wind_speed ) :
 		_wind_speed2( wind_speed * wind_speed )
 	{
 	}

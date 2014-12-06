@@ -68,6 +68,7 @@
 #include <usml/ocean/reflect_loss_rayleigh.h>
 #include <usml/ocean/reflect_loss_rayleigh_grid.h>
 #include <usml/ocean/reflect_loss_eckart.h>
+#include <usml/ocean/reflect_loss_beckmann.h>
 
 #include <usml/ocean/boundary_model.h>
 #include <usml/ocean/boundary_flat.h>
