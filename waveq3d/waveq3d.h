@@ -78,31 +78,6 @@
  *   features. The UBLAS library does not appear to produce
  *   correct answers at optimizations lower than the -O1 level.
  *
- * - Future efforts to use this implementation to model reverberation
- *   will integrate that feature into the interface scattering logic.
- *   Traditionally reverberation calculations are performed by re-computing
- *   propagation loss to every point on the interface or scattering layer.
- *   But doing so in this model violates the optimization assumption
- *   that the number of targets is small relative to the number of data
- *   points in the environment.
- *
- * - Target D/E has known small errors in the shadow zone when refraction is
- *   very strong.  The model currently uses the direction of the nearest part
- *   of the wavefront. But, it should be limited to the values from applying
- *   Snell's law to the critical angle cos(At)/c(Zt) = cos(As)/c(Zs).
- *   For example, in the pedersen_shallow_proploss test, the target D/E that
- *   decreases with range at 0.03 deg/yd instead of converging to a constant
- *   value. This limitation may need to be fixed in a future version.
- *
- * - The model doesn't include a GRAB-like algorithm to automatically increase
- *   ray spacing near caustics, surface duct axis, SOFAR axis.
- *   GRAB's SRC_ANG2 subroutine seems to assume that the current sound speed
- *   applies to all ranges for this part of the calculation. Without this
- *   correction, travel times for paths farther from the caustic
- *   can include a few milliseconds of error.  This error in travel time
- *   leads to significant fluctuation in the coherent propagation loss.
- *   This limitation may need to be fixed in a future version.
- *
  * These assumptions should be reviewed by the system development team
  * before this model is evaluated for their intended use.
  *
