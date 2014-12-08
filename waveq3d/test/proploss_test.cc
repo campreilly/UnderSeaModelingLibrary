@@ -841,7 +841,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
          << " detcoef = " << detcoef << "%" << endl ;
 
     BOOST_CHECK( abs(bias) <= 0.7 );
-    BOOST_CHECK( dev <= 4.0 );
+    BOOST_CHECK( dev <= 5.0 );
     BOOST_CHECK( detcoef >= 80.0 );
 }
 
