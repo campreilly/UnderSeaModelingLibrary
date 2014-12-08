@@ -24,6 +24,8 @@ using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
 using namespace usml::ocean ;
 
+#define BALLARD_DATA "/home/david/usml-private/studies/florida_straits"
+
 /**
  * Command line interface.
  */
@@ -39,10 +41,10 @@ int main() {
     wposition::compute_earth_radius( (lat1+lat2)/2.0 ) ;
 
     // create filenames to store data in
-	const char* bathy_name = BALLARD_DATA "/flstrts_bathymetry.asc" ;
-	const char* bathy_nc = BALLARD_DATA "/run1a_bathy.nc" ;
-    const char* ncname = USML_STUDIES_DIR "/waveq3d_visual/florida_straits_wave.nc";
-    const char* ncname_wave = USML_STUDIES_DIR "/waveq3d_visual/florida_straits_proploss.nc";
+//	const char* bathy_name = BALLARD_DATA "/flstrts_bathymetry.asc" ;
+//	const char* bathy_nc = BALLARD_DATA "/run1a_bathy.nc" ;
+    const char* ncname_wave = USML_STUDIES_DIR "/waveq3d_visual/florida_straits_wave.nc";
+    const char* ncname = USML_STUDIES_DIR "/waveq3d_visual/florida_straits_proploss.nc";
 
     // build sound velocity profile from World Ocean Atlas data
     cout << "loading temperature & salinity data from World Ocean Atlas" << endl ;
@@ -61,9 +63,13 @@ int main() {
     // load bathymetry from ETOPO1 database
     cout << "loading bathymetry from NetCDF database" << endl ;
 //    ascii_arc_bathy* bathymetry = new ascii_arc_bathy( bathy_name ) ;
-    data_grid_bathy* fast_grid = new data_grid_bathy( new ascii_arc_bathy( bathy_name ) , true ) ;
-    reflect_loss_model* ballard = new reflect_loss_netcdf( bathy_nc ) ;
-    boundary_model* bottom = new boundary_grid_fast( fast_grid, ballard ) ;
+//    data_grid_bathy* fast_grid = new data_grid_bathy( new ascii_arc_bathy( bathy_name ) , true ) ;
+//    reflect_loss_model* ballard = new reflect_loss_netcdf( bathy_nc ) ;
+//    boundary_model* bottom = new boundary_grid_fast( fast_grid, ballard ) ;
+    cout << "load bathymetry from ETOPO1 database" << endl ;
+    boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
+    	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+	lat1, lat2, lng1, lng2 ) ) ;
 
     boundary_model* surface = new boundary_flat() ;
 
@@ -92,8 +98,8 @@ int main() {
     }
 
     seq_linear freq( 415.0, 1.0, 1 ) ;
-    seq_linear de( -60.0, 1.0, 60.0 ) ;
-    seq_linear az( -40.0, 0.5, 20.0 ) ;
+    seq_linear de( 0.0, 2.0, 60.0 ) ;
+    seq_linear az( -40.0, 2.0, 20.0 ) ;
     const double time_max = 60.0 ;
     const double time_step = 0.1 ;
 
