@@ -22,8 +22,8 @@ void reflect_loss_beckmann::reflect_loss(const wposition1& location,
 		vector<double>* amplitude, vector<double>* phase )
 {
 	const double theta = max( 1e-10, abs(angle) ) ;
-	const double at2 = theta * theta / ( 0.003 + 5.1e-3 * _wind_speed ) / 2.0 ;
-	const double v3 = min( 0.99, sin(theta) * max( 0.5,
+	const double at2 = theta * theta / ( 0.006 + 10.2e-3 * _wind_speed ) ;
+	const double v3 = min( 0.99, sin(abs(theta)) * max( 0.5,
 			1.0 - exp( -at2 / 4 ) / sqrt( M_PI * at2 ) ) ) ;
 	const double w4 = _wind_speed * _wind_speed * _wind_speed * _wind_speed ;
 
