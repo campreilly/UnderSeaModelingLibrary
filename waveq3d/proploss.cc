@@ -182,7 +182,7 @@ void proploss::sum_eigenrays( bool coherent ) {
 
                         // convert back into intensity (dB) and phase (radians) values
 
-                        loss->intensity(f) = -10.0*log10( max(1e-15,sqrt(phasor)) ) ;
+                        loss->intensity(f) = -20.0*log10( max(1e-15,sqrt(phasor)) ) ;
                         loss->phase(f) = 0.0 ;
                     } // end frequency
 
