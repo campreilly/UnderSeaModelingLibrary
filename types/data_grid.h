@@ -151,9 +151,17 @@ class data_grid {
         }
 
         /**
-         * Extract a reference to one of the axes.
+         * Extract a constant reference to one of the axes.
          */
         inline const seq_vector* axis(int unsigned dim) const
+        {
+            return _axis[dim];
+        }
+
+        /**
+         * Extract a reference to one of the axes.
+         */
+        inline seq_vector* axis(int unsigned dim)
         {
             return _axis[dim];
         }
