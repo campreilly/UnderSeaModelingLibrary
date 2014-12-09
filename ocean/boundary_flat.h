@@ -2,9 +2,7 @@
  * @file boundary_flat.h
  * Models any flat boundary in the ocean including the ocean surface.
  */
-
-#ifndef USML_OCEAN_BOUNDARY_FLAT_H
-#define USML_OCEAN_BOUNDARY_FLAT_H
+#pragma once
 
 #include <usml/ocean/boundary_model.h>
 
@@ -78,5 +76,3 @@ class USML_DECLSPEC boundary_flat : public boundary_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

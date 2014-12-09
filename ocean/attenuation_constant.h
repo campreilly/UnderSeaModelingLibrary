@@ -2,8 +2,7 @@
  * @file attenuation_constant.h
  * Models attenuation loss as a constant factor.
  */
-#ifndef USML_OCEAN_ATTENUATION_CONSTANT_H
-#define USML_OCEAN_ATTENUATION_CONSTANT_H
+#pragma once
 
 #include <usml/ocean/attenuation_model.h>
 
@@ -54,5 +53,3 @@ class USML_DECLSPEC attenuation_constant : public attenuation_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

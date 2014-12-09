@@ -59,7 +59,7 @@ int main( int argc, char* argv[] ) {
     const double lng2 = -155.5 ;
 
     cout << "load STD14 environmental profile data" << endl ;
-    
+
 // Original data_grid
 //    profile_model* profile = new profile_grid<double,3>( new netcdf_profile(
 //            USML_STUDIES_DIR "/cmp_speed/std14profile.nc", 0.0, lat1, lat2, lng1, lng2,
@@ -68,16 +68,15 @@ int main( int argc, char* argv[] ) {
     //fast_grid_3d
     data_grid<double,3>* ssp = new netcdf_profile( USML_STUDIES_DIR "/cmp_speed/std14profile.nc",
             0.0, lat1, lat2, lng1, lng2, wposition::earth_radius ) ;
-    data_grid_svp* fast_ssp = new data_grid_svp(*ssp,true) ;
-    delete ssp ;
+    data_grid_svp* fast_ssp = new data_grid_svp(ssp,true) ;
     profile_model* profile = new profile_grid_fast( fast_ssp ) ;
-    
+
 //  attenuation_model* attn = new attenuation_constant(0.0);
 //  profile_model* profile = new profile_linear(1500.0,attn);
 
     cout << "load STD14 environmental bathy data" << endl ;
-    
-// Original data_grid   
+
+// Original data_grid
 //    boundary_model* bottom = new boundary_grid<double,2>( new netcdf_bathy(
 //            USML_STUDIES_DIR "/cmp_speed/std14bathy.nc", lat1, lat2, lng1, lng2,
 //            wposition::earth_radius ) ) ;
@@ -85,10 +84,9 @@ int main( int argc, char* argv[] ) {
     //fast_grid_2d
     data_grid<double,2>* grid = new netcdf_bathy( USML_STUDIES_DIR "/cmp_speed/std14bathy.nc",
         lat1, lat2, lng1, lng2, wposition::earth_radius );
-    data_grid_bathy* fast_grid = new data_grid_bathy(*grid, true) ;
-    delete grid ;
+    data_grid_bathy* fast_grid = new data_grid_bathy(grid, true) ;
     boundary_model* bottom = new boundary_grid_fast( fast_grid ) ;
-    
+
 //    boundary_model* bottom = new boundary_flat(4000.0) ;
 //    bottom->reflect_loss(new reflect_loss_constant(0.0)) ;
 //    bottom->reflect_loss(new reflect_loss_rayleigh(reflect_loss_rayleigh::MUD));
@@ -125,7 +123,7 @@ int main( int argc, char* argv[] ) {
     proploss loss(freq, src_pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, src_pos, de, az, time_step, &target ) ;
 
-    if (!wave.addProplossListener(&loss)) {
+    if (!wave.addEigenrayListener(&loss)) {
     	cout << "Error adding proploss listener! " << endl ;
     	exit(1);
     }

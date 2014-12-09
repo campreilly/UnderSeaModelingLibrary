@@ -19,6 +19,7 @@
 //#define DEBUG_EIGENRAYS
 //#define DEBUG_CAUSTICS
 //#define DEBUG_REFLECT
+//#define DEBUG_ATTEN
 
 using namespace usml::waveq3d ;
 
@@ -33,6 +34,7 @@ wave_queue::wave_queue(
     const seq_vector& az,
     double time_step,
     const wposition* targets,
+    const unsigned long run_id,
     spreading_type type
 ) :
     _ocean( ocean ),
@@ -42,7 +44,8 @@ wave_queue::wave_queue(
     _source_az( az.clone() ),
     _time_step( time_step ),
     _time( 0.0 ),
-    _targets(targets),
+    _targets( targets ),
+    _run_id(run_id),
     _nc_file( NULL )
 {
 
@@ -52,13 +55,9 @@ wave_queue::wave_queue(
     double az_last = abs((*_source_az)(_source_az->size()-1)) ;
     double boundary_check = az_first + az_last ;
     if ( boundary_check == 360.0 &&
-        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) {
-        _az_boundary = true ;
-    }
-    else {
-        _az_boundary = false ;
-    }
-    _intensity_threshold = 300.00; // -300 db Store internally as positive value
+        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) { _az_boundary = true ; }
+    else { _az_boundary = false ;}
+    _intensity_threshold = 300.0; //In dB
 
     if ( _targets ) {
     	_targets_sin_theta = sin( _targets->theta() ) ;
@@ -105,20 +104,6 @@ wave_queue::~wave_queue() {
 }
 
 /**
- * Register a bottom reverberation model.
- */
-void wave_queue::set_bottom_reverb( reverb_model* model ) {
-    _reflection_model->_bottom_reverb = model ;
-}
-
-/**
- * Register a surface reverberation model.
- */
-void wave_queue::set_surface_reverb( reverb_model* model ) {
-    _reflection_model->_surface_reverb = model ;
-}
-
-/**
  * Initialize wavefronts at the start of propagation using a
  * 3rd order Runge-Kutta algorithm.
  */
@@ -158,6 +143,7 @@ void wave_queue::init_wavefronts() {
     ode_integ::ab3_pos(  _time_step, _past, _prev, _curr, _next ) ;
     ode_integ::ab3_ndir( _time_step, _past, _prev, _curr, _next ) ;
     _next->update() ;
+    _next->path_length = _next->distance + _curr->path_length ;
 }
 
 /**
@@ -178,7 +164,7 @@ void wave_queue::step() {
     _next = save ;
     _time += _time_step ;
 
-    #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS) || defined(DEBUG_REFLECT)
+    #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS) || defined(DEBUG_REFLECT) || defined(DEBUG_ATTEN)
         cout << "*** wave_queue::step: time=" << time() << endl ;
     #endif
 
@@ -188,6 +174,11 @@ void wave_queue::step() {
     ode_integ::ab3_ndir( _time_step, _past, _prev, _curr, _next ) ;
 
     _next->update() ;
+    _next->path_length = _next->distance + _curr->path_length ;
+
+    #ifdef DEBUG_ATTEN
+        cout << "_curr->attenuation: " << _curr->attenuation << endl ;
+    #endif
 
     _next->attenuation += _curr->attenuation ;
     _next->phase += _curr->phase ;
@@ -205,13 +196,16 @@ void wave_queue::step() {
  */
 void wave_queue::detect_reflections() {
 
-    // process all surface and bottom reflections
+    // process all surface and bottom reflections, and vertices
     // note that multiple rays can reflect in the same time step
 
     for (unsigned de = 0; de < num_de(); ++de) {
         for (unsigned az = 0; az < num_az(); ++az) {
             if ( !detect_reflections_surface(de,az) ) {
-                detect_reflections_bottom(de,az) ;
+                if( !detect_reflections_bottom(de,az) ) {
+                    detect_vertices(de,az) ;
+                    detect_caustics(de,az) ;
+                }
             }
         }
     }
@@ -219,7 +213,6 @@ void wave_queue::detect_reflections() {
     // search for other changes in wavefront
 
     _next->find_edges() ;
-    detect_caustics() ;
 }
 
 /**
@@ -228,6 +221,8 @@ void wave_queue::detect_reflections() {
 bool wave_queue::detect_reflections_surface( unsigned de, unsigned az ) {
     #ifdef DEBUG_REFLECT
         cout << "***Entering wave_queue::detect_reflect_surf***" << endl;
+        cout << "\t(de,az): (" << de << "," << az << ")     de(" << (*_source_de)(de)
+             << "),az(" << (*_source_az)(az) << ")" << endl ;
         cout << "\t_next->position.alt: " << _next->position.altitude(de,az) << endl;
     #endif
     if (_next->position.altitude(de,az) > 0.0) {
@@ -256,9 +251,11 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
     const double depth = height - _next->position.rho(de,az) ;
     #ifdef DEBUG_REFLECT
         cout << "***Entering wave_queue::detect_reflect_bot***" << endl;
+        cout << "\t(de,az): (" << de << "," << az << ")     de(" << (*_source_de)(de)
+             << "),az(" << (*_source_az)(az) << ")" << endl ;
         cout << "\t_next->position.rho: " << _next->position.rho(de,az) - wposition::earth_radius
                                           << endl;
-        cout << "\theight: " << height - wposition::earth_radius << "\tdepth: " << depth << endl;
+        cout << "\tbottom depth: " << height - wposition::earth_radius << "\tdistance (+ below bottom): " << depth << endl;
     #endif
     if ( depth > 0.0 ) {
     #ifdef DEBUG_REFLECT
@@ -267,7 +264,7 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
                                     << ", " << pos.altitude() << ")" << endl;
         cout << "\t_next->position.rho: " << _next->position.rho(de,az) - wposition::earth_radius
                                           << endl;
-        cout << "\theight: " << height - wposition::earth_radius << "\tdepth: " << depth << endl;
+        cout << "\tbottom depth: " << height - wposition::earth_radius << "\tdistance (+ below bottom): " << depth << endl;
     #endif
         if ( _reflection_model->bottom_reflection( de, az, depth ) ) {
             _next->bottom(de,az) += 1 ;
@@ -281,25 +278,33 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
 }
 
 /**
+ *  Detects upper and lower vertices along the wavefront
+ */
+void wave_queue::detect_vertices( unsigned de, unsigned az ) {
+    double A = _prev->position.rho(de,az) ;
+    double B = _curr->position.rho(de,az) ;
+    double C = _next->position.rho(de,az) ;
+    if( A < B && C < B ) { _curr->upper(de,az)++ ; }
+    else if( B < A && B < C ) { _curr->lower(de,az)++ ; }
+}
+
+/**
  *  Detects and processes the caustics along the next wavefront
  */
-void wave_queue::detect_caustics() {
+void wave_queue::detect_caustics( unsigned de, unsigned az ) {
     const unsigned max_de = num_de() - 1 ;
-
-    for ( unsigned a=0 ; a < num_az() ; a++ ) {
-        for ( unsigned d=1 ; d < max_de ; d++ ) {
-            double A = _curr->position.rho(d+1,a) ;
-            double B = _curr->position.rho(d,a) ;
-            double C = _next->position.rho(d+1,a) ;
-            double D = _next->position.rho(d,a) ;
-            bool fold = false ;
-            if ( (_next->surface(d+1,a) == _next->surface(d,a)) &&
-                 (_next->bottom(d+1,a) == _next->bottom(d,a)) ) { fold = true; }
-            if ( (C-D)*(A-B) < 0 && fold ) {
-                _next->caustic(d+1,a)++;
-                for (unsigned f = 0; f < _frequencies->size(); ++f) {
-                    _next->phase(d+1,a)(f) -= M_PI_2;
-                }
+    if ( de < max_de ) {
+        double A = _curr->position.rho(de+1,az) ;
+        double B = _curr->position.rho(de,az) ;
+        double C = _next->position.rho(de+1,az) ;
+        double D = _next->position.rho(de,az) ;
+        bool fold = false ;
+        if ( (_next->surface(de+1,az) == _next->surface(de,az)) &&
+             (_next->bottom(de+1,az) == _next->bottom(de,az)) ) { fold = true; }
+        if ( (C-D)*(A-B) < 0 && fold ) {
+            _next->caustic(de+1,az)++;
+            for (unsigned f = 0; f < _frequencies->size(); ++f) {
+                _next->phase(de+1,az)(f) -= M_PI_2;
             }
         }
     }
@@ -681,26 +686,19 @@ void wave_queue::build_eigenray(
     const vector<double> spread_intensity =
         _spreading_model->intensity(
             wposition1( *(_curr->targets), t1, t2 ), de, az, offset, distance );
-    if ( isnan(spread_intensity(0)) ) {
-        #ifdef DEBUG_EIGENRAYS
-            std::cerr << "warning: wave_queue::build_eigenray()"  << endl
-                      << "\tignores eigenray because intensity is NaN" << endl
-                      << "\tt1=" << t1 << " t2=" << t2
-                      << " de=" << de << " az=" << az << endl ;
-        #endif
-        return ;
-    } else if ( spread_intensity(0) <= 1e-20 ) {
-        #ifdef DEBUG_EIGENRAYS
-            std::cerr << "warning: wave_queue::build_eigenray()" << endl
-                      << "\tignores eigenray because intensity is "
-                      << spread_intensity(0) << endl
-                      << "\tt1=" << t1 << " t2=" << t2
-                      << " de=" << de << " az=" << az << endl ;
-        #endif
-        return ;
+    for ( unsigned int i = 0; i < ray.intensity.size(); ++i) {
+        if ( isnan(spread_intensity(i)) ) {
+            #ifdef DEBUG_EIGENRAYS
+                std::cerr << "warning: wave_queue::build_eigenray()"  << endl
+                          << "\tignores eigenray because intensity is NaN" << endl
+                          << "\tt1=" << t1 << " t2=" << t2
+                          << " de=" << de << " az=" << az << endl ;
+            #endif
+            return ;
+        }
     }
 
-    ray.intensity = -10.0 * log10( spread_intensity ) ; // positive value
+    ray.intensity = -10.0 * log10( max(spread_intensity,1e-30) ) ; // positive value
 
     // compute attenuation components of intensity
 
@@ -721,10 +719,10 @@ void wave_queue::build_eigenray(
     // Thus if ray.intensity at any frequency is less than the _intensity_threshold
     // complete the ray build and send to listeners; discard otherwise.
 
-    bool bKeepRay = false;
+    bool bKeepRay = false ;
     for ( unsigned int i = 0; i < ray.intensity.size(); ++i) {
 		if ( ray.intensity(i) < _intensity_threshold  ) {
-			bKeepRay = true;
+			bKeepRay = true ;
 			break ;
 		}
 	}
@@ -732,11 +730,11 @@ void wave_queue::build_eigenray(
     if (!bKeepRay) {
 		#ifdef DEBUG_EIGENRAYS
 		std::cout << "warning: wave_queue::build_eigenray()"  << endl
-				  << "\tdiscards eigenray because intensity at all freq's " << endl
-				  << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
+			  << "\tdiscards eigenray because intensity at all freq's " << endl
+			  << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
 		#endif
 		return ;
-    }
+	}
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles
@@ -863,7 +861,7 @@ void wave_queue::build_eigenray(
     #endif
 
     // Add eigenray to those objects which requested them
-    notifyProplossListeners(t1,t2,ray);
+    notifyEigenrayListeners(t1,t2,ray);
 
 }
 
@@ -1019,44 +1017,44 @@ void wave_queue::make_taylor_coeff(
 }
 
 /**
-* Add a proplossListener to the _proplossListenerVec vector
+* Add a eigenrayListener to the _eigenrayListenerVec vector
 */
-bool wave_queue::addProplossListener(proplossListener* pListener) {
+bool wave_queue::addEigenrayListener(eigenrayListener* pListener) {
 
-	std::vector<proplossListener*>::iterator iter = find(_proplossListenerVec.begin(), _proplossListenerVec.end(), pListener);
-	if ( iter != _proplossListenerVec.end() ) {
+	std::vector<eigenrayListener*>::iterator iter = find(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener);
+	if ( iter != _eigenrayListenerVec.end() ) {
 		return false;
 	}
-	_proplossListenerVec.push_back(pListener);
+	_eigenrayListenerVec.push_back(pListener);
 	return true;
 }
 
 
 /**
- * Remove a proplossListener from the _proplossListenerVec vector
+ * Remove a eigenrayListener from the _eigenrayListenerVec vector
  */
-bool wave_queue::removeProplossListener(proplossListener* pListener){
+bool wave_queue::removeEigenrayListener(eigenrayListener* pListener){
 
-	std::vector<proplossListener*>::iterator iter = find(_proplossListenerVec.begin(), _proplossListenerVec.end(), pListener);
-	if ( iter == _proplossListenerVec.end() ){
+	std::vector<eigenrayListener*>::iterator iter = find(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener);
+	if ( iter == _eigenrayListenerVec.end() ){
 		return false;
 	} else {
-		_proplossListenerVec.erase(remove(_proplossListenerVec.begin(), _proplossListenerVec.end(), pListener));
+		_eigenrayListenerVec.erase(remove(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener));
 	}
 	return true;
 }
 
 /**
- * For each proplossListener in the _proplossListenerVec vector
+ * For each eigenrayListener in the _eigenrayListenerVec vector
  * call the addEigenray method to provide eigenrays.
  */
-bool wave_queue::notifyProplossListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray){
+bool wave_queue::notifyEigenrayListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray){
 
-	for (std::vector<proplossListener*>::iterator iter = _proplossListenerVec.begin();
-												iter != _proplossListenerVec.end(); ++iter){
-		proplossListener* proploss = *iter;
-		proploss->addEigenray(targetRow, targetCol, pEigenray);
+	for (std::vector<eigenrayListener*>::iterator iter = _eigenrayListenerVec.begin();
+												iter != _eigenrayListenerVec.end(); ++iter){
+		eigenrayListener* pListener = *iter;
+		pListener->addEigenray(targetRow, targetCol, pEigenray, _run_id);
 	}
 
-	return (_proplossListenerVec.size() > 0);
+	return (_eigenrayListenerVec.size() > 0);
 }

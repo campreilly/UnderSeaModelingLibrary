@@ -2,8 +2,7 @@
  * @file data_grid_mackenzie.h
  * Mackenzie model for the speed of sound vs. temperature and salinity.
  */
-#ifndef USML_OCEAN_DATA_GRID_MACKENZIE_H
-#define USML_OCEAN_DATA_GRID_MACKENZIE_H
+#pragma once
 
 #include <usml/types/data_grid.h>
 
@@ -67,11 +66,15 @@ class data_grid_mackenzie {
      *
      * @param temperature   Ocean temperature profile (degrees C).
      * @param salinity      Ocean salinity profile (ppt).
+     * @param clean_up      Delete the data_grids passed in. Defaults
+     *                      to true and will delete them, if false
+     *                      the user is responsible for deleting them.
      *
      */
     static data_grid<double,3>* construct(
         const data_grid<double,3>* temperature,
-        const data_grid<double,3>* salinity )
+        const data_grid<double,3>* salinity,
+        bool clean_up=true )
     {
         data_grid<double,3>* ssp = new data_grid<double,3>(*temperature,false) ;
         ssp->interp_type(0,GRID_INTERP_PCHIP) ;
@@ -102,8 +105,10 @@ class data_grid_mackenzie {
                 }
             }
         }
-        delete temperature ;
-        delete salinity ;
+        if( clean_up ) {
+            delete temperature ;
+            delete salinity ;
+        }
         return ssp ;
     }
 
@@ -112,5 +117,3 @@ class data_grid_mackenzie {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

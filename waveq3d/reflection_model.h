@@ -6,12 +6,17 @@
 #define USML_WAVEQ3D_REFLECTION_MODEL_H
 
 #include <usml/waveq3d/wave_queue.h>
+#include <usml/waveq3d/wave_queue_reverb.h>
+#include <usml/waveq3d/eigenverb_monostatic.h>
+#include <usml/waveq3d/eigenverb_bistatic.h>
+#include <usml/utilities/SharedPointerManager.h>
 
 namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
 class wave_queue ;      // forward reference for friend declaration
+class wave_queue_reverb ;
 
 /**
  * @internal
@@ -46,20 +51,21 @@ class wave_queue ;      // forward reference for friend declaration
  * @xref S. M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
-class USML_DECLSPEC reflection_model {
+class USML_DECLSPEC reflection_model
+{
 
     friend class wave_queue ;
+    friend class wave_queue_reverb ;
 
   private:
+
+    typedef usml::utilities::SharedPointerManager<reverberation_model>       Pointer_Manager ;
 
     /** Wavefront object associated with this model. */
     wave_queue& _wave ;
 
-    /** Callback model for bottom reverberation */
-    reverb_model* _bottom_reverb ;
-
-    /** Callback model for surface reverberation */
-    reverb_model* _surface_reverb ;
+    /** Associated reverbation model **/
+    reverberation_model* _reverberation ;
 
     /**
      * If the water is too shallow, bottom_reflection() uses a horizontal
@@ -94,9 +100,18 @@ class USML_DECLSPEC reflection_model {
      * Hide default constructor to prohibit use by non-friends.
      */
     reflection_model( wave_queue& wave )
-    	: _wave( wave ), _bottom_reverb(0), _surface_reverb(0),
-        TOO_SHALLOW( 300.0 * wave._time_step )
+    	: _wave( wave ), _reverberation( NULL ),
+    	  TOO_SHALLOW( 300.0 * wave._time_step )
     	{}
+
+    virtual ~reflection_model() {}
+
+    /**
+     * Sets the reverberation model
+     */
+    inline void setReverberation_Model( Pointer_Manager m ) {
+        _reverberation = m.getPointer() ;
+    }
 
     /**
      * Reflect a single acoustic ray from the ocean bottom.

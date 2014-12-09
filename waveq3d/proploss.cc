@@ -1,4 +1,4 @@
-/** 
+/**
  * @file proploss.cc
  * List of targets and their associated propagation data.
  */
@@ -19,31 +19,33 @@ proploss::proploss(
     const seq_vector& source_az,
     double time_step,
     const wposition* targets )
-	:
-	_targets( targets ),
-	_frequencies(frequencies.clone()),
-	_source_pos(source_pos),
-	_source_de (source_de.clone()),
-	_source_az (source_az.clone()),
-	_time_step(time_step),
-	_eigenrays( size1(), size2() ),
-	_num_eigenrays(0),
-	_loss( size1(), size2() )
+        :
+        _targets( targets ),
+        _frequencies(frequencies.clone()),
+        _source_pos(source_pos),
+        _source_de (source_de.clone()),
+        _source_az (source_az.clone()),
+        _time_step(time_step),
+        _eigenrays( size1(), size2() ),
+        _num_eigenrays(0),
+        _loss( size1(), size2() )
 {
 	initialize();
 }
+
 /**
  * Initialize with references to wave front information.
  */
+
 void proploss::initialize()
 {
     for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
         for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
-            _loss(t1,t2).intensity.resize(_frequencies->size() ) ;
+            _loss(t1,t2).intensity.resize( _frequencies->size() ) ;
             _loss(t1,t2).intensity.clear() ;
-            _loss(t1,t2).phase.resize(_frequencies->size() ) ;
+            _loss(t1,t2).phase.resize( _frequencies->size() ) ;
             _loss(t1,t2).phase.clear() ;
-        	
+
         }
     }
 }
@@ -52,88 +54,157 @@ void proploss::initialize()
  * Compute propagation loss summed over all eigenrays.
  */
 void proploss::sum_eigenrays( bool coherent ) {
-    for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
-        for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
-            
-            double time = 0.0 ;
-            double source_de = 0.0 ;
-            double source_az = 0.0 ;
-            double target_de = 0.0 ;
-            double target_az = 0.0 ;
-            int surface = -1 ;
-            int bottom = -1 ;
-            int caustic = -1 ;
-            double wgt = 0.0 ;
-            double max_a = 0.0 ;
-                
-            // compute at each frequency
-            
-            const eigenray_list* entry = eigenrays(t1,t2) ;
-            eigenray* loss = &( _loss(t1,t2) ) ;
-            
-            for ( unsigned f=0 ; f < _frequencies->size() ; ++f ) {
-            
-                // sum complex amplitudes over eigenrays
+    if( coherent ) {                                                             /// coherent signal summation
+        for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
+            for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
 
-                std::complex<double> phasor( 0.0, 0.0 ) ;
-                
-                for ( eigenray_list::const_iterator iter = entry->begin() ; 
-                      iter != entry->end() ; ++iter )
-                {
-                    const eigenray& ray = *iter ;
-                    
-                    // complex pressure
-                    
-                    const double a = pow( 10.0, ray.intensity(f) / -20.0 ) ;
-                    double p = 0.0 ;
-                    if  ( coherent ) {
-                        p = TWO_PI * (*_frequencies)(f) * ray.time 
-                          + ray.phase(f) ;
-                        p = fmod( p, TWO_PI ) ; // large phases bad for cos,sin 
-                    }
-                    std::complex<double> value( a * cos(p), a * sin(p) ) ;
-                    phasor += value ;
-                    
-                    // other eigenray terms
-                    
-                    wgt += a ;
-                    time += a * ray.time ;
-                    source_de += a * ray.source_de ;
-                    source_az += a * ray.source_az ;
-                    target_de += a * ray.target_de ;
-                    target_az += a * ray.target_az ;
-                    if ( a > max_a ) {
-                        max_a = a ;
-                    	surface = ray.surface ;
-                    	bottom = ray.bottom ;
-                    	caustic = ray.caustic ;
-                    }
-                }
-            
-                // convert back into intensity (dB) and phase (radians) values
-            
-                loss->intensity(f) = -20.0*log10( max(1e-15,abs(phasor)) ) ;
-                loss->phase(f) = arg(phasor) ;
-            }
-            
-            // weighted average of other eigenray terms
-            
-            loss->time = time / wgt ;
-            loss->source_de = source_de / wgt ;
-            loss->source_az = source_az / wgt ;
-            loss->target_de = target_de / wgt ;
-            loss->target_az = target_az / wgt ;
-            loss->surface = surface ;
-            loss->bottom = bottom ;
-            loss->caustic = caustic ;
-        }
-    }
+                double time = 0.0 ;
+                double source_de = 0.0 ;
+                double source_az = 0.0 ;
+                double target_de = 0.0 ;
+                double target_az = 0.0 ;
+                int surface = -1 ;
+                int bottom = -1 ;
+                int caustic = -1 ;
+                double wgt = 0.0 ;
+                double max_a = 0.0 ;
+
+                // compute at each frequency
+
+                const eigenray_list* entry = eigenrays(t1,t2) ;
+                eigenray* loss = &( _loss(t1,t2) ) ;
+
+                    for ( unsigned f=0 ; f < _frequencies->size() ; ++f ) {
+
+                        // sum complex amplitudes over eigenrays
+
+                        std::complex<double> phasor( 0.0, 0.0 ) ;
+
+                        for ( eigenray_list::const_iterator iter = entry->begin() ;
+                              iter != entry->end() ; ++iter )
+                        {
+                            const eigenray& ray = *iter ;
+
+                            // complex pressure
+
+                            double a = pow( 10.0, ray.intensity(f) / -20.0 ) ;                // pressure
+                            double p = TWO_PI * (*_frequencies)(f) * ray.time + ray.phase(f) ;
+                            p = fmod( p, TWO_PI ) ; // large phases bad for cos,sin
+                            std::complex<double> value( a * cos(p), a * sin(p) ) ;
+                            phasor += value ;
+
+                            // other eigenray terms
+
+                            a *= a ;          // scale by the pressure squared
+                            wgt += a ;
+                            time += a * ray.time ;
+                            source_de += a * ray.source_de ;
+                            source_az += a * ray.source_az ;
+                            target_de += a * ray.target_de ;
+                            target_az += a * ray.target_az ;
+                            if ( a > max_a ) {
+                                max_a = a ;
+                                surface = ray.surface ;
+                                bottom = ray.bottom ;
+                                caustic = ray.caustic ;
+                            }
+                        } // end eigenray_list
+
+                        // convert back into intensity (dB) and phase (radians) values
+
+                        loss->intensity(f) = -20.0*log10( max(1e-15,abs(phasor)) ) ;
+                        loss->phase(f) = arg(phasor) ;
+                    } // end frequency
+
+                // weighted average of other eigenray terms
+
+                loss->time = time / wgt ;
+                loss->source_de = source_de / wgt ;
+                loss->source_az = source_az / wgt ;
+                loss->target_de = target_de / wgt ;
+                loss->target_az = target_az / wgt ;
+                loss->surface = surface ;
+                loss->bottom = bottom ;
+                loss->caustic = caustic ;
+            } // end target size2
+        } // end target size1
+    } else {                                                                    /// incoherent signal summation
+        for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
+            for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
+
+                double time = 0.0 ;
+                double source_de = 0.0 ;
+                double source_az = 0.0 ;
+                double target_de = 0.0 ;
+                double target_az = 0.0 ;
+                int surface = -1 ;
+                int bottom = -1 ;
+                int caustic = -1 ;
+                double wgt = 0.0 ;
+                double max_a = 0.0 ;
+
+                // compute at each frequency
+
+                const eigenray_list* entry = eigenrays(t1,t2) ;
+                eigenray* loss = &( _loss(t1,t2) ) ;
+
+                    for ( unsigned f=0 ; f < _frequencies->size() ; ++f ) {
+
+                        // sum complex amplitudes over eigenrays
+
+                        double phasor = 0.0 ;
+
+                        for ( eigenray_list::const_iterator iter = entry->begin() ;
+                              iter != entry->end() ; ++iter )
+                        {
+                            const eigenray& ray = *iter ;
+
+                            // complex pressure
+
+                            const double a = pow( 10.0, ray.intensity(f) / -10.0 ) ;        // pressure squared
+                            phasor += a ;
+
+                            // other eigenray terms
+
+                            wgt += a ;
+                            time += a * ray.time ;
+                            source_de += a * ray.source_de ;
+                            source_az += a * ray.source_az ;
+                            target_de += a * ray.target_de ;
+                            target_az += a * ray.target_az ;
+                            if ( a > max_a ) {
+                                max_a = a ;
+                                surface = ray.surface ;
+                                bottom = ray.bottom ;
+                                caustic = ray.caustic ;
+                            }
+                        } // end eigenray_list
+
+                        // convert back into intensity (dB) and phase (radians) values
+
+                        loss->intensity(f) = -20.0*log10( max(1e-15,sqrt(phasor)) ) ;
+                        loss->phase(f) = 0.0 ;
+                    } // end frequency
+
+                // weighted average of other eigenray terms
+
+                loss->time = time / wgt ;
+                loss->source_de = source_de / wgt ;
+                loss->source_az = source_az / wgt ;
+                loss->target_de = target_de / wgt ;
+                loss->target_az = target_az / wgt ;
+                loss->surface = surface ;
+                loss->bottom = bottom ;
+                loss->caustic = caustic ;
+            } // end targets size2
+        } // end targets size1
+    } // end coherent/incoherent
 }
 
 /**
  * Add eigenray via proplossListener
  */
-bool proploss::addEigenray( unsigned targetRow, unsigned targetCol, eigenray pRay ) {
+bool proploss::addEigenray( unsigned targetRow, unsigned targetCol, eigenray pRay, unsigned long run_id ) {
 
 	 _eigenrays(targetRow, targetCol).push_back( pRay ) ;
 	 ++_num_eigenrays ;
@@ -175,9 +246,9 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
     NcVar *longitude_var = nc_file->add_var("longitude", ncDouble, row_dim, col_dim);
     NcVar *altitude_var = nc_file->add_var("altitude", ncDouble, row_dim, col_dim);
 
-    NcVar *proploss_index_var = nc_file->add_var("proploss_index", ncShort, row_dim, col_dim);
-    NcVar *eigenray_index_var = nc_file->add_var("eigenray_index", ncShort, row_dim, col_dim);
-    NcVar *eigenray_num_var = nc_file->add_var("eigenray_num", ncShort, row_dim, col_dim);
+    NcVar *proploss_index_var = nc_file->add_var("proploss_index", ncLong, row_dim, col_dim);
+    NcVar *eigenray_index_var = nc_file->add_var("eigenray_index", ncLong, row_dim, col_dim);
+    NcVar *eigenray_num_var = nc_file->add_var("eigenray_num", ncLong, row_dim, col_dim);
 
     NcVar *intensity_var = nc_file->add_var("intensity", ncDouble, eigenray_dim, freq_dim);
     NcVar *phase_var = nc_file->add_var("phase", ncDouble, eigenray_dim, freq_dim);
@@ -264,7 +335,6 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
     for (unsigned t1 = 0; t1 < _targets->size1(); ++t1) {
         for (unsigned t2 = 0; t2 < _targets->size2(); ++t2) {
             int num = _eigenrays(t1, t2).size();
-
             proploss_index_var->set_cur(t1, t2);
             eigenray_index_var->set_cur(t1, t2);
             eigenray_num_var->set_cur(t1, t2);
@@ -280,8 +350,8 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
 
                 // set record number for each eigenray data element
 
-                intensity_var->set_cur(record, 0);
-                phase_var->set_cur(record, 0);
+                intensity_var->set_cur(record);
+                phase_var->set_cur(record);
                 time_var->set_cur(record);
                 source_de_var->set_cur(record);
                 source_az_var->set_cur(record);
@@ -297,34 +367,34 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
                 if (n < 0) {
                     const eigenray& loss = _loss(t1, t2);
                     intensity_var->put(loss.intensity.data().begin(),
-                            1, 1, _frequencies->size());
+                            1, _frequencies->size());
                     phase_var->put(loss.phase.data().begin(),
-                            1, 1, _frequencies->size());
-                    time_var->put(&loss.time, 1, 1);
-                    source_de_var->put(&loss.source_de, 1, 1);
-                    source_az_var->put(&loss.source_az, 1, 1);
-                    target_de_var->put(&loss.target_de, 1, 1);
-                    target_az_var->put(&loss.target_az, 1, 1);
-                    surface_var->put(&loss.surface, 1, 1);
-                    bottom_var->put(&loss.bottom, 1, 1);
-                    caustic_var->put(&loss.caustic, 1, 1);
+                            1, _frequencies->size());
+                    time_var->put(&loss.time, 1);
+                    source_de_var->put(&loss.source_de, 1);
+                    source_az_var->put(&loss.source_az, 1);
+                    target_de_var->put(&loss.target_de, 1);
+                    target_az_var->put(&loss.target_az, 1);
+                    surface_var->put(&loss.surface, 1);
+                    bottom_var->put(&loss.bottom, 1);
+                    caustic_var->put(&loss.caustic, 1);
 
                 // case 2 : write individual eigenray
 
                 } else {
                     const eigenray& loss = *iter++;
                     intensity_var->put(loss.intensity.data().begin(),
-                            1, 1, _frequencies->size());
+                            1, _frequencies->size());
                     phase_var->put(loss.phase.data().begin(),
-                            1, 1, _frequencies->size());
-                    time_var->put(&loss.time, 1, 1);
-                    source_de_var->put(&loss.source_de, 1, 1);
-                    source_az_var->put(&loss.source_az, 1, 1);
-                    target_de_var->put(&loss.target_de, 1, 1);
-                    target_az_var->put(&loss.target_az, 1, 1);
-                    surface_var->put(&loss.surface, 1, 1);
-                    bottom_var->put(&loss.bottom, 1, 1);
-                    caustic_var->put(&loss.caustic, 1, 1);
+                            1, _frequencies->size());
+                    time_var->put(&loss.time, 1);
+                    source_de_var->put(&loss.source_de, 1);
+                    source_az_var->put(&loss.source_az, 1);
+                    target_de_var->put(&loss.target_de, 1);
+                    target_az_var->put(&loss.target_az, 1);
+                    surface_var->put(&loss.surface, 1);
+                    bottom_var->put(&loss.bottom, 1);
+                    caustic_var->put(&loss.caustic, 1);
 
                 } // if sum or individual
             }   // loop over # of eigenrays

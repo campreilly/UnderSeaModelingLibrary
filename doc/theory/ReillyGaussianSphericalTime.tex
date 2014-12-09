@@ -38,6 +38,11 @@ Narragansett RI, USA\\
 Narragansett RI, USA\\
 \email{potty@egr.uri.edu} }
 
+\author{David Thibaudeau}
+\address{AEgis Technologies Group, Inc.,\\
+North Kingstown RI, USA\\
+\email{dthibaudeau@aegistg.com} }
+
 \author{Michael Goodrich}
 \address{Alion Science and Technology Corporation,\\
 Norfolk VA, USA\\
@@ -46,12 +51,11 @@ Norfolk VA, USA\\
 \maketitle
 
 \begin{history}
-\received{(19 February 2012)}
-\revised{(1 January 2013)}
+\revised{(26 June 2014)}
 \end{history}
 
 \begin{abstract}
-The Wavefront Queue \threeD (WaveQ3D) model is a research effort to create fast and accurate acoustic transmission loss (TL) eigenrays, in littoral environments, for active sonar simulation/stimulation systems.  WaveQ3D is based on ray theory because Parabolic Equation and Normal Mode models run prohibitively slow at active sonar frequencies above 1000 Hz, where the number of propagating modes is large.  To extend applicability to lower frequencies, WaveQ3D augments ray theory with Gaussian beam techniques based on the Gaussian Ray Bundling (GRAB), which is certified for use down to 150 Hz. WaveQ3D is unique among Gaussian beam models in that it solves the eikonal equation in spherical Earth coordinates. The premise of this approach is that, when scenario geometries are constantly evolving, it is more computationally efficient to perform acoustic transmission loss (TL) in the latitude, longitude, altitude coordinates of the underlying environmental databases, than it is to convert the \threeD environments into a series of \twoDxN Cartesian slices.  This approach also has the benefit of supporting out-of-plane, \threeD effects. \footnote{Preprint of an article submitted for consideration in Journal of Computational Acoustics (JCA) \copyright 2012 copyright World Scientific Publishing Company, http://www.worldscinet.com/jca/.}
+The Wavefront Queue \threeD (WaveQ3D) model is a research effort to create fast and accurate acoustic transmission loss (TL) eigenrays, in littoral environments, for active sonar simulation/stimulation systems.  WaveQ3D is based on ray theory because Parabolic Equation and Normal Mode models run prohibitively slow at active sonar frequencies above 1000 Hz, where the number of propagating modes is large.  To extend applicability to lower frequencies, WaveQ3D augments ray theory with Gaussian beam techniques based on the Gaussian Ray Bundling (GRAB), which is certified for use down to 150 Hz. WaveQ3D is unique among Gaussian beam models in that it solves the eikonal equation in spherical Earth coordinates. The premise of this approach is that, when scenario geometries are constantly evolving, it is more computationally efficient to perform acoustic transmission loss (TL) in the latitude, longitude, altitude coordinates of the underlying environmental databases, than it is to convert the \threeD environments into a series of \twoDxN Cartesian slices.  This approach also has the benefit of supporting out-of-plane, \threeD effects. 
 \end{abstract}
 
 \keywords{Gaussian beams; \threeD modeling; range-dependent; time-domain.}
@@ -429,6 +433,19 @@ During the development of WaveQ3D, we discovered that the inclusion of spherical
 \section{Boundary Reflections on a Spherical Earth}
 
 \begin{figure}[th]
+	\centerline{\includegraphics[width=4in]{wedge_3d.eps}} 
+	\vspace*{8pt}
+	\caption{Horizontal refraction from 3-D slope.
+	\label{fig:wedge_3d}}
+\end{figure}
+
+Fig.~\ref{fig:wedge_3d} illustrates WaveQ3D out-of-plane reflection from a 3-D slope.  
+In this example, a single ray is launched obliquely up a 2.86 degree slope.  
+Each time the ray reflects from the bottom, the tilt of the normal turns the ray slightly down slope.
+Eventually the ray stops traveling up toward the apex and turns down slope.  
+Rays with steep launch angle have more bottom reflections and turn down slope faster than shalllow-angle rays.
+
+\begin{figure}[th]
 	\centerline{\includegraphics[width=3in]{EstPointCollision.eps}} 
 	\vspace*{8pt}
 	\caption{Estimating the point of reflection. }
@@ -544,27 +561,6 @@ After reflection, WaveQ3D must re-initialize the ray in a way that maintains the
 phase continuity of the wavefront. The WaveQ3D model uses a third order
 Runge-Kutta (RK3) algorithm to reverse propagation from the point of
 reflection back to the \(t_n\), \(t_{n-1}\), \(t_{n-2}\) points in time, during reinitialization.
-
-\begin{figure}[th]
-	\centerline{\includegraphics[width=4in]{reflect_grid_malta.eps}} 
-	\vspace*{8pt}
-	\caption{3-D Reflection on the Malta Escarpment.
-	\label{fig:reflect_grid_malta}}
-\end{figure}
-
-Fig.~\ref{fig:reflect_grid_malta} illustrates WaveQ3D out-of-plane reflection from ETOPO1 gridded bathymetry\cite{ETOPO1} on the Malta Escarpment. In this figure, bottom bathymetry contours are represented as dashed lines. A ray is launched from 35:59N 16:00E, at a depth of 10 meters, with a
-depression/elevation angle of -20\textsuperscript{o} (down), and an azimuth
-of 270\textsuperscript{o}. The solid black line follows the trajectory of
-the ray as a function of latitude and longitude. The open circles along
-this path represent places where surface reflections occurred; the closed
-circles represent bottom reflections. The speed of sound was artificially
-fixed at 1500~m/s, and a time step of 100~ms was used to compute ray paths.
-The decrease in spacing between the shallow water dots illustrates an
-increase in the ray's depression/elevation angle as it reflects up the slope. In addition,
-ray paths were reflected into a new azimuthal direction each time that they
-interacted with the bottom. These out-of-plane reflections result in a down
-slope ray path that is offset by more than 21.9 km from the up slope path,
-after 14 bounces off of the bottom.
 
 \section{Finding Eigenrays using Coherent Wavefronts}
 
@@ -752,17 +748,27 @@ $2K+1$ are the number of significant beams in the azimuthal direction.
 
 The intensity of each Gaussian beam contribution is a function of the width
 of the beam and the distance along the wavefront to the eigenray target,
-normalized to the surface area of each beam at the source
+normalized to the average distance across the beam at the source
 \begin{equation}
-	g_{j'}(\vec{r}_p) = \frac{ \left( \mu_{j'+1} - \mu_{j'} \right) }
-		{\sqrt{2\pi w^2_{j'}}} 
+	N_{j'} = \frac{ \int_{\varphi_{k'}}^{\varphi_{k'+1}} \left( \mu_{j'+1} - \mu_{j'} \right) d\varphi }
+		{  \int_{\varphi_{k'}}^{\varphi_{k'+1}} d\varphi }
+		= \mu_{j'+1} - \mu_{j'}
+	\label{eq:gaussian_norm1} \:,
+\end{equation}
+\begin{equation}
+	 N_{k'}= \frac{ \int_{\mu_{j'}}^{\mu_{j'+1}} \left( \varphi_{k'+1} - \varphi_{k'} \right) cos \left( \mu \right) d\mu }
+		{  \int_{\mu_{j'}}^{\mu_{j'+1}} d\mu }
+		= \frac{ sin(\mu_{j'+1}) - sin(\mu_{j'}) }{\mu_{j'+1}-\mu_{j'}}
+		\left( \varphi_{k'+1} - \varphi_{k'} \right)  \:,
+	\label{eq:gaussian_norm2}
+\end{equation}
+\begin{equation}
+	g_{j'}(\vec{r}_p) = \frac{N_{j'}}{\sqrt{2\pi w^2_{j'}}} 
 		\: exp \left( - \frac{d^2_{j'}}{2w^2_{j'}} \right) \:,
 	\label{eq:gaussian_each1}
 \end{equation}
 \begin{equation}
-	g_{k'}(\vec{r}_p) = \frac{ \left( sin(\mu_{j'+1}) - sin(\mu_{j'}) \right) 
-		\left( \varphi_{k'+1} - \varphi_{k'} \right) }
-		{\sqrt{2\pi w^2_{k'}}} 
+	g_{k'}(\vec{r}_p) = \frac{ N_{k'} }{\sqrt{2\pi w^2_{k'}}} 
 		\: exp \left( - \frac{d^2_{k'}}{2w^2_{k'}} \right) \:,
 	\label{eq:gaussian_each2}
 \end{equation}
@@ -770,7 +776,9 @@ where
 \(w_{j'}\) and \(w_{k'}\) are the half-widths of the Gaussian beam (from the cell
 center to one edge) in the \(\mu\) and \(\varphi\) directions; and
 \(d^2_{j'}\) and \(d^2_{k'}\) are the distance in the \(\mu\) and \(\varphi\)
-directions from the Gaussian beam center to the eigenray target. The WaveQ3D model aligns the ray paths with the edges of the Gaussian beam (full-width at half maximum).  Distance terms in the \(\mu\) direction are calculated using the following pattern
+directions from the Gaussian beam center to the eigenray target. 
+
+The WaveQ3D model aligns the ray paths with the edges of the Gaussian beam (full-width at half maximum).  Distance terms in the \(\mu\) direction are calculated using the following pattern
 \begin{equation}
 	L = 2 \: w_j \: \frac{\delta \mu}{\Delta \mu_j} \:,
 	\label{eq:gaussian_width1}
@@ -861,11 +869,17 @@ It  plots the coherent propagation loss, as a function of range, for a continuou
 
 \section{Execution Speed Comparisons}
 
-\emph{Work in Progress - In this section, we need to compare WaveQ3D execution speeds to an equivalent calculation using GRAB.  Demonstrates "fast".}
+The premise of the WaveQ3D approach is that, when target/sensor geometries are constantly evolving, it is more computationally efficient to perform acoustic transmission loss (TL) in the latitude, longitude, altitude coordinates of the underlying environmental databases, than it is to convert the \threeD environments into a series of 2-DxN Cartesian slices. Testing this claim requires a scenario that combines the extraction of data from a \threeD data set and the calculation of transmission loss for a large number of targets.  Fortunately, one of the regressions tests that are distributed with GRAB includes just such a combination of features.  Although the speeds of individual training systems will differ from this example (because they each extract \twoD radials in a different way) this scenario provides a useful baseline for evaluating the potential of the WaveQ3D approach.
 
-\section{\threeD Wedge TL Comparisons}
+Standard Test 14 was modified to compute transmission loss for a variable number of targets, at a depth of 100 m, and a range 100 km from the source, evenly spaced in azimuth. This test includes a grid of sound speeds and bottom depths in latitude and longitude coordinates for an area near Hawaii, between 16.2N-24.6N and 164.7W-155.4W. The source location was SW of Hawaii at 19.52N 160.5W, at a depth of 200 m.  For CASS a radial was constructed for each target using a depression/elevation ray fan of +89 to -89 by 1 degree increments and the range of each target in each radial of 100 km. For WaveQ3D, a wavefront was constructed using depression/elevation angles from -90 to +90 of 181 tangentially spaced rays and an azimuthal spread from 0 to 360 using 25 evenly spaced rays. WaveQ3D propagates 4525 rays through the environment for 80 seconds by 100 millisecond time steps. 
 
-\emph{Work in Progress - In this section, we need to compare WaveQ3D propagation loss results to Deane and Buckingham's analytic model for the 3-D wedge.  Demonstrates "accurate".}
+\begin{figure}[th]
+	\centerline{\includegraphics[width=4in]{std14_timing_test.pdf}} 
+	\vspace*{8pt}
+	\caption{Speed of transmission loss calculation. \label{fig:std14_timing_test}}
+\end{figure}
+
+Fig.~\ref{fig:n2_shallow} illustrates timing tests of the relative speeds of the models, run on a Dell Latitude Laptop E6520 Intel i5-2540M CPU @2.60GHz, with a variable number of targets from 0 to 100 targets, in increments of 10. The ordinal axis illustrates the time required to compute transmission loss for all targets on this platform.  The GRAB model requires approximately 476 ms per target.  The measured speed of WaveQ3D is approximately 3.07 seconds plus 42 ms per target.  For small numbers of targets, GRAB is faster, because WaveQ3D must propagate the wavefront in all directions for 80 seconds, regardless of the number of targets.  GRAB only needs to construct \twoD radials if a target is actually present.  However, as the number of targets grows large, WaveQ3D is faster because it has a much less overhead on a per target basis.  The crossover point for this scenario appears to be approximately 7 targets.  Although WaveQ3D may not be more computationally efficient than other models in all applications, these results illustrate its potential to make a significant speed improvement in active sonar simulation/stimulation systems where the number of targets is large.
 
 \section{Availability}
 

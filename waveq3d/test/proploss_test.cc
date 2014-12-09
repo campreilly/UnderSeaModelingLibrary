@@ -7,6 +7,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <time.h>
 
 BOOST_AUTO_TEST_SUITE(proploss_test)
 
@@ -76,8 +77,8 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
     }
 
     proploss loss(freq, pos, de, az, time_step, &target);
-    wave_queue wave( ocean, freq, pos, de, az, time_step, &target, wave_queue::CLASSIC_RAY ) ;
-    wave.addProplossListener(&loss);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target, 0, wave_queue::CLASSIC_RAY ) ;
+    wave.addEigenrayListener(&loss);
 
     // propagate rays & record to log file
 
@@ -123,6 +124,102 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
                 BOOST_CHECK(fabs(ray.intensity(f) - pl) < 0.2);
             }
         }
+    }
+}
+
+/**
+ * This test demonstrates that the frequency based accuracy of the model.
+ * - Scenario parameters
+ *   - Profile: constant 1500 m/s sound speed, no absorption
+ *   - Bottom: 3000 meters
+ *   - Source: 45N, 45W, -1000 meters
+ *   - Target: 45.02N, 45W, -1000 meters
+ *   - Time Step: 100 msec
+ *   - Launch D/E: 1 degree linear spacing from -60 to 60 degrees
+ *
+ * - Analytic Results
+ *   - Direct Path: 1.484018789 sec, -0.01 deg launch, 66.95 dB
+ *   - Surface Bounce: 1.995102731 sec, 41.93623171 deg launch, 69.52 dB
+ *   - Bottom Bounce: 3.051676949 sec, -60.91257162 deg launch, 73.21 dB
+ */
+BOOST_AUTO_TEST_CASE( proploss_freq )
+{
+    cout << "=== proploss_test: proploss_freq ===" << endl ;
+    const char* ncwave = USML_TEST_DIR "/waveq3d/test/proploss_freq_wave.nc" ;
+    const char* ncproploss = USML_TEST_DIR "/waveq3d/test/proploss_freq_proploss.nc" ;
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/proploss_freq.csv";
+    const double c0 = 1500.0 ;
+    const double src_lat = 45.0 ;
+    const double src_lng = -45.0 ;
+    const double src_alt = -1000.0 ;
+    const double trg_lat = 45.02 ;
+    const double time_max = 3.5 ;
+
+    // initialize propagation model
+
+    wposition::compute_earth_radius( src_lat ) ;
+    attenuation_model* attn = new attenuation_constant(0.0) ;
+    profile_model* profile = new profile_linear(c0,attn) ;
+    boundary_model* surface = new boundary_flat() ;
+    boundary_model* bottom = new boundary_flat(3000.0) ;
+    ocean_model ocean( surface, bottom, profile ) ;
+
+    seq_linear freq( 10.0, 10.0, 1000 ) ;
+    wposition1 pos( src_lat, src_lng, src_alt ) ;
+    seq_linear de( -90.0, 1.0, 90.0 ) ;
+    seq_linear az( -4.0, 1.0, 4.0 ) ;
+
+    // build a single target
+
+    wposition target( 1, 1, trg_lat, src_lng, src_alt );
+
+    proploss loss(freq, pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
+    wave.addEigenrayListener(&loss) ;
+
+    // propagate rays & record to log file
+
+    cout << "propagate wavefront for " << time_max << endl ;
+    cout << "writing wavefronts to " << ncwave << endl ;
+
+    wave.init_netcdf( ncwave ) ;
+    wave.save_netcdf() ;
+    while (wave.time() < time_max)
+    {
+        wave.step() ;
+        wave.save_netcdf() ;
+    }
+    wave.close_netcdf() ;
+
+    loss.sum_eigenrays() ;
+    cout << "writing proploss to " << ncproploss << endl ;
+    loss.write_netcdf(ncproploss,"proploss_freq test") ;
+
+    // save results to spreadsheet and compare to analytic results
+
+    cout << "writing data to " << csvname << endl ;
+    std::ofstream os(csvname) ;
+    os << "frequency,theory_direct,model_direct,theory_surface,model_surface,theory_bottom,theory_surface" << endl ;
+    os << std::setprecision(18) ;
+
+    const eigenray_list *raylist = loss.eigenrays(0, 0);
+    eigenray direct_ray, surface_ray, bottom_ray ;
+    for (eigenray_list::const_iterator iter = raylist->begin();
+            iter != raylist->end(); ++iter)
+    {
+        if( iter->bottom == 1 && iter->surface == 0 ) bottom_ray = *iter ;
+        else if( iter->bottom == 0 && iter->surface == 1 ) surface_ray = *iter ;
+        else direct_ray = *iter ;
+    }
+    for(size_t j=0; j<freq.size(); ++j) {
+        os << freq(j)
+           << "," << 66.95
+           << "," << direct_ray.intensity(j)
+           << "," << 69.52
+           << "," << surface_ray.intensity(j)
+           << "," << 73.21
+           << "," << bottom_ray.intensity(j)
+           << endl ;
     }
 }
 
@@ -219,7 +316,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays & record to log file
 
@@ -366,9 +463,9 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
  *
  * - "bias" is the mean difference and it measures offsets in level.
  * - "dev" is an estimate of the sqrt of the variance and it is a measure of
- *   the difference in flucuations of between the models.
+ *   the difference in flucuations between the models.
  * - "detcoef" is the coefficient of determination and it measure of the
- *   fraction of the model that is predicts the analytic solution.
+ *   fraction of the model that predicts the analytic solution.
  *
  * An automatic error is thrown if abs(bias) > 0.5 dB, detcoef < 80% or dev > 4 db.
  * Special case for dev on 10 Hz and 10000 Hz; abs(dev) > 5 db.
@@ -421,7 +518,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays & record to log file
 
@@ -457,7 +554,8 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
 
     for (unsigned f=0; f < freq.size(); ++f)
     {
-        const double wavenum = TWO_PI * freq(f) / c0;
+        const double wavenum = TWO_PI * freq(f) / c0 ;
+        os << "freq: " << freq(f) << endl;
 
         for (unsigned n = 0; n < range.size(); ++n)
         {
@@ -636,7 +734,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addProplossListener(&loss);
+    wave.addEigenrayListener(&loss);
 
     // propagate rays & record to log file
 
@@ -743,292 +841,8 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
          << " detcoef = " << detcoef << "%" << endl ;
 
     BOOST_CHECK( abs(bias) <= 0.7 );
-    BOOST_CHECK( dev <= 4.0 );
+    BOOST_CHECK( dev <= 5.0 );
     BOOST_CHECK( detcoef >= 80.0 );
-}
-
-/** Test in progress */
-BOOST_AUTO_TEST_CASE( bottom_type_effects ) {
-    int month = 1 ;		        // January
-    const double lat1 = 24.0 ;  // gulf of oman
-    const double lat2 = 26.0 ;
-    const double lng1 = 56.0 ;
-    const double lng2 = 58.0 ;
-    wposition::compute_earth_radius( (lat1+lat2)/2.0 ) ;
-
-    const double src_lat = 26.0 ;
-    const double src_lng = 56.75 ;
-    const double src_alt = -27.0 ;
-    const double tar_range = 1000.0 ;
-    const double tar_alt = -50.0 ;
-    const double time_max = 4.0 ;
-    const double dt = 0.05 ;
-    seq_log freq( 6500.0, 0.0, 1 ) ;
-
-    wposition1 pos( src_lat, src_lng, src_alt ) ;
-    seq_rayfan de( -34.0, 36.0, 21 ) ;
-    seq_linear az( 0.0, 15.0, 360.0 ) ;
-
-    // build sound velocity profile from World Ocean Atlas data
-    cout << "loading temperature & salinity data from World Ocean Atlas" << endl ;
-    usml::netcdf::netcdf_woa* temperature = new usml::netcdf::netcdf_woa(
-                                USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
-                                USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
-                                month, lat1, lat2, lng1, lng2 ) ;
-    usml::netcdf::netcdf_woa* salinity = new usml::netcdf::netcdf_woa(
-                            USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
-                            USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
-                            month, lat1, lat2, lng1, lng2 ) ;
-    profile_model* profile = new profile_grid<double,3>(
-        data_grid_mackenzie::construct(temperature, salinity) ) ;
-
-    // load bathymetry from ETOPO1 database
-    cout << "loading bathymetry from ETOPO1 database" << endl ;
-    boundary_model* bottom = new boundary_grid<double,2>( new usml::netcdf::netcdf_bathy(
-        USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd", lat1, lat2, lng1, lng2 ) );
-    bottom->reflect_loss( new reflect_loss_rayleigh( reflect_loss_rayleigh::SILT ) ) ;
-
-    boundary_model* surface = new boundary_flat() ;
-
-    // combine sound speed and bathymetry into ocean model
-    ocean_model ocean( surface, bottom, profile ) ;
-
-    // create a target due north tar_range away
-    wposition target( 1, 1, 0.0, 0.0, tar_alt ) ;
-    wposition1 atarget( pos, tar_range, 0.0 ) ;
-    target.latitude( 0, 0, atarget.latitude() ) ;
-    target.longitude( 0, 0, atarget.longitude() ) ;
-
-    proploss* pLoss = new proploss(freq, pos, de, az, dt, &target) ;
-    wave_queue* pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss);
-
-    while(pWave->time() < time_max) {
-        pWave->step();
-    }
-
-    pLoss->sum_eigenrays();
-    cout << "\n\n=====Eigenrays --> Rayleigh::SILT=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
-    cout << std::setprecision(5) ;
-    for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
-    {
-        cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
-        << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
-        << endl;
-    }
-
-    bottom->reflect_loss( new reflect_loss_rayleigh( reflect_loss_rayleigh::SAND ) ) ;
-    delete pLoss ;
-    delete pWave ;
-    pLoss = new proploss(freq, pos, de, az, dt, &target) ;
-    pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
-
-    while(pWave->time() < time_max) {
-        pWave->step();
-    }
-
-    pLoss->sum_eigenrays();
-    cout << "=====Eigenrays --> Rayleigh::SAND=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
-    cout << std::setprecision(5) ;
-    for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
-    {
-        cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
-        << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
-        << endl;
-    }
-
-    bottom->reflect_loss( new reflect_loss_rayleigh( reflect_loss_rayleigh::CLAY ) ) ;
-    delete pLoss ;
-    delete pWave ;
-    pLoss = new proploss(freq, pos, de, az, dt, &target) ;
-    pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
-
-    while(pWave->time() < time_max) {
-        pWave->step();
-    }
-
-    pLoss->sum_eigenrays();
-    cout << "=====Eigenrays --> Rayleigh::CLAY=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
-    cout << std::setprecision(5) ;
-    for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
-    {
-        cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
-        << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
-        << endl;
-    }
-
-    bottom->reflect_loss( new reflect_loss_rayleigh( reflect_loss_rayleigh::LIMESTONE ) ) ;
-    delete pLoss ;
-    delete pWave ;
-    pLoss = new proploss(freq, pos, de, az, dt, &target) ;
-    pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
-
-    while(pWave->time() < time_max) {
-        pWave->step();
-    }
-
-    pLoss->sum_eigenrays();
-    cout << "=====Eigenrays --> Rayleigh::LIMESTONE=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
-    cout << std::setprecision(5) ;
-    for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
-    {
-        cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
-        << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
-        << endl;
-    }
-
-    bottom->reflect_loss( new reflect_loss_rayleigh( reflect_loss_rayleigh::BASALT ) ) ;
-    delete pLoss ;
-    delete pWave ;
-    pLoss = new proploss(freq, pos, de, az, dt, &target) ;
-    pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
-
-    while(pWave->time() < time_max) {
-        pWave->step();
-    }
-
-    pLoss->sum_eigenrays();
-    cout << "=====Eigenrays --> Rayleigh::BASALT=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
-    cout << std::setprecision(5) ;
-    for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
-    {
-        cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
-        << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
-        << endl;
-    }
-
-    bottom->reflect_loss( new reflect_loss_rayleigh( reflect_loss_rayleigh::GRAVEL ) ) ;
-    delete pLoss ;
-    delete pWave ;
-    pLoss = new proploss(freq, pos, de, az, dt, &target) ;
-    pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
-
-    while(pWave->time() < time_max) {
-        pWave->step();
-    }
-
-    pLoss->sum_eigenrays();
-    cout << "=====Eigenrays --> Rayleigh::GRAVEL=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
-    cout << std::setprecision(5) ;
-    for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
-    {
-        cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
-        << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
-        << endl;
-    }
-
-    bottom->reflect_loss( new reflect_loss_rayleigh( reflect_loss_rayleigh::MORAINE ) ) ;
-    delete pLoss ;
-    delete pWave ;
-    pLoss = new proploss(freq, pos, de, az, dt, &target) ;
-    pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
-
-    while(pWave->time() < time_max) {
-        pWave->step();
-    }
-
-    pLoss->sum_eigenrays();
-    cout << "=====Eigenrays --> Rayleigh::MORAINE=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
-    cout << std::setprecision(5) ;
-    for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
-    {
-        cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
-        << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
-        << endl;
-    }
-
-    bottom->reflect_loss( new reflect_loss_rayleigh( reflect_loss_rayleigh::CHALK ) ) ;
-    delete pLoss ;
-    delete pWave ;
-    pLoss = new proploss(freq, pos, de, az, dt, &target) ;
-    pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
-
-    while(pWave->time() < time_max) {
-        pWave->step();
-    }
-
-    pLoss->sum_eigenrays();
-    cout << "=====Eigenrays --> Rayleigh::CHALK=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
-    cout << std::setprecision(5) ;
-    for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
-    {
-        cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
-        << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
-        << endl;
-    }
-
-    bottom->reflect_loss( new reflect_loss_rayleigh( reflect_loss_rayleigh::MUD ) ) ;
-    delete pLoss ;
-    delete pWave ;
-    pLoss = new proploss(freq, pos, de, az, dt, &target) ;
-    pWave = new wave_queue( ocean, freq, pos, de, az, dt, &target ) ;
-    pWave->addProplossListener(pLoss) ;
-
-    while(pWave->time() < time_max) {
-        pWave->step();
-    }
-
-    pLoss->sum_eigenrays();
-    cout << "=====Eigenrays --> Rayleigh::MUD=====" << endl ;
-    cout << "time (s)\tbounces(s,b,c)\tlaunch angle\tarrival angle\t   TL\t\t    phase" << endl ;
-    cout << std::setprecision(5) ;
-    for (eigenray_list::const_iterator iter = pLoss->eigenrays(0, 0)->begin(); iter != pLoss->eigenrays(0, 0)->end(); ++iter)
-    {
-        cout << (*iter).time
-        << "\t\t   (" << (*iter).surface << ", " << (*iter).bottom << ", " << (*iter).caustic << ")"
-        << "\t  " << (*iter).source_de
-        << "\t\t  " << (*iter).target_de
-        << "\t\t  " << (*iter).intensity(0)
-        << "\t  " << (*iter).phase(0)
-        << endl;
-    }
 }
 
 /// @}

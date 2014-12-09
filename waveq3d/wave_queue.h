@@ -6,21 +6,19 @@
 #define USML_WAVEQ3D_WAVE_QUEUE_H
 
 #include <usml/ocean/ocean.h>
-#include <usml/waveq3d/reverb_model.h>
 #include <usml/waveq3d/wave_front.h>
-#include <usml/waveq3d/proplossListener.h>
+#include <usml/waveq3d/eigenrayListener.h>
 #include <netcdfcpp.h>
 
 namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
-class reverb_model ;    // forward references for friend declarations
 class reflection_model ;
 class spreading_model ;
 class spreading_ray ;
 class spreading_hybrid_gaussian ;
-class proplossListener ;
+class eigenrayListener ;
 
 /// @ingroup waveq3d
 /// @{
@@ -66,7 +64,250 @@ class USML_DECLSPEC wave_queue {
     friend class spreading_ray ;
     friend class spreading_hybrid_gaussian ;
 
-  private:
+  public:
+
+    /**
+     * Type of spreading model to be used.
+     */
+    typedef enum { CLASSIC_RAY, HYBRID_GAUSSIAN } spreading_type ;
+
+    //**************************************************
+    // methods
+
+    /**
+     * Initialize a propagation scenario.
+     *
+     * @param  ocean        Reference to the environmental parameters.
+     * @param  freq         Frequencies over which to compute propagation (Hz).
+     * @param  pos          Location of the wavefront source in spherical
+     *                      earth coordinates.
+     * @param  de           Initial depression/elevation angles at the
+     *                      source location (degrees, positive is up).
+     *                      Requires a minimum of 3 angles if eigenrays
+     *                      are being computed.
+     * @param  az           Initial azimuthal angle at the source location
+     *                      (degrees, clockwise from true north).
+     *                      Requires a minimum of 3 angles if eigenrays
+     *                      are being computed.
+     *                      Ray fans that wrap around all azimuths should
+     *                      include rays for both 0 and 360 degrees.
+     * @param  time_step    Propagation step size (seconds).
+     * @param  targets      List of acoustic targets.
+     * @param  type         Type of spreading model to use: CLASSIC_RAY
+     *                      or HYBRID_GAUSSIAN.
+     */
+    wave_queue(
+        ocean_model& ocean,
+        const seq_vector& freq,
+        const wposition1& pos,
+        const seq_vector& de, const seq_vector& az,
+        double time_step,
+        const wposition* targets=NULL,
+        const unsigned long run_id=1,
+        spreading_type type=HYBRID_GAUSSIAN
+        ) ;
+
+    /** Destroy all temporary memory. */
+    virtual ~wave_queue() ;
+
+    /**
+     * Location of the wavefront source in spherical earth coordinates.
+     *
+     * @return              Common origin of all points on the wavefront
+     */
+    inline const wposition1& source_pos() const {
+        return _source_pos ;
+    }
+
+    /**
+     * List of frequencies for this wave queue.
+     *
+     * @return              Frequencies for this wavefront
+     */
+    inline const seq_vector* frequencies() const {
+        return _frequencies ;
+    }
+
+    /**
+     * Initial depression/elevation angle at the source location.
+     *
+     * @param  de           Index of the element to access.
+     * @return              Depression/elevation angle.
+     *                      (degrees, positive is up)
+     */
+    inline double source_de( unsigned de ) const {
+        return (*_source_de)(de) ;
+    }
+
+    /**
+     * Initial azimuthal angle at the source location.
+     *
+     * @param  az       	Index of the element to access.
+     * @return              Depression/elevation angle.
+     *                      (degrees, clockwise from true north)
+     */
+    inline double source_az( unsigned az ) const {
+        return (*_source_az)(az) ;
+    }
+
+    /**
+     * Elapsed time for the current element in the wavefront.
+     */
+    inline double time() const {
+        return _time ;
+    }
+
+    /**
+     * Return next element in the wavefront.
+     */
+    inline const wave_front* next() {
+        return _next ;
+    }
+
+    /**
+     * Return const next element in the wavefront.
+     */
+    inline const wave_front* next() const {
+        return _next ;
+    }
+
+    /**
+     * Return current element in the wavefront.
+     */
+    inline const wave_front* curr() {
+        return _curr ;
+    }
+
+    /**
+     * Return const current element in the wavefront.
+     */
+    inline const wave_front* curr() const {
+        return _curr ;
+    }
+
+    /**
+     * Return previous element in the wavefront.
+     */
+    inline const wave_front* prev() {
+        return _prev ;
+    }
+
+    /**
+     * Return const previous element in the wavefront.
+     */
+    inline const wave_front* prev() const {
+        return _prev ;
+    }
+
+    /**
+     * Return past element in the wavefront.
+     */
+    inline const wave_front* past() {
+        return _past ;
+    }
+
+    /**
+     * Return const past element in the wavefront.
+     */
+    inline const wave_front* past() const {
+        return _past ;
+    }
+
+    /**
+     * Number of D/E angles in the ray fan.
+     */
+    inline unsigned num_de() const {
+        return _source_de->size() ;
+    }
+
+    /**
+     * Number of AZ angles in the ray fan.
+     */
+    inline unsigned num_az() const {
+        return _source_az->size() ;
+    }
+
+    /**
+	 * setIntensityThreshold
+	 * @param  dThreshold The new value of the intensity threshold in dB.
+	 *
+	 */
+	inline void setIntensityThreshold(double dThreshold) {
+
+	    // Convert to absolute value for later comparison
+	    // with the positive ray.intensity value.
+		_intensity_threshold = abs(dThreshold);
+	}
+	/**
+	 * getIntensityThreshold
+	 * @return  Returns current value of the intensity threshold in dB
+	 */
+	inline double getIntensityThreshold() {
+		return _intensity_threshold;
+	}
+
+    /**
+     * Add a eigenrayListener to the _eigenrayListenerVec vector
+     */
+    bool addEigenrayListener(eigenrayListener* pListener);
+
+    /**
+	 * Remove a eigenrayListener from the _eigenrayListenerVec vector
+	 */
+    bool removeEigenrayListener(eigenrayListener* pListener);
+
+
+    /**
+     * Set the type of wavefront that this is, i.e. a wavefront
+     * originating from a source or receiver. This is exclusively
+     * used within the reverbation models.
+     */
+    inline void setID( unsigned long id ) {
+        _run_id = id ;
+    }
+
+    /**
+     * Get the type of wavefront that this is, i.e. a wavefront
+     * originating from a source or receiver. This is exclusively
+     * used within the reverbation models.
+     * @return      Type of wavefront (receiver/source)
+     */
+    inline const unsigned long getID() {
+        return _run_id ;
+    }
+
+    /**
+     * Protoype of the function that is needed during reflections
+     * and only implemented in reverberation wave_queues.
+     */
+    virtual bool is_ray_valid( unsigned de, unsigned az ) {
+        return false ;
+    }
+
+    /**
+     * Marches to the next integration step in the acoustic propagation.
+     * Uses the third order Adams-Bashforth algorithm to estimate the position
+     * and direction of each point on the next wavefront from the previous
+     * three iterations.  Automatically rotates the queue and updates the
+     * environmental parameters on the new wavefront.
+     *
+     * Accumulated non-spreading losses are computed by combining the
+     * individual values in the next wavefront with prior losses in
+     * the current wavefront.
+     *
+     * If targets have been specified, this function calls detect_eigenrays()
+     * at the end of each step to search for wavefront collisions with those
+     * targets.
+     *
+     * At the end of each step, the next iteration may extend beyond one of
+     * the boundaries.  This allows the eigenray calculation to accurately
+     * portray targets near the interface.  Reflections are computed at the
+     * beginning of the next iteration to ensure that the next wave elements
+     * are alway inside of the water column.
+     */
+    void step() ;
+
+  protected:
 
     /**
      * Reference to the environmental parameters.
@@ -110,6 +351,9 @@ class USML_DECLSPEC wave_queue {
      */
     const wposition* _targets;
 
+     /** Run Identification */
+    unsigned long _run_id ;
+
 	/**
 	 * Intermediate term: sin of colatitude for targets.
 	 * By caching this value here, we avoid re-calculating it each time
@@ -119,7 +363,7 @@ class USML_DECLSPEC wave_queue {
 	 */
 	matrix<double> _targets_sin_theta ;
 
-    /** Reference to the reflection loss model component. */
+    /** Reference to the reflection model component. */
     reflection_model* _reflection_model ;
 
     /**
@@ -153,7 +397,7 @@ class USML_DECLSPEC wave_queue {
 	* update classes that require eigenrays as they are built.
 	* These classes must implement addEigenray method.
 	*/
-    std::vector<proplossListener *> _proplossListenerVec;
+    std::vector<eigenrayListener *> _eigenrayListenerVec;
 
     /**
      * Create an Azimuthal boundary loop condition upon initialization.
@@ -168,177 +412,6 @@ class USML_DECLSPEC wave_queue {
      * source as special cases.
      */
     bool _de_branch ;
-
-  public:
-
-    /**
-     * Type of spreading model to be used.
-     */
-    typedef enum { CLASSIC_RAY, HYBRID_GAUSSIAN } spreading_type ;
-
-    //**************************************************
-    // methods
-
-    /**
-     * Initialize a propagation scenario.
-     *
-     * @param  ocean        Reference to the environmental parameters.
-     * @param  freq         Frequencies over which to compute propagation (Hz).
-     * @param  pos          Location of the wavefront source in spherical
-     *                      earth coordinates.
-     * @param  de           Initial depression/elevation angles at the
-     *                      source location (degrees, positive is up).
-     *                      Requires a minimum of 3 angles if eigenrays
-     *                      are being computed.
-     * @param  az           Initial azimuthal angle at the source location
-     *                      (degrees, clockwise from true north).
-     *                      Requires a minimum of 3 angles if eigenrays
-     *                      are being computed.
-     *                      Ray fans that wrap around all azimuths should
-     *                      include rays for both 0 and 360 degrees.
-     * @param  time_step    Propagation step size (seconds).
-     * @param  targets      List of acoustic targets.
-     * @param  type         Type of spreading model to use: CLASSIC_RAY
-     *                      or HYBRID_GAUSSIAN.
-     */
-    wave_queue(
-        ocean_model& ocean,
-        const seq_vector& freq,
-        const wposition1& pos,
-        const seq_vector& de, const seq_vector& az,
-        double time_step,
-        const wposition* targets=NULL,
-        spreading_type type=HYBRID_GAUSSIAN
-        ) ;
-
-    /** Destroy all temporary memory. */
-    virtual ~wave_queue() ;
-
-    /**
-     * Location of the wavefront source in spherical earth coordinates.
-     *
-     * @return              Common origin of all points on the wavefront
-     */
-    inline const wposition1& source_pos() {
-        return _source_pos ;
-    }
-
-    /**
-     * Initial depression/elevation angle at the source location.
-     *
-     * @param  de           Index of the element to access.
-     * @return              Depression/elevation angle.
-     *                      (degrees, positive is up)
-     */
-    inline double source_de( unsigned de ) {
-        return (*_source_de)(de) ;
-    }
-
-    /**
-     * Initial azimuthal angle at the source location.
-     *
-     * @param  az       	Index of the element to access.
-     * @return              Depression/elevation angle.
-     *                      (degrees, clockwise from true north)
-     */
-    inline double source_az( unsigned az ) {
-        return (*_source_az)(az) ;
-    }
-
-    /**
-     * Elapsed time for the current element in the wavefront.
-     */
-    inline double time() {
-        return _time ;
-    }
-
-    /**
-     * Return next element in the wavefront.
-     */
-    inline const wave_front* next() {
-        return _next ;
-    }
-
-    /**
-     * Return current element in the wavefront.
-     */
-    inline const wave_front* curr() {
-        return _curr ;
-    }
-
-    /**
-     * Return previous element in the wavefront.
-     */
-    inline const wave_front* prev() {
-        return _prev ;
-    }
-
-    /**
-     * Return past element in the wavefront.
-     */
-    inline const wave_front* past() {
-        return _past ;
-    }
-
-    /**
-     * Number of D/E angles in the ray fan.
-     */
-    inline unsigned num_de() const {
-        return _source_de->size() ;
-    }
-
-    /**
-     * Number of AZ angles in the ray fan.
-     */
-    inline unsigned num_az() const {
-        return _source_az->size() ;
-    }
-
-    /**
-	 * setIntensityThreshold
-	 * @param  dThreshold The new value of the intensity threshold in dB.
-	 *
-	 */
-	inline void setIntensityThreshold(double dThreshold) {
-
-	    // Convert to absolute value for later comparison
-	    // with the positive ray.intensity value.
-		_intensity_threshold = abs(dThreshold);
-	}
-	/**
-	 * getIntensityThreshold
-	 * @return  Returns current value of the intensity threshold in dB
-	 */
-	inline double getIntensityThreshold() {
-		return _intensity_threshold;
-	}
-    /**
-     * Register a bottom reverberation model.
-     */
-    void set_bottom_reverb( reverb_model* model ) ;
-
-    /**
-     * Register a surface reverberation model.
-     */
-    void set_surface_reverb( reverb_model* model ) ;
-
-    /**
-     * Add a proplossListener to the _proplossListenerVec vector
-     */
-    bool addProplossListener(proplossListener* pListener);
-
-    /**
-	 * Remove a proplossListener from the _proplossListenerVec vector
-	 */
-    bool removeProplossListener(proplossListener* pListener);
-
-    /**
-     * For each proplossListener in the _proplossListenerVec vector
-     * call the addEigenray method to provide eigenrays.
-     */
-    bool notifyProplossListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray);
-
-  private:
 
     /**
      * Initialize wavefronts at the start of propagation using a
@@ -356,33 +429,6 @@ class USML_DECLSPEC wave_queue {
      * collisions or eigenray collisions with targets.
      */
     void init_wavefronts() ;
-
-  public:
-
-    /**
-     * Marches to the next integration step in the acoustic propagation.
-     * Uses the third order Adams-Bashforth algorithm to estimate the position
-     * and direction of each point on the next wavefront from the previous
-     * three iterations.  Automatically rotates the queue and updates the
-     * environmental parameters on the new wavefront.
-     *
-     * Accumulated non-spreading losses are computed by combining the
-     * individual values in the next wavefront with prior losses in
-     * the current wavefront.
-     *
-     * If targets have been specified, this function calls detect_eigenrays()
-     * at the end of each step to search for wavefront collisions with those
-     * targets.
-     *
-     * At the end of each step, the next iteration may extend beyond one of
-     * the boundaries.  This allows the eigenray calculation to accurately
-     * portray targets near the interface.  Reflections are computed at the
-     * beginning of the next iteration to ensure that the next wave elements
-     * are alway inside of the water column.
-     */
-    void step() ;
-
-  private:
 
     //**************************************************
     // reflections and caustics
@@ -404,7 +450,7 @@ class USML_DECLSPEC wave_queue {
      * A ray family is defined by a set of rays that have the same
      * surface, bottom, or caustic count.
      */
-    void detect_reflections() ;
+    virtual void detect_reflections() ;
 
     /**
      * Detect and process surface reflection for a single (DE,AZ) combination.
@@ -433,13 +479,22 @@ class USML_DECLSPEC wave_queue {
     bool detect_reflections_bottom( unsigned de, unsigned az ) ;
 
     /**
+     * Upper and lower vertices are present when the wavefront undergoes a
+     * change in direction in the water column but does not interact with
+     * the surface or bottom. A lower vertex is present if this point on the
+     * wavefront is a local minimum in time. Conversely, an upper vertex
+     * is present if it is a local maximum in time.
+     */
+    void detect_vertices( unsigned de, unsigned az ) ;
+
+    /**
      * Detects and processes all of the logic necessary to determine
      * points along the wavefronts that have folded over and mark them
      * as caustics. This logic determines if any two points have crossed
      * over each other when going from current wavefront to the next.
      */
 
-    void detect_caustics() ;
+    void detect_caustics( unsigned de, unsigned az ) ;
 
     //**************************************************
     // eigenray estimation routines
@@ -545,6 +600,12 @@ class USML_DECLSPEC wave_queue {
         double distance2[3][3][3] ) ;
 
     /**
+	 * For each eigenrayListener in the _eigenrayListenerVec vector
+	 * call the addEigenray method to provide eigenrays to object that requested them.
+	 */
+	bool notifyEigenrayListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray);
+
+    /**
      * Find relative offsets and true distances in time, D/E, and AZ.
      * Uses the analytic solution for the inverse of a symmetric 3x3 matrix
      * to solve
@@ -630,7 +691,8 @@ class USML_DECLSPEC wave_queue {
 
     /** The netCDF variables used to record the wavefront log. */
     NcVar *_nc_time, *_nc_latitude, *_nc_longitude, *_nc_altitude,
-          *_nc_surface, *_nc_bottom, *_nc_caustic, *_nc_on_edge;
+          *_nc_surface, *_nc_bottom, *_nc_caustic, *_nc_upper,
+          *_nc_lower, *_nc_on_edge ;
 
     /** Current record number in netDCF file. */
     int _nc_rec ;

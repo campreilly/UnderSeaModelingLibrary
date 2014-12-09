@@ -2,9 +2,7 @@
  * @file attenuation_model.h
  * Generic interface for attenuation loss models.
  */
-
-#ifndef USML_OCEAN_ATTENUATION_MODEL_H
-#define USML_OCEAN_ATTENUATION_MODEL_H
+#pragma once
 
 #include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
@@ -54,5 +52,3 @@ public:
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

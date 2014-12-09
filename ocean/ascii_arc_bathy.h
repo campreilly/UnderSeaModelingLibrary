@@ -2,8 +2,7 @@
  * @file ascii_arc_bathy.h
  * Extracts bathymetry data from from ASCII files with an ARC header.
  */
-#ifndef USML_OCEAN_ASCII_ARC_BATHY_H
-#define USML_OCEAN_ASCII_ARC_BATHY_H
+#pragma once
 
 #include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
@@ -14,7 +13,7 @@ namespace ocean {
 using namespace usml::ublas ;
 using namespace usml::types ;
 
-/// @ingroup ascii_arc_files
+/// @ingroup boundaries
 /// @{
 
 /**
@@ -67,5 +66,3 @@ class USML_DECLSPEC ascii_arc_bathy : public data_grid<double,2> {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

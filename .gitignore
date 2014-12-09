@@ -9,3 +9,9 @@
 *.log
 /html
 *.bak
+/make_tar_wlinks.sh
+.settings/
+/saveforWin
+/*.ldb
+/*.eap
+/integ

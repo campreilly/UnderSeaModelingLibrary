@@ -59,7 +59,7 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
         for ( int e=0 ; e < nrows ; ++e ) {
             of << to_latitude((*(this->_axis[0]))[e])<< ",";
             for (int f=0 ; f < ncols ; ++f ) {
-                of << wposition::earth_radius - this->_data[f+ncols*e] << ",";
+                of << this->_data[f+ncols*e] - wposition::earth_radius << ",";
             }
             of << endl;
         }

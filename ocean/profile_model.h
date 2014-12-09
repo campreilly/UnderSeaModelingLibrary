@@ -2,8 +2,7 @@
  * @file profile_model.h
  * Generic interface for ocean water models.
  */
-#ifndef USML_OCEAN_PROFILE_MODEL_H
-#define USML_OCEAN_PROFILE_MODEL_H
+#pragma once
 
 #include <usml/ocean/attenuation_thorp.h>
 
@@ -32,12 +31,12 @@ public:
 	/**
 	 * Constructor - Initialize component models within ocean profile.
 	 *
-	 * @param attmodel      In-water attenuation model.
-	 *                      Use Thorp model if none specified.
+	 * @param attenuation   In-water attenuation model.
+	 *                      Uses Thorp model if none specified.
 	 */
-	profile_model( attenuation_model* attmodel = NULL ) : _flat_earth(false) {
-		if ( attmodel ) {
-			_attenuation = attmodel ;
+	profile_model( attenuation_model* attenuation = NULL ) : _flat_earth(false) {
+		if ( attenuation ) {
+			_attenuation = attenuation ;
 		} else {
 			_attenuation = new attenuation_thorp() ;
 		}
@@ -72,14 +71,14 @@ public:
     virtual void sound_speed( const wposition& location,
         matrix<double>* speed, wvector* gradient=NULL ) = 0 ;
 
-    /**
+   /**
 	* Define a new in-water attenuation model.
 	*
-	* @param attmodel      In-water attenuation model.
+	* @param attenuation	In-water attenuation model.
 	*/
-   void attenuation( attenuation_model* attmodel ) {
+   void attenuation( attenuation_model* attenuation ) {
 	   if ( _attenuation ) delete _attenuation ;
-	   _attenuation = attmodel ;
+	   _attenuation = attenuation ;
    }
 
    /**
@@ -142,6 +141,8 @@ public:
     /** Anti-correction term to make the earth seem flat. */
     bool _flat_earth ;
 
+  private:
+
     /** Reference to the in-water attenuation model. */
     attenuation_model* _attenuation ;
 
@@ -150,5 +151,3 @@ public:
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

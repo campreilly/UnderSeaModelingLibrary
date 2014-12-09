@@ -2,9 +2,7 @@
  * @file profile_grid.h
  * Creates a sound speed model from a 1-D, 2-D, or 3-D data grid.
  */
-
-#ifndef USML_OCEAN_PROFILE_GRID_H
-#define USML_OCEAN_PROFILE_GRID_H
+#pragma once
 
 #include <usml/ocean/profile_model.h>
 
@@ -36,7 +34,7 @@ namespace ocean {
 template< class DATA_TYPE, int NUM_DIMS > class profile_grid
     : public profile_model
 {
-  protected:
+  private:
 
     //**************************************************
     // sound speed model
@@ -156,5 +154,3 @@ template< class DATA_TYPE, int NUM_DIMS > class profile_grid
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

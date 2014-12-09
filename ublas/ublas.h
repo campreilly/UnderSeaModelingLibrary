@@ -50,6 +50,7 @@
 
 #include <usml/ublas/vector_math.h>
 #include <usml/ublas/matrix_math.h>
+#include <usml/ublas/ublas_special.h>
 #include <usml/ublas/randgen.h>
 
 #endif

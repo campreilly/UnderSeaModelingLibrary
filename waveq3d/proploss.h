@@ -6,7 +6,7 @@
 #define USML_WAVEQ3D_PROPLOSS_H
 
 #include <usml/ocean/ocean.h>
-#include <usml/waveq3d/proplossListener.h>
+#include <usml/waveq3d/eigenrayListener.h>
 #include <usml/waveq3d/wave_queue.h>
 
 namespace usml {
@@ -24,7 +24,7 @@ using namespace usml::ocean;
  * complete, the sum_eigenrays() method is used to collect the results
  * into a phasor-summed propagation loss and phase at each target point.
  */
-class USML_DECLSPEC proploss : public proplossListener {
+class USML_DECLSPEC proploss : public eigenrayListener {
 
 private:
 
@@ -195,9 +195,10 @@ public:
 	 * @param   targetRow          Row number of the current target.
 	 * @param   targetCol          Column number of the current target.
 	 * @param   pRay               The eigenray to add.
+	 * @param   run_id             The run_id of WaveQ3D which the eigenray was produced.
 	 * @return                     True on success, false on failure.
 	 */
-	bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pRay );
+	bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pRay, unsigned long run_id );
 
 
     /**

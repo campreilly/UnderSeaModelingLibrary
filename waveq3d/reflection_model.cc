@@ -21,6 +21,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
         cout << "***Entering reflection_model::bottom_reflection***" << endl;
     #endif
     double N ;
+    bool shallow = false ;
 
     // extract position, direction, and sound speed from this ray
     // at a point just before it goes below the bottom
@@ -38,11 +39,15 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     boundary_model& boundary = _wave._ocean.bottom() ;
     boundary.height( position, &bottom_rho, &bottom_normal ) ;
     double height_water = position.rho() - bottom_rho ;
+    if( (wposition::earth_radius-bottom_rho) < TOO_SHALLOW ) shallow = true ;
 
     // make bottom vertical for very shallow water
     // to avoid propagating onto land
 
-    if ( (wposition::earth_radius-bottom_rho) < TOO_SHALLOW ) {
+    if ( shallow ) {
+        #ifdef REFLECT_BOT_DEBUG
+            cout << "WARNING: Ray is in too shallow of water, turning ray around!" << endl ;
+        #endif
     	N = sqrt( bottom_normal.theta()*bottom_normal.theta()
     	  + bottom_normal.phi()*bottom_normal.phi() ) ;
         bottom_normal.rho( 0.0 ) ;
@@ -100,6 +105,16 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
 
     collision_location( de, az, time_water, &position, &ndirection, &c ) ;
     boundary.height( position, &bottom_rho, &bottom_normal ) ;
+    if ( shallow ) {
+        #ifdef REFLECT_BOT_DEBUG
+            cout << "WARNING: Ray is in too shallow of water, turning ray around!" << endl ;
+        #endif
+    	N = sqrt( bottom_normal.theta()*bottom_normal.theta()
+    	  + bottom_normal.phi()*bottom_normal.phi() ) ;
+        bottom_normal.rho( 0.0 ) ;
+        bottom_normal.theta( bottom_normal.theta() / N ) ;
+        bottom_normal.phi(   bottom_normal.phi() / N  ) ;
+    }
     c2 = c*c ;
     height_water = position.rho() - bottom_rho ;
 
@@ -108,12 +123,12 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     ndirection.phi(   c2 * ndirection.phi() ) ;
     dot_full = bottom_normal.rho() * ndirection.rho()
         + bottom_normal.theta() * ndirection.theta()
-        + bottom_normal.phi() * ndirection.phi() ;  // negative #
+        + bottom_normal.phi() * ndirection.phi() ;  // negative # I dot n hat
     max_dot = - max( MIN_REFLECT, (height_water+depth)*bottom_normal.rho() ) ;
     if ( dot_full >= max_dot ) dot_full = max_dot ;
-    double grazing = 0.0;                                       //added proper logic to account for instances when abs(dot_full/c) >= 1
-    if ( dot_full / c >= 1.0 ) { grazing = -90.0; }
-    else if ( dot_full / c <= -1.0 ) { grazing = 90.0; }
+    double grazing = 0.0 ;                                       //added proper logic to account for instances when abs(dot_full/c) >= 1
+    if ( dot_full / c >= 1.0 ) { grazing = -M_PI_2 ; }
+    else if ( dot_full / c <= -1.0 ) { grazing = M_PI_2 ; }
     else { grazing = asin( -dot_full / c ) ; }
 
     // invoke bottom reverberation callback
@@ -138,15 +153,14 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
                                                     << endl;
         cout << "\t\theight_water: " << height_water << endl;
         cout << "\t\tdot_full: " << dot_full << "\tmax_dot: " << max_dot << endl;
-        cout << "\t\tgrazing: " << grazing << endl;
+        cout << "\t\tgrazing: " << grazing*180.0/M_PI ;
     #endif
 
-    if ( _bottom_reverb ) {
-        _bottom_reverb->collision(  de, az, _wave._time+time_water,
-            position,  ndirection, c, *(_wave._frequencies),
-            _wave._curr->attenuation(de,az), _wave._curr->phase(de,az) ) ;
-            // Still need to calculate eigenray ampltiude and phase for
-            // reverberation callback. Just passing bogus values currently.
+    // bottom reverberation callback
+    if( _wave.is_ray_valid(de,az) ) {
+        int ID = _wave.getID() ;
+        _reverberation->notifyLowerCollision( de, az, time_water, grazing, c,
+            position,  ndirection, _wave, ID ) ;
     }
 
     // compute reflection loss
@@ -157,6 +171,9 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     boundary.reflect_loss(
         position, *(_wave._frequencies), grazing, &amplitude, &phase ) ;
     for ( unsigned f=0 ; f < _wave._frequencies->size() ; ++f ) {
+        #ifdef REFLECT_BOT_DEBUG
+            cout << "\tBottom loss: " << amplitude(f) << endl ;
+        #endif
         _wave._next->attenuation(de,az)(f) += amplitude(f) ;
         _wave._next->phase(de,az)(f) += phase(f) ;
     }
@@ -246,16 +263,11 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     #endif
     if ( grazing <= 0.0 ) return false ;	// near miss of the surface
 
-    // invoke surface reverberation callback
-    // @todo THIS IS A STUB FOR FUTURE BEHAVIORS.
-
-
-    if ( _surface_reverb ) {
-        _surface_reverb->collision(  de, az, _wave._time+time_water,
-            position,  ndirection, c, *(_wave._frequencies),
-            _wave._curr->attenuation(de,az), _wave._curr->phase(de,az) ) ;
-            // Still need to calculate eigenray ampltiude and phase for
-            // reverberation callback. Just passing bogus values currently.
+    // surface reverberation callback
+    if( _wave.is_ray_valid(de,az) ) {
+        int ID = _wave.getID() ;
+        _reverberation->notifyUpperCollision( de, az, time_water, grazing, c,
+            position,  ndirection, _wave, ID ) ;
     }
 
     // compute reflection loss
@@ -546,4 +558,5 @@ void reflection_model::reflection_copy(
 
     element->sound_speed( de, az ) = results.sound_speed(0,0) ;
     element->distance( de, az ) = results.distance(0,0) ;
+    element->path_length( de, az ) += results.path_length(0,0) ;
 }
