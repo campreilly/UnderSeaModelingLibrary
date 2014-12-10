@@ -766,7 +766,10 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
  * pass through two vertices, and then return to the axis (heading in it's
  * original direction). The process is then repeated for a second cycle.
  * The range required to complete each cycle is compared to an analytic
- * solution computed using the munk_range_compute.m routine.
+ * solution computed using the munk_range_compute.m routine. Additionally,
+ * the logic to detect upper and lower verticies is checked. At the end of
+ * each cycle, the upper and lower verticies should both have increased
+ * by one. A boost failure is issued if this check fails.
  *
  * Munk derives a power series expression for the cycle range in his
  * 1974 paper. But, it appears that the number of terms in the expansion
@@ -861,6 +864,12 @@ BOOST_AUTO_TEST_CASE(refraction_munk_range) {
     wave.init_netcdf(ncname_wave);  // open a log file for wavefront data
     wave.save_netcdf();             // write ray data to log file
 
+    // Keep track of the current number of upper and lower vertices
+    // these values should increase by one for each cycle
+    matrix<std::size_t> up( de.size(), 1 ) ;
+    matrix<std::size_t> low( de.size(), 1 ) ;
+    up.clear() ;
+    low.clear() ;
     vector<double> loop( de.size() ) ;
     loop.clear() ;
 
@@ -913,7 +922,13 @@ BOOST_AUTO_TEST_CASE(refraction_munk_range) {
                    << "," << (Rmodel-Rtheory)
                    << "," << ((Rmodel-Rtheory)/Rtheory*100.0)
                    << endl ;
-                BOOST_CHECK_CLOSE( Rtheory, Rmodel, 0.01 );
+                BOOST_CHECK_CLOSE( Rtheory, Rmodel, 0.01 ) ;
+                std::size_t dup = wave.curr()->upper(d,0) - up(d,0) ;
+                std::size_t dlow = wave.curr()->lower(d,0) - low(d,0) ;
+                BOOST_CHECK_EQUAL( dup, 1 ) ;
+                BOOST_CHECK_EQUAL( dlow, 1 ) ;
+                up(d,0) = wave.curr()->upper(d,0) ;
+                low(d,0) = wave.curr()->lower(d,0) ;
                 max_error = max( max_error, abs(Rmodel-Rtheory) ) ;
             }
         }
@@ -1075,6 +1090,10 @@ BOOST_AUTO_TEST_CASE(refraction_pedersen_range) {
     cout << "max error = " << max_error << " m" << endl ;
 }
 
+/**
+ * Tests the ability to produce appropriate wavefile data for
+ * a surface ducting environment.
+ */
 BOOST_AUTO_TEST_CASE( surface_duct_test ) {
     cout << "=== refraction_test: surface_duct_test ===" << endl;
     const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/refraction_surface_duct.nc";
@@ -1136,42 +1155,6 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
 
     delete axis[0] ;
 }
-
-/// This test is not working as intended and therefore not yet ready
-//BOOST_AUTO_TEST_CASE( sloped_bottom_duct_test ) {
-//    cout << "=== refreaction_test: sloped_bottom_duct_test ===" << endl;
-//    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/refraction_sloped_bottom_duct.nc";
-//
-//    // environmental parameters
-//    wposition1 slope(-45.0, 45.0, 0.0);
-//    profile_model* profile = new profile_linear(1500.0,-0.95);
-//    profile->flat_earth(true);
-//    boundary_model* bottom = new boundary_slope(slope,1500.0,to_radians(2.86));
-//    boundary_model* surface = new boundary_flat();
-//    ocean_model ocean(surface, bottom, profile);
-//
-//    // test parameters
-//    double lat = 45.0;
-//    double lon = -45.0;
-//    wposition1 source( lat, lon, -1495.0 );
-//    seq_linear de( -75.0, 5.0, 25.0 );
-//    seq_linear az( 0.0, 0.0, 1 );
-//
-//    wave_queue wave(ocean, freq, source, de, az, time_step);
-//
-//    cout << "writing wavefronts to " << ncname_wave << endl;
-//    wave.init_netcdf(ncname_wave);  // open a log file for wavefront data
-//    wave.save_netcdf();             // write ray data to log file
-//
-//    while (wave.time() < 25.0) {
-//
-//        // increment wavefront by one time step
-//
-//        wave.step();
-//        wave.save_netcdf();
-//    }
-//    wave.close_netcdf();
-//}
 
 /// @}
 

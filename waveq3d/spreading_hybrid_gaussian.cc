@@ -79,14 +79,14 @@ const vector<double>& spreading_hybrid_gaussian::intensity(
 
     vector<double> corrected_offset = offset ;
     std::size_t a ;
-    if( offset(2) < -1e-20 ) {
+    if( offset(2) < 0.0 ) {
         if( (int)(az-1) < 0 ) {
             a = _wave._source_az->size() - 2 ;
         } else { a = az - 1 ; }
         corrected_offset(2) = corrected_offset(2) + 1 ;
     } else { a = az ; }
     std::size_t d ;
-    if( offset(1) < -1e-20 ) {
+    if( offset(1) < 0.0 ) {
         d = de - 1 ;
         corrected_offset(1) = corrected_offset(1) + 1 ;
     } else {

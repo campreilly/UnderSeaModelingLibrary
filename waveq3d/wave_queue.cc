@@ -184,6 +184,8 @@ void wave_queue::step() {
     _next->phase += _curr->phase ;
     _next->surface = _curr->surface ;
     _next->bottom = _curr->bottom ;
+    _next->upper = _curr->upper ;
+    _next->lower = _curr->lower ;
     _next->caustic = _curr->caustic ;
 
     // search for eigenray collisions with acoustic targets
@@ -281,11 +283,10 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
  *  Detects upper and lower vertices along the wavefront
  */
 void wave_queue::detect_vertices( unsigned de, unsigned az ) {
-    double A = _prev->position.rho(de,az) ;
-    double B = _curr->position.rho(de,az) ;
-    double C = _next->position.rho(de,az) ;
-    if( A < B && C < B ) { _curr->upper(de,az)++ ; }
-    else if( B < A && B < C ) { _curr->lower(de,az)++ ; }
+    double L = _curr->ndirection.rho(de,az) ;
+    double R = _next->ndirection.rho(de,az) ;
+    if( L*R < 0.0 && R < 0.0 ) _next->upper(de,az)++ ;
+    else if( L*R < 0.0 && 0.0 < R ) _next->lower(de,az)++ ;
 }
 
 /**
