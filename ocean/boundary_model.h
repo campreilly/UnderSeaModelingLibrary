@@ -184,8 +184,7 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model, scattering_model
      * @param scattering	Reverberation scattering strength model.
      */
     boundary_model( reflect_loss_model* reflect_loss=NULL,
-                    scattering_model* scattering=NULL ) :
-        _reflect_loss( reflect_loss )
+                    scattering_model* scattering=NULL )
     {
 		if ( reflect_loss ) {
 			_reflect_loss = reflect_loss ;
