@@ -12,7 +12,6 @@ namespace waveq3d {
 
 using namespace usml::ocean ;
 class wave_queue ;      // forward reference for friend declaration
-class wave_queue_reverb ;
 
 /**
  * @internal

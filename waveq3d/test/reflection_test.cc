@@ -19,7 +19,6 @@ BOOST_AUTO_TEST_SUITE(reflection_test)
 using namespace boost::unit_test ;
 using namespace usml::netcdf ;
 using namespace usml::waveq3d ;
-using namespace usml::utilities ;
 using namespace boost::numeric::ublas ;
 
 /**
