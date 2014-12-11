@@ -76,44 +76,55 @@
         <li> netcdf 4.1.3 </li>
       </ul>
     </ul>
-
-    <h3>Problems with Boost package</h3>
+    <h3>Setting up Boost package</h3>
+        USML uses the Boost package for fast computations (uBLAS) and unit 
+        test utilities. But, many USML users have experienced problems setting 
+        up Boost in their development environment. Here are some hints that may help you: 
     <ul>
-    <li> There is a bug in the Boost uBLAS library that prevents us from overloading
-         operator/().  To see the corrected version of this code, please search for the 
+    <li> CMake's FindBoost utility seems to have problems finding versions of Boost
+         that have been installed in <code>/usr/include</code> and 
+         <code>/usr/lib</code> as part of the operating system.  These problems
+         seem to go away when Boost is built from source code and installed
+         in <code>/usr/local/include</code> and <code>/usr/local/lib</code>.</li>
+    <li> There is a bug in the Boost uBLAS library that vector and matrix 
+         scaling using <code>operator/()</code>.  To see the corrected version of this code, please search for the 
          symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the <code>vector_expression.hpp</code> 
          and <code>matrix_expression.hpp</code> files in the <code>usml/config</code> directory.
          In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
-         just above it. Those using Boost 1.41.0 and later versions can just replace the original files with the
-         ones from the <code>usml/config</code> directory.
+         just above it. Those using Boost 1.41 trhough 1.56 can just replace the original files with the
+         ones from the <code>usml/config</code> directory.  Boost 1.57 fixed the problem in 
+         <code>vector_expression.hpp</code>, but requires replacing <code>matrix_expression.hpp</code>
+         with the file <code>usml/config/matrix_expression_1_57.hpp</code>.</li>
     </ul>
-    <h3>Problems with NetCDF package</h3>
+    <h3>Setting up NetCDF package</h3>
+    USML uses Unidata's NetCDF package to access environmental data from
+    a variety of public sources such as the <a href="https://www.nodc.noaa.gov/">
+    National Oceanographic Data Center</a>.  But, many USML users have experienced
+    problems setting up NetCDF in their development environment.  Here are 
+    some hints that may help you:
     <ul>
-    	 <li>At this time, USML does not support the use of HDF5 or cURL. So in order to use USML and NetCDF 
-	 versions 4.0.1 and higher there are two options that you will need to do in order to run USML.</li>
-	 <ul>
-	 <li>The first option is to download the source code for netcdf at 
-	 <a href="http://www.unidata.ucar.edu/downloads/netcdf"> http://www.unidata.ucar.edu/downloads/netcdf <a/>
-	 and configure the install to disable netcdf-4 and dap.</li>
-	 <li>The second option is if you wish to keep these features on for netcdf. In order to get USML 
-	 to run properly, you will need to alter the CMakeLists.txt to include HDF5/zLib/cURL packages. 
-	 If you need to do this, there is a CMakeLists.txt file in the <code>usml/config</code> directory 
-	 that is specifically setup to do this for you. NOTE: you will need to download the HDF5/zLib/cURL 
-	 packages from source and compile them appropriately. There is also a README.txt provided in the 
-	 <code>usml/config</code> directory that assists with this.</li>
-	 </ul>
-    <li> Unidata's recent refactoring of the NetCDF library (Summer of 2010) hopelessly broke
-         the existing port to Microsoft Visual Studio (see 
+     <li>By default, CMake does not include a module to find NetCDF libraries.  
+         Please copy the <code>FindNetCDF.cmake</code> file from the <code>usml/config</code> directory 
+         into CMake's shared modules directory.  For Linux share modules 
+         are kept in the <code>/usr/share/cmake-2.8/Modules</code> directory.</li>
+    <li> On RedHat 6 and CentOS 6 systems, installing the netcdf-devel
+         RPM package using the default YUM server seems to work perfectly.</li>
+    <li> On other Linux systems, We've had some trouble setting up the 
+         HDF5, zLib, cURL libraries that netCDF depdends on.  Loading theses 
+         libraries from <a href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/">
+         source code</a> and compiling them on your development platform
+         seems to work well.  Note that the <code>./configure</code> option for HDF5 works
+         best with the the options <code>--with-zlib=/path/to/zlib --disable-parallel 
+         --enable-shared</code>. Because USML does not actually use any NetCDF 4
+         features, many users have found it useful to download just NetCDF from 
+         <a href="http://www.unidata.ucar.edu/downloads/netcdf">source code</a>
+         and configuring the build process to disable netcdf-4 and dap.
+    <li> On Windows, we've had significant 
          <a href="http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#windows_netcdf4_1">
-         http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#windows_netcdf4_1</a>).
-         Until this is fixed by the open source community, Windows developers are expected 
-         to create their own NetCDF libraries from source code.  A copy of the 
+         problems using NetCDF in Microsoft Visual Studio</a>.  A copy of the 
          CMake-based build that system that we used for testing is freely available on GitHub at
          <a href="https://github.com/campreilly/netcdf-4.1.3-with-cmake">
 	 https://github.com/campreilly/netcdf-4.1.3-with-cmake</a>.</li>
-     <li>By default, CMake does not include a module to find NetCDF libraries.  Please copy the 
-         <code>FindNetCDF.cmake</code> file from the <code>usml/config</code> directory 
-         into CMake's shared modules directory.  For Linux it's the <code>/usr/share/cmake-2.8/Modules</code> directory.</li>
 	</ul>
     <h2>Building and Testing USML</h2>
 
@@ -123,12 +134,14 @@
       directory, and that all of the tarballs are here as well, the Linux commands
       to execute would be:
       <pre>
-        tar -xzf usml-src-#.##.tar.gz
-        tar -xzf usml-doc-#.##.tar.gz
-        tar -xzf usml-data-#.##.tar.gz
+        tar -xzf usml-src-#.#.#.tar.gz
+        tar -xzf usml-doc-#.#.#.tar.gz
+        tar -xzf usml-data-#.#.#.tar.gz
       </pre>
-      where #.## is the version number to be installed.
+      where #.#.# is the version number to be installed.
     </p>
+    <p><b>Note that the USML build process absolutely requires the top level
+        directory to be named <code>usml</code>!</b>
 	<p>
       For installation from a GitHub zip file, after extraction the topmost directory will need to be
 	  changed from <code>"UnderSeaModelingLibrary-branchname"</code> to <code>"usml" </code> for 
@@ -145,7 +158,7 @@
     </p>
     <ul>
       <li>
-        In the cmake-gui tool, set the source directory to the place where you
+        In the <code>cmake-gui</code> tool (example below), set the source directory to the place where you
         installed the USML source code.  As suggested above source code could go in <code>"~/Projects/usml"</code>.
       </li>
       <li>
@@ -159,11 +172,8 @@
         Select the "Unix Makefile" generator from the pop-up menu.
       </li>
       <li>
-        Change any options that you'd like. Note that the USML_PEDANTIC option
-        is only used to search for questionable programming during our development.
-        <ul>
-        	<li>Note: Boost_FORCE_SHAREDLIB should be used if the Boost static test suite libraries are not installed.
-        </ul>
+        Change options to match your development requirements.  The default options
+        should be correct for most installations.
       </li>
       <li>
         Hit the "Configure" button a second time, even if you have not changed any
@@ -183,6 +193,8 @@
         compilation and install were successful.  Prints "*** No errors detected".
       </li>
     </ul>
+    <img src="config/cmake-example.png" alt="cmake-gui example">
+
     <h2>Additional Resources</h2>
     <ul>
     <li>Mustafa Abbasi, a PhD Student at the University of Texas, has posted the step-by-step process 
