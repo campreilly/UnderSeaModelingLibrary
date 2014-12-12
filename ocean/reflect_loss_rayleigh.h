@@ -166,30 +166,6 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
             double density, double speed, double attenuation, double angle,
             complex< double >* cosA, bool shear ) ;
 
-        /**
-         * Computes the impedance for compression or shear waves with attenuation.
-         * Includes the Snell's Law computation of transmitted angle.
-         *
-         * @param density       Ratio of bottom density to water density
-         *                      Water density is assumed to be 1000 kg/m^3.
-         * @param speed         Ratio of compressional sound speed in the bottom to
-         *                      the sound speed in water. The sound speed in water
-         *                      is assumed to be 1500 m/s.
-         * @param attenuation   Compressional wave attenuation in bottom
-         *                      (dB/wavelength).  No attenuation if this is zero.
-         * @param angle         Reflection angle relative to the normal (radians).
-         * @param cosA          Returns the cosine of the transmitted angle
-         *                      computed using Snell's Law.
-         * @param shear         Treat impendance for shear instances as special
-         *                      cases.
-         */
-        vector<complex<double> > impedance( double density, double speed,
-                                            double attenuation, vector<double> angle,
-                                            vector<complex<double> >* cosA, bool shear ) ;
-
-
-        // data members
-
         /** Bottom types lookup table. */
         static struct bottom_type_table {
             bottom_type_enum type ;
