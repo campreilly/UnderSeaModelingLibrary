@@ -93,6 +93,7 @@ class USML_DECLSPEC wave_queue {
      *                      include rays for both 0 and 360 degrees.
      * @param  time_step    Propagation step size (seconds).
      * @param  targets      List of acoustic targets.
+     * @param  run_id		Run Identification number.
      * @param  type         Type of spreading model to use: CLASSIC_RAY
      *                      or HYBRID_GAUSSIAN.
      */
