@@ -9,7 +9,9 @@ clear all ; close all
 % Note that reflect_loss_rayleigh() does not implement the weak, depth 
 % dependent, shear in slit, sand, and gravel.  
 
-[data,desc] = xlsread('rayleigh_sediments.csv');
+% [data,desc] = xlsread('rayleigh_sediments.csv');
+[data] = csvread('rayleigh_sediments.csv', 1, 0);
+
 N = length(data(1,:)) ;
 figure ;
 h = plot( data(:,1), data(:,2:N), 'LineWidth', 1.5 ) ;
