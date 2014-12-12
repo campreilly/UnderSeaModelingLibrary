@@ -20,6 +20,14 @@ using namespace usml::types;
 typedef seq_vector::const_iterator iterator;
 
 /**
+ * As a note when using valgrind mem-check, there are many instances
+ * of an "Conditional jump or move depends on uninitialised value(s)"
+ * warning that are issued for the deriv_1d_test and datagrid_fast_acc_test
+ * that have been determined to not effect the overall performance or
+ * functionality of data_grid::pchip and may be ignored.
+ */
+
+/**
  * @ingroup types_test
  * Test the ability of data_grid_compute_offset() to retrieve data
  * from a 3-D data matrix in column major order.
