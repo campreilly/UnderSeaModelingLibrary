@@ -1,7 +1,7 @@
 Summary:  The goal of this program is to be able to install the Under Sea Modeling Library (usml) files.
 
 Name:  usml 
-Version: 0.5.9
+Version: 0.5.10
 Release: 0%{dist}
 Source: usml.tgz
 Group: Development/Libraries
@@ -186,6 +186,9 @@ fi
 ###################  Changelog #############
 
 %changelog
+* Fri Dec 12 2014 Ted Burns, AEgis Technologies<tburns@aegistg.com>
+Version 0.5.10
+	- Bug Fix MGS reflect loss was returning negative loss values, usml expects positive. 
 * Thu Nov 24 2014 Ted Burns, AEgis Technologies<tburns@aegistg.com>
 Version 0.5.9
 	- Added checkEigenray callback to the eigenrayListener.
