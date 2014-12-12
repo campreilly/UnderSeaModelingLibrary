@@ -148,24 +148,3 @@ complex<double> reflect_loss_rayleigh::impedance(
     }
     return value ;
 }
-
-/**
- * Compute impedance for compression or shear waves with attenuation.
- */
-vector<complex<double> > reflect_loss_rayleigh::impedance(
-    double density, double speed, double attenuation, vector<double> angle,
-    vector<complex<double> >* cosA, bool shear )
-{
-    const complex<double> c( speed, -attenuation*speed ) ;
-    vector<complex<double> > v = (c/_speed_water) *
-            scalar_vector<complex<double> >( angle.size(), 1.0 ) ;
-    vector<complex<double> > sinA = element_prod(sin( angle ), v) ;
-    (*cosA) = sqrt( 1.0 - element_prod(sinA,sinA) ) ;
-    vector<complex<double> > value ;
-    if( shear ) {
-        value = c * density / *cosA ;
-    } else {
-        value = *cosA * (1.0 / (c * density)) ;
-    }
-    return value ;
-}
