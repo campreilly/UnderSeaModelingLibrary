@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_a ) {
         for ( int n=0 ; n < 3 ; ++n ) {
             reflect_loss_rayleigh model( 2.0, speed[n]/1500.0, 0.5 ) ;
             model.reflect_loss(
-                points, freq, to_radians(90-angle), &amplitude ) ;
+                points, freq, to_radians(angle), &amplitude ) ;
             os << "," << amplitude(0) ;
         }
         os << endl ;
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_b ) {
         for ( int n=0 ; n < 3 ; ++n ) {
             reflect_loss_rayleigh model( 2.0, 1600.0/1500.0, atten[n] ) ;
             model.reflect_loss(
-                points, freq, to_radians(90-angle), &amplitude ) ;
+                points, freq, to_radians(angle), &amplitude ) ;
             os << "," << amplitude(0) ;
         }
         os << endl ;
@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_c ) {
         for ( int n=0 ; n < 3 ; ++n ) {
             reflect_loss_rayleigh model( density[n], 1600.0/1500.0, 0.5 ) ;
             model.reflect_loss(
-                points, freq, to_radians(90-angle), &amplitude ) ;
+                points, freq, to_radians(angle), &amplitude ) ;
             os << "," << amplitude(0) ;
         }
         os << endl ;
@@ -195,7 +195,7 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_d ) {
             reflect_loss_rayleigh model(
                 2.0, 1600.0/1500.0, 0.0, shear[n]/1500.0 ) ;
             model.reflect_loss(
-                points, freq, to_radians(90-angle), &amplitude ) ;
+                points, freq, to_radians(angle), &amplitude ) ;
             os << "," << amplitude(0) ;
         }
         os << endl ;

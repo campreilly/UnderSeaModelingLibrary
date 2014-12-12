@@ -87,24 +87,6 @@ reflect_loss_rayleigh::reflect_loss_rayleigh(
 }
 
 /**
- * Initialize model with impedance mis-match factors.
- * Where the density and speed in water are defined.
- */
-reflect_loss_rayleigh::reflect_loss_rayleigh(
-    double* water, double density, double speed,
-    double att_bottom, double speed_shear, double att_shear
-) :
-    _density_water( water[0] ),
-    _speed_water( water[1] ),
-    _density_bottom( density ),
-    _speed_bottom( speed ),
-    _att_bottom( att_bottom * ATT_CONVERT ),
-    _speed_shear( speed_shear ),
-    _att_shear( att_shear * ATT_CONVERT )
-{
-}
-
-/**
  * Computes the broadband reflection loss and phase change.
  */
 void reflect_loss_rayleigh::reflect_loss(
