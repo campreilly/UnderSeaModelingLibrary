@@ -235,7 +235,8 @@ BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
 
     grid->interp_type(0,GRID_INTERP_PCHIP);
     grid->interp_type(1,GRID_INTERP_PCHIP);
-    std::ofstream before("usml_ascii_arc_interp_before_boundary_grid.csv");
+    std::ofstream before( USML_TEST_DIR
+    		"/ocean/test/usml_ascii_arc_interp_before_boundary_grid.csv");
     for(int i=0; i<grid->axis(0)->size(); ++i) {
         before << to_latitude((*(grid->axis(0)))[i]) << ",";
         for(int j=0; j<grid->axis(1)->size(); ++j) {
@@ -253,7 +254,8 @@ BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
     }
 
     boundary_grid<double,2> bottom(grid) ;
-    std::ofstream after("usml_ascii_arc_interp_after_boundary_grid.csv");
+    std::ofstream after( USML_TEST_DIR
+    		"/ocean/test/usml_ascii_arc_interp_after_boundary_grid.csv");
     for(int i=0; i<grid->axis(0)->size(); ++i) {
         after << to_latitude((*(grid->axis(0)))[i]) << ",";
         for(int j=0; j<grid->axis(1)->size(); ++j) {
