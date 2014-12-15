@@ -337,8 +337,12 @@ BOOST_AUTO_TEST_CASE( eigenray_concave ) {
  *
  * When using the gaussian form of TL calculations, we expect to
  * to see an oscillatory TL plot around the source in azimuthal
- * spread. This oscillation is inherint to the gaussians as most
+ * spread. This oscillation is inherent to the gaussians as
  * most of the acoustic energy lies in between two rays.
+ *
+ * Netcdf and csv files are to be compared against one another to
+ * show the transmission loss sensativity to the azimuthal dimension,
+ * support matlab code is provided.
  */
 BOOST_AUTO_TEST_CASE( eigenray_tl_az ) {
     cout << "=== eigenray_test: eigenray_tl_az ===" << endl;
@@ -432,11 +436,23 @@ BOOST_AUTO_TEST_CASE( eigenray_tl_az ) {
 }
 
 /**
- * Scenario is the exact same as eigenray_basic, except that the
- * target lies on the azimuthal branch point between 0 and 360, and
- * the depression angle branch point of +90 and -90. Only one
- * eigenray should be produced at these branch point for any given
- * combination of time, bottom, and surface bounces.
+ * When acoustic targets are along the boundaries of the wavefront,
+ * the algorithm for producing eigenrays treats the azimuthal degrees
+ * of zero and 360 as separate angles. This essentially produces two
+ * eigenrays of exactly half of the true eigenray. This test leverages
+ * the work already provided in eigenray_basic and extends to include
+ * both AZ and DE branch point targets.
+ *
+ * A new algorithm was introduced to detect the branch points in the AZ
+ * dimension and only produce one eigenray at the correct strength. Similarly
+ * for acoustic targets that were directly above/below the source, logic was
+ * added to produce a single eigenray that would be the sum of all eigenrays that
+ * would have been previously produced.
+ *
+ * A BOOST_CHECK_EQUAL is used to verify that only three eigenrays are produced
+ * for each target. The user is then provided with netcdf and csv files that
+ * can then be used to verify the correct transmission loss has been produced
+ * for each eigenray to each target.
  */
 BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
     cout << "=== eigenray_test: eigenray_branch_pt ===" << endl;
@@ -512,18 +528,13 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
 
     for ( int i=0; i < num_targets; ++i ) {
         os << "#" << i ;
-        cout << "===Target #" << i << "===" << endl;
-        const eigenray_list *raylist = loss.eigenrays(i,0);
-        int n=0;
+        const eigenray_list *raylist = loss.eigenrays(i,0) ;
+        int n=0 ;
+        BOOST_CHECK_EQUAL( raylist->size(), 3) ;
         for ( eigenray_list::const_iterator iter = raylist->begin();
                 iter != raylist->end(); ++n, ++iter )
         {
             const eigenray &ray = *iter ;
-            cout << "ray #" << n
-                 << " tl=" << ray.intensity(0)
-                 << " t=" << ray.time
-                 << " de=" << -ray.target_de
-                 << endl;
             os << "," << ray.time
                << "," << ray.intensity(0)
                << "," << ray.phase(0)
@@ -539,110 +550,6 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
     }
 }
 
-/**
- * Test for eigenray validation on arbitrary scenarios
- */
-BOOST_AUTO_TEST_CASE( eigenray_special ) {
-    cout << "=== eigenray_test: eigenray_special ===" << endl ;
-    const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_special.csv" ;
-    const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_special.nc" ;
-    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/eigenray_special.nc" ;
-    const double src_alt = -27.0 ;
-    const double target_range = 1000.0 ;
-    const double time_max = 0.67 ;
-    double dt = 0.01 ;
-
-    // initialize propagation model
-    wposition::compute_earth_radius( 26.0 ) ;
-    double depths[] = { wposition::earth_radius, wposition::earth_radius-20.0,
-                        wposition::earth_radius-50.0, wposition::earth_radius-100.0 } ;
-    double svp[] = { 1532.071289, 1532.668945, 1534.328491, 1535.144775 } ;
-    seq_vector* ax[] = { new seq_data( depths, 4 ) } ;
-    data_grid<double,1>* grid = new data_grid<double,1>( ax ) ;
-    delete ax[0] ;
-    for(unsigned i=0; i<4; ++i) {
-        grid->data( &i, svp[i] ) ;
-        cout << "depth: " << depths[i]-wposition::earth_radius << " svp: " << svp[i] << endl ;
-    }
-
-    attenuation_model* attn = new attenuation_constant( 0.0 ) ;
-//    profile_model* profile = new profile_linear( c0, attn ) ;
-    profile_model* profile = new profile_grid<double,1>( grid, attn ) ;
-    boundary_model* surface = new boundary_flat() ;
-    boundary_model* bottom = new boundary_flat( 100.0 ) ;
-    ocean_model ocean( surface, bottom, profile ) ;
-
-    seq_log freq( 6500.0, 1.0, 1 ) ;
-    wposition1 pos( 26.0, 57.75, src_alt ) ;
-    seq_linear de( -35.0, 1.0, 35.0 ) ;
-    seq_linear az( -180.0, 15.0, 180.0 ) ;
-
-    // build a single target
-
-    wposition target( 1, 1, 0.0, 0.0, -50.0 ) ;
-    wposition1 aTarget( pos, target_range, 0.0 ) ;
-    target.latitude( 0, 0, aTarget.latitude() ) ;
-    target.longitude( 0, 0, aTarget.longitude() ) ;
-    cout << std::setprecision(10) ;
-    cout << "target lat: " << target.latitude(0,0)
-         << " lon: " << target.longitude(0,0)
-         << " alt: " << target.altitude(0,0) << endl ;
-
-    proploss loss(freq, pos, de, az, dt, &target) ;
-    wave_queue wave( ocean, freq, pos, de, az, dt, &target) ;
-    wave.addEigenrayListener(&loss) ;
-
-    // propagate rays and record wavefronts to disk.
-
-    cout << "propagate wavefronts for " << time_max << " seconds" << endl;
-    cout << "writing wavefronts to " << ncname_wave << endl;
-
-    wave.init_netcdf( ncname_wave );
-    wave.save_netcdf();
-    while ( wave.time() < time_max ) {
-        wave.step();
-        wave.save_netcdf();
-    }
-    wave.close_netcdf();
-
-   // compute coherent propagation loss and write eigenrays to disk
-
-    loss.sum_eigenrays();
-    cout << "writing proploss to " << ncname << endl;
-    loss.write_netcdf(ncname,"eigenray_az_branch_pt test");
-
-    // save results to spreadsheet
-
-    cout << "writing tables to " << csvname << endl;
-    std::ofstream os(csvname);
-    os << "target,time,intensity,phase,s_de,s_az,t_de,t_az,srf,btm,cst"
-    << endl;
-    os << std::setprecision(5);
-    cout << std::setprecision(5);
-
-    const eigenray_list *raylist = loss.eigenrays(0,0) ;
-    int n = 0 ;
-    for ( eigenray_list::const_iterator iter = raylist->begin();
-            iter != raylist->end(); ++n, ++iter )
-    {
-        const eigenray &ray = *iter ;
-        char buff[64] ;
-        sprintf(buff, "Ray#%2d  tl=%2.5f  t=%2.5f  de=%3.4f%2s\tbot=%1d sur=%1d", n,
-                ray.intensity(0), ray.time, -ray.target_de, "", ray.bottom, ray.surface ) ;
-        cout << buff << endl ;
-        os << "," << ray.time
-           << "," << ray.intensity(0)
-           << "," << ray.phase(0)
-           << "," << ray.source_de
-           << "," << ray.source_az
-           << "," << ray.target_de
-           << "," << ray.target_az
-           << "," << ray.surface
-           << "," << ray.bottom
-           << "," << ray.caustic
-           << endl;
-    }
-}
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()
