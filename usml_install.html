@@ -95,6 +95,9 @@
          ones from the <code>usml/config</code> directory.  Boost 1.57 fixed the problem in 
          <code>vector_expression.hpp</code>, but requires replacing <code>matrix_expression.hpp</code>
          with the file <code>usml/config/matrix_expression_1_57.hpp</code>.</li>
+    <li> The pedantic option does not work with Boost 1.52. There are several cases where
+         this specific version of Boost uses C++0x features, like long long value, that
+         are not supported by c++98.  Turning off the pedantic option works around this issue.
     </ul>
     <h3>Setting up NetCDF package</h3>
     USML uses Unidata's NetCDF package to access environmental data from
