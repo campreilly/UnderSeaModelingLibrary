@@ -121,20 +121,6 @@ class USML_DECLSPEC wave_front {
         }
 
         /**
-         * Accessor to the bottom matrix inside of a wavefront.
-         */
-        inline int getBottom( unsigned de, unsigned az) const {
-            return bottom(de,az) ;
-        }
-
-        /**
-         * Accessor to the surface matrix inside of a wavefront.
-         */
-        inline int getSurface( unsigned de, unsigned az) const {
-            return surface(de,az) ;
-        }
-
-        /**
          * Initialize position and direction components of the wavefront.
          * Computes normalized directions from depression/elevation
          * and azimuthal angles.  Each row in the output corresponds
