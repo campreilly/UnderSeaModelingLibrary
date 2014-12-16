@@ -23,28 +23,6 @@ reflect_loss_rayleigh_grid::reflect_loss_rayleigh_grid(data_grid<double, 2>* bot
 
     n_types = reflect_loss_rayleigh::BASALT+1; // number of elements of reflect_loss_rayleigh.bottom_type_enum
 
-#ifdef USML_DEBUG
-
-    long latdim, londim;
-    unsigned int index[2];
-
-    latdim = _bottom_grid->axis(0)->size();
-    londim = _bottom_grid->axis(1)->size();
-
-    cout << "==========data grid=============" << endl;
-    for(int i=0; i<londim; i++) {
-        for(int j=0; j<latdim; j++) {
-            index[0] = j;
-            index[1] = i;
-            cout << _bottom_grid->data(index) << ",";
-            if(j == latdim-1){
-                cout << endl;
-            }
-        }
-    }
-    cout << endl;
-#endif
-
     /** Set the interpolation type to the nearest neighbor and restrict extrapolation */
     for(int i=0; i<2; i++){
         _bottom_grid->interp_type(i, GRID_INTERP_NEAREST);

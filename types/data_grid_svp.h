@@ -8,10 +8,6 @@
 
 #include <usml/types/data_grid.h>
 
-//#define FAST_GRID_DEBUG
-//#define FAST_PCHIP_GRID_DEBUG
-//#define FAST_NaN_GRID_DEBUG
-
 namespace usml {
 namespace types {
 /// @ingroup data_grid
@@ -127,39 +123,9 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
                             }
                         }
                         derv_z[i][j][k] = result ;
-                        #ifdef FAST_NaN_GRID_DEBUG
-                            if( (abs(derv_z[i][j][k]) >= 20.0) || result != result ) {
-                                cout << "***Warning: bogus derivative in the z-direction***" << endl;
-                                cout << "inc1: " << inc1 << "\tinc2: " << inc2 << endl;
-                                cout << "data(" << i << "," << j << "," << k << "): " << data_3d(i,j,k)
-                                << "\tdata(" << i+1 << "," << j << "," << k << "): " << data_3d(i+1,j,k)
-                                << "\tdata(" << i+2 << "," << j << "," << k << "): " << data_3d(i+2,j,k)
-                                << endl;
-                                cout << "slope1: " << slope_1 << "\tslope2: " << slope_2 << endl;
-                                cout << "result: " << result << endl;
-                                cout << "derv_z[" << i << "][" << j << "][" << k << "]: "
-                                << derv_z[i][j][k] << endl;
-                            }
-                        #endif
                     } //end for-loop in k
                 } //end for-loop in j
             } //end for-loop in i
-            #ifdef FAST_GRID_DEBUG
-                cout << "max number of depths: " << _kzmax << endl ;
-                cout << "max number of latitudes: " << _kxmax << endl ;
-                cout << "max number of longitudes: " << _kymax << endl ;
-                cout << "derv_z: " ;
-                for (int i = 0; i < _kzmax + 1u; ++i) {
-                    for (int j = 0; j < _kxmax + 1u; ++j) {
-                        for (int k = 0; k < _kymax + 1u; ++k) {
-                            cout << derv_z[i][j][k] ;
-                            ( k < _kymax ) ? cout << ", " : cout << endl ;
-                        }
-                    }
-                    cout << endl ;
-                    cout << endl ;
-                }
-            #endif
             delete grid ;
         } // end Constructor
 
@@ -243,19 +209,6 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
                 }
             }
 
-            #ifdef FAST_GRID_DEBUG
-                cout << "_offset: (" << _offset[0] << "," << _offset[1] << "," << _offset[2] << ")" << endl;
-                cout << "axis[0]: ";
-                ( (*_axis[0])(_offset[0]) >= 1e6 ) ? (cout << (*_axis[0])(_offset[0])-wposition::earth_radius)
-                : cout << (*_axis[0])(_offset[0]);
-                cout << "\taxis[1]: " << (*_axis[1])(_offset[1])
-                << "\taxis[2]: " << (*_axis[2])(_offset[2]) << endl;
-                cout << "derv_z: (" << derv_z[_offset[0]][_offset[1]][_offset[2]]
-                << ", " << derv_z[_offset[0]+1][_offset[1]][_offset[2]]
-                << ", " << derv_z[_offset[0]+2][_offset[1]][_offset[2]]
-                << ", " << derv_z[_offset[0]+3][_offset[1]][_offset[2]] << ")" << endl;
-            #endif
-
             //** PCHIP contribution in zeroth dimension */
             if (derivative) {
                 derivative[0] = 0;
@@ -286,19 +239,6 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
                     _interp_plane(i, j) = h00 * v1 + h10 * derv_z[k0][k1 + i][k2 + j]
                             + h01 * v2 + h11 * derv_z[k0 + 1][k1 + i][k2 + j];
 
-                    #ifdef FAST_PCHIP_GRID_DEBUG
-                        cout << "v1: " << v1 << "\tv2: " << v2 << endl;
-                        cout << "inc1: " << inc1 << endl;
-                        cout << "t: " << t << "\tt_2: " << t_2
-                        << "\tt_3: " << t_3 << endl;
-                        cout << "slope_1: " << derv_z[k0][k1+i][k2+j]
-                        << "\tslope_2: " << derv_z[k0+1][k1+i][k2+j] << endl;
-                        cout << "h00: " << h00 << "\th10: " << h10
-                        << "\th01: " << h01 << "\th11: " << h11 << endl;
-                        cout << "_interp_plane(" << i << ", " << j << "): "
-                        << _interp_plane(i,j) << endl;
-                    #endif
-
                     if (derivative) {
                         _dz(i, j) = (6 * t_2 - 6 * t) * v1 / inc1
                                 + (3 * t_2 - 4 * t + 1) * derv_z[k0][k1 + i][k2 + j]
@@ -323,13 +263,6 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
             f22 = _interp_plane(1, 1);
             x_diff = x2 - x1;
             y_diff = y2 - y1;
-
-            #ifdef FAST_GRID_DEBUG
-                cout << "k_indecies: (" << k0 << ", " << k1 << ", " << k2 << ")" << endl;
-                cout << "x: " << x << "\tx1: " << x1 << "\tx2: " << x2 << endl;
-                cout << "y: " << y << "\ty1: " << y1 << "\ty2: " << y2 << endl;
-                cout << "f11: " << f11 << "\tf21: " << f21 << "\tf12: " << f12 << "\tf22: " << f22 << endl;
-            #endif
 
             result = (f11 * (x2 - x) * (y2 - y) + f21 * (x - x1) * (y2 - y)
                     + f12 * (x2 - x) * (y - y1) + f22 * (x - x1) * (y - y1))

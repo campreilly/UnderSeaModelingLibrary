@@ -15,12 +15,6 @@
 
 #include <iomanip>
 
-//#define DEBUG_OUTPUT_EIGENRAYS
-//#define DEBUG_EIGENRAYS
-//#define DEBUG_CAUSTICS
-//#define DEBUG_REFLECT
-//#define DEBUG_ATTEN
-
 using namespace usml::waveq3d ;
 
 /**
@@ -164,10 +158,6 @@ void wave_queue::step() {
     _next = save ;
     _time += _time_step ;
 
-    #if defined(DEBUG_EIGENRAYS) || defined(DEBUG_CAUSTICS) || defined(DEBUG_REFLECT) || defined(DEBUG_ATTEN)
-        cout << "*** wave_queue::step: time=" << time() << endl ;
-    #endif
-
     // compute position, direction, and environment parameters for next entry
 
     ode_integ::ab3_pos(  _time_step, _past, _prev, _curr, _next ) ;
@@ -175,10 +165,6 @@ void wave_queue::step() {
 
     _next->update() ;
     _next->path_length = _next->distance + _curr->path_length ;
-
-    #ifdef DEBUG_ATTEN
-        cout << "_curr->attenuation: " << _curr->attenuation << endl ;
-    #endif
 
     _next->attenuation += _curr->attenuation ;
     _next->phase += _curr->phase ;
@@ -221,17 +207,7 @@ void wave_queue::detect_reflections() {
  * Detect and process reflection for a single (DE,AZ) combination.
  */
 bool wave_queue::detect_reflections_surface( unsigned de, unsigned az ) {
-    #ifdef DEBUG_REFLECT
-        cout << "***Entering wave_queue::detect_reflect_surf***" << endl;
-        cout << "\t(de,az): (" << de << "," << az << ")     de(" << (*_source_de)(de)
-             << "),az(" << (*_source_az)(az) << ")" << endl ;
-        cout << "\t_next->position.alt: " << _next->position.altitude(de,az) << endl;
-    #endif
     if (_next->position.altitude(de,az) > 0.0) {
-    #ifdef DEBUG_REFLECT
-        cout << "\t\t\t===surface reflection_detected===" << endl;
-        cout << "\t_next->position.alt: " << _next->position.altitude(de,az) << endl;
-    #endif
         if (_reflection_model->surface_reflection(de,az)) {
             _next->surface(de,az) += 1;
             _curr->surface(de,az) = _prev->surface(de,az)
@@ -251,23 +227,7 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
     wposition1 pos( _next->position, de, az ) ;
     _ocean.bottom().height( pos, &height, NULL, true ) ;
     const double depth = height - _next->position.rho(de,az) ;
-    #ifdef DEBUG_REFLECT
-        cout << "***Entering wave_queue::detect_reflect_bot***" << endl;
-        cout << "\t(de,az): (" << de << "," << az << ")     de(" << (*_source_de)(de)
-             << "),az(" << (*_source_az)(az) << ")" << endl ;
-        cout << "\t_next->position.rho: " << _next->position.rho(de,az) - wposition::earth_radius
-                                          << endl;
-        cout << "\tbottom depth: " << height - wposition::earth_radius << "\tdistance (+ below bottom): " << depth << endl;
-    #endif
     if ( depth > 0.0 ) {
-    #ifdef DEBUG_REFLECT
-        cout << "\t\t\t===bottom reflection_detected===" << endl;
-        cout << "\tpos(rho,alt): (" << pos.rho() - wposition::earth_radius
-                                    << ", " << pos.altitude() << ")" << endl;
-        cout << "\t_next->position.rho: " << _next->position.rho(de,az) - wposition::earth_radius
-                                          << endl;
-        cout << "\tbottom depth: " << height - wposition::earth_radius << "\tdistance (+ below bottom): " << depth << endl;
-    #endif
         if ( _reflection_model->bottom_reflection( de, az, depth ) ) {
             _next->bottom(de,az) += 1 ;
             _curr->bottom(de,az) = _prev->bottom(de,az)
@@ -404,22 +364,6 @@ bool wave_queue::is_closest_ray(
                 distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
                 distance2[2][nde][naz] = _next->distance2(t1,t2)(d,a) ;
 
-                #ifdef USML_DEBUG
-                // test all distances to make sure they are valid numbers
-                    if( isnan(distance2[0][nde][naz]) ) {
-                        cout << "Oops, the distance for distance2[0"
-                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
-                    }
-                    if( isnan(distance2[1][nde][naz]) ) {
-                        cout << "Oops, the distance for distance2[1"
-                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
-                    }
-                    if( isnan(distance2[2][nde][naz]) ) {
-                        cout << "Oops, the distance for distance2[2"
-                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
-                    }
-                #endif
-
                 // skip to next iteration if tested ray is on edge of ray family
                 // allows extrapolation outside of ray family
 
@@ -462,22 +406,6 @@ bool wave_queue::is_closest_ray(
                 distance2[0][nde][naz] = _prev->distance2(t1,t2)(d,a) ;
                 distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
                 distance2[2][nde][naz] = _next->distance2(t1,t2)(d,a) ;
-
-                #ifdef USML_DEBUG
-                // test all distances to make sure they are valid numbers
-                    if( isnan(distance2[0][nde][naz]) ) {
-                        cout << "Oops, the distance for distance2[0"
-                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
-                    }
-                    if( isnan(distance2[1][nde][naz]) ) {
-                        cout << "Oops, the distance for distance2[1"
-                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
-                    }
-                    if( isnan(distance2[2][nde][naz]) ) {
-                        cout << "Oops, the distance for distance2[2"
-                        << "][" << nde << "][" << naz << "] is NaN!" << endl;
-                    }
-                #endif
 
                 // skip to next iteration if tested ray is on edge of ray family
                 // allows extrapolation outside of ray family
@@ -522,82 +450,6 @@ void wave_queue::build_eigenray(
    unsigned de, unsigned az,
    double distance2[3][3][3]
 ) {
-    #ifdef DEBUG_EIGENRAYS
-        cout << "*** wave_queue::step: time=" << time() << endl ;
-        wposition1 tgt( *(_curr->targets), t1, t2 ) ;
-        cout << "*** wave_queue::build_eigenray:"
-             << " target(" << t1 << "," << t2 << ")="
-             << tgt.altitude() << "," << tgt.latitude() << "," << tgt.longitude()
-             << " time=" << _time
-             << " de(" << de << ")=" << (*_source_de)(de)
-             << " az(" << az << ")=" << (*_source_az)(az)
-             << endl ;
-        cout << "\tsurface=" << _curr->surface(de,az)
-             << " bottom=" << _curr->bottom(de,az)
-             << " caustic=" << _curr->caustic(de,az) << endl ;
-        cout << "\tdistance2:" << endl ;
-        for ( unsigned n1=0 ; n1 < 3 ; ++n1 ) {
-            cout << "\t    " ;
-            for ( unsigned n2=0 ; n2 < 3 ; ++n2 ) {
-                cout << ((n2)? "; " : "[ " ) ;
-                for ( unsigned n3=0 ; n3 < 3 ; ++n3 ) {
-                    cout << ((n3)? "," : "[" ) << distance2[n1][n2][n3] ;
-                }
-                cout << "]" ;
-            }
-            cout << " ]" << endl ;
-        }
-
-        cout << "***on_edge***" << endl;
-        cout << "\t de index: (slow) [ " << de-1 << " " << de << " " << de+1
-             << " ]\n\t az index: (fast) [ "  ;
-             if( (int)az-1 < 0 ) { cout << num_az()-2 ; }
-             else { cout << az-1 ; }
-             cout << " " << az << " " ;
-             if( az+1 >= (num_az()-1) ) { cout << 0 ; }
-             else{ cout << az+1 ; }
-        cout << " ]" << endl;
-        cout << "\t prev  [";
-        for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
-            cout << " [" ;
-            for ( int n3=int(az-1) ; n3 < int(az+2) ; ++n3 ) {
-                int wrap ;
-                if( n3 < 0 ) { wrap = num_az()-2 ; }
-                else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
-                else { wrap = n3 ; }
-                cout << " " << _past->on_edge(n2,wrap) ;
-            }
-            cout << " ];";
-        }
-        cout << " ]"  << endl;
-        cout << "\t curr  [";
-        for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
-            cout << " [" ;
-            for ( int n3=int(az-1) ; n3 < int(az+2) ; ++n3 ) {
-                int wrap ;
-                if( n3 < 0 ) { wrap = num_az()-2 ; }
-                else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
-                else { wrap = n3 ; }
-                cout << " " << _curr->on_edge(n2,wrap) ;
-            }
-            cout << " ];";
-        }
-        cout << " ]"  << endl;
-        cout << "\t next  [";
-        for ( unsigned n2=de-1 ; n2 < de+2 ; ++n2 ) {
-            cout << " [" ;
-            for ( int n3=int(az-1) ; n3 < int(az+2) ; ++n3 ) {
-                int wrap ;
-                if( n3 < 0 ) { wrap = num_az()-2 ; }
-                else if( n3 >= (num_az()-1) ) { wrap = 0 ; }
-                else { wrap = n3 ; }
-                cout << " " << _next->on_edge(n2,wrap) ;
-            }
-            cout << " ];";
-        }
-        cout << " ]"  << endl;
-    #endif
-
     // compute offsets
     // limit to simple inverse if path types change in this neighborhood
 
@@ -637,9 +489,6 @@ void wave_queue::build_eigenray(
                      _next->caustic(d,a) != caustic )
                 {
                     unstable = true ;
-                    #ifdef DEBUG_EIGENRAYS
-                    cout << "\tpath change" << endl ;
-                    #endif
                 }
             }
         }
@@ -660,9 +509,6 @@ void wave_queue::build_eigenray(
                      _next->caustic(d,a) != caustic )
                 {
                     unstable = true ;
-                    #ifdef DEBUG_EIGENRAYS
-                    cout << "\tpath change" << endl ;
-                    #endif
                 }
             }
         }
@@ -689,7 +535,7 @@ void wave_queue::build_eigenray(
             wposition1( *(_curr->targets), t1, t2 ), de, az, offset, distance );
     for ( unsigned int i = 0; i < ray.intensity.size(); ++i) {
         if ( isnan(spread_intensity(i)) ) {
-            #ifdef DEBUG_EIGENRAYS
+            #ifdef USML_DEBUG
                 std::cerr << "warning: wave_queue::build_eigenray()"  << endl
                           << "\tignores eigenray because intensity is NaN" << endl
                           << "\tt1=" << t1 << " t2=" << t2
@@ -729,11 +575,6 @@ void wave_queue::build_eigenray(
 	}
 
     if (!bKeepRay) {
-		#ifdef DEBUG_EIGENRAYS
-		std::cout << "warning: wave_queue::build_eigenray()"  << endl
-			  << "\tdiscards eigenray because intensity at all freq's " << endl
-			  << "\tdoes not meet the threshold of " << _intensity_threshold << "dB" << endl;
-		#endif
 		return ;
 	}
 
@@ -854,13 +695,6 @@ void wave_queue::build_eigenray(
     ray.target_az = center + inner_prod( gradient, offset )
                   + 0.5 * inner_prod( offset, prod( hessian, offset ) ) ;
 
-    #ifdef DEBUG_OUTPUT_EIGENRAYS
-    cout << "wave_queue::build_eigenray() " << endl
-    		 << "\ttarget(" << t1 << "," << t2 << "):" << endl
-             << "\tt=" << ray.time << " inten=" << ray.intensity << " de=" << ray.source_de << " az=" << ray.source_az << endl
-             << "\tsurface=" << ray.surface << " bottom=" << ray.bottom << " caustic=" << ray.caustic << endl ;
-    #endif
-
     // Add eigenray to those objects which requested them
     notifyEigenrayListeners(t1,t2,ray);
 
@@ -901,10 +735,6 @@ void wave_queue::compute_offsets(
       + hessian(0,1) * ( hessian(1,2) * hessian(2,0) - hessian(1,0) * hessian(2,2) )
       + hessian(0,2) * ( hessian(1,0) * hessian(2,1) - hessian(2,1) * hessian(2,0) ) ;
     if ( abs(determinant) > 1e-10 ) {
-        #ifdef DEBUG_EIGENRAYS
-            cout << "\tfull inverse" ;
-        #endif
-
         c_matrix<double,3,3> inverse ;
         inverse(0,0) = hessian(1,1) * hessian(2,2) - hessian(1,2) * hessian(2,1) ;
         inverse(1,0) = hessian(1,2) * hessian(2,0) - hessian(1,0) * hessian(2,2) ;
@@ -918,10 +748,6 @@ void wave_queue::compute_offsets(
         inverse /= determinant ;
         noalias(offset) = prod( inverse, -gradient ) ;
 
-    } else {
-        #ifdef DEBUG_EIGENRAYS
-            if (unstable) cout << "\tsimple inv" ;
-        #endif
     }
 
     // compute distances from offsets
@@ -932,9 +758,6 @@ void wave_queue::compute_offsets(
                 -0.5*hessian(n,n)*offset(n)*offset(n) ;
     }
     if ( unstable ) {
-        #ifdef DEBUG_EIGENRAYS
-            cout << " unstable de" ;
-        #endif
         distance(1) = center - distance(0) - distance(2) ;
     }
 
@@ -946,19 +769,6 @@ void wave_queue::compute_offsets(
         if ( offset(n) < 0.0 ) distance(n) *= -1.0 ;
         offset(n) = max( -delta(n), min(delta(n),offset(n)) ) ;
     }
-
-    #ifdef DEBUG_EIGENRAYS
-        cout << " gradient: " << gradient(0) << "," << gradient[1] << "," << gradient[2]
-             << " curvature:  " << hessian(0,0) << "," << hessian(1,1) << "," << hessian(2,2) << endl
-             << "\toffset: " << offset << " distance: " << distance << endl ;
-    #endif
-//    // used to build spreadsheets of offset and distance
-//    cout << offset(0) << "," << offset(1) << "," << offset(2) << ","
-//         << distance(0) << "," << distance(1) << "," << distance(2) << ","
-//         << (distance(0)*distance(0)+distance(1)*distance(1)+distance(2)*distance(2)) << ","
-//         << center << ","
-//         << gradient(0) << "," << gradient[1] << "," << gradient[2] << ","
-//         << hessian(0,0) << "," << hessian(1,1) << "," << hessian(2,2) << endl ;
 }
 
 /**

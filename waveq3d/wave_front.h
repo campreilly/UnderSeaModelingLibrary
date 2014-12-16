@@ -107,20 +107,6 @@ class USML_DECLSPEC wave_front {
         }
 
         /**
-         * Accessor to the attenuation matrix inside of a wavefront.
-         */
-        inline vector<double> attenuation( unsigned de, unsigned az) const {
-            return attenuation(de,az) ;
-        }
-
-        /**
-         * Accessor to the path_length matrix inside of a wavefront.
-         */
-        inline double path_length( unsigned de, unsigned az) const {
-            return path_length(de,az) ;
-        }
-
-        /**
          * Initialize position and direction components of the wavefront.
          * Computes normalized directions from depression/elevation
          * and azimuthal angles.  Each row in the output corresponds

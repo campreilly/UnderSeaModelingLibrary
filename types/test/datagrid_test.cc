@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE( deriv_1d_test ) {
 
         grid.interp_type(0,GRID_INTERP_PCHIP);
         grid.interpolate( &x, &pchip );
-        cout << pchip << "\t";
+        cout << pchip ;
         // BOOST_CHECK_CLOSE( pchip, truth, 20.0 ) ;
 
         cout << endl;
