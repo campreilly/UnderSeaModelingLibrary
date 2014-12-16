@@ -77,15 +77,23 @@ const vector<double>& spreading_hybrid_gaussian::intensity(
 
     // compute Gaussian beam components in DE and AZ directions
 
-    unsigned a ;
-    if(offset(1) < 0.0) {
+    vector<double> corrected_offset = offset ;
+    std::size_t a ;
+    if( offset(2) < 0.0 ) {
         if( (int)(az-1) < 0 ) {
             a = _wave._source_az->size() - 2 ;
         } else { a = az - 1 ; }
+        corrected_offset(2) = corrected_offset(2) + 1 ;
     } else { a = az ; }
-    intensity_de(de, a, offset, distance);
-    unsigned d = (offset(2) < 0.0) ? de - 1 : de ;
-    intensity_az(d, az, offset, distance);
+    std::size_t d ;
+    if( offset(1) < 0.0 ) {
+        d = de - 1 ;
+        corrected_offset(1) = corrected_offset(1) + 1 ;
+    } else {
+        d = de ;
+    }
+    intensity_de(de, a, corrected_offset, distance) ;
+    intensity_az(d, az, corrected_offset, distance);
     _intensity_de = element_prod(_intensity_de, _intensity_az);
     return _intensity_de;
 }

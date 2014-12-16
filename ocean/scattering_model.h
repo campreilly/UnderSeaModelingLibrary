@@ -1,9 +1,8 @@
 /**
  * @file scattering_model.h
+ * Generic interface for reverberation scattering strength model.
  */
-
-#ifndef USML_OCEAN_SCATTERING_MODEL_H
-#define USML_OCEAN_SCATTERING_MODEL_H
+#pragma once
 
 #include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
@@ -16,57 +15,83 @@ using namespace usml::types ;
 
 using boost::numeric::ublas::vector;
 
+/// @ingroup boundaries
+/// @{
+
 /**
- * Scattering strength abstract class. All scattering strength models
- * produce a specular reflection of energy when interacting with the
- * interface. The model then returns an amount of energy, given
- * incident and scattering angles, reflected in that direction.
+ * A "reverberation scattering strength model" computes the changes in
+ * amplitude that result from the non-specular scattering of a ray
+ * collision with an interface. The directions of the incoming and
+ * outgoing rays are specified in terms of bistatic depression/elevation (D/E)
+ * and azimuthal angles (AZ) at the scattering patch. Note that
+ * depression/elevation (D/E) is the negative of grazing angle.
+ * These models compute their results
+ * as a function of frequency to support broadband acoustics.
+ *
+ * When used as part of a "boundary_model", the reverberation scattering
+ * strength coefficient is the intensity ratio per unit area.
+ * \f[
+ *   \frac{I_{scat}}{I_{inc}} = \sigma_A \: \delta A
+ * \f]
+ * where
+ * 		\f$ I_{inc} \f$ = scattering strength coefficient,
+ * 		\f$ I_{scat} \f$ = scattering strength coefficient,
+ * 		\f$ \delta A \f$ = ensonified area,
+ * 		\f$ \sigma_A \f$ = interface scattering strength coefficient.
+ *
+ * When used as part of a "volume_model", the reverberation scattering
+ * strength coefficient is the intensity ratio per unit volume.
+ * \f[
+ *   \frac{I_{scat}}{I_{inc}} = \sigma_V \: \delta V
+ * \f]
+ * where
+ * 		\f$ \delta V \f$ = ensonified volume,
+ * 		\f$ \sigma_V \f$ = volume scattering strength coefficient.
+ *
+ * The integrated volume scattering strength per unit area is given by
+ * \f[
+ *   \sigma_A = h \sigma_V
+ * \f]
+ * where
+ * 		\f$ h \f$ = thickness of the volume scattering layer.
  */
 class USML_DECLSPEC scattering_model {
 
     public:
 
         /**
-         * Computes the broadband reflection loss and phase change.
+         * Computes the broadband scattering strength for a single location.
          *
          * @param location      Location at which to compute attenuation.
          * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param angleI        Depression incident angle (radians).
-         * @param angleS        Depression scattered angle (radians).
-         * @param azI           Azimuthal incident angle (radians).
-         * @param azS           Azimuthal scattered angle (radians).
-         * @param amplitude     Change in ray strength in dB (output).
-         * @param phase         Change in ray phase in radians (output).
-         *                      Phase change not computed if this is NULL.
-         *
-         * NOTE: All angles are relative to the scattering interface.
+         * @param de_incident   Depression incident angle (radians).
+         * @param de_scattered  Depression scattered angle (radians).
+         * @param az_incident   Azimuthal incident angle (radians).
+         * @param az_scattered  Azimuthal scattered angle (radians).
+         * @param amplitude     Reverberation scattering strength ratio (output).
          */
-        virtual void scattering_strength( const wposition1& location,
-            const seq_vector& frequencies, double angleI, double angleS,
-            double azI, double azS, vector<double>* amplitude,
-            vector<double>* phase=NULL ) = 0 ;
+        virtual void scattering( const wposition1& location,
+            const seq_vector& frequencies, double de_incident, double de_scattered,
+            double az_incident, double az_scattered, vector<double>* amplitude ) = 0 ;
 
         /**
-         * Computes the broadband reflection loss and phase change.
+         * Computes the broadband scattering strength for a collection of
+         * scattering angles from a common incoming ray. Each scattering
+         * has its own location, de_scattered, and az_scattered.
+         * The result is a broadband reverberation scattering strength for
+         * each scattering.
          *
-         * @param location      Locations at which to compute attenuation.
+         * @param location      Location at which to compute attenuation.
          * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param angleI        vector of Depression incident angle (radians).
-         * @param angleS        vector of Depression scattered angle (radians).
-         * @param azI           vector of Azimuthal incident angle (radians).
-         * @param azS           vector of Azimuthal scattered angle (radians).
-         * @param amplitude     vector of the change in ray strength in
-         *                      linear units (output).
-         * @param phase         Change in ray phase in radians (output).
-         *                      Phase change not computed if this is NULL.
-         *
-         * NOTE: All angles are relative to the scattering interface.
+         * @param de_incident   Depression incident angle (radians).
+         * @param de_scattered  Depression scattered angle (radians).
+         * @param az_incident   Azimuthal incident angle (radians).
+         * @param az_scattered  Azimuthal scattered angle (radians).
+         * @param amplitude     Reverberation scattering strength ratio (output).
          */
-        virtual void scattering_strength( const wposition& location,
-            const seq_vector& frequencies, const vector<double>& angleI,
-            const vector<double>& angleS, const vector<double>& azI,
-            const vector<double>& azS, vector<vector<double> >* amplitude,
-            vector<vector<double> >* phase=NULL ) = 0 ;
+        virtual void scattering( const wposition& location,
+            const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
+            double az_incident, matrix<double> az_scattered, matrix< vector<double> >* amplitude ) = 0 ;
 
         /**
          * Virtual destructor
@@ -75,7 +100,6 @@ class USML_DECLSPEC scattering_model {
 
 };
 
+/// @}
 }   // end namespace ocean
 }   // end namespace usml
-
-#endif

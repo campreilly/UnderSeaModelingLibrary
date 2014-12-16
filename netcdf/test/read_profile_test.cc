@@ -1,4 +1,4 @@
-/** 
+/**
  * @example netcdf/test/read_bathy_test.cc
  */
 #include <boost/test/unit_test.hpp>
@@ -18,7 +18,7 @@ using namespace usml::netcdf ;
 
 /**
  * Tests the ability of the netcdf_woa class to splice deep and shallow
- * databases into a combined product. Extract Hawaii ocean temperature and 
+ * databases into a combined product. Extract Hawaii ocean temperature and
  * dumps the resulting data to the read_woa.csv file.
  *
  * Automatically compares results for a handfull of individual location
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE( read_woa ) {
     // each row is a depth, cycle through all longitudes
     // before moving to next latitude
 
-    std::ofstream ofile( USML_TEST_DIR "/waveq3d/netcdf/read_woa.csv" ) ;
+    std::ofstream ofile( USML_TEST_DIR "/netcdf/test/read_woa.csv" ) ;
 
     // print header row
     ofile << "depth" ;
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE( read_woa ) {
 BOOST_AUTO_TEST_CASE( span_profile ) {
     cout << "=== profile_test: span_profile ===" << endl;
     const double earth_radius = 0.0 ;
-    netcdf_profile profile( 
+    netcdf_profile profile(
 	USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
 	15.0, -1.0, 2.0, -1.0, 2.0, earth_radius ) ;
 
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE( span_profile ) {
     // each row is a depth, cycle through all longitudes
     // before moving to next latitude
 
-    std::ofstream ofile( USML_TEST_DIR "/waveq3d/netcdf/span_profile.csv" ) ;
+    std::ofstream ofile( USML_TEST_DIR "/netcdf/test/span_profile.csv" ) ;
 
     // print header row
     ofile << "depth" ;

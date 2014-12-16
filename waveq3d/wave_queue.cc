@@ -184,6 +184,8 @@ void wave_queue::step() {
     _next->phase += _curr->phase ;
     _next->surface = _curr->surface ;
     _next->bottom = _curr->bottom ;
+    _next->upper = _curr->upper ;
+    _next->lower = _curr->lower ;
     _next->caustic = _curr->caustic ;
 
     // search for eigenray collisions with acoustic targets
@@ -255,7 +257,7 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
              << "),az(" << (*_source_az)(az) << ")" << endl ;
         cout << "\t_next->position.rho: " << _next->position.rho(de,az) - wposition::earth_radius
                                           << endl;
-        cout << "\theight: " << height - wposition::earth_radius << "\tdepth: " << depth << endl;
+        cout << "\tbottom depth: " << height - wposition::earth_radius << "\tdistance (+ below bottom): " << depth << endl;
     #endif
     if ( depth > 0.0 ) {
     #ifdef DEBUG_REFLECT
@@ -264,7 +266,7 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
                                     << ", " << pos.altitude() << ")" << endl;
         cout << "\t_next->position.rho: " << _next->position.rho(de,az) - wposition::earth_radius
                                           << endl;
-        cout << "\theight: " << height - wposition::earth_radius << "\tdepth: " << depth << endl;
+        cout << "\tbottom depth: " << height - wposition::earth_radius << "\tdistance (+ below bottom): " << depth << endl;
     #endif
         if ( _reflection_model->bottom_reflection( de, az, depth ) ) {
             _next->bottom(de,az) += 1 ;
@@ -281,11 +283,10 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
  *  Detects upper and lower vertices along the wavefront
  */
 void wave_queue::detect_vertices( unsigned de, unsigned az ) {
-    double A = _prev->position.rho(de,az) ;
-    double B = _curr->position.rho(de,az) ;
-    double C = _next->position.rho(de,az) ;
-    if( A < B && C < B ) { _curr->upper(de,az)++ ; }
-    else if( B < A && B < C ) { _curr->lower(de,az)++ ; }
+    double L = _curr->ndirection.rho(de,az) ;
+    double R = _next->ndirection.rho(de,az) ;
+    if( L*R < 0.0 && R < 0.0 ) _next->upper(de,az)++ ;
+    else if( L*R < 0.0 && 0.0 < R ) _next->lower(de,az)++ ;
 }
 
 /**
@@ -686,26 +687,20 @@ void wave_queue::build_eigenray(
     const vector<double> spread_intensity =
         _spreading_model->intensity(
             wposition1( *(_curr->targets), t1, t2 ), de, az, offset, distance );
-    if ( isnan(spread_intensity(0)) ) {
-        #ifdef DEBUG_EIGENRAYS
-            std::cerr << "warning: wave_queue::build_eigenray()"  << endl
-                      << "\tignores eigenray because intensity is NaN" << endl
-                      << "\tt1=" << t1 << " t2=" << t2
-                      << " de=" << de << " az=" << az << endl ;
-        #endif
-        return ;
-    } else if ( spread_intensity(0) <= 1e-20 ) {
-        #ifdef DEBUG_EIGENRAYS
-            std::cerr << "warning: wave_queue::build_eigenray()" << endl
-                      << "\tignores eigenray because intensity is "
-                      << spread_intensity(0) << endl
-                      << "\tt1=" << t1 << " t2=" << t2
-                      << " de=" << de << " az=" << az << endl ;
-        #endif
-        return ;
+            
+    for ( unsigned int i = 0; i < ray.intensity.size(); ++i) {
+        if ( isnan(spread_intensity(i)) ) {
+            #ifdef DEBUG_EIGENRAYS
+                std::cerr << "warning: wave_queue::build_eigenray()"  << endl
+                          << "\tignores eigenray because intensity is NaN" << endl
+                          << "\tt1=" << t1 << " t2=" << t2
+                          << " de=" << de << " az=" << az << endl ;
+            #endif
+            return ;
+        }
     }
 
-    ray.intensity = -10.0 * log10( spread_intensity ) ; // positive value
+    ray.intensity = -10.0 * log10( max(spread_intensity,1e-30) ) ; // positive value
 
     // compute attenuation components of intensity
 
@@ -742,8 +737,6 @@ void wave_queue::build_eigenray(
 		#endif
 		return ;
 	}
-
-
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles

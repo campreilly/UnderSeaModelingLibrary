@@ -2,9 +2,7 @@
  * @file profile_n2.h
  * Creates an analytic model for the N^2 Linear profile.
  */
-
-#ifndef USML_OCEAN_PROFILE_N2_H
-#define USML_OCEAN_PROFILE_N2_H
+#pragma once
 
 #include <usml/ocean/profile_model.h>
 
@@ -86,5 +84,3 @@ class USML_DECLSPEC profile_n2 : public profile_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

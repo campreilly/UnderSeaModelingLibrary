@@ -2,9 +2,7 @@
  * @file profile_catenary.h
  * Creates an analytic model for a deep duct catenary profile.
  */
-
-#ifndef USML_OCEAN_PROFILE_CATENARY_H
-#define USML_OCEAN_PROFILE_CATENARY_H
+#pragma once
 
 #include <usml/ocean/profile_model.h>
 
@@ -88,5 +86,3 @@ class USML_DECLSPEC profile_catenary : public profile_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

@@ -1,7 +1,6 @@
 % refraction_test.m - plot results of all refraction_test sub-tests
 %
-clear all ; 
-close all
+clear ; close all
 
 % plot great circle paths
 
@@ -23,49 +22,49 @@ xlabel('Longitude (deg)');
 ylabel('Latgitude (deg)');
 print -deps refraction_great_circle.eps
 
-% % Compare the model's ray refraction accuracy to the 
-% % analytic solution for a linear profile. 
-% 
-% [data,desc] = xlsread('refraction_linear.csv');
-% dt = ( data(2,1) - data(1,1) ) * 1000.0 ;
-% R = data(1,2) + 1000 ;
-% range = data(:,6) / 1e3 ;
-% zmodel = data(:,2) - R ;
-% ztheory = data(:,5) ;
-% 
-% [p,n] = max(abs(data(:,6))) ;
-% fprintf('n2_linear: max error = %f meters at range = %f km\n',...
-%     zmodel(n)-ztheory(n),range(n)/1e3);
-% 
-% figure ;
-% h = plot( range, zmodel, 'k-', range, ztheory, 'k--', 'LineWidth', 1.5 ) ;
-% grid ;
-% ylabel('Depth (m)')
-% xlabel('Range (km)')
-% legend('Model','Theory','Location','NorthWest') ; % ,'Location','Best')
-% print -deps refraction_linear.eps
-% 
-% % Compare the model's ray refraction accuracy to the 
-% % analytic solution for a n^2 linear profile. 
-% 
-% [data,desc] = xlsread('refraction_n2_linear.csv');
-% dt = ( data(2,1) - data(1,1) ) * 1000.0 ;
-% R = data(1,2) + 1000 ;
-% range = data(:,6) / 1e3 ;
-% zmodel = data(:,2) - R ;
-% ztheory = data(:,5) ;
-% 
-% [p,n] = max(abs(data(:,6))) ;
-% fprintf('n2_linear: max error = %f meters at range = %f km\n',...
-%     zmodel(n)-ztheory(n),range(n)/1e3);
-% 
-% figure ;
-% h = plot( range, zmodel, 'k-', range, ztheory, 'k--', 'LineWidth', 1.5 ) ;
-% grid ;
-% ylabel('Depth (m)')
-% xlabel('Range (km)')
-% legend('Model','Theory','Location','NorthWest') ; % ,'Location','Best')
-% print -deps refraction_n2_linear.eps
+% Compare the model's ray refraction accuracy to the 
+% analytic solution for a linear profile. 
+
+[data,desc] = xlsread('refraction_linear.csv');
+dt = ( data(2,1) - data(1,1) ) * 1000.0 ;
+R = data(1,2) + 1000 ;
+range = data(:,6) / 1e3 ;
+zmodel = data(:,2) - R ;
+ztheory = data(:,5) ;
+
+[p,n] = max(abs(data(:,6))) ;
+fprintf('n2_linear: max error = %f meters at range = %f km\n',...
+    zmodel(n)-ztheory(n),range(n)/1e3);
+
+figure ;
+h = plot( range, zmodel, 'k-', range, ztheory, 'k--', 'LineWidth', 1.5 ) ;
+grid ;
+ylabel('Depth (m)')
+xlabel('Range (km)')
+legend('Model','Theory','Location','NorthWest') ; % ,'Location','Best')
+print -deps refraction_linear.eps
+
+% Compare the model's ray refraction accuracy to the 
+% analytic solution for a n^2 linear profile. 
+
+[data,desc] = xlsread('refraction_n2_linear.csv');
+dt = ( data(2,1) - data(1,1) ) * 1000.0 ;
+R = data(1,2) + 1000 ;
+range = data(:,6) / 1e3 ;
+zmodel = data(:,2) - R ;
+ztheory = data(:,5) ;
+
+[p,n] = max(abs(data(:,6))) ;
+fprintf('n2_linear: max error = %f meters at range = %f km\n',...
+    zmodel(n)-ztheory(n),range(n)/1e3);
+
+figure ;
+h = plot( range, zmodel, 'k-', range, ztheory, 'k--', 'LineWidth', 1.5 ) ;
+grid ;
+ylabel('Depth (m)')
+xlabel('Range (km)')
+legend('Model','Theory','Location','NorthWest') ; % ,'Location','Best')
+print -deps refraction_n2_linear.eps
 
 % load Munk wavefront and plot in range/depth coordinates
 
@@ -77,11 +76,21 @@ wlat = ( wlat - 45 ) * ( 1852.0 * 60.0 ) / 1e3 ; % range in meters
 walt = squeeze(wavefront.altitude(:,:,az_index))  ;
 
 figure; 
+d = 0:10:5000;
+z = 2/1300*(d-1300);
+c = 1500 * ( 1 + 7.37e-3 * ( z - 1 + exp(-z) ) ) ;
+subplot(1,4,1);
+plot( c, -d, 'k-' ) ; grid
+axis( [ 1500 1550 -5000 0 ] ) ;
+xlabel('Speed (m/s)');
+ylabel('Depth (m)');
+
+subplot(1,4,2:4);
 plot( wlat, walt, 'k-' ) ;
 grid;
 axis( [ 0 140 -5000 0 ] ) ;
 xlabel('Range (km)');
-ylabel('Depth (m)');
+set(gca,'YTickLabel',[])
 print -deps refraction_munk_range_wave.eps
 
 % load Munk error spreadsheet and plot errors

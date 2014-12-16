@@ -27,9 +27,9 @@ netcdf_woa::netcdf_woa(
                 replace.axis(0)->size() *
                 replace.axis(1)->size() *
                 replace.axis(2)->size() ) ;
-
     }
-    // Must fill missing and interp for deep and shallow
-    fill_missing() ;
-    interp_type(0,GRID_INTERP_PCHIP);// increase smoothness of depth interp
+    // data conditioning
+
+    fill_missing() ;                    // replace NaNs with real data
+    interp_type(0,GRID_INTERP_PCHIP);   // increase smoothness of depth interp
 }

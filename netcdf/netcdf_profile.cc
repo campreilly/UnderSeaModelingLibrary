@@ -141,7 +141,7 @@ netcdf_profile::netcdf_profile(
     // change missing values in the file to NaN in memory
     // don't execute if netCDF file didn't specify a "missing" value
 
-    if ( !isnan(missing) ) {
+    if ( ! isnan(missing) ) {
         const int N = alt_num * lat_num * lng_num ;
         double* ptr = this->_data ;
         while ( ptr < this->_data + N ) {
@@ -155,6 +155,8 @@ netcdf_profile::netcdf_profile(
  * Fill missing values with average data at each depth.
  */
 void netcdf_profile::fill_missing() {
+
+//    cout << "Entering netcdf_profile::fill_missing()" << endl ;
 
     const int alt_num = this->_axis[0]->size() ;
     const int lat_num = this->_axis[1]->size() ;
@@ -176,7 +178,9 @@ void netcdf_profile::fill_missing() {
             for ( int lng = 0 ; lng < lng_num ; ++lng ) {
                 index[2] = lng ;
                 double value = data(index) ;
-                if ( !isnan( value ) ) {
+
+                if ( ! isnan(value) ) {
+//                    cout << "filling in average with: " << value << endl ;
                     average.data( index, average.data(index)+value ) ;
                     number.data( index, number.data(index)+1.0 ) ;
                 }
@@ -199,6 +203,35 @@ void netcdf_profile::fill_missing() {
         }
     }
 
+//    cout << "Data contained in number:" << endl ;
+//    for ( int alt = 0 ; alt < alt_num ; ++alt ) {
+//        cout << "alt: " << alt << endl ;
+//        index[0] = alt ;
+//        for ( int lat = 0 ; lat < lat_num ; ++lat ) {
+//            index[1] = lat ;
+//            for ( int lng = 0 ; lng < lng_num ; ++lng ) {
+//                index[2] = lng ;
+//                cout << number.data(index) ;
+//                ( lng != (lng_num-1) ) ? cout << ", " : cout << endl ;
+//            }
+//            if( lat == (lat_num-1) ) cout << endl ;
+//        }
+//    }
+//    cout << endl ;
+//    cout << "Data contained in average:" << endl ;
+//    for ( int alt = 0 ; alt < alt_num ; ++alt ) {
+//        cout << "alt: " << alt << endl ;
+//        index[0] = alt ;
+//        for ( int lat = 0 ; lat < lat_num ; ++lat ) {
+//            index[1] = lat ;
+//            for ( int lng = 0 ; lng < lng_num ; ++lng ) {
+//                index[2] = lng ;
+//                cout << average.data(index) ;
+//                ( lng != (lng_num-1) ) ? cout << ", " : cout << endl ;
+//            }
+//            if( lat == (lat_num-1) ) cout << endl ;
+//        }
+//    }
     // fill in missing values with average values
 
     for ( int alt = 0 ; alt < alt_num ; ++alt ) {
@@ -208,7 +241,8 @@ void netcdf_profile::fill_missing() {
             for ( int lng = 0 ; lng < lng_num ; ++lng ) {
                 index[2] = lng ;
                 double value = data(index) ;
-                if ( isnan( value ) ) {
+                if ( isnan(value) ) {
+//                    cout << "found NaN, filling with average: " << value << endl ;
                     data( index, average.data(index) ) ;
                 }
             }
