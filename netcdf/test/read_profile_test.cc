@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE( span_profile ) {
     // each row is a depth, cycle through all longitudes
     // before moving to next latitude
 
-    std::ofstream ofile( USML_TEST_DIR "/netcdf/span_profile.csv" ) ;
+    std::ofstream ofile( USML_TEST_DIR "/netcdf/test/span_profile.csv" ) ;
 
     // print header row
     ofile << "depth" ;
