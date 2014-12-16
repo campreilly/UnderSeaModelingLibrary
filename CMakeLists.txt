@@ -63,10 +63,10 @@ else( CMAKE_COMPILER_IS_GNUCXX )
     endif()
     if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) ) # no optimizations
         if ( GPROF_PROFILER )                	# Profile Function Timing
-            add_definitions( -pg -O0 )
+            add_definitions( -pg -O1 )
             set ( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg" )
         else()
-            add_definitions( -O0 )
+            add_definitions( -O1 )
         endif ( GPROF_PROFILER )
     else()                              	# max optimizations
         if ( GPROF_PROFILER )                	# Profile Function Timing
