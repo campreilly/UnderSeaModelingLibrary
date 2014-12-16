@@ -109,14 +109,14 @@ class USML_DECLSPEC wave_front {
         /**
          * Accessor to the attenuation matrix inside of a wavefront.
          */
-        inline vector<double> getAttenuation( unsigned de, unsigned az) const {
+        inline vector<double> attenuation( unsigned de, unsigned az) const {
             return attenuation(de,az) ;
         }
 
         /**
          * Accessor to the path_length matrix inside of a wavefront.
          */
-        inline double getPath_length( unsigned de, unsigned az) const {
+        inline double path_length( unsigned de, unsigned az) const {
             return path_length(de,az) ;
         }
 
