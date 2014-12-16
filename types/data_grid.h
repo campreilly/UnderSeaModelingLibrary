@@ -202,7 +202,7 @@ class data_grid {
          * Output data_grid to netcdf file.
          * @param filename      name of the netcdf file to output to
          */
-        void write_data_grid( const char* filename ) {
+        void write_netcdf( const char* filename ) {
 
             NcFile* _file = new NcFile( filename, NcFile::Replace ) ;
 
