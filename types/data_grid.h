@@ -211,7 +211,9 @@ class data_grid {
             NcDim** axis_size = new NcDim*[NUM_DIMS] ;
             NcVar* earth_radius = _file->add_var( "earth_radius", ncDouble, 0 ) ;
             earth_radius->put( &wposition::earth_radius, 1 ) ;
-            size_type* data_size = new size_type[NUM_DIMS] ;
+            long* data_size = new long[NUM_DIMS] ; 
+				// Note: Using size_type instead of long for this variable
+			    // doesn't work on VC++ 32 bit, data_var->put() requires long.
             NcType type ;
             const std::type_info& dt = typeid(DATA_TYPE) ;
             const char* dtype = dt.name() ;
@@ -223,10 +225,10 @@ class data_grid {
                 type = ncInt ;
             }
 
-            for(size_type i=0; i < NUM_DIMS; ++i) {
+            for(long i=0; i < NUM_DIMS; ++i) {
                 std::stringstream ss ;
                 ss << "axis" << i ;
-                const char* name = ss.str() ;
+                const char* name = ss.str().c_str() ;
                 axis_dim[i] = _file->add_dim( name, _axis[i]->size() ) ;
                 axis_size[i] = axis_dim[i] ;
                 axis_var[i] = _file->add_var( name, type, axis_dim[i] ) ;
