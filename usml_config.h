@@ -15,6 +15,8 @@
 	#else
         #define USML_DECLSPEC __declspec(dllimport)
 	#endif
+    #define USML_DLLEXPORT __declspec(dllexport)
 #else
     #define USML_DECLSPEC 
+    #define USML_DLLEXPORT 
 #endif

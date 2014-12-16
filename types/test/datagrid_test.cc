@@ -5,12 +5,8 @@
 #include <usml/types/types.h>
 #include <iostream>
 #include <stdio.h>
-#ifdef WIN32
-#include "sys_time_win32.h"
-#else
-#include <sys/time.h>
-#endif
 #include <usml/netcdf/netcdf_files.h>
+#include <boost/timer/timer.hpp>
 
 BOOST_AUTO_TEST_SUITE(datagrid_test)
 
@@ -330,34 +326,27 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
         spot[1] = param * randgen::uniform();
         location(i,0) = spot ;
     }
-
-    struct timeval time ;
-    struct timezone zone ;
-    gettimeofday( &time, &zone ) ;
-    double start = time.tv_sec + time.tv_usec * 1e-6 ;
-    while ( counter != num_points ) {
-        grid->interpolate( location(counter, 0) );
-        ++counter;
-    }
-    gettimeofday( &time, &zone ) ;
-    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
-
-	cout << "Time to complete interpolation using data_grid method was "
-		 << (complete-start) << " sec." << endl;
+	{
+		cout << "Interpolation using data_grid method" << endl ;
+		boost::timer::auto_cpu_timer timer ;
+		counter = 0 ;
+		while ( counter != num_points ) {
+			grid->interpolate( location(counter, 0) );
+			++counter;
+		}
+	}
 
     data_grid_bathy* fast_grid = new data_grid_bathy(grid, true);
-    counter = 0 ;
-    gettimeofday( &time, &zone ) ;
-    start = time.tv_sec + time.tv_usec * 1e-6 ;
-    while ( counter != num_points ) {
-        fast_grid->interpolate( location(counter, 0) );
-        ++counter;
-    }
-    gettimeofday( &time, &zone ) ;
-    complete = time.tv_sec + time.tv_usec * 1e-6 ;
+	{
+		cout << "Interpolation using fast_grid method" << endl ;
+		boost::timer::auto_cpu_timer timer ;
+		counter = 0 ;
+		while ( counter != num_points ) {
+			fast_grid->interpolate( location(counter, 0) );
+			++counter;
+		}
+	}
 
-	cout << "Time to complete interpolation using fast_grid method was "
-		 << (complete-start) << " sec." << endl ;
     delete fast_grid ;
     delete ax[0] ;
     delete ax[1] ;

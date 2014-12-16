@@ -20,11 +20,7 @@
 #include <usml/netcdf/netcdf_files.h>
 #include <fstream>
 #include <iomanip>
-#ifdef WIN32
-#include "sys_time_win32.h"
-#else
-#include <sys/time.h>
-#endif
+#include <boost/timer/timer.hpp>
 
 using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
@@ -110,25 +106,23 @@ int main( int argc, char* argv[] ) {
 	wave.addEigenrayListener(&loss) ;
 
     // propagate wavefront
-	#ifdef USML_DEBUG
+
+    #ifdef USML_DEBUG
         cout << "writing wavefronts to " << ncname_wave << endl;
 
         wave.init_netcdf( ncname_wave );
         wave.save_netcdf();
     #endif
+
     cout << "propagate wavefronts for " << time_max << " secs" << endl ;
-    struct timeval time ;
-    struct timezone zone ;
-    gettimeofday( &time, &zone ) ;
-    double start = time.tv_sec + time.tv_usec * 1e-6 ;
-    while ( wave.time() < time_max ) {
-        wave.step() ;
-        #ifdef USML_DEBUG
-            wave.save_netcdf();
-        #endif
+    {
+        boost::timer::auto_cpu_timer timer ;
+        while ( wave.time() < time_max ) {
+            wave.step() ;
+        }
     }
 
-	#ifdef USML_DEBUG
+    #ifdef USML_DEBUG
         wave.close_netcdf();
 
         // compute coherent propagation loss and write eigenrays to disk
@@ -164,13 +158,5 @@ int main( int argc, char* argv[] ) {
                << "," << ray.caustic
                << endl;
         }
-	#endif
-
-
-    gettimeofday( &time, &zone ) ;
-    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
-    cout << "Progating for " << time_max << " sec with "
-         << ( target.size1() * target.size2() ) << " targets took "
-         << (complete-start) << " sec."
-         << endl ;
+    #endif
 }

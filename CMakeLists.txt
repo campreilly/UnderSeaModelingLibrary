@@ -102,6 +102,9 @@ set(Boost_ADDITIONAL_VERSIONS
 )
 find_package( Boost 1.41 REQUIRED COMPONENTS
     unit_test_framework        # for usml_test.exe
+	timer					   # for duration of tests
+	chrono					   # needed by timer
+	system					   # needed by chrono
     )
 if( Boost_FOUND )
     include_directories( ${Boost_INCLUDE_DIR} )
