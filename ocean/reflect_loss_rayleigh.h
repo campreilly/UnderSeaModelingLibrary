@@ -1,11 +1,8 @@
 /**
  * @file reflect_loss_rayleigh.h
  * Models plane wave reflection from a flat fluid-solid interface.
- * Includes LaTEX documentation of formula for processing by Doxygen.
  */
-
-#ifndef USML_OCEAN_REFLECT_LOSS_RAYLEIGH_H
-#define USML_OCEAN_REFLECT_LOSS_RAYLEIGH_H
+#pragma once
 
 #include <usml/ocean/reflect_loss_model.h>
 
@@ -18,8 +15,8 @@ using boost::numeric::ublas::vector;
 /// @{
 
 /**
- * Models plane wave reflection loss from a flat fluid-solid interface.
- * Includes the effects of both compression and shear waves in the bottom.
+ * Models bottom loss from a flat fluid-solid interface. Includes the effects of both compression and shear waves in the bottom.
+ * This model is only used for bottom reflection.
  * Note that the Rayleigh model is frequency independent because
  * all of the frequency terms cancel out.
  *
@@ -146,24 +143,6 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
             const seq_vector& frequencies, double angle,
             vector<double>* amplitude, vector<double>* phase=NULL ) ;
 
-        /**
-         * Computes the broadband reflection loss and phase change for
-         * multiple locations.
-         *
-         * @param location      Location at which to compute attenuation.
-         * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param angle         Reflection angle relative to the normal (radians).
-         * @param amplitude     Change in ray strength in dB (output).
-         *                      Where vector<vector<double>(size locations)>(size freqs)
-         * @param phase         Change in ray phase in radians (output).
-         *                      Phase change not computed if this is NULL.
-         * @param linear        returns the value back in linear or log units.
-         */
-        virtual void reflect_loss( const wposition& location,
-            const seq_vector& frequencies, vector<double>* angle,
-            vector<vector<double> >* amplitude,
-            vector<vector<double> >* phase=NULL, bool linear=false ) ;
-
     private:
 
         /**
@@ -186,30 +165,6 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
         complex<double> impedance(
             double density, double speed, double attenuation, double angle,
             complex< double >* cosA, bool shear ) ;
-
-        /**
-         * Computes the impedance for compression or shear waves with attenuation.
-         * Includes the Snell's Law computation of transmitted angle.
-         *
-         * @param density       Ratio of bottom density to water density
-         *                      Water density is assumed to be 1000 kg/m^3.
-         * @param speed         Ratio of compressional sound speed in the bottom to
-         *                      the sound speed in water. The sound speed in water
-         *                      is assumed to be 1500 m/s.
-         * @param attenuation   Compressional wave attenuation in bottom
-         *                      (dB/wavelength).  No attenuation if this is zero.
-         * @param angle         Reflection angle relative to the normal (radians).
-         * @param cosA          Returns the cosine of the transmitted angle
-         *                      computed using Snell's Law.
-         * @param shear         Treat impendance for shear instances as special
-         *                      cases.
-         */
-        vector<complex<double> > impedance( double density, double speed,
-                                            double attenuation, vector<double> angle,
-                                            vector<complex<double> >* cosA, bool shear ) ;
-
-
-        // data members
 
         /** Bottom types lookup table. */
         static struct bottom_type_table {
@@ -250,5 +205,3 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

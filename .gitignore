@@ -16,4 +16,6 @@
 /*.ldb
 /*.eap
 /integ
-usml.spec
+/usml.spec
+/.project
+/.cproject

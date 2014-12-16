@@ -13,9 +13,9 @@
 %       surface         surface reflections (count)
 %       bottom          bottom reflections (count)
 %       caustic         caustics encounters (count)
-%       upper          	upper vertices (count)
-%       lower          	lower vertices (count)
-%       on_edge         on edge (bool)
+%       upper           upper vertices (count)
+%       lower           lower vertices (count)
+%       on_edge         state of on_edge-ness (bool)
 %
 function wavefront = load_wavefront( filename )
 

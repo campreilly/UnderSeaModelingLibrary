@@ -5,8 +5,6 @@
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/waveq3d/reverberation_model.h>
-#include <usml/waveq3d/wave_queue_reverb.h>
-#include <usml/utilities/SharedPointerManager.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -21,7 +19,6 @@ BOOST_AUTO_TEST_SUITE(reflection_test)
 using namespace boost::unit_test ;
 using namespace usml::netcdf ;
 using namespace usml::waveq3d ;
-using namespace usml::utilities ;
 using namespace boost::numeric::ublas ;
 
 /**
@@ -29,232 +26,234 @@ using namespace boost::numeric::ublas ;
  * @{
  */
 
-/**
- * Monitor callbacks from reflection model.
- */
-class reflection_callback : public usml::waveq3d::reverberation_model {
+//@todo reflect_flat_test disabled until reverb model delivered
 
-public:
-    int counter ;
-    double time ;
-    wposition1 position ;
-    wvector1 ndirection ;
-    bool surface ;
-    bool bottom ;
-
-    /**
-     * Initialize counter.
-     */
-    reflection_callback() : counter(0), time (0.0) {}
-
-    virtual ~reflection_callback() {}
-
-    /**
-     * Record a collision of a single ray with a reverberation surface.
-     */
-    virtual void notifyUpperCollision( unsigned de, unsigned az,
-               double dt, double grazing, double speed,
-               const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, unsigned ID )
-    {
-        ++counter ;
-        this->surface = true ;
-        this->time = time + dt ;
-        this->position = position ;
-        this->ndirection = ndirection ;
-    }
-
-    virtual void notifyLowerCollision( unsigned de, unsigned az,
-               double dt, double grazing, double speed,
-               const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, unsigned ID )
-    {
-        ++counter ;
-        this->bottom = true ;
-        this->time = time + dt ;
-        this->position = position ;
-        this->ndirection = ndirection ;
-    }
-
-    virtual void compute_reverberation() {}
-
-    virtual const vector<double> getReverberation_curve() {
-        vector<double> t ;
-        return t ;
-    }
-
-};
-
-/**
- * Bottom and surface reflection in a flat bottomed isovelocity ocean.
- * Constructs a geometry in which the changes in latitude
- * and travel time between bounces can be calculated analytically.
- * The following equations predict the path of a downwardly
- * steered ray, given a \f$ \Delta \theta \f$ = latitude change
- * between the surface and the bottom.
- * \f[
- *      s^2 = R_1^2 + R_2^2 - 2 R_1 R_2 cos( \Delta \theta )
- * \f]\f[
- *      sin(\gamma_s) = \frac{ R_1^2 - R_2^2 + s^2 }
- *                         { 2 R_1 s }
- * \f]\f[
- *      \tau = s / c
- * \f]
- * where:
- *      - \f$ R_1 \f$ = radius to ocean surface
- *      - \f$ R_2 \f$ = radius to ocean bottom
- *      - \f$ R_2 - R_1 \f$ = ocean depth
- *      - \f$ \Delta\theta \f$ = latitude change between
- *        the surface and the bottom.
- *      - \f$ s \f$ = path length from surface to bottom
- *      - \f$ \gamma_s \f$ = grazing angle at surface
- *        = ray launch angle
- *      - \f$ \gamma_b  \f$ = grazing angle at bottom
- *        = \f$ \gamma_s - \Delta\theta \f$
- *      - \f$ c      \f$ = sound speed
- *      - \f$ \tau   \f$ = travel time between the surface and the bottom.
- *
- * Selecting \f$ \gamma \f$ to make the latitude change exactly 0.1 degrees
- * yields the following test values.
- *
- *      - \f$ R_1 \f$ = 6378101.030201019 m
- *      - \f$ R_2 \f$ = \f$ R_1 \f$ - 1000 m
- *      - \f$ \Delta \theta \f$ = 0.1 deg
- *      - \f$ s   \f$ = 11,175.841460125 m
- *      - \f$ \gamma_s \f$ = 5.183617057 deg
- *      - \f$ \gamma_b \f$ = 5.083617057 deg
- *      - \f$ c      \f$ = 1500 m/sec
- *      - \f$ \tau   \f$ = 7.450560973 sec
- *
- * Uses a 100 millisecond time step so that the time and location of the
- * collision can be compared to the analytic values without breaking
- * into the guts of the reflection model.
- */
-BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
-    cout << "=== reflection_test: reflect_flat_test ===" << endl ;
-    try {
-
-        typedef reflection_callback     test_callback ;
-        typedef SharedPointerManager<reverberation_model>    Manager ;
-
-        const double src_lat = 45.0; // default to 45 degrees
-
-        // initialize propagation model
-
-        // Ensure static (global scope of test framework) set
-        wposition::compute_earth_radius(src_lat) ;
-        const double c0 = 1500.0 ;
-        profile_model*  profile = new profile_linear(c0) ;
-        boundary_model* surface = new boundary_flat() ;
-        boundary_model* bottom  = new boundary_flat(1000.0) ;
-        ocean_model ocean( surface, bottom, profile ) ;
-
-        seq_log freq( 10.0, 10.0, 1 ) ;
-        wposition1 pos( 45.0, -45.0, 0.0 ) ;
-        seq_linear de( -5.183617057, 0.0, 1 ) ;  // steer down
-        seq_linear az( 0.0, 0.0, 1 ) ;           // north
-        const double time_step = 0.1 ;           // 100 msec
-        const double max_time = 60.0 ;           // maximum travel time
-
-        wave_queue_reverb wave( ocean, freq, pos, de, az, time_step ) ;
-        Manager test_reverb( new test_callback() ) ;
-        wave.setReverberation_Model( test_reverb ) ;
-        test_callback* callback = (test_callback*)test_reverb.getPointer() ;
-        int old_counter = callback->counter ;
-        double max_time_error = 0.0 ;
-        double max_lat_error = 0.0 ;
-
-        // initialize output to spreadsheet file
-
-        const char* name = USML_TEST_DIR "/waveq3d/test/reflect_flat_test.csv" ;
-        std::ofstream os(name) ;
-        cout << "Writing tables to " << name << endl ;
-
-        os << "t,"
-           << "lat,lng,alt,"
-           << "de,az,bot,srf,cst,"
-           << "r,theta,phi,"
-           << "rd,thd,phid,"
-           << "mu,eta,nu,"
-           << "mud,etad,nud,"
-           << "c,dcdz"
-           << endl ;
-        os << std::scientific << std::showpoint << std::setprecision(18) ;
-
-        cout << "time step = " << time_step << " secs" << endl ;
-
-        // propagate rays to stimulate bottom and surface reflections
-
-        int bounce = 0 ;
-        while ( wave.time() < max_time ) {
-
-            // write to spreadsheet file
-
-            wvector1 ndir( wave.curr()->ndirection, 0, 0 ) ;
-            double de, az ;
-            ndir.direction( &de, &az ) ;
-
-            os << wave.time() << ','
-               << wave.curr()->position.latitude(0,0) << ','
-               << wave.curr()->position.longitude(0,0) << ','
-               << wave.curr()->position.altitude(0,0) << ','
-               << de << "," << az << ","
-               << wave.curr()->surface(0,0) << ','
-               << wave.curr()->bottom(0,0) << ','
-               << wave.curr()->caustic(0,0) << ','
-               << wave.curr()->position.rho(0,0) << ','
-               << wave.curr()->position.theta(0,0) << ','
-               << wave.curr()->position.phi(0,0) << ','
-               << wave.curr()->pos_gradient.rho(0,0) << ','
-               << wave.curr()->pos_gradient.theta(0,0) << ','
-               << wave.curr()->pos_gradient.phi(0,0) << ','
-               << wave.curr()->ndirection.rho(0,0) << ','
-               << wave.curr()->ndirection.theta(0,0) << ','
-               << wave.curr()->ndirection.phi(0,0) << ','
-               << wave.curr()->ndir_gradient.rho(0,0) << ','
-               << wave.curr()->ndir_gradient.theta(0,0) << ','
-               << wave.curr()->ndir_gradient.phi(0,0) << ','
-               << wave.curr()->sound_speed(0,0) << ','
-               << wave.curr()->sound_gradient.rho(0,0) << endl ;
-
-            // move wavefront to next time step
-
-            wave.step() ;
-
-            // check location and time of reflections against analytic result
-
-            if ( old_counter != callback->counter ) {
-                old_counter = callback->counter ;
-                ++bounce ;
-
-                double predict_time = bounce * 7.450560973 ;
-                double current_time = callback->time ;
-                double predict_lat = 45.0 + bounce * 0.1 ;
-                double current_lat = callback->position.latitude() ;
-
-                if ( callback->surface ) { cout << "surface" ; callback->surface = false ; }
-                if ( callback->bottom ) { cout << "bottom " ; callback->bottom = false ; }
-                cout << " reflection at t=" << current_time
-                     << " lat=" << current_lat
-                     << endl ;
-
-                double time_error = abs( current_time - predict_time ) ;
-                max_time_error = max( time_error, max_time_error ) ;
-                BOOST_CHECK_SMALL( time_error, 1e-4 ) ;
-
-                double lat_error = abs( current_lat - predict_lat ) ;
-                max_lat_error = max( lat_error, max_lat_error ) ;
-                BOOST_CHECK_SMALL( lat_error, 1e-6 ) ;
-            }
-        }
-        cout << "wave propagates for " << wave.time() << " secs" << endl
-             << "max_time_error = " << max_time_error << " secs "
-             << "max_lat_error = " << max_lat_error  << " deg " << endl ;
-
-    } catch ( std::exception* except ) {
-        BOOST_ERROR( except->what() ) ;
-    }
-}
+///**
+// * Monitor callbacks from reflection model.
+// */
+//class reflection_callback : public usml::waveq3d::reverberation_model {
+//
+//public:
+//    int counter ;
+//    double time ;
+//    wposition1 position ;
+//    wvector1 ndirection ;
+//    bool surface ;
+//    bool bottom ;
+//
+//    /**
+//     * Initialize counter.
+//     */
+//    reflection_callback() : counter(0), time (0.0) {}
+//
+//    virtual ~reflection_callback() {}
+//
+//    /**
+//     * Record a collision of a single ray with a reverberation surface.
+//     */
+//    virtual void notifyUpperCollision( unsigned de, unsigned az,
+//               double dt, double grazing, double speed,
+//               const wposition1& position, const wvector1& ndirection,
+//               const wave_queue& wave, unsigned ID )
+//    {
+//        ++counter ;
+//        this->surface = true ;
+//        this->time = time + dt ;
+//        this->position = position ;
+//        this->ndirection = ndirection ;
+//    }
+//
+//    virtual void notifyLowerCollision( unsigned de, unsigned az,
+//               double dt, double grazing, double speed,
+//               const wposition1& position, const wvector1& ndirection,
+//               const wave_queue& wave, unsigned ID )
+//    {
+//        ++counter ;
+//        this->bottom = true ;
+//        this->time = time + dt ;
+//        this->position = position ;
+//        this->ndirection = ndirection ;
+//    }
+//
+//    virtual void compute_reverberation() {}
+//
+//    virtual const vector<double> getReverberation_curve() {
+//        vector<double> t ;
+//        return t ;
+//    }
+//
+//};
+//
+///**
+// * Bottom and surface reflection in a flat bottomed isovelocity ocean.
+// * Constructs a geometry in which the changes in latitude
+// * and travel time between bounces can be calculated analytically.
+// * The following equations predict the path of a downwardly
+// * steered ray, given a \f$ \Delta \theta \f$ = latitude change
+// * between the surface and the bottom.
+// * \f[
+// *      s^2 = R_1^2 + R_2^2 - 2 R_1 R_2 cos( \Delta \theta )
+// * \f]\f[
+// *      sin(\gamma_s) = \frac{ R_1^2 - R_2^2 + s^2 }
+// *                         { 2 R_1 s }
+// * \f]\f[
+// *      \tau = s / c
+// * \f]
+// * where:
+// *      - \f$ R_1 \f$ = radius to ocean surface
+// *      - \f$ R_2 \f$ = radius to ocean bottom
+// *      - \f$ R_2 - R_1 \f$ = ocean depth
+// *      - \f$ \Delta\theta \f$ = latitude change between
+// *        the surface and the bottom.
+// *      - \f$ s \f$ = path length from surface to bottom
+// *      - \f$ \gamma_s \f$ = grazing angle at surface
+// *        = ray launch angle
+// *      - \f$ \gamma_b  \f$ = grazing angle at bottom
+// *        = \f$ \gamma_s - \Delta\theta \f$
+// *      - \f$ c      \f$ = sound speed
+// *      - \f$ \tau   \f$ = travel time between the surface and the bottom.
+// *
+// * Selecting \f$ \gamma \f$ to make the latitude change exactly 0.1 degrees
+// * yields the following test values.
+// *
+// *      - \f$ R_1 \f$ = 6378101.030201019 m
+// *      - \f$ R_2 \f$ = \f$ R_1 \f$ - 1000 m
+// *      - \f$ \Delta \theta \f$ = 0.1 deg
+// *      - \f$ s   \f$ = 11,175.841460125 m
+// *      - \f$ \gamma_s \f$ = 5.183617057 deg
+// *      - \f$ \gamma_b \f$ = 5.083617057 deg
+// *      - \f$ c      \f$ = 1500 m/sec
+// *      - \f$ \tau   \f$ = 7.450560973 sec
+// *
+// * Uses a 100 millisecond time step so that the time and location of the
+// * collision can be compared to the analytic values without breaking
+// * into the guts of the reflection model.
+// */
+//BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
+//    cout << "=== reflection_test: reflect_flat_test ===" << endl ;
+//    try {
+//
+//        typedef reflection_callback     test_callback ;
+//        typedef SharedPointerManager<reverberation_model>    Manager ;
+//
+//        const double src_lat = 45.0; // default to 45 degrees
+//
+//        // initialize propagation model
+//
+//        // Ensure static (global scope of test framework) set
+//        wposition::compute_earth_radius(src_lat) ;
+//        const double c0 = 1500.0 ;
+//        profile_model*  profile = new profile_linear(c0) ;
+//        boundary_model* surface = new boundary_flat() ;
+//        boundary_model* bottom  = new boundary_flat(1000.0) ;
+//        ocean_model ocean( surface, bottom, profile ) ;
+//
+//        seq_log freq( 10.0, 10.0, 1 ) ;
+//        wposition1 pos( 45.0, -45.0, 0.0 ) ;
+//        seq_linear de( -5.183617057, 0.0, 1 ) ;  // steer down
+//        seq_linear az( 0.0, 0.0, 1 ) ;           // north
+//        const double time_step = 0.1 ;           // 100 msec
+//        const double max_time = 60.0 ;           // maximum travel time
+//
+//        wave_queue_reverb wave( ocean, freq, pos, de, az, time_step ) ;
+//        Manager test_reverb( new test_callback() ) ;
+//        wave.setReverberation_Model( test_reverb ) ;
+//        test_callback* callback = (test_callback*)test_reverb.getPointer() ;
+//        int old_counter = callback->counter ;
+//        double max_time_error = 0.0 ;
+//        double max_lat_error = 0.0 ;
+//
+//        // initialize output to spreadsheet file
+//
+//        const char* name = USML_TEST_DIR "/waveq3d/test/reflect_flat_test.csv" ;
+//        std::ofstream os(name) ;
+//        cout << "Writing tables to " << name << endl ;
+//
+//        os << "t,"
+//           << "lat,lng,alt,"
+//           << "de,az,bot,srf,cst,"
+//           << "r,theta,phi,"
+//           << "rd,thd,phid,"
+//           << "mu,eta,nu,"
+//           << "mud,etad,nud,"
+//           << "c,dcdz"
+//           << endl ;
+//        os << std::scientific << std::showpoint << std::setprecision(18) ;
+//
+//        cout << "time step = " << time_step << " secs" << endl ;
+//
+//        // propagate rays to stimulate bottom and surface reflections
+//
+//        int bounce = 0 ;
+//        while ( wave.time() < max_time ) {
+//
+//            // write to spreadsheet file
+//
+//            wvector1 ndir( wave.curr()->ndirection, 0, 0 ) ;
+//            double de, az ;
+//            ndir.direction( &de, &az ) ;
+//
+//            os << wave.time() << ','
+//               << wave.curr()->position.latitude(0,0) << ','
+//               << wave.curr()->position.longitude(0,0) << ','
+//               << wave.curr()->position.altitude(0,0) << ','
+//               << de << "," << az << ","
+//               << wave.curr()->surface(0,0) << ','
+//               << wave.curr()->bottom(0,0) << ','
+//               << wave.curr()->caustic(0,0) << ','
+//               << wave.curr()->position.rho(0,0) << ','
+//               << wave.curr()->position.theta(0,0) << ','
+//               << wave.curr()->position.phi(0,0) << ','
+//               << wave.curr()->pos_gradient.rho(0,0) << ','
+//               << wave.curr()->pos_gradient.theta(0,0) << ','
+//               << wave.curr()->pos_gradient.phi(0,0) << ','
+//               << wave.curr()->ndirection.rho(0,0) << ','
+//               << wave.curr()->ndirection.theta(0,0) << ','
+//               << wave.curr()->ndirection.phi(0,0) << ','
+//               << wave.curr()->ndir_gradient.rho(0,0) << ','
+//               << wave.curr()->ndir_gradient.theta(0,0) << ','
+//               << wave.curr()->ndir_gradient.phi(0,0) << ','
+//               << wave.curr()->sound_speed(0,0) << ','
+//               << wave.curr()->sound_gradient.rho(0,0) << endl ;
+//
+//            // move wavefront to next time step
+//
+//            wave.step() ;
+//
+//            // check location and time of reflections against analytic result
+//
+//            if ( old_counter != callback->counter ) {
+//                old_counter = callback->counter ;
+//                ++bounce ;
+//
+//                double predict_time = bounce * 7.450560973 ;
+//                double current_time = callback->time ;
+//                double predict_lat = 45.0 + bounce * 0.1 ;
+//                double current_lat = callback->position.latitude() ;
+//
+//                if ( callback->surface ) { cout << "surface" ; callback->surface = false ; }
+//                if ( callback->bottom ) { cout << "bottom " ; callback->bottom = false ; }
+//                cout << " reflection at t=" << current_time
+//                     << " lat=" << current_lat
+//                     << endl ;
+//
+//                double time_error = abs( current_time - predict_time ) ;
+//                max_time_error = max( time_error, max_time_error ) ;
+//                BOOST_CHECK_SMALL( time_error, 1e-4 ) ;
+//
+//                double lat_error = abs( current_lat - predict_lat ) ;
+//                max_lat_error = max( lat_error, max_lat_error ) ;
+//                BOOST_CHECK_SMALL( lat_error, 1e-6 ) ;
+//            }
+//        }
+//        cout << "wave propagates for " << wave.time() << " secs" << endl
+//             << "max_time_error = " << max_time_error << " secs "
+//             << "max_lat_error = " << max_lat_error  << " deg " << endl ;
+//
+//    } catch ( std::exception* except ) {
+//        BOOST_ERROR( except->what() ) ;
+//    }
+//}
 
 /**
  * Modified version of the reflect_flat_test() in which the bottom

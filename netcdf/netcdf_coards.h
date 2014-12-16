@@ -158,7 +158,7 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
         this->_data = new DATA_TYPE[N] ;
         for ( unsigned n=0 ; n < N ; ++n ) {
             this->_data[n] = (DATA_TYPE) values->as_double(n) ;
-            if ( !isnan(missing) ) {
+            if ( ! isnan(missing) ) {
             	if ( this->_data[n] == missing ) {
             		this->_data[n] = filling ;
             	}

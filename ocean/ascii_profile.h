@@ -2,8 +2,7 @@
  * @file ascii_profile.h
  * Read a 1-D profile from a text file.
  */
-#ifndef USML_ASCII_PROFILE_H
-#define USML_ASCII_PROFILE_H
+#pragma once
 
 #include <usml/ocean/ocean.h>
 
@@ -35,5 +34,3 @@ class USML_DECLSPEC ascii_profile : public data_grid<double,1> {
 
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

@@ -4,7 +4,7 @@
  */
 #include <usml/waveq3d/wave_front.h>
 
-//#define DBEUG_SSP
+//#define DEBUG_SSP
 
 using namespace usml::waveq3d ;
 
@@ -31,9 +31,9 @@ wave_front::wave_front(
     path_length( num_de, num_az ),
     surface( num_de, num_az ),
     bottom( num_de, num_az ),
+    caustic( num_de, num_az ),
     upper( num_de, num_az ),
     lower( num_de, num_az ),
-    caustic( num_de, num_az ),
     on_edge( num_de, num_az ),
     targets( targets ),
     _ocean( ocean ),
@@ -49,9 +49,9 @@ wave_front::wave_front(
     path_length.clear() ;
     surface.clear() ;
     bottom.clear() ;
+    caustic.clear() ;
     upper.clear() ;
     lower.clear() ;
-    caustic.clear() ;
     on_edge.clear() ;
 
     for ( unsigned n1=0 ; n1 < num_de ; ++n1 ) {

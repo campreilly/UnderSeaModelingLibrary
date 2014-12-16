@@ -53,17 +53,17 @@ int main( int argc, char* argv[] ) {
     wposition1 pos( 36.0, 16.0, -10.0 ) ;
     seq_rayfan de( -90.0, 90.0, 181 ) ;
     seq_linear az( 0.0, 15.0, 360.0 ) ;
-//    seq_linear de( -32.3182, 1.0, 3 ) ;
-//    seq_linear az( 105, 1.0, 3 ) ;
+//    seq_linear de( -90, 1.0, 5 ) ;
+//    seq_linear az( 0, 15.0, 3 ) ;
     const double time_max = 60.0 ;
     const double time_step = 0.100 ;
 
     seq_log freq( 3000.0, 1.0, 1 ) ;
 
     #ifdef USML_DEBUG
-        const char* csvname = "ray_speed_eigenray.csv";
-        const char* ncname = "ray_speed_eigenray.nc";
-        const char* ncname_wave = "ray_speed_eigenray_wave.nc";
+        const char* csvname = USML_STUDIES_DIR "/ray_speed/ray_speed_eigenray.csv";
+        const char* ncname = USML_STUDIES_DIR "/ray_speed/ray_speed_eigenray.nc";
+        const char* ncname_wave = USML_STUDIES_DIR "/ray_speed/ray_speed_eigenray_wave.nc";
     #endif
 
     // build sound velocity profile from World Ocean Atlas data
@@ -81,8 +81,10 @@ int main( int argc, char* argv[] ) {
     data_grid<double,3>* ssp = data_grid_mackenzie::construct( temperature, salinity ) ;
     data_grid_svp* fast_ssp = new data_grid_svp(ssp, true) ;
     profile_model* profile = new profile_grid_fast( fast_ssp ) ;
+//    profile_model* profile = new profile_grid<double,3>( ssp ) ;
 //    attenuation_model* attn = new attenuation_constant(0.0);
 //    profile_model* profile = new profile_linear(1500.0,attn);
+//    profile_model* profile = new profile_linear() ;
 
     // load bathymetry from ETOPO1 database
 
@@ -92,11 +94,11 @@ int main( int argc, char* argv[] ) {
     cout << "load bathymetry from ETOPO1 database" << endl ;
     boundary_model* bottom = new boundary_grid_fast( fast_grid ) ;
 
-//	bottom->reflect_loss(new reflect_loss_constant(0.0));
 //    boundary_model* bottom = new boundary_flat(3000.0);
-    double height ;
-    wvector1 normal ;
-    bottom->height( pos, &height, &normal ) ;
+//	bottom->reflect_loss(new reflect_loss_constant(0.0));
+//    double height ;
+//    wvector1 normal ;
+//    bottom->height( pos, &height, &normal ) ;
 
     // combine sound speed and bathymetry into ocean model
 
@@ -115,7 +117,7 @@ int main( int argc, char* argv[] ) {
 
     proploss loss(freq, pos, de, az, time_step, &target);
 	wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
-	wave.addEigenrayListener(&loss);
+	wave.addEigenrayListener(&loss) ;
 
     // propagate wavefront
 	#ifdef USML_DEBUG

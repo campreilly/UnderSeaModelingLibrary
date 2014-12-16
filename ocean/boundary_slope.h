@@ -2,9 +2,7 @@
  * @file boundary_slope.h
  * Models a sloping flat bottom.
  */
-
-#ifndef USML_OCEAN_BOUNDARY_SLOPE_H
-#define USML_OCEAN_BOUNDARY_SLOPE_H
+#pragma once
 
 #include <usml/ocean/boundary_model.h>
 
@@ -103,5 +101,3 @@ class USML_DECLSPEC boundary_slope : public boundary_model {
 /// @}
 }  // end of namespace ocean
 }  // end of namespace usml
-
-#endif

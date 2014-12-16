@@ -235,7 +235,8 @@ BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
 
     grid->interp_type(0,GRID_INTERP_PCHIP);
     grid->interp_type(1,GRID_INTERP_PCHIP);
-    std::ofstream before("usml_ascii_arc_interp_before_boundary_grid.csv");
+    std::ofstream before( USML_TEST_DIR
+    		"/ocean/test/usml_ascii_arc_interp_before_boundary_grid.csv") ;
     for(int i=0; i<grid->axis(0)->size(); ++i) {
         before << to_latitude((*(grid->axis(0)))[i]) << ",";
         for(int j=0; j<grid->axis(1)->size(); ++j) {
@@ -253,7 +254,8 @@ BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
     }
 
     boundary_grid<double,2> bottom(grid) ;
-    std::ofstream after("usml_ascii_arc_interp_after_boundary_grid.csv");
+    std::ofstream after( USML_TEST_DIR
+    		"/ocean/test/usml_ascii_arc_interp_after_boundary_grid.csv");
     for(int i=0; i<grid->axis(0)->size(); ++i) {
         after << to_latitude((*(grid->axis(0)))[i]) << ",";
         for(int j=0; j<grid->axis(1)->size(); ++j) {
@@ -292,21 +294,45 @@ BOOST_AUTO_TEST_CASE( scattering_strength_test ) {
     vector<double> amplitude( freq.size() ) ;
     vector<double> phase( freq.size() ) ;
     scattering_model* s = new scattering_lambert() ;
-    const double angleS = M_PI / 4.0 ;
+    const double de_scattered = M_PI / 4.0 ;
 
     const char* csv_name = USML_TEST_DIR "/ocean/test/scattering_lambert_test.csv" ;
     std::ofstream os(csv_name) ;
     cout << "writing tables to " << csv_name << endl ;
-    os << "angleI,angleS,amp" << endl ;
+    os << "de_incident,de_scattered,amp" << endl ;
     for(int i=0; i<90; ++i) {
-        double angleI = i * M_PI / 180.0 ;
-        s->scattering_strength( pos, freq, angleI, angleS,
-                                0.0, 0.0, &amplitude, &phase ) ;
-        os << angleI << ","
-           << angleS << ","
+        double de_incident = i * M_PI / 180.0 ;
+        s->scattering( pos, freq, de_incident, de_scattered, 0.0, 0.0, &amplitude ) ;
+        os << de_incident << ","
+           << de_scattered << ","
            << amplitude(0) << endl ;
     }
     delete s ;
+}
+
+/**
+ * Test the basics of creating an ocean volume layer,
+ */
+BOOST_AUTO_TEST_CASE( ocean_volume_test ) {
+    cout << "=== boundary_test: ocean_volume_test ===" << endl;
+
+    ocean_model ocean1(
+		new boundary_flat(),
+		new boundary_flat(2000.0),
+		new profile_linear() ) ;
+    ocean1.add_volume( new volume_flat( 1000.0, 10.0, -30.0 ) ) ;
+
+    wposition1 location(0.0,0.0) ;
+    double depth, thickness ;
+    ocean1.volume(0).depth( location, &depth, &thickness ) ;
+    BOOST_CHECK_CLOSE(depth, wposition::earth_radius-1000.0, 1e-6);
+    BOOST_CHECK_CLOSE(thickness, 10.0, 1e-6);
+
+    seq_linear frequencies(10.0,10.0,3) ;
+    boost::numeric::ublas::vector<double> amplitude( frequencies.size() ) ;
+    ocean1.volume(0).scattering( location, frequencies,
+    		0.0, 0.0, 0.0, 0.0, &amplitude ) ;
+    BOOST_CHECK_CLOSE(amplitude(2), 1E-3, 1e-6);
 }
 
 /// @}
