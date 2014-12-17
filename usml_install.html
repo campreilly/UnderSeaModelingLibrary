@@ -16,49 +16,29 @@
     <p>USML depends on the NetCDF package, for access to test data, 
        and the Boost package, for fast computations (uBLAS) and unit test utilities.
        Correctly configuring these packages is the #1 problem reported by USML users.
-       Before you attempt to build and test USML, please read this section carefully.</p>
+       Before you attempt to build and test USML, please read these instructions carefully.</p>
     <h2>External Dependencies</h2>
     This current version of this package has been tested in
     the following environments:
     <ul>
-      <li> Ubuntu Linux 12.04 LTS 32bit (this is USML's primary environment) </li>
+      <li>CentOS 6.6 x86-64 </li>
       <ul>
-        <li> GNU C++ compiler (4.4.3) </li>
         <li>
-          CMake 2.8.7 from <a href="http://www.cmake.org/">http://www.cmake.org/</a>
+          GNU C++ compiler (4.4.7)
+        </li><li>
+          CMake 2.8.122 from <a href="http://www.cmake.org/">http://www.cmake.org/</a>
           (Makefile and Eclipse CDT4 generators)
-        </li>
-        <li>
-          boost 1.48.0 from <a href="http://www.boost.org">http://www.boost.org</a>
-        </li>
-        <li>
-          netcdf 4.1.3 & nco 3.9.9 from
-          <a href="http://www.unidata.ucar.edu/software/netcdf">
-            http://www.unidata.ucar.edu/software/netcdf
-          </a>
-        </li>
-        <li>
-          Doxygen 1.8.6 from <a href="http://www.doxygen.org">http://www.doxygen.org</a>
-        </li>
-      </ul>
-	  <li> Red Hat Enterprise Linux 6.3 x86-64 </li>
-      <ul>
-        <li> GNU C++ compiler (4.4.6)  (Red Hat 4.4.6-4)</li>
-        <li>
-          CMake 2.8.8-4 from <a href="http://www.cmake.org/">http://www.cmake.org/</a>
-          (Makefile and Eclipse CDT4 generators)
-        </li>
-        <li>
-          boost 1.41.0-11 from <a href="http://www.boost.org">http://www.boost.org</a>
-        </li>
-        <li>
-          netcdf 4.1.3 & nco 3.9.9 from
-          <a href="http://www.unidata.ucar.edu/software/netcdf">
-            http://www.unidata.ucar.edu/software/netcdf
-          </a>
-        </li>
-        <li>
-          Doxygen 1.8.6 from <a href="http://www.doxygen.org">http://www.doxygen.org</a>
+        </li><li>
+          boost 1.57.0 from <a href="http://www.boost.org">http://www.boost.org</a>
+        </li><li>
+          netcdf 4.1.2 & nco 3.9.9 from <a href="http://www.unidata.ucar.edu/software/netcdf">
+          http://www.unidata.ucar.edu/software/netcdf</a>
+        </li><li>
+          Doxygen 1.6.1 from <a href="http://www.doxygen.org">http://www.doxygen.org</a>
+        </li><li>
+          Since CentOS is derived from Red Hat Enterprise Linux, 
+          (see <a href="http://community.redhat.com/centos-faq">http://community.redhat.com/centos-faq</a>)
+          this configuration should also work identically in RHEL6.
         </li>
       </ul>
       <li>
@@ -72,8 +52,9 @@
           </a>
         </li>
         <li> CMake 2.8.7 (Visual Studio 10 and NMAKE generators) </li>
-        <li> boost 1.48.0 </li>
-        <li> netcdf 4.1.3 </li>
+        <li> boost 1.57.0 </li>
+        <li> netcdf 4.1.3 from <a href="https://github.com/campreilly/netcdf-4.1.3-with-cmake">
+	 https://github.com/campreilly/netcdf-4.1.3-with-cmake</a>.</li>
       </ul>
     </ul>
     <h3>Setting up Boost package</h3>
@@ -98,6 +79,10 @@
     <li> The pedantic option does not work with Boost 1.52. There are several cases where
          this specific version of Boost uses C++0x features, like long long value, that
          are not supported by c++98.  Turning off the pedantic option works around this issue.
+    <li> Some versions of Boost, using gcc at -O0 optimization levels, fail to properly chain multiple 
+         boost::ublas operations into a single evaluation.  When this happens, the result is 
+         equal to the first operation.  For this reason, we recommend using -O1 as the
+         minimum optimization level.
     </ul>
     <h3>Setting up NetCDF package</h3>
     USML uses Unidata's NetCDF package to access environmental data from
