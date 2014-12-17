@@ -675,7 +675,7 @@ class data_grid {
         {
             DATA_TYPE result ;
             DATA_TYPE y0, y1, y2, y3 ; 			// dim-1 values at k-1, k, k+1, k+2
-            DATA_TYPE dy0, dy1, dy2, dy3 ;		// dim-1 derivs at k-1, k, k+1, k+2
+            DATA_TYPE dy0=0, dy1=0, dy2=0, dy3=0 ;		// dim-1 derivs at k-1, k, k+1, k+2
             const unsigned kmin = 1u ;					  // at endpt if k-1 < 0
             const unsigned kmax = _axis[dim]->size()-3u ; // at endpt if k+2 > N-1
 
