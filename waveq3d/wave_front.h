@@ -2,8 +2,7 @@
  * @file wave_front.h
  * Wavefront characteristics at a specific point in time.
  */
-#ifndef USML_WAVEQ3D_WAVE_FRONT_H
-#define USML_WAVEQ3D_WAVE_FRONT_H
+#pragma once
 
 #include <usml/ocean/ocean.h>
 
@@ -325,5 +324,3 @@ class USML_DECLSPEC wave_front {
 /// @}
 }  // end of namespace waveq3d
 }  // end of namespace usml
-
-#endif

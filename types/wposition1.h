@@ -2,8 +2,7 @@
  * @file wposition1.h
  * Individual world location in geodetic earth coordinates (latitude, longitude, and altitude).
  */
-#ifndef USML_TYPES_WPOSITION1_H
-#define USML_TYPES_WPOSITION1_H
+#pragma once
 
 #include <usml/ublas/ublas.h>
 #include <usml/types/wvector1.h>
@@ -155,5 +154,3 @@ public:
 /// @}
 } // end of ocean namespace
 } // end of usml namespace
-
-#endif

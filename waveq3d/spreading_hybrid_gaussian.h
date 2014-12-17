@@ -2,8 +2,7 @@
  * @file spreading_hybrid_gaussian.h
  * Spreading loss based on a hybrid Gaussian beam theory.
  */
-#ifndef USML_WAVEQ3D_SPREADING_HYBRID_GAUSSIAN_H
-#define USML_WAVEQ3D_SPREADING_HYBRID_GAUSSIAN_H
+#pragma once
 
 #include <usml/waveq3d/spreading_model.h>
 
@@ -229,5 +228,3 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
 
 }  // end of namespace waveq3d
 }  // end of namespace usml
-
-#endif

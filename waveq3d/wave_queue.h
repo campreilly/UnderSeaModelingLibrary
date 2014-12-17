@@ -2,8 +2,7 @@
  * @file wave_queue.h
  * Wavefront propagator for the WaveQ3D model.
  */
-#ifndef USML_WAVEQ3D_WAVE_QUEUE_H
-#define USML_WAVEQ3D_WAVE_QUEUE_H
+#pragma once
 
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/wave_front.h>
@@ -771,5 +770,3 @@ class USML_DECLSPEC wave_queue {
 /// @}
 }  // end of namespace waveq3d
 }  // end of namespace usml
-
-#endif

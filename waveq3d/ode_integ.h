@@ -2,8 +2,7 @@
  * @file ode_integ.h
  * Integration utilities for ordinary differential equations.
  */
-#ifndef USML_WAVEQ3D_ODE_INTEG_H
-#define USML_WAVEQ3D_ODE_INTEG_H
+#pragma once
 
 #include <usml/waveq3d/wave_queue.h>
 
@@ -127,5 +126,3 @@ class USML_DECLSPEC ode_integ {
 
 }  // end of namespace waveq3d
 }  // end of namespace usml
-
-#endif

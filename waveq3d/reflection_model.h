@@ -2,8 +2,7 @@
  * @file reflection_model.h
  * Reflection model components of wave_queue object type.
  */
-#ifndef USML_WAVEQ3D_REFLECTION_MODEL_H
-#define USML_WAVEQ3D_REFLECTION_MODEL_H
+#pragma once
 
 #include <usml/waveq3d/wave_queue.h>
 
@@ -230,5 +229,3 @@ class USML_DECLSPEC reflection_model
 
 }  // end of namespace waveq3d
 }  // end of namespace usml
-
-#endif

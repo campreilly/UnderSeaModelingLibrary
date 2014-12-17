@@ -27,8 +27,7 @@
  *
  * Regression tests for the types package
  */
-#ifndef USML_TYPES_TYPES_H
-#define USML_TYPES_TYPES_H
+#pragma once
 
 #include <usml/types/wvector.h>
 #include <usml/types/wvector1.h>
@@ -43,5 +42,3 @@
 #include <usml/types/data_grid.h>
 #include <usml/types/data_grid_bathy.h>
 #include <usml/types/data_grid_svp.h>
-
-#endif

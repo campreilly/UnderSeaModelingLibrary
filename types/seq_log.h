@@ -2,9 +2,7 @@
  * @file seq_log.h 
  * Sequence defined by a logarithmically spaced grid of points.
  */
-
-#ifndef USML_TYPES_SEQ_LOG_H
-#define USML_TYPES_SEQ_LOG_H
+#pragma once
 
 #include <usml/types/seq_vector.h>
 
@@ -136,5 +134,3 @@ public:
 /// @}
 } // end of namespace types
 } // end of namespace usml
-
-#endif

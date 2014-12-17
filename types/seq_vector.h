@@ -2,8 +2,7 @@
  * @file seq_vector.h
  * A read-only, monotonic sequence of values.
  */
-#ifndef USML_TYPES_SEQ_VECTOR_H
-#define USML_TYPES_SEQ_VECTOR_H
+#pragma once
 
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -235,5 +234,3 @@ public:
 /// @}
 } // end of namespace types
 } // end of namespace usml
-
-#endif

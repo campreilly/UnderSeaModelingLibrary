@@ -2,8 +2,7 @@
  * @file netcdf_woa.h
  * Extracts ocean profile data from World Ocean Atlas.
  */
-#ifndef USML_NETCDF_WOA_H
-#define USML_NETCDF_WOA_H
+#pragma once
 
 #include <usml/netcdf/netcdf_profile.h>
 
@@ -117,5 +116,3 @@ class USML_DECLSPEC netcdf_woa : public netcdf_profile {
 /// @}
 }  // end of namespace netcdf
 }  // end of namespace usml
-
-#endif

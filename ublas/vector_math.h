@@ -21,8 +21,7 @@
  * are hidden inside of the scalar functors defined in scalar_math.h
  * and the math traits defined in math_traits.h.
  */
-#ifndef USML_UBLAS_VECTOR_MATH_H
-#define USML_UBLAS_VECTOR_MATH_H
+#pragma once
 
 #include <usml/ublas/scalar_math.h>
 
@@ -606,5 +605,3 @@ namespace ublas {
 } // end of ublas namespace
 } // end of usml namespace
 /// /}
-
-#endif

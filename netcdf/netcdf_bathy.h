@@ -2,8 +2,7 @@
  * @file netcdf_bathy.h
  * Extracts bathymetry data from world-wide bathymetry databases.
  */
-#ifndef USML_NETCDF_BATHY_H
-#define USML_NETCDF_BATHY_H
+#pragma once
 
 #include <netcdfcpp.h>
 #include <usml/ublas/ublas.h>
@@ -99,5 +98,3 @@ class USML_DECLSPEC netcdf_bathy : public data_grid<double,2> {
 /// @}
 }  // end of namespace netcdf
 }  // end of namespace usml
-
-#endif

@@ -2,8 +2,7 @@
  * @file netcdf_profile.h
  * Extracts ocean profile data from world-wide databases.
  */
-#ifndef USML_NETCDF_PROFILE_H
-#define USML_NETCDF_PROFILE_H
+#pragma once
 
 #include <netcdfcpp.h>
 #include <usml/ublas/ublas.h>
@@ -122,5 +121,3 @@ class USML_DECLSPEC netcdf_profile : public data_grid<double,3> {
 /// @}
 }  // end of namespace netcdf
 }  // end of namespace usml
-
-#endif

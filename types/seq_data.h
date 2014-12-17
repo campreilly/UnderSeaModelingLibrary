@@ -2,8 +2,7 @@
  * @file seq_data.h
  * Sequence defined by an unevenly spaced vector of points.
  */
-#ifndef USML_TYPES_SEQ_DATA_H
-#define USML_TYPES_SEQ_DATA_H
+#pragma once
 
 #include <usml/types/seq_vector.h>
 
@@ -257,5 +256,3 @@ public:
 /// @}
 } // end of namespace types
 } // end of namespace usml
-
-#endif

@@ -2,8 +2,7 @@
  * @file randgen.h 
  * Integrates the Boost Random Number Library with uBLAS vectors and matrices. 
  */
-#ifndef USML_UBLAS_RANDGEN_H
-#define USML_UBLAS_RANDGEN_H
+#pragma once
 
 #include <complex>
 #include <boost/numeric/ublas/vector.hpp>
@@ -218,5 +217,3 @@ namespace ublas {
     /// @}
 } // end of ublas namespace
 } // end of usml namespace
-
-#endif

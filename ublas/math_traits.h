@@ -2,8 +2,7 @@
  * @file math_traits.h
  * Traits implementation of new math algorithms for scientific applications.
  */
-#ifndef USML_UBLAS_MATH_TRAITS_HH
-#define USML_UBLAS_MATH_TRAITS_HH
+#pragma once
 
 #include<cmath>
 #include<complex>
@@ -795,5 +794,3 @@ inline math_traits<double>::value_type to_colatitude(
 
 } // end of ublas namespace
 } // end of usml namespace
-
-#endif

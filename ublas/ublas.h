@@ -45,11 +45,8 @@
  *
  * Regression tests for the ublas package.
  */
-#ifndef USML_UBLAS_UBLAS_H
-#define USML_UBLAS_UBLAS_H
+#pragma once
 
 #include <usml/ublas/vector_math.h>
 #include <usml/ublas/matrix_math.h>
 #include <usml/ublas/randgen.h>
-
-#endif

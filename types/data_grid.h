@@ -2,8 +2,7 @@
  * @file data_grid.h
  * N-dimensional data set and its associated axes.
  */
-#ifndef USML_TYPES_DATA_GRID_H
-#define USML_TYPES_DATA_GRID_H
+#pragma once
 
 #include <string.h>
 #include <typeinfo>
@@ -881,5 +880,3 @@ DATA_TYPE data_grid<DATA_TYPE, NUM_DIMS>::interp(int dim,
 
 } // end of namespace types
 } // end of namespace usml
-
-#endif

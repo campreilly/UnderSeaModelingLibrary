@@ -2,8 +2,7 @@
  * @file eigenray.h
  * A single acoustic path between a source and target.
  */
-#ifndef USML_WAVEQ3D_EIGENRAY_H
-#define USML_WAVEQ3D_EIGENRAY_H
+#pragma once
 
 #include <usml/types/types.h>
 #include <list>
@@ -91,5 +90,3 @@ typedef std::list< eigenray > eigenray_list ;
 /// @}
 }  // end of namespace waveq3d
 }  // end of namespace usml
-
-#endif

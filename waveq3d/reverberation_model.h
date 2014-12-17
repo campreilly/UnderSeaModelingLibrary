@@ -2,8 +2,7 @@
  * @file reverberation_model.h
  * Listens for interface collision callbacks from a wavefront.
  */
-#ifndef USML_WAVEQ3D_REVERBERATION_MODEL_H
-#define USML_WAVEQ3D_REVERBERATION_MODEL_H
+#pragma once
 
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/wave_queue.h>
@@ -84,5 +83,3 @@ class USML_DECLSPEC reverberation_model {
 /// @}
 }  // end of namespace waveq3d
 }  // end of namespace usml
-
-#endif

@@ -3,8 +3,7 @@
  * Wrapper for a data_grid in 2d that uses the fast non-recursive
  * interpolation algorithm.
  */
-#ifndef USML_TYPES_DATA_GRID_BATHY_H
-#define USML_TYPES_DATA_GRID_BATHY_H
+#pragma once
 
 #include <usml/types/data_grid.h>
 #include <usml/types/seq_vector.h>
@@ -581,5 +580,3 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
 
 } // end of namespace types
 } // end of namespace usml
-
-#endif

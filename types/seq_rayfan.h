@@ -2,8 +2,7 @@
  * @file seq_rayfan.h
  * Defines a sequence of values that are tangentially spaced.
  */
-#ifndef USML_TYPES_SEQ_RAYFAN_H
-#define USML_TYPES_SEQ_RAYFAN_H
+#pragma once
 
 #include <usml/types/seq_data.h>
 
@@ -74,5 +73,3 @@ public:
 /// @}
 } // end of namespace types
 } // end of namespace usml
-
-#endif
