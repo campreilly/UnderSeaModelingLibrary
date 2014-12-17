@@ -5,8 +5,6 @@
 #include <usml/ocean/reflect_loss_netcdf.h>
 #include <exception>
 
-//#define DEBUG_NETCDF
-
 using namespace usml::ocean ;
 
 reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
@@ -60,17 +58,6 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
     double loninc = ( longitude[londim-1] - longitude[0] ) / londim ;
     axis[1] = new seq_linear(longitude[0], loninc, int(londim));
 
-    #ifdef DEBUG_NETCDF
-        cout << "===============axis layout=============" << endl;
-        cout << "lat first: " << latitude[0] << "\nlat last: " << latitude[latdim-1]
-             << "\nlat inc: " << latinc <<  "\nnum elements: " << (*axis[0]).size() << endl ;
-        cout << "lat axis: " << *axis[0] << endl ;
-        cout << "lon first: " << longitude[0] << "\nlon last: " << longitude[londim-1]
-             << "\nlon inc: " << loninc <<  "\nnum elements: " << (*axis[1]).size() << endl ;
-        cout << "lon axis: " << *axis[1] << endl ;
-        cout << endl;
-    #endif
-
     /** Creates a data grid with the above assigned axises and populates the grid with the data from the netcdf file */
     _bottom_grid = new data_grid<double,2>(axis) ;
     unsigned index[2] ;
@@ -81,21 +68,6 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
             _bottom_grid->data(index, type_num[i*latdim+j]) ;
         }
     }
-
-    #ifdef DEBUG_NETCDF
-        cout << "==========data grid=============" << endl ;
-        for(int i=0; i<latdim; i++) {
-            for(int j=0; j<londim; j++) {
-                index[0] = i ;
-                index[1] = j ;
-                cout << _bottom_grid->data(index) << "," ;
-                if(j == londim-1) {
-                    cout << endl ;
-                }
-            }
-        }
-        cout << endl;
-    #endif
 
     /** Set the interpolation type to the nearest neighbor and restrict extrapolation */
     for(int i=0; i<2; i++){
@@ -108,23 +80,6 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
         _rayleigh.push_back( new reflect_loss_rayleigh(
                 density[i], speed[i], atten[i], shearspd[i], shearatten[i] ) ) ;
     }
-
-    #ifdef DEBUG_NETCDF
-        cout << "***Sediment properties***" << endl;
-        cout << "type:\t" ;
-        for(int i=0; i<n_types; ++i) { cout << "\t" << i ; }
-        cout << "\ndensity: " ;
-        for(int i=0; i<n_types; ++i) { cout << "\t" << density[i] ; }
-        cout << "\nspeed:\t" ;
-        for(int i=0; i<n_types; ++i) { cout << "\t" << speed[i] ; }
-        cout << "\nattenuation: " ;
-        for(int i=0; i<n_types; ++i) { cout << "\t" << atten[i] ; }
-        cout << "\nshear_speed: " ;
-        for(int i=0; i<n_types; ++i) { cout << "\t" << shearspd[i] ; }
-        cout << "\nshear_atten: " ;
-        for(int i=0; i<n_types; ++i) { cout << "\t" << shearatten[i] ; }
-        cout << endl ;
-    #endif
 
     ncclose( ncid ) ;
     delete axis[0] ;

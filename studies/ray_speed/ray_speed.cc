@@ -53,8 +53,6 @@ int main( int argc, char* argv[] ) {
     wposition1 pos( 36.0, 16.0, -10.0 ) ;
     seq_rayfan de( -90.0, 90.0, 181 ) ;
     seq_linear az( 0.0, 15.0, 360.0 ) ;
-//    seq_linear de( -90, 1.0, 5 ) ;
-//    seq_linear az( 0, 15.0, 3 ) ;
     const double time_max = 60.0 ;
     const double time_step = 0.100 ;
 
@@ -81,10 +79,8 @@ int main( int argc, char* argv[] ) {
     data_grid<double,3>* ssp = data_grid_mackenzie::construct( temperature, salinity ) ;
     data_grid_svp* fast_ssp = new data_grid_svp(ssp, true) ;
     profile_model* profile = new profile_grid_fast( fast_ssp ) ;
-//    profile_model* profile = new profile_grid<double,3>( ssp ) ;
 //    attenuation_model* attn = new attenuation_constant(0.0);
-//    profile_model* profile = new profile_linear(1500.0,attn);
-//    profile_model* profile = new profile_linear() ;
+//    profile->attenuation(attn);
 
     // load bathymetry from ETOPO1 database
 
@@ -93,12 +89,6 @@ int main( int argc, char* argv[] ) {
     data_grid_bathy* fast_grid = new data_grid_bathy(grid, true) ;
     cout << "load bathymetry from ETOPO1 database" << endl ;
     boundary_model* bottom = new boundary_grid_fast( fast_grid ) ;
-
-//    boundary_model* bottom = new boundary_flat(3000.0);
-//	bottom->reflect_loss(new reflect_loss_constant(0.0));
-//    double height ;
-//    wvector1 normal ;
-//    bottom->height( pos, &height, &normal ) ;
 
     // combine sound speed and bathymetry into ocean model
 

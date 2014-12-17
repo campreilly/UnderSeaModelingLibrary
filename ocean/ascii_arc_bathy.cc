@@ -53,20 +53,4 @@ ascii_arc_bathy::ascii_arc_bathy( const char* filename )
             *(ptr++) += R ;
         }
     }
-
-    #ifdef USML_DEBUG
-        std::ofstream of("usml_ascii_arc_raw.csv") ;
-        for ( int e=0 ; e < nrows ; ++e ) {
-            of << to_latitude((*(this->_axis[0]))[e])<< ",";
-            for (int f=0 ; f < ncols ; ++f ) {
-                of << this->_data[f+ncols*e] - wposition::earth_radius << ",";
-            }
-            of << endl;
-        }
-        for ( int k=0 ; k < ncols ; ++k ) {
-            if(k==0) {of << ",";}
-            of << to_degrees((*(this->_axis[1]))[k]) << ",";
-            if(k==ncols) {of << endl;}
-        }
-    #endif
 }

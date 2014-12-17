@@ -9,9 +9,6 @@
 #include <usml/types/data_grid.h>
 #include <usml/types/seq_vector.h>
 
-//#define FAST_GRID_DEBUG
-//#define DERV_CONSTRUCT
-
 namespace usml {
 namespace types {
 /// @ingroup data_grid
@@ -155,9 +152,6 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
             for (unsigned i = 0; i < _k0max + 1u; ++i) {
                 for (unsigned j = 0; j < _k1max + 1u; ++j) {
                     if (i < 1 && j < 1) {                      //top-left corner
-                        #ifdef DERV_CONSTRUCT
-                            cout << "***Condition: i<1 && j<1***" << endl;
-                        #endif
                         _derv_x(i, j) = (data_2d(i + 1, j) - data_2d(i, j))
                                 / inc_x(i, 0);
                         _derv_y(i, j) = (data_2d(i, j + 1) - data_2d(i, j))
@@ -166,9 +160,6 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                                 - data_2d(i, j + 1) + data_2d(i, j))
                                 / (inc_x(i, 0) * inc_y(j, 0));
                     } else if (i == _k0max && j == _k1max) {     //bottom-right corner
-                        #ifdef DERV_CONSTRUCT
-                            cout << "***Condition: i==_k0max && j==_k1max***" << endl;
-                        #endif
                         _derv_x(i, j) = (data_2d(i, j) - data_2d(i - 1, j))
                                 / inc_x(i, 0);
                         _derv_y(i, j) = (data_2d(i, j) - data_2d(i, j - 1))
@@ -177,9 +168,6 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                                 - data_2d(i - 1, j) + data_2d(i - 1, j - 1))
                                 / (inc_x(i, 0) * inc_y(j, 0));
                     } else if (i < 1 && j == _k1max) {             //top-right corner
-                        #ifdef DERV_CONSTRUCT
-                            cout << "***Condition: i<1 && j==_k1max***" << endl;
-                        #endif
                         _derv_x(i, j) = (data_2d(i + 1, j) - data_2d(i, j))
                                 / inc_x(i, 0);
                         _derv_y(i, j) = (data_2d(i, j) - data_2d(i, j - 1))
@@ -188,9 +176,6 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                                 - data_2d(i, j) + data_2d(i, j - 1))
                                 / (inc_x(i, 0) * inc_y(j, 0));
                     } else if (j < 1 && i == _k0max) {           //bottom-left corner
-                        #ifdef DERV_CONSTRUCT
-                            cout << "***Condition: j<1 && i==_k0max***" << endl;
-                        #endif
                         _derv_x(i, j) = (data_2d(i, j) - data_2d(i - 1, j))
                                 / inc_x(i, 0);
                         _derv_y(i, j) = (data_2d(i, j + 1) - data_2d(i, j))
@@ -199,9 +184,6 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                                 - data_2d(i - 1, j + 1) + data_2d(i - 1, j))
                                 / (inc_x(i, 0) * inc_y(j, 0));
                     } else if (i < 1 && (1 <= j && j < _k1max)) {       //top row
-                        #ifdef DERV_CONSTRUCT
-                            cout << "***Condition: i<1 && (1<=j && j<_k1max)***" << endl;
-                        #endif
                         _derv_x(i, j) = (data_2d(i + 1, j) - data_2d(i, j))
                                 / inc_x(i, 0);
                         _derv_y(i, j) = (data_2d(i, j + 1) - data_2d(i, j - 1))
@@ -210,9 +192,6 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                                 - data_2d(i + 1, j - 1) - data_2d(i, j + 1)
                                 + data_2d(i, j - 1)) / (inc_x(i, 0) * inc_y(j, 0));
                     } else if (j < 1 && (1 <= i && i < _k0max)) {  //left most column
-                        #ifdef DERV_CONSTRUCT
-                            cout << "***Condition: j<1 && (1<=i && i<_k0max)***" << endl;
-                        #endif
                         _derv_x(i, j) = (data_2d(i + 1, j) - data_2d(i - 1, j))
                                 / inc_x(i, 0);
                         _derv_y(i, j) = (data_2d(i, j + 1) - data_2d(i, j))
@@ -221,9 +200,6 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                                 - data_2d(i - 1, j + 1) + data_2d(i - 1, j))
                                 / (inc_x(i, 0) * inc_y(j, 0));
                     } else if (j == _k1max && (1 <= i && i < _k0max)) { //right most column
-                        #ifdef DERV_CONSTRUCT
-                            cout << "***Condition: j>_k1max && (1<=i && i<_k0max)***" << endl;
-                        #endif
                         _derv_x(i, j) = (data_2d(i + 1, j) - data_2d(i - 1, j))
                                 / inc_x(i, 0);
                         _derv_y(i, j) = (data_2d(i, j) - data_2d(i, j - 1))
@@ -232,9 +208,6 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                                 - data_2d(i - 1, j) + data_2d(i - 1, j - 1))
                                 / (inc_x(i, 0) * inc_y(j, 0));
                     } else if (i == _k0max && (1 <= j && j < _k1max)) {   //bottom row
-                        #ifdef DERV_CONSTRUCT
-                            cout << "***Condition: i>_k0max && (1<=j && j<_k1max)***" << endl;
-                        #endif
                         _derv_x(i, j) = (data_2d(i, j) - data_2d(i - 1, j))
                                 / inc_x(i, 0);
                         _derv_y(i, j) = (data_2d(i, j + 1) - data_2d(i, j - 1))
@@ -512,18 +485,6 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                 }   //end for-loop in j
             }   //end for-loop in i
 
-    #ifdef FAST_GRID_DEBUG
-            cout << "loc0: " << location[0] << "  loc1: " << location[1] << endl;
-            cout << "offset0: " << k0 << "  offset1: " << k1 << endl;
-            cout << "axis0: " << (*_axis[0])(k0) << "  axis1: " << (*_axis[1])(k1) << endl;
-            cout << "data value at offset: " << ( (data(interp_index) > 1e6) ?
-                    data(interp_index) - wposition::earth_radius : data(interp_index) ) << endl;
-            cout << "_value: " << _value << endl;
-            cout << "_derv_x: " << _derv_x << endl;
-            cout << "_derv_y: " << _derv_y << endl;
-            cout << "_derv_x_y: " << _derv_x_y << endl;
-    #endif
-
             // Construct the _field matrix
             _field(0, 0) = _value(1, 1);                  //f(0,0)
             _field(1, 0) = _value(1, 2);                  //f(0,1)
@@ -548,12 +509,6 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
             // Create the power series of the interpolation formula before hand for speed
             double x_inv = location[0] - (*_axis[0])(k0);
             double y_inv = location[1] - (*_axis[1])(k1);
-
-    #ifdef FAST_GRID_DEBUG
-            cout << "_field: " << _field << endl;
-            cout << "_bicubic_coeff: " << _bicubic_coeff << endl;
-            cout << "x_inv/norm0: " << x_inv/norm0 << "\ty_inv/norm1: " << y_inv/norm1 << endl;
-    #endif
 
             _xyloc(0, 0) = 1;
             _xyloc(0, 1) = y_inv / norm1;
