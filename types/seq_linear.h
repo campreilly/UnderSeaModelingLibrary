@@ -2,8 +2,7 @@
  * @file seq_linear.h
  * Sequence defined by an evenly spaced grid of points.
  */
-#ifndef USML_TYPES_SEQ_LINEAR_H
-#define USML_TYPES_SEQ_LINEAR_H
+#pragma once
 
 #include <usml/types/seq_vector.h>
 
@@ -129,5 +128,3 @@ class USML_DECLSPEC seq_linear : public seq_vector {
 /// @}
 }  // end of namespace types
 }  // end of namespace usml
-
-#endif

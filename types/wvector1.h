@@ -2,8 +2,7 @@
  * @file wvector1.h
  * Individual world vector in spherical earth coordinates.
  */
-#ifndef USML_TYPES_WVECTOR1_H
-#define USML_TYPES_WVECTOR1_H
+#pragma once
 
 #include <usml/ublas/ublas.h>
 #include <usml/types/wvector.h>
@@ -248,5 +247,3 @@ public:
 /// @}
 } // end of ocean namespace
 } // end of usml namespace
-
-#endif

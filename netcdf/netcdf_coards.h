@@ -2,8 +2,7 @@
  * @file netcdf_coards.h
  * Reads a single COARDS data grid from a netCDF file.
  */
-#ifndef USML_NETCDF_COARDS_H
-#define USML_NETCDF_COARDS_H
+#pragma once
 
 #include <netcdfcpp.h>
 #include <usml/ublas/ublas.h>
@@ -171,5 +170,3 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
 /// @}
 }  // end of namespace netcdf
 }  // end of namespace usml
-
-#endif

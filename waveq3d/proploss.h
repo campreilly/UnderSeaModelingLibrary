@@ -2,8 +2,7 @@
  * @file proploss.h
  * Container for a list of targets and their associated propagation data.
  */
-#ifndef USML_WAVEQ3D_PROPLOSS_H
-#define USML_WAVEQ3D_PROPLOSS_H
+#pragma once
 
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/eigenrayListener.h>
@@ -339,5 +338,3 @@ public:
 /// @}
 } // end of namespace waveq3d
 } // end of namespace usml
-
-#endif

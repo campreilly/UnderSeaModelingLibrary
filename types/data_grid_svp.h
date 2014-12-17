@@ -3,8 +3,7 @@
  * Wrapper for a data_grid in 3d that uses the fast non-recursive
  * interpolation algorithm.
  */
-#ifndef USML_TYPES_DATA_GRID_SVP_H
-#define USML_TYPES_DATA_GRID_SVP_H
+#pragma once
 
 #include <usml/types/data_grid.h>
 
@@ -352,5 +351,3 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
 
 } // end of namespace types
 } // end of namespace usml
-
-#endif

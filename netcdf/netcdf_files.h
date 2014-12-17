@@ -10,12 +10,9 @@
  *
  * Regression tests for the netcdf package
  */ 
-#ifndef USML_NETCDF_FILES_H
-#define USML_NETCDF_FILES_H
+#pragma once
 
 #include <usml/netcdf/netcdf_coards.h>
 #include <usml/netcdf/netcdf_bathy.h>
 #include <usml/netcdf/netcdf_profile.h>
 #include <usml/netcdf/netcdf_woa.h>
-
-#endif

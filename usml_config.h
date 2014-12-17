@@ -2,8 +2,7 @@
  * @file usml_config.h
  * Compiler specific setup for USML library
  */
-#ifndef USML_CONFIG_H
-#define USML_CONFIG_H
+#pragma once
 
 /**
  * Setup Windows DLL export/import prefixes in USML_DECLSPEC.
@@ -18,6 +17,4 @@
 	#endif
 #else
     #define USML_DECLSPEC 
-#endif
-
 #endif

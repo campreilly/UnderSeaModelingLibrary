@@ -3,8 +3,7 @@
  * Expression template functors to create new math algorithms for scientific
  * applications. 
  */
-#ifndef USML_UBLAS_SCALAR_MATH_H
-#define USML_UBLAS_SCALAR_MATH_H
+#pragma once
 
 #include <usml/ublas/math_traits.h>
 
@@ -577,5 +576,3 @@ namespace ublas {
 
 } // end of ublas namespace
 } // end of usml namespace
-
-#endif

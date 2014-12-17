@@ -86,12 +86,9 @@
  *
  * Regression tests for the waveq3d package
  */
-#ifndef USML_WAVEQ3D_H
-#define USML_WAVEQ3D_H
+#pragma once
 
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/eigenray.h>
 #include <usml/waveq3d/proploss.h>
-
-#endif
