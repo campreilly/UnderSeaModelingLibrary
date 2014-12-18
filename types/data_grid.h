@@ -626,7 +626,7 @@ class data_grid {
          * because of PCHIP allowing for extreme values when extrapolating data.
          *
          * @xref Cleve Moler, Numerical Computing in Matlab, Chapter 3 Interpolation,
-         * http://www.mathworks.com/moler/chapters.html, accessed 5/15/2012.
+         * http://www.mathworks.com/moler/chapters.html accessed 5/15/2012.
          * @xref F. N. Fritsch and R. E. Carlson, Monotone Piecewise Cubic Interpolation,
          * SIAM Journal on Numerical Analysis, 17 (1980), pp. 238-246.
          * @xref D. Kahaner, C. Moler, and S. Nash, Numerical Methods and Software,
@@ -837,10 +837,10 @@ class data_grid {
                 deriv = slope1 * (1.0 - u) + slope2 * u;
                 deriv_vec[dim] = deriv;
                 if (dim > 0) {
-                    deriv_vec[dim-1] = dy2 * sh_term / h1_3
-                                     + dy1 * (h1_3 - sh_term) / h1_3
-                                     + dslope2 * s_2 * sh_minus / h1_2
-                                     + dslope1 * s * sh_minus * sh_minus / h1_2;
+                    deriv_vec[dim-1] = y2 * (6.0*h1*s - 6.0*s_2) / h1_3
+                                     + y1 * (6.0*s_2 - 6.0*h1*s) / h1_3
+                                     + slope2 * s * (3.0*s - 2.0*h1) / h1_2
+                                     + slope1 * (3.0*s_2 - 4.0*h1*s + h1_2) / h1_2;
                 }
             }
 
