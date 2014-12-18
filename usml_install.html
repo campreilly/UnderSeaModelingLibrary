@@ -42,7 +42,7 @@
         </li>
       </ul>
       <li>
-        Windows 7
+        Windows 7 32-bit
       </li>
       <ul>
         <li>
@@ -51,10 +51,9 @@
             http://www.microsoft.com/visualstudio/en-us/products/2010-editions/visual-cpp-express
           </a>
         </li>
-        <li> CMake 2.8.7 (Visual Studio 10 and NMAKE generators) </li>
-        <li> boost 1.57.0 </li>
-        <li> netcdf 4.1.3 from <a href="https://github.com/campreilly/netcdf-4.1.3-with-cmake">
-	 https://github.com/campreilly/netcdf-4.1.3-with-cmake</a>.</li>
+        <li> CMake 3.1.0 binary distribution (Visual Studio 10 and NMAKE generators) </li>
+        <li> boost 1.57.0 binary distribution</li>
+        <li> netcdf 4.3.2 binary distribution</li>
       </ul>
     </ul>
     <h3>Setting up Boost package</h3>
@@ -62,7 +61,7 @@
         test utilities. But, many USML users have experienced problems setting 
         up Boost in their development environment. Here are some hints that may help you: 
     <ul>
-    <li> CMake's FindBoost utility seems to have problems finding versions of Boost
+    <li> On Linux, CMake's FindBoost utility seems to have problems finding versions of Boost
          that have been installed in <code>/usr/include</code> and 
          <code>/usr/lib</code> as part of the operating system.  These problems
          seem to go away when Boost is built from source code and installed
@@ -93,31 +92,17 @@
     <ul>
      <li>By default, CMake does not include a module to find NetCDF libraries.  
          Please copy the <code>FindNetCDF.cmake</code> file from the <code>usml/config</code> directory 
-         into CMake's shared modules directory.  For Linux share modules 
+         into CMake's shared modules directory.  For Linux, these modules 
          are kept in the <code>/usr/share/cmake-2.8/Modules</code> directory.</li>
-    <li> On RedHat 6 and CentOS 6 systems, installing the netcdf-devel
-         RPM package using the default YUM server seems to work perfectly.</li>
-    <li> On other Linux systems, We've had some trouble setting up the 
-         HDF5, zLib, cURL libraries that netCDF depdends on.  Loading theses 
-         libraries from <a href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/">
-         source code</a> and compiling them on your development platform
-         seems to work well.  Note that the <code>./configure</code> option for HDF5 works
-         best with the the options <code>--with-zlib=/path/to/zlib --disable-parallel 
-         --enable-shared</code>. Because USML does not actually use any NetCDF 4
-         features, many users have found it useful to download just NetCDF from 
-         <a href="http://www.unidata.ucar.edu/downloads/netcdf">source code</a>
-         and configuring the build process to disable netcdf-4 and dap.
-    <li> On Windows, we've had significant 
-         <a href="http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#windows_netcdf4_1">
-         problems using NetCDF in Microsoft Visual Studio</a>.  A copy of the 
-         CMake-based build that system that we used for testing is freely available on GitHub at
-         <a href="https://github.com/campreilly/netcdf-4.1.3-with-cmake">
-	 https://github.com/campreilly/netcdf-4.1.3-with-cmake</a>.</li>
+     <li>The Windows binary distributions do not currently include interfaces to the netcdf_c++ library.
+         There is source code available for the version 4.2 we are using, but it does not
+	    currently compile under windows without modificiation.  The USML library includes
+	    a windows version of this API in the netcdf/msvc module to work around this issue.
 	</ul>
     <h2>Building and Testing USML</h2>
 
     <p>
-      For the sake of the example, let's assume that you are installing on a Linux
+      For the sake of this example, let's assume that you are installing on a Linux
       system into the <code>"~/Projects/usml"</code> directory. Assuming that this is the current
       directory, and that all of the tarballs are here as well, the Linux commands
       to execute would be:
@@ -128,8 +113,8 @@
       </pre>
       where #.#.# is the version number to be installed.
     </p>
-    <p><b>Note that the USML build process absolutely requires the top level
-        directory to be named <code>usml</code>!</b>
+    <p><b>Note that the USML build process absolutely requires that the top level
+        directory be named <code>usml</code>!</b>
 	<p>
       For installation from a GitHub zip file, after extraction the topmost directory will need to be
 	  changed from <code>"UnderSeaModelingLibrary-branchname"</code> to <code>"usml" </code> for 
