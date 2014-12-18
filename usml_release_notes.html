@@ -8,33 +8,40 @@
     
     <h2>Release 1.0 - Dec 2014</h2>
     <ul>
-    	<li>Change the datatypes for netCDF outputs from proploss.c so that indicies use ncLong instead of ncShort.  Allows creations of larger outputs files.
-    	<li>Removed FE_INVALID as one of the conditions that we test for in trapfe.cc.
-    	<li>Fixed a memory leak in proploss class by removing cloned versions of _frequencies, source_de, and _source_az in the destructor.
-    	<li>Fixed a Gaussian normalization error in theory paper, was correct in code.
-    	<li>Added ability to compile USML without compiling Tests or Studies.  Broke the *.cmake files for Tests or Studies out of CMakeList.txt and into their own files.
-    	<li>Changed seq_data so that it works properly with size of 1.
-    	<li>Added surface loss reflection for Eckart and Beckmann-Spizzichino.
-    	<li>Added Pierson and Moskowitz model for computing wave height from wind speed.
-    	<li>Fixed an error in reflection_model so that TOO_SHALLOW logic works correctly.  Rays were not turning around in very shallow water.
-    	<li>Make deletion of incoming grids by data_grid_mackenzie optional.
-    	<li>Changed the name of the proplossListener class to eigenrayListener.
-    	<li>Add detect_vertices() function to wave_queue class to count the number of upper and lower verticies encountered by each ray path.  Not used by our model, but needed by other simulation systems.  Added upper and lower members to wave_front class to track these values.
-    	<li>Add scattering strength and volume scattering models to ocean module in anticipation of future reverberation work.
-    	<li>Added run_id to each wave_queue object.  Used by eigenrayListener to keep track of cases where multiple wavefronts are active at the same time.
-    	<li>Added destructors in data_grid_svp and data_grid_bathy to fix memory leaks, required making data_grid's destructor virtual.
-    	<li>Fix error in the way that proploss class was summing both coherent and incoherent propagation losses.
-    	<li>Corrected the way in which propagation loss intensity was being written to netCDF files.  Frequency dimension was not handled correctly.
-    	<li>Change the way in which transmission loss is clipped to 300 dB in wave_queue class.  Previously, only the first frequency value was checked.  Now we check all of them.
-    	<li>Use of fill_missing() and interp_type() in netcdf_woa are no longer dependent on the presence of shallow data source.
-    	<li>Eliminate typo in vector_expression.hpp so that operator/() uses scalar_divides() instead of scalar_multiplies().
-    	<li>Add write_netcdf() method to data_grid class so that any grid can written to netCDF file.
-    	<li>Change the default earth radius from 6378101.30201019 (the WGS-84 value at 45 degrees) to 6371000 meters (the FAI standard).  This is the value used to say that 1 degree of latitude equals 60 nautical miles.
-    	<li>Add check_eigenray() callback to eigenrayListener().  Used by the listeners to limit the time window in which they listen for eigenrays, relative to the first eigenray for that target.
-    	<li>Replace #include guards with #prama once statements.  The new style is less prone to error.
-    	<li>Added non-const version of seq_vector* axis in data_grid.
-    	<li>Fixed logic for computing offsets in spreading_hybrid_gaussian.
-    	<li>Change minimum optimization level from -00 to -01 to avoid errors in uBLAS.
+	<li>Bugs</li>
+	<ul>
+    	    <li>Fix error in the way that proploss class was summing both coherent and incoherent propagation losses.
+    	    <li>Fixed logic for computing offsets in spreading_hybrid_gaussian to fix errors in eignenrays.
+    	    <li>Fixed an error in reflection_model so that TOO_SHALLOW logic works correctly.  Rays were not turning around in very shallow water.
+    	    <li>Corrected the way in which propagation loss intensity was being written to netCDF files.  Frequency dimension was not handled correctly.
+    	    <li>Change the way in which transmission loss is clipped to 300 dB in wave_queue class.  Previously, only the first frequency value was checked.  Now we check all of them.
+    	    <li>Use of fill_missing() and interp_type() in netcdf_woa are no longer dependent on the presence of shallow data source.  Had been causing NaN values to appear in gridded data.
+    	    <li>Added destructors in data_grid_svp and data_grid_bathy to fix memory leaks, required making data_grid's destructor virtual.
+    	    <li>Changed seq_data so that it works properly with size of 1.
+    	    <li>Eliminate typo in vector_expression.hpp so that operator/() uses scalar_divides() instead of scalar_multiplies().
+    	    <li>Fixed a Gaussian normalization error in theory paper, was correct in code.
+    	    <li>Change minimum optimization level from -00 to -01 to avoid errors in uBLAS.
+    	    <li>Fixed a memory leak in proploss class by removing cloned versions of _frequencies, source_de, and _source_az in the destructor.
+    	    <li>Removed FE_INVALID as one of the conditions that we test for in trapfe.cc to prevent exceptions for perfectly legit calculations.
+	</ul>
+	<li>Enhancements</li>
+	<ul>
+    	    <li>Added surface loss reflection for Eckart and Beckmann-Spizzichino.
+    	    <li>Added Pierson and Moskowitz model for computing wave height from wind speed.
+    	    <li>Add detect_vertices() function to wave_queue class to count the number of upper and lower verticies encountered by each ray path.  Not used by our model, but needed by other simulation systems.  Added upper and lower members to wave_front class to track these values.
+    	    <li>Add check_eigenray() callback to eigenrayListener().  Used by the listeners to limit the time window in which they listen for eigenrays, relative to the first eigenray for that target.
+    	    <li>Add scattering strength and volume scattering models to ocean module in anticipation of future reverberation work.
+    	    <li>Added run_id to each wave_queue object.  Used by eigenrayListener to keep track of cases where multiple wavefronts are active at the same time.
+    	    <li>Add write_netcdf() method to data_grid class so that any grid can written to netCDF file.
+    	    <li>Change the default earth radius from 6378101.30201019 (the WGS-84 value at 45 degrees) to 6371000 meters (the FAI standard).  This is the same value used to compute that 1 degree of latitude equals 60 nautical miles.
+    	    <li>Change the datatypes for netCDF outputs from proploss.c so that indicies use ncLong instead of ncShort.  Allows creations of larger outputs files.
+    	    <li>Make deletion of incoming grids by data_grid_mackenzie optional.
+    	    <li>Replace #include guards with #prama once statements.  The new style is less prone to error.
+    	    <li>Added non-const version of seq_vector* axis in data_grid.
+    	    <li>Changed the name of the proplossListener class to eigenrayListener.
+    	    <li>Added ability to compile USML without compiling Tests or Studies.  Broke the *.cmake files for Tests or Studies out of CMakeList.txt and into their own files.
+    	    <li>Greatly simplified the installation on Windows systems by relying on pre-built binaries.
+	</ul>
     </ul>
     <h2>Release 0.4.1 - Apr 2014</h2>
     <ul>
