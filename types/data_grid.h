@@ -205,42 +205,44 @@ class data_grid {
 
             NcFile* _file = new NcFile( filename, NcFile::Replace ) ;
 
-            vector<NcDim*> axis_dim(NUM_DIMS) ;
+            vector<const NcDim*> axis_dim(NUM_DIMS) ;
             vector<NcVar*> axis_var(NUM_DIMS) ;
-            NcDim** axis_size = new NcDim*[NUM_DIMS] ;
-            NcVar* earth_radius = _file->add_var( "earth_radius", ncDouble, 0 ) ;
-            earth_radius->put( &wposition::earth_radius, 1 ) ;
+            const NcDim** axis_size = new const NcDim*[NUM_DIMS] ;
             long* data_size = new long[NUM_DIMS] ; 
 				// Note: Using size_type instead of long for this variable
 			    // doesn't work on VC++ 32 bit, data_var->put() requires long.
             NcType type ;
             const std::type_info& dt = typeid(DATA_TYPE) ;
             const char* dtype = dt.name() ;
-            if( dtype == typeid(double).name() ) {
-                type = ncDouble ;
+            if( dtype == typeid(int).name() ) {
+                type = ncInt ;
             }else if( dtype == typeid(float).name() ) {
                 type = ncFloat ;
-            }else if( dtype == typeid(int).name() ) {
-                type = ncInt ;
+            }else if( dtype == typeid(double).name() ) {
+                type = ncDouble ;
             }
 
+            NcVar* earth_radius = _file->add_var( "earth_radius", ncDouble, 0 ) ;
             for(long i=0; i < NUM_DIMS; ++i) {
                 std::stringstream ss ;
-                ss << "axis" << i ;
-                const char* name = ss.str().c_str() ;
-                axis_dim[i] = _file->add_dim( name, _axis[i]->size() ) ;
+                ss << "axis" << i << "\0" ;
+                axis_dim[i] = _file->add_dim( (ss.str()).c_str(), _axis[i]->size() ) ;
                 axis_size[i] = axis_dim[i] ;
-                axis_var[i] = _file->add_var( name, type, axis_dim[i] ) ;
+                axis_var[i] = _file->add_var( (ss.str()).c_str(), type, axis_dim[i] ) ;
                 data_size[i] = _axis[i]->size() ;
-                axis_var[i]->put( boost::numeric::ublas::vector<double>(*_axis[i]).data().begin(),
-                    data_size[i] ) ;
             }
+            NcVar* data_var = _file->add_var( "data", type, NUM_DIMS, &*axis_size ) ;
 
-            NcVar* data_var = _file->add_var( "data", type, *axis_size ) ;
+            earth_radius->put( &wposition::earth_radius, 1 ) ;
+            for(long i=0; i < NUM_DIMS; ++i) {
+            	axis_var[i]->put( boost::numeric::ublas::vector<double>(*_axis[i]).data().begin(),
+					data_size[i] ) ;
+            }
             data_var->put( _data, data_size ) ;
 
             // clean up after file completion
             delete _file ;
+            delete[] axis_size ;
             delete[] data_size ;
             _file = NULL ;
             data_size = NULL ;
