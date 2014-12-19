@@ -20,6 +20,10 @@ file(STRINGS config/VERSION.txt PACKAGE_VERSION)
 message(STATUS "USML version " ${PACKAGE_VERSION} )
 set( PACKAGE_MODULES ublas types netcdf ocean waveq3d)
 
+if( MSVC )	# work around for missing netcdf_c++ on windows
+    set( PACKAGE_MODULES ${PACKAGE_MODULES} netcdf/msvc )
+endif( MSVC )	
+
 ######################################################################
 # set USML defaults
 
@@ -102,6 +106,9 @@ set(Boost_ADDITIONAL_VERSIONS
 )
 find_package( Boost 1.41 REQUIRED COMPONENTS
     unit_test_framework        # for usml_test.exe
+	timer					   # for duration of tests
+	chrono					   # needed by timer
+	system					   # needed by chrono
     )
 if( Boost_FOUND )
     include_directories( ${Boost_INCLUDE_DIR} )
@@ -134,7 +141,10 @@ if( IS_DIRECTORY ${NETCDF_DIR}/lib )
     list( APPEND CMAKE_LIBRARY_PATH $ENV{NETCDF_DIR}/lib )
 endif(IS_DIRECTORY ${NETCDF_DIR}/lib )
 
-set( NETCDF_CXX ON )
+if( NOT MSVC )
+    set( NETCDF_CXX ON )
+endif( NOT MSVC )
+
 find_package( NetCDF 3.6 REQUIRED )
 if( NETCDF_FOUND )
     include_directories( ${NETCDF_INCLUDES} ${NETCDF_INCLUDES}/.. )
@@ -147,12 +157,12 @@ endif( NETCDF_FOUND )
 macro( FIND_SOURCES MODULES SUFFIX )
     foreach( MOD ${MODULES} )
         message( STATUS "processing ${MOD}${SUFFIX}" )
-		file( GLOB HDR_LIST ${MOD}${SUFFIX}/*.h )
-        set( HEADERS ${HEADERS} ${HDR_LIST} )
+        file( GLOB HDR_LIST ${MOD}${SUFFIX}/*.h )
         file( GLOB SRC_LIST ${MOD}${SUFFIX}/*.cc )
+        set( HEADERS ${HEADERS} ${HDR_LIST} )
         set( SOURCES ${SOURCES} ${SRC_LIST} )
         source_group( ${MOD} FILES ${HDR_LIST} ${SRC_LIST} )
-	    if ( NOT ${SUFFIX} MATCHES "" )
+	if ( NOT ${SUFFIX} MATCHES "" AND NOT ${MOD} MATCHES "netcdf/msvc" )
             install(FILES ${HDR_LIST} DESTINATION include/usml/${MOD})
         endif()
     endforeach( MOD )
@@ -165,9 +175,13 @@ unset( HEADERS )
 unset( SOURCES )
 FIND_SOURCES( "${PACKAGE_MODULES}" "" )
 
+if( MSVC )	# work around for missing netcdf_c++ on windows
+    include_directories( "netcdf/msvc" )
+endif( MSVC )	
+
 set( TARGET usml )
 add_library( ${TARGET} ${HEADERS} ${SOURCES} )
-target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} ${HDF5_hdf5_LIBRARY} ${ZLIB_LIBRARY} )
+target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
 set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION} )
 install(TARGETS usml DESTINATION lib)
 install(FILES usml_config.h DESTINATION include/usml)
