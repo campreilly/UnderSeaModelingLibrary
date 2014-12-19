@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE( compute_index_test ) {
             for ( iterator iz = z.begin(); iz < z.end(); ++iz ) {
                 index[2] = c++;
                 k = data_grid_compute_offset<2>( axis, index );
-                printf( "x=%d y=%d z=%d offset=%02d data=%03.0f\n",
+                printf( "x=%ld y=%ld z=%ld offset=%02ld data=%03.0f\n",
                         a-1, b-1, c-1, k, data[k] );
                 BOOST_CHECK_CLOSE( data[k], *ix + *iy + *iz, 1e-6 );
             }

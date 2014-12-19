@@ -197,7 +197,7 @@ public:
 	 * @param   run_id             The run_id of WaveQ3D which the eigenray was produced.
 	 * @return                     True on success, false on failure.
 	 */
-	bool addEigenray(size_t targetRow, size_t targetCol, eigenray pRay, size_t long run_id );
+	bool addEigenray(size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id );
 
 
     /**

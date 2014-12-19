@@ -28,7 +28,7 @@ wave_queue::wave_queue(
     const seq_vector& az,
     double time_step,
     const wposition* targets,
-    const size_t long run_id,
+    const size_t run_id,
     spreading_type type
 ) :
     _ocean( ocean ),

@@ -103,7 +103,7 @@ class USML_DECLSPEC wave_queue {
         const seq_vector& de, const seq_vector& az,
         double time_step,
         const wposition* targets=NULL,
-        const size_t long run_id=1,
+        const size_t run_id=1,
         spreading_type type=HYBRID_GAUSSIAN
         ) ;
 
@@ -262,7 +262,7 @@ class USML_DECLSPEC wave_queue {
      * originating from a source or receiver. This is exclusively
      * used within the reverbation models.
      */
-    inline void setID( size_t long id ) {
+    inline void setID( size_t id ) {
         _run_id = id ;
     }
 
@@ -272,7 +272,7 @@ class USML_DECLSPEC wave_queue {
      * used within the reverbation models.
      * @return      Type of wavefront (receiver/source)
      */
-    inline const size_t long getID() {
+    inline const size_t getID() {
         return _run_id ;
     }
 
@@ -352,7 +352,7 @@ class USML_DECLSPEC wave_queue {
     const wposition* _targets;
 
      /** Run Identification */
-    size_t long _run_id ;
+    size_t _run_id ;
 
 	/**
 	 * Intermediate term: sin of colatitude for targets.
