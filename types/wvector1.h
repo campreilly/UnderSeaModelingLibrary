@@ -39,7 +39,7 @@ public:
     /**
      * Copy one element from a matrix of world vectors.
      */
-    wvector1(const wvector& other, unsigned row, unsigned col);
+    wvector1(const wvector& other, size_t row, size_t col);
 
     //*********************************
     // Rho property

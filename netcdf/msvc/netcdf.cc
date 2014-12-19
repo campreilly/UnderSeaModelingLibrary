@@ -437,7 +437,7 @@ long NcDim::size( void ) const
       NcError::set_err(
 		       nc_inq_dimlen(the_file->id(), the_id, &sz)
 		       );
-    return sz;
+    return (long) sz;
 }
 
 NcBool NcDim::is_valid( void ) const
@@ -637,7 +637,7 @@ NcDim* NcVar::get_dim( int i ) const
 
 long* NcVar::edges( void ) const	// edge lengths (dimension sizes)
 {
-    long* evec = new long[num_dims()];
+	long* evec = new long[num_dims()];
     for(int i=0; i < num_dims(); i++)
       evec[i] = get_dim(i)->size();
     return evec;
@@ -858,42 +858,42 @@ NcValues* NcVar::get_rec(NcDim* rdim, long slice)
 	return 0;
     }
     return valp;
-} 
+}
 
 
 #define NcVar_put_rec(TYPE)                                                   \
 NcBool NcVar::put_rec( const TYPE* vals)                                      \
-{                                                                             \
+{																		      \
     return put_rec(get_dim(0), vals, cur_rec[0]);                             \
 }                                                                             \
                                                                               \
 NcBool NcVar::put_rec( NcDim *rdim, const TYPE* vals)                         \
 {                                                                             \
+	                                                                          \
     int idx = dim_to_index(rdim);                                             \
     return put_rec(rdim, vals, cur_rec[idx]);                                 \
 }                                                                             \
                                                                               \
-NcBool NcVar::put_rec( const TYPE* vals,                                      \
-                     long rec)                                                \
+NcBool NcVar::put_rec( const TYPE* vals, long rec)                            \
 {                                                                             \
    return put_rec(get_dim(0), vals, rec);                                     \
 }                                                                             \
                                                                               \
-NcBool NcVar::put_rec( NcDim* rdim, const TYPE* vals,                         \
-                     long slice)                                              \
+NcBool NcVar::put_rec( NcDim* rdim, const TYPE* vals, long slice)             \
 {                                                                             \
-    int idx = dim_to_index(rdim);                                             \
+    int idx = dim_to_index(rdim);											  \
     long size = num_dims();                                                   \
     long* start = new long[size];                                             \
-    for (int i=1; i < size ; i++) start[i] = 0;                               \
+    for (int i=1; i < size ; i++) 									          \
+		start[i] = 0;                                                         \
     start[idx] = slice;                                                       \
     NcBool result = set_cur(start);                                           \
     delete [] start;                                                          \
     if (! result )                                                            \
       return FALSE;                                                           \
-                                                                              \
+																			  \
     long* edge = edges();                                                     \
-    edge[idx] = 1;                                                            \
+    edge[idx] = 1;															  \
     result = put(vals, edge);                                                 \
     delete [] edge;                                                           \
     return result;                                                            \
@@ -1068,18 +1068,25 @@ NcVar_put_array(long)
 NcVar_put_array(float)
 NcVar_put_array(double)
 
-#define NcVar_put_nd_array(TYPE)					      \
-NcBool NcVar::put( const TYPE* vals, const long* count )		      \
-{									      \
-    /* no need to check type() vs. TYPE, invoked C function will do that */   \
-    if (! the_file->data_mode())					      \
-      return FALSE;							      \
-    size_t start[NC_MAX_DIMS];						      \
-    for (int i = 0; i < num_dims(); i++)				      \
-      start[i] = the_cur[i];						      \
-    return NcError::set_err(                                                  \
-			    makename2(nc_put_vara_,TYPE) (the_file->id(), the_id, start, (const size_t *) count, vals) \
-			    ) == NC_NOERR;                                    \
+#define NcVar_put_nd_array(TYPE)                                                             \
+NcBool NcVar::put( const TYPE* vals, const long* count )                                     \
+{									                                                         \
+    /* no need to check type() vs. TYPE, invoked C function will do that */                  \
+    if (! the_file->data_mode())					                                         \
+      return FALSE;							                                                 \
+    size_t start[NC_MAX_DIMS];						                                         \
+	for (int i = 0; i < num_dims(); i++)													 \
+		start[i] = the_cur[i];																 \
+	                                                                                         \
+	size_t* sz_count = new size_t[num_dims()];                                               \
+	for (int i = 0; i < num_dims(); i++) {                                                   \
+		sz_count[i] = count[i];                                                              \
+		}                                                                                    \
+                                                                                             \
+	int result = makename2(nc_put_vara_, TYPE)(the_file->id(), the_id, start, sz_count, vals);     \
+	                                                                                         \
+	delete [] sz_count;																		 \
+	return (NcError::set_err(result) == NC_NOERR) ;                                          \
 }
 
 NcBool NcVar::put( const ncbyte* vals, const long* count )
@@ -1090,9 +1097,10 @@ NcBool NcVar::put( const ncbyte* vals, const long* count )
     size_t start[NC_MAX_DIMS];
     for (int i = 0; i < num_dims(); i++)
       start[i] = the_cur[i];
+	
     return NcError::set_err(
-			    nc_put_vara_schar (the_file->id(), the_id, start, (const size_t *)count, vals)
-			    ) == NC_NOERR;
+		nc_put_vara_schar (the_file->id(), the_id, start, 
+			(const size_t *)count, vals)) == NC_NOERR;
 }
 
 NcBool NcVar::put( const char* vals, const long* count )
@@ -1534,7 +1542,7 @@ long NcAtt::num_vals( void ) const
     NcError::set_err(
 		     nc_inq_attlen(the_file->id(), the_variable->id(), the_name, &len)
 		     );
-    return len;
+    return (long) len;
 }
 
 NcBool NcAtt::is_valid( void ) const

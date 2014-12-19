@@ -12,8 +12,8 @@ using namespace usml::waveq3d ;
 wave_front::wave_front(
     ocean_model& ocean,
     const seq_vector* freq,
-    unsigned num_de,
-    unsigned num_az,
+    size_t num_de,
+    size_t num_az,
     const wposition* targets,
     const matrix<double>* sin_theta
 ) :
@@ -52,8 +52,8 @@ wave_front::wave_front(
     lower.clear() ;
     on_edge.clear() ;
 
-    for ( unsigned n1=0 ; n1 < num_de ; ++n1 ) {
-        for ( unsigned n2=0 ; n2 < num_az ; ++n2 ) {
+    for ( size_t n1=0 ; n1 < num_de ; ++n1 ) {
+        for ( size_t n2=0 ; n2 < num_az ; ++n2 ) {
             attenuation(n1,n2).resize( freq->size() ) ;
             attenuation(n1,n2).clear() ;
             phase(n1,n2).resize( freq->size() ) ;
@@ -63,8 +63,8 @@ wave_front::wave_front(
 
     if ( this->targets ) {
         distance2.resize( this->targets->size1(), this->targets->size2() ) ;
-        for ( unsigned n1=0 ; n1 < this->targets->size1() ; ++n1 ) {
-            for ( unsigned n2=0 ; n2 < this->targets->size2() ; ++n2 ) {
+        for ( size_t n1=0 ; n1 < this->targets->size1() ; ++n1 ) {
+            for ( size_t n2=0 ; n2 < this->targets->size2() ; ++n2 ) {
                 distance2(n1,n2).resize( num_de, num_az ) ;
                 distance2(n1,n2).clear() ;
             }
@@ -80,10 +80,10 @@ void wave_front::init_wave(
 {
     // compute direction for all D/E and AZ combinations
 
-    for ( unsigned r=0 ; r < de.size() ; ++r ) {
+    for ( size_t r=0 ; r < de.size() ; ++r ) {
         double cos_de = cos( to_radians( de(r) ) ) ;
         double sin_de = sin( to_radians( de(r) ) );
-        for ( unsigned c=0 ; c < az.size() ; ++c ) {
+        for ( size_t c=0 ; c < az.size() ; ++c ) {
             double cos_az = cos( to_radians( az(c) ) ) ;
             double sin_az = sin( to_radians( az(c) ) ) ;
 
@@ -176,19 +176,19 @@ void wave_front::update() {
  */
 void wave_front::find_edges() {
     on_edge.clear() ;
-    const unsigned max_de = num_de() - 1 ;
+    const size_t max_de = num_de() - 1 ;
 
     // mark the perimeter of the ray fan
     // also treat the case where num_de()=1 or num_az()=1
 
-    for ( unsigned az=0 ; az < num_az() ; ++az ) {
+    for ( size_t az=0 ; az < num_az() ; ++az ) {
         on_edge(0,az) = on_edge(max_de,az) = true ;
     }
 
     // search for a local maxima or minima in the rho direction
 
-    for ( unsigned az=0 ; az < num_az() ; ++az ) {
-        for ( unsigned de=1 ; de < max_de ; ++de ) {
+    for ( size_t az=0 ; az < num_az() ; ++az ) {
+        for ( size_t de=1 ; de < max_de ; ++de ) {
             if ( (position.rho(de,az) < position.rho(de+1,az) &&
                   position.rho(de,az) < position.rho(de-1,az)) ||
                  (position.rho(de,az) > position.rho(de+1,az) &&
@@ -213,8 +213,8 @@ void wave_front::find_edges() {
  * target to each point on the wavefront.
  */
 void wave_front::compute_target_distance() {
-    for ( unsigned n1=0 ; n1 < targets->size1() ; ++n1 ) {
-        for ( unsigned n2=0 ; n2 < targets->size2() ; ++n2 ) {
+    for ( size_t n1=0 ; n1 < targets->size1() ; ++n1 ) {
+        for ( size_t n2=0 ; n2 < targets->size2() ; ++n2 ) {
             wvector1 from( *targets, n1, n2 ) ;
             noalias(distance2(n1,n2)) = abs(
                 abs2(position.rho()) + from.rho()*from.rho() - 2.0 * from.rho()
@@ -232,8 +232,8 @@ void wave_front::compute_target_distance() {
 void wave_front::compute_profile() {
     _ocean.profile().sound_speed( position, &sound_speed, &sound_gradient);
     _ocean.profile().attenuation( position, *_frequencies, distance, &attenuation);
-    for (unsigned de = 0; de < position.size1(); ++de) {
-        for (unsigned az = 0; az < position.size2(); ++az) {
+    for (size_t de = 0; de < position.size1(); ++de) {
+        for (size_t az = 0; az < position.size2(); ++az) {
             phase(de, az).clear();
         }
     }

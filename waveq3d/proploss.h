@@ -134,7 +134,7 @@ public:
      * Number of rows in target grid.
      * @return Number of rows.
      */
-    inline unsigned size1() const {
+    inline size_t size1() const {
         return _targets->size1();
     }
 
@@ -142,7 +142,7 @@ public:
      * Number of columns in target grid.
      * @return Number of columns.
      */
-    inline unsigned size2() const {
+    inline size_t size2() const {
         return _targets->size2();
     }
 
@@ -153,7 +153,7 @@ public:
      * @param   t2          Column number of the current target.
      * @return  wposition1  wposition1 of target.
      */
-    inline wposition1 position(unsigned t1, unsigned t2) {
+    inline wposition1 position(size_t t1, size_t t2) {
         return wposition1(*_targets, t1, t2);
     }
 
@@ -172,7 +172,7 @@ public:
      * @param   t2              Column number of the current target.
      * @return  eigenray_list   Pointer to eigenray_list for single target.
      */
-    inline eigenray_list* eigenrays(unsigned t1, unsigned t2) {
+    inline eigenray_list* eigenrays(size_t t1, size_t t2) {
         return &(_eigenrays(t1, t2));
     }
 
@@ -184,7 +184,7 @@ public:
      * @param   t2          Column number of the current target.
      * @return  eigenray*   Pointer to eigenray class.
      */
-    inline const eigenray* total(unsigned t1, unsigned t2) {
+    inline const eigenray* total(size_t t1, size_t t2) {
         return &(_loss(t1, t2));
     }
 
@@ -197,7 +197,7 @@ public:
 	 * @param   run_id             The run_id of WaveQ3D which the eigenray was produced.
 	 * @return                     True on success, false on failure.
 	 */
-	bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pRay, unsigned long run_id );
+	bool addEigenray(size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id );
 
 
     /**

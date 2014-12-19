@@ -144,7 +144,7 @@ void analyze_raytrace(
         // compare to the analytic results once all the rays are heading down
 
         if ( wave.time() >= time_min  ) {
-            for ( unsigned d=0 ; d < wave.num_de() ; ++d ) {
+            for ( size_t d=0 ; d < wave.num_de() ; ++d ) {
 
                 // find Cm = speed at which each ray becomes horizonal
 
@@ -288,7 +288,7 @@ void analyze_proploss(
     // build a series of targets at different ranges
 
     wposition target(target_range.size(),1,LAT_SOURCE,LNG_SOURCE,target_depth);
-    for (unsigned n = 0; n < target.size1(); ++n) {
+    for (size_t n = 0; n < target.size1(); ++n) {
         const double angle = target_range[n] / wposition::earth_radius ;
         target.latitude( n, 0, LAT_SOURCE + to_degrees(angle) );
     }
@@ -320,7 +320,7 @@ void analyze_proploss(
     os << std::setprecision(18);
 
     vector<double> tl_model(target.size1());
-    for (unsigned n = 0; n < target.size1(); ++n) {
+    for (size_t n = 0; n < target.size1(); ++n) {
         double tl_model = -loss.total(n,0)->intensity(0);
         os << target_range[n] << "," << tl_model ;
 

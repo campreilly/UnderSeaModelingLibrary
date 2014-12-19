@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE( constant_reflect_loss_test ) {
 
     // check the answer
 
-    for ( unsigned f=0 ; f < freq.size() ; ++f ) {
+    for ( size_t f=0 ; f < freq.size() ; ++f ) {
         BOOST_CHECK_CLOSE( amplitude(f), value, 1e-6 ) ;
     }
 }

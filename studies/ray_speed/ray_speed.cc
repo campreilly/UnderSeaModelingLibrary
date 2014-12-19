@@ -96,7 +96,7 @@ int main( int argc, char* argv[] ) {
     cout << "initialize " << num_targets << " targets" << endl ;
     randgen::seed(0) ;  // fix the initial seed
     wposition target( num_targets, 1, pos.latitude(), pos.longitude(), pos.altitude() ) ;
-    for ( unsigned n=0 ; n < target.size1() ; ++n ) {
+    for ( size_t n=0 ; n < target.size1() ; ++n ) {
         target.latitude(  n, 0, pos.latitude() + randgen::uniform() - 0.5 ) ;
         target.longitude( n, 0, pos.longitude() + randgen::uniform() - 0.5 ) ;
     }
