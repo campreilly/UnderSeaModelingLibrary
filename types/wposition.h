@@ -50,7 +50,7 @@ public:
      * @param  longitude	Initial longitude
      * @param  altitude		Initial altitude
      */
-    wposition(unsigned rows = 1, unsigned cols = 1, double latitude = 0.0,
+    wposition(size_t rows = 1, size_t cols = 1, double latitude = 0.0,
             double longitude = 0.0, double altitude = 0.0);
 
     /**
@@ -160,7 +160,7 @@ public:
      * @param  col		Column index of the element to access.
      * @return			Altitude in meters.
      */
-    inline double altitude(unsigned row, unsigned col) const
+    inline double altitude(size_t row, size_t col) const
     {
         return rho(row, col) - earth_radius;
     }
@@ -173,7 +173,7 @@ public:
      * @param  col      	Column index of the element to access.
      * @param  altitude 	Altitude in meters.
      */
-    inline void altitude(unsigned row, unsigned col, double altitude)
+    inline void altitude(size_t row, size_t col, double altitude)
     {
         rho(row, col, altitude + earth_radius);
     }
@@ -215,7 +215,7 @@ public:
      * @param  col      	Column index of the element to access.
      * @return              Latitude component in degrees.
      */
-    inline double latitude(unsigned row, unsigned col) const
+    inline double latitude(size_t row, size_t col) const
     {
         return to_latitude(theta(row, col));
     }
@@ -228,7 +228,7 @@ public:
      * @param  col      	Column index of the element to access.
      * @param  latitude		Latitude component in degrees.
      */
-    inline void latitude(unsigned row, unsigned col, double latitude)
+    inline void latitude(size_t row, size_t col, double latitude)
     {
         theta(row, col, to_colatitude(latitude));
     }
@@ -270,7 +270,7 @@ public:
      * @param  col      	Column index of the element to access.
      * @return          	Longitude component in degrees.
      */
-    inline double longitude(unsigned row, unsigned col) const
+    inline double longitude(size_t row, size_t col) const
     {
         return to_degrees(phi(row, col));
     }
@@ -283,7 +283,7 @@ public:
      * @param  col      	Column index of the element to access.
      * @param  longitude        Longitude component in degrees.
      */
-    inline void longitude(unsigned row, unsigned col, double longitude)
+    inline void longitude(size_t row, size_t col, double longitude)
     {
         phi(row, col, to_radians(longitude));
     }

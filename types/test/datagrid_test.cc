@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE( compute_index_test ) {
     // fill in a data vector using combination of axis values
 
     double data[2*3*4];
-    unsigned k = 0;
+    size_t k = 0;
     for ( iterator ix = x.begin(); ix < x.end(); ++ix ) {
         for ( iterator iy = y.begin(); iy < y.end(); ++iy ) {
             for ( iterator iz = z.begin(); iz < z.end(); ++iz ) {
@@ -56,13 +56,13 @@ BOOST_AUTO_TEST_CASE( compute_index_test ) {
     }
 
     cout << "data[x][y][z]=";
-    for ( unsigned n=0; n < k; ++n ) printf("%03.0f ", data[n] );
+    for ( size_t n=0; n < k; ++n ) printf("%03.0f ", data[n] );
     cout << endl;
 
     // check to see if all data in the right place
 
-    unsigned index[3];
-    unsigned a=0,b=0,c=0;
+    size_t index[3];
+    size_t a=0,b=0,c=0;
     for ( iterator ix = x.begin(); ix < x.end(); ++ix ) {
         index[0] = a++;
         b = 0;
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE( linear_1d_test ) {
     data_grid<double,1> grid( ax );
     grid.edge_limit(0,false);
 
-    for ( unsigned n=0; n < axis.size(); ++n ) {
+    for ( size_t n=0; n < axis.size(); ++n ) {
         grid.data( &n, linear1d(axis(n)) );
     }
 
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE( cubic_1d_test ) {
     data_grid<double,1> grid( ax );
     grid.edge_limit(0,false);
 
-    for ( unsigned n=0; n < axis.size(); ++n ) {
+    for ( size_t n=0; n < axis.size(); ++n ) {
         grid.data( &n, cubic1d(axis(n)) );
     }
 
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE( deriv_1d_test ) {
     seq_vector *ax[] = {&axis};
     data_grid<double,1> grid( ax );
 
-    for ( unsigned n=0; n < axis.size(); ++n ) {
+    for ( size_t n=0; n < axis.size(); ++n ) {
         grid.data( &n, cubic1d(axis(n)) );
     }
 
@@ -281,7 +281,7 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
     int num_points = 1e3 ;
     int param = 5 ;
     int counter = 0 ;
-    unsigned index[2] ;
+    size_t index[2] ;
     double x_y[2] ;
 
     seq_vector* ax[2] ;
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
     axis[0] = new seq_linear(1.0, 1.0, N) ;
     axis[1] = new seq_linear(1.0, 1.0, N) ;
     data_grid<double,2>* test_grid = new data_grid<double,2>(axis) ;
-    unsigned index[2] ;
+    size_t index[2] ;
     double vals[2] ;
     for(int i=0; i<(*axis[0]).size(); ++i) {
         for(int j=0; j<(*axis[1]).size(); ++j) {

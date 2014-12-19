@@ -39,8 +39,8 @@ proploss::proploss(
 
 void proploss::initialize()
 {
-    for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
-        for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
+    for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
+        for ( size_t t2=0 ; t2 < _targets->size2() ; ++t2 ) {
             _loss(t1,t2).intensity.resize( _frequencies->size() ) ;
             _loss(t1,t2).intensity.clear() ;
             _loss(t1,t2).phase.resize( _frequencies->size() ) ;
@@ -55,8 +55,8 @@ void proploss::initialize()
  */
 void proploss::sum_eigenrays( bool coherent ) {
     if( coherent ) {                                                             /// coherent signal summation
-        for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
-            for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
+        for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
+            for ( size_t t2=0 ; t2 < _targets->size2() ; ++t2 ) {
 
                 double time = 0.0 ;
                 double source_de = 0.0 ;
@@ -74,7 +74,7 @@ void proploss::sum_eigenrays( bool coherent ) {
                 const eigenray_list* entry = eigenrays(t1,t2) ;
                 eigenray* loss = &( _loss(t1,t2) ) ;
 
-                    for ( unsigned f=0 ; f < _frequencies->size() ; ++f ) {
+                    for ( size_t f=0 ; f < _frequencies->size() ; ++f ) {
 
                         // sum complex amplitudes over eigenrays
 
@@ -129,8 +129,8 @@ void proploss::sum_eigenrays( bool coherent ) {
             } // end target size2
         } // end target size1
     } else {                                                                    /// incoherent signal summation
-        for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
-            for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
+        for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
+            for ( size_t t2=0 ; t2 < _targets->size2() ; ++t2 ) {
 
                 double time = 0.0 ;
                 double source_de = 0.0 ;
@@ -148,7 +148,7 @@ void proploss::sum_eigenrays( bool coherent ) {
                 const eigenray_list* entry = eigenrays(t1,t2) ;
                 eigenray* loss = &( _loss(t1,t2) ) ;
 
-                    for ( unsigned f=0 ; f < _frequencies->size() ; ++f ) {
+                    for ( size_t f=0 ; f < _frequencies->size() ; ++f ) {
 
                         // sum complex amplitudes over eigenrays
 
@@ -204,7 +204,7 @@ void proploss::sum_eigenrays( bool coherent ) {
 /**
  * Add eigenray via proplossListener
  */
-bool proploss::addEigenray( unsigned targetRow, unsigned targetCol, eigenray pRay, unsigned long run_id ) {
+bool proploss::addEigenray( size_t targetRow, size_t targetCol, eigenray pRay, size_t long run_id ) {
 
 	 _eigenrays(targetRow, targetCol).push_back( pRay ) ;
 	 ++_num_eigenrays ;
@@ -308,11 +308,11 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
     src_lat_var->put(&v);
     v = _source_pos.longitude();   src_lng_var->put(&v);
     v = _source_pos.altitude();    src_alt_var->put(&v);
-    for (unsigned d = 0; d < _source_de->size(); ++d) {
+    for (size_t d = 0; d < _source_de->size(); ++d) {
         launch_de_var->set_cur(d);
         v = (*_source_de)(d);       launch_de_var->put(&v, 1);
     }
-    for (unsigned a = 0; a < _source_az->size(); ++a) {
+    for (size_t a = 0; a < _source_az->size(); ++a) {
         launch_az_var->set_cur(a);
         v = (*_source_az)(a);       launch_az_var->put(&v, 1);
     }
@@ -332,8 +332,8 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
     // write propagation loss and eigenrays to disk
 
     int record = 0; // current record number
-    for (unsigned t1 = 0; t1 < _targets->size1(); ++t1) {
-        for (unsigned t2 = 0; t2 < _targets->size2(); ++t2) {
+    for (size_t t1 = 0; t1 < _targets->size1(); ++t1) {
+        for (size_t t2 = 0; t2 < _targets->size2(); ++t2) {
             int num = _eigenrays(t1, t2).size();
             proploss_index_var->set_cur(t1, t2);
             eigenray_index_var->set_cur(t1, t2);

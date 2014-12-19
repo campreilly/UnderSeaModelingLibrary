@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
     // compare depth to some known values
     // extracted by hand from etopo_cmp.log
 
-    unsigned index[2] ;
+    size_t index[2] ;
     index[0]=0 ; index[1]=0 ;
     BOOST_CHECK_CLOSE( bathy.data(index), -5262.0f, 1e-6f ) ;
     index[0]=0 ; index[1]=1 ;
@@ -226,7 +226,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 	// compare depth to some known values
 	// extracted by hand from etopo_cmp.log
 
-	unsigned index[2] ;
+	size_t index[2] ;
 	index[0]=0 ; index[1]=0 ;
 	BOOST_CHECK_CLOSE( bathy.data(index), -5262.0f, 1e-6f ) ;
 	index[0]=0 ; index[1]=1 ;
@@ -291,7 +291,7 @@ BOOST_AUTO_TEST_CASE( span_bathy ) {
     // compare depth to some known values
     // extracted by hand from etopo_cmp2w.log
 
-    unsigned index[2] ;
+    size_t index[2] ;
     index[0]=0 ; index[1]=0 ;   // 1S 179E = first entry, first row
     BOOST_CHECK_CLOSE( bathy.data(index), -5436.0f, 1e-6f ) ;
     index[0]=0 ; index[1]=60 ;  // 1S 180E = last entry, first row

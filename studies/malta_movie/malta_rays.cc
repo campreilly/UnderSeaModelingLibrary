@@ -93,9 +93,9 @@ int main( int argc, char* argv[] ) {
     // initialize output to spreadsheet files
 
     std::ofstream*** os = new std::ofstream**[de.size()] ;
-    for ( unsigned d=0 ; d < de.size() ; ++d ) {
+    for ( size_t d=0 ; d < de.size() ; ++d ) {
     	os[d] = new std::ofstream*[az.size()] ;
-    	for ( unsigned a=0 ; a < az.size() ; ++a ) {
+    	for ( size_t a=0 ; a < az.size() ; ++a ) {
             static char csvname[256] ;
     	    sprintf( csvname, "%s/malta_rays_%02.0f_%02.0f.csv",
     		USML_STUDIES_DIR "/malta_rays",
@@ -152,8 +152,8 @@ int main( int argc, char* argv[] ) {
 
         // write to spreadsheet file
 
-    	for ( unsigned d=0 ; d < de.size() ; ++d ) {
-    	    for ( unsigned a=0 ; a < az.size() ; ++a ) {
+    	for ( size_t d=0 ; d < de.size() ; ++d ) {
+    	    for ( size_t a=0 ; a < az.size() ; ++a ) {
                 wvector1 ndir( wave.curr()->ndirection, d, a ) ;
                 double de, az ;
                 ndir.direction( &de, &az ) ;
@@ -187,8 +187,8 @@ int main( int argc, char* argv[] ) {
     }
     cout << "wave propagated for " << wave.time() << " secs" << endl ;
 
-    for ( unsigned d=0 ; d < de.size() ; ++d ) {
-	for ( unsigned a=0 ; a < az.size() ; ++a ) {
+    for ( size_t d=0 ; d < de.size() ; ++d ) {
+	for ( size_t a=0 ; a < az.size() ; ++a ) {
     	    delete os[d][a] ;
 	}
 	delete[] os[d] ;

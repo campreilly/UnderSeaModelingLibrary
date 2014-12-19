@@ -22,7 +22,7 @@ wvector1::wvector1(double r, double t, double p) :
 /**
  * Copy one element from a matrix of world vectors.
  */
-wvector1::wvector1(const wvector& other, unsigned row, unsigned col) :
+wvector1::wvector1(const wvector& other, size_t row, size_t col) :
     _rho(other.rho(row, col)), _theta(other.theta(row, col)), _phi(other.phi(
             row, col))
 {

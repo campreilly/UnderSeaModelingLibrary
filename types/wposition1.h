@@ -60,7 +60,7 @@ public:
     /**
      * Copy one element from a matrix of world vectors.
      */
-    wposition1(const wvector& other, unsigned row, unsigned col);
+    wposition1(const wvector& other, size_t row, size_t col);
 
 public:
 

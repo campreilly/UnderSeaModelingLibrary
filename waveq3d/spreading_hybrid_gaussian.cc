@@ -23,11 +23,11 @@ spreading_hybrid_gaussian::spreading_hybrid_gaussian(wave_queue& wave) :
     _intensity_az(wave._frequencies->size()),
     _duplicate(wave.num_az(), 1)
 {
-    for (unsigned d = 0; d < wave.num_de() - 1 ; ++d) {
+    for (size_t d = 0; d < wave.num_de() - 1 ; ++d) {
         double de1 = to_radians(wave.source_de(d));
         double de2 = to_radians(wave.source_de(d + 1));
         _norm_de(d) = de2 - de1;
-        for (unsigned a = 0; a < wave.num_az() - 1; ++a) {
+        for (size_t a = 0; a < wave.num_az() - 1; ++a) {
             double az1 = to_radians(wave.source_az(a));
             double az2 = to_radians(wave.source_az(a + 1));
             _norm_az(d, a) = (sin(de2) - sin(de1)) * (az2 - az1) / _norm_de(d);
@@ -36,7 +36,7 @@ spreading_hybrid_gaussian::spreading_hybrid_gaussian(wave_queue& wave) :
     }
 
     _norm_de(wave.num_de() - 1) = _norm_de(0);
-    for (unsigned a = 0; a < wave.num_az() ; ++a) {
+    for (size_t a = 0; a < wave.num_az() ; ++a) {
         _norm_az(wave.num_de() - 1, a) = _norm_az(0, a);
     }
 
@@ -51,7 +51,7 @@ spreading_hybrid_gaussian::spreading_hybrid_gaussian(wave_queue& wave) :
  * in the D/E and AZ directions.
  */
 const vector<double>& spreading_hybrid_gaussian::intensity(
-    const wposition1& location, unsigned de, unsigned az,
+    const wposition1& location, size_t de, size_t az,
     const vector<double>& offset, const vector<double>& distance )
 {
     // get sound speed at target
@@ -65,7 +65,7 @@ const vector<double>& spreading_hybrid_gaussian::intensity(
 
     // convert frequency into spreading distance
 
-    for (unsigned f = 0; f < _wave._frequencies->size(); ++f) {
+    for (size_t f = 0; f < _wave._frequencies->size(); ++f) {
         _spread(f) = SPREADING_WIDTH
                    * sound_speed(0, 0) / (*_wave._frequencies)(f) ;
     }
@@ -97,7 +97,7 @@ const vector<double>& spreading_hybrid_gaussian::intensity(
 /**
  * Summation of Gaussian beam contributions from all cells in the D/E direction.
  */
-void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
+void spreading_hybrid_gaussian::intensity_de( size_t de, size_t az,
     const vector<double>& offset, const vector<double>& distance )
 {
     // compute contribution from center cell
@@ -188,11 +188,11 @@ void spreading_hybrid_gaussian::intensity_de( unsigned de, unsigned az,
 /**
  * Summation of Gaussian beam contributions from all cells in the AZ direction.
  */
-void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
+void spreading_hybrid_gaussian::intensity_az( size_t de, size_t az,
     const vector<double>& offset, const vector<double>& distance )
 {
     // compute contribution from center cell
-    unsigned az_upper, az_lower ;
+    size_t az_upper, az_lower ;
     double az_first = abs((*_wave._source_az)(0)) ;
     double az_last = abs((*_wave._source_az)(_wave._source_az->size()-1)) ;
     double boundary_check = az_first + az_last ;
@@ -294,7 +294,7 @@ void spreading_hybrid_gaussian::intensity_az( unsigned de, unsigned az,
  * Interpolate the half-width of a cell in the D/E direction.
  */
 double spreading_hybrid_gaussian::width_de(
-    unsigned de, unsigned az, const vector<double>& offset )
+    size_t de, size_t az, const vector<double>& offset )
 {
     double L1, L2, length1, length2 ;
 
@@ -354,7 +354,7 @@ double spreading_hybrid_gaussian::width_de(
  * Interpolate the half-width of a cell in the AZ direction.
  */
 double spreading_hybrid_gaussian::width_az(
-    unsigned de, unsigned az, const vector<double>& offset )
+    size_t de, size_t az, const vector<double>& offset )
 {
     double L1, L2, length1, length2 ;
     // compute relative offsets in time (u) and D/E (v)

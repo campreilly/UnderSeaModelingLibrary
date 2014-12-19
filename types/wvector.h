@@ -52,7 +52,7 @@ public:
      * @param  rows	Number of rows
      * @param  cols	Number of columns
      */
-    wvector(unsigned rows = 1, unsigned cols = 1);
+    wvector(size_t rows = 1, size_t cols = 1);
 
     //*********************************
     // Rho property (includes both matrix and indexed accessors)
@@ -100,7 +100,7 @@ public:
      * @param  col      Column index of the element to access.
      * @return          Radial coordinate in meters.
      */
-    inline double rho(unsigned row, unsigned col) const
+    inline double rho(size_t row, size_t col) const
     {
         return _rho(row, col);
     }
@@ -113,7 +113,7 @@ public:
      * @param  r        Radial coordinate in meters.
      *
      */
-    inline void rho(unsigned row, unsigned col, double r)
+    inline void rho(size_t row, size_t col, double r)
     {
         _rho(row, col) = r;
     }
@@ -164,7 +164,7 @@ public:
      * @param  col      Column index of the element to access.
      * @return		    Colatitude coordinate in radians.
      */
-    inline double theta(unsigned row, unsigned col) const
+    inline double theta(size_t row, size_t col) const
     {
         return _theta(row, col);
     }
@@ -178,7 +178,7 @@ public:
      * @param  t        Colatitude coordinate in radians.
      *
      */
-    inline void theta(unsigned row, unsigned col, double t)
+    inline void theta(size_t row, size_t col, double t)
     {
         _theta(row, col) = t;
     }
@@ -228,7 +228,7 @@ public:
      * @param  col      Column index of the element to access.
      * @return          Longitude coordinate in radians.
      */
-    inline double phi(unsigned row, unsigned col) const
+    inline double phi(size_t row, size_t col) const
     {
         return _phi(row, col);
     }
@@ -241,7 +241,7 @@ public:
      * @param  p        Longitude coordinate in radians.
      *
      */
-    inline void phi(unsigned row, unsigned col, double p)
+    inline void phi(size_t row, size_t col, double p)
     {
         _phi(row, col) = p;
     }
@@ -252,7 +252,7 @@ public:
     /**
      * Number of rows in each coordinate.
      */
-    inline unsigned size1() const
+    inline size_t size1() const
     {
         return _rho.size1();
     }
@@ -260,7 +260,7 @@ public:
     /**
      * Number of columns in each coordinate.
      */
-    inline unsigned size2() const
+    inline size_t size2() const
     {
         return _rho.size2();
     }

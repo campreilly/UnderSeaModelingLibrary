@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
     const seq_linear range( rmin, rinc, rmax );   // range in latitude
 
     static double depth[] = { 0, 10, 100, 1000 } ;
-    unsigned num_depths = sizeof(depth) / sizeof(double) ;
+    size_t num_depths = sizeof(depth) / sizeof(double) ;
 
     //*********************************************************************
     // compute eigenrays for this ocean
@@ -159,8 +159,8 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
     // build a grid of targets at different ranges and depths
 
     wposition target( range.size(), num_depths, src_lat, src_lng, src_alt );
-    for ( unsigned t1=0; t1 < range.size(); ++t1 ) {
-        for ( unsigned t2=0; t2 < num_depths; ++t2 ) {
+    for ( size_t t1=0; t1 < range.size(); ++t1 ) {
+        for ( size_t t2=0; t2 < num_depths; ++t2 ) {
             target.latitude( t1, t2, src_lat + range(t1) );
             target.altitude( t1, t2, -depth[t2] );
         }
@@ -205,8 +205,8 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
     // compare each target location to analytic results
 
     cout << "testing eigenrays" << endl;
-    for ( unsigned t1=0; t1 < range.size(); ++t1 ) {
-        for ( unsigned t2=0; t2 < num_depths; ++t2 ) {
+    for ( size_t t1=0; t1 < range.size(); ++t1 ) {
+        for ( size_t t2=0; t2 < num_depths; ++t2 ) {
             double time, sde, tde, phase ;
 
             // setup analytic equations for this target

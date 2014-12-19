@@ -60,7 +60,7 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
 
     /** Creates a data grid with the above assigned axises and populates the grid with the data from the netcdf file */
     _bottom_grid = new data_grid<double,2>(axis) ;
-    unsigned index[2] ;
+    size_t index[2] ;
     for(int i=0; i<latdim; i++) {
         for(int j=0; j<londim; j++) {
             index[0] = i ;
@@ -114,7 +114,7 @@ void reflect_loss_netcdf::reflect_loss(
     loc[0] = location.latitude() ;
     loc[1] = location.longitude() ;
 
-    unsigned int type = _bottom_grid->interpolate(loc) ;
+    size_t type = _bottom_grid->interpolate(loc) ;
     _rayleigh[type]->reflect_loss(location, frequencies, angle, amplitude, phase ) ;
 }
 

@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
     // build a series of targets at different ranges
 
     wposition target(10, 1, src_lat, src_lng, src_alt);
-    for (unsigned n = 0; n < target.size1(); ++n)
+    for (size_t n = 0; n < target.size1(); ++n)
     {
         target.latitude(n, 0, src_lat + 0.01 * (n + 2.0));
     }
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
     os << std::setprecision(18);
 
     cout << "writing spreadsheets to " << csvname << endl;
-    for (unsigned n = 0; n < target.size1(); ++n)
+    for (size_t n = 0; n < target.size1(); ++n)
     {
         const eigenray_list *raylist = loss.eigenrays(n, 0);
         for (eigenray_list::const_iterator iter = raylist->begin();
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
             cout << "range=" << range
                  << " theory=" << pl
                  << " model=" << ray.intensity << endl;
-            for (unsigned f = 0; f < freq.size(); ++f)
+            for (size_t f = 0; f < freq.size(); ++f)
             {
                 BOOST_CHECK(fabs(ray.intensity(f) - pl) < 0.2);
             }
@@ -308,7 +308,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
 
     seq_linear range(200.0, 10.0, 10e3); // range in meters
     wposition target(range.size(), 1, src_lat, src_lng, trg_alt);
-    for (unsigned n = 0; n < target.size1(); ++n)
+    for (size_t n = 0; n < target.size1(); ++n)
     {
         double degrees = src_lat + range(n) / (1852.0 * 60.0); // range in latitude
         target.latitude(n, 0, degrees);
@@ -349,7 +349,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
     const double z1 = trg_alt - src_alt;
     const double z2 = trg_alt + src_alt;
 
-    for (unsigned n = 0; n < range.size(); ++n)
+    for (size_t n = 0; n < range.size(); ++n)
     {
         tl_model[n] = -loss.total(n, 0)->intensity(0);
 
@@ -398,7 +398,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
     double Sxx = 0.0;
     double Syy = 0.0;
     double Sxy = 0.0;
-    for (unsigned n = 0; n < range.size(); ++n)
+    for (size_t n = 0; n < range.size(); ++n)
     {
         const double diff = (tl_model[n] - tl_analytic[n]);
         bias += diff ;
@@ -510,7 +510,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
 
     seq_linear range(200.0, 10.0, 10e3); // range in meters
     wposition target(range.size(), 1, src_lat, src_lng, trg_alt);
-    for (unsigned n = 0; n < target.size1(); ++n)
+    for (size_t n = 0; n < target.size1(); ++n)
     {
         double degrees = src_lat + range(n) / (1852.0 * 60.0); // range in latitude
         target.latitude(n, 0, degrees);
@@ -552,12 +552,12 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
     const double z2 = trg_alt + src_alt;
 
 
-    for (unsigned f=0; f < freq.size(); ++f)
+    for (size_t f=0; f < freq.size(); ++f)
     {
         const double wavenum = TWO_PI * freq(f) / c0 ;
         os << "freq: " << freq(f) << endl;
 
-        for (unsigned n = 0; n < range.size(); ++n)
+        for (size_t n = 0; n < range.size(); ++n)
         {
             tl_model[n] = -loss.total(n, 0)->intensity(f);
 
@@ -606,7 +606,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
         double Sxx = 0.0;
         double Syy = 0.0;
         double Sxy = 0.0;
-        for (unsigned n = 0; n < range.size(); ++n)
+        for (size_t n = 0; n < range.size(); ++n)
         {
             const double diff = (tl_model[n] - tl_analytic[n]);
             bias += diff ;
@@ -726,7 +726,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     seq_linear depth(-0.1, -0.5, -40.1); // depth in meters
 //    seq_linear depth(-0.1, 1.0, 1); // depth in meters
     wposition target(depth.size(), 1, degrees, src_lng, 0.0);
-    for (unsigned n = 0; n < target.size1(); ++n)
+    for (size_t n = 0; n < target.size1(); ++n)
     {
         target.altitude(n, 0, depth(n));
     }
@@ -765,7 +765,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     double mean_model = 0.0;
     double mean_analytic = 0.0;
 
-    for (unsigned n = 0; n < depth.size(); ++n)
+    for (size_t n = 0; n < depth.size(); ++n)
     {
         const double z1 = depth(n) - src_alt;
         const double z2 = depth(n) + src_alt;
@@ -820,7 +820,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     double Sxx = 0.0;
     double Syy = 0.0;
     double Sxy = 0.0;
-    for (unsigned n = 0; n < depth.size(); ++n)
+    for (size_t n = 0; n < depth.size(); ++n)
     {
         const double diff = (tl_model[n] - tl_analytic[n]);
         bias += diff ;
