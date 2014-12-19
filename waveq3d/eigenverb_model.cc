@@ -20,22 +20,22 @@ void eigenverb_model::create_eigenverb( unsigned de, unsigned az,
     verb.az_index = az ;
     verb.launch_az = wave.source_az(az) ;
     verb.launch_de = wave.source_de(de) ;
-    verb.distance = wave.curr()->getPath_length(de,az) + speed * dt ;
+    verb.distance = wave.curr()->path_length(de,az) + speed * dt ;
     verb.travel_time = wave.time() + dt ;
     verb.grazing = grazing ;
     verb.sound_speed = speed ;
     verb.position = position ;
     verb.direction = ndirection ;
     verb.frequencies = wave.frequencies() ;
-    verb.surface = wave.curr()->getSurface(de,az) ;
-    verb.bottom = wave.curr()->getBottom(de,az) ;
+    verb.surface = wave.curr()->surface(de,az) ;
+    verb.bottom = wave.curr()->bottom(de,az) ;
 
         // Calculate the one way TL and the width of the gaussian
         // at the time of impact with the boundary.
     double true_distance = verb.distance ;
     double spreading_loss = 1.0 / (true_distance * true_distance) ;
     vector<double> amp( wave.frequencies()->size(), spreading_loss ) ;
-    vector<double> boundary_loss = pow( 10.0, -0.1 * wave.curr()->getAttenuation(de,az) ) ;
+    vector<double> boundary_loss = pow( 10.0, -0.1 * wave.curr()->attenuation(de,az) ) ;
     verb.intensity = element_prod( amp, boundary_loss ) ;
 
     double delta_de ;

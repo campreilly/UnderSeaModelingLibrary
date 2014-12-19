@@ -2,9 +2,7 @@
  * @file SharedPointerManager.h
  * class that manages shared pointers for various interfaces.
  */
-
-#ifndef USML_UTILITIES_SHAREDPOINTERMANAGER_H
-#define USML_UTILITIES_SHAREDPOINTERMANAGER_H
+#pragma once
 
 #include <boost/shared_ptr.hpp>
 
@@ -17,7 +15,7 @@ namespace utilities {
         public:
 
             typedef SharedPointerManager<pointer_type>      self_type ;
-            typedef boost::shared_ptr<pointer_type>          element_type ;
+            typedef boost::shared_ptr<pointer_type>         element_type ;
             typedef pointer_type *                          stored_pointer ;
 
             /**
@@ -43,11 +41,11 @@ namespace utilities {
             /**
              * Sets the pointer that is contained within the class
              */
-            void setPointer( stored_pointer ptr ) {
+            void pointer( stored_pointer ptr ) {
                 __ptr.reset( &(*ptr) ) ;
             }
 
-            virtual stored_pointer getPointer() {
+            virtual stored_pointer pointer() {
                 return __ptr.get() ;
             } ;
 
@@ -62,5 +60,3 @@ namespace utilities {
 
 }
 }
-
-#endif

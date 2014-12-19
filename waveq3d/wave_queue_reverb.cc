@@ -58,17 +58,9 @@ wave_queue_reverb::wave_queue_reverb(
 /**
  * Allows for redefinite of the reverberation model dynamically.
  */
-void wave_queue_reverb::setReverberation_Model( Pointer_Manager m )
+void wave_queue_reverb::reverberation( Pointer_Manager m )
 {
-    _reflection_model->setReverberation_Model( m ) ;
-}
-
-/**
- * Get the size of the frequency vector. Used to scale the size of
- * the _loss/_phase vectors inside of eigenverb classes.
- */
-const unsigned wave_queue_reverb::getFreqSize() {
-    return _frequencies->size() ;
+    _reflection_model->reverberation( m ) ;
 }
 
 /**
@@ -138,7 +130,7 @@ void wave_queue_reverb::collide_from_above(
     // height_water = initial ray height above the layer (must be positive)
 
     double layer_rho ;
-    wvector1 layer_normal ;
+    wvector1 layer_normal( 1.0, 0.0, 0.0 ) ;
     volume_model& volume = _ocean.volume(layer) ;
     volume.depth( position, &layer_rho ) ;
     double height_water = position.rho() - layer_rho ;
@@ -213,7 +205,7 @@ void wave_queue_reverb::collide_from_below(
     // height_water = initial ray height above the layer (must be positive)
 
     double layer_rho ;
-    wvector1 layer_normal ;
+    wvector1 layer_normal( -1.0, 0.0, 0.0 ) ;
     volume_model& volume = _ocean.volume(layer) ;
     volume.depth( position, &layer_rho ) ;
     double height_water = position.rho() - layer_rho ;

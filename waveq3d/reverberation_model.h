@@ -14,11 +14,12 @@ using namespace usml::ocean ;
 
 using namespace boost::numeric::ublas ;
 
+/// @ingroup waveq3d
+/// @{
+
 /**
  * A reverberation model listens for interface collision callbacks from
  * a wavefront.
- *
- * @todo The reverberation_model class is currently just a stub for future behaviors.
  */
 class USML_DECLSPEC reverberation_model {
 
@@ -76,7 +77,7 @@ class USML_DECLSPEC reverberation_model {
         /**
          * Returns the reverberation data
          */
-        virtual const vector<double> getReverberation_curve() = 0 ;
+        virtual const vector<double> reverberation_curve() = 0 ;
 
 };
 

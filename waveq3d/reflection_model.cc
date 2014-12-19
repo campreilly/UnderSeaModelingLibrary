@@ -98,11 +98,11 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     else { grazing = asin( -dot_full / c ) ; }
 
     // invoke bottom reverberation callback
-//    if( _wave.is_ray_valid(de,az) ) {
-//        int ID = _wave.getID() ;
-//        _reverberation->notifyLowerCollision( de, az, time_water, grazing, c,
-//            position,  ndirection, _wave, ID ) ;
-//    }
+    if( _wave.is_ray_valid(de,az) ) {
+        int ID = _wave.getID() ;
+        _reverberation->notifyLowerCollision( de, az, time_water, grazing, c,
+            position,  ndirection, _wave, ID ) ;
+    }
 
     // compute reflection loss
     // adds reflection attenuation and phase to existing value
@@ -164,11 +164,11 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     if ( grazing <= 0.0 ) return false ;	// near miss of the surface
 
     // surface reverberation callback
-//    if( _wave.is_ray_valid(de,az) ) {
-//        int ID = _wave.getID() ;
-//        _reverberation->notifyUpperCollision( de, az, time_water, grazing, c,
-//            position,  ndirection, _wave, ID ) ;
-//    }
+    if( _wave.is_ray_valid(de,az) ) {
+        int ID = _wave.getID() ;
+        _reverberation->notifyUpperCollision( de, az, time_water, grazing, c,
+            position,  ndirection, _wave, ID ) ;
+    }
 
     // compute reflection loss
     // adds reflection attenuation and phase to existing value

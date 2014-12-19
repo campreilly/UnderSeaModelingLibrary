@@ -2,8 +2,7 @@
  * @file eigenverb.h
  * A single acoustic path between a source or receiver and a boundary.
  */
-#ifndef USML_WAVEQ3D_EIGENVERB_H
-#define USML_WAVEQ3D_EIGENVERB_H
+#pragma once
 
 #include <usml/types/types.h>
 
@@ -111,5 +110,3 @@ struct eigenverb {
 /// @}
 }  // end of namespace waveq3d
 }  // end of namespace usml
-
-#endif

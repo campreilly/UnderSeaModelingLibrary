@@ -1,9 +1,7 @@
 /**
  * @file wave_queue_reverb.h
  */
-
-#ifndef USML_WAVEQ3D_WAVE_QUEUE_REVERB_H
-#define USML_WAVEQ3D_WAVE_QUEUE_REVERB_H
+#pragma once
 
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/reverberation_model.h>
@@ -14,6 +12,9 @@ namespace waveq3d {
 
 class reflection_model ;
 class spreading_model ;
+
+/// @ingroup waveq3d
+/// @{
 
 /**
  * ID value used for source and receivers.
@@ -61,12 +62,7 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
         /**
          * Sets the reverberation model for the wave_queue.
          */
-        void setReverberation_Model( Pointer_Manager m ) ;
-
-        /**
-         * Returns the number of frequencies in _frequencies.
-         */
-        const unsigned getFreqSize() ;
+        void reverberation( Pointer_Manager m ) ;
 
         /**
          * Accessor to validate a ray for reverberation contributions
@@ -155,7 +151,6 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
 
 };
 
+/// @}
 }   // end of namespace waveq3d
 }   // end of namespace usml
-
-#endif

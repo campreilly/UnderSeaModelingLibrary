@@ -1,9 +1,7 @@
 /**
  * @file eigenverb_monostatic.h
  */
-
-#ifndef USML_WAVEQ3D_EIGENVERB_MONOSTATIC_H
-#define USML_WAVEQ3D_EIGENVERB_MONOSTATIC_H
+#pragma once
 
 #include <usml/waveq3d/eigenverb_model.h>
 
@@ -14,12 +12,13 @@ using namespace usml::ocean ;
 
 using namespace boost::numeric::ublas ;
 
+/// @ingroup waveq3d
+/// @{
+
 /**
  * A reverberation model listens for interface collision callbacks from
  * a wavefront. Used in monostatic scenarios, i.e. source and receiver are
  * co-located.
- *
- * @todo The reverberation_model class is currently just a stub for future behaviors.
  */
 class USML_DECLSPEC eigenverb_monostatic : public eigenverb_model {
 
@@ -136,5 +135,3 @@ class USML_DECLSPEC eigenverb_monostatic : public eigenverb_model {
 /// @}
 }  // end of namespace waveq3d
 }  // end of namespace usml
-
-#endif

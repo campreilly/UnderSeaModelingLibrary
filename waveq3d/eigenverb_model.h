@@ -1,9 +1,7 @@
 /**
  * @file eigenverb_model.h
  */
-
-#ifndef USML_WAVEQ3D_EIGENVERB_MODEL_H
-#define USML_WAVEQ3D_EIGENVERB_MODEL_H
+#pragma once
 
 //#define EIGENVERB_COLLISION_DEBUG
 //#define EIGENVERB_MODEL_DEBUG
@@ -27,6 +25,9 @@ namespace waveq3d {
 using namespace usml::ocean ;
 
 using namespace boost::numeric::ublas ;
+
+/// @ingroup waveq3d
+/// @{
 
 class USML_DECLSPEC eigenverb_model : public reverberation_model {
 
@@ -92,7 +93,7 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
          * reverberation curve.
          * @return      pointer to _reverberation_curve
          */
-         virtual const vector<double> getReverberation_curve() {
+         virtual const vector<double> reverberation_curve() {
             return _reverberation_curve ;
          }
 
@@ -210,7 +211,6 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
 
 };
 
+/// @}
 }   // end of namespace waveq3d
 }   // end of namespace usml
-
-#endif
