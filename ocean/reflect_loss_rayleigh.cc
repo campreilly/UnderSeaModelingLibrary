@@ -57,7 +57,7 @@ reflect_loss_rayleigh::reflect_loss_rayleigh(bottom_type_enum type)
 /**
  * Initialize model with impedance mis-match factors.
  */
-reflect_loss_rayleigh::reflect_loss_rayleigh(int type)
+reflect_loss_rayleigh::reflect_loss_rayleigh(size_t type)
     :
     _density_water(1000.0),
     _speed_water(1500.0),

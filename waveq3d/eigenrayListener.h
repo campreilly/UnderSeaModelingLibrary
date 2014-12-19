@@ -36,7 +36,7 @@ public:
      *  @param   pRay      Pointer to eigenray data to add to list of eigenrays
      *  @param   run_id    Run Identification number.
 	 */
-	virtual bool addEigenray(unsigned targetRow, unsigned targetCol, eigenray pRay, unsigned long run_id) = 0;
+	virtual bool addEigenray(size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id) = 0;
 
 
 protected:

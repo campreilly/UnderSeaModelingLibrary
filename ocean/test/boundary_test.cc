@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
     BOOST_CHECK_EQUAL( grid->axis(0)->size(), 241 );              //rows
     BOOST_CHECK_EQUAL( grid->axis(1)->size(), 241 );              //columns
 
-    unsigned index[2] ;
+    size_t index[2] ;
     index[0]=0; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 684.0, 1e-6);
     index[0]=240; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 622.0, 1e-6);
     index[0]=0; index[1]=240; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 771.0, 1e-6);

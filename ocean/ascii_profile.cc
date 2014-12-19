@@ -19,7 +19,7 @@ ascii_profile::ascii_profile( const char* filename ) {
     // count the number of lines in the input file
 
     std::ifstream infile(filename);
-    unsigned size = 0 ;
+    size_t size = 0 ;
     std::string line ;
     while ( getline(infile,line) ) ++size ;
     infile.clear() ;
@@ -31,7 +31,7 @@ ascii_profile::ascii_profile( const char* filename ) {
     double *height = new double[size] ;
     double *speed = new double[size] ;
     char c ;
-    for ( unsigned n=0 ; n < size ; ++n ) {
+    for ( size_t n=0 ; n < size ; ++n ) {
         infile >> depth ;
         while ( true ) {    // skip comma and space delimiters
             c = infile.peek() ;

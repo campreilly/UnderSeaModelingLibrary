@@ -28,7 +28,7 @@ wave_queue::wave_queue(
     const seq_vector& az,
     double time_step,
     const wposition* targets,
-    const unsigned long run_id,
+    const size_t run_id,
     spreading_type type
 ) :
     _ocean( ocean ),
@@ -180,8 +180,8 @@ void wave_queue::detect_reflections() {
     // process all surface and bottom reflections, and vertices
     // note that multiple rays can reflect in the same time step
 
-    for (unsigned de = 0; de < num_de(); ++de) {
-        for (unsigned az = 0; az < num_az(); ++az) {
+    for (size_t de = 0; de < num_de(); ++de) {
+        for (size_t az = 0; az < num_az(); ++az) {
             if ( !detect_reflections_surface(de,az) ) {
                 if( !detect_reflections_bottom(de,az) ) {
                     detect_vertices(de,az) ;
@@ -199,7 +199,7 @@ void wave_queue::detect_reflections() {
 /**
  * Detect and process reflection for a single (DE,AZ) combination.
  */
-bool wave_queue::detect_reflections_surface( unsigned de, unsigned az ) {
+bool wave_queue::detect_reflections_surface( size_t de, size_t az ) {
     if (_next->position.altitude(de,az) > 0.0) {
         if (_reflection_model->surface_reflection(de,az)) {
             _next->surface(de,az) += 1;
@@ -215,7 +215,7 @@ bool wave_queue::detect_reflections_surface( unsigned de, unsigned az ) {
 /**
  * Detect and process reflection for a single (DE,AZ) combination.
  */
-bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
+bool wave_queue::detect_reflections_bottom( size_t de, size_t az ) {
     double height ;
     wposition1 pos( _next->position, de, az ) ;
     _ocean.bottom().height( pos, &height, NULL, true ) ;
@@ -235,7 +235,7 @@ bool wave_queue::detect_reflections_bottom( unsigned de, unsigned az ) {
 /**
  *  Detects upper and lower vertices along the wavefront
  */
-void wave_queue::detect_vertices( unsigned de, unsigned az ) {
+void wave_queue::detect_vertices( size_t de, size_t az ) {
     double L = _curr->ndirection.rho(de,az) ;
     double R = _next->ndirection.rho(de,az) ;
     if( L*R < 0.0 && R < 0.0 ) _next->upper(de,az)++ ;
@@ -245,8 +245,8 @@ void wave_queue::detect_vertices( unsigned de, unsigned az ) {
 /**
  *  Detects and processes the caustics along the next wavefront
  */
-void wave_queue::detect_caustics( unsigned de, unsigned az ) {
-    const unsigned max_de = num_de() - 1 ;
+void wave_queue::detect_caustics( size_t de, size_t az ) {
+    const size_t max_de = num_de() - 1 ;
     if ( de < max_de ) {
         double A = _curr->position.rho(de+1,az) ;
         double B = _curr->position.rho(de,az) ;
@@ -257,7 +257,7 @@ void wave_queue::detect_caustics( unsigned de, unsigned az ) {
              (_next->bottom(de+1,az) == _next->bottom(de,az)) ) { fold = true; }
         if ( (C-D)*(A-B) < 0 && fold ) {
             _next->caustic(de+1,az)++;
-            for (unsigned f = 0; f < _frequencies->size(); ++f) {
+            for (size_t f = 0; f < _frequencies->size(); ++f) {
                 _next->phase(de+1,az)(f) -= M_PI_2;
             }
         }
@@ -279,8 +279,8 @@ void wave_queue::detect_eigenrays() {
     }
 
     // loop over all targets
-    for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
-        for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
+    for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
+        for ( size_t t2=0 ; t2 < _targets->size2() ; ++t2 ) {
             _de_branch = false ;
             if ( abs(_source_pos.latitude() - _targets->latitude(t1,t2)) < 1e-4 &&
                  abs(_source_pos.longitude() - _targets->longitude(t1,t2)) < 1e-4 ) {
@@ -288,8 +288,8 @@ void wave_queue::detect_eigenrays() {
             }
 
             // Loop over all rays
-            for ( unsigned de=1 ; de < num_de() - 1 ; ++de ) {
-                for ( unsigned az=az_start ; az < num_az() - 1 ; ++az ) {
+            for ( size_t de=1 ; de < num_de() - 1 ; ++de ) {
+                for ( size_t az=az_start ; az < num_az() - 1 ; ++az ) {
 
                     // *******************************************
                     // When central ray is at the edge of ray family
@@ -326,8 +326,8 @@ void wave_queue::detect_eigenrays() {
  * closest point of approach to the current target.
  */
 bool wave_queue::is_closest_ray(
-   unsigned t1, unsigned t2,
-   unsigned de, unsigned az,
+   size_t t1, size_t t2,
+   size_t de, size_t az,
    const double& center,
    double distance2[3][3][3]
 ) {
@@ -338,14 +338,14 @@ bool wave_queue::is_closest_ray(
      */
     if(_az_boundary) {
         // test all neighbors that are not the central ray
-        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
-            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
+        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
+            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
                 if ( nde == 1 && naz == 1 ) continue ;
 
                 // compute distances on the current, next, and previous wavefronts
 
-                unsigned d = de + nde - 1 ;
-                unsigned a = az + naz - 1 ;
+                size_t d = de + nde - 1 ;
+                size_t a = az + naz - 1 ;
                 if( (int)a < 0.0 ) {
                     a = num_az() - 2 ;
                 } else
@@ -388,13 +388,13 @@ bool wave_queue::is_closest_ray(
         }
         return true ;
     } else {
-        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
-            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
+        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
+            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
                 if ( nde == 1 && naz == 1 ) continue ;
                 // compute distances on the current, next, and previous wavefronts
 
-                unsigned d = de + nde - 1 ;
-                unsigned a = az + naz - 1 ;
+                size_t d = de + nde - 1 ;
+                size_t a = az + naz - 1 ;
 
                 distance2[0][nde][naz] = _prev->distance2(t1,t2)(d,a) ;
                 distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
@@ -439,8 +439,8 @@ bool wave_queue::is_closest_ray(
  * add a new eigenray entry to the current target.
  */
 void wave_queue::build_eigenray(
-   unsigned t1, unsigned t2,
-   unsigned de, unsigned az,
+   size_t t1, size_t t2,
+   size_t de, size_t az,
    double distance2[3][3][3]
 ) {
     // compute offsets
@@ -461,10 +461,10 @@ void wave_queue::build_eigenray(
      * once per function call.
      */
     if(_az_boundary) {
-        for ( unsigned nde=0 ; nde < 3 && !unstable ; ++nde ) {
-            unsigned d = de + nde -1 ;
-            for ( unsigned naz=0 ; naz < 3 && !unstable ; ++naz ) {
-                unsigned a = az + naz -1 ;
+        for ( size_t nde=0 ; nde < 3 && !unstable ; ++nde ) {
+            size_t d = de + nde -1 ;
+            for ( size_t naz=0 ; naz < 3 && !unstable ; ++naz ) {
+                size_t a = az + naz -1 ;
                 if( (int)a < 0.0 ) {
                     a = num_az() - 2 ;
                 } else
@@ -487,10 +487,10 @@ void wave_queue::build_eigenray(
         }
     }
     else {
-        for ( unsigned nde=0 ; nde < 3 && !unstable ; ++nde ) {
-            unsigned d = de + nde -1 ;
-            for ( unsigned naz=0 ; naz < 3 && !unstable ; ++naz ) {
-                unsigned a = az + naz -1 ;
+        for ( size_t nde=0 ; nde < 3 && !unstable ; ++nde ) {
+            size_t d = de + nde -1 ;
+            for ( size_t naz=0 ; naz < 3 && !unstable ; ++naz ) {
+                size_t a = az + naz -1 ;
                 if ( _prev->surface(d,a) != surface ||
                      _curr->surface(d,a) != surface ||
                      _next->surface(d,a) != surface ||
@@ -526,7 +526,7 @@ void wave_queue::build_eigenray(
     const vector<double> spread_intensity =
         _spreading_model->intensity(
             wposition1( *(_curr->targets), t1, t2 ), de, az, offset, distance );
-    for ( unsigned int i = 0; i < ray.intensity.size(); ++i) {
+    for ( size_t i = 0; i < ray.intensity.size(); ++i) {
         if ( isnan(spread_intensity(i)) ) {
             #ifdef USML_DEBUG
                 std::cerr << "warning: wave_queue::build_eigenray()"  << endl
@@ -560,7 +560,7 @@ void wave_queue::build_eigenray(
     // complete the ray build and send to listeners; discard otherwise.
 
     bool bKeepRay = false ;
-    for ( unsigned int i = 0; i < ray.intensity.size(); ++i) {
+    for ( size_t i = 0; i < ray.intensity.size(); ++i) {
 		if ( ray.intensity(i) < _intensity_threshold  ) {
 			bKeepRay = true ;
 			break ;
@@ -579,10 +579,10 @@ void wave_queue::build_eigenray(
      * once per function call.
      */
     if(_az_boundary) {
-        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
-            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
-                unsigned d = de + nde - 1 ;
-                unsigned a = az + naz - 1 ;
+        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
+            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
+                size_t d = de + nde - 1 ;
+                size_t a = az + naz - 1 ;
                 if( (int)a < 0.0 ) {
                     a = num_az() - 2 ;
                 } else
@@ -605,10 +605,10 @@ void wave_queue::build_eigenray(
             }
         }
     } else {
-        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
-            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
-                unsigned d = de + nde - 1 ;
-                unsigned a = az + naz - 1 ;
+        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
+            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
+                size_t d = de + nde - 1 ;
+                size_t a = az + naz - 1 ;
                 double dummy ;
                 {
                     wvector1 ndir( _prev->ndirection, d, a ) ;
@@ -637,10 +637,10 @@ void wave_queue::build_eigenray(
     // re-uses "distance2" variable to store AZ angles
 
     if(_az_boundary) {
-        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
-            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
-                unsigned d = de + nde - 1 ;
-                unsigned a = az + naz - 1 ;
+        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
+            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
+                size_t d = de + nde - 1 ;
+                size_t a = az + naz - 1 ;
                 double dummy ;
                 if( (int)a < 0.0 ) {
                     a = num_az() - 2 ;
@@ -663,10 +663,10 @@ void wave_queue::build_eigenray(
             }
         }
     } else {
-        for ( unsigned nde=0 ; nde < 3 ; ++nde ) {
-            for ( unsigned naz=0 ; naz < 3 ; ++naz ) {
-                unsigned d = de + nde - 1 ;
-                unsigned a = az + naz - 1 ;
+        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
+            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
+                size_t d = de + nde - 1 ;
+                size_t a = az + naz - 1 ;
                 double dummy ;
                 {
                     wvector1 ndir( _prev->ndirection, d, a ) ;
@@ -713,7 +713,7 @@ void wave_queue::compute_offsets(
     // if inverse can not be computed because determinant is zero
     // non-positive hessian diags are an indication that offset is unstable
 
-    for ( unsigned n=0 ; n < 3 ; ++n ) {
+    for ( size_t n=0 ; n < 3 ; ++n ) {
         const double h = max( 1e-10, hessian(n,n) ) ;
         offset(n) = -gradient(n) / h ;
     }
@@ -746,7 +746,7 @@ void wave_queue::compute_offsets(
     // compute distances from offsets
     // for each coordinate, assumes the other two offsets are zero
     // fixes DE distance instablity outside of ray fan
-    for ( unsigned n=0 ; n < 3 ; ++n ) {
+    for ( size_t n=0 ; n < 3 ; ++n ) {
         distance(n) = -gradient(n)*offset(n)
                 -0.5*hessian(n,n)*offset(n)*offset(n) ;
     }
@@ -757,7 +757,7 @@ void wave_queue::compute_offsets(
     // take sqrt() of distance and give it same sign as offset
     // clip offsets to +/- one beam
 
-    for ( unsigned n=0 ; n < 3 ; ++n ) {
+    for ( size_t n=0 ; n < 3 ; ++n ) {
         distance(n) = sqrt( max( 0.0, distance(n) ) ) ;
         if ( offset(n) < 0.0 ) distance(n) *= -1.0 ;
         offset(n) = max( -delta(n), min(delta(n),offset(n)) ) ;
@@ -852,7 +852,7 @@ bool wave_queue::removeEigenrayListener(eigenrayListener* pListener){
  * For each eigenrayListener in the _eigenrayListenerVec vector
  * call the addEigenray method to provide eigenrays.
  */
-bool wave_queue::notifyEigenrayListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray){
+bool wave_queue::notifyEigenrayListeners(size_t targetRow, size_t targetCol, eigenray pEigenray){
 
 	for (std::vector<eigenrayListener*>::iterator iter = _eigenrayListenerVec.begin();
 												iter != _eigenrayListenerVec.end(); ++iter){

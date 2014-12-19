@@ -134,7 +134,7 @@ class USML_DECLSPEC reflection_model
      * @return                  True for an actual reflection,
      *                          False for a near-miss.
      */
-    bool bottom_reflection( unsigned de, unsigned az, double depth ) ;
+    bool bottom_reflection( size_t de, size_t az, double depth ) ;
 
     /**
      * Reflect a single acoustic ray from the ocean surface.
@@ -170,7 +170,7 @@ class USML_DECLSPEC reflection_model
      * @return              True for an actual reflection,
      *                      False for a near-miss.
      */
-    bool surface_reflection( unsigned de, unsigned az ) ;
+    bool surface_reflection( size_t de, size_t az ) ;
 
     /**
      * Computes a refined location and direction at the point of collision.
@@ -187,7 +187,7 @@ class USML_DECLSPEC reflection_model
      * @param speed         Speed of sound at the point of reflection (output).
      */
     void collision_location(
-        unsigned de, unsigned az, double dtime,
+        size_t de, size_t az, double dtime,
         wposition1* position, wvector1* ndirection, double* speed ) const ;
 
     /**
@@ -205,7 +205,7 @@ class USML_DECLSPEC reflection_model
      * @param speed         Speed of sound at the point of reflection.
      */
     void reflection_reinit(
-        unsigned de, unsigned az, double dtime,
+        size_t de, size_t az, double dtime,
         const wposition1& position, const wvector1& direction, double speed ) ;
 
     /**
@@ -219,7 +219,7 @@ class USML_DECLSPEC reflection_model
      * @param results       Wave element data with new information.
      */
     static void reflection_copy(
-        wave_front* element, unsigned de, unsigned az,
+        wave_front* element, size_t de, size_t az,
         wave_front& results ) ;
 } ;
 

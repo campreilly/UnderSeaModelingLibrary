@@ -112,6 +112,7 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
     wave.save_netcdf();
     while ( wave.time() < time_max ) {
         wave.step();
+		cout << " Stepping Time" << endl;
         wave.save_netcdf();
     }
     wave.close_netcdf();
@@ -381,7 +382,7 @@ BOOST_AUTO_TEST_CASE( eigenray_tl_az ) {
     // build a series of targets at target_range distance away
     double angle = (tar_ang_sprd*M_PI/180.0)/num_targets;
     double bearing_inc = (tar_bearing*M_PI/180.0) ;
-    for (unsigned n = 0; n < num_targets; ++n) {
+    for (size_t n = 0; n < num_targets; ++n) {
         wposition1 aTarget( pos, target_range, bearing_inc) ;
         target.latitude( n, 0, aTarget.latitude());
         target.longitude( n, 0, aTarget.longitude());
@@ -486,7 +487,7 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
     // build a series of targets at 100 km
     double angle = TWO_PI/num_targets;
     double bearing_inc = 0 ;
-    for (unsigned n = 2; n < num_targets+2; ++n) {
+    for (size_t n = 2; n < num_targets+2; ++n) {
         wposition1 aTarget( pos, target_range, bearing_inc) ;
         target.latitude( n, 0, aTarget.latitude());
         target.longitude( n, 0, aTarget.longitude());

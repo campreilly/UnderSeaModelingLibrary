@@ -20,9 +20,9 @@ void wave_queue::init_netcdf( const char* filename, const char* long_name ) {
 
     // dimensions
 
-    NcDim *freq_dim = _nc_file->add_dim( "frequency", _frequencies->size() ) ;
-    NcDim *de_dim   = _nc_file->add_dim( "source_de", _source_de->size() ) ;
-    NcDim *az_dim   = _nc_file->add_dim( "source_az", _source_az->size() ) ;
+    NcDim *freq_dim = _nc_file->add_dim( "frequency", (long) _frequencies->size() ) ;
+    NcDim *de_dim   = _nc_file->add_dim( "source_de", (long) _source_de->size() ) ;
+    NcDim *az_dim   = _nc_file->add_dim( "source_az", (long) _source_az->size() ) ;
     NcDim *time_dim = _nc_file->add_dim( "travel_time" ) ; // unlimited
 
     // coordinates
@@ -72,11 +72,11 @@ void wave_queue::init_netcdf( const char* filename, const char* long_name ) {
     // coordinate data
 
     freq_var->put( vector<double>(*_frequencies).data().begin(),
-                   _frequencies->size() ) ;
+                   (long) _frequencies->size() ) ;
     de_var->put( vector<double>(*_source_de).data().begin(),
-        _source_de->size() ) ;
+		(long) _source_de->size());
     az_var->put( vector<double>(*_source_az).data().begin(),
-        _source_az->size() ) ;
+		(long) _source_az->size());
 }
 
 /**

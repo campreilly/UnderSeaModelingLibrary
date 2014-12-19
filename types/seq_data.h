@@ -57,7 +57,7 @@ protected:
      * @param  size               Number of elements in this set.
      * @throws invalid_argument   If series not monotonic
      */
-    void init( const double* data, unsigned size ) {
+    void init( const double* data, size_t size ) {
     }
 
     //**************************************************
@@ -148,7 +148,7 @@ public:
      * @param  size               Number of elements in data.
      * @throws invalid_argument   If series not monotonic
      */
-    seq_data( const double* data, unsigned size ) : seq_vector( size ) {
+    seq_data( const double* data, size_t size ) : seq_vector( size ) {
         _index = 0 ;
         _value = data[0] ;
         _sign = 1.0;

@@ -108,7 +108,7 @@ int main( int argc, char* argv[] ) {
     // build a series of targets at 100 km
     double angle = TWO_PI/num_targets;
     double bearing_inc = angle;
-    for (unsigned n = 0; n < num_targets; ++n) {
+    for (size_t n = 0; n < num_targets; ++n) {
         wposition1 aTarget( src_pos, target_range, bearing_inc) ;
         target.latitude( n, 0, aTarget.latitude());
         target.longitude( n, 0, aTarget.longitude());
