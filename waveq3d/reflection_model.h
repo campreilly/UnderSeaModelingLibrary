@@ -39,9 +39,6 @@ class wave_queue ;      // forward reference for friend declaration
  * other approximations between rays.  This effect can also be minimized
  * by decreasing the time step.
  *
- * @todo Calculate eigenray amplitude and phase for reverberation callback.
- * Just passing bogus values currently.
- *
  * @xref S. M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
@@ -67,7 +64,6 @@ class USML_DECLSPEC reflection_model
      * It is automatically set to a value that is 300 times the time
      * step of the wavefront.  This value 1/5 the length of a typical
      * time step (1500*dt).
-     * @todo Are we happy with this definition of "too shallow"?
      */
     const double TOO_SHALLOW ;
 
