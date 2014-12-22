@@ -151,6 +151,8 @@ netcdf_profile::netcdf_profile(
  */
 void netcdf_profile::fill_missing() {
 
+
+	cout << "begin work on fill_missing" << endl;
     const int alt_num = this->_axis[0]->size() ;
     const int lat_num = this->_axis[1]->size() ;
     const int lng_num = this->_axis[2]->size() ;
