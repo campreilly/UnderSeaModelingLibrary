@@ -6,7 +6,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <usml/netcdf/netcdf_files.h>
-#include <boost/timer/timer.hpp>
+#include <boost/progress.hpp>
 
 BOOST_AUTO_TEST_SUITE(datagrid_test)
 
@@ -328,7 +328,7 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
     }
 	{
 		cout << "Interpolation using data_grid method" << endl ;
-		boost::timer::auto_cpu_timer timer ;
+		boost:: progress_timer timer ;
 		counter = 0 ;
 		while ( counter != num_points ) {
 			grid->interpolate( location(counter, 0) );
@@ -339,7 +339,7 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
     data_grid_bathy* fast_grid = new data_grid_bathy(grid, true);
 	{
 		cout << "Interpolation using fast_grid method" << endl ;
-		boost::timer::auto_cpu_timer timer ;
+		boost:: progress_timer timer ;
 		counter = 0 ;
 		while ( counter != num_points ) {
 			fast_grid->interpolate( location(counter, 0) );
