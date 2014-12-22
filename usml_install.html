@@ -46,12 +46,13 @@
 	     to be named <code>usml</code>.  If you are extracting the code from another
 	     source, such as GitHub, make sure to rename the base directory <code>usml</code>.
 	</ul>
-    <li> Install CMake 2.8 and NetCDF 4.1 RPMs from the CentOS Yum server
-	<ul>
-	<li> <code>sudo yum install cmake-gui netcdf-devel nco</code>
-	</ul>
+    <li> Install CMake 2.8 and NetCDF 4.1 RPMs from the CentOS yum servers
+	<pre>
+	sudo yum install cmake-gui netcdf-devel
+	</pre>
     <li> Download and install the source code distribution for NCO 3.9.9
 	<ul>
+        <li> This library provides the NCKS utility that we use in many of our NetCDF regression tests.
 	<li> We used the source code distribution called <code>nco-3.9.9.tar.gz</code> from 
 	     <a href="http://nco.sourceforge.net/src/">http://nco.sourceforge.net/src/</a> 
 	<li> To install this software in <code>/usr/local</code>
@@ -62,23 +63,26 @@
 	sudo make install
 	</pre>
 	</ul>
-    <li> Download and install the source code distribution for Boost 1.57
+    <li> Install Boost library from RPM or source.
 	<ul>
-	<li> Although CentOS 6 comes with Boost pre-installed, we found that CMake had a lot of trouble finding
-	     the include and library files for this version.  So, we suggest re-installing from source.
-	<li> We used the source code distribution called <code>boost_1_57_0.tar.gz</code> from 
+	<li>You can install Boost 1.41 RPMs from the CentOS yum servers, if not installed already.
+	<pre>
+	sudo yum install boost-devel
+	</pre>
+	<li> Or, you can download newer Boost versions as source code.
+	     We tested this with the distribution called <code>boost_1_57_0.tar.gz</code> from 
 	     <a href="http://sourceforge.net/projects/boost/files/boost/1.57.0">
 	     http://sourceforge.net/projects/boost/files/boost/1.57.0</a> and the
 	     install instructions from <a href="http://www.boost.org/doc/libs/1_57_0/more/getting_started/unix-variants.html">
-	     http://www.boost.org/doc/libs/1_57_0/more/getting_started/unix-variants.html</a>
-	<li> To install this software in <code>/usr/local</code>, these instructions boil down to
+	     http://www.boost.org/doc/libs/1_57_0/more/getting_started/unix-variants.html</a>.
+  	     To install this software in <code>/usr/local</code>, these instructions boil down to
 	<pre>
 	cd path/to/boost_1_57_0
 	./bootstrap.sh
 	b2
 	sudo b2 install
 	</pre>
-	<li> There is a bug in the Boost uBLAS library that vector and matrix 
+	<li> In either case, there is a bug in the Boost uBLAS library that vector and matrix 
 	     scaling using <code>operator/()</code>.  To see the corrected version of this code, please search for the 
 	     symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the <code>vector_expression.hpp</code> 
 	     and <code>matrix_expression.hpp</code> files in the <code>usml/config</code> directory.
@@ -94,11 +98,6 @@
 	     boost::ublas operations into a single evaluation.  When this happens, the result is 
 	     equal to the first operation.  For this reason, we recommend using -O1 as the
 	     minimum optimization level.
-	</ul>
-    <li>Add FindNetCDF to CMake modules 
-	<ul>
-	<li> We copied <code>FindNetCDF.cmake</code> from <code>usml/config</code>
-             into <code>/usr/share/cmake/Modules</code>
 	</ul>
     <li> Use cmake-gui to generate Unix Makefiles project
 	<ul>
