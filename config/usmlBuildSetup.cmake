@@ -65,6 +65,7 @@ set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSML_DEBUG" )
 # the FindBoost script is executed.
 
 set( Boost_DEBUG OFF )
+set( Boost_NO_BOOST_CMAKE ON ) # work-around for error in Boost 1.41 
 
 if ( BUILD_SHARED_LIBS )
     set( Boost_USE_STATIC_LIBS OFF )
@@ -83,9 +84,6 @@ set(Boost_ADDITIONAL_VERSIONS
 )
 find_package( Boost 1.41 REQUIRED COMPONENTS
     	unit_test_framework	# for usml_test.exe
-	timer				# for duration of tests
-	chrono			# needed by timer
-	system			# needed by chrono
     )
 if( Boost_FOUND )
     include_directories( ${Boost_INCLUDE_DIR} )
