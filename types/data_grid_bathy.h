@@ -455,32 +455,32 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
          */
         double fast_pchip(const unsigned* interp_index, double* location,
                 double* derivative = NULL) {
-            int k0 = interp_index[0];
-            int k1 = interp_index[1];
-            double norm0, norm1;
+            int k0 = interp_index[0] ;
+            int k1 = interp_index[1] ;
+            double norm0, norm1 ;
 
             // Checks for boundaries of the axes
-            norm0 = (*_axis[0])(k0 + 1) - (*_axis[0])(k0);
-            norm1 = (*_axis[1])(k1 + 1) - (*_axis[1])(k1);
+            norm0 = _axis[0]->increment(k0) ;
+            norm1 = _axis[1]->increment(k1) ;
             for (int i = -1; i < 3; ++i) {
                 for (int j = -1; j < 3; ++j) {
                     //get appropriate data when at boundaries
                     if ((k0 + i) >= _k0max) {
-                        _fast_index[0] = _k0max;
+                        _fast_index[0] = _k0max ;
                     } else if ((k0 + i) <= _kmin) {
-                        _fast_index[0] = _kmin;
+                        _fast_index[0] = _kmin ;
                     } else {
-                        _fast_index[0] = k0 + i;
+                        _fast_index[0] = k0 + i ;
                     }
                     //get appropriate data when at boundaries
                     if ((k1 + j) >= _k1max) {
-                        _fast_index[1] = _k1max;
+                        _fast_index[1] = _k1max ;
                     } else if ((k1 + j) <= _kmin) {
-                        _fast_index[1] = _kmin;
+                        _fast_index[1] = _kmin ;
                     } else {
-                        _fast_index[1] = k1 + j;
+                        _fast_index[1] = k1 + j ;
                     }
-                    _value(i + 1, j + 1) = data(_fast_index);
+                    _value(i + 1, j + 1) = data(_fast_index) ;
                 }   //end for-loop in j
             }   //end for-loop in i
 
@@ -536,12 +536,14 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                                 * _xyloc(0, 4 * (i - 1)) * _xyloc(0, j);
                     }
                 }
+                derivative[0] /= _axis[0]->increment(k0) ;
                 for (int i = 0; i < 4; ++i) {
                     for (int j = 1; j < 4; ++j) {
                         derivative[1] += j * _bicubic_coeff(i * 4 + j, 0)
                                 * _xyloc(0, 4 * i) * _xyloc(0, j - 1);
                     }
                 }
+                derivative[1] /= _axis[1]->increment(k1) ;
             }
             return _result_pchip(0, 0);
         }

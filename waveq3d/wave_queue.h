@@ -734,6 +734,12 @@ class USML_DECLSPEC wave_queue {
      *                  bottom:units = "count" ;
      *          short caustic(travel_time, source_de, source_az) ;
      *                  caustic:units = "count" ;
+     *          short upper_vertex(travel_time, source_de, source_az) ;
+     *                  caustic:units = "count" ;
+     *          short lower_vertex(travel_time, source_de, source_az) ;
+     *                  caustic:units = "count" ;
+     *          byte on_edge(travel_time, source_de, source_az) ;
+     *                  caustic:units = "bool" ;
      *
      *   // global attributes:
      *                  :Conventions = "COARDS" ;
@@ -746,6 +752,7 @@ class USML_DECLSPEC wave_queue {
      *      latitude = 45, 45, 45, ...
      *      longitude = -45, -45, -45, ...
      *      altitude = -75, -75, -75, ...
+     *      etc...
      *   }
      * </pre>
      * @param   filename    Name of the file to write to disk.
