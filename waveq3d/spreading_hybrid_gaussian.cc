@@ -76,9 +76,11 @@ const vector<double>& spreading_hybrid_gaussian::intensity(
     vector<double> corrected_offset = offset ;
     std::size_t a ;
     if( offset(2) < 0.0 ) {
-        if( (int)(az-1) < 0 ) {
+        if( az < 1 ) {
             a = _wave._source_az->size() - 2 ;
-        } else { a = az - 1 ; }
+        } else { 
+            a = az - 1 ; 
+        }
         corrected_offset(2) = corrected_offset(2) + 1 ;
     } else { a = az ; }
     std::size_t d ;
@@ -216,7 +218,7 @@ void spreading_hybrid_gaussian::intensity_az( size_t de, size_t az,
 
     // contribution from AZ angle one lower than central cell
 
-    if( (az-1) < 0) {a = size - 1 ;}
+    if( az < 1 ) {a = size - 1 ;}
     else {a = (az - 1) ;}
     _duplicate(a,0) = true ;
     cell_width = width_az(de, a, offset);   // half width of this cell
@@ -233,7 +235,7 @@ void spreading_hybrid_gaussian::intensity_az( size_t de, size_t az,
     // stop after processing last entry in ray family
     // stop when lowest frequency PL changes by < threshold
 
-    if( (a-1) < 0) {a = size - 1 ;}
+    if( a < 1 ) {a = size - 1 ;}
     else { --a ;}
     while ( a%size != az_lower ) {
         if ( _duplicate(a,0) ) break ;
