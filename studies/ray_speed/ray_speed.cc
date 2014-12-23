@@ -20,7 +20,7 @@
 #include <usml/netcdf/netcdf_files.h>
 #include <fstream>
 #include <iomanip>
-#include <boost/timer/timer.hpp>
+#include <boost/progress.hpp>
 
 using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
@@ -116,7 +116,7 @@ int main( int argc, char* argv[] ) {
 
     cout << "propagate wavefronts for " << time_max << " secs" << endl ;
     {
-        boost::timer::auto_cpu_timer timer ;
+        boost::progress_timer timer ;
         while ( wave.time() < time_max ) {
             wave.step() ;
         }

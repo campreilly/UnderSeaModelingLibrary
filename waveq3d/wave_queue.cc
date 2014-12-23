@@ -42,28 +42,21 @@ wave_queue::wave_queue(
     _run_id(run_id),
     _nc_file( NULL )
 {
+    const double az_first = abs((*_source_az)(0)) ;
+    const double az_last = abs((*_source_az)(_source_az->size()-1)) ;
+    _az_boundary = ( fmod(az_first+360.0, 360.0) == fmod(az_last+360.0, 360.0) ) ;
 
-	// create references between targets and wavefront objects.
-    const matrix<double>* pTargets_sin_theta = NULL ;
-    double az_first = abs((*_source_az)(0)) ;
-    double az_last = abs((*_source_az)(_source_az->size()-1)) ;
-    double boundary_check = az_first + az_last ;
-    if ( boundary_check == 360.0 &&
-        ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) ) { _az_boundary = true ; }
-    else { _az_boundary = false ;}
-    _intensity_threshold = 300.0; //In dB
-
+    _intensity_threshold = 300.0 ; //In dB
     if ( _targets ) {
-    	_targets_sin_theta = sin( _targets->theta() ) ;
-    	pTargets_sin_theta = &_targets_sin_theta;
+        _targets_sin_theta = sin( _targets->theta() ) ;
     }
 
     // create storage space for all wavefront elements
 
-    _past = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, pTargets_sin_theta ) ;
-    _prev = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, pTargets_sin_theta ) ;
-    _curr = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, pTargets_sin_theta ) ;
-    _next = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, pTargets_sin_theta ) ;
+    _past = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, &_targets_sin_theta ) ;
+    _prev = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, &_targets_sin_theta ) ;
+    _curr = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, &_targets_sin_theta ) ;
+    _next = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, &_targets_sin_theta ) ;
 
     // initialize wave front elements
 

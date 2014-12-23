@@ -130,9 +130,19 @@ class USML_DECLSPEC wave_front {
         void update() ;
 
         /**
-         * Find all edges and caustics in the ray fan. Sets on_edge(de,az)
-         * to true if it is on the edge of the ray fan or one of its neighbors
-         * has a different surface, bottom, or caustic count.
+         * Search for points on either side of wavefront folds. 
+         * When reflection or refraction causes the wavefront to fold, the distance
+         * between neighboring rays can no longer be used to estimate the divergence
+         * of the wavefront.  A ray family is defined by a set of neighboring rays 
+         * that are not separated by a fold in the D/E direction.  
+         * This routine searches for the edges of each ray family.
+         * 
+         * A point is marked as being "on_edge" if its location is a local maxima 
+         * or minima in the rho direction.  Whichever one of its neighbors also 
+         * has a change in the rho component of direction, is also marked as 
+         * as being "on_edge".  In addition, the first and last D/E in the 
+         * ray fan are marked as being "on_edge".  Each ray families is a collection
+         * of wavefront points between pairs of edges in the D/E direction.
          */
         void find_edges() ;
 
