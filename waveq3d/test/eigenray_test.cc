@@ -112,6 +112,7 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
     wave.save_netcdf();
     while ( wave.time() < time_max ) {
         wave.step();
+		cout << " Stepping Time" << endl;
         wave.save_netcdf();
     }
     wave.close_netcdf();

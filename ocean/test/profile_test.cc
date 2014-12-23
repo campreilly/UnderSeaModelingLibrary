@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE( plot_profile_test ) {
         // simple values for points and speed
 
         seq_linear depth(0.0, 200.0, 6000.0);
-        const int D = depth.size();
+        const size_t D = depth.size();
         wposition points(1, D);
         for (int d = 0; d < D; ++d) {
             points.altitude(0, d, -depth(d));

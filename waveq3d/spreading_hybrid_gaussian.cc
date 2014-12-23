@@ -159,7 +159,7 @@ void spreading_hybrid_gaussian::intensity_de( size_t de, size_t az,
     if( abs(cell_width) > 80 ) {s=5.0;}
     cell_dist = L - cell_width ;
 
-    const int size = _wave._source_de->size() - 1 ;
+    const size_t size = _wave._source_de->size() - 1 ;
     for (d = (int) de + 1; d < size; ++d) {
 
         // compute distance to cell center and cell width
@@ -200,10 +200,10 @@ void spreading_hybrid_gaussian::intensity_az( size_t de, size_t az,
         ( fmod(az_first, 360.0) == fmod(az_last, 360.0) ) )
     { az_lower = az_upper = az ; }
     else { az_lower = 0 ; az_upper = _wave._source_az->size()-2 ; }
-    const int size = _wave._source_az->size() - 1 ;
+    const size_t size = _wave._source_az->size() - 1 ;
 
     _duplicate.clear() ;
-    int a = (int) az;
+    size_t a = az;
     _duplicate(a,0) = true ;
     double cell_width = width_az(de, a, offset);// half width of center cell
     const double initial_width = cell_width;    // save width for upper angles
@@ -216,8 +216,8 @@ void spreading_hybrid_gaussian::intensity_az( size_t de, size_t az,
 
     // contribution from AZ angle one lower than central cell
 
-    if( int(az-1) < 0) {a = size - 1 ;}
-    else {a = int(az - 1) ;}
+    if( (az-1) < 0) {a = size - 1 ;}
+    else {a = (az - 1) ;}
     _duplicate(a,0) = true ;
     cell_width = width_az(de, a, offset);   // half width of this cell
     cell_dist = L + cell_width;             // dist from center of this cell
@@ -233,7 +233,7 @@ void spreading_hybrid_gaussian::intensity_az( size_t de, size_t az,
     // stop after processing last entry in ray family
     // stop when lowest frequency PL changes by < threshold
 
-    if( int(a-1) < 0) {a = size - 1 ;}
+    if( (a-1) < 0) {a = size - 1 ;}
     else { --a ;}
     while ( a%size != az_lower ) {
         if ( _duplicate(a,0) ) break ;
@@ -309,8 +309,8 @@ double spreading_hybrid_gaussian::width_de(
     //      treat a nearly zero AZ offset as a special case
     //      create temporary wvector1 variables on the fly
 
-    const int size = _wave._source_az->size() - 1 ;
-    int az_wrap ;
+    const size_t size = _wave._source_az->size() - 1 ;
+    size_t az_wrap ;
     if ( az+1 >= size ) {az_wrap = 0 ; }
     else { az_wrap = az + 1 ; }
     const wposition& pos1 = _wave._curr->position;
@@ -369,10 +369,10 @@ double spreading_hybrid_gaussian::width_az(
     //      create temporary wvector1 variables on the fly
 
     const wposition& pos1 = _wave._curr->position;
-    const int size = _wave._source_az->size() - 1 ;
-    const int size_de = _wave._source_de->size() - 1 ;
-    int az_wrap ;
-    int de_max = de ;
+    const size_t size = _wave._source_az->size() - 1 ;
+    const size_t size_de = _wave._source_de->size() - 1 ;
+    size_t az_wrap ;
+    size_t de_max = de ;
     if ( de+1 >= size_de ) { de_max = size_de - 2 ; }
     else { de_max = de ; }
     if ( az+1 > size ) {az_wrap = 0 ;}

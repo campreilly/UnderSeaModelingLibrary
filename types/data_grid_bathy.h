@@ -455,8 +455,8 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
          */
         double fast_pchip(const size_t* interp_index, double* location,
                 double* derivative = NULL) {
-            int k0 = interp_index[0];
-            int k1 = interp_index[1];
+            size_t k0 = interp_index[0];
+            size_t k1 = interp_index[1];
             double norm0, norm1;
 
             // Checks for boundaries of the axes
@@ -572,9 +572,9 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
         matrix<double> _derv_y;
         matrix<double> _derv_x_y;
         size_t  _fast_index[2];
-        const int _kmin;
-        const int _k0max;
-        const int _k1max;
+        const size_t _kmin;
+        const size_t _k0max;
+        const size_t _k1max;
 
 }; // end data_grid_bathy
 

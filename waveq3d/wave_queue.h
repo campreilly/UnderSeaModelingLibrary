@@ -695,7 +695,7 @@ class USML_DECLSPEC wave_queue {
           *_nc_lower, *_nc_on_edge ;
 
     /** Current record number in netDCF file. */
-    int _nc_rec ;
+    long _nc_rec ;
 
   public:
 

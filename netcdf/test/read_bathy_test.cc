@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
     // compare latitude axis to values read using ncdump
 
     const seq_vector& latitude = *(bathy.axis(0)) ;
-    int num_lat = latitude.size() ;
+    size_t num_lat = latitude.size() ;
     double lat1 = to_latitude( latitude(0) ) ;
     double lat2 = to_latitude( latitude(num_lat-1) ) ;
     double inc_lat = to_degrees( -latitude.increment(0) ) ;
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
     // compare longitude axis to values read using ncdump
 
     const seq_vector& longitude = *(bathy.axis(1)) ;
-    int num_lng = longitude.size() ;
+    size_t num_lng = longitude.size() ;
     double lng1 = to_degrees( longitude(0) ) ;
     double lng2 = to_degrees( longitude(num_lng-1) ) ;
     double inc_lng = to_degrees( longitude.increment(0) ) ;
@@ -204,7 +204,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 	// compare latitude axis to values read using ncdump
 
 	const seq_vector& latitude = *(bathy.axis(0)) ;
-	int num_lat = latitude.size() ;
+	size_t num_lat = latitude.size() ;
 	cout << "latitude[" << num_lat << "] = "
 			<< latitude(0) << " to " << latitude(num_lat-1)
 			<< " by " << latitude.increment(0) << endl ;
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 	// compare longitude axis to values read using ncdump
 
 	const seq_vector& longitude = *(bathy.axis(1)) ;
-	int num_lng = longitude.size() ;
+	size_t num_lng = longitude.size() ;
 	cout << "longitude[" << num_lng << "] = "
 			<< longitude(0) << " to " << longitude(num_lng-1)
 			<< " by " << longitude.increment(0) << endl ;
@@ -265,7 +265,7 @@ BOOST_AUTO_TEST_CASE( span_bathy ) {
     // compare latitude axis to values read using ncdump
 
     const seq_vector& latitude = *(bathy.axis(0)) ;
-    int num_lat = latitude.size() ;
+    size_t num_lat = latitude.size() ;
     double lat1 = to_latitude( latitude(0) ) ;
     double lat2 = to_latitude( latitude(num_lat-1) ) ;
     double inc_lat = to_degrees( latitude.increment(0) ) ;
@@ -278,7 +278,7 @@ BOOST_AUTO_TEST_CASE( span_bathy ) {
     // compare longitude axis to values read using ncdump
 
     const seq_vector& longitude = *(bathy.axis(1)) ;
-    int num_lng = longitude.size() ;
+    size_t num_lng = longitude.size() ;
     double lng1 = to_degrees( longitude(0) ) ;
     double lng2 = to_degrees( longitude(num_lng-1) ) ;
     double inc_lng = to_degrees( longitude.increment(0) ) ;

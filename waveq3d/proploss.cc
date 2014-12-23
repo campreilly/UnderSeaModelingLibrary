@@ -224,13 +224,13 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
 
     // dimensions
 
-    NcDim *freq_dim = nc_file->add_dim("frequency", _frequencies->size());
-    NcDim *row_dim = nc_file->add_dim("rows", _targets->size1());
-    NcDim *col_dim = nc_file->add_dim("cols", _targets->size2());
+    NcDim *freq_dim = nc_file->add_dim("frequency", (long) _frequencies->size());
+	NcDim *row_dim = nc_file->add_dim("rows", (long) _targets->size1());
+	NcDim *col_dim = nc_file->add_dim("cols", (long) _targets->size2());
     NcDim *eigenray_dim = nc_file->add_dim("eigenrays",
-            _num_eigenrays + _loss.size1() * _loss.size2() ) ;
-    NcDim *launch_de_dim = nc_file->add_dim("launch_de", _source_de->size());
-    NcDim *launch_az_dim = nc_file->add_dim("launch_az", _source_az->size());
+           (long) ( _num_eigenrays + _loss.size1() * _loss.size2()) ) ;
+	NcDim *launch_de_dim = nc_file->add_dim("launch_de", (long) _source_de->size());
+	NcDim *launch_az_dim = nc_file->add_dim("launch_az", (long) _source_az->size());
 
     // coordinates
 
@@ -308,33 +308,33 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
     src_lat_var->put(&v);
     v = _source_pos.longitude();   src_lng_var->put(&v);
     v = _source_pos.altitude();    src_alt_var->put(&v);
-    for (size_t d = 0; d < _source_de->size(); ++d) {
+    for (unsigned d = 0; d < _source_de->size(); ++d) {
         launch_de_var->set_cur(d);
         v = (*_source_de)(d);       launch_de_var->put(&v, 1);
     }
-    for (size_t a = 0; a < _source_az->size(); ++a) {
+    for (unsigned a = 0; a < _source_az->size(); ++a) {
         launch_az_var->set_cur(a);
         v = (*_source_az)(a);       launch_az_var->put(&v, 1);
     }
     v = _time_step;
     time_step_var->put(&v);
-    freq_var->put(vector<double>(*_frequencies).data().begin(),_frequencies->size());
+    freq_var->put(vector<double>(*_frequencies).data().begin(), (long) _frequencies->size());
 
     // write target coordinates
 
     latitude_var->put(_targets->latitude().data().begin(),
-            _targets->size1(), _targets->size2());
+            (long) _targets->size1(), (long) _targets->size2());
     longitude_var->put(_targets->longitude().data().begin(),
-            _targets->size1(), _targets->size2());
+		(long)_targets->size1(), (long) _targets->size2());
     altitude_var->put(_targets->altitude().data().begin(),
-            _targets->size1(), _targets->size2());
+		(long)_targets->size1(), (long) _targets->size2());
 
     // write propagation loss and eigenrays to disk
 
     int record = 0; // current record number
-    for (size_t t1 = 0; t1 < _targets->size1(); ++t1) {
-        for (size_t t2 = 0; t2 < _targets->size2(); ++t2) {
-            int num = _eigenrays(t1, t2).size();
+    for (long t1 = 0; t1 < (long) _targets->size1(); ++t1) {
+        for (long t2 = 0; t2 < (long) _targets->size2(); ++t2) {
+            int num = (long) _eigenrays(t1, t2).size();
             proploss_index_var->set_cur(t1, t2);
             eigenray_index_var->set_cur(t1, t2);
             eigenray_num_var->set_cur(t1, t2);
@@ -367,9 +367,9 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
                 if (n < 0) {
                     const eigenray& loss = _loss(t1, t2);
                     intensity_var->put(loss.intensity.data().begin(),
-                            1, _frequencies->size());
+                            1, (long) _frequencies->size());
                     phase_var->put(loss.phase.data().begin(),
-                            1, _frequencies->size());
+                            1, (long) _frequencies->size());
                     time_var->put(&loss.time, 1);
                     source_de_var->put(&loss.source_de, 1);
                     source_az_var->put(&loss.source_az, 1);
@@ -384,9 +384,9 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
                 } else {
                     const eigenray& loss = *iter++;
                     intensity_var->put(loss.intensity.data().begin(),
-                            1, _frequencies->size());
+                            1, (long) _frequencies->size());
                     phase_var->put(loss.phase.data().begin(),
-                            1, _frequencies->size());
+                            1, (long) _frequencies->size());
                     time_var->put(&loss.time, 1);
                     source_de_var->put(&loss.source_de, 1);
                     source_az_var->put(&loss.source_az, 1);

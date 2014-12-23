@@ -151,9 +151,9 @@ netcdf_profile::netcdf_profile(
  */
 void netcdf_profile::fill_missing() {
 
-    const int alt_num = this->_axis[0]->size() ;
-    const int lat_num = this->_axis[1]->size() ;
-    const int lng_num = this->_axis[2]->size() ;
+    const size_t alt_num = this->_axis[0]->size() ;
+    const size_t lat_num = this->_axis[1]->size() ;
+    const size_t lng_num = this->_axis[2]->size() ;
     size_t index[3] ;
 
     // compute average value at each depth
