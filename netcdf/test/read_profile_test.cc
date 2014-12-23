@@ -210,6 +210,44 @@ BOOST_AUTO_TEST_CASE( span_profile ) {
     }
 }
 
+/**
+ * Tests the ability of the netcdf_profile class to extract data
+ * from a netcdf file that does not have a global range. This
+ * would in return prevent the data from wrapping around and
+ * instead limit the bounds of the data to the database provided.
+ */
+BOOST_AUTO_TEST_CASE( nonglobal_database ) {
+    cout << "=== profile_test: nonglobal_database ===" << endl;
+    netcdf_profile profile( USML_TEST_DIR "/netcdf/test/flstrts_temperature.nc",
+	9, -90.0, 90.0, 0.0, 360.0 ) ;
+
+    // compare latitude axis to values read using ncdump
+
+    const seq_vector& latitude = *(profile.axis(1)) ;
+    int num_lat = latitude.size() ;
+    double lat1 = to_latitude( latitude(0) ) ;
+    double lat2 = to_latitude( latitude(num_lat-1) ) ;
+    double inc_lat = to_degrees( latitude.increment(0) ) ;
+    cout << "latitude[" << num_lat
+         << "] = " << lat1 << " to " << lat2 << " by " << inc_lat << endl ;
+    BOOST_CHECK_EQUAL( num_lat, 7 ) ;
+    BOOST_CHECK_CLOSE( lat1, 27.5, 1e-6 ) ;
+    BOOST_CHECK_CLOSE( lat2, 33.5, 1e-6 ) ;
+
+    // compare longitude axis to values read using ncdump
+
+    const seq_vector& longitude = *(profile.axis(2)) ;
+    int num_lng = longitude.size() ;
+    double lng1 = to_degrees( longitude(0) ) ;
+    double lng2 = to_degrees( longitude(num_lng-1) ) ;
+    double inc_lng = to_degrees( longitude.increment(0) ) ;
+    cout << "longitude[" << num_lng
+         << "] = " << lng1 << " to " << lng2 << " by " << inc_lng << endl ;
+    BOOST_CHECK_EQUAL( num_lng, 8 ) ;
+    BOOST_CHECK_CLOSE( lng1, 278.5, 1e-6 ) ;
+    BOOST_CHECK_CLOSE( lng2, 285.5, 1e-6 ) ;
+}
+
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()

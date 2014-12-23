@@ -76,9 +76,9 @@ netcdf_bathy::netcdf_bathy(
     n = longitude->num_vals() - 1 ;
     inc = ( longitude->as_double(n) - a ) / n ;
     int index = (int) floor( 1e-6 + (west-a) / inc ) ;
-    const int lng_first = (global) ? index : min(0, index) ;
+    const int lng_first = (global) ? index : max(0, index) ;
     index = (int) floor( 0.5 + (east-a) / inc ) ;
-    const int lng_last = (global) ? index : max(n, index) ;
+    const int lng_last = (global) ? index : min(n, index) ;
     const int lng_num = lng_last - lng_first + 1 ;
     this->_axis[1] = new seq_linear(
         to_radians(lng_first*inc+a-offset),
@@ -88,7 +88,7 @@ netcdf_bathy::netcdf_bathy(
     // load depth data out of NetCDF file
 
     this->_data = new double[ lat_num * lng_num ] ;
-    if( longitude->num_vals() > lng_last ) {
+    if( longitude->num_vals() > lng_last || !global ) {
         altitude->set_cur( lat_first, lng_first ) ;
         altitude->get( this->_data, lat_num, lng_num ) ;
 
@@ -99,7 +99,6 @@ netcdf_bathy::netcdf_bathy(
         int M = lng_last - longitude->num_vals() + 1 ;  // # pts on east side
         int N = lng_num - M ;                           // # pts on west side
         double* ptr = this->_data ;
-         cout << " N=" << N << " M=" << M << endl ;
         for ( int lat = lat_first ; lat <= lat_last ; ++lat ) {
 
             // the west side of the block is the portion from

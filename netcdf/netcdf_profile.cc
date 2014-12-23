@@ -101,9 +101,9 @@ netcdf_profile::netcdf_profile(
     n = (int) longitude->num_vals() - 1 ;
     inc = ( longitude->as_double(n) - a ) / n ;
     int index = (int) floor( 1e-6 + (west-a) / inc ) ;
-    const int lng_first = (global) ? index : min(0, index) ;
+    const int lng_first = (global) ? index : max(0, index) ;
     index = (int) floor( 0.5 + (east-a) / inc ) ;
-    const int lng_last = (global) ? index : max(n, index) ;
+    const int lng_last = (global) ? index : min(n, index) ;
     const int lng_num = lng_last - lng_first + 1 ;
     this->_axis[2] = new seq_linear(
         to_radians(lng_first*inc+a-offset),
