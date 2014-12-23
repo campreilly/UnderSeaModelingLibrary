@@ -835,12 +835,12 @@ class data_grid {
             if (deriv_vec) {
                 const DATA_TYPE u = s / h1;
                 deriv = slope1 * (1.0 - u) + slope2 * u;
-                deriv_vec[dim] = deriv;
+				deriv_vec[dim] = deriv ;
                 if (dim > 0) {
-                    deriv_vec[dim-1] = y2 * (6.0*h1*s - 6.0*s_2) / h1_3
-                                     + y1 * (6.0*s_2 - 6.0*h1*s) / h1_3
-                                     + slope2 * s * (3.0*s - 2.0*h1) / h1_2
-                                     + slope1 * (3.0*s_2 - 4.0*h1*s + h1_2) / h1_2;
+                    deriv_vec[dim-1] = dy2 * sh_term / h1_3
+									 + dy1 * (h1_3 - sh_term) / h1_3
+									 + dslope2 * s_2 * sh_minus / h1_2
+									 + dslope1 * s * sh_minus * sh_minus / h1_2;
                 }
             }
 
