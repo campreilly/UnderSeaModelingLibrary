@@ -170,10 +170,9 @@ void wave_front::update() {
     if (targets) compute_target_distance();
 }
 
-/*
- * Find all edges in the ray fan. Sets on_edge(de,az) to true if
- * it is on the edge of the ray fan or one of its neighbors has
- * a different surface, bottom, or caustic count.
+/**
+ * Search for points on either side of wavefront folds in the 
+ * D/E direction. 
  */
 void wave_front::find_edges() {
     on_edge.clear() ;
@@ -186,16 +185,18 @@ void wave_front::find_edges() {
         on_edge(0,az) = on_edge(max_de,az) = true ;
     }
 
-    // search for changes around each (de,az)
-    // skip by 2 to avoid counting each change twice
+    // search for a local maxima or minima in the rho direction
 
-    for ( unsigned az=0 ; az < num_az() ; az += 1 ) {
-        for ( unsigned de=1 ; de < max_de ; de += 1 ) {
+    for ( unsigned az=0 ; az < num_az() ; ++az ) {
+        for ( unsigned de=1 ; de < max_de ; ++de ) {
             if ( (position.rho(de,az) < position.rho(de+1,az) &&
                   position.rho(de,az) < position.rho(de-1,az)) ||
                  (position.rho(de,az) > position.rho(de+1,az) &&
                   position.rho(de,az) > position.rho(de-1,az)) ) {
                     on_edge(de,az) = true;
+
+					// search for neighboring point with change in direction
+
                     if( abs(ndirection.rho(de,az)-ndirection.rho(de-1,az)) >
                         abs(ndirection.rho(de,az)-ndirection.rho(de+1,az)) ) {
                             on_edge(de-1,az) = true;
@@ -208,7 +209,7 @@ void wave_front::find_edges() {
 }
 
 /*
- * Compute a fast an approximation of the distance squared from each
+ * Compute a fast approximation of the distance squared from each
  * target to each point on the wavefront.
  */
 void wave_front::compute_target_distance() {

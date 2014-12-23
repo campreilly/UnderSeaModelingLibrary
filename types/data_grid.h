@@ -64,7 +64,7 @@ namespace types {
  *                      at compile time allows for some loop un-wrapping.
  */
 template<class DATA_TYPE, unsigned NUM_DIMS>
-class data_grid {
+class USML_DLLEXPORT data_grid {
 
     typedef data_grid<DATA_TYPE,NUM_DIMS>       self_type ;
     typedef size_t                              size_type ;

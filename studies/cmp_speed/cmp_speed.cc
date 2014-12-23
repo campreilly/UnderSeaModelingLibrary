@@ -19,11 +19,7 @@
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/netcdf/netcdf_files.h>
 #include <fstream>
-#ifdef WIN32
-#include "sys_time_win32.h"
-#else
-#include <sys/time.h>
-#endif
+#include <boost/progress.hpp>
 
 using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
@@ -131,17 +127,10 @@ int main( int argc, char* argv[] ) {
     // propagate wavefront
 
     cout << "propagate wavefronts for " << time_max << " secs" << endl ;
-    struct timeval time ;
-    struct timezone zone ;
-    gettimeofday( &time, &zone ) ;
-    double start = time.tv_sec + time.tv_usec * 1e-6 ;
-    while ( wave.time() < time_max ) {
-        wave.step() ;
+    {
+        boost::progress_timer timer ;
+        while ( wave.time() < time_max ) {
+            wave.step() ;
+        }
     }
-    gettimeofday( &time, &zone ) ;
-    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
-    cout << "Propagating for " << time_max << " sec with "
-         << ( target.size1() * target.size2() ) << " targets took "
-         << (complete-start) << " sec."
-         << endl ;
 }
