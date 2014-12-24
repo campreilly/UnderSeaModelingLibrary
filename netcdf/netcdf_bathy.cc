@@ -23,32 +23,45 @@ netcdf_bathy::netcdf_bathy(
     NcVar *longitude, *latitude, *altitude ;
     decode_filetype( file, &latitude, &longitude, &altitude ) ;
 
-    // manage wrap-around between eastern and western hemispheres
-
     double offset = 0.0 ;
-    if ( longitude->as_double(0) < 0.0 ) {
-        // if database has a range (-180,180)
-        // make western longitudes into negative numbers
-        // unless they span the 180 latitude
-        if ( west > 180.0 && east > 180.0 ) offset = -360.0 ;
-    } else {
-        // if database has a range (0,360)
-        // make all western longitudes into positive numbers
-        if ( west < 0.0 ) offset = 360.0 ;
+    int duplicate = 0 ;
+    int n = longitude->num_vals() - 1 ;
+    // Is the data set bounds 0 to 359(360)
+    bool zero_to_360 = ( longitude->as_double(0) == 0.0 &&
+    					 longitude->as_double(n) >= 359.0 ) ? true : false ;
+    // Is the data set bounds -180 to 179(180)
+    bool bounds_180 = ( longitude->as_double(n) >= 179.0 &&
+			   	   	  	longitude->as_double(0) == -180.0 ) ? true : false ;
+    // Is this set a global data set
+    bool global = ( zero_to_360 || bounds_180 ) ;
+    if( global ) {
+        // check to see if database has duplicate data at cut point
+        if ( abs(longitude->as_double(0)+360-longitude->as_double(n)) < 1e-4 ) duplicate = 1 ;
+
+        // manage wrap-around between eastern and western hemispheres
+        if ( longitude->as_double(0) < 0.0 ) {
+            // if database has a range (-180,180)
+            // make western longitudes into negative numbers
+            // unless they span the 180 latitude
+            if ( west > 180.0 && east > 180.0 ) offset = -360.0 ;
+        } else {
+            // if database has a range (0,360)
+            // make all western longitudes into positive numbers
+            if ( west < 0.0 ) offset = 360.0 ;
+        }
+        west += offset ;
+        east += offset ;
     }
-    west += offset ;
-    east += offset ;
-    // cout << " west=" << west << " east=" << east << endl ;
 
     // read latitude axis data from NetCDF file.
     // lat_first and lat_last are the integer offsets along this axis
     // _axis[0] is expressed as co-latitude in radians [0,PI]
 
     double a = latitude->as_double(0) ;
-    int n = latitude->num_vals() - 1 ;
+    n = latitude->num_vals() - 1 ;
     double inc = ( latitude->as_double(n) - a ) / n ;
-    const int lat_first = (int) floor( 1e-6 + (south-a) / inc ) ;
-    const int lat_last = (int) floor( 0.5 + (north-a) / inc ) ;
+    const int lat_first = max( 0, (int) floor( 1e-6 + (south-a) / inc ) ) ;
+    const int lat_last = min( n, (int) floor( 0.5 + (north-a) / inc ) ) ;
     const int lat_num = lat_last - lat_first + 1 ;
     this->_axis[0] = new seq_linear(
         to_colatitude(lat_first*inc+a),
@@ -62,29 +75,20 @@ netcdf_bathy::netcdf_bathy(
     a = longitude->as_double(0) ;
     n = longitude->num_vals() - 1 ;
     inc = ( longitude->as_double(n) - a ) / n ;
-    int lng_first = (int) floor( 1e-6 + (west-a) / inc ) ;
-    if (lng_first < 0 ) {  // Prevent request for data outside
-        lng_first = 0;     // of the data provided, on the left side.
-    }
-    const int lng_last = (int) floor( 0.5 + (east-a) / inc ) ;
+    int index = (int) floor( 1e-6 + (west-a) / inc ) ;
+    const int lng_first = (global) ? index : max(0, index) ;
+    index = (int) floor( 0.5 + (east-a) / inc ) ;
+    const int lng_last = (global) ? index : min(n, index) ;
     const int lng_num = lng_last - lng_first + 1 ;
     this->_axis[1] = new seq_linear(
         to_radians(lng_first*inc+a-offset),
         to_radians(inc),
         lng_num ) ;
 
-    //cout << " a=" << a << " n=" << n << " inc=" << inc << endl ;
-    //cout << " lng_first=" << lng_first << " lng_last=" << lng_last << " lng_num=" << lng_num << endl ;
-
-    // check to see if database has duplicate data at cut point
-
-    int duplicate = 0 ;
-    if ( abs(longitude->as_double(0)+360-longitude->as_double(n)) < 1e-4 ) duplicate = 1 ;
-
     // load depth data out of NetCDF file
 
     this->_data = new double[ lat_num * lng_num ] ;
-    if ( longitude->num_vals() > lng_last ) {
+    if( longitude->num_vals() > lng_last || !global ) {
         altitude->set_cur( lat_first, lng_first ) ;
         altitude->get( this->_data, lat_num, lng_num ) ;
 
@@ -95,7 +99,6 @@ netcdf_bathy::netcdf_bathy(
         int M = lng_last - longitude->num_vals() + 1 ;  // # pts on east side
         int N = lng_num - M ;                           // # pts on west side
         double* ptr = this->_data ;
-        // cout << " N=" << N << " M=" << M << endl ;
         for ( int lat = lat_first ; lat <= lat_last ; ++lat ) {
 
             // the west side of the block is the portion from
@@ -131,25 +134,17 @@ void netcdf_bathy::decode_filetype(
     bool found = false ;
     for ( int n=0 ; n < file.num_vars() ; ++n ) {
         NcVar *var = file.get_var(n) ;
-        // cout << "var: " << var->name() << endl ;
         if ( var->num_dims() == 2 ) {
             // extract depth variable
             *altitude = var ;
-            // cout << "\taltitude: " << (*altitude)->name() << endl ;
-            // for ( int n=0 ; n < var->num_dims() ; ++n ) {
-                // NcDim* d = var->get_dim(n) ;
-                // cout << "\t\tdim(" << n << "): " << d->name() << endl ;
-            // }
 
             // extract latitude variable
             NcDim* dim = var->get_dim(0) ;
             *latitude = file.get_var( dim->name() ) ;
-            // cout << "\tlatitude: " << (*latitude)->name() << endl ;
 
             // extract longitude variable
             dim = var->get_dim(1) ;
             *longitude = file.get_var( dim->name() ) ;
-            // cout << "\tlongitude: " << (*longitude)->name() << endl ;
 
             // stop searching
             found = true ;
