@@ -1,0 +1,79 @@
+# CMake config file for the Under Sea Modeling Library (USML).
+# 
+# Includes USMLUse.cmake to setup interfaces to Boost and NetCDF.
+# Defines the directories in which USML files found.
+#
+# When successful, it defines the following variables
+#
+#   USML_INCLUDE_DIR    Parent directory for installed USML header files
+#   USML_LIBRARY        Path of the installed libXXX.{so,a}
+#   USML_INCLUDE_DIRS   USML_INCLUDE_DIR and all prerequisite directories
+#   USML_LIBRARIES      USML_LIBRARY and all prerequisite libraries
+#   USML_FOUND          True if this library found
+#
+# Features:
+#
+#   * Sets up access to header files for Boost's uBLAS package
+#   * Sets up access to header files and libraries for Boost' Test package.
+#       - This includes both optimized and debug versions of the Boost libraries.
+#       - Although not technically required in the run-time environment,
+#         this allows USML users to define Boost Tests with no extra effort.
+#   * Sets up access to header files and libraries for NetCDF package.
+#	   - On windows, this includes an embedded version of netcdf_c++ 
+#         that acts as a work around for missing library on this platform.
+#   * Sets up access to header files and libraries for USML package.
+#       - This includes both optimized and debug versions of the USML libraries,
+#         if the debug library is available.
+
+# setup interfaces to Boost and NetCDF
+
+set( CMAKE_MODULE_PATH @INSTALL_CMAKE_DIR@ ${CMAKE_MODULE_PATH} )
+include( @INSTALL_CMAKE_DIR@/USMLUse.cmake )
+message( STATUS "USML version: @PACKAGE_VERSION@" )
+
+# setup include directories
+# use quotes to deal with spaces in windows path
+
+find_path( USML_INCLUDE_DIR usml/usml_config.h 
+    HINTS "@INSTALL_INCLUDE_DIR@" USML_DIR 
+    ENV USML_DIR)
+
+set( USML_INCLUDE_DIRS 
+     "${USML_INCLUDE_DIR}"
+     "${Boost_INCLUDE_DIR}"
+     "${NETCDF_INCLUDES}" )
+if( MSVC )	# work around for missing netcdf_c++ on windows
+    set( USML_INCLUDE_DIRS "${USML_INCLUDE_DIRS}"
+         "${USML_INCLUDE_DIR}/usml/netcdf/msvc" )
+endif( MSVC )	
+list( REMOVE_DUPLICATES USML_INCLUDE_DIRS )
+
+if ( USML_DEBUG )
+    message( STATUS "USML_INCLUDE_DIRS=${USML_INCLUDE_DIRS}")
+endif ( USML_DEBUG )
+
+# setup lib directories
+# avoids quotes where they mess up optimized/debug functionality
+
+find_library( USML_LIBRARY usml
+    HINTS "@INSTALL_LIB_DIR@" USML_DIR 
+    ENV USML_DIR)
+find_library( USML_LIBRARY_DEBUG usml_d
+    HINTS "@INSTALL_LIB_DIR@" USML_DIR 
+    ENV USML_DIR)
+if ( USML_LIBRARY_DEBUG )
+    set( USML_LIBRARY 
+         optimized ${USML_LIBRARY}
+         debug ${USML_LIBRARY_DEBUG} )
+endif ( USML_LIBRARY_DEBUG )
+
+set( USML_LIBRARIES 
+    ${USML_LIBRARY} 
+    ${Boost_LIBRARIES} 
+    ${NETCDF_LIBRARIES} )
+
+if ( USML_DEBUG )
+    message( STATUS "USML_LIBRARIES=${USML_LIBRARIES}")
+endif ( USML_DEBUG )
+
+# USML_FOUND set by find_package()
