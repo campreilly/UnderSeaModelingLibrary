@@ -13,11 +13,22 @@
 # Code::Blocks generator does not currently support the source_group()
 # command.
 #
+# The install target sets up USMLConfig.cmake and the other files
+# needed for users to successfully execute a find_packages( USML ).
+# This includes a USMLUse.cmake file that sets of Boost and NetCDF.
+#
+# The uninstall target removes the files and directories created by
+# the install process.
+#
 cmake_minimum_required( VERSION 2.6 )
 project( usml CXX )
 
+######################################################################
+# setup USML
+
 file(STRINGS config/VERSION.txt PACKAGE_VERSION)
-message(STATUS "USML version " ${PACKAGE_VERSION} )
+message(STATUS "USML version ${PACKAGE_VERSION}" )
+
 set( PACKAGE_MODULES ublas types netcdf ocean waveq3d)
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/config" )
 
@@ -25,15 +36,15 @@ if( MSVC )	# work around for missing netcdf_c++ on windows
     set( PACKAGE_MODULES ${PACKAGE_MODULES} netcdf/msvc )
 endif( MSVC )	
 
-######################################################################
-# setup USML
-
 option( USML_BUILD_TESTS "build all Tests" ON )
 option( USML_BUILD_STUDIES "build all Studies" OFF )
 option( USML_BUILD_ADDITIONS "build all Additions" OFF )
 
-include ( usmlBuildSetup )
-include_directories( ${PROJECT_SOURCE_DIR}/.. )
+include ( USMLUse )
+include_directories( list( REMOVE_DUPLICATES
+    ${PROJECT_SOURCE_DIR}/..
+    ${Boost_INCLUDE_DIR}
+    ${NETCDF_INCLUDES} ) )
 
 ######################################################################
 # macro: searches a module list for headers and sources
@@ -67,8 +78,48 @@ set( TARGET usml )
 add_library( ${TARGET} ${HEADERS} ${SOURCES} )
 target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
 set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION} )
-install(TARGETS usml DESTINATION lib)
-install(FILES usml_config.h DESTINATION include/usml)
+
+get_property( USML_LIBRARY TARGET ${TARGET} PROPERTY LOCATION )
+get_filename_component( USML_LIBRARY ${USML_LIBRARY} NAME )
+
+install( TARGETS usml DESTINATION lib )
+install( FILES usml_config.h DESTINATION include/usml )
+
+######################################################################
+# Install config files for find_package()
+
+set( INSTALL_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include )
+set( INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib )
+if ( WIN32 AND NOT CYGWIN )
+  set( INSTALL_CMAKE_DIR CMake )
+else()
+  set( INSTALL_CMAKE_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/USML )
+endif()
+configure_file( 
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/USMLConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/USMLConfig.cmake"
+    IMMEDIATE )
+configure_file( 
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/USMLConfigVersion.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/USMLConfigVersion.cmake"
+    IMMEDIATE @ONLY )
+install( FILES
+  ${PROJECT_BINARY_DIR}/USMLConfig.cmake
+  ${PROJECT_BINARY_DIR}/USMLConfigVersion.cmake 
+  config/USMLUse.cmake
+  config/FindNetCDF.cmake
+  DESTINATION ${INSTALL_CMAKE_DIR} )
+
+######################################################################
+# Add uninstall target to project
+
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 ######################################################################
 # USML Tests

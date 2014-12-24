@@ -83,11 +83,9 @@ set(Boost_ADDITIONAL_VERSIONS
 	"1.56" "1.56.0" "1.57" "1.57.0"
 )
 find_package( Boost 1.41 REQUIRED COMPONENTS
-    	unit_test_framework	# for usml_test.exe
-    )
-if( Boost_FOUND )
-    include_directories( ${Boost_INCLUDE_DIR} )
-endif( Boost_FOUND )
+    unit_test_framework	# for usml_test.exe
+)
+include_directories( ${Boost_INCLUDE_DIR} )
 
 # fix bug in boost/numeric/ublas/vector_expression.hpp lines 1409 through 1417
 # function: operator/( vector, scalar )
@@ -100,29 +98,12 @@ add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 
 ######################################################################
 # NetCDF data access library
-#
-# Uses the NETCDF_DIR (variable or environment) to
-# over-ride the root of the include, lib, and bin directories.
-
-if( NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR} )
-    set( NETCDF_DIR $ENV{NETCDF_DIR} CACHE PATH "Root of NetCDF library" )
-endif(NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR})
-
-if( IS_DIRECTORY ${NETCDF_DIR}/include )
-    list( APPEND CMAKE_INCLUDE_PATH $ENV{NETCDF_DIR}/include )
-endif(IS_DIRECTORY ${NETCDF_DIR}/include)
-
-if( IS_DIRECTORY ${NETCDF_DIR}/lib )
-    list( APPEND CMAKE_LIBRARY_PATH $ENV{NETCDF_DIR}/lib )
-endif(IS_DIRECTORY ${NETCDF_DIR}/lib )
 
 if( NOT MSVC )
-    set( NETCDF_CXX ON )
+   set( NETCDF_CXX ON )
 endif( NOT MSVC )
 
-find_package( NetCDF 3.6 REQUIRED )
-if( NETCDF_FOUND )
-    include_directories( ${NETCDF_INCLUDES} ${NETCDF_INCLUDES}/.. )
-    set( NETCDF_NCKS ${NETCDF_INCLUDES}/../bin/ncks )
-endif( NETCDF_FOUND )
+find_package( NetCDF 3.6 MODULE REQUIRED )
+find_program( NETCDF_NCKS ncks )
+
 

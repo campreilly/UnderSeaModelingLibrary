@@ -1,0 +1,40 @@
+# CMake config file for the Under Sea Modeling Library (USML).
+# 
+# Uses USMLUse.cmake to setup interfaces to Boost and NetCDF.
+# Defines the directories in which USML files found.
+#
+# When successful, it defines the following variables
+#
+#   USML_INCLUDE_DIR    Parent directory for installed USML header files
+#   USML_LIBRARY        Path of the installed libXXX.{so,a}
+#   USML_INCLUDE_DIRS   USML_INCLUDE_DIR and all prerequisite directories
+#   USML_LIBRARIES      USML_LIBRARY and all prerequisite libraries
+#   USML_FOUND          True if this library found
+
+# setup interfaces to Boost and NetCDF
+
+set( CMAKE_MODULE_PATH @INSTALL_CMAKE_DIR@ ${CMAKE_MODULE_PATH} )
+include( @INSTALL_CMAKE_DIR@/USMLUse.cmake )
+
+# setup include directories
+
+set( USML_INCLUDE_DIR @INSTALL_INCLUDE_DIR@ )
+set( USML_INCLUDE_DIRS 
+     @INSTALL_INCLUDE_DIR@
+     ${Boost_INCLUDE_DIR} 
+     ${NETCDF_INCLUDES} )
+list( REMOVE_DUPLICATES USML_INCLUDE_DIRS )
+
+# setup lib directories
+
+set( USML_LIBRARY @INSTALL_LIB_DIR@/@USML_LIBRARY@ )
+set( USML_LIBRARIES 
+     @INSTALL_LIB_DIR@/@USML_LIBRARY@  
+     ${Boost_LIBRARIES} 
+     ${NETCDF_LIBRARIES} )
+list( REMOVE_DUPLICATES USML_LIBRARIES )
+
+message( STATUS "USML version: @PACKAGE_VERSION@" )
+
+# USML_FOUND set by find_package()
+

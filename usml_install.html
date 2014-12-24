@@ -257,6 +257,46 @@
     Visual C++ and NetCDF shared libraries. None of the other libraries are required
     in the runtime environment.
 
+    <h2>Using USML in your application</h2>
+    The <code>install</code> target in the build process installs the runtime
+    files needed by USML applications, in the directory specified by
+    the CMAKE_INSTALL_PREFIX advanced option on the CMake GUI. 
+    <ul>
+    <li>On Linux CMAKE_INSTALL_PREFIX defaults to <code>/usr/local</code>
+    <li>On Windows CMAKE_INSTALL_PREFIX defaults to <code>C:/Program Files/usml</code>
+    or <code>C:/Program Files (x86)/usml</code> if this is a 32-bit build
+    on a 64-bit operating system.
+    </ul>
+    The install process writes
+    <ul>
+    <li>public USML header files to <code>&ltprefix&gt/include/usml</code>
+    <li>static and shared USML libraries to <code>&ltprefix&gt/lib</code>
+    <li>CMake configuration files to <code>&ltprefix&gt/lib/cmake/USML</code> on Linux
+        or <code>&ltprefix&gt/cmake</code> on Windows.
+    </ul>
+    The <code>uninstall</code> target in the build process removes these files
+    from your system.
+    <p>
+    USML does not require your project to use CMake.  However, CMake 
+    configuration files are provided to automate the integration of USML,
+    Boost, and NetCDF into your CMake build process, if you so choose.  The example 
+    below shows a <code>CmakeList.txt</code> script that creates an USML 
+    enabled executable from a notional file called <code>example.cc</code>.  
+    <pre>
+    cmake_minimum_required( VERSION 2.6 )
+    project( usml_example CXX )
+
+    find_package( USML 1.0 REQUIRED )
+    include_directories( ${USML_INCLUDES} )
+    add_executable( example example.cc )
+    target_link_libraries( example ${USML_LIBRARIES} )
+    </pre>
+    In this example, the <code>find_package</code> command uses files called
+    <code>USMLConfig.cmake</code> and <code>USMLUse.cmake</code> to
+    configure the include and library files for USML, Boost, and NetCDF.
+    A file called <code>USMLConfigVersion.cmake</code> is used to check
+    the desired USML version against the installed version.
+
     <h2>Additional Resources</h2>
     <ul>
     <li>Mustafa Abbasi, a PhD Student at the University of Texas, has posted the step-by-step process 
