@@ -1,18 +1,6 @@
 /**
  * @example waveq3d/test/eigenray_test.cc
  */
-
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-
-#ifdef _DEBUG
-#ifndef DBG_NEW
-#define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
-#define new DBG_NEW
-#endif
-#endif  // _DEBUG
-
 #include <boost/test/unit_test.hpp>
 #include <usml/waveq3d/waveq3d.h>
 #include <iostream>
@@ -84,9 +72,6 @@ static const double bot_depth = 1e5 ;
  * to eigenray_basic_wave.nc so that a ray trace can be plotted in Matlab.
  */
 BOOST_AUTO_TEST_CASE( eigenray_basic ) {
-
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-
     cout << "=== eigenray_test: eigenray_basic ===" << endl;
     const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_basic.csv";
     const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_basic.nc";
@@ -360,7 +345,6 @@ BOOST_AUTO_TEST_CASE( eigenray_concave ) {
  * support matlab code is provided.
  */
 BOOST_AUTO_TEST_CASE( eigenray_tl_az ) {
-
     cout << "=== eigenray_test: eigenray_tl_az ===" << endl;
     const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_tl_az.csv";
     const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_tl_az.nc";
@@ -471,7 +455,6 @@ BOOST_AUTO_TEST_CASE( eigenray_tl_az ) {
  * for each eigenray to each target.
  */
 BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
-
     cout << "=== eigenray_test: eigenray_branch_pt ===" << endl;
     const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_branch_pt.csv";
     const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_branch_pt.nc";

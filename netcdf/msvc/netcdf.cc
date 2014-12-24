@@ -1095,10 +1095,18 @@ NcBool NcVar::put( const ncbyte* vals, const long* count )
     size_t start[NC_MAX_DIMS];
     for (int i = 0; i < num_dims(); i++)
       start[i] = the_cur[i];
-    
-    return NcError::set_err(
-        nc_put_vara_schar (the_file->id(), the_id, start, 
-            (const size_t *)count, vals)) == NC_NOERR;
+
+    // Added for MSVC 2012 size_t 
+    // count needed conversion from long
+    size_t* sz_count = new size_t[num_dims()];
+    for (int i = 0; i < num_dims(); i++) {
+        sz_count[i] = count[i];
+    }
+
+    int result = nc_put_vara_schar(the_file->id(), the_id, start, sz_count, vals);
+ 
+    delete[] sz_count;														
+    return (NcError::set_err(result) == NC_NOERR);
 }
 
 NcBool NcVar::put( const char* vals, const long* count )
