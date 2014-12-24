@@ -4,6 +4,8 @@
 #include <boost/test/unit_test.hpp>
 #include <usml/types/types.h>
 #include <iostream>
+#include <sstream>
+#include <boost/progress.hpp>
 #include <stdio.h>
 #include <usml/netcdf/netcdf_files.h>
 #include <boost/progress.hpp>
@@ -250,22 +252,16 @@ BOOST_AUTO_TEST_CASE( deriv_1d_test ) {
  * functions in the x and y directions.
  */
 
-static double cubic2d( double val[] ) {
-    double func_val = ( val[0]*val[0]*val[0] ) *
-            ( val[1]*val[1]*val[1] ) ;
-    return func_val ;
+static double cubic2d( double x, double y ) {
+    return (x*x*x) * (y*y*y) ;
 }
 
-static double deriv2d_x( double val[] ) {
-    double func_val = 3.0 * ( val[0]*val[0] ) *
-            ( val[1]*val[1]*val[1] ) ;
-    return func_val ;
+static double deriv2d_x( double x, double y ) {
+    return (3.0*x*x) * (y*y*y) ;
 }
 
-static double deriv2d_y( double val[] ) {
-    double func_val = 3.0 * ( val[1]*val[1] ) *
-            ( val[0]*val[0]*val[0] ) ;
-    return func_val ;
+static double deriv2d_y( double x, double y ) {
+    return (x*x*x) * (3.0*y*y) ;
 }
 
 /**
@@ -275,49 +271,31 @@ static double deriv2d_y( double val[] ) {
  * 1e6 points using the fast_2d and data_grid methods
  */
 
-BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
-    cout << "=== datagrid_interpolation_speed_test ===" << endl;
+BOOST_AUTO_TEST_CASE( interp_speed_test ) {
+    cout << "=== datagrid_test: interpolation_speed_test ===" << endl;
 
     int num_points = 1e3 ;
     int param = 5 ;
     int counter = 0 ;
     size_t index[2] ;
-    double x_y[2] ;
 
     seq_vector* ax[2] ;
     ax[0] = new seq_linear(1.0, 1.0, 5) ;
     ax[1] = new seq_linear(1.0, 1.0, 5) ;
     data_grid<double,2>* grid = new data_grid<double,2>(ax) ;
+    grid->interp_type(0, GRID_INTERP_PCHIP);
+    grid->interp_type(1, GRID_INTERP_PCHIP);
 
-    for(int i = 0; i<2; ++i) {
-//        grid->interp_type(i, GRID_INTERP_NEAREST);
-//        grid->interp_type(i, GRID_INTERP_LINEAR);
-        grid->interp_type(i, GRID_INTERP_PCHIP);
-        grid->edge_limit(i, true);
-    }
-
-    for(int i=0; i < (*ax[0]).size(); ++i) {
-        for(int j=0; j < (*ax[1]).size(); ++j) {
+    for(int i=0; i < ax[0]->size(); ++i) {
+        for(int j=0; j < ax[1]->size(); ++j) {
                 index[0] = i ;
                 index[1] = j ;
-                x_y[0] = i + 1 ;
-                x_y[1] = j + 1 ;
-                double number = cubic2d(x_y) ;
+                double x = i + 1 ;
+                double y = j + 1 ;
+                double number = cubic2d(x, y) ;
                 grid->data( index, number ) ;
         }
     }
-
-    cout << "axis[0]: " << *ax[0] << endl;
-    cout << "axis[1]: " << *ax[1] << endl;
-    for(int i=0; i < (*ax[0]).size(); i++ ) {
-        for(int j=0; j < (*ax[1]).size(); j++ ) {
-            index[0] = i ;
-            index[1] = j ;
-            cout << grid->data(index) ;
-            (j < (*ax[1]).size()-1) ? cout << "\t" :  cout << endl;
-        }
-    }
-    cout << endl;
 
     double spot[2] ;
     matrix<double*> location (num_points,1) ;
@@ -326,7 +304,8 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
         spot[1] = param * randgen::uniform();
         location(i,0) = spot ;
     }
-	{
+
+    {
 		cout << "Interpolation using data_grid method" << endl ;
 		boost:: progress_timer timer ;
 		counter = 0 ;
@@ -358,165 +337,172 @@ BOOST_AUTO_TEST_CASE( datagrid_interp_speed_test ) {
  * function and compare the interpolated results and their
  * derivatives for both the fast_2d and data_grid methods
  * to the analytic values.
+ *
+ * An error is produced if the values produced by fast_grids
+ * are greater than a 3% difference from the data_grid or
+ * true values.
  */
 
-BOOST_AUTO_TEST_CASE( datagrid_fast_acc_test ) {
-    cout << "=== datagrid_fast_accuracy_test ===" << endl;
+BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
+    cout << "=== datagrid_test: fast_accuracy_test ===" << endl;
 
-    seq_vector* axis[2] ;
     int N = 10 ;
-    axis[0] = new seq_linear(1.0, 1.0, N) ;
-    axis[1] = new seq_linear(1.0, 1.0, N) ;
+    double span = 0.5 ;
+
+    // Build a data grid with simple axes
+    seq_vector* axis[2] ;
+    axis[0] = new seq_linear(-span, 0.1, N) ;
+    axis[1] = new seq_linear(-span, 0.1, N) ;
     data_grid<double,2>* test_grid = new data_grid<double,2>(axis) ;
+    test_grid->interp_type(0, GRID_INTERP_PCHIP);
+    test_grid->interp_type(1, GRID_INTERP_PCHIP);
+
+    // Populate the data grid with a bicubic function
     size_t index[2] ;
-    double vals[2] ;
-    for(int i=0; i<(*axis[0]).size(); ++i) {
-        for(int j=0; j<(*axis[1]).size(); ++j) {
+    double x,y ;
+    size_t size0( axis[0]->size() ) ;
+    size_t size1( axis[1]->size() ) ;
+    for(size_t i=0; i<size0; ++i) {
+        for(size_t j=0; j<size1; ++j) {
             index[0] = i;
             index[1] = j;
-            vals[0] = i + 1 ;
-            vals[1] = j + 1 ;
-            double number = cubic2d(vals) ;
+            x = (double)i/N - span ;
+            y = (double)j/N - span ;
+            double number = cubic2d(x,y) ;
             test_grid->data(index, number);
         }
     }
 
     cout << "\t*** simple_data grid***" << endl;
-    cout << "axis[0]: " << *axis[0] << endl;
-    cout << "axis[1]: " << *axis[1] << endl;
-    for(int i=0; i<(*axis[0]).size(); i++) {
-        for(int j=0; j<(*axis[1]).size(); j++) {
-            index[0] = i;
-            index[1] = j;
-            cout << test_grid->data(index);
-            (j < N-1) ? cout << "\t" :  cout << endl;
-        }
-    }
-    cout << endl;
+//    cout << "axis[0]: " << *axis[0] << endl;
+//    cout << "axis[1]: " << *axis[1] << endl;
+//    for(int i=0; i<size0; i++) {
+//        std::stringstream ss ;
+//        for(int j=0; j<size1; j++) {
+//            index[0] = i;
+//            index[1] = j;
+//            std::stringstream t ;
+//            t << test_grid->data(index) ;
+//            ss << t.str() ;
+//            char buff[8] ;
+//            std::size_t size( 10 - t.str().size() ) ;
+//            sprintf(buff,"%*s",size," ") ;
+//            ss << buff ;
+//        }
+//        cout << ss.str() << endl ;
+//    }
+//    cout << endl;
 
-    for(int i=0; i<2; i++){
-        test_grid->interp_type(i, GRID_INTERP_PCHIP);
-        test_grid->edge_limit(i, true);
-    }
+    double spot[2] ;
+//    x = 0.3265, y = -0.2753 ;
+    x = 0.2135, y = -0.3611 ;
+    spot[0] = x, spot[1] = y ;
+    double derv[2] ;
+    cout << "location: (" << spot[0] << ", " << spot[1] << ")" << endl;
 
-    data_grid<double,2>* duplicate = new data_grid<double,2>(*test_grid, true) ;
-    data_grid_bathy* test_grid_fast = new data_grid_bathy(duplicate, true) ;
+    double grid_value = test_grid->interpolate( spot, derv );
+    char buff[256] ;
+    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f\0",grid_value,derv[0],derv[1]) ;
+    cout << buff << endl;
 
-    double spot[2];
-    spot[1] = 10.3265; spot[0] = 9.8753;
-    double fast_2d_derv[2];
-    double fast_2d_value;
-    cout << "x: " << spot[0] << "\ty: " << spot[1] << endl;
-    fast_2d_value = test_grid_fast->interpolate( spot, fast_2d_derv );
-    cout << "fast_2d:    " << fast_2d_value << "\tderivative: " << fast_2d_derv[0] << ", " << fast_2d_derv[1] << endl;
+    data_grid_bathy* test_grid_fast = new data_grid_bathy(test_grid) ;
+    double fast_value = test_grid_fast->interpolate( spot, derv );
+    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f\0",fast_value,derv[0],derv[1]) ;
+    cout << buff << endl;
 
-    double data_grid_derv[2];
-    double data_grid_value;
-    data_grid_value = test_grid->interpolate( spot, data_grid_derv );
-    cout << "data_grid:  " << data_grid_value << "\tderivative: " << data_grid_derv[0] << ", " << data_grid_derv[1] << endl;
-
-    double true_derv[2];
-    double true_value;
-    true_value = cubic2d(spot) ;
-    true_derv[0] = deriv2d_x(spot) ;
-    true_derv[1] = deriv2d_y(spot) ;
-    cout << "true value: " << true_value << "\tderivative: " << true_derv[0] << ", " << true_derv[1] << endl;
+    double true_value = cubic2d(x,y) ;
+    derv[0] = deriv2d_x(x,y) ;
+    derv[1] = deriv2d_y(x,y) ;
+    sprintf(buff,"true value: %9f  derivative: %9f, %8f\0",true_value,derv[0],derv[1]) ;
+    cout << buff << endl;
 
     // Compare to 3 %
-    BOOST_CHECK_CLOSE(fast_2d_value, true_value, 3);
-    BOOST_CHECK_CLOSE(data_grid_value, true_value, 3 );
+    BOOST_CHECK_CLOSE(fast_value, true_value, 3);
+    BOOST_CHECK_CLOSE(grid_value, true_value, 3 );
 
     // Setup a complex example to compare results for pchip
-    cout << "\t*** 2d_data bathy grid_test_pchip ***" << endl;
+    cout << "\n\t*** 2d_data bathy grid_test_pchip ***" << endl;
     wposition::compute_earth_radius( 19.52 ) ;
     const double lat1 = 16.2 ;
     const double lat2 = 24.6 ;
     const double lng1 = -164.4;
     const double lng2 = -155.5 ;
     cout << "load STD14 environmental bathy data" << endl ;
-
     data_grid<double,2>* grid = new usml::netcdf::netcdf_bathy( USML_TEST_DIR "/studies/cmp_speed/std14bathy.nc",
         lat1, lat2, lng1, lng2, wposition::earth_radius );
-    for(int i=0; i<2; i++){
-        grid->interp_type(i, GRID_INTERP_PCHIP);
-        grid->edge_limit(i, true);
-    }
-    data_grid<double,2>* dummy = new data_grid<double,2>(*grid, true) ;
-    data_grid_bathy* fast_grid = new data_grid_bathy(dummy, true) ;
+    grid->interp_type(0, GRID_INTERP_PCHIP);
+    grid->interp_type(1, GRID_INTERP_PCHIP);
 
-    const seq_vector* ax0 = grid->axis(0);
-    const seq_vector* ax1 = grid->axis(1);
-    cout << "axis0(13 to 21): (" << (*ax0)(13) << "," << (*ax0)(14) << ","
-                                       << (*ax0)(15) << "," << (*ax0)(16) << ","
-                                       << (*ax0)(17) << "," << (*ax0)(18) << ","
-                                       << (*ax0)(19) << "," << (*ax0)(20) << ","
-                                       << (*ax0)(21) << ")" << endl;
-    cout << "axis1(36 to 44): (" << (*ax1)(36) << "," << (*ax1)(37) << ","
-                                      << (*ax1)(38) << "," << (*ax1)(39) << ","
-                                      << (*ax1)(40) << "," << (*ax1)(41) << ","
-                                      << (*ax1)(42) << "," << (*ax1)(43) << ","
-                                      << (*ax1)(44) << ")" << endl;
-    cout << "\t*** Data *** [axis0: rows & axis1: columns]" << endl;
-    for(int i=13; i<22; ++i) {
-        (i==13) ? cout << "[" : cout << "";
-        for(int j=36; j<45; ++j) {
-            (j==36) ? cout << "(" : cout << ", ";
-            index[0] = i;
-            index[1] = j;
-            cout << grid->data(index) - wposition::earth_radius;
-            (j!=44) ? cout << "" : cout << ")";
-            (j==44 && i!=21) ? cout << endl : cout << "";
+    seq_vector* ax0 = grid->axis(0) ;
+    seq_vector* ax1 = grid->axis(1) ;
+//    cout << "axis0(13 to 21): (" << (*ax0)(13) << "," << (*ax0)(14) << ","
+//                                       << (*ax0)(15) << "," << (*ax0)(16) << ","
+//                                       << (*ax0)(17) << "," << (*ax0)(18) << ","
+//                                       << (*ax0)(19) << "," << (*ax0)(20) << ","
+//                                       << (*ax0)(21) << ")" << endl;
+//    cout << "axis1(36 to 44): (" << (*ax1)(36) << "," << (*ax1)(37) << ","
+//                                      << (*ax1)(38) << "," << (*ax1)(39) << ","
+//                                      << (*ax1)(40) << "," << (*ax1)(41) << ","
+//                                      << (*ax1)(42) << "," << (*ax1)(43) << ","
+//                                      << (*ax1)(44) << ")" << endl;
+//    cout << "\t*** Data *** [axis0: rows & axis1: columns]" << endl;
+//    for(int i=13; i<22; ++i) {
+//        (i==13) ? cout << "[" : cout << "";
+//        for(int j=36; j<45; ++j) {
+//            (j==36) ? cout << "(" : cout << ", ";
+//            index[0] = i;
+//            index[1] = j;
+//            cout << grid->data(index) - wposition::earth_radius;
+//            (j!=44) ? cout << "" : cout << ")";
+//            (j==44 && i!=21) ? cout << endl : cout << "";
+//
+//        }
+//        (i==21) ? cout << "]" << endl : cout << "";
+//    }
 
-        }
-        (i==21) ? cout << "]" << endl : cout << "";
-    }
+    spot[0] = (*ax0)(17) + 0.00639 ;
+    spot[1] = (*ax1)(40) ;
+    cout << "location: (" << spot[0] << ", " << spot[1] << ")" << endl ;
+    double value = grid->interpolate( spot, derv ) ;
+    value -= wposition::earth_radius ;
+    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f\0",value,derv[0],derv[1]) ;
+    cout << buff << endl ;
 
-    double v0;
-    double v1;
-    double location[2] ;
-    double derv[2] ;
-    double value;
+    data_grid_bathy* fast_grid = new data_grid_bathy(grid) ;
+    value = fast_grid->interpolate( spot, derv ) ;
+    value -= wposition::earth_radius ;
+    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f\0",value,derv[0],derv[1]) ;
+    cout << buff << endl ;
 
-    location[0] = 1.24449;
-    location[1] = -2.76108;
-    location[0] = (*ax0)(17) + 0.00639;
-    location[1] = (*ax1)(40);
-    value = fast_grid->interpolate( location, derv ) - wposition::earth_radius;
-    cout << "fast_2d:    " << value << "\tderivative: " << derv[0] << ", " << derv[1] << endl;
-    value = grid->interpolate( location, derv ) - wposition::earth_radius;
-    cout << "data_grid:  " << value << "\tderivative: " << derv[0] << ", " << derv[1] << endl;
-
-    cout << "\t*** 3d_data svp grid_test_pchip/bi-linear ***" << endl;
+    cout << "\n\t*** 3d_data svp grid_test_pchip/bi-linear ***" << endl;
     cout << "load STD14 svp environmental profile data" << endl ;
     data_grid<double,3>* test_grid_3d = new usml::netcdf::netcdf_profile(
             USML_TEST_DIR "/studies/cmp_speed/std14profile.nc",
-            0.0, lat1, lat2, lng1, lng2, wposition::earth_radius );
-    for(int i=0; i<3; i++){
-        (i<1) ? test_grid_3d->interp_type(i, GRID_INTERP_PCHIP) :
-            test_grid_3d->interp_type(i, GRID_INTERP_LINEAR);
-        test_grid_3d->edge_limit(i, true);
-    }
-    data_grid<double,3>* duplicate_3d = new data_grid<double,3>(*test_grid_3d, true) ;
-    data_grid_svp* test_grid_fast_3d = new data_grid_svp(duplicate_3d,true);
+            0.0, lat1, lat2, lng1, lng2, wposition::earth_radius ) ;
+    test_grid_3d->interp_type(0, GRID_INTERP_PCHIP) ;
+	test_grid_3d->interp_type(1, GRID_INTERP_LINEAR) ;
+    test_grid_3d->interp_type(2, GRID_INTERP_LINEAR) ;
 
-    double loc[3];
-    loc[1] = 1.24449;
-    loc[2] = -2.76108;
-    loc[0] = -2305.0 + wposition::earth_radius;
-    v0 = test_grid_3d->interpolate( loc );
-    v1 = test_grid_fast_3d->interpolate( loc );
-    cout << "location: (" << loc[0]-wposition::earth_radius << ", " << loc[1] << "," << loc[2] << ")" << "\tgrid: " << v0 << "\tfast_grid: " << v1 << endl;
-
+    double loc[3] ;
+    double vec[3] ;
+    loc[1] = 1.24449 ;
+    loc[2] = -2.76108 ;
+    loc[0] = -2305.0 + wposition::earth_radius ;
+    cout << "location: (" << loc[0]-wposition::earth_radius << ", " << loc[1] << "," << loc[2] << ")\n" ;
+    double v0 = test_grid_3d->interpolate( loc, vec );
+    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f, %8f\0",v0,vec[0],vec[1],vec[2]) ;
+    cout << buff << endl ;
+    data_grid_svp* test_grid_fast_3d = new data_grid_svp( test_grid_3d ) ;
+    double v1 = test_grid_fast_3d->interpolate( loc, vec ) ;
+    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f, %8f\0",v1,vec[0],vec[1],vec[2]) ;
+    cout << buff << endl ;
     BOOST_CHECK_CLOSE(v0, v1, 3.0) ;
 
-    delete test_grid_fast_3d ;
-    delete fast_grid ;
-    delete test_grid_fast ;
-    delete test_grid_3d ;
-    delete grid ;
-    delete test_grid ;
     delete axis[0] ;
     delete axis[1] ;
+    delete test_grid_fast ;
+    delete test_grid_fast_3d ;
+    delete fast_grid ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
