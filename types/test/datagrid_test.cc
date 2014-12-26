@@ -402,18 +402,18 @@ BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
 
     double grid_value = test_grid->interpolate( spot, derv );
     char buff[256] ;
-    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f\0",grid_value,derv[0],derv[1]) ;
+    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f",grid_value,derv[0],derv[1]) ;
     cout << buff << endl;
 
     data_grid_bathy* test_grid_fast = new data_grid_bathy(test_grid) ;
     double fast_value = test_grid_fast->interpolate( spot, derv );
-    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f\0",fast_value,derv[0],derv[1]) ;
+    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f",fast_value,derv[0],derv[1]) ;
     cout << buff << endl;
 
     double true_value = cubic2d(x,y) ;
     derv[0] = deriv2d_x(x,y) ;
     derv[1] = deriv2d_y(x,y) ;
-    sprintf(buff,"true value: %9f  derivative: %9f, %8f\0",true_value,derv[0],derv[1]) ;
+    sprintf(buff,"true value: %9f  derivative: %9f, %8f",true_value,derv[0],derv[1]) ;
     cout << buff << endl;
 
     // Compare to 3 %
@@ -465,13 +465,13 @@ BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
     cout << "location: (" << spot[0] << ", " << spot[1] << ")" << endl ;
     double value = grid->interpolate( spot, derv ) ;
     value -= wposition::earth_radius ;
-    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f\0",value,derv[0],derv[1]) ;
+    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f",value,derv[0],derv[1]) ;
     cout << buff << endl ;
 
     data_grid_bathy* fast_grid = new data_grid_bathy(grid) ;
     value = fast_grid->interpolate( spot, derv ) ;
     value -= wposition::earth_radius ;
-    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f\0",value,derv[0],derv[1]) ;
+    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f",value,derv[0],derv[1]) ;
     cout << buff << endl ;
 
     cout << "\n\t*** 3d_data svp grid_test_pchip/bi-linear ***" << endl;
@@ -490,11 +490,11 @@ BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
     loc[0] = -2305.0 + wposition::earth_radius ;
     cout << "location: (" << loc[0]-wposition::earth_radius << ", " << loc[1] << "," << loc[2] << ")\n" ;
     double v0 = test_grid_3d->interpolate( loc, vec );
-    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f, %8f\0",v0,vec[0],vec[1],vec[2]) ;
+    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f, %8f",v0,vec[0],vec[1],vec[2]) ;
     cout << buff << endl ;
     data_grid_svp* test_grid_fast_3d = new data_grid_svp( test_grid_3d ) ;
     double v1 = test_grid_fast_3d->interpolate( loc, vec ) ;
-    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f, %8f\0",v1,vec[0],vec[1],vec[2]) ;
+    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f, %8f",v1,vec[0],vec[1],vec[2]) ;
     cout << buff << endl ;
     BOOST_CHECK_CLOSE(v0, v1, 3.0) ;
 
