@@ -74,7 +74,8 @@ endif( MSVC )
 set( TARGET usml )
 add_library( ${TARGET} ${HEADERS} ${SOURCES} )
 target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
-set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION} )
+set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION}
+                       DEBUG_POSTFIX "_d")
 
 install( TARGETS usml DESTINATION lib )
 install( FILES usml_config.h DESTINATION include/usml )
