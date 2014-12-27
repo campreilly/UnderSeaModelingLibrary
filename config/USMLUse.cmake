@@ -99,11 +99,21 @@ add_definitions( -DBOOST_UBLAS_CHECK_DIVISION_TYPE )
 ######################################################################
 # NetCDF data access library
 
+if( NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR} )
+    set( NETCDF_DIR $ENV{NETCDF_DIR} CACHE PATH "Root of NetCDF library" )
+endif(NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR})
+
+if( IS_DIRECTORY ${NETCDF_DIR}/include )
+    list( APPEND CMAKE_INCLUDE_PATH $ENV{NETCDF_DIR}/include )
+endif(IS_DIRECTORY ${NETCDF_DIR}/include)
+
+if( IS_DIRECTORY ${NETCDF_DIR}/lib )
+    list( APPEND CMAKE_LIBRARY_PATH $ENV{NETCDF_DIR}/lib )
+endif(IS_DIRECTORY ${NETCDF_DIR}/lib )
+ 
 if( NOT MSVC )
    set( NETCDF_CXX ON )
 endif( NOT MSVC )
 
 find_package( NetCDF 3.6 MODULE REQUIRED )
 find_program( NETCDF_NCKS ncks )
-
-

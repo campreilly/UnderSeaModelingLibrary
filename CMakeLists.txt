@@ -28,10 +28,9 @@ project( usml CXX )
 
 file(STRINGS config/VERSION.txt PACKAGE_VERSION)
 message(STATUS "USML version ${PACKAGE_VERSION}" )
-
-set( PACKAGE_MODULES ublas types netcdf ocean waveq3d)
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/config" )
 
+set( PACKAGE_MODULES ublas types netcdf ocean waveq3d)
 if( MSVC )	# work around for missing netcdf_c++ on windows
     set( PACKAGE_MODULES ${PACKAGE_MODULES} netcdf/msvc )
 endif( MSVC )	
@@ -57,9 +56,7 @@ macro( FIND_SOURCES MODULES SUFFIX )
         set( HEADERS ${HEADERS} ${HDR_LIST} )
         set( SOURCES ${SOURCES} ${SRC_LIST} )
         source_group( ${MOD} FILES ${HDR_LIST} ${SRC_LIST} )
-	if ( NOT ${SUFFIX} MATCHES "" AND NOT ${MOD} MATCHES "netcdf/msvc" )
-            install(FILES ${HDR_LIST} DESTINATION include/usml/${MOD})
-        endif()
+	   install(FILES ${HDR_LIST} DESTINATION include/usml/${MOD})
     endforeach( MOD )
 endmacro(FIND_SOURCES)
 
@@ -79,14 +76,19 @@ add_library( ${TARGET} ${HEADERS} ${SOURCES} )
 target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
 set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION} )
 
-get_property( USML_LIBRARY TARGET ${TARGET} PROPERTY LOCATION )
-get_filename_component( USML_LIBRARY ${USML_LIBRARY} NAME )
-
 install( TARGETS usml DESTINATION lib )
 install( FILES usml_config.h DESTINATION include/usml )
 
 ######################################################################
 # Install config files for find_package()
+
+if( NOT DEFINED USML_DIR AND DEFINED ENV{USML_DIR} )
+    set( USML_DIR $ENV{USML_DIR} CACHE PATH "Root of USML library" )
+endif(NOT DEFINED USML_DIR AND DEFINED ENV{USML_DIR})
+
+if( DEFINED USML_DIR )
+    set( CMAKE_INSTALL_PREFIX ${USML_DIR} CACHE PATH "Install path prefix" FORCE )
+endif(DEFINED USML_DIR)
 
 set( INSTALL_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include )
 set( INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib )
@@ -98,7 +100,7 @@ endif()
 configure_file( 
     "${CMAKE_CURRENT_SOURCE_DIR}/config/USMLConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/USMLConfig.cmake"
-    IMMEDIATE )
+    IMMEDIATE @ONLY )
 configure_file( 
     "${CMAKE_CURRENT_SOURCE_DIR}/config/USMLConfigVersion.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/USMLConfigVersion.cmake"

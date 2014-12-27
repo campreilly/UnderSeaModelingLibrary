@@ -14,27 +14,40 @@
 # setup interfaces to Boost and NetCDF
 
 set( CMAKE_MODULE_PATH @INSTALL_CMAKE_DIR@ ${CMAKE_MODULE_PATH} )
-include( @INSTALL_CMAKE_DIR@/USMLUse.cmake )
+include( @CMAKE_INSTALL_PREFIX@/@INSTALL_CMAKE_DIR@/USMLUse.cmake )
 
 # setup include directories
 
-set( USML_INCLUDE_DIR @INSTALL_INCLUDE_DIR@ )
+if ( NOT DEFINED USML_INCLUDE_DIR )
+    find_path( USML_INCLUDE_DIR usml/usml_config.h 
+        HINTS "@INSTALL_INCLUDE_DIR@" USML_DIR 
+        ENV USML_DIR)
+endif( NOT DEFINED USML_INCLUDE_DIR )
+
 set( USML_INCLUDE_DIRS 
-     @INSTALL_INCLUDE_DIR@
-     ${Boost_INCLUDE_DIR} 
-     ${NETCDF_INCLUDES} )
+     "${USML_INCLUDE_DIR}"
+     "${Boost_INCLUDE_DIR}"
+     "${NETCDF_INCLUDES}" )
+if( MSVC )	# work around for missing netcdf_c++ on windows
+    set( USML_INCLUDE_DIRS "${USML_INCLUDE_DIRS}"
+         "${USML_INCLUDE_DIR}/usml/netcdf/msvc" )
+endif( MSVC )	
 list( REMOVE_DUPLICATES USML_INCLUDE_DIRS )
 
 # setup lib directories
 
-set( USML_LIBRARY @INSTALL_LIB_DIR@/@USML_LIBRARY@ )
+if ( NOT DEFINED USML_LIBRARY )
+    find_library( USML_LIBRARY usml
+        HINTS "@INSTALL_LIB_DIR@" USML_DIR 
+        ENV USML_DIR)
+endif ( NOT DEFINED USML_LIBRARY )
+
 set( USML_LIBRARIES 
-     @INSTALL_LIB_DIR@/@USML_LIBRARY@  
-     ${Boost_LIBRARIES} 
-     ${NETCDF_LIBRARIES} )
+     "${USML_LIBRARY}"
+     "${Boost_LIBRARY}"
+     "${NETCDF_LIBRARIES}" )
 list( REMOVE_DUPLICATES USML_LIBRARIES )
 
 message( STATUS "USML version: @PACKAGE_VERSION@" )
 
 # USML_FOUND set by find_package()
-
