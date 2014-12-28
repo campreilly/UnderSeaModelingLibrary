@@ -1,6 +1,6 @@
 # CMake config file for the Under Sea Modeling Library (USML).
 # 
-# Uses USMLUse.cmake to setup interfaces to Boost and NetCDF.
+# Includes USMLUse.cmake to setup interfaces to Boost and NetCDF.
 # Defines the directories in which USML files found.
 #
 # When successful, it defines the following variables
@@ -10,13 +10,29 @@
 #   USML_INCLUDE_DIRS   USML_INCLUDE_DIR and all prerequisite directories
 #   USML_LIBRARIES      USML_LIBRARY and all prerequisite libraries
 #   USML_FOUND          True if this library found
+#
+# Features:
+#
+#   * Sets up access to header files for Boost's uBLAS package
+#   * Sets up access to header files and libraries for Boost' Test package.
+#       - This includes both optimized and debug versions of the Boost libraries.
+#       - Although not technically required in the run-time environment,
+#         this allows USML users to define Boost Tests with no extra effort.
+#   * Sets up access to header files and libraries for NetCDF package.
+#	   - On windows, this includes an embedded version of netcdf_c++ 
+#         that acts as a work around for missing library on this platform.
+#   * Sets up access to header files and libraries for USML package.
+#       - This includes both optimized and debug versions of the USML libraries,
+#         if the debug library is available.
 
 # setup interfaces to Boost and NetCDF
 
 set( CMAKE_MODULE_PATH @INSTALL_CMAKE_DIR@ ${CMAKE_MODULE_PATH} )
 include( @CMAKE_INSTALL_PREFIX@/@INSTALL_CMAKE_DIR@/USMLUse.cmake )
+message( STATUS "USML version: @PACKAGE_VERSION@" )
 
 # setup include directories
+# use quotes to deal with spaces in windows path
 
 if ( NOT DEFINED USML_INCLUDE_DIR )
     find_path( USML_INCLUDE_DIR usml/usml_config.h 
@@ -35,19 +51,25 @@ endif( MSVC )
 list( REMOVE_DUPLICATES USML_INCLUDE_DIRS )
 
 # setup lib directories
+# avoids quotes where they mess up optimized/debug functionality
 
 if ( NOT DEFINED USML_LIBRARY )
     find_library( USML_LIBRARY usml
         HINTS "@INSTALL_LIB_DIR@" USML_DIR 
         ENV USML_DIR)
+    find_library( USML_LIBRARY_DEBUG usml_d
+        HINTS "@INSTALL_LIB_DIR@" USML_DIR 
+        ENV USML_DIR)
+    if ( USML_LIBRARY_DEBUG )
+        set( USML_LIBRARY 
+             optimized ${USML_LIBRARY}
+             debug ${USML_LIBRARY_DEBUG} )
+    endif ( USML_LIBRARY_DEBUG )
 endif ( NOT DEFINED USML_LIBRARY )
 
 set( USML_LIBRARIES 
-     "${USML_LIBRARY}"
-     "${Boost_LIBRARY}"
-     "${NETCDF_LIBRARIES}" )
-list( REMOVE_DUPLICATES USML_LIBRARIES )
-
-message( STATUS "USML version: @PACKAGE_VERSION@" )
+    ${USML_LIBRARY} 
+    ${Boost_LIBRARIES} 
+    ${NETCDF_LIBRARIES} )
 
 # USML_FOUND set by find_package()
