@@ -28,7 +28,7 @@
 # setup interfaces to Boost and NetCDF
 
 set( CMAKE_MODULE_PATH @INSTALL_CMAKE_DIR@ ${CMAKE_MODULE_PATH} )
-include( @CMAKE_INSTALL_PREFIX@/@INSTALL_CMAKE_DIR@/USMLUse.cmake )
+include( @INSTALL_CMAKE_DIR@/USMLUse.cmake )
 message( STATUS "USML version: @PACKAGE_VERSION@" )
 
 # setup include directories
