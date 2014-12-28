@@ -34,11 +34,9 @@ message( STATUS "USML version: @PACKAGE_VERSION@" )
 # setup include directories
 # use quotes to deal with spaces in windows path
 
-if ( NOT DEFINED USML_INCLUDE_DIR )
-    find_path( USML_INCLUDE_DIR usml/usml_config.h 
-        HINTS "@INSTALL_INCLUDE_DIR@" USML_DIR 
-        ENV USML_DIR)
-endif( NOT DEFINED USML_INCLUDE_DIR )
+find_path( USML_INCLUDE_DIR usml/usml_config.h 
+    HINTS "@INSTALL_INCLUDE_DIR@" USML_DIR 
+    ENV USML_DIR)
 
 set( USML_INCLUDE_DIRS 
      "${USML_INCLUDE_DIR}"
@@ -50,26 +48,32 @@ if( MSVC )	# work around for missing netcdf_c++ on windows
 endif( MSVC )	
 list( REMOVE_DUPLICATES USML_INCLUDE_DIRS )
 
+if ( USML_DEBUG )
+    message( STATUS "USML_INCLUDE_DIRS=${USML_INCLUDE_DIRS}")
+endif ( USML_DEBUG )
+
 # setup lib directories
 # avoids quotes where they mess up optimized/debug functionality
 
-if ( NOT DEFINED USML_LIBRARY )
-    find_library( USML_LIBRARY usml
-        HINTS "@INSTALL_LIB_DIR@" USML_DIR 
-        ENV USML_DIR)
-    find_library( USML_LIBRARY_DEBUG usml_d
-        HINTS "@INSTALL_LIB_DIR@" USML_DIR 
-        ENV USML_DIR)
-    if ( USML_LIBRARY_DEBUG )
-        set( USML_LIBRARY 
-             optimized ${USML_LIBRARY}
-             debug ${USML_LIBRARY_DEBUG} )
-    endif ( USML_LIBRARY_DEBUG )
-endif ( NOT DEFINED USML_LIBRARY )
+find_library( USML_LIBRARY usml
+    HINTS "@INSTALL_LIB_DIR@" USML_DIR 
+    ENV USML_DIR)
+find_library( USML_LIBRARY_DEBUG usml_d
+    HINTS "@INSTALL_LIB_DIR@" USML_DIR 
+    ENV USML_DIR)
+if ( USML_LIBRARY_DEBUG )
+    set( USML_LIBRARY 
+         optimized ${USML_LIBRARY}
+         debug ${USML_LIBRARY_DEBUG} )
+endif ( USML_LIBRARY_DEBUG )
 
 set( USML_LIBRARIES 
     ${USML_LIBRARY} 
     ${Boost_LIBRARIES} 
     ${NETCDF_LIBRARIES} )
+
+if ( USML_DEBUG )
+    message( STATUS "USML_LIBRARIES=${USML_LIBRARIES}")
+endif ( USML_DEBUG )
 
 # USML_FOUND set by find_package()
