@@ -43,8 +43,8 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
          *                  fields as well as the axises.
          */
 
-        data_grid_svp(const data_grid<double, 3>* grid, bool copy_data = true)
-            :   data_grid<double, 3>(*grid, copy_data),
+        data_grid_svp( const data_grid<double, 3>* grid )
+            :   data_grid<double, 3>(*grid, true),
                 _kzmax(_axis[0]->size() - 1u),
                 _kxmax(_axis[1]->size() - 1u),
                 _kymax(_axis[2]->size() - 1u)

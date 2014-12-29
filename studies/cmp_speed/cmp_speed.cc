@@ -64,7 +64,7 @@ int main( int argc, char* argv[] ) {
     //fast_grid_3d
     data_grid<double,3>* ssp = new netcdf_profile( USML_STUDIES_DIR "/cmp_speed/std14profile.nc",
             0.0, lat1, lat2, lng1, lng2, wposition::earth_radius ) ;
-    data_grid_svp* fast_ssp = new data_grid_svp(ssp,true) ;
+    data_grid_svp* fast_ssp = new data_grid_svp(ssp) ;
     profile_model* profile = new profile_grid_fast( fast_ssp ) ;
 
 //  attenuation_model* attn = new attenuation_constant(0.0);
@@ -80,7 +80,7 @@ int main( int argc, char* argv[] ) {
     //fast_grid_2d
     data_grid<double,2>* grid = new netcdf_bathy( USML_STUDIES_DIR "/cmp_speed/std14bathy.nc",
         lat1, lat2, lng1, lng2, wposition::earth_radius );
-    data_grid_bathy* fast_grid = new data_grid_bathy(grid, true) ;
+    data_grid_bathy* fast_grid = new data_grid_bathy(grid) ;
     boundary_model* bottom = new boundary_grid_fast( fast_grid ) ;
 
 //    boundary_model* bottom = new boundary_flat(4000.0) ;
@@ -94,9 +94,6 @@ int main( int argc, char* argv[] ) {
 //    cout << "height  " <<  wposition::earth_radius - rho << endl;
 
     boundary_model* surface = new boundary_flat() ;
-
-//	  bottom->reflect_loss(new reflect_loss_constant(0.0));  // Total Reflection
-//    boundary_model* bottom = new boundary_flat(3000.0);    // Flat Bottom
 
     ocean_model ocean( surface, bottom, profile ) ;
 

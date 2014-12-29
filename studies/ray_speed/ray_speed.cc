@@ -73,7 +73,7 @@ int main( int argc, char* argv[] ) {
         month, lat1, lat2, lng1, lng2 ) ;
 
     data_grid<double,3>* ssp = data_grid_mackenzie::construct( temperature, salinity ) ;
-    data_grid_svp* fast_ssp = new data_grid_svp(ssp, true) ;
+    data_grid_svp* fast_ssp = new data_grid_svp(ssp) ;
     profile_model* profile = new profile_grid_fast( fast_ssp ) ;
 //    attenuation_model* attn = new attenuation_constant(0.0);
 //    profile->attenuation(attn);
@@ -82,7 +82,7 @@ int main( int argc, char* argv[] ) {
 
     data_grid<double,2>* grid = new netcdf_bathy( USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
         lat1, lat2, lng1, lng2 );
-    data_grid_bathy* fast_grid = new data_grid_bathy(grid, true) ;
+    data_grid_bathy* fast_grid = new data_grid_bathy(grid) ;
     cout << "load bathymetry from ETOPO1 database" << endl ;
     boundary_model* bottom = new boundary_grid_fast( fast_grid ) ;
 

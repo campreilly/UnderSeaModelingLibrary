@@ -82,7 +82,7 @@ class USML_DLLEXPORT data_grid {
          */
         data_grid(seq_vector *axis[])
         {
-            size_t N = 1;
+        	size_type N = 1 ;
             for (unsigned n = 0; n < NUM_DIMS; ++n) {
                 _axis[n] = axis[n]->clone();
                 N *= _axis[n]->size();
@@ -104,34 +104,40 @@ class USML_DLLEXPORT data_grid {
          */
         data_grid(const data_grid& other, bool copy_data)
         {
-            size_t N = 1;
+        	size_type N = 1 ;
             for (unsigned n = 0; n < NUM_DIMS; ++n) {
-                _axis[n] = other._axis[n]->clone();
+                _axis[n] = other._axis[n]->clone() ;
                 N *= _axis[n]->size();
             }
-            _data = new DATA_TYPE[N];
+            _data = new DATA_TYPE[N] ;
             if (copy_data) {
-                memcpy(_data, other._data, N * sizeof(DATA_TYPE));
+                memcpy(_data, other._data, N * sizeof(DATA_TYPE)) ;
             } else {
-                memset(_data, 0, N * sizeof(DATA_TYPE));
+                memset(_data, 0, N * sizeof(DATA_TYPE)) ;
             }
             memcpy(_interp_type, other._interp_type, NUM_DIMS
-                    * sizeof(enum GRID_INTERP_TYPE));
-            memset(_edge_limit, true, NUM_DIMS * sizeof(bool));
+                    * sizeof(enum GRID_INTERP_TYPE)) ;
+            memset(_edge_limit, true, NUM_DIMS * sizeof(bool)) ;
         }
 
         /**
-         * Default constructor for sub-classes
+         * Copy operator
+         * The data and axes are copied from rhs to this.
          */
-        data_grid() {
-
-            for (unsigned n = 0; n < NUM_DIMS; ++n) {
-                _axis[n] = NULL;
+        void copy(const self_type& rhs) {
+        	size_type N = 1 ;
+            for(size_type n = 0; n < NUM_DIMS; ++n) {
+                if(_axis[n] != NULL) {
+                    delete _axis[n] ;
+                }
+                _axis[n] = rhs._axis[n]->clone() ;
+                N *= _axis[n]->size();
             }
-            _data = NULL;
-
-            memset(_interp_type, GRID_INTERP_LINEAR, NUM_DIMS * sizeof(enum GRID_INTERP_TYPE));
-            memset(_edge_limit, true, NUM_DIMS * sizeof(bool));
+            if(_data != NULL) {
+                delete[] _data ;
+            }
+            _data = new DATA_TYPE[N] ;
+        	memcpy( _data, rhs._data, N * sizeof(DATA_TYPE) ) ;
         }
 
         /**
@@ -175,13 +181,6 @@ class USML_DLLEXPORT data_grid {
             const size_t offset = data_grid_compute_offset<NUM_DIMS - 1> (
                     (seq_vector**) _axis, index);
             return _data[offset];
-        }
-
-        /**
-         * Extract a pointer to the data.
-         */
-        const inline DATA_TYPE* data() const {
-            return _data ;
         }
 
         /**
@@ -473,16 +472,30 @@ class USML_DLLEXPORT data_grid {
         /** Limits locations to values inside axis when true. */
         bool _edge_limit[NUM_DIMS];
 
+        /** Used during interpolation to hold the axis offsets. */
+        unsigned _offset[NUM_DIMS] ;
+
         /**
          * Multi-dimensional data stored as a linear array in column major order.
          * This format is used to support an N-dimensional data set
          * with any number of dimensions.
          * This memory is created in the constructor and deleted in the destructor.
          */
-        DATA_TYPE *_data ;
+        DATA_TYPE* _data ;
 
-        /** Used during interpolation to hold the axis offsets. */
-        unsigned _offset[NUM_DIMS] ;
+        /**
+         * Default constructor for sub-classes
+         */
+        data_grid() {
+
+            for (unsigned n = 0; n < NUM_DIMS; ++n) {
+                _axis[n] = NULL ;
+            }
+            _data = NULL ;
+
+            memset(_interp_type, GRID_INTERP_LINEAR, NUM_DIMS * sizeof(enum GRID_INTERP_TYPE)) ;
+            memset(_edge_limit, true, NUM_DIMS * sizeof(bool)) ;
+        }
 
     private:
 
