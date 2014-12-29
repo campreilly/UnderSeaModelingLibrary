@@ -138,6 +138,10 @@
         </ul>
     <li> The install process can be re-run with different selections for Release/Debug
          and Static/Dynamic libraries to populate libraries with these variants.
+	<ul> 
+        <li> But, note that if both Static and Dynamic libraries are present in the
+             same directory, the USMLConfig.cmake process will only find the dynamic ones.
+	</ul>
     </ul>
 
     <p><img src="config/cmake-example.png" alt="cmake-gui example">
@@ -277,6 +281,9 @@
             <li> CMake configuration files are written to <code>&ltprefix&gt/CMake</code>
 	    </ul>
         <li> Building the <code>uninstall</code> target will remove these files.
+        <li> Note that if both Static and Dynamic libraries are created in the
+             same directory, the *.lib files will overwrite each other.
+
         </ul>
     </ul>
 
