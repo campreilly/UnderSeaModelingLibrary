@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE( compute_index_test ) {
     // fill in a data vector using combination of axis values
 
     double data[2*3*4];
-    unsigned k = 0;
+    size_t k = 0;
     for ( iterator ix = x.begin(); ix < x.end(); ++ix ) {
         for ( iterator iy = y.begin(); iy < y.end(); ++iy ) {
             for ( iterator iz = z.begin(); iz < z.end(); ++iz ) {
@@ -58,13 +58,13 @@ BOOST_AUTO_TEST_CASE( compute_index_test ) {
     }
 
     cout << "data[x][y][z]=";
-    for ( unsigned n=0; n < k; ++n ) printf("%03.0f ", data[n] );
+    for ( size_t n=0; n < k; ++n ) printf("%03.0f ", data[n] );
     cout << endl;
 
     // check to see if all data in the right place
 
-    unsigned index[3];
-    unsigned a=0,b=0,c=0;
+    size_t index[3];
+    size_t a=0,b=0,c=0;
     for ( iterator ix = x.begin(); ix < x.end(); ++ix ) {
         index[0] = a++;
         b = 0;
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE( compute_index_test ) {
             for ( iterator iz = z.begin(); iz < z.end(); ++iz ) {
                 index[2] = c++;
                 k = data_grid_compute_offset<2>( axis, index );
-                printf( "x=%d y=%d z=%d offset=%02d data=%03.0f\n",
+                printf( "x=%ld y=%ld z=%ld offset=%02ld data=%03.0f\n",
                         a-1, b-1, c-1, k, data[k] );
                 BOOST_CHECK_CLOSE( data[k], *ix + *iy + *iz, 1e-6 );
             }
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE( linear_1d_test ) {
     data_grid<double,1> grid( ax );
     grid.edge_limit(0,false);
 
-    for ( unsigned n=0; n < axis.size(); ++n ) {
+    for ( size_t n=0; n < axis.size(); ++n ) {
         grid.data( &n, linear1d(axis(n)) );
     }
 
@@ -163,7 +163,7 @@ BOOST_AUTO_TEST_CASE( cubic_1d_test ) {
     data_grid<double,1> grid( ax );
     grid.edge_limit(0,false);
 
-    for ( unsigned n=0; n < axis.size(); ++n ) {
+    for ( size_t n=0; n < axis.size(); ++n ) {
         grid.data( &n, cubic1d(axis(n)) );
     }
 
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE( deriv_1d_test ) {
     seq_vector *ax[] = {&axis};
     data_grid<double,1> grid( ax );
 
-    for ( unsigned n=0; n < axis.size(); ++n ) {
+    for ( size_t n=0; n < axis.size(); ++n ) {
         grid.data( &n, cubic1d(axis(n)) );
     }
 
@@ -277,7 +277,7 @@ BOOST_AUTO_TEST_CASE( interp_speed_test ) {
     int num_points = 1e3 ;
     int param = 5 ;
     int counter = 0 ;
-    unsigned index[2] ;
+    size_t index[2] ;
 
     seq_vector* ax[2] ;
     ax[0] = new seq_linear(1.0, 1.0, 5) ;
@@ -358,12 +358,12 @@ BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
     test_grid->interp_type(1, GRID_INTERP_PCHIP);
 
     // Populate the data grid with a bicubic function
-    unsigned index[2] ;
+    size_t index[2] ;
     double x,y ;
-    std::size_t size0( axis[0]->size() ) ;
-    std::size_t size1( axis[1]->size() ) ;
-    for(int i=0; i<size0; ++i) {
-        for(int j=0; j<size1; ++j) {
+    size_t size0( axis[0]->size() ) ;
+    size_t size1( axis[1]->size() ) ;
+    for(size_t i=0; i<size0; ++i) {
+        for(size_t j=0; j<size1; ++j) {
             index[0] = i;
             index[1] = j;
             x = (double)i/N - span ;
@@ -492,9 +492,6 @@ BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
 
     delete axis[0] ;
     delete axis[1] ;
-//    delete test_grid_fast ;
-//    delete test_grid_fast_3d ;
-//    delete fast_grid ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

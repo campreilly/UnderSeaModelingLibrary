@@ -103,7 +103,7 @@ class USML_DECLSPEC wave_queue {
         const seq_vector& de, const seq_vector& az,
         double time_step,
         const wposition* targets=NULL,
-        const unsigned long run_id=1,
+        const size_t run_id=1,
         spreading_type type=HYBRID_GAUSSIAN
         ) ;
 
@@ -135,7 +135,7 @@ class USML_DECLSPEC wave_queue {
      * @return              Depression/elevation angle.
      *                      (degrees, positive is up)
      */
-    inline double source_de( unsigned de ) const {
+    inline double source_de( size_t de ) const {
         return (*_source_de)(de) ;
     }
 
@@ -146,7 +146,7 @@ class USML_DECLSPEC wave_queue {
      * @return              Depression/elevation angle.
      *                      (degrees, clockwise from true north)
      */
-    inline double source_az( unsigned az ) const {
+    inline double source_az( size_t az ) const {
         return (*_source_az)(az) ;
     }
 
@@ -216,14 +216,14 @@ class USML_DECLSPEC wave_queue {
     /**
      * Number of D/E angles in the ray fan.
      */
-    inline unsigned num_de() const {
+    inline size_t num_de() const {
         return _source_de->size() ;
     }
 
     /**
      * Number of AZ angles in the ray fan.
      */
-    inline unsigned num_az() const {
+    inline size_t num_az() const {
         return _source_az->size() ;
     }
 
@@ -262,7 +262,7 @@ class USML_DECLSPEC wave_queue {
      * originating from a source or receiver. This is exclusively
      * used within the reverbation models.
      */
-    inline void setID( unsigned long id ) {
+    inline void setID( size_t id ) {
         _run_id = id ;
     }
 
@@ -272,7 +272,7 @@ class USML_DECLSPEC wave_queue {
      * used within the reverbation models.
      * @return      Type of wavefront (receiver/source)
      */
-    inline const unsigned long getID() {
+    inline const size_t getID() {
         return _run_id ;
     }
 
@@ -280,7 +280,7 @@ class USML_DECLSPEC wave_queue {
      * Protoype of the function that is needed during reflections
      * and only implemented in reverberation wave_queues.
      */
-    virtual bool is_ray_valid( unsigned de, unsigned az ) {
+    virtual bool is_ray_valid( size_t de, size_t az ) {
         return false ;
     }
 
@@ -352,7 +352,7 @@ class USML_DECLSPEC wave_queue {
     const wposition* _targets;
 
      /** Run Identification */
-    unsigned long _run_id ;
+    size_t _run_id ;
 
 	/**
 	 * Intermediate term: sin of colatitude for targets.
@@ -463,7 +463,7 @@ class USML_DECLSPEC wave_queue {
      * @param   az      AZ angle index number.
      * @return		True if first recursion reflects from surface.
      */
-    bool detect_reflections_surface( unsigned de, unsigned az ) ;
+    bool detect_reflections_surface( size_t de, size_t az ) ;
 
     /**
      * Detect and process reflection for a single (DE,AZ) combination.
@@ -476,7 +476,7 @@ class USML_DECLSPEC wave_queue {
      * @param   az      AZ angle index number.
      * @return		True if first recursion reflects from bottom.
      */
-    bool detect_reflections_bottom( unsigned de, unsigned az ) ;
+    bool detect_reflections_bottom( size_t de, size_t az ) ;
 
     /**
      * Upper and lower vertices are present when the wavefront undergoes a
@@ -485,7 +485,7 @@ class USML_DECLSPEC wave_queue {
      * wavefront is a local minimum in time. Conversely, an upper vertex
      * is present if it is a local maximum in time.
      */
-    void detect_vertices( unsigned de, unsigned az ) ;
+    void detect_vertices( size_t de, size_t az ) ;
 
     /**
      * Detects and processes all of the logic necessary to determine
@@ -494,7 +494,7 @@ class USML_DECLSPEC wave_queue {
      * over each other when going from current wavefront to the next.
      */
 
-    void detect_caustics( unsigned de, unsigned az ) ;
+    void detect_caustics( size_t de, size_t az ) ;
 
     //**************************************************
     // eigenray estimation routines
@@ -538,8 +538,8 @@ class USML_DECLSPEC wave_queue {
      * @return  True if central point is closest point of approach.
      */
     bool is_closest_ray(
-        unsigned t1, unsigned t2,
-        unsigned de, unsigned az,
+        size_t t1, size_t t2,
+        size_t de, size_t az,
         const double &center,
         double distance2[3][3][3] ) ;
 
@@ -595,15 +595,15 @@ class USML_DECLSPEC wave_queue {
      *                      is modified during the computation.
      */
     void build_eigenray(
-        unsigned t1, unsigned t2,
-        unsigned de, unsigned az,
+        size_t t1, size_t t2,
+        size_t de, size_t az,
         double distance2[3][3][3] ) ;
 
     /**
 	 * For each eigenrayListener in the _eigenrayListenerVec vector
 	 * call the addEigenray method to provide eigenrays to object that requested them.
 	 */
-	bool notifyEigenrayListeners(unsigned targetRow, unsigned targetCol, eigenray pEigenray);
+	bool notifyEigenrayListeners(size_t targetRow, size_t targetCol, eigenray pEigenray);
 
     /**
      * Find relative offsets and true distances in time, D/E, and AZ.
@@ -695,7 +695,7 @@ class USML_DECLSPEC wave_queue {
           *_nc_lower, *_nc_on_edge ;
 
     /** Current record number in netDCF file. */
-    int _nc_rec ;
+    long _nc_rec ;
 
   public:
 

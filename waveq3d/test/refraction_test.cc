@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
     os << "time,x,y,z,d";
-    for (unsigned n = 0; n < az.size(); ++n) {
+    for (size_t n = 0; n < az.size(); ++n) {
         os << ",x" << az(n)
            << ",y" << az(n)
            << ",z" << az(n)
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
 
         os << time << "," << x(0) << "," << y(0) << "," << z(0)
                 << "," << d_analytic;
-        for (unsigned n = 0; n < az.size(); ++n) {
+        for (size_t n = 0; n < az.size(); ++n) {
 
             // decode model's solution for (x,y,z) vs. time
 
@@ -290,7 +290,7 @@ BOOST_AUTO_TEST_CASE(refraction_great_circle) {
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
     os << "time";
-    for (unsigned n = 0; n < az.size(); ++n) {
+    for (size_t n = 0; n < az.size(); ++n) {
         os << ",lat" << az(n) << ",long" << az(n)
            << ",dalt" << az(n) << ",dbear" << az(n);
     }
@@ -312,7 +312,7 @@ BOOST_AUTO_TEST_CASE(refraction_great_circle) {
 
         // check answer and write to spreadsheet file
 
-        for (unsigned n = 0; n < az.size(); ++n) {
+        for (size_t n = 0; n < az.size(); ++n) {
 
             // compute altitude: is it constant?
 
@@ -883,7 +883,7 @@ BOOST_AUTO_TEST_CASE(refraction_munk_range) {
 
         // compare to analytic solution if crossing axis
 
-        for ( unsigned d=0 ; d < de.size() ; ++d ) {
+        for ( size_t d=0 ; d < de.size() ; ++d ) {
 
             // look for axis crossings in same direction as launch angle
             // this is how we recognize that one cycle is complete
@@ -1044,7 +1044,7 @@ BOOST_AUTO_TEST_CASE(refraction_pedersen_range) {
 
         // compare to analytic solution if crossing axis
 
-        for ( unsigned d=0 ; d < de.size() ; ++d ) {
+        for ( size_t d=0 ; d < de.size() ; ++d ) {
 
             // look for axis crossings
             // this is how we recognize that one cycle is complete
@@ -1104,7 +1104,7 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
     seq_vector* axis[1];
     axis[0] = new seq_linear( wposition::earth_radius, -0.5, 1000 ) ;
     sound_profile = new data_grid<double,1>(axis) ;
-    unsigned index[1];
+    size_t index[1];
     for(int i=0; i < axis[0]->size(); ++i){
         index[0] = i;
         double value = 1500.0;

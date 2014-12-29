@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE( plot_profile_test ) {
         // simple values for points and speed
 
         seq_linear depth(0.0, 200.0, 6000.0);
-        const int D = depth.size();
+        const size_t D = depth.size();
         wposition points(1, D);
         for (int d = 0; d < D; ++d) {
             points.altitude(0, d, -depth(d));
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
         std::ofstream os(name);
         cout << "writing tables to " << name << endl;
 
-        unsigned index[3];
+        size_t index[3];
         index[1] = 0;
         index[2] = 0;
 
@@ -189,7 +189,7 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
 
         os << "Depth,Temp,Sal,Speed,Gradient" << endl;
 
-        for (unsigned d = 0; d < temp.axis(0)->size(); ++d) {
+        for (size_t d = 0; d < temp.axis(0)->size(); ++d) {
             index[0] = d;
             location.rho(0, 0, (*temp.axis(0))(d));
             profile.sound_speed(location, &speed, &gradient);

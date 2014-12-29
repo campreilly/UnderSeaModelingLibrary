@@ -9,7 +9,7 @@ using namespace usml::types;
 /**
  * Constructs a new coordinate from matrix dimensions.
  */
-wvector::wvector(unsigned rows, unsigned cols) :
+wvector::wvector(size_t rows, size_t cols) :
 _rho(rows, cols), _theta(rows, cols), _phi(rows, cols) {
     clear() ;
 }

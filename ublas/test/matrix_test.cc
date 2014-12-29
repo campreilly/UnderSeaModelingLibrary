@@ -37,8 +37,8 @@ BOOST_AUTO_TEST_CASE( real_matrix_test ) {
 
     matrix<double> rmat(2,7);
     int k = 0;
-    for ( unsigned n=0; n < rmat.size1(); ++n ) {
-        for ( unsigned m=0; m < rmat.size2(); ++m ) {
+    for ( size_t n=0; n < rmat.size1(); ++n ) {
+        for ( size_t m=0; m < rmat.size2(); ++m ) {
             rmat(n,m) = (double) ((k++)+1);
         }
     }
@@ -93,8 +93,8 @@ BOOST_AUTO_TEST_CASE( complex_matrix_test ) {
 
     matrix< std::complex<double> > cmat(2,3);
     int k = 0;
-    for ( unsigned n=0; n < cmat.size1(); ++n ) {
-        for ( unsigned m=0; m < cmat.size2(); ++m ) {
+    for ( size_t n=0; n < cmat.size1(); ++n ) {
+        for ( size_t m=0; m < cmat.size2(); ++m ) {
             cmat(n,m) = std::complex<double>((k++)+1,1.0);
         }
     }
@@ -135,8 +135,8 @@ BOOST_AUTO_TEST_CASE( pow_matrix_test ) {
     std::complex<double> cmplx(2.5,3.5);
 
     int k = 0;
-    for ( unsigned n=0; n < cmat.size1(); ++n ) {
-        for ( unsigned m=0; m < cmat.size2(); ++m ) {
+    for ( size_t n=0; n < cmat.size1(); ++n ) {
+        for ( size_t m=0; m < cmat.size2(); ++m ) {
             rmat(n,m) = (double) (k+1);
             cmat(n,m) = std::complex<double>(k+1,1.0);
             ++k;
@@ -172,8 +172,8 @@ BOOST_AUTO_TEST_CASE( signal_matrix_test ) {
 
     matrix<double> rmat(2,3);
     int k = 0;
-    for ( unsigned n=0; n < rmat.size1(); ++n ) {
-        for ( unsigned m=0; m < rmat.size2(); ++m ) {
+    for ( size_t n=0; n < rmat.size1(); ++n ) {
+        for ( size_t m=0; m < rmat.size2(); ++m ) {
             rmat(n,m) = (double) ((k++)+1);
         }
     }
@@ -193,8 +193,8 @@ BOOST_AUTO_TEST_CASE( realInverse_matrix_test ) {
 
     matrix<double> rmat(2,3);
     int k = 0;
-    for ( unsigned n=0; n < rmat.size1(); ++n ) {
-        for ( unsigned m=0; m < rmat.size2(); ++m ) {
+    for ( size_t n=0; n < rmat.size1(); ++n ) {
+        for ( size_t m=0; m < rmat.size2(); ++m ) {
             rmat(n,m) = 0.1 * (double) ((k++)+1);
         }
     }
@@ -217,8 +217,8 @@ BOOST_AUTO_TEST_CASE( complexInverse_matrix_test ) {
 
     matrix< std::complex<double> > cmat(2,3);
     int k = 0;
-    for ( unsigned n=0; n < cmat.size1(); ++n ) {
-        for ( unsigned m=0; m < cmat.size2(); ++m ) {
+    for ( size_t n=0; n < cmat.size1(); ++n ) {
+        for ( size_t m=0; m < cmat.size2(); ++m ) {
             cmat(n,m) = 0.1 * std::complex<double>((k++)+1,1.0);
         }
     }

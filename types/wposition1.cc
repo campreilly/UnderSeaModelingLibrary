@@ -45,7 +45,7 @@ wposition1::wposition1(const wvector1& other) :
 /**
  * Copy one element from a matrix of world vectors.
  */
-wposition1::wposition1(const wvector& other, unsigned row, unsigned col) {
+wposition1::wposition1(const wvector& other, size_t row, size_t col) {
     rho(other.rho(row, col));
     theta(other.theta(row, col));
     phi(other.phi(row, col));

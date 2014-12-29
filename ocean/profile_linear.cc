@@ -16,8 +16,8 @@ void profile_linear::sound_speed( const wposition& location,
 ) {
     if (gradient) gradient->clear() ;
     
-    for ( unsigned r=0 ; r < location.size1() ; ++r ) {
-        for ( unsigned c=0 ; c < location.size2() ; ++c ) {
+    for ( size_t r=0 ; r < location.size1() ; ++r ) {
+        for ( size_t c=0 ; c < location.size2() ; ++c ) {
             double z = -location.altitude(r,c) ;
             if ( z < _depth1 ) {
                 (*speed)(r,c) = _soundspeed0 

@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
     // compare latitude axis to values read using ncdump
 
     const seq_vector& latitude = *(bathy.axis(0)) ;
-    int num_lat = latitude.size() ;
+    size_t num_lat = latitude.size() ;
     double lat1 = to_latitude( latitude(0) ) ;
     double lat2 = to_latitude( latitude(num_lat-1) ) ;
     double inc_lat = to_degrees( -latitude.increment(0) ) ;
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
     // compare longitude axis to values read using ncdump
 
     const seq_vector& longitude = *(bathy.axis(1)) ;
-    int num_lng = longitude.size() ;
+    size_t num_lng = longitude.size() ;
     double lng1 = to_degrees( longitude(0) ) ;
     double lng2 = to_degrees( longitude(num_lng-1) ) ;
     double inc_lng = to_degrees( longitude.increment(0) ) ;
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE( read_etopo ) {
     // compare depth to some known values
     // extracted by hand from etopo_cmp.log
 
-    unsigned index[2] ;
+    size_t index[2] ;
     index[0]=0 ; index[1]=0 ;
     BOOST_CHECK_CLOSE( bathy.data(index), -5262.0f, 1e-6f ) ;
     index[0]=0 ; index[1]=1 ;
@@ -204,7 +204,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 	// compare latitude axis to values read using ncdump
 
 	const seq_vector& latitude = *(bathy.axis(0)) ;
-	int num_lat = latitude.size() ;
+	size_t num_lat = latitude.size() ;
 	cout << "latitude[" << num_lat << "] = "
 			<< latitude(0) << " to " << latitude(num_lat-1)
 			<< " by " << latitude.increment(0) << endl ;
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 	// compare longitude axis to values read using ncdump
 
 	const seq_vector& longitude = *(bathy.axis(1)) ;
-	int num_lng = longitude.size() ;
+	size_t num_lng = longitude.size() ;
 	cout << "longitude[" << num_lng << "] = "
 			<< longitude(0) << " to " << longitude(num_lng-1)
 			<< " by " << longitude.increment(0) << endl ;
@@ -226,7 +226,7 @@ BOOST_AUTO_TEST_CASE( read_coards ) {
 	// compare depth to some known values
 	// extracted by hand from etopo_cmp.log
 
-	unsigned index[2] ;
+	size_t index[2] ;
 	index[0]=0 ; index[1]=0 ;
 	BOOST_CHECK_CLOSE( bathy.data(index), -5262.0f, 1e-6f ) ;
 	index[0]=0 ; index[1]=1 ;
@@ -265,7 +265,7 @@ BOOST_AUTO_TEST_CASE( span_bathy ) {
     // compare latitude axis to values read using ncdump
 
     const seq_vector& latitude = *(bathy.axis(0)) ;
-    int num_lat = latitude.size() ;
+    size_t num_lat = latitude.size() ;
     double lat1 = to_latitude( latitude(0) ) ;
     double lat2 = to_latitude( latitude(num_lat-1) ) ;
     double inc_lat = to_degrees( latitude.increment(0) ) ;
@@ -278,7 +278,7 @@ BOOST_AUTO_TEST_CASE( span_bathy ) {
     // compare longitude axis to values read using ncdump
 
     const seq_vector& longitude = *(bathy.axis(1)) ;
-    int num_lng = longitude.size() ;
+    size_t num_lng = longitude.size() ;
     double lng1 = to_degrees( longitude(0) ) ;
     double lng2 = to_degrees( longitude(num_lng-1) ) ;
     double inc_lng = to_degrees( longitude.increment(0) ) ;
@@ -291,7 +291,7 @@ BOOST_AUTO_TEST_CASE( span_bathy ) {
     // compare depth to some known values
     // extracted by hand from etopo_cmp2w.log
 
-    unsigned index[2] ;
+    size_t index[2] ;
     index[0]=0 ; index[1]=0 ;   // 1S 179E = first entry, first row
     BOOST_CHECK_CLOSE( bathy.data(index), -5436.0f, 1e-6f ) ;
     index[0]=0 ; index[1]=60 ;  // 1S 180E = last entry, first row
@@ -321,7 +321,43 @@ BOOST_AUTO_TEST_CASE( span_bathy ) {
     }
 }
 
+/**
+ * Tests the ability of the netcdf_bathy class to extract data
+ * from a netcdf file that does not have a global range. This
+ * would in return prevent the data from wrapping around and
+ * instead limit the bounds of the data to the database provided.
+ */
+BOOST_AUTO_TEST_CASE( nonglobal_database ) {
+    cout << "=== bathy_test: nonglobal_database ===" << endl;
+    netcdf_bathy bathy( USML_TEST_DIR "/netcdf/test/flstrts_bathymetry.nc",
+	-90.0, 90.0, -180.0, 180.0, 0.0 ) ;
 
+    // compare latitude axis to values read using ncdump
+
+    const seq_vector& latitude = *(bathy.axis(0)) ;
+    int num_lat = latitude.size() ;
+    double lat1 = to_latitude( latitude(0) ) ;
+    double lat2 = to_latitude( latitude(num_lat-1) ) ;
+    double inc_lat = to_degrees( latitude.increment(0) ) ;
+    cout << "latitude[" << num_lat
+         << "] = " << lat1 << " to " << lat2 << " by " << inc_lat << endl ;
+    BOOST_CHECK_EQUAL( num_lat, 420 ) ;
+    BOOST_CHECK_CLOSE( lat1, 27.0, 1e-6 ) ;
+    BOOST_CHECK_CLOSE( lat2, 33.9833333333, 1e-6 ) ;
+
+    // compare longitude axis to values read using ncdump
+
+    const seq_vector& longitude = *(bathy.axis(1)) ;
+    int num_lng = longitude.size() ;
+    double lng1 = to_degrees( longitude(0) ) ;
+    double lng2 = to_degrees( longitude(num_lng-1) ) ;
+    double inc_lng = to_degrees( longitude.increment(0) ) ;
+    cout << "longitude[" << num_lng
+         << "] = " << lng1 << " to " << lng2 << " by " << inc_lng << endl ;
+    BOOST_CHECK_EQUAL( num_lng, 481 ) ;
+    BOOST_CHECK_CLOSE( lng1, -82.0, 1e-6 ) ;
+    BOOST_CHECK_CLOSE( lng2, -74.0, 1e-6 ) ;
+}
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -409,7 +409,8 @@ class USML_DECLSPEC NcVar : public NcTypedComponent
  */
 class USML_DECLSPEC NcAtt : public NcTypedComponent
 {
-  public:          
+  public:  
+	NcAtt(NcFile*, const NcVar*, NcToken);
     virtual ~NcAtt( void );
     NcToken name( void ) const;
     NcType type( void ) const;
@@ -424,8 +425,8 @@ class USML_DECLSPEC NcAtt : public NcTypedComponent
     char* the_name;
     // protected constructors because only NcVars and NcFiles create
     // attributes
-    NcAtt( NcFile*, const NcVar*, NcToken);
     NcAtt( NcFile*, NcToken); // global attribute
+	
     
     // To make attributes, since constructor is private
   friend class NcFile;

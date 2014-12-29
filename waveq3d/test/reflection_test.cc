@@ -46,10 +46,10 @@ using namespace boost::numeric::ublas ;
 //    /**
 //     * Record a collision of a single ray with a reverberation surface.
 //     */
-//    virtual void notifyUpperCollision( unsigned de, unsigned az,
+//    virtual void notifyUpperCollision( size_t de, size_t az,
 //               double dt, double grazing, double speed,
 //               const wposition1& position, const wvector1& ndirection,
-//               const wave_queue& wave, unsigned ID )
+//               const wave_queue& wave, size_t ID )
 //    {
 //        ++counter ;
 //        this->surface = true ;
@@ -58,10 +58,10 @@ using namespace boost::numeric::ublas ;
 //        this->ndirection = ndirection ;
 //    }
 //
-//    virtual void notifyLowerCollision( unsigned de, unsigned az,
+//    virtual void notifyLowerCollision( size_t de, size_t az,
 //               double dt, double grazing, double speed,
 //               const wposition1& position, const wvector1& ndirection,
-//               const wave_queue& wave, unsigned ID )
+//               const wave_queue& wave, size_t ID )
 //    {
 //        ++counter ;
 //        this->bottom = true ;

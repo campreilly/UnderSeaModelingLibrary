@@ -35,7 +35,7 @@ class USML_DECLSPEC spreading_model {
          * @param wave          Wavefront object associated with this model.
          * @param num_freqs     Number of different frequencies.
          */
-        spreading_model( wave_queue& wave, unsigned num_freqs ) :
+        spreading_model( wave_queue& wave, size_t num_freqs ) :
             _wave(wave), _spread(num_freqs)
         {}
 
@@ -55,7 +55,7 @@ class USML_DECLSPEC spreading_model {
          * @return              Intensity of ray at this point.
          */
         virtual const vector<double>& intensity(
-            const wposition1& location, unsigned de, unsigned az,
+            const wposition1& location, size_t de, size_t az,
             const vector<double>& offset, const vector<double>& distance ) = 0 ;
 
         /**
@@ -67,7 +67,7 @@ class USML_DECLSPEC spreading_model {
          * @return              Half-width of cell in the DE direction.
          */
         virtual double width_de(
-            unsigned de, unsigned az, const vector<double>& offset ) = 0 ;
+            size_t de, size_t az, const vector<double>& offset ) = 0 ;
 
         /**
          * Interpolate the half-width of a cell in the AZ direction.
@@ -78,7 +78,7 @@ class USML_DECLSPEC spreading_model {
          * @return              Half-width of cell in the AZ direction.
          */
         virtual double width_az(
-            unsigned de, unsigned az, const vector<double>& offset ) = 0 ;
+            size_t de, size_t az, const vector<double>& offset ) = 0 ;
 } ;
 
 }  // end of namespace waveq3d

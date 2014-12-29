@@ -86,7 +86,7 @@ class USML_DECLSPEC wave_front {
         wave_front(
             ocean_model& ocean,
             const seq_vector* freq,
-            unsigned num_de, unsigned num_az,
+            size_t num_de, size_t num_az,
             const wposition* targets = NULL,
             const matrix<double>* sin_theta = NULL
             ) ;
@@ -94,14 +94,14 @@ class USML_DECLSPEC wave_front {
         /**
          * Number of D/E angles in the ray fan.
          */
-        inline unsigned num_de() const {
+        inline size_t num_de() const {
             return position.size1() ;
         }
 
         /**
          * Number of AZ angles in the ray fan.
          */
-        inline unsigned num_az() const {
+        inline size_t num_az() const {
             return position.size2() ;
         }
 

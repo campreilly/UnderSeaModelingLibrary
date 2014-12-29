@@ -19,7 +19,7 @@ using namespace usml::ocean ;
 reflect_loss_rayleigh_grid::reflect_loss_rayleigh_grid(data_grid<double, 2>* bottom_type_grid)
     :   _bottom_grid(bottom_type_grid)
 {
-    unsigned int n_types;
+    size_t n_types;
 
     n_types = reflect_loss_rayleigh::BASALT+1; // number of elements of reflect_loss_rayleigh.bottom_type_enum
 
@@ -30,7 +30,7 @@ reflect_loss_rayleigh_grid::reflect_loss_rayleigh_grid(data_grid<double, 2>* bot
     }
 
     /** Builds a vector of reflect_loss_rayleigh values for all bottom types */
-    for(int i=0; i<int(n_types); i++) {
+    for( size_t i=0; i < n_types; i++ ) {
         _rayleigh.push_back( new reflect_loss_rayleigh( i ) );
     }
 
@@ -55,7 +55,7 @@ void reflect_loss_rayleigh_grid::reflect_loss(
     loc[0] = location.latitude();
     loc[1] = location.longitude();
 
-    unsigned int type = _bottom_grid->interpolate(loc);
+    size_t type = _bottom_grid->interpolate(loc);
     _rayleigh[type]->reflect_loss(location, frequencies, angle, amplitude, phase );
 }
 
