@@ -74,9 +74,16 @@ netcdf_profile::netcdf_profile(
             // make all western longitudes into positive numbers
             if ( west < 0.0 ) offset = 360.0 ;
         }
-        west += offset ;
-        east += offset ;
+    } else {
+    	if( longitude->as_double(0) > 180.0 ) {
+    		if( west < 0.0 ) offset = 360.0 ;
+    	} else if( longitude->as_double(0) < 0.0 ) {
+    		if( east > 180.0 ) offset = -360.0 ;
+    	}
     }
+
+    west += offset ;
+    east += offset ;
 
     // read latitude axis data from NetCDF variable
     // lat_first and lat_last are the integer offsets along this axis
