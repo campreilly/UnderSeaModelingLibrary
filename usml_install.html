@@ -244,7 +244,7 @@
 	<li> Create new user variable <code>NETCDF_DIR = C:\Program Files (x86)\netCDF 4.3.2</code>.
 	<li> Create new user variable <code>NETCDF_PATH = %NETCDF_DIR%\bin;%NETCDF_DIR%\deps\w32\bin</code>.
 	<li> Create new user variable <code>USML_DIR</code> for the USML installation directory.
-	     We used <code>C:\Libraries\usml</code> to avoid permission problems installing libraries
+	     We used <code>C:\local\usml</code> to avoid permission problems installing libraries
              into <code>Program Files</code>,
 	<li> Add <code>%BOOST_LIBRARY_DIR%;%NETCDF_PATH%;%USML_DIR%\lib</code> to <code>path</code> variable.
 	</ul>
@@ -291,7 +291,7 @@
     USML does not require your project to use CMake.  However, CMake 
     configuration files are provided to automate the integration of USML,
     Boost, and NetCDF into your CMake build process, if you so choose.  The example 
-    below shows a <code>CmakeList.txt</code> script that creates an USML 
+    below shows a <code>CMakeLists.txt</code> script that creates an USML 
     enabled executable called <code>example</code> from a notional file called <code>example.cc</code>.  
     <pre>
     cmake_minimum_required( VERSION 2.6 )
