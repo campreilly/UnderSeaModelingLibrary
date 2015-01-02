@@ -44,8 +44,8 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
          *                  fields as well as the axises.
          */
 
-        data_grid_bathy(const data_grid<double, 2>* grid, bool copy_data = true) :
-                data_grid<double, 2>(*grid, copy_data), _bicubic_coeff(16, 1),
+        data_grid_bathy(const data_grid<double, 2>* grid) :
+                data_grid<double, 2>(*grid, true), _bicubic_coeff(16, 1),
                 _field(16, 1), _xyloc(1, 16), _result_pchip(1, 1), _value(4, 4),
                 _kmin(0u), _k0max(_axis[0]->size() - 1u), _k1max(_axis[1]->size() - 1u)
         {

@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE( compute_index_test ) {
             for ( iterator iz = z.begin(); iz < z.end(); ++iz ) {
                 index[2] = c++;
                 k = data_grid_compute_offset<2>( axis, index );
-                printf( "x=%ld y=%ld z=%ld offset=%02ld data=%03.0f\n",
+                printf( "x=%u y=%u z=%u offset=%02u data=%03.0f\n",
                         a-1, b-1, c-1, k, data[k] );
                 BOOST_CHECK_CLOSE( data[k], *ix + *iy + *iz, 1e-6 );
             }
@@ -315,7 +315,7 @@ BOOST_AUTO_TEST_CASE( interp_speed_test ) {
 		}
 	}
 
-    data_grid_bathy* fast_grid = new data_grid_bathy(grid, true);
+    data_grid_bathy* fast_grid = new data_grid_bathy(grid);
 	{
 		cout << "Interpolation using fast_grid method" << endl ;
 		boost:: progress_timer timer ;
@@ -401,20 +401,16 @@ BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
     cout << "location: (" << spot[0] << ", " << spot[1] << ")" << endl;
 
     double grid_value = test_grid->interpolate( spot, derv );
-    char buff[256] ;
-    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f",grid_value,derv[0],derv[1]) ;
-    cout << buff << endl;
+    printf("data_grid: %10f  derivative: %8f, %8f\n",grid_value,derv[0],derv[1]) ;
 
-    data_grid_bathy* test_grid_fast = new data_grid_bathy(test_grid) ;
-    double fast_value = test_grid_fast->interpolate( spot, derv );
-    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f",fast_value,derv[0],derv[1]) ;
-    cout << buff << endl;
+    data_grid_bathy test_grid_fast( test_grid ) ;
+    double fast_value = test_grid_fast.interpolate( spot, derv );
+    printf("fast_grid: %10f  derivative: %8f, %8f\n",fast_value,derv[0],derv[1]) ;
 
     double true_value = cubic2d(x,y) ;
     derv[0] = deriv2d_x(x,y) ;
     derv[1] = deriv2d_y(x,y) ;
-    sprintf(buff,"true value: %9f  derivative: %9f, %8f",true_value,derv[0],derv[1]) ;
-    cout << buff << endl;
+    printf("true value: %9f  derivative: %9f, %8f\n",true_value,derv[0],derv[1]) ;
 
     // Compare to 3 %
     BOOST_CHECK_CLOSE(fast_value, true_value, 3);
@@ -465,14 +461,12 @@ BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
     cout << "location: (" << spot[0] << ", " << spot[1] << ")" << endl ;
     double value = grid->interpolate( spot, derv ) ;
     value -= wposition::earth_radius ;
-    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f",value,derv[0],derv[1]) ;
-    cout << buff << endl ;
+    printf("data_grid: %10f  derivative: %8f, %8f\n",value,derv[0],derv[1]) ;
 
-    data_grid_bathy* fast_grid = new data_grid_bathy(grid) ;
-    value = fast_grid->interpolate( spot, derv ) ;
+    data_grid_bathy fast_grid( grid ) ;
+    value = fast_grid.interpolate( spot, derv ) ;
     value -= wposition::earth_radius ;
-    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f",value,derv[0],derv[1]) ;
-    cout << buff << endl ;
+    printf("fast_grid: %10f  derivative: %8f, %8f\n",value,derv[0],derv[1]) ;
 
     cout << "\n\t*** 3d_data svp grid_test_pchip/bi-linear ***" << endl;
     cout << "load STD14 svp environmental profile data" << endl ;
@@ -490,19 +484,14 @@ BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
     loc[0] = -2305.0 + wposition::earth_radius ;
     cout << "location: (" << loc[0]-wposition::earth_radius << ", " << loc[1] << "," << loc[2] << ")\n" ;
     double v0 = test_grid_3d->interpolate( loc, vec );
-    sprintf(buff,"data_grid: %10f  derivative: %8f, %8f, %8f",v0,vec[0],vec[1],vec[2]) ;
-    cout << buff << endl ;
-    data_grid_svp* test_grid_fast_3d = new data_grid_svp( test_grid_3d ) ;
-    double v1 = test_grid_fast_3d->interpolate( loc, vec ) ;
-    sprintf(buff,"fast_grid: %10f  derivative: %8f, %8f, %8f",v1,vec[0],vec[1],vec[2]) ;
-    cout << buff << endl ;
+    printf("data_grid: %10f  derivative: %8f, %8f, %8f\n",v0,vec[0],vec[1],vec[2]) ;
+    data_grid_svp test_grid_fast_3d( test_grid_3d ) ;
+    double v1 = test_grid_fast_3d.interpolate( loc, vec ) ;
+    printf("fast_grid: %10f  derivative: %8f, %8f, %8f\n",v1,vec[0],vec[1],vec[2]) ;
     BOOST_CHECK_CLOSE(v0, v1, 3.0) ;
 
     delete axis[0] ;
     delete axis[1] ;
-    delete test_grid_fast ;
-    delete test_grid_fast_3d ;
-    delete fast_grid ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
