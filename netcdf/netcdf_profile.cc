@@ -167,65 +167,98 @@ netcdf_profile::netcdf_profile(
  * Fill missing values with average data at each depth.
  */
 void netcdf_profile::fill_missing() {
+	typedef size_t				 			size_type ;
+	typedef double				 			value_type ;
+	typedef data_grid<double,3>  			grid_type ;
+	typedef matrix<value_type>				matrix_type ;
+	typedef ublas::vector<matrix_type>		vector_type ;
+	typedef zero_matrix<value_type>			matrix_z ;
+	typedef scalar_matrix<value_type>		matrix_s ;
 
-    const size_t alt_num = this->_axis[0]->size() ;
-    const size_t lat_num = this->_axis[1]->size() ;
-    const size_t lng_num = this->_axis[2]->size() ;
-    size_t index[3] ;
+	seq_vector* ax[3] ;
+	ax[0] = this->_axis[0] ;
+	ax[1] = this->_axis[1] ;
+	ax[2] = this->_axis[2] ;
+	grid_type replace( ax ) ;
+	seq_vector* depth = this->_axis[0] ;
+	size_type ndepth = depth->size() ;
+	size_type nlat = this->_axis[1]->size() ;
+	size_type nlon = this->_axis[2]->size() ;
 
-    // compute average value at each depth
+	vector_type profile_grad( ndepth ) ;
+	vector_type replace_grad( ndepth ) ;
+	for(size_type d=0; d<ndepth; ++d) {
+		if( d==0 ) replace_grad(d) = matrix_s( nlat, nlon, NAN ) ;
+		replace_grad(d) = matrix_z( nlat, nlon ) ;
+		profile_grad(d) = matrix_s( nlat, nlon, NAN ) ;
+		if( d > 0 ) {
+			for(size_type j=0; j<nlat; ++j) {
+				for(size_type k=0; k<nlon; ++k) {
+					size_type indx[] = { d, j, k } ;
+					value_type curr = this->data( indx ) ;
+					if( ! std::isnan(curr) ) {
+						size_type indx2[] = { d-1, j, k } ;
+						value_type prev = this->data( indx2 ) ;
+						profile_grad(d)(j,k) = ( curr - prev ) / depth->increment(d-1) ;
+					}
+				}
+			}
+		}
+	}
 
-    data_grid<double,1> average( this->_axis ) ;
-    data_grid<double,1> number( this->_axis ) ;
-
-    for ( int alt = 0 ; alt < alt_num ; ++alt ) {
-        index[0] = alt ;
-
-        // sum non-NAN data from all lat/longs
-
-        for ( int lat = 0 ; lat < lat_num ; ++lat ) {
-            index[1] = lat ;
-            for ( int lng = 0 ; lng < lng_num ; ++lng ) {
-                index[2] = lng ;
-                double value = data(index) ;
-                if ( ! isnan(value) ) {
-                    average.data( index, average.data(index)+value ) ;
-                    number.data( index, number.data(index)+1.0 ) ;
-                }
-            }
-        }
-
-        // divide data sum by number of observations
-        // use value from previous depth if all lat/longs are NAN
-
-        if ( number.data(index) == 0.0 ) {
-            if ( index[0] <= 0 ) {
-                average.data( index, NAN ) ;
-            } else {
-                size_t prev_index[1] ;
-                prev_index[0] = index[0] - 1 ;
-                average.data( index, average.data(prev_index) ) ;
-            }
-        } else {
-            average.data( index, average.data(index) / number.data(index) ) ;
-        }
-    }
-
-    // fill in missing values with average values
-
-    for ( int alt = 0 ; alt < alt_num ; ++alt ) {
-        index[0] = alt ;
-        for ( int lat = 0 ; lat < lat_num ; ++lat ) {
-            index[1] = lat ;
-            for ( int lng = 0 ; lng < lng_num ; ++lng ) {
-                index[2] = lng ;
-                double value = data(index) ;
-                if ( isnan(value) ) {
-                    data( index, average.data(index) ) ;
-                }
-            }
-        }
-    }
+	int Q = 4 ;
+	for(size_type d=0; d<ndepth; ++d) {
+		for(size_type j=0; j<nlat; ++j) {
+			for(size_type k=0; k<nlon; ++k) {
+				size_type index[] = { d, j, k } ;
+				value_type r = this->data( index );
+				if( ! std::isnan(r) ) {
+					replace.data( index, r ) ;
+					replace_grad(d)(j,k) = profile_grad(d)(j,k) ;
+				} else {
+					// compute weight
+					value_type weight = 0.0 ;
+					for(size_type n=0; n<nlat; ++n) {
+						for(size_type m=0; m<nlon; ++m) {
+							size_type index2[] = { d, n, m } ;
+//							index2[0] = d ;
+//							index2[1] = n ;
+//							index2[2] = m ;
+							value_type tmp = this->data(index2) ;
+							if( ! std::isnan(tmp) ) {
+								value_type t = (j-n)*(j-n) + (k-m)*(k-m) ;
+								t = pow( t, Q ) ;
+								value_type dist2 = 1.0 / t ;
+								weight += dist2 ;
+								if( d==0 ) {
+									r = replace.data(index) + dist2 * tmp ;
+									replace.data( index, r ) ;
+								} else {
+									replace_grad(d)(j,k) += dist2 * profile_grad(d)(n,m) ;
+								}	// end if( d==0 )
+							}	// end if( !isnan(tmp) )
+						}	// end for m<nlon
+					}	// end for n<nlat
+					// apply weighted sum
+					if( weight > 0.0 ) {
+						if( d==0 ) {
+							r = replace.data(index) / weight ;
+							replace.data( index, r ) ;
+						} else {
+							replace_grad(d)(j,k) /= weight ;
+							size_type index2[3] ;
+							index2[0] = d-1 ;
+							index2[1] = j ;
+							index2[2] = k ;
+							r = replace.data(index2) + replace_grad(d)(j,k) * depth->increment(d-1) ;
+							replace.data( index, r ) ;
+						}
+					}	// end if( weight > 0.0 )
+				}	// end of if( ! isnan )
+			}	// end for k<nlon
+		}	// end for j<nlat
+	}	// end for d<ndepth
+	this->copy(replace) ;
 }
 
 /**
