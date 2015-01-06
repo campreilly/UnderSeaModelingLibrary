@@ -20,3 +20,14 @@
     #define USML_DECLSPEC 
     #define USML_DLLEXPORT 
 #endif
+
+/* To prevent Eclipse from finding errors on string concatenation
+ * for compile line -D defined macros, when searching for semantic errors.
+ */
+#ifndef USML_TEST_DIR
+#define USML_TEST_DIR ""
+#endif
+
+#ifndef USML_DATA_DIR
+#define USML_DATA_DIR ""
+#endif
