@@ -8,6 +8,7 @@
 #include <typeinfo>
 #include <sstream>
 #include <netcdfcpp.h>
+#include <usml/types/wposition.h>
 #include <usml/types/wvector.h>
 #include <usml/types/seq_vector.h>
 

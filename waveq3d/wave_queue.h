@@ -256,6 +256,14 @@ class USML_DECLSPEC wave_queue {
 	 */
     bool removeEigenrayListener(eigenrayListener* pListener);
 
+    /**
+	 * For each eigenrayListener in the _eigenrayListenerVec vector
+	 * call the checkEigenrays method to deliver all eigenrays after
+	 * a certain amount of time has passed.
+	 *  @param	waveTime Current Time of the WaveFront in msec
+	 *  @return True on success, false on failure.
+	 */
+	bool checkEigenrayListeners(long waveTime);
 
     /**
      * Set the type of wavefront that this is, i.e. a wavefront

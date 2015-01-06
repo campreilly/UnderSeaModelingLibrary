@@ -862,3 +862,19 @@ bool wave_queue::notifyEigenrayListeners(size_t targetRow, size_t targetCol, eig
 
 	return (_eigenrayListenerVec.size() > 0);
 }
+
+/**
+ * For each eigenrayListener in the _eigenrayListenerVec vector
+ * call the checkEigenrays method to deliver all eigenrays after
+ * a certain amount of time has passed.
+ */
+bool wave_queue::checkEigenrayListeners(long waveTime){
+
+	for (std::vector<eigenrayListener*>::iterator iter = _eigenrayListenerVec.begin();
+												iter != _eigenrayListenerVec.end(); ++iter){
+		eigenrayListener* pListener = *iter;
+		pListener->checkEigenrays(_run_id, waveTime);
+	}
+
+	return (_eigenrayListenerVec.size() > 0);
+}

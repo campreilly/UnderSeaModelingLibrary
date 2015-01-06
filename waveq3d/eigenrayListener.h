@@ -37,6 +37,18 @@ public:
      *  @param   run_id    Run Identification number.
 	 */
 	virtual bool addEigenray(size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id) = 0;
+	
+	/**
+	 * checkEigenrays
+	 * Virtual method to check if all eigenrays are available within a time frame.
+	 *  @param 	runID Run number of waveQ3D
+	 *  @param  waveTime Current Time of the wavefront used to check elapsed time.
+	 *  @return  		   True on Success, false otherwise.
+	 */
+	virtual bool checkEigenrays(unsigned long runID, long waveTime)
+	{
+		return false;
+	}
 
 
 protected:
