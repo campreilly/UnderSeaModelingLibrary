@@ -845,6 +845,46 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     BOOST_CHECK( detcoef >= 80.0 );
 }
 
+/**
+ * This test demonstrates ability to adjust source position if it is within
+ * 0.1 meters of being above the ocean surface or below the ocean bottom.
+ * The boundary reflection logic does not perform correctly if the
+ * wavefront starts on the wrong side of either boundary.
+ */
+BOOST_AUTO_TEST_CASE(proploss_limits)
+{
+    cout << "=== proploss_test: proploss_limits ===" << endl;
+    const double c0 = 1500.0;
+    const double src_lat = 45.0;
+    const double src_lng = -45.0;
+    const double src_alt = 0.0;
+    const double depth = -1000 ;
+
+    // initialize propagation model
+
+    profile_model* profile = new profile_linear(c0);
+    boundary_model* surface = new boundary_flat();
+    boundary_model* bottom = new boundary_flat(depth);
+    ocean_model ocean(surface, bottom, profile);
+
+    wposition1 pos(src_lat, src_lng, src_alt);
+    seq_linear de(-10.7, 1.0, 10.0);
+    seq_linear az(-10.5, 2.0, 10.0);
+    seq_log freq(f0, 1.0, 1);  // 2000 Hz
+
+    // try building a source above ocean surface
+
+    wave_queue wave1( ocean, freq, pos, de, az, time_step ) ;
+    BOOST_CHECK_CLOSE( wave1.source_pos().altitude(), -0.1, 1e-6 );
+
+    // try building a source above ocean surface
+
+    pos.altitude( depth-10.0 ) ;
+    wave_queue wave2( ocean, freq, pos, de, az, time_step ) ;
+    BOOST_CHECK_CLOSE( wave2.source_pos().altitude(), depth+0.1, 1e-6 );
+}
+
+
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()

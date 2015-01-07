@@ -11,9 +11,9 @@ using namespace usml::ocean ;
  * Initialize component models within ocean profile.
  */
 boundary_flat::boundary_flat(double depth, reflect_loss_model* reflect_loss)
-    : boundary_model(reflect_loss), _height(wposition::earth_radius-depth)
+    : boundary_model(reflect_loss), _height(wposition::earth_radius-abs(depth))
 {
-    if ( depth < 1e-6 ) {
+    if ( abs(depth) < 1e-6 ) {
         _normal_rho = -1.0 ;
         if ( reflect_loss == NULL ) {
             this->reflect_loss( new reflect_loss_constant( 0.0, M_PI ) ) ;

@@ -331,8 +331,12 @@ class USML_DECLSPEC wave_queue {
 
     /**
      * Location of the wavefront source in spherical earth coordinates.
+     * Adjusted during construction of the wave_queue if it is within
+     * 0.1 meters of being above the ocean surface or below the ocean bottom.
+     * The boundary reflection logic does not perform correctly if the
+     * wavefront starts on the wrong side of either boundary.
      */
-    const wposition1 _source_pos ;
+    wposition1 _source_pos ;
 
     /**
      * Initial depression/elevation angle (D/E) at the

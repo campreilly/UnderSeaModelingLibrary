@@ -51,6 +51,18 @@ wave_queue::wave_queue(
         _targets_sin_theta = sin( _targets->theta() ) ;
     }
 
+    // check for sources outside of the water column
+
+    const double offset = 0.1 ;
+    double bottom_rho = 0.0 ;
+    _ocean.bottom().height( _source_pos, &bottom_rho ) ;
+    bottom_rho += offset ;
+    if ( _source_pos.altitude() > -offset ) {
+    	_source_pos.altitude(-offset) ;
+    } else if ( _source_pos.rho() < bottom_rho ) {
+    	_source_pos.rho( bottom_rho ) ;
+    }
+
     // create storage space for all wavefront elements
 
     _past = new wave_front( _ocean, _frequencies, de.size(), az.size(), _targets, &_targets_sin_theta ) ;
