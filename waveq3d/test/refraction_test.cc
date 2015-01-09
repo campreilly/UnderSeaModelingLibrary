@@ -1139,7 +1139,8 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
     double lat = 45.0;
     double lon = -45.0;
     wposition1 source( lat, lon, -40.0 );
-    seq_rayfan de(-10.0, 10.0, 51);
+//    seq_rayfan de(-10.0, 10.0, 51);
+    seq_rayfan de ;
     seq_linear az( 0.0, 0.0, 1 );
 
     wave_queue wave(ocean, freq, source, de, az, time_step);
