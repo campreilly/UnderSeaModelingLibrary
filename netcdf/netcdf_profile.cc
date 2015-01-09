@@ -196,7 +196,7 @@ void netcdf_profile::fill_missing() {
 				for(size_type k=0; k<nlon; ++k) {
 					size_type indx[] = { d, j, k } ;
 					value_type curr = this->data( indx ) ;
-					if( ! std::isnan(curr) ) {
+					if( ! isnan(curr) ) {
 						size_type indx2[] = { d-1, j, k } ;
 						value_type prev = this->data( indx2 ) ;
 						profile_grad(d)(j,k) = ( curr - prev ) / depth->increment(d-1) ;
@@ -212,7 +212,7 @@ void netcdf_profile::fill_missing() {
 			for(size_type k=0; k<nlon; ++k) {
 				size_type index[] = { d, j, k } ;
 				value_type r = this->data( index );
-				if( ! std::isnan(r) ) {
+				if( ! isnan(r) ) {
 					replace.data( index, r ) ;
 					replace_grad(d)(j,k) = profile_grad(d)(j,k) ;
 				} else {
@@ -225,7 +225,7 @@ void netcdf_profile::fill_missing() {
 //							index2[1] = n ;
 //							index2[2] = m ;
 							value_type tmp = this->data(index2) ;
-							if( ! std::isnan(tmp) ) {
+							if( ! isnan(tmp) ) {
 								value_type t = (j-n)*(j-n) + (k-m)*(k-m) ;
 								t = pow( t, Q ) ;
 								value_type dist2 = 1.0 / t ;
