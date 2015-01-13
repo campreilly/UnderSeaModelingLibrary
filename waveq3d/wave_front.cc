@@ -186,27 +186,17 @@ void wave_front::find_edges() {
     }
 
     // search for a local maxima or minima in the rho direction
-
-    for (size_t az = 0; az < num_az(); az += 1) {
-        for (size_t de = 1; de < max_de; de += 1) {
-
-            if ( (position.rho(de,az) < position.rho(de+1,az) &&
-                  position.rho(de,az) < position.rho(de-1,az)) ||
-                 (position.rho(de,az) > position.rho(de+1,az) &&
-                  position.rho(de,az) > position.rho(de-1,az)) ) {
-                    on_edge(de,az) = true;
-
-					// search for neighboring point with change in direction
-
-                    if( abs(ndirection.rho(de,az)-ndirection.rho(de-1,az)) >
-                        abs(ndirection.rho(de,az)-ndirection.rho(de+1,az)) ) {
-                            on_edge(de-1,az) = true;
-                    } else {
-                            on_edge(de+1,az) = true;
-                    }
-            }
-        }
-    }
+    const size_t max_az = num_az() - 1 ;
+	for ( size_t az=0 ; az < num_az() ; az++ ) {
+		for ( size_t de=1 ; de < max_de ; de++ ) {
+			bool change_family = surface(de,az) != surface(de+1,az) ||
+								 bottom(de,az) != bottom(de+1,az) ||
+								 caustic(de,az) != caustic(de+1,az) ;
+			if( change_family ) {
+				on_edge(de,az) = on_edge(de+1,az) = true ;
+			}
+		}
+	}
 }
 
 /*

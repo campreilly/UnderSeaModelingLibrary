@@ -383,6 +383,7 @@ BOOST_AUTO_TEST_CASE( pedersen_shallow_proploss ) {
 BOOST_AUTO_TEST_CASE( pedersen_deep_proploss ) {
     cout << "=== pedersen_deep_proploss ===" << endl ;
     seq_linear ranges(3000.0,0.25,3120.0) ;
+//    seq_rayfan de( 20.0, 60.0, 181, 51.21 ) ;
     seq_linear de( 20.0, 0.2, 60.0 ) ;
     analyze_proploss( de, -1000.0, -800.0, ranges,
         0.01, 3.5,

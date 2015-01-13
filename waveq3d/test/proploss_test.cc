@@ -540,7 +540,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
 
     cout << "writing spreadsheets to " << csvname << endl;
     std::ofstream os(csvname);
-    os << "range,model,theory,m1amp,m1time,t1amp,t1time,m2amp,m2time,t2amp,t2time" << endl;
+    os << "freq,range,model,theory,m1amp,m1time,t1amp,t1time,m2amp,m2time,t2amp,t2time" << endl;
     os << std::setprecision(18);
 
     vector<double> tl_model(range.size());
@@ -555,10 +555,10 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
     for (size_t f=0; f < freq.size(); ++f)
     {
         const double wavenum = TWO_PI * freq(f) / c0 ;
-        os << "freq: " << freq(f) << endl;
 
         for (size_t n = 0; n < range.size(); ++n)
         {
+            os << freq(f) << "," ;
             tl_model[n] = -loss.total(n, 0)->intensity(f);
 
             // compute analytic solution
@@ -636,14 +636,14 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
                 BOOST_CHECK( dev <= 5.0 );
                 break;
             case 100:
-                BOOST_CHECK( abs(bias) <= 1.0 );
+                BOOST_CHECK( abs(bias) <= 2.0 );
                 BOOST_CHECK( dev <= 4.0 );
                 break;
             case 10000:
                 BOOST_CHECK( dev <= 5.0 );
                 break;
             default:
-                BOOST_CHECK( abs(bias) <= 0.5 );
+                BOOST_CHECK( abs(bias) <= 1.0 );
                 BOOST_CHECK( dev <= 4.0 );
         }
 
@@ -715,6 +715,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     const double wavenum = TWO_PI * freq(0) / c0;
 
     wposition1 pos(src_lat, src_lng, src_alt);
+//    seq_rayfan de( -90.0, 90.0, 361 ) ;
 //    seq_rayfan de( -17.0, 17.0, 363 ) ;
 //    seq_linear de( -5.0, 5.0, 720 );
     seq_rayfan de ;
@@ -724,7 +725,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
 
     double degrees = src_lat + to_degrees(range / (wposition::earth_radius+src_alt)); // range in latitude
     seq_linear depth(-0.1, -0.5, -40.1); // depth in meters
-//    seq_linear depth(-0.1, 1.0, 1); // depth in meters
+//    seq_linear depth(-26.1, 1.0, 1); // depth in meters
     wposition target(depth.size(), 1, degrees, src_lng, 0.0);
     for (size_t n = 0; n < target.size1(); ++n)
     {

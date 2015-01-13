@@ -40,10 +40,10 @@ option( USML_BUILD_STUDIES "build all Studies" OFF )
 option( USML_BUILD_ADDITIONS "build all Additions" OFF )
 
 include ( USMLUse )
-include_directories( list( REMOVE_DUPLICATES
+include_directories(
     ${PROJECT_SOURCE_DIR}/..
     ${Boost_INCLUDE_DIR}
-    ${NETCDF_INCLUDES} ) )
+    ${NETCDF_INCLUDES} )
 
 ######################################################################
 # macro: searches a module list for headers and sources

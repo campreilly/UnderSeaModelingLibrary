@@ -453,9 +453,19 @@ bool wave_queue::is_closest_ray(
 void wave_queue::build_eigenray(
    size_t t1, size_t t2,
    size_t de, size_t az,
-   double distance2[3][3][3]
-) {
-    // compute offsets
+   double distance2[3][3][3] )
+{
+//#ifdef USML_DEBUG
+//    wposition1 tgt( *(_curr->targets), t1, t2 ) ;
+//    cout << "*** wave_queue::add_eigenray:"
+//         << " target(" << t1 << "," << t2 << ")="
+//         << tgt.altitude() << "," << tgt.latitude() << "," << tgt.longitude()
+//         << " time=" << _time
+//         << " de(" << de << ")=" << (*_source_de)(de)
+//         << " az(" << az << ")=" << (*_source_az)(az)
+//         << endl ;
+//#endif
+	// compute offsets
     // limit to simple inverse if path types change in this neighborhood
 
     c_vector<double,3> delta, offset, distance ;
