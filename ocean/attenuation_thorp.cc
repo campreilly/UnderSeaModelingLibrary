@@ -18,7 +18,7 @@ void attenuation_thorp::attenuation(
 
 	// initialize the cache for the attenuation coefficients
     vector <double> alpha(frequencies.size());
-    for (unsigned f = 0; f < frequencies.size(); ++f) {
+    for (size_t f = 0; f < frequencies.size(); ++f) {
 		double F2 = frequencies(f);
 		F2 = 1e-6 * F2 * F2;
 		alpha(f) = 1e-3 *
@@ -27,8 +27,8 @@ void attenuation_thorp::attenuation(
 			/ (1.0 - 5.88264e-6 * 1000.0);
     }
     // apply attenuation coefficients and depth corrections
-    for (unsigned row = 0; row < location.size1(); ++row) {
-        for (unsigned col = 0; col < location.size2(); ++col) {
+    for (size_t row = 0; row < location.size1(); ++row) {
+        for (size_t col = 0; col < location.size2(); ++col) {
             (*attenuation)(row, col) =
                 distance(row, col)
                 * alpha

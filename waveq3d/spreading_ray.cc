@@ -13,8 +13,8 @@ spreading_ray::spreading_ray(wave_queue& wave) :
     spreading_model( wave, wave._frequencies->size() ),
     _init_area(wave.num_de(), wave.num_az())
 {
-    for (unsigned d = 0; d < wave.num_de() - 1; ++d) {
-        for (unsigned a = 0; a < wave.num_az() - 1; ++a) {
+    for (size_t d = 0; d < wave.num_de() - 1; ++d) {
+        for (size_t a = 0; a < wave.num_az() - 1; ++a) {
             double de1 = to_radians(wave.source_de(d));
             double de2 = to_radians(wave.source_de(d + 1));
             double az1 = to_radians(wave.source_az(a));
@@ -23,7 +23,7 @@ spreading_ray::spreading_ray(wave_queue& wave) :
         }
         _init_area(d, wave.num_az() - 1) = _init_area(d, wave.num_az() - 2);
     }
-    for (unsigned a = 0; a < wave._source_az->size() - 1; ++a) {
+    for (size_t a = 0; a < wave._source_az->size() - 1; ++a) {
         _init_area(wave.num_de() - 1, a) = _init_area(wave.num_de() - 2, a);
     }
     _init_area /= _wave._curr->sound_speed(0, 0);
@@ -33,7 +33,7 @@ spreading_ray::spreading_ray(wave_queue& wave) :
  * Estimate intensity as the ratio of current area to initial area.
  */
 const vector<double>& spreading_ray::intensity(
-    const wposition1& location, unsigned de, unsigned az,
+    const wposition1& location, size_t de, size_t az,
     const vector<double>& offset, const vector<double>& distance )
 {
     // which box has target in it?
@@ -96,7 +96,7 @@ const vector<double>& spreading_ray::intensity(
 //    cout << " area1=" << area1 << " area2=" << area2
 //         << " u=" << u << " area=" << area << endl ;
     const double loss = _init_area(de, az) * sound_speed(0, 0) / area;
-    for (unsigned f = 0; f < _wave._frequencies->size(); ++f) {
+    for (size_t f = 0; f < _wave._frequencies->size(); ++f) {
         _spread(f) = loss ;
     }
 
@@ -118,12 +118,12 @@ const vector<double>& spreading_ray::intensity(
  * by 1/2, as the width of the gaussian cell is half of the distance.
  */
 double spreading_ray::width_de(
-        unsigned de, unsigned az, const vector<double>& offset )
+        size_t de, size_t az, const vector<double>& offset )
 {
     // Prevent the algorithm from running into problems with the
     // DE is at the edge of the index array.
-    const unsigned size_de = _wave._source_de->size() - 1 ;
-    unsigned de_max, de_min, de_center ;
+    const size_t size_de = _wave._source_de->size() - 1 ;
+    size_t de_max, de_min, de_center ;
     if ( de >= size_de ) {
         de_max = size_de ;
         de_center = size_de - 1 ;
@@ -159,12 +159,12 @@ double spreading_ray::width_de(
  * by 1/2, as the width of the gaussian cell is half of the distance.
  */
 double spreading_ray::width_az(
-        unsigned de, unsigned az, const vector<double>& offset )
+        size_t de, size_t az, const vector<double>& offset )
 {
     // Prevent the algorithm from running into problems with the
     // AZ is at the edge of the index array.
-    const unsigned size = _wave._source_az->size() - 1 ;
-    unsigned az_min, az_max ;
+    const size_t size = _wave._source_az->size() - 1 ;
+    size_t az_min, az_max ;
     if ( az >= size ) {
         az_max = 0 ;
         az_min = az - 1 ;

@@ -1,0 +1,352 @@
+%
+% Movie of wavefronts for proploss_lloyds_range_wave.
+% Illustrates the effect of surface reflection on wavefront folds.
+% Also illustrates reasons for problems in the nearfield.
+%
+% Supports menu controls for next/prev wavefront.
+% Maintains user selections for plot axes for next/prev wavefront.
+%
+% clear all ; close all;
+
+% load wavefront and convert into range/depth coordinates
+
+% figure; 
+% az = 0 ; 
+% wavefront = load_wavefront('proploss_lloyds_range_wave.nc') ;
+% [p,az_index] = min( abs( wavefront.source_az - az ) ) ;
+% wlat = squeeze(wavefront.latitude(:,:,az_index)) ;
+% wlat = ( wlat - 45 ) * ( 1852.0 * 60.0 ) /1e3 ; % range in km
+% walt = squeeze(wavefront.altitude(:,:,az_index)) ;
+% wsrf = squeeze(wavefront.surface(:,:,az_index)) ;
+% 
+% % define target locations
+% 
+% xtarget = (200:10:10e3)/1e3 ;
+% ytarget = -25 ;
+% 
+% % loop through the wavefront displays
+% 
+% max_time = length( wavefront.travel_time ) ;
+% scale = [ 0 3 -50 0 ] ;
+% t_index = 2 ;
+% while (1)
+%     
+%     % find direct and surface reflected paths
+%     % find invalid points between them
+%     
+%     ndirect = find( wsrf(t_index,:) == 0 ) ;
+%     nsurface = find( wsrf(t_index,:) == 1 ) ;
+%     if ( length(nsurface) == 0 )
+%         nfold = nsurface ;
+%     else
+%         nfold = [ (nsurface(1)-1) nsurface(1) ] ;
+%     end
+%     
+%     % plot wavefronts and rays
+%     
+%     plot( wlat(t_index,ndirect), walt(t_index,ndirect), 'b-', ...
+%           wlat(t_index,nsurface), walt(t_index,nsurface), 'g-', ...
+%           wlat(t_index,nfold), walt(t_index,nfold), 'r-', ...
+%           wlat, walt, 'c-', ...
+%           xtarget, ytarget, 'k.', ...
+%           wlat(t_index,ndirect), walt(t_index,ndirect), 'bo', ...
+%           wlat(t_index,nsurface), walt(t_index,nsurface), 'go' ) ;
+%     axis( scale ) ;
+%     xlabel('Range (km)');
+%     ylabel('Depth (m)');
+%     title(sprintf( 'proploss lloyds range t(%d)=%.0f msec', ...
+%         t_index, 1000*wavefront.travel_time(t_index) ));
+%     legend('direct','reflected','fold','rays','Location','SouthEast');
+%     drawnow;
+%     
+%     % allows user to move the plot forward and backward in time
+%     
+%     choice = menu('Action','Quit','Next','+10','Previous','-10') ;
+%     switch ( choice )
+%         case 1
+%             break ;
+%         case 2
+%             if ( t_index < max_time ) t_index = t_index + 1 ; end ;
+%         case 3
+%             if ( t_index < max_time-10 ) t_index = t_index + 10 ; end ;
+%         case 4
+%             if ( t_index > 1 ) t_index = t_index - 1 ; end ;
+%         case 5
+%             if ( t_index > 10 ) t_index = t_index - 10 ; end ;
+%     end
+%     scale = axis ;      % store user changes to axes
+% end
+
+%%
+% Interactive GUI used to analyze proploss_lloyds_range
+function proploss_lloyds_range_raytrace
+    
+    global de ;
+    global az ;
+    global time ;
+    global x_dim ;
+    global y_dim ;
+    global follow ;
+    
+    time = 10 ;
+    t_index = 1:time ;
+    follow = false ;
+    lat_offset = 45.0 ;
+
+    wavefront = load_netcdf_wavefront( 'proploss_lloyds_range_wave.nc' ) ;
+    wave_max_time = length(wavefront.travel_time) ;
+    [proploss, eigenrays] = load_netcdf_proploss('proploss_lloyds_range') ;
+    
+    %% Figure properties
+    grey = [0.8 0.8 0.8] ;
+    f = figure('units', 'pixels', ...
+               'name', 'Wavefront Propagation', ...
+               'HandleVisibility','callback',...
+               'IntegerHandle','off',...
+               'Renderer','painters',...
+               'Toolbar','figure',...
+               'NumberTitle','off',...
+               'MenuBar','none',...
+               'resizefcn', @resize_fig) ;
+    figp = get(f, 'position') ;
+
+    center_panel = uipanel('parent', f, ...
+                           'bordertype', 'etchedin', ...
+                           'units', 'pixels', ...
+                           'position', [0 0 figp(3)*0.8 figp(4)], ...
+                           'backgroundcolor', grey) ;
+                       
+    right_panel = uipanel('parent', f, ...
+                          'bordertype', 'etchedin', ...
+                          'units', 'pixels', ...
+                          'position', [figp(3)*0.8 0 figp(3)*0.2 figp(4)], ...
+                          'backgroundcolor', grey, ...
+                          'resizefcn', @resize_rpanel) ;
+    
+    function resize_fig(src, obj)
+        fpos = get(f, 'position') ;
+        set(center_panel, 'position', ...
+            [0 0 fpos(3)*0.8 fpos(4)]) ;
+        set(right_panel, 'position', ...
+            [fpos(3)*0.8 0 fpos(3)*0.2 fpos(4)]) ;
+    end
+
+    function resize_rpanel(src, obj)
+        rpos = get(right_panel, 'position') ;
+        set(de_table, 'Position', ...
+            [0 rpos(4)*0.2 rpos(3)*0.6 rpos(4)*0.8]) ;
+        set(az_table, 'Position', ...
+            [rpos(3)*0.6 rpos(4)*0.2 rpos(3)*0.4 rpos(4)*0.8]) ;
+        set(t_box_label, 'position', ...
+            [rpos(3)*0.4 rpos(4)*0.12 rpos(3)*0.4 rpos(4)*0.03]) ;
+        set(t_box_decrease, 'Position', ...
+            [rpos(3)*0.275 rpos(4)*0.05 rpos(3)*0.1 rpos(4)*0.04]);
+        set(t_box, 'position', ...
+            [rpos(3)*0.4 rpos(4)*0.05 rpos(3)*0.4 rpos(4)*0.04]) ;
+        set(t_box_increase, 'Position', ...
+            [rpos(3)*0.825 rpos(4)*0.05 rpos(3)*0.1 rpos(4)*0.04]);
+        set(follow_toggle, 'position', ...
+            [rpos(3)*0.4 rpos(4)*0.01 rpos(3)*0.4 rpos(4)*0.03]) ;
+    end
+
+    %% GUI Controls
+    rpos = get(right_panel, 'position') ;
+    label_temp = '<html><center>DE</center>' ;
+    de_table = uitable(f, ...
+        'Units', 'pixels', ...
+        'Position', [0 rpos(4)*0.2 rpos(3)*0.6 rpos(4)*0.8], ...
+        'BackgroundColor', [1 1 1], ...
+        'ColumnName', label_temp, ...
+        'Parent', right_panel, ...
+        'CellSelectionCallback', @choose_de_rays) ;
+    label_temp = '<html><center>AZ</center>' ;
+    az_table = uitable(f, ...
+        'Units', 'pixels', ...
+        'Position', [rpos(3)*0.6 rpos(4)*0.2 rpos(3)*0.4 rpos(4)*0.8], ...
+        'BackgroundColor', [1 1 1], ...
+        'ColumnName', label_temp, ...
+        'Parent', right_panel, ...
+        'CellSelectionCallback', @choose_az_rays) ;
+
+    label = sprintf('Time: %.2f', wavefront.travel_time(t_index(end))) ;
+    t_box_label = uicontrol(f, 'Style', 'text', ...
+        'Units','pixel', ...
+        'Position', [rpos(3)*0.4 rpos(4)*0.12 rpos(3)*0.4 rpos(4)*0.03], ...        
+        'String', label, ...
+        'Parent', right_panel) ;
+    t_box = uicontrol(f, 'Style', 'edit', ...
+        'Units','pixel', ...
+        'Position', [rpos(3)*0.4 rpos(4)*0.05 rpos(3)*0.4 rpos(4)*0.04], ...
+        'String', num2str(time), ...
+        'BackgroundColor', 'white', ...
+        'Parent', right_panel, ...
+        'Callback', @ChangeT_Callback ) ;
+    t_box_decrease = uicontrol(f, 'Style', 'pushbutton', ...
+        'Units', 'pixel', ...
+        'Position', [rpos(3)*0.275 rpos(4)*0.05 rpos(3)*0.1 rpos(4)*0.04], ...
+        'String', '-', ...
+        'Parent', right_panel, ...
+        'Callback', @t_decrease_Callback ) ;
+    t_box_increase = uicontrol(f, 'Style', 'pushbutton', ...
+        'Units', 'pixel', ...
+        'Position', [rpos(3)*0.825 rpos(4)*0.05 rpos(3)*0.1 rpos(4)*0.04], ...
+        'String', '+', ...
+        'Parent', right_panel, ...
+        'Callback', @t_increase_Callback ) ;
+
+    follow_toggle = uicontrol(f, 'Style', 'togglebutton', ...
+        'Units', 'pixels', ...
+        'Position', [rpos(3)*0.4 rpos(4)*0.01 rpos(3)*0.4 rpos(4)*0.03], ...
+        'String', 'Follow', ...
+        'Parent', right_panel, ...
+        'Callback', @follow_wave) ;
+
+    
+    % function to populate the de/az tables
+    function populate_ray_table
+        num_de = length(wavefront.source_de) ;
+        de_list = zeros(num_de,1) ;
+        for i = 1:num_de
+           de_list(i,1) = wavefront.source_de(i) ;
+        end
+        set(de_table, 'Data', de_list) ;
+        num_az = length(wavefront.source_az) ;
+        az_list = zeros(num_az,1) ;
+        for i = 1:num_az
+           az_list(i,1) = wavefront.source_az(i) ;
+        end
+        set(az_table, 'Data', az_list) ;
+    end
+    
+    %callbacks for choosing rays        
+    function choose_de_rays(src, evt)
+        de = evt.Indices(:,1) ;
+        create_plot ;
+    end
+
+    function choose_az_rays(src, evt)
+        az = evt.Indices(:,1) ;
+        create_plot ;
+    end
+    
+    %% Plot area
+    a = axes('parent', center_panel) ;
+    view(a,[0 90]) ;
+    set(a,'XGrid','on','YGrid','on') ;
+    
+    function create_plot
+        axes(a) ;
+        cla ;
+        [phi,el] = view();
+        if follow
+            x_dim = xlim ;
+            y_dim = ylim ;
+        end
+        if isempty(de)
+            de = 1 ;
+        end
+        if isempty(az)
+            az = 1 ;
+        end
+            % wavefront log
+        wlat = squeeze(wavefront.latitude(az,de,t_index)) ;
+        wlat = convert_range( wlat, lat_offset, true ) ;
+        walt = squeeze(wavefront.altitude(az,de,t_index)) ;
+            % end point
+        t_lat = squeeze(wavefront.latitude(az,de,t_index(end))) ;
+        t_lat = convert_range( t_lat, lat_offset, true ) ;
+        t_alt = squeeze(wavefront.altitude(az,de,t_index(end))) ;
+            % edges
+        [n,m] = find( wavefront.on_edge(az,de,t_index(end)) == true ) ;
+        e_lat = squeeze(wavefront.latitude(az,de,t_index(end))) ;
+        e_lat = e_lat(n,m) ;
+        e_lat = convert_range( e_lat, lat_offset, true ) ;
+        e_alt = squeeze(wavefront.altitude(az,de,t_index(end))) ;
+        e_alt = e_alt(n,m) ;
+        
+        plot( wlat', walt', 'c' ) ;
+        hold on ;
+        plot( t_lat,t_alt, 'b-o' ) ;
+        plot( e_lat,e_alt, 'rd', ...
+              'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'r' ) ;
+        hold off ;
+        view(phi,el) ;
+        if follow
+            window = (x_dim(2) - x_dim(1)) / 10.0 ;
+            left = min(wavefront.latitude(az,de,t_index(end))) ;
+            left = convert_range( left, lat_offset, true ) ;
+            right = max(wavefront.latitude(az,de,t_index(end))) ;
+            right = convert_range( right, lat_offset, true ) ;
+            x_dim(1) = left - window ;
+            x_dim(2) = right + window ;
+            set(a,'XLim',x_dim) ;
+            set(a,'YLim',y_dim) ;
+        end
+        xlabel('Range (km)') ;
+        ylabel('Depth (m)') ;
+        grid on ;
+    end
+
+    populate_ray_table ;
+    
+    function ChangeT_Callback(src, evt)
+        time = str2double(get(src,'string')) ;
+        if time > wave_max_time  
+            errordlg(sprintf('Time must be t <= %s.', num2str(wave_max_time)), ...
+                'Invalid Time', 'modal') ;
+        elseif time < 1
+            errordlg('Time must be 0 <= t.', ...
+                'Invalid Time', 'modal') ;
+        else
+            t_index = 1:time ;
+            label = sprintf('Time: %.2f', wavefront.travel_time(t_index(end))) ;
+            set(t_box_label,'string',label) ;
+            create_plot ;
+        end
+    end
+
+    function t_increase_Callback(src,evt)
+       if time > wave_max_time
+           msgbox('Reached max_time.', 'Maximum time', 'modal') ;
+       else
+            t_index = 1:(t_index(end)+1) ;
+            label = sprintf('Time: %.2f', wavefront.travel_time(t_index(end))) ;
+            set(t_box_label,'string',label) ;
+            set(t_box,'string',num2str(t_index(end))) ;
+            create_plot ;
+       end
+    end
+
+    function t_decrease_Callback(src,evt)
+       if time < 1
+           msgbox('Reached minimum time.', 'Minimum time', 'modal') ;
+       else
+            t_index = 1:(t_index(end)-1) ;
+            label = sprintf('Time: %.2f', wavefront.travel_time(t_index(end))) ;
+            set(t_box_label,'string',label) ;
+            set(t_box,'string',num2str(t_index(end))) ;
+            create_plot ;
+       end
+    end
+
+    function follow_wave(src,evt)
+        v = get(src,'value') ;
+        if v == get(src,'Max')
+            set(src,'string','Unfollow') ;
+            follow = true ;
+        else
+            set(src,'string','Follow') ;
+            follow = false ;
+        end
+        create_plot ;
+    end
+
+    function R = convert_range( latitude, offset, kilo )
+       if kilo
+            R = ( latitude - offset ) * 1852.0 * 60 / 1e3 ; % convert to km
+       else
+            R = ( latitude - offset ) * 1852.0 * 60 ;  % convert to meters
+       end
+    end
+
+end

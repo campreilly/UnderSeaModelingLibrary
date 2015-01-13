@@ -16,9 +16,9 @@ void attenuation_constant::attenuation(
     const matrix<double>& distance,
     matrix< vector<double> >* attenuation ) 
 {
-    for ( unsigned row=0 ; row < location.size1() ; ++row ) {
-        for ( unsigned col=0 ; col < location.size2() ; ++col ) {
-            for ( unsigned f=0 ; f < frequencies.size() ; ++f ) {
+    for ( size_t row=0 ; row < location.size1() ; ++row ) {
+        for ( size_t col=0 ; col < location.size2() ; ++col ) {
+            for ( size_t f=0 ; f < frequencies.size() ; ++f ) {
                 (*attenuation)(row,col)(f) = 
                     _coefficient * distance(row,col) * frequencies(f) ;
             }

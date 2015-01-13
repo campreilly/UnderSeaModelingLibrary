@@ -43,8 +43,8 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
          *                  fields as well as the axises.
          */
 
-        data_grid_svp(const data_grid<double, 3>* grid, bool copy_data = true)
-            :   data_grid<double, 3>(*grid, copy_data),
+        data_grid_svp( const data_grid<double, 3>* grid )
+            :   data_grid<double, 3>(*grid, true),
                 _kzmax(_axis[0]->size() - 1u),
                 _kxmax(_axis[1]->size() - 1u),
                 _kymax(_axis[2]->size() - 1u)
@@ -156,7 +156,7 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
         double interpolate(double* location, double* derivative = NULL)
         {
             double result = 0.0;
-            unsigned k0, k1, k2;           //indices of he offset data
+            size_t k0, k1, k2;           //indices of he offset data
 
             //bi-linear variables
             double f11, f21, f12, f22, x_diff, y_diff;
@@ -170,7 +170,7 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
 
             // find the interval index in each dimension
 
-            for (unsigned dim = 0; dim < 3; ++dim) {
+            for (size_t dim = 0; dim < 3; ++dim) {
 
                 // limit interpolation to axis domain if _edge_limit turned on
 
@@ -240,10 +240,9 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
 
                     if (derivative) {
                         _dz(i, j) = (6 * t_2 - 6 * t) * v1 / inc1
-                                + (3 * t_2 - 4 * t + 1) * derv_z[k0][k1 + i][k2 + j]
-                                        / inc1 + (6 * t - 6 * t_2) * v2 / inc1
-                                + (3 * t_2 - 2 * t) * derv_z[k0 + 1][k1 + i][k2 + j]
-                                        / inc1;
+                                + (3 * t_2 - 4 * t + 1) * derv_z[k0][k1 + i][k2 + j] / inc1
+								+ (6 * t - 6 * t_2) * v2 / inc1
+                                + (3 * t_2 - 2 * t) * derv_z[k0 + 1][k1 + i][k2 + j] / inc1 ;
                     }
                 }
             }
@@ -302,8 +301,8 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
         {
             double location[3];
             double derivative[3];
-            for (unsigned n = 0; n < x.size1(); ++n) {
-                for (unsigned m = 0; m < x.size2(); ++m) {
+            for (size_t n = 0; n < x.size1(); ++n) {
+                for (size_t m = 0; m < x.size2(); ++m) {
                     location[0] = x(n, m);
                     location[1] = y(n, m);
                     location[2] = z(n, m);
@@ -324,9 +323,9 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
     private:
 
         /** Utility accessor function for data grid values */
-        inline double data_3d(unsigned dim0, unsigned dim1, unsigned dim2)
+        inline double data_3d(size_t dim0, size_t dim1, size_t dim2)
         {
-            unsigned grid_index[3];
+            size_t grid_index[3];
             grid_index[0] = dim0;
             grid_index[1] = dim1;
             grid_index[2] = dim2;
@@ -338,7 +337,7 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
          * Create all variables needed for each calculation once
          * to same time and memory.
          */
-        unsigned _kzmax, _kxmax, _kymax;  //max index on z-axis (depth)
+        size_t _kzmax, _kxmax, _kymax;  //max index on z-axis (depth)
 
         //bi-linear variable
         c_matrix<double, 2, 2> _interp_plane;

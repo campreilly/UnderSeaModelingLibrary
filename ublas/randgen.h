@@ -77,7 +77,7 @@ namespace ublas {
          */
         template < class T, class Random >
         static inline void fill(vector< T > & result, Random & rand) {
-            const int N = result.size();
+            const size_t N = result.size();
             double * current = (double *) & result(0);
             double * end = (double *) & result(N - 1);
             while (current <= end) {
@@ -94,8 +94,8 @@ namespace ublas {
          */
         template < class T, class Random >
         static inline void fill(matrix< T > & result, Random & rand) {
-            const int N = result.size1();
-            const int M = result.size2();
+            const size_t N = result.size1();
+            const size_t M = result.size2();
             double * current = (double *) & result(0, 0);
             double * end = (double *) & result(N - 1, M - 1);
             while (current <= end) {

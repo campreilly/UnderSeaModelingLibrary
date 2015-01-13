@@ -38,9 +38,9 @@ BOOST_AUTO_TEST_CASE( read_woa ) {
     // compare depth axis to values read using ncdump
 
     const seq_vector& altitude = *(profile.axis(0)) ;
-    unsigned num_alt = altitude.size() ;
+    size_t num_alt = altitude.size() ;
     cout << "altitude[" << num_alt << "] =" ;
-    for ( unsigned n=0 ; n < num_alt ; ++n ) {
+    for ( size_t n=0 ; n < num_alt ; ++n ) {
         cout << " " << ( altitude(n) - earth_radius ) ;
     }
     cout << endl ;
@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE( read_woa ) {
     // compare latitude axis to values read using ncdump
 
     const seq_vector& latitude = *(profile.axis(1)) ;
-    unsigned num_lat = latitude.size() ;
+    size_t num_lat = latitude.size() ;
     double lat1 = to_latitude( latitude(0) ) ;
     double lat2 = to_latitude( latitude(num_lat-1) ) ;
     double inc_lat = to_degrees( latitude.increment(0) ) ;
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE( read_woa ) {
     // compare longitude axis to values read using ncdump
 
     const seq_vector& longitude = *(profile.axis(2)) ;
-    unsigned num_lng = longitude.size() ;
+    size_t num_lng = longitude.size() ;
     double lng1 = to_degrees( longitude(0) ) ;
     double lng2 = to_degrees( longitude(num_lng-1) ) ;
     double inc_lng = to_degrees( longitude.increment(0) ) ;
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE( read_woa ) {
 
     // compare depth to some known values
 
-    unsigned index[3] ;
+    size_t index[3] ;
     index[0]=0 ; index[1]=0 ; index[2]=0 ;  // 1st depth, 1st lat, 1st long
     BOOST_CHECK_CLOSE( profile.data(index), 25.8543f, 1e-6f ) ;
     index[0]=0 ; index[1]=0 ; index[2]=1 ;  // 1st depth, 1st lat, 2nd long
@@ -94,8 +94,8 @@ BOOST_AUTO_TEST_CASE( read_woa ) {
 
     // print header row
     ofile << "depth" ;
-    for ( unsigned n=0 ; n < num_lat ; ++n ) {
-        for ( unsigned m=0 ; m < num_lng ; ++m ) {
+    for ( size_t n=0 ; n < num_lat ; ++n ) {
+        for ( size_t m=0 ; m < num_lng ; ++m ) {
             ofile << ",\"" << to_latitude( latitude(n) ) << "N "
                   << to_degrees( longitude(m) ) << "E\"" ;
         }
@@ -103,12 +103,12 @@ BOOST_AUTO_TEST_CASE( read_woa ) {
     ofile << std::endl ;
 
     // print data
-    for ( unsigned d=0 ; d < num_alt ; ++d ) {
+    for ( size_t d=0 ; d < num_alt ; ++d ) {
         index[0] = d ;
         ofile << ( altitude(d) - earth_radius ) ;
-        for ( unsigned n=0 ; n < num_lat ; ++n ) {
+        for ( size_t n=0 ; n < num_lat ; ++n ) {
             index[1] = n ;
-            for ( unsigned m=0 ; m < num_lng ; ++m ) {
+            for ( size_t m=0 ; m < num_lng ; ++m ) {
                 index[2] = m ;
                 ofile << "," << profile.data(index) ;
             }
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE( span_profile ) {
     // compare depth axis to values read using ncdump
 
     const seq_vector& altitude = *(profile.axis(0)) ;
-    unsigned num_alt = altitude.size() ;
+    size_t num_alt = altitude.size() ;
     cout << "altitude = " << altitude << endl ;
     BOOST_CHECK_EQUAL( num_alt, 24 ) ;
     BOOST_CHECK_CLOSE( altitude(0)-earth_radius, 0.0, 1e-6 ) ;
@@ -148,7 +148,7 @@ BOOST_AUTO_TEST_CASE( span_profile ) {
     // compare latitude axis to values read using ncdump
 
     const seq_vector& latitude = *(profile.axis(1)) ;
-    unsigned num_lat = latitude.size() ;
+    size_t num_lat = latitude.size() ;
     double lat1 = to_latitude( latitude(0) ) ;
     double lat2 = to_latitude( latitude(num_lat-1) ) ;
     double inc_lat = -to_degrees( latitude.increment(0) ) ;
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE( span_profile ) {
     // compare longitude axis to values read using ncdump
 
     const seq_vector& longitude = *(profile.axis(2)) ;
-    unsigned num_lng = longitude.size() ;
+    size_t num_lng = longitude.size() ;
     double lng1 = to_degrees( longitude(0) ) ;
     double lng2 = to_degrees( longitude(num_lng-1) ) ;
     double inc_lng = to_degrees( longitude.increment(0) ) ;
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE( span_profile ) {
 
     // compare temperature to some known values
 
-    unsigned index[3] ;
+    size_t index[3] ;
     index[0]=0 ; index[1]=2 ; index[2]=2 ;  // zero depth at 0.5N 0.5E
     BOOST_CHECK_CLOSE( profile.data(index), 28.2047f, 1e-6f ) ;
     index[0]=23 ; index[1]=2 ; index[2]=2 ; // max depth at 0.5N 0.5E
@@ -187,8 +187,8 @@ BOOST_AUTO_TEST_CASE( span_profile ) {
 
     // print header row
     ofile << "depth" ;
-    for ( unsigned n=0 ; n < num_lat ; ++n ) {
-        for ( unsigned m=0 ; m < num_lng ; ++m ) {
+    for ( size_t n=0 ; n < num_lat ; ++n ) {
+        for ( size_t m=0 ; m < num_lng ; ++m ) {
             ofile << ",\"" << to_latitude( latitude(n) ) << "N "
                   << to_degrees( longitude(m) ) << "E\"" ;
         }
@@ -196,18 +196,56 @@ BOOST_AUTO_TEST_CASE( span_profile ) {
     ofile << std::endl ;
 
     // print data
-    for ( unsigned d=0 ; d < num_alt ; ++d ) {
+    for ( size_t d=0 ; d < num_alt ; ++d ) {
         index[0] = d ;
         ofile << ( altitude(d) - earth_radius ) ;
-        for ( unsigned n=0 ; n < num_lat ; ++n ) {
+        for ( size_t n=0 ; n < num_lat ; ++n ) {
             index[1] = n ;
-            for ( unsigned m=0 ; m < num_lng ; ++m ) {
+            for ( size_t m=0 ; m < num_lng ; ++m ) {
                 index[2] = m ;
                 ofile << "," << profile.data(index) ;
             }
         }
         ofile << std::endl ;
     }
+}
+
+/**
+ * Tests the ability of the netcdf_profile class to extract data
+ * from a netcdf file that does not have a global range. This
+ * would in return prevent the data from wrapping around and
+ * instead limit the bounds of the data to the database provided.
+ */
+BOOST_AUTO_TEST_CASE( nonglobal_database ) {
+    cout << "=== profile_test: nonglobal_database ===" << endl;
+    netcdf_profile profile( USML_TEST_DIR "/netcdf/test/flstrts_temperature.nc",
+	9, -90.0, 90.0, 0.0, 360.0 ) ;
+
+    // compare latitude axis to values read using ncdump
+
+    const seq_vector& latitude = *(profile.axis(1)) ;
+    size_t num_lat = latitude.size();
+    double lat1 = to_latitude( latitude(0) ) ;
+    double lat2 = to_latitude( latitude(num_lat-1) ) ;
+    double inc_lat = to_degrees( latitude.increment(0) ) ;
+    cout << "latitude[" << num_lat
+         << "] = " << lat1 << " to " << lat2 << " by " << inc_lat << endl ;
+    BOOST_CHECK_EQUAL( num_lat, 7 ) ;
+    BOOST_CHECK_CLOSE( lat1, 27.5, 1e-6 ) ;
+    BOOST_CHECK_CLOSE( lat2, 33.5, 1e-6 ) ;
+
+    // compare longitude axis to values read using ncdump
+
+    const seq_vector& longitude = *(profile.axis(2)) ;
+    size_t num_lng = longitude.size();
+    double lng1 = to_degrees( longitude(0) ) ;
+    double lng2 = to_degrees( longitude(num_lng-1) ) ;
+    double inc_lng = to_degrees( longitude.increment(0) ) ;
+    cout << "longitude[" << num_lng
+         << "] = " << lng1 << " to " << lng2 << " by " << inc_lng << endl ;
+    BOOST_CHECK_EQUAL( num_lng, 8 ) ;
+    BOOST_CHECK_CLOSE( lng1, 278.5, 1e-6 ) ;
+    BOOST_CHECK_CLOSE( lng2, 285.5, 1e-6 ) ;
 }
 
 /// @}

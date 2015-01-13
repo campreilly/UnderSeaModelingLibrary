@@ -8,6 +8,7 @@
 #include <typeinfo>
 #include <sstream>
 #include <netcdfcpp.h>
+#include <usml/types/wposition.h>
 #include <usml/types/wvector.h>
 #include <usml/types/seq_vector.h>
 
@@ -37,8 +38,8 @@ namespace types {
      * @param  axis             Set of axes that define dataset.
      * @param  index            Index number in each dimension.
      */
-    template<unsigned Dim> inline size_t data_grid_compute_offset(
-            seq_vector *axis[], const unsigned* index)
+    template<size_t Dim> inline size_t data_grid_compute_offset(
+            seq_vector *axis[], const size_t* index)
     {
         return index[Dim] + axis[Dim]->size() * data_grid_compute_offset<Dim - 1> (
                 axis, index);
@@ -49,7 +50,7 @@ namespace types {
      * Final term in recursive calculation of N-dimensional array index.
      */
     template<> inline size_t data_grid_compute_offset<0> (seq_vector *axis[],
-            const unsigned* index)
+            const size_t* index)
     {
         return index[0];
     }
@@ -63,8 +64,8 @@ namespace types {
  * @param  NUM_DIMS     Number of dimensions in this grid.  Specifying this
  *                      at compile time allows for some loop un-wrapping.
  */
-template<class DATA_TYPE, unsigned NUM_DIMS>
-class data_grid {
+template<class DATA_TYPE, size_t NUM_DIMS>
+class USML_DLLEXPORT data_grid {
 
     typedef data_grid<DATA_TYPE,NUM_DIMS>       self_type ;
     typedef size_t                              size_type ;
@@ -82,7 +83,7 @@ class data_grid {
          */
         data_grid(seq_vector *axis[])
         {
-            size_t N = 1;
+        	size_type N = 1 ;
             for (unsigned n = 0; n < NUM_DIMS; ++n) {
                 _axis[n] = axis[n]->clone();
                 N *= _axis[n]->size();
@@ -104,34 +105,40 @@ class data_grid {
          */
         data_grid(const data_grid& other, bool copy_data)
         {
-            size_t N = 1;
+        	size_type N = 1 ;
             for (unsigned n = 0; n < NUM_DIMS; ++n) {
-                _axis[n] = other._axis[n]->clone();
+                _axis[n] = other._axis[n]->clone() ;
                 N *= _axis[n]->size();
             }
-            _data = new DATA_TYPE[N];
+            _data = new DATA_TYPE[N] ;
             if (copy_data) {
-                memcpy(_data, other._data, N * sizeof(DATA_TYPE));
+                memcpy(_data, other._data, N * sizeof(DATA_TYPE)) ;
             } else {
-                memset(_data, 0, N * sizeof(DATA_TYPE));
+                memset(_data, 0, N * sizeof(DATA_TYPE)) ;
             }
             memcpy(_interp_type, other._interp_type, NUM_DIMS
-                    * sizeof(enum GRID_INTERP_TYPE));
-            memset(_edge_limit, true, NUM_DIMS * sizeof(bool));
+                    * sizeof(enum GRID_INTERP_TYPE)) ;
+            memset(_edge_limit, true, NUM_DIMS * sizeof(bool)) ;
         }
 
         /**
-         * Default constructor for sub-classes
+         * Copy operator
+         * The data and axes are copied from rhs to this.
          */
-        data_grid() {
-
-            for (unsigned n = 0; n < NUM_DIMS; ++n) {
-                _axis[n] = NULL;
+        void copy(const self_type& rhs) {
+        	size_type N = 1 ;
+            for(size_type n = 0; n < NUM_DIMS; ++n) {
+                if(_axis[n] != NULL) {
+                    delete _axis[n] ;
+                }
+                _axis[n] = rhs._axis[n]->clone() ;
+                N *= _axis[n]->size();
             }
-            _data = NULL;
-
-            memset(_interp_type, GRID_INTERP_LINEAR, NUM_DIMS * sizeof(enum GRID_INTERP_TYPE));
-            memset(_edge_limit, true, NUM_DIMS * sizeof(bool));
+            if(_data != NULL) {
+                delete[] _data ;
+            }
+            _data = new DATA_TYPE[N] ;
+        	memcpy( _data, rhs._data, N * sizeof(DATA_TYPE) ) ;
         }
 
         /**
@@ -139,7 +146,7 @@ class data_grid {
          */
         virtual ~data_grid()
         {
-            for (unsigned n = 0; n < NUM_DIMS; ++n) {
+            for (size_t n = 0; n < NUM_DIMS; ++n) {
                 if (_axis[n] != NULL) {
                     delete _axis[n];
                 }
@@ -152,7 +159,7 @@ class data_grid {
         /**
          * Extract a constant reference to one of the axes.
          */
-        inline const seq_vector* axis(int unsigned dim) const
+        inline const seq_vector* axis(size_t dim) const
         {
             return _axis[dim];
         }
@@ -160,7 +167,7 @@ class data_grid {
         /**
          * Extract a reference to one of the axes.
          */
-        inline seq_vector* axis(int unsigned dim)
+        inline seq_vector* axis(size_t dim)
         {
             return _axis[dim];
         }
@@ -170,18 +177,11 @@ class data_grid {
          *
          * @param  index            Index number in each dimension.
          */
-        inline DATA_TYPE data(const unsigned* index) const
+        inline DATA_TYPE data(const size_t* index) const
         {
             const size_t offset = data_grid_compute_offset<NUM_DIMS - 1> (
                     (seq_vector**) _axis, index);
             return _data[offset];
-        }
-
-        /**
-         * Extract a pointer to the data.
-         */
-        const inline DATA_TYPE* data() const {
-            return _data ;
         }
 
         /**
@@ -190,7 +190,7 @@ class data_grid {
          * @param  index            Index number in each dimension.
          * @param  value            Value to insert at this location.
          */
-        inline void data(const unsigned* index, DATA_TYPE value)
+        inline void data(const size_t* index, DATA_TYPE value)
         {
             const size_t offset = data_grid_compute_offset<NUM_DIMS - 1> (_axis,
                     index);
@@ -251,7 +251,7 @@ class data_grid {
         /**
          * Retrieve the type of interpolation for one of the axes.
          */
-        inline enum GRID_INTERP_TYPE interp_type(int unsigned dimension) const
+        inline enum GRID_INTERP_TYPE interp_type(size_t dimension) const
         {
             return _interp_type[dimension];
         }
@@ -265,9 +265,9 @@ class data_grid {
          * @param  dimension        Dimension number to be modified.
          * @param  type             Type of interpolation for this dimension.
          */
-        inline void interp_type(int unsigned dimension, enum GRID_INTERP_TYPE type)
+        inline void interp_type(size_t dimension, enum GRID_INTERP_TYPE type)
         {
-            const unsigned size = _axis[dimension]->size() ;
+            const size_t size = _axis[dimension]->size() ;
             if ( type > GRID_INTERP_NEAREST && size < 2 ) {
                 type = GRID_INTERP_NEAREST ;
             } else if ( type > GRID_INTERP_LINEAR && size < 4 ) {
@@ -280,7 +280,7 @@ class data_grid {
         /**
          * Returns the edge_limit flag for the requested dimension.
          */
-        inline bool edge_limit(int unsigned dimension) const
+        inline bool edge_limit(size_t dimension) const
         {
             return _edge_limit[dimension];
         }
@@ -292,7 +292,7 @@ class data_grid {
          * @param  dimension        Dimension number to be modified.
          * @param  flag             Limits locations when true.
          */
-        inline void edge_limit(int unsigned dimension, bool flag)
+        inline void edge_limit(size_t dimension, bool flag)
         {
             _edge_limit[dimension] = flag;
         }
@@ -319,7 +319,7 @@ class data_grid {
         {
             // find the "interval index" in each dimension
 
-            for (unsigned dim = 0; dim < NUM_DIMS; ++dim) {
+            for (size_t dim = 0; dim < NUM_DIMS; ++dim) {
 
                 // limit interpolation to axis domain if _edge_limit turned on
 
@@ -377,8 +377,8 @@ class data_grid {
         {
             double location[1];
             DATA_TYPE derivative[1];
-            for (unsigned n = 0; n < x.size1(); ++n) {
-                for (unsigned m = 0; m < x.size2(); ++m) {
+            for (size_t n = 0; n < x.size1(); ++n) {
+                for (size_t m = 0; m < x.size2(); ++m) {
                     location[0] = x(n, m);
                     if (dx == NULL) {
                         (*result)(n, m) = (double) interpolate(location);
@@ -408,8 +408,8 @@ class data_grid {
         {
             double location[2];
             DATA_TYPE derivative[2];
-            for (unsigned n = 0; n < x.size1(); ++n) {
-                for (unsigned m = 0; m < x.size2(); ++m) {
+            for (size_t n = 0; n < x.size1(); ++n) {
+                for (size_t m = 0; m < x.size2(); ++m) {
                     location[0] = x(n, m);
                     location[1] = y(n, m);
                     if (dx == NULL || dy == NULL) {
@@ -444,8 +444,8 @@ class data_grid {
         {
             double location[3];
             DATA_TYPE derivative[3];
-            for (unsigned n = 0; n < x.size1(); ++n) {
-                for (unsigned m = 0; m < x.size2(); ++m) {
+            for (size_t n = 0; n < x.size1(); ++n) {
+                for (size_t m = 0; m < x.size2(); ++m) {
                     location[0] = x(n, m);
                     location[1] = y(n, m);
                     location[2] = z(n, m);
@@ -473,16 +473,30 @@ class data_grid {
         /** Limits locations to values inside axis when true. */
         bool _edge_limit[NUM_DIMS];
 
+        /** Used during interpolation to hold the axis offsets. */
+        size_t _offset[NUM_DIMS] ;
+
         /**
          * Multi-dimensional data stored as a linear array in column major order.
          * This format is used to support an N-dimensional data set
          * with any number of dimensions.
          * This memory is created in the constructor and deleted in the destructor.
          */
-        DATA_TYPE *_data ;
+        DATA_TYPE* _data ;
 
-        /** Used during interpolation to hold the axis offsets. */
-        unsigned _offset[NUM_DIMS] ;
+        /**
+         * Default constructor for sub-classes
+         */
+        data_grid() {
+
+            for (unsigned n = 0; n < NUM_DIMS; ++n) {
+                _axis[n] = NULL ;
+            }
+            _data = NULL ;
+
+            memset(_interp_type, GRID_INTERP_LINEAR, NUM_DIMS * sizeof(enum GRID_INTERP_TYPE)) ;
+            memset(_edge_limit, true, NUM_DIMS * sizeof(bool)) ;
+        }
 
     private:
 
@@ -507,7 +521,7 @@ class data_grid {
          *			            Derivative not computed if NULL.
          * @return              Estimate of the field after interpolation.
          */
-        DATA_TYPE interp(int dim, const unsigned* index, const double* location,
+        DATA_TYPE interp(int dim, const size_t* index, const double* location,
                 DATA_TYPE& deriv, DATA_TYPE* deriv_vec) const;
         // forward reference needed for recursion
 
@@ -525,21 +539,21 @@ class data_grid {
          *			            Derivative not computed if NULL.
          * @return              Estimate of the field after interpolation.
          */
-        DATA_TYPE nearest(int dim, const unsigned* index, const double* location,
+        DATA_TYPE nearest(int dim, const size_t* index, const double* location,
                 DATA_TYPE& deriv, DATA_TYPE* deriv_vec) const
         {
             DATA_TYPE result, da;
 
             // compute field value in this dimension
 
-            const unsigned k = index[dim];
+            const size_t k = index[dim];
             seq_vector* ax = _axis[dim];
             const double u = (location[dim] - (*ax)(k)) / ax->increment(k);
             if (u < 0.5) {
                 result = interp(dim - 1, index, location, da, deriv_vec);
             } else {
-                unsigned next[NUM_DIMS];
-                memcpy(next, index, NUM_DIMS * sizeof(unsigned));
+                size_t next[NUM_DIMS];
+                memcpy(next, index, NUM_DIMS * sizeof(size_t));
                 ++next[dim];
                 result = interp(dim - 1, next, location, da, deriv_vec);
             }
@@ -571,20 +585,20 @@ class data_grid {
          *			    		Derivative not computed if NULL.
          * @return              Estimate of the field after interpolation.
          */
-        DATA_TYPE linear(int dim, const unsigned* index, const double* location,
+        DATA_TYPE linear(int dim, const size_t* index, const double* location,
                 DATA_TYPE& deriv, DATA_TYPE* deriv_vec) const
         {
             DATA_TYPE result, da, db;
 
             // build interpolation coefficients
 
-            unsigned next[NUM_DIMS];
-            memcpy(next, index, NUM_DIMS * sizeof(unsigned));
+            size_t next[NUM_DIMS];
+            memcpy(next, index, NUM_DIMS * sizeof(size_t));
             ++next[dim];
 
             const DATA_TYPE a = interp(dim - 1, index, location, da, deriv_vec);
             const DATA_TYPE b = interp(dim - 1, next, location, db, deriv_vec);
-            const unsigned k = index[dim];
+            const size_t k = index[dim];
             seq_vector* ax = _axis[dim];
 
             // compute field value in this dimension
@@ -671,24 +685,24 @@ class data_grid {
          *			            Derivative not computed if NULL.
          * @return              Estimate of the field after interpolation.
          */
-        DATA_TYPE pchip(int dim, const unsigned* index, const double* location,
+        DATA_TYPE pchip(int dim, const size_t* index, const double* location,
                 DATA_TYPE& deriv, DATA_TYPE* deriv_vec) const
         {
             DATA_TYPE result ;
             DATA_TYPE y0, y1, y2, y3 ; 			// dim-1 values at k-1, k, k+1, k+2
             DATA_TYPE dy0=0, dy1=0, dy2=0, dy3=0 ;		// dim-1 derivs at k-1, k, k+1, k+2
-            const unsigned kmin = 1u ;					  // at endpt if k-1 < 0
-            const unsigned kmax = _axis[dim]->size()-3u ; // at endpt if k+2 > N-1
+            const size_t kmin = 1u ;					  // at endpt if k-1 < 0
+            const size_t kmax = _axis[dim]->size()-3u ; // at endpt if k+2 > N-1
 
             // interpolate in dim-1 dimension to find values and derivs at k, k-1
 
-            const unsigned k = index[dim];
+            const size_t k = index[dim];
             seq_vector* ax = _axis[dim];
             y1 = interp( dim-1, index, location, dy1, deriv_vec );
 
             if ( k >= kmin ) {
-                unsigned prev[NUM_DIMS];
-                memcpy(prev, index, NUM_DIMS * sizeof(unsigned));
+                size_t prev[NUM_DIMS];
+                memcpy(prev, index, NUM_DIMS * sizeof(size_t));
                 --prev[dim];
                 y0 = interp( dim-1, prev, location, dy0, deriv_vec );
             } else {	// use harmless values at left end-point
@@ -698,14 +712,14 @@ class data_grid {
 
             // interpolate in dim-1 dimension to find values and derivs at k+1, k+2
 
-            unsigned next[NUM_DIMS];
-            memcpy(next, index, NUM_DIMS * sizeof(unsigned));
+            size_t next[NUM_DIMS];
+            memcpy(next, index, NUM_DIMS * sizeof(size_t));
             ++next[dim];
             y2 = interp( dim-1, next, location, dy2, deriv_vec );
 
             if ( k <= kmax ) {
-                unsigned last[NUM_DIMS];
-                memcpy(last, next, NUM_DIMS * sizeof(unsigned));
+                size_t last[NUM_DIMS];
+                memcpy(last, next, NUM_DIMS * sizeof(size_t));
                 ++last[dim];
                 y3 = interp(dim - 1, last, location, dy3, deriv_vec);
             } else {	// use harmless values at right end-point
@@ -835,12 +849,12 @@ class data_grid {
             if (deriv_vec) {
                 const DATA_TYPE u = s / h1;
                 deriv = slope1 * (1.0 - u) + slope2 * u;
-                deriv_vec[dim] = deriv;
+				deriv_vec[dim] = deriv ;
                 if (dim > 0) {
-                    deriv_vec[dim-1] = y2 * (6.0*h1*s - 6.0*s_2) / h1_3
-                                     + y1 * (6.0*s_2 - 6.0*h1*s) / h1_3
-                                     + slope2 * s * (3.0*s - 2.0*h1) / h1_2
-                                     + slope1 * (3.0*s_2 - 4.0*h1*s + h1_2) / h1_2;
+                    deriv_vec[dim-1] = dy2 * sh_term / h1_3
+									 + dy1 * (h1_3 - sh_term) / h1_3
+									 + dslope2 * s_2 * sh_minus / h1_2
+									 + dslope1 * s * sh_minus * sh_minus / h1_2;
                 }
             }
 
@@ -857,9 +871,9 @@ class data_grid {
 /**
  * Recursion engine for multi-dimensional interpolation.
  */
-template<class DATA_TYPE, unsigned NUM_DIMS>
+template<class DATA_TYPE, size_t NUM_DIMS>
 DATA_TYPE data_grid<DATA_TYPE, NUM_DIMS>::interp(int dim,
-        const unsigned* index, const double* location, DATA_TYPE& deriv,
+        const size_t* index, const double* location, DATA_TYPE& deriv,
         DATA_TYPE* deriv_vec) const
 {
     DATA_TYPE result;

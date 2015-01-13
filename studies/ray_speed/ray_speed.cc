@@ -20,11 +20,7 @@
 #include <usml/netcdf/netcdf_files.h>
 #include <fstream>
 #include <iomanip>
-#ifdef WIN32
-#include "sys_time_win32.h"
-#else
-#include <sys/time.h>
-#endif
+#include <boost/progress.hpp>
 
 using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
@@ -77,7 +73,7 @@ int main( int argc, char* argv[] ) {
         month, lat1, lat2, lng1, lng2 ) ;
 
     data_grid<double,3>* ssp = data_grid_mackenzie::construct( temperature, salinity ) ;
-    data_grid_svp* fast_ssp = new data_grid_svp(ssp, true) ;
+    data_grid_svp* fast_ssp = new data_grid_svp(ssp) ;
     profile_model* profile = new profile_grid_fast( fast_ssp ) ;
 //    attenuation_model* attn = new attenuation_constant(0.0);
 //    profile->attenuation(attn);
@@ -86,7 +82,7 @@ int main( int argc, char* argv[] ) {
 
     data_grid<double,2>* grid = new netcdf_bathy( USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
         lat1, lat2, lng1, lng2 );
-    data_grid_bathy* fast_grid = new data_grid_bathy(grid, true) ;
+    data_grid_bathy* fast_grid = new data_grid_bathy(grid) ;
     cout << "load bathymetry from ETOPO1 database" << endl ;
     boundary_model* bottom = new boundary_grid_fast( fast_grid ) ;
 
@@ -100,7 +96,7 @@ int main( int argc, char* argv[] ) {
     cout << "initialize " << num_targets << " targets" << endl ;
     randgen::seed(0) ;  // fix the initial seed
     wposition target( num_targets, 1, pos.latitude(), pos.longitude(), pos.altitude() ) ;
-    for ( unsigned n=0 ; n < target.size1() ; ++n ) {
+    for ( size_t n=0 ; n < target.size1() ; ++n ) {
         target.latitude(  n, 0, pos.latitude() + randgen::uniform() - 0.5 ) ;
         target.longitude( n, 0, pos.longitude() + randgen::uniform() - 0.5 ) ;
     }
@@ -110,25 +106,23 @@ int main( int argc, char* argv[] ) {
 	wave.addEigenrayListener(&loss) ;
 
     // propagate wavefront
-	#ifdef USML_DEBUG
+
+    #ifdef USML_DEBUG
         cout << "writing wavefronts to " << ncname_wave << endl;
 
         wave.init_netcdf( ncname_wave );
         wave.save_netcdf();
     #endif
+
     cout << "propagate wavefronts for " << time_max << " secs" << endl ;
-    struct timeval time ;
-    struct timezone zone ;
-    gettimeofday( &time, &zone ) ;
-    double start = time.tv_sec + time.tv_usec * 1e-6 ;
-    while ( wave.time() < time_max ) {
-        wave.step() ;
-        #ifdef USML_DEBUG
-            wave.save_netcdf();
-        #endif
+    {
+        boost::progress_timer timer ;
+        while ( wave.time() < time_max ) {
+            wave.step() ;
+        }
     }
 
-	#ifdef USML_DEBUG
+    #ifdef USML_DEBUG
         wave.close_netcdf();
 
         // compute coherent propagation loss and write eigenrays to disk
@@ -164,13 +158,5 @@ int main( int argc, char* argv[] ) {
                << "," << ray.caustic
                << endl;
         }
-	#endif
-
-
-    gettimeofday( &time, &zone ) ;
-    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
-    cout << "Progating for " << time_max << " sec with "
-         << ( target.size1() * target.size2() ) << " targets took "
-         << (complete-start) << " sec."
-         << endl ;
+    #endif
 }

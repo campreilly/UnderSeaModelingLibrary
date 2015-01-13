@@ -12,7 +12,7 @@ const double reflection_model::MIN_REFLECT = 6.0 ;
 /**
  * Reflect a single acoustic ray from the ocean bottom.
  */
-bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth ) {
+bool reflection_model::bottom_reflection( size_t de, size_t az, double depth ) {
     double N ;
     bool shallow = false ;
 
@@ -111,7 +111,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
     vector<double> phase( _wave._frequencies->size() ) ;
     boundary.reflect_loss(
         position, *(_wave._frequencies), grazing, &amplitude, &phase ) ;
-    for ( unsigned f=0 ; f < _wave._frequencies->size() ; ++f ) {
+    for ( size_t f=0 ; f < _wave._frequencies->size() ; ++f ) {
         _wave._next->attenuation(de,az)(f) += amplitude(f) ;
         _wave._next->phase(de,az)(f) += phase(f) ;
     }
@@ -139,7 +139,7 @@ bool reflection_model::bottom_reflection( unsigned de, unsigned az, double depth
 /**
  * Reflect a single acoustic ray from the ocean surface.
  */
-bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
+bool reflection_model::surface_reflection( size_t de, size_t az ) {
     boundary_model& boundary = _wave._ocean.surface() ;
 
     // compute fraction of time step needed to strike the point of collision
@@ -176,7 +176,7 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
     vector<double> amplitude( _wave._frequencies->size() ) ;
     boundary.reflect_loss(
         position, *(_wave._frequencies), grazing, &amplitude ) ;
-    for ( unsigned f=0 ; f < _wave._frequencies->size() ; ++f ) {
+    for ( size_t f=0 ; f < _wave._frequencies->size() ; ++f ) {
         _wave._next->attenuation(de,az)(f) += amplitude(f) ;
         _wave._next->phase(de,az)(f) -= M_PI ;
     }
@@ -193,7 +193,7 @@ bool reflection_model::surface_reflection( unsigned de, unsigned az ) {
  * Compute the precise location and direction at the point of collision.
  */
 void reflection_model::collision_location(
-    unsigned de, unsigned az, double time_water,
+    size_t de, size_t az, double time_water,
     wposition1* position, wvector1* ndirection, double* speed ) const
 {
     double drho, dtheta, dphi, d2rho, d2theta, d2phi ;
@@ -284,7 +284,7 @@ void reflection_model::collision_location(
  * Re-initialize an individual ray after reflection.
  */
 void reflection_model::reflection_reinit(
-    unsigned de, unsigned az, double time_water,
+    size_t de, size_t az, double time_water,
     const wposition1& position, const wvector1& ndirection, double speed )
 {
 
@@ -371,7 +371,7 @@ void reflection_model::reflection_reinit(
  * Copy new wave element data into the destination wavefront.
  */
 void reflection_model::reflection_copy(
-    wave_front* element, unsigned de, unsigned az,
+    wave_front* element, size_t de, size_t az,
     wave_front& results )
 {
     element->position.rho(   de, az, results.position.rho(0,0) ) ;

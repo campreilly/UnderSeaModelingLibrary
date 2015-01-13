@@ -81,7 +81,7 @@ class data_grid_mackenzie {
         ssp->interp_type(1,GRID_INTERP_LINEAR) ;
         ssp->interp_type(2,GRID_INTERP_LINEAR) ;
 
-        unsigned index[3] ;
+        size_t index[3] ;
         for ( index[0]=0 ; index[0] < temperature->axis(0)->size() ; ++index[0] ) {
             for ( index[1]=0 ; index[1] < temperature->axis(1)->size() ; ++index[1] ) {
                 for ( index[2]=0 ; index[2] < temperature->axis(2)->size() ; ++index[2] ) {

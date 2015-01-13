@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" >
   <head>
-    <title>Under Sea Modeling Library (USML)</title>
+    <title>Building and Testing USML</title>
   </head>
   <body>
-    <h1>Under Sea Modeling Library (USML)</h1>
+    <h1>Building and Testing the Under Sea Modeling Library (USML)</h1>
     <p>
       The Under Sea Modeling Library (USML) is a collection of C++ software
       development modules for sonar modeling and simulation.
@@ -13,184 +13,299 @@
       Hybrid Gaussian Beams in Spherical/Time Coordinates.
       At this time, most of the other modules provide support to WaveQ3D.
     </p>
+
     <p>USML depends on the NetCDF package, for access to test data, 
        and the Boost package, for fast computations (uBLAS) and unit test utilities.
        Correctly configuring these packages is the #1 problem reported by USML users.
-       Before you attempt to build and test USML, please read these instructions carefully.</p>
-    <h2>External Dependencies</h2>
-    This current version of this package has been tested in
-    the following environments:
-    <ul>
-      <li>CentOS 6.6 x86-64 </li>
-      <ul>
-        <li>
-          GNU C++ compiler (4.4.7)
-        </li><li>
-          CMake 2.8.122 from <a href="http://www.cmake.org/">http://www.cmake.org/</a>
-          (Makefile and Eclipse CDT4 generators)
-        </li><li>
-          boost 1.57.0 from <a href="http://www.boost.org">http://www.boost.org</a>
-        </li><li>
-          netcdf 4.1.2 & nco 3.9.9 from <a href="http://www.unidata.ucar.edu/software/netcdf">
-          http://www.unidata.ucar.edu/software/netcdf</a>
-        </li><li>
-          Doxygen 1.6.1 from <a href="http://www.doxygen.org">http://www.doxygen.org</a>
-        </li><li>
-          Since CentOS is derived from Red Hat Enterprise Linux, 
-          (see <a href="http://community.redhat.com/centos-faq">http://community.redhat.com/centos-faq</a>)
-          this configuration should also work identically in RHEL6.
-        </li>
-      </ul>
-      <li>
-        Windows 7
-      </li>
-      <ul>
-        <li>
-          Microsoft Visual C++ 2010 Express from
-          <a href="http://www.microsoft.com/visualstudio/en-us/products/2010-editions/visual-cpp-express">
-            http://www.microsoft.com/visualstudio/en-us/products/2010-editions/visual-cpp-express
-          </a>
-        </li>
-        <li> CMake 2.8.7 (Visual Studio 10 and NMAKE generators) </li>
-        <li> boost 1.57.0 </li>
-        <li> netcdf 4.1.3 from <a href="https://github.com/campreilly/netcdf-4.1.3-with-cmake">
-	 https://github.com/campreilly/netcdf-4.1.3-with-cmake</a>.</li>
-      </ul>
-    </ul>
-    <h3>Setting up Boost package</h3>
-        USML uses the Boost package for fast computations (uBLAS) and unit 
-        test utilities. But, many USML users have experienced problems setting 
-        up Boost in their development environment. Here are some hints that may help you: 
-    <ul>
-    <li> CMake's FindBoost utility seems to have problems finding versions of Boost
-         that have been installed in <code>/usr/include</code> and 
-         <code>/usr/lib</code> as part of the operating system.  These problems
-         seem to go away when Boost is built from source code and installed
-         in <code>/usr/local/include</code> and <code>/usr/local/lib</code>.</li>
-    <li> There is a bug in the Boost uBLAS library that vector and matrix 
-         scaling using <code>operator/()</code>.  To see the corrected version of this code, please search for the 
-         symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the <code>vector_expression.hpp</code> 
-         and <code>matrix_expression.hpp</code> files in the <code>usml/config</code> directory.
-         In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
-         just above it. Those using Boost 1.41 trhough 1.56 can just replace the original files with the
-         ones from the <code>usml/config</code> directory.  Boost 1.57 fixed the problem in 
-         <code>vector_expression.hpp</code>, but requires replacing <code>matrix_expression.hpp</code>
-         with the file <code>usml/config/matrix_expression_1_57.hpp</code>.</li>
-    <li> The pedantic option does not work with Boost 1.52. There are several cases where
-         this specific version of Boost uses C++0x features, like long long value, that
-         are not supported by c++98.  Turning off the pedantic option works around this issue.
-    <li> Some versions of Boost, using gcc at -O0 optimization levels, fail to properly chain multiple 
-         boost::ublas operations into a single evaluation.  When this happens, the result is 
-         equal to the first operation.  For this reason, we recommend using -O1 as the
-         minimum optimization level.
-    </ul>
-    <h3>Setting up NetCDF package</h3>
-    USML uses Unidata's NetCDF package to access environmental data from
-    a variety of public sources such as the <a href="https://www.nodc.noaa.gov/">
-    National Oceanographic Data Center</a>.  But, many USML users have experienced
-    problems setting up NetCDF in their development environment.  Here are 
-    some hints that may help you:
-    <ul>
-     <li>By default, CMake does not include a module to find NetCDF libraries.  
-         Please copy the <code>FindNetCDF.cmake</code> file from the <code>usml/config</code> directory 
-         into CMake's shared modules directory.  For Linux share modules 
-         are kept in the <code>/usr/share/cmake-2.8/Modules</code> directory.</li>
-    <li> On RedHat 6 and CentOS 6 systems, installing the netcdf-devel
-         RPM package using the default YUM server seems to work perfectly.</li>
-    <li> On other Linux systems, We've had some trouble setting up the 
-         HDF5, zLib, cURL libraries that netCDF depdends on.  Loading theses 
-         libraries from <a href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/">
-         source code</a> and compiling them on your development platform
-         seems to work well.  Note that the <code>./configure</code> option for HDF5 works
-         best with the the options <code>--with-zlib=/path/to/zlib --disable-parallel 
-         --enable-shared</code>. Because USML does not actually use any NetCDF 4
-         features, many users have found it useful to download just NetCDF from 
-         <a href="http://www.unidata.ucar.edu/downloads/netcdf">source code</a>
-         and configuring the build process to disable netcdf-4 and dap.
-    <li> On Windows, we've had significant 
-         <a href="http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#windows_netcdf4_1">
-         problems using NetCDF in Microsoft Visual Studio</a>.  A copy of the 
-         CMake-based build that system that we used for testing is freely available on GitHub at
-         <a href="https://github.com/campreilly/netcdf-4.1.3-with-cmake">
-	 https://github.com/campreilly/netcdf-4.1.3-with-cmake</a>.</li>
-	</ul>
-    <h2>Building and Testing USML</h2>
+       Before you attempt to build and test USML, please read these instructions carefully.
 
-    <p>
-      For the sake of the example, let's assume that you are installing on a Linux
-      system into the <code>"~/Projects/usml"</code> directory. Assuming that this is the current
-      directory, and that all of the tarballs are here as well, the Linux commands
-      to execute would be:
-      <pre>
+    <h2>Linux using GNU C++ and Unix Makefiles</h2>
+
+    We've tested this process with:
+    <ul>
+	<li> 64-bit CentOS 6.6 with gcc 4.4.7 
+    </ul>
+    The steps that follow are the process we used to setup USML for a 64-bit CentOS 6 development environment.
+    We expect your environment to be a little different, but this should get you started.
+    Since CentOS is derived from Red Hat Enterprise Linux, 
+    (see <a href="http://community.redhat.com/centos-faq">http://community.redhat.com/centos-faq</a>)
+    we expect this process to work identically in RHEL6.
+    <ul>
+    <li> Download the source code distribution for USML
+	<ul>
+	<li> Extract USML from the distribution media.  On Linux, these consist of
+	<pre>
         tar -xzf usml-src-#.#.#.tar.gz
         tar -xzf usml-doc-#.#.#.tar.gz
         tar -xzf usml-data-#.#.#.tar.gz
-      </pre>
-      where #.#.# is the version number to be installed.
-    </p>
-    <p><b>Note that the USML build process absolutely requires the top level
-        directory to be named <code>usml</code>!</b>
-	<p>
-      For installation from a GitHub zip file, after extraction the topmost directory will need to be
-	  changed from <code>"UnderSeaModelingLibrary-branchname"</code> to <code>"usml" </code> for 
-	  the CMake build system to function properly.  Also, if cloning the respository from GitHub ensure 
-	  the clone takes place from a toplevel directory named <code>"usml"</code>.   The CMake build 
-	  system and many of the include references expect the topmost directory  to be <code>"usml"</code>.
-    </p>
-	<p>
-      This library is built using the CMake cross-platform, open-source build system.
-      Users are strongly encouraged to configure their builds using the cmake-gui
-      tool.  CMake makes it much easier to support cross-platform builds, but it
-      requires a few more steps than a direct Makefile interface.
-      For example, a simple Unix build includes the following steps.
-    </p>
-    <ul>
-      <li>
-        In the <code>cmake-gui</code> tool (example below), set the source directory to the place where you
-        installed the USML source code.  As suggested above source code could go in <code>"~/Projects/usml"</code>.
-      </li>
-      <li>
-        Setup for an "out of source" build by setting the binaries directory to
-        something like the <code>"~/Projects/usml-build"</code> directory.  Using a binary
-        directory that is not outside of the source tree is strictly optional,
-        except for the <a href="http://www.vtk.org/Wiki/Eclipse_CDT4_Generator">Eclipse CMake generator</a>.
-      </li>
-      <li>
-        Use the "Configure" button to process the CMakeList file.
-        Select the "Unix Makefile" generator from the pop-up menu.
-      </li>
-      <li>
-        Change options to match your development requirements.  The default options
-        should be correct for most installations.
-      </li>
-      <li>
-        Hit the "Configure" button a second time, even if you have not changed any
-        options.  Hit the "Generate" button to create makefiles for your system.
-        At this point, you can close the cmake-gui tool.
-      </li>
-      <li>
-        Run the "make" utility from <code>"~/Projects/usml-build"</code> directory to compile both
-        the usml shared libraries and the usml_test regression tests.
-      </li>
-      <li>
-        You can optionally use "sudo make install" to install the compiled programs into
-        the include, lib, and src directories in /usr/local.
-      </li>
-      <li>
-        Running the "usml_test"  regression test should run without errors if the
-        compilation and install were successful.  Prints "*** No errors detected".
-      </li>
-    </ul>
-    <img src="config/cmake-example.png" alt="cmake-gui example">
+	</pre>
+	     where #.#.# is the version number to be installed.  
+	     In this example, we'll extract them to <code>~/Projects</code>, and this
+	     creates a directory called <code>~/Projects/usml</code>
+	<li> The USML build process absolutely requires the top-level USML directory 
+	     to be named <code>usml</code>.  If you are extracting the code from another
+	     source, such as GitHub, make sure to rename the base directory <code>usml</code>.
+	</ul>
+    <li> Install CMake 2.8 and NetCDF 4.1 RPMs from the CentOS yum servers
+	<pre>
+	sudo yum install cmake-gui netcdf-devel
+	</pre>
+    <li> Download and install the source code distribution for NCO 3.9.9
+	<ul>
+        <li> This library provides the NCKS utility that we use in many of our NetCDF regression tests.
+	<li> We used the source code distribution called <code>nco-3.9.9.tar.gz</code> from 
+	     <a href="http://nco.sourceforge.net/src/">http://nco.sourceforge.net/src/</a> 
+	<li> To install this software in <code>/usr/local</code>
+	<pre>
+	cd path/to/nco-3.9.9
+	./configure
+	make
+	sudo make install
+	</pre>
+	</ul>
+    <li> Install Boost library from RPM or source.
+	<ul>
+	<li>You can install Boost 1.41 RPMs from the CentOS yum servers, if it is not installed already.
+	<pre>
+	sudo yum install boost-devel boost-static
+	</pre>
+	<li> Or, you can download newer Boost versions as source code.
+	     We tested this with the distribution called <code>boost_1_57_0.tar.gz</code> from 
+	     <a href="http://sourceforge.net/projects/boost/files/boost/1.57.0">
+	     http://sourceforge.net/projects/boost/files/boost/1.57.0</a> and the
+	     install instructions from <a href="http://www.boost.org/doc/libs/1_57_0/more/getting_started/unix-variants.html">
+	     http://www.boost.org/doc/libs/1_57_0/more/getting_started/unix-variants.html</a>.
+  	     To install this software in <code>/usr/local</code>, these instructions boil down to
+	<pre>
+	cd path/to/boost_1_57_0
+	./bootstrap.sh
+	b2
+	sudo b2 install
+	</pre>
+    <li> There is a bug in the Boost uBLAS library that vector and matrix 
+	     scaling using <code>operator/()</code>.  
+	<ul>
+	<li> To see the corrected version of this code, please search for the 
+	     symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the <code>vector_expression.hpp</code> 
+	     and <code>matrix_expression.hpp</code> files in the <code>usml/config</code> directory.
+	<li> In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
+	     just above it. 
+	<li> Those using Boost 1.41 trhough 1.56 can just replace the original files with the
+	     ones from the <code>usml/config</code> directory.  
+	<li> Boost 1.57 fixed the problem in 
+	     <code>vector_expression.hpp</code>, but requires replacing <code>matrix_expression.hpp</code>
+	     with the file <code>usml/config/matrix_expression_1_57.hpp</code>.</li>
+	</ul>
 
-    <h2>Additional Resources</h2>
-    <ul>
-    <li>Mustafa Abbasi, a PhD Student at the University of Texas, has posted the step-by-step process 
-    that he used to compile USML.  He posted this procedure in the form of a video on his blog
-    (<a href="http://loudflames.wordpress.com/">http://loudflames.wordpress.com/</a>).
-    This may help you, especially if you have having trouble setting up the external 
-    dependencies. Note that there is no sound in this video.
+	<li> The pedantic option does not work with Boost 1.52. There are several cases where
+	     this specific version of Boost uses C++0x features, like long long value, that
+	     are not supported by c++98.  Turning off the pedantic option works around this issue.
+	<li> Some versions of Boost, using gcc at -O0 optimization levels, fail to properly chain multiple 
+	     boost::ublas operations into a single evaluation.  When this happens, the result is 
+	     equal to the first operation.  For this reason, we recommend using -O1 as the
+	     minimum optimization level.
+	</ul>
+    <li> Use cmake-gui to generate Unix Makefiles project
+	<ul>
+	<li> In the <code>cmake-gui</code> tool (example below), set the source directory to the place where you
+             installed the USML source code.  As suggested above source code could go in <code>~/Projects/usml</code>.
+	<li> Setup for an "out of source" build by setting the binaries directory to
+             something like the <code>~/Projects/usml-build</code> directory.  Using a binary
+             directory that is not outside of the source tree is strictly optional.
+	<li> Use the <code>Configure</code> button to process the CMakeList file.
+	     Select the <code>Unix Makefile</code> generator from the pop-up menu.
+	<li> Change options to match your development requirements.  The default options
+	     should be correct for most installations.
+	<li> Hit the <code>Configure</code> button a second time, even if you have not changed any
+	     options.  Hit the <code>Generate</code> button to create makefiles for your system.
+	     At this point, you can close the cmake-gui tool.
+	</ul>
+    <li>Run the <code>make</code> utility from <code>~/Projects/usml-build</code> directory to compile both
+    <li> The <code>usml_test</code> regression test in this directory should run without errors if the
+         compilation and install were successful.  
+         <ul>
+         <li>Prints <code>*** No errors detected</code> if fully successful.
+         </ul>
+    <li> If this test is successful, install the USML libraries
+        <ul>
+        <li> Run <code>sudo make install</code> to deploy into the directory defined by the 
+             <code>CMAKE_INSTALL_PREFIX</code>, which defaults to
+             <code>/usr/local</code>.
+        <li> USML header files are written to <code>&ltprefix&gt/include/usml</code>
+        <li> USML libraries are written to <code>&ltprefix&gt/lib</code>
+        <li> CMake configuration files are written to <code>&ltprefix&gt/lib/cmake/USML</code>
+        <li> Run <code>sudo make uninstall</code> will remove these files.
+        </ul>
+    <li> The install process can be re-run with different selections for Release/Debug
+         and Static/Dynamic libraries to populate libraries with these variants.
+	<ul> 
+        <li> But, note that if both Static and Dynamic libraries are present in the
+             same directory, the USMLConfig.cmake process will only find the dynamic ones.
+	</ul>
     </ul>
 
+    <p><img src="config/cmake-example.png" alt="cmake-gui example">
+
+    <h2>Linux using Eclipse CDT4</h2>
+
+    This is almost identical to the setup for Unix Makefiles with some small exceptions.
+
+    <ul>
+    <li> Setting up for an "out of source" build is not optional.
+    <li> Select Eclipse CDT4 - Unix Makefiles when configuring CMake.
+    <li> Turn on <code>Advanced</code> options to see all of the CMake variables for Eclipse. 
+	<ul> 
+	<li> Check the <code>CMAKE_ECLIPSE_GENERATE_SOURCE_PROJECT</code> option.
+	</ul>
+    <li> To import this project into Eclipse:
+	<ul>
+	<li> Select </code>Import...</code> from the </code>File</code> menu.
+	<li> Select </code>Existing Projects into Workspace</code> under </code>General</code> folder.
+	<li> Select the parent of the </code>usml</code>, such as </code>~/Projects</code>
+	<li> Check the </code>usml-Release</code> and </code>usml-Source</code> 
+             projects and select </code>Finish</code>.
+	</ul>
+    <li>Select </code>Build All</code> from the </code>Build</code> menu to compile.
+    </ul>
+
+    <h2>Windows using Microsoft Visual C++</h2>
+
+    We've tested this process using Windows 7 with:
+    <ul>
+	<li> 32-bit Visual Studio 2010 Express, which we downloaded for free from 
+             <a href="http://www.visualstudio.com/downloads/download-visual-studio-vs#DownloadFamilies_4">
+             http://www.visualstudio.com/downloads/download-visual-studio-vs#DownloadFamilies_4</a>
+	<li> 32-bit and 64-bit Visual Studio 2013 Professional (msvc 12.0)
+
+    </ul>
+    The steps that follow are the process we used to setup USML for a 32-bit Visual Studio 2010 development environment.
+    We expect your environment to be a little different, but this should get you started.
+    <ul>
+    <li> Download the source code distribution for USML
+	<ul>
+	<li> Extract USML from the distribution media.  On Windows, these consist of
+	<pre>
+        tar -xzf usml-src-#.#.#.zip
+        tar -xzf usml-doc-#.#.#.zip
+        tar -xzf usml-data-#.#.#.zip
+	</pre>
+	     where #.#.# is the version number to be installed.  
+	     In this example, we extracted them to <code>C:\Projects</code>, and this
+	     created a directory called <code>C:\Projects\usml</code>
+	<li> The USML build process absolutely requires the top level USML directory 
+	     to be named <code>usml</code>.  If you are extracting the code from another
+	     source, such as GitHub, make sure to rename the base directory <code>usml</code>.
+	</ul>
+    <li> Download the binary distribution for CMake 3.1.0
+	<ul>
+	<li> We used the Win32 installer called <code>cmake-3.1.0-win32-x86.exe</code>, 
+	     from <a href="http://www.cmake.org/download">http://www.cmake.org/download</a>.
+		<ul>
+		<li>Note the ’10.0’ refers to Visual Studio 10, select appropriately. 
+		</ul>
+	<li> Running this installer deposits the software
+	     in the <code>C:\Program Files (x86)\CMake</code> directory by default.
+	</ul>
+    <li> Download the pre-built Windows binaries for Boost 1.57
+	<ul>
+	<li> We used the Win32 installer called <code>boost_1_57_0-msvc-10.0-32.exe</code> from 
+	     <a href="http://sourceforge.net/projects/boost/files/boost-binaries">
+	     http://sourceforge.net/projects/boost/files/boost-binaries</a>.
+	<li> Running this installer deposits the software in the 
+	     <code>C:\local\boost_1_57_0</code> directory by default.
+        <li> There is a bug in the Boost uBLAS library that vector and matrix 
+	     scaling using <code>operator/()</code>.  
+	    <ul>
+	    <li> To see the corrected version of this code, please search for the 
+	     symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the <code>vector_expression.hpp</code> 
+	     and <code>matrix_expression.hpp</code> files in the <code>usml/config</code> directory.
+	    <li> In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
+	     just above it. 
+	    <li> Those using Boost 1.41 trhough 1.56 can just replace the original files with the
+	     ones from the <code>usml/config</code> directory.  
+	    <li> Boost 1.57 fixed the problem in 
+	     <code>vector_expression.hpp</code>, but requires replacing <code>matrix_expression.hpp</code>
+	     with the file <code>usml/config/matrix_expression_1_57.hpp</code>.</li>
+	    </ul>
+	</ul>
+    <li> Download the pre-built Windows binaries for NetCDF-C 4.3.2,
+	<ul>
+	<li> We used the Win32 installer called <code>netCDF4.3.2-NC4-32.exe</code> from 
+	     <a href="http://www.unidata.ucar.edu/software/netcdf/docs/winbin.html">
+	     http://www.unidata.ucar.edu/software/netcdf/docs/winbin.html</a>
+	<li> Running this installer deposits the software in the 
+	     <code>C:\Program Files (x86)\netCDF 4.3.2</code> directory by default.
+	</ul>
+    <li> Add Boost, NetCDF, and USML environment variables
+	<ul>
+	<li> Right click on Computer, select Properties -> Advanced system settings -> Environment Variables.
+	<li> Create new user variable <code>BOOST_ROOT = C:\local\boost_1_57_0</code>.
+	<li> Create new user variable <code>BOOST_LIBRARYDIR = %BOOST_ROOT%\lib32-msvc-10.0</code>.
+	<li> Create new user variable <code>NETCDF_DIR = C:\Program Files (x86)\netCDF 4.3.2</code>.
+	<li> Create new user variable <code>NETCDF_PATH = %NETCDF_DIR%\bin;%NETCDF_DIR%\deps\w32\bin</code>.
+	<li> Create new user variable <code>USML_DIR</code> for the USML installation directory.
+	     We used <code>C:\local\usml</code> to avoid permission problems installing libraries
+             into <code>Program Files</code>,
+	<li> Add <code>%BOOST_LIBRARY_DIR%;%NETCDF_PATH%;%USML_DIR%\lib</code> to <code>path</code> variable.
+	</ul>
+    <li> Use cmake-gui to generate Visual Studio project
+	<ul>
+	<li> We set <code>Where is the source code:</code> to <code>C:\Projects\usml</code>.
+	<li> We set <code>Where to build the binaries:</code> to <code>C:\Projects\usml-build</code>
+	     to create an out-of-source build.
+	<li> Hit <code>Configure</code> button, select your version of Visual Studio.
+	<li> If status shows <code>Configuring done</code>, hit <code>Configure</code> again, then <code>Generate</code>.
+	</ul>
+    <li> Use Visual Studio to build project
+	<ul>
+	<li> Open the file <code>usml.sln</code>, in the build directory, using Visual Studio
+	<li> Select <code>Rebuild Solution</code> from <code>Build</code> menu.
+	</ul>
+    <li> Test the ability to run USML applications
+	<ul>
+	<li> Right click on the <code>usml_test</code> target and select
+             <code>Set as StartUp Project</code>.
+        <li> Select <code>Start Without Debugging</code> under the <code>Debug</code> menu.
+	<li> Test fully successful if <code>*** No errors detected</code> printed to screen.
+	</ul>
+    <li> If this test is successful, install the USML libraries
+        <ul>
+        <li> Select <code>Batch Build...</code> under the <code>Build</code> menu.
+        <li> Check the <code>Build</code> checkbox next to the <code>Debug</code> 
+             and <code>Release</code> versions of the <code>INSTALL</code> targets.
+	<li> Click on the <code>Build</code> button to compile and deploy these 
+             releases into the directory defined by the <code>USML_DIR</code> prefix.
+	    <ul>
+            <li> USML header files are written to <code>&ltprefix&gt/include/usml</code>
+            <li> USML libraries are written to <code>&ltprefix&gt/lib</code>
+            <li> CMake configuration files are written to <code>&ltprefix&gt/CMake</code>
+	    </ul>
+        <li> Building the <code>uninstall</code> target will remove these files.
+        <li> Note that if both Static and Dynamic libraries are created in the
+             same directory, the *.lib files will overwrite each other.
+
+        </ul>
+    </ul>
+
+    <h2>Using USML with CMake</h2>
+    USML does not require your project to use CMake.  However, CMake 
+    configuration files are provided to automate the integration of USML,
+    Boost, and NetCDF into your CMake build process, if you so choose.  The example 
+    below shows a <code>CMakeLists.txt</code> script that creates an USML 
+    enabled executable called <code>example</code> from a notional file called <code>example.cc</code>.  
+    <pre>
+    cmake_minimum_required( VERSION 2.6 )
+    project( usml_example CXX )
+
+    find_package( USML 1.0 REQUIRED )
+    include_directories( ${USML_INCLUDES} )
+    add_executable( example example.cc )
+    target_link_libraries( example ${USML_LIBRARIES} )
+    </pre>
+    In this example, the <code>find_package</code> command uses files called
+    <code>USMLConfig.cmake</code> and <code>USMLUse.cmake</code> to
+    configure the include and library files for USML, Boost, and NetCDF.
+    A file called <code>USMLConfigVersion.cmake</code> is used to check
+    the desired USML version against the installed version.
   </body>
 </html>

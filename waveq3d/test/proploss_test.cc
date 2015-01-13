@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
     // build a series of targets at different ranges
 
     wposition target(10, 1, src_lat, src_lng, src_alt);
-    for (unsigned n = 0; n < target.size1(); ++n)
+    for (size_t n = 0; n < target.size1(); ++n)
     {
         target.latitude(n, 0, src_lat + 0.01 * (n + 2.0));
     }
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
     os << std::setprecision(18);
 
     cout << "writing spreadsheets to " << csvname << endl;
-    for (unsigned n = 0; n < target.size1(); ++n)
+    for (size_t n = 0; n < target.size1(); ++n)
     {
         const eigenray_list *raylist = loss.eigenrays(n, 0);
         for (eigenray_list::const_iterator iter = raylist->begin();
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
             cout << "range=" << range
                  << " theory=" << pl
                  << " model=" << ray.intensity << endl;
-            for (unsigned f = 0; f < freq.size(); ++f)
+            for (size_t f = 0; f < freq.size(); ++f)
             {
                 BOOST_CHECK(fabs(ray.intensity(f) - pl) < 0.2);
             }
@@ -308,7 +308,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
 
     seq_linear range(200.0, 10.0, 10e3); // range in meters
     wposition target(range.size(), 1, src_lat, src_lng, trg_alt);
-    for (unsigned n = 0; n < target.size1(); ++n)
+    for (size_t n = 0; n < target.size1(); ++n)
     {
         double degrees = src_lat + range(n) / (1852.0 * 60.0); // range in latitude
         target.latitude(n, 0, degrees);
@@ -349,7 +349,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
     const double z1 = trg_alt - src_alt;
     const double z2 = trg_alt + src_alt;
 
-    for (unsigned n = 0; n < range.size(); ++n)
+    for (size_t n = 0; n < range.size(); ++n)
     {
         tl_model[n] = -loss.total(n, 0)->intensity(0);
 
@@ -398,7 +398,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
     double Sxx = 0.0;
     double Syy = 0.0;
     double Sxy = 0.0;
-    for (unsigned n = 0; n < range.size(); ++n)
+    for (size_t n = 0; n < range.size(); ++n)
     {
         const double diff = (tl_model[n] - tl_analytic[n]);
         bias += diff ;
@@ -510,7 +510,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
 
     seq_linear range(200.0, 10.0, 10e3); // range in meters
     wposition target(range.size(), 1, src_lat, src_lng, trg_alt);
-    for (unsigned n = 0; n < target.size1(); ++n)
+    for (size_t n = 0; n < target.size1(); ++n)
     {
         double degrees = src_lat + range(n) / (1852.0 * 60.0); // range in latitude
         target.latitude(n, 0, degrees);
@@ -540,7 +540,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
 
     cout << "writing spreadsheets to " << csvname << endl;
     std::ofstream os(csvname);
-    os << "range,model,theory,m1amp,m1time,t1amp,t1time,m2amp,m2time,t2amp,t2time" << endl;
+    os << "freq,range,model,theory,m1amp,m1time,t1amp,t1time,m2amp,m2time,t2amp,t2time" << endl;
     os << std::setprecision(18);
 
     vector<double> tl_model(range.size());
@@ -552,13 +552,13 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
     const double z2 = trg_alt + src_alt;
 
 
-    for (unsigned f=0; f < freq.size(); ++f)
+    for (size_t f=0; f < freq.size(); ++f)
     {
         const double wavenum = TWO_PI * freq(f) / c0 ;
-        os << "freq: " << freq(f) << endl;
 
-        for (unsigned n = 0; n < range.size(); ++n)
+        for (size_t n = 0; n < range.size(); ++n)
         {
+            os << freq(f) << "," ;
             tl_model[n] = -loss.total(n, 0)->intensity(f);
 
             // compute analytic solution
@@ -606,7 +606,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
         double Sxx = 0.0;
         double Syy = 0.0;
         double Sxy = 0.0;
-        for (unsigned n = 0; n < range.size(); ++n)
+        for (size_t n = 0; n < range.size(); ++n)
         {
             const double diff = (tl_model[n] - tl_analytic[n]);
             bias += diff ;
@@ -636,14 +636,14 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
                 BOOST_CHECK( dev <= 5.0 );
                 break;
             case 100:
-                BOOST_CHECK( abs(bias) <= 1.0 );
+                BOOST_CHECK( abs(bias) <= 2.0 );
                 BOOST_CHECK( dev <= 4.0 );
                 break;
             case 10000:
                 BOOST_CHECK( dev <= 5.0 );
                 break;
             default:
-                BOOST_CHECK( abs(bias) <= 0.5 );
+                BOOST_CHECK( abs(bias) <= 1.0 );
                 BOOST_CHECK( dev <= 4.0 );
         }
 
@@ -715,6 +715,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     const double wavenum = TWO_PI * freq(0) / c0;
 
     wposition1 pos(src_lat, src_lng, src_alt);
+//    seq_rayfan de( -90.0, 90.0, 361 ) ;
 //    seq_rayfan de( -17.0, 17.0, 363 ) ;
 //    seq_linear de( -5.0, 5.0, 720 );
     seq_rayfan de ;
@@ -724,9 +725,9 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
 
     double degrees = src_lat + to_degrees(range / (wposition::earth_radius+src_alt)); // range in latitude
     seq_linear depth(-0.1, -0.5, -40.1); // depth in meters
-//    seq_linear depth(-0.1, 1.0, 1); // depth in meters
+//    seq_linear depth(-26.1, 1.0, 1); // depth in meters
     wposition target(depth.size(), 1, degrees, src_lng, 0.0);
-    for (unsigned n = 0; n < target.size1(); ++n)
+    for (size_t n = 0; n < target.size1(); ++n)
     {
         target.altitude(n, 0, depth(n));
     }
@@ -765,7 +766,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     double mean_model = 0.0;
     double mean_analytic = 0.0;
 
-    for (unsigned n = 0; n < depth.size(); ++n)
+    for (size_t n = 0; n < depth.size(); ++n)
     {
         const double z1 = depth(n) - src_alt;
         const double z2 = depth(n) + src_alt;
@@ -820,7 +821,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     double Sxx = 0.0;
     double Syy = 0.0;
     double Sxy = 0.0;
-    for (unsigned n = 0; n < depth.size(); ++n)
+    for (size_t n = 0; n < depth.size(); ++n)
     {
         const double diff = (tl_model[n] - tl_analytic[n]);
         bias += diff ;
@@ -844,6 +845,46 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     BOOST_CHECK( dev <= 5.0 );
     BOOST_CHECK( detcoef >= 80.0 );
 }
+
+/**
+ * This test demonstrates ability to adjust source position if it is within
+ * 0.1 meters of being above the ocean surface or below the ocean bottom.
+ * The boundary reflection logic does not perform correctly if the
+ * wavefront starts on the wrong side of either boundary.
+ */
+BOOST_AUTO_TEST_CASE(proploss_limits)
+{
+    cout << "=== proploss_test: proploss_limits ===" << endl;
+    const double c0 = 1500.0;
+    const double src_lat = 45.0;
+    const double src_lng = -45.0;
+    const double src_alt = 0.0;
+    const double depth = -1000 ;
+
+    // initialize propagation model
+
+    profile_model* profile = new profile_linear(c0);
+    boundary_model* surface = new boundary_flat();
+    boundary_model* bottom = new boundary_flat(depth);
+    ocean_model ocean(surface, bottom, profile);
+
+    wposition1 pos(src_lat, src_lng, src_alt);
+    seq_linear de(-10.7, 1.0, 10.0);
+    seq_linear az(-10.5, 2.0, 10.0);
+    seq_log freq(f0, 1.0, 1);  // 2000 Hz
+
+    // try building a source above ocean surface
+
+    wave_queue wave1( ocean, freq, pos, de, az, time_step ) ;
+    BOOST_CHECK_CLOSE( wave1.source_pos().altitude(), -0.1, 1e-6 );
+
+    // try building a source above ocean surface
+
+    pos.altitude( depth-10.0 ) ;
+    wave_queue wave2( ocean, freq, pos, de, az, time_step ) ;
+    BOOST_CHECK_CLOSE( wave2.source_pos().altitude(), depth+0.1, 1e-6 );
+}
+
 
 /// @}
 

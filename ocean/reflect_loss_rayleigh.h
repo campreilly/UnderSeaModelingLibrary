@@ -106,7 +106,7 @@ class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
          *
          * @param type          Integer representation of generic bottom type.
          */
-        reflect_loss_rayleigh( int type ) ;
+        reflect_loss_rayleigh( size_t type ) ;
 
         /**
          * Initialize model with impedance mis-match factors.  Defined in terms

@@ -39,8 +39,8 @@ proploss::proploss(
 
 void proploss::initialize()
 {
-    for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
-        for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
+    for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
+        for ( size_t t2=0 ; t2 < _targets->size2() ; ++t2 ) {
             _loss(t1,t2).intensity.resize( _frequencies->size() ) ;
             _loss(t1,t2).intensity.clear() ;
             _loss(t1,t2).phase.resize( _frequencies->size() ) ;
@@ -55,8 +55,8 @@ void proploss::initialize()
  */
 void proploss::sum_eigenrays( bool coherent ) {
     if( coherent ) {                                                             /// coherent signal summation
-        for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
-            for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
+        for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
+            for ( size_t t2=0 ; t2 < _targets->size2() ; ++t2 ) {
 
                 double time = 0.0 ;
                 double source_de = 0.0 ;
@@ -74,7 +74,7 @@ void proploss::sum_eigenrays( bool coherent ) {
                 const eigenray_list* entry = eigenrays(t1,t2) ;
                 eigenray* loss = &( _loss(t1,t2) ) ;
 
-                    for ( unsigned f=0 ; f < _frequencies->size() ; ++f ) {
+                    for ( size_t f=0 ; f < _frequencies->size() ; ++f ) {
 
                         // sum complex amplitudes over eigenrays
 
@@ -129,8 +129,8 @@ void proploss::sum_eigenrays( bool coherent ) {
             } // end target size2
         } // end target size1
     } else {                                                                    /// incoherent signal summation
-        for ( unsigned t1=0 ; t1 < _targets->size1() ; ++t1 ) {
-            for ( unsigned t2=0 ; t2 < _targets->size2() ; ++t2 ) {
+        for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
+            for ( size_t t2=0 ; t2 < _targets->size2() ; ++t2 ) {
 
                 double time = 0.0 ;
                 double source_de = 0.0 ;
@@ -148,7 +148,7 @@ void proploss::sum_eigenrays( bool coherent ) {
                 const eigenray_list* entry = eigenrays(t1,t2) ;
                 eigenray* loss = &( _loss(t1,t2) ) ;
 
-                    for ( unsigned f=0 ; f < _frequencies->size() ; ++f ) {
+                    for ( size_t f=0 ; f < _frequencies->size() ; ++f ) {
 
                         // sum complex amplitudes over eigenrays
 
@@ -204,7 +204,7 @@ void proploss::sum_eigenrays( bool coherent ) {
 /**
  * Add eigenray via proplossListener
  */
-bool proploss::addEigenray( unsigned targetRow, unsigned targetCol, eigenray pRay, unsigned long run_id ) {
+bool proploss::addEigenray( size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id ) {
 
 	 _eigenrays(targetRow, targetCol).push_back( pRay ) ;
 	 ++_num_eigenrays ;
@@ -224,13 +224,13 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
 
     // dimensions
 
-    NcDim *freq_dim = nc_file->add_dim("frequency", _frequencies->size());
-    NcDim *row_dim = nc_file->add_dim("rows", _targets->size1());
-    NcDim *col_dim = nc_file->add_dim("cols", _targets->size2());
+    NcDim *freq_dim = nc_file->add_dim("frequency", (long) _frequencies->size());
+	NcDim *row_dim = nc_file->add_dim("rows", (long) _targets->size1());
+	NcDim *col_dim = nc_file->add_dim("cols", (long) _targets->size2());
     NcDim *eigenray_dim = nc_file->add_dim("eigenrays",
-            _num_eigenrays + _loss.size1() * _loss.size2() ) ;
-    NcDim *launch_de_dim = nc_file->add_dim("launch_de", _source_de->size());
-    NcDim *launch_az_dim = nc_file->add_dim("launch_az", _source_az->size());
+           (long) ( _num_eigenrays + _loss.size1() * _loss.size2()) ) ;
+	NcDim *launch_de_dim = nc_file->add_dim("launch_de", (long) _source_de->size());
+	NcDim *launch_az_dim = nc_file->add_dim("launch_az", (long) _source_az->size());
 
     // coordinates
 
@@ -318,23 +318,23 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
     }
     v = _time_step;
     time_step_var->put(&v);
-    freq_var->put(vector<double>(*_frequencies).data().begin(),_frequencies->size());
+    freq_var->put(vector<double>(*_frequencies).data().begin(), (long) _frequencies->size());
 
     // write target coordinates
 
     latitude_var->put(_targets->latitude().data().begin(),
-            _targets->size1(), _targets->size2());
+            (long) _targets->size1(), (long) _targets->size2());
     longitude_var->put(_targets->longitude().data().begin(),
-            _targets->size1(), _targets->size2());
+		(long)_targets->size1(), (long) _targets->size2());
     altitude_var->put(_targets->altitude().data().begin(),
-            _targets->size1(), _targets->size2());
+		(long)_targets->size1(), (long) _targets->size2());
 
     // write propagation loss and eigenrays to disk
 
     int record = 0; // current record number
-    for (unsigned t1 = 0; t1 < _targets->size1(); ++t1) {
-        for (unsigned t2 = 0; t2 < _targets->size2(); ++t2) {
-            int num = _eigenrays(t1, t2).size();
+    for (long t1 = 0; t1 < (long) _targets->size1(); ++t1) {
+        for (long t2 = 0; t2 < (long) _targets->size2(); ++t2) {
+            int num = (long) _eigenrays(t1, t2).size();
             proploss_index_var->set_cur(t1, t2);
             eigenray_index_var->set_cur(t1, t2);
             eigenray_num_var->set_cur(t1, t2);
@@ -367,9 +367,9 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
                 if (n < 0) {
                     const eigenray& loss = _loss(t1, t2);
                     intensity_var->put(loss.intensity.data().begin(),
-                            1, _frequencies->size());
+                            1, (long) _frequencies->size());
                     phase_var->put(loss.phase.data().begin(),
-                            1, _frequencies->size());
+                            1, (long) _frequencies->size());
                     time_var->put(&loss.time, 1);
                     source_de_var->put(&loss.source_de, 1);
                     source_az_var->put(&loss.source_az, 1);
@@ -384,9 +384,9 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
                 } else {
                     const eigenray& loss = *iter++;
                     intensity_var->put(loss.intensity.data().begin(),
-                            1, _frequencies->size());
+                            1, (long) _frequencies->size());
                     phase_var->put(loss.phase.data().begin(),
-                            1, _frequencies->size());
+                            1, (long) _frequencies->size());
                     time_var->put(&loss.time, 1);
                     source_de_var->put(&loss.source_de, 1);
                     source_az_var->put(&loss.source_az, 1);

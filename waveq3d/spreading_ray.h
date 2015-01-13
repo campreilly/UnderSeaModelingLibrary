@@ -90,7 +90,7 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
      * @return              Intensity of ray at this point.
      */
     virtual const vector<double>& intensity(
-        const wposition1& location, unsigned de, unsigned az,
+        const wposition1& location, size_t de, size_t az,
         const vector<double>& offset, const vector<double>& distance ) ;
 
     /**
@@ -104,7 +104,7 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
      * @return              Half-width of cell in the DE direction.
      */
     virtual double width_de(
-        unsigned de, unsigned az, const vector<double>& offset ) ;
+        size_t de, size_t az, const vector<double>& offset ) ;
 
     /**
      * Compute the harmonic mean of the distance between the position
@@ -117,7 +117,7 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
      * @return              Half-width of cell in the AZ direction.
      */
     virtual double width_az(
-        unsigned de, unsigned az, const vector<double>& offset ) ;
+        size_t de, size_t az, const vector<double>& offset ) ;
 
 } ;
 

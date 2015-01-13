@@ -41,6 +41,7 @@
     	    <li>Changed the name of the proplossListener class to eigenrayListener.
     	    <li>Added ability to compile USML without compiling Tests or Studies.  Broke the *.cmake files for Tests or Studies out of CMakeList.txt and into their own files.
     	    <li>Greatly simplified the installation on Windows systems by relying on pre-built binaries.
+            <li>Guard against starting wavefront below bottom or above surface. Automatically adjusts source location if it is within 0.1 meters of being above the ocean surface or below the ocean bottom.
 	</ul>
     </ul>
     <h2>Release 0.4.1 - Apr 2014</h2>

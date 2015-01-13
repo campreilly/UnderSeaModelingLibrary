@@ -42,9 +42,6 @@ class wave_queue_reverb ;
  * other approximations between rays.  This effect can also be minimized
  * by decreasing the time step.
  *
- * @todo Calculate eigenray amplitude and phase for reverberation callback.
- * Just passing bogus values currently.
- *
  * @xref S. M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
@@ -76,7 +73,6 @@ class USML_DECLSPEC reflection_model
      * It is automatically set to a value that is 300 times the time
      * step of the wavefront.  This value 1/5 the length of a typical
      * time step (1500*dt).
-     * @todo Are we happy with this definition of "too shallow"?
      */
     const double TOO_SHALLOW ;
 
@@ -154,7 +150,7 @@ class USML_DECLSPEC reflection_model
      * @return                  True for an actual reflection,
      *                          False for a near-miss.
      */
-    bool bottom_reflection( unsigned de, unsigned az, double depth ) ;
+    bool bottom_reflection( size_t de, size_t az, double depth ) ;
 
     /**
      * Reflect a single acoustic ray from the ocean surface.
@@ -190,7 +186,7 @@ class USML_DECLSPEC reflection_model
      * @return              True for an actual reflection,
      *                      False for a near-miss.
      */
-    bool surface_reflection( unsigned de, unsigned az ) ;
+    bool surface_reflection( size_t de, size_t az ) ;
 
     /**
      * Computes a refined location and direction at the point of collision.
@@ -207,7 +203,7 @@ class USML_DECLSPEC reflection_model
      * @param speed         Speed of sound at the point of reflection (output).
      */
     void collision_location(
-        unsigned de, unsigned az, double dtime,
+        size_t de, size_t az, double dtime,
         wposition1* position, wvector1* ndirection, double* speed ) const ;
 
     /**
@@ -225,7 +221,7 @@ class USML_DECLSPEC reflection_model
      * @param speed         Speed of sound at the point of reflection.
      */
     void reflection_reinit(
-        unsigned de, unsigned az, double dtime,
+        size_t de, size_t az, double dtime,
         const wposition1& position, const wvector1& direction, double speed ) ;
 
     /**
@@ -239,7 +235,7 @@ class USML_DECLSPEC reflection_model
      * @param results       Wave element data with new information.
      */
     static void reflection_copy(
-        wave_front* element, unsigned de, unsigned az,
+        wave_front* element, size_t de, size_t az,
         wave_front& results ) ;
 } ;
 

@@ -44,8 +44,8 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
          *                  fields as well as the axises.
          */
 
-        data_grid_bathy(const data_grid<double, 2>* grid, bool copy_data = true) :
-                data_grid<double, 2>(*grid, copy_data), _bicubic_coeff(16, 1),
+        data_grid_bathy(const data_grid<double, 2>* grid) :
+                data_grid<double, 2>(*grid, true), _bicubic_coeff(16, 1),
                 _field(16, 1), _xyloc(1, 16), _result_pchip(1, 1), _value(4, 4),
                 _kmin(0u), _k0max(_axis[0]->size() - 1u), _k1max(_axis[1]->size() - 1u)
         {
@@ -126,7 +126,7 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
 
             //Pre-construct increments for all intervals once to save time
             matrix<double> inc_x(_k0max + 1u, 1);
-            for (unsigned i = 0; i < _k0max + 1u; ++i) {
+            for (size_t i = 0; i < _k0max + 1u; ++i) {
                 if (i == 0 || i == _k0max) {
                     inc_x(i, 0) = 2;
                 } else {
@@ -135,7 +135,7 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                 }
             }
             matrix<double> inc_y(_k1max + 1u, 1);
-            for (unsigned i = 0; i < _k1max + 1u; ++i) {
+            for (size_t i = 0; i < _k1max + 1u; ++i) {
                 if (i == 0 || i == _k1max) {
                     inc_y(i, 0) = 2;
                 } else {
@@ -148,8 +148,8 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
             _derv_x = matrix<double>(_k0max + 1u, _k1max + 1u);
             _derv_y = matrix<double>(_k0max + 1u, _k1max + 1u);
             _derv_x_y = matrix<double>(_k0max + 1u, _k1max + 1u);
-            for (unsigned i = 0; i < _k0max + 1u; ++i) {
-                for (unsigned j = 0; j < _k1max + 1u; ++j) {
+            for (size_t i = 0; i < _k0max + 1u; ++i) {
+                for (size_t j = 0; j < _k1max + 1u; ++j) {
                     if (i < 1 && j < 1) {                      //top-left corner
                         _derv_x(i, j) = (data_2d(i + 1, j) - data_2d(i, j))
                                 / inc_x(i, 0);
@@ -252,7 +252,7 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
             double result = 0;
             // find the interval index in each dimension
 
-            for (unsigned dim = 0; dim < 2; ++dim) {
+            for (size_t dim = 0; dim < 2; ++dim) {
 
                 // limit interpolation to axis domain if _edge_limit turned on
 
@@ -375,8 +375,8 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                 matrix<double>* dy = NULL) {
             double location[2];
             double derivative[2];
-            for (unsigned n = 0; n < x.size1(); ++n) {
-                for (unsigned m = 0; m < x.size2(); ++m) {
+            for (size_t n = 0; n < x.size1(); ++n) {
+                for (size_t m = 0; m < x.size2(); ++m) {
                     location[0] = x(n, m);
                     location[1] = y(n, m);
                     if (dx == NULL || dy == NULL) {
@@ -394,8 +394,8 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
     private:
 
         /** Utility accessor function for data grid values */
-        inline double data_2d(unsigned row, unsigned col) {
-            unsigned grid_index[2];
+        inline double data_2d(size_t row, size_t col) {
+            size_t grid_index[2];
             grid_index[0] = row;
             grid_index[1] = col;
             return data(grid_index);
@@ -453,34 +453,34 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
          * @param derivative    Generate the derivative at the location (output)
          * @return              Returns the value at the field location
          */
-        double fast_pchip(const unsigned* interp_index, double* location,
+        double fast_pchip(const size_t* interp_index, double* location,
                 double* derivative = NULL) {
-            int k0 = interp_index[0];
-            int k1 = interp_index[1];
+            size_t k0 = interp_index[0];
+            size_t k1 = interp_index[1];
             double norm0, norm1;
 
             // Checks for boundaries of the axes
-            norm0 = (*_axis[0])(k0 + 1) - (*_axis[0])(k0);
-            norm1 = (*_axis[1])(k1 + 1) - (*_axis[1])(k1);
+            norm0 = _axis[0]->increment(k0) ;
+            norm1 = _axis[1]->increment(k1) ;
             for (int i = -1; i < 3; ++i) {
                 for (int j = -1; j < 3; ++j) {
                     //get appropriate data when at boundaries
                     if ((k0 + i) >= _k0max) {
-                        _fast_index[0] = _k0max;
+                        _fast_index[0] = _k0max ;
                     } else if ((k0 + i) <= _kmin) {
-                        _fast_index[0] = _kmin;
+                        _fast_index[0] = _kmin ;
                     } else {
-                        _fast_index[0] = k0 + i;
+                        _fast_index[0] = k0 + i ;
                     }
                     //get appropriate data when at boundaries
                     if ((k1 + j) >= _k1max) {
-                        _fast_index[1] = _k1max;
+                        _fast_index[1] = _k1max ;
                     } else if ((k1 + j) <= _kmin) {
-                        _fast_index[1] = _kmin;
+                        _fast_index[1] = _kmin ;
                     } else {
-                        _fast_index[1] = k1 + j;
+                        _fast_index[1] = k1 + j ;
                     }
-                    _value(i + 1, j + 1) = data(_fast_index);
+                    _value(i + 1, j + 1) = data(_fast_index) ;
                 }   //end for-loop in j
             }   //end for-loop in i
 
@@ -536,12 +536,14 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
                                 * _xyloc(0, 4 * (i - 1)) * _xyloc(0, j);
                     }
                 }
+                derivative[0] /= _axis[0]->increment(k0) ;
                 for (int i = 0; i < 4; ++i) {
                     for (int j = 1; j < 4; ++j) {
                         derivative[1] += j * _bicubic_coeff(i * 4 + j, 0)
                                 * _xyloc(0, 4 * i) * _xyloc(0, j - 1);
                     }
                 }
+                derivative[1] /= _axis[1]->increment(k1) ;
             }
             return _result_pchip(0, 0);
         }
@@ -571,10 +573,10 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
         matrix<double> _derv_x;
         matrix<double> _derv_y;
         matrix<double> _derv_x_y;
-        unsigned  _fast_index[2];
-        const int _kmin;
-        const int _k0max;
-        const int _k1max;
+        size_t  _fast_index[2];
+        const size_t _kmin;
+        const size_t _k0max;
+        const size_t _k1max;
 
 }; // end data_grid_bathy
 

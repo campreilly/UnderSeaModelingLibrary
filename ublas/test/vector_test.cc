@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_SUITE(vector_test)
 BOOST_AUTO_TEST_CASE( real_vector_test ) {
 
     vector<double> rvect(7);
-    for ( unsigned n=0; n < rvect.size(); ++n ) {
+    for ( size_t n=0; n < rvect.size(); ++n ) {
         rvect(n) = (double) (n+1);
     }
 
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE( real_vector_test ) {
 BOOST_AUTO_TEST_CASE( complex_vector_test ) {
 
     vector< std::complex<double> > cvect(7);
-    for ( unsigned n=0; n < cvect.size(); ++n ) {
+    for ( size_t n=0; n < cvect.size(); ++n ) {
         cvect(n) = std::complex<double>(n+1,1.0);
     }
 
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE( pow_vector_test ) {
     vector< std::complex<double> > cvect(3);
     std::complex<double> cmplx(2.5,3.5);
 
-    for ( unsigned n=0; n < cvect.size(); ++n ) {
+    for ( size_t n=0; n < cvect.size(); ++n ) {
         rvect(n) = (double) (n+1);
         cvect(n) = std::complex<double>(n+1,1.0);
     }
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE( pow_vector_test ) {
 BOOST_AUTO_TEST_CASE( signal_vector_test ) {
 
     vector<double> rvect(3);
-    for ( unsigned n=0; n < rvect.size(); ++n ) {
+    for ( size_t n=0; n < rvect.size(); ++n ) {
         rvect(n) = (double) (n+1);
     }
 
@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_CASE( signal_vector_test ) {
 BOOST_AUTO_TEST_CASE( realInverse_vector_test ) {
 
     vector<double> rvect(3);
-    for ( unsigned n=0; n < rvect.size(); ++n ) {
+    for ( size_t n=0; n < rvect.size(); ++n ) {
         rvect(n) = 0.1 * (double) (n+1);
     }
 
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE( realInverse_vector_test ) {
 BOOST_AUTO_TEST_CASE( complexInverse_vector_test ) {
 
     vector< std::complex<double> > cvect(3);
-    for ( unsigned n=0; n < cvect.size(); ++n ) {
+    for ( size_t n=0; n < cvect.size(); ++n ) {
         cvect(n) = 0.1 * std::complex<double>(n+1,1.0);
     }
 

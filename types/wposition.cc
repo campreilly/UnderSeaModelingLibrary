@@ -11,7 +11,7 @@ using namespace usml::types;
  * Constructs a matrix of wpositions. Initializes each wposition to
  * the center of the earth.
  */
-wposition::wposition(unsigned rows, unsigned cols, double latitude,
+wposition::wposition(size_t rows, size_t cols, double latitude,
         double longitude, double altitude) :
     wvector(rows, cols)
 {

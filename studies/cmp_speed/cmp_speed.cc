@@ -19,11 +19,7 @@
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/netcdf/netcdf_files.h>
 #include <fstream>
-#ifdef WIN32
-#include "sys_time_win32.h"
-#else
-#include <sys/time.h>
-#endif
+#include <boost/progress.hpp>
 
 using namespace usml::waveq3d ;
 using namespace usml::netcdf ;
@@ -68,7 +64,7 @@ int main( int argc, char* argv[] ) {
     //fast_grid_3d
     data_grid<double,3>* ssp = new netcdf_profile( USML_STUDIES_DIR "/cmp_speed/std14profile.nc",
             0.0, lat1, lat2, lng1, lng2, wposition::earth_radius ) ;
-    data_grid_svp* fast_ssp = new data_grid_svp(ssp,true) ;
+    data_grid_svp* fast_ssp = new data_grid_svp(ssp) ;
     profile_model* profile = new profile_grid_fast( fast_ssp ) ;
 
 //  attenuation_model* attn = new attenuation_constant(0.0);
@@ -84,7 +80,7 @@ int main( int argc, char* argv[] ) {
     //fast_grid_2d
     data_grid<double,2>* grid = new netcdf_bathy( USML_STUDIES_DIR "/cmp_speed/std14bathy.nc",
         lat1, lat2, lng1, lng2, wposition::earth_radius );
-    data_grid_bathy* fast_grid = new data_grid_bathy(grid, true) ;
+    data_grid_bathy* fast_grid = new data_grid_bathy(grid) ;
     boundary_model* bottom = new boundary_grid_fast( fast_grid ) ;
 
 //    boundary_model* bottom = new boundary_flat(4000.0) ;
@@ -99,9 +95,6 @@ int main( int argc, char* argv[] ) {
 
     boundary_model* surface = new boundary_flat() ;
 
-//	  bottom->reflect_loss(new reflect_loss_constant(0.0));  // Total Reflection
-//    boundary_model* bottom = new boundary_flat(3000.0);    // Flat Bottom
-
     ocean_model ocean( surface, bottom, profile ) ;
 
     // initialize proploss targets and wavefront
@@ -112,7 +105,7 @@ int main( int argc, char* argv[] ) {
     // build a series of targets at 100 km
     double angle = TWO_PI/num_targets;
     double bearing_inc = angle;
-    for (unsigned n = 0; n < num_targets; ++n) {
+    for (size_t n = 0; n < num_targets; ++n) {
         wposition1 aTarget( src_pos, target_range, bearing_inc) ;
         target.latitude( n, 0, aTarget.latitude());
         target.longitude( n, 0, aTarget.longitude());
@@ -131,17 +124,10 @@ int main( int argc, char* argv[] ) {
     // propagate wavefront
 
     cout << "propagate wavefronts for " << time_max << " secs" << endl ;
-    struct timeval time ;
-    struct timezone zone ;
-    gettimeofday( &time, &zone ) ;
-    double start = time.tv_sec + time.tv_usec * 1e-6 ;
-    while ( wave.time() < time_max ) {
-        wave.step() ;
+    {
+        boost::progress_timer timer ;
+        while ( wave.time() < time_max ) {
+            wave.step() ;
+        }
     }
-    gettimeofday( &time, &zone ) ;
-    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
-    cout << "Propagating for " << time_max << " sec with "
-         << ( target.size1() * target.size2() ) << " targets took "
-         << (complete-start) << " sec."
-         << endl ;
 }

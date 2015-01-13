@@ -8,11 +8,6 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#ifdef WIN32
-#include "sys_time_win32.h"
-#else
-#include <sys/time.h>
-#endif
 
 BOOST_AUTO_TEST_SUITE(reflection_test)
 
@@ -51,10 +46,10 @@ using namespace boost::numeric::ublas ;
 //    /**
 //     * Record a collision of a single ray with a reverberation surface.
 //     */
-//    virtual void notifyUpperCollision( unsigned de, unsigned az,
+//    virtual void notifyUpperCollision( size_t de, size_t az,
 //               double dt, double grazing, double speed,
 //               const wposition1& position, const wvector1& ndirection,
-//               const wave_queue& wave, unsigned ID )
+//               const wave_queue& wave, size_t ID )
 //    {
 //        ++counter ;
 //        this->surface = true ;
@@ -63,10 +58,10 @@ using namespace boost::numeric::ublas ;
 //        this->ndirection = ndirection ;
 //    }
 //
-//    virtual void notifyLowerCollision( unsigned de, unsigned az,
+//    virtual void notifyLowerCollision( size_t de, size_t az,
 //               double dt, double grazing, double speed,
 //               const wposition1& position, const wvector1& ndirection,
-//               const wave_queue& wave, unsigned ID )
+//               const wave_queue& wave, size_t ID )
 //    {
 //        ++counter ;
 //        this->bottom = true ;
@@ -559,10 +554,6 @@ BOOST_AUTO_TEST_CASE( reflect_interp_spd_acc_test ){
     // propagate rays & record to netCDF file
 
     wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
-    struct timeval time ;
-    struct timezone zone ;
-    gettimeofday( &time, &zone ) ;
-    double start = time.tv_sec + time.tv_usec * 1e-6 ;
     while ( wave.time() < time_max ) {
         wave.step() ;
 
@@ -592,10 +583,6 @@ BOOST_AUTO_TEST_CASE( reflect_interp_spd_acc_test ){
            << wave.curr()->sound_speed(0,0) << ','
            << wave.curr()->sound_gradient.rho(0,0) << endl ;
    }
-    gettimeofday( &time, &zone ) ;
-    double complete = time.tv_sec + time.tv_usec * 1e-6 ;
-
-    cout << "wave propagates for " << (complete-start) << " secs" << endl ;
 }
 
 /// @}

@@ -763,6 +763,13 @@ inline math_traits<double>::value_type to_colatitude(
     return math_traits<double>::to_colatitude(t);
 }
 
+inline math_traits<double>::value_type copysign(
+        math_traits<double>::const_reference t,
+        math_traits<double>::const_reference v )
+{
+    return math_traits<double>::copysign(t,v);
+}
+
 //*********************************************************
 // add GNU C++ math functions to Visual C++
 
@@ -772,6 +779,8 @@ inline math_traits<double>::value_type to_colatitude(
     #endif
     inline int isnan(double x) { return _isnan(x); }
     inline int round(double x) { return floor(x + 0.5); }
+
+#if (_MSC_VER < 1800 )  // Visual Sudio eariler than 2013
 
     inline math_traits<double>::value_type acosh(
         math_traits<double>::const_reference t)
@@ -791,6 +800,6 @@ inline math_traits<double>::value_type to_colatitude(
 
 #endif
 
-
+#endif
 } // end of ublas namespace
 } // end of usml namespace
