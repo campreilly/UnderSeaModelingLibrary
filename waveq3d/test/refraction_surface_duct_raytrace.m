@@ -1,33 +1,31 @@
 %%
-% Interactive GUI for a Munk profile wavefront.
-%
-% Illustrates the smoothness of the wavefront and the lack of false
-% caustics.  Illustrates the detection of caustics by the ray tracing 
-% algorithm.
+% Interactive GUI used to analyze the surface ducting environment.
+% This allows for particular analysis of on_edge and caustic logics
+% allowing for individual and minute control over the display to watch
+% rays moving on and off of edges and the rays gaining a caustic count.
 
-function refraction_munk_raytrace
+function refraction_surface_duct_raytrace
     
     global de ;
     global az ;
     global time ;
     global x_dim ;
     global y_dim ;
+    global z_dim ;
+    global initialize ;
     global follow ;
     
-    follow = false ;
-    lat_offset = 45.0 ;
-
-    wavefront = load_netcdf_wavefront( 'refraction_munk_range.nc' ) ;
-    wave_max_time = length(wavefront.travel_time) ;
-    time = 150 ;
-    de = 1:length(wavefront.source_de) ;
-    az = 1 ;
+    time = 10 ;
     t_index = 1:time ;
+    follow = false ;
+
+    wavefront = load_netcdf_wavefront( 'refraction_surface_duct.nc' ) ;
+    wave_max_time = length(wavefront.travel_time) ;
     
     %% Figure properties
     grey = [0.8 0.8 0.8] ;
     f = figure('units', 'pixels', ...
-               'name', 'Refraction Munk Wavefront Propagation', ...
+               'name', 'Refraction Surface Duct Propagation', ...
                'HandleVisibility','callback',...
                'IntegerHandle','off',...
                'Renderer','painters',...
@@ -158,8 +156,8 @@ function refraction_munk_raytrace
     
     %% Plot area
     a = axes('parent', center_panel) ;
-    view(a,[0 90]) ;
-    set(a,'XGrid','on','YGrid','on') ;
+%     view(a,[0 90]) ;
+    set(a,'XGrid','on','YGrid','on','ZGrid','on') ;
     
     function create_plot
         axes(a) ;
@@ -168,6 +166,7 @@ function refraction_munk_raytrace
         if follow
             x_dim = xlim ;
             y_dim = ylim ;
+            z_dim = zlim ;            
         end
         if isempty(de)
             de = 1 ;
@@ -177,25 +176,21 @@ function refraction_munk_raytrace
         end
             % wavefront log
         wlat = squeeze(wavefront.latitude(az,de,t_index)) ;
-        wlat = convert_range( wlat, lat_offset, true ) ;
         walt = squeeze(wavefront.altitude(az,de,t_index)) ;
             % end point
         t_lat = squeeze(wavefront.latitude(az,de,t_index(end))) ;
-        t_lat = convert_range( t_lat, lat_offset, true ) ;
         t_alt = squeeze(wavefront.altitude(az,de,t_index(end))) ;
             % edges
         [n,m] = find( wavefront.on_edge(az,de,t_index(end)) == true ) ;
         e_lat = squeeze(wavefront.latitude(az,de,t_index(end))) ;
         e_lat = e_lat(n,m) ;
-        e_lat = convert_range( e_lat, lat_offset, true ) ;
         e_alt = squeeze(wavefront.altitude(az,de,t_index(end))) ;
         e_alt = e_alt(n,m) ;
-        
+            % caustics
         [n,m] = find( wavefront.caustic(az,de,t_index(end-1)) ...
                     < wavefront.caustic(az,de,t_index(end)) ) ;
         c_lat = squeeze(wavefront.latitude(az,de,t_index(end))) ;
         c_lat = c_lat(n,m) ;
-        c_lat = convert_range( c_lat, lat_offset, true ) ;
         c_alt = squeeze(wavefront.altitude(az,de,t_index(end))) ;
         c_alt = c_alt(n,m) ;
         
@@ -205,23 +200,28 @@ function refraction_munk_raytrace
         plot( e_lat, e_alt, 'rd', ...
               'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'r' ) ;
         plot( c_lat, c_alt, 'g*', ...
-              'markerfacecolor', 'g', 'markeredgecolor', 'g' ) ;
+              'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'g' ) ;
         hold off ;
         view(phi,el) ;
         if follow
             window = (x_dim(2) - x_dim(1)) / 10.0 ;
             left = min(wavefront.latitude(az,de,t_index(end))) ;
-            left = convert_range( left, lat_offset, true ) ;
             right = max(wavefront.latitude(az,de,t_index(end))) ;
-            right = convert_range( right, lat_offset, true ) ;
             x_dim(1) = left - window ;
             x_dim(2) = right + window ;
             set(a,'XLim',x_dim) ;
+            y_dim = ylim ;
+            y_dim(2) = 0 ;
+            set(a,'YLim',y_dim) ;
+        else
+            y_dim = ylim ;
+            y_dim(2) = 0 ;
             set(a,'YLim',y_dim) ;
         end
-        xlabel('Range (km)') ;
+        xlabel('Latitude (deg)') ;
         ylabel('Depth (m)') ;
         grid on ;
+        initialize = false ;
     end
 
     populate_ray_table ;
@@ -276,14 +276,6 @@ function refraction_munk_raytrace
             follow = false ;
         end
         create_plot ;
-    end
-
-    function R = convert_range( latitude, offset, kilo )
-       if kilo
-            R = ( latitude - offset ) * 1852.0 * 60 / 1e3 ; % convert to km
-       else
-            R = ( latitude - offset ) * 1852.0 * 60 ;  % convert to meters
-       end
     end
 
 end
