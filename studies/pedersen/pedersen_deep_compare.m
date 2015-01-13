@@ -97,8 +97,8 @@ for t = 1:length(eigenrays)
 end
 clear eigenrays
 
-figure(1) ;% maximize(gcf) ;
-figure(2) ;% maximize(gcf) ;
+figure(1) ; 
+figure(2) ; 
 
 % compare intensity estimates
 

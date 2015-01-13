@@ -763,6 +763,13 @@ inline math_traits<double>::value_type to_colatitude(
     return math_traits<double>::to_colatitude(t);
 }
 
+inline math_traits<double>::value_type copysign(
+        math_traits<double>::const_reference t,
+        math_traits<double>::const_reference v )
+{
+    return math_traits<double>::copysign(t,v);
+}
+
 //*********************************************************
 // add GNU C++ math functions to Visual C++
 
