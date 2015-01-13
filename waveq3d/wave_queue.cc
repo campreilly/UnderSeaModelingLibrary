@@ -58,9 +58,9 @@ wave_queue::wave_queue(
     _ocean.bottom().height( _source_pos, &bottom_rho ) ;
     bottom_rho += offset ;
     if ( _source_pos.altitude() > -offset ) {
-    	_source_pos.altitude(-offset) ;
+        _source_pos.altitude(-offset) ;
     } else if ( _source_pos.rho() < bottom_rho ) {
-    	_source_pos.rho( bottom_rho ) ;
+        _source_pos.rho( bottom_rho ) ;
     }
 
     // create storage space for all wavefront elements
@@ -238,10 +238,10 @@ bool wave_queue::detect_reflections_bottom( size_t de, size_t az ) {
             _curr->bottom(de,az) = _prev->bottom(de,az)
                     = _past->bottom(de,az) = _next->bottom(de,az) ;
             detect_reflections_surface( de, az ) ;
-            return true ;	// indicate a surface reflection
+            return true ;    // indicate a surface reflection
         }
     }
-    return false ;	// indicates no reflection
+    return false ;    // indicates no reflection
 }
 
 /**
@@ -284,11 +284,7 @@ void wave_queue::detect_eigenrays() {
 
     double distance2[3][3][3] ;
     double& center = distance2[1][1][1] ;
-    double az_start = 0 ;
-
-    if(!_az_boundary) {
-        az_start = 1 ;
-    }
+    double az_start = (_az_boundary) ? 0 : 1 ;
 
     // loop over all targets
     for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
@@ -343,107 +339,59 @@ bool wave_queue::is_closest_ray(
    const double& center,
    double distance2[3][3][3]
 ) {
-    /**
-     * In order to speed up the code, it required splitting the code
-     * to run faster. This then only checks the _az_boundary condition
-     * once per function call.
-     */
-    if(_az_boundary) {
-        // test all neighbors that are not the central ray
-        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
-            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
-                if ( nde == 1 && naz == 1 ) continue ;
+	// test all neighbors that are not the central ray
 
-                // compute distances on the current, next, and previous wavefronts
+	for ( size_t nde=0 ; nde < 3 ; ++nde ) {
+		for ( size_t naz=0 ; naz < 3 ; ++naz ) {
+			if ( nde == 1 && naz == 1 ) continue ;
 
-                size_t d = de + nde - 1 ;
-                size_t a = az + naz - 1 ;
-                if( (int)a < 0.0 ) {
-                    a = num_az() - 2 ;
-                } else
-                if( a >= (num_az() - 1) ) {
-                    a = 0 ;
-                }
+			// compute distances on the current, next, and previous wavefronts
 
-                distance2[0][nde][naz] = _prev->distance2(t1,t2)(d,a) ;
-                distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
-                distance2[2][nde][naz] = _next->distance2(t1,t2)(d,a) ;
+			size_t d = de + nde - 1 ;
+			size_t a = az + naz - 1 ;
+			if ( _az_boundary ) {
+				if ( az + naz == 0 ) {	// aka if a < 0
+					a = num_az() - 2 ;
+				} else if( a >= (num_az() - 1) ) {
+					a = 0 ;
+				}
+			}
 
-                // skip to next iteration if tested ray is on edge of ray family
-                // allows extrapolation outside of ray family
+			distance2[0][nde][naz] = _prev->distance2(t1,t2)(d,a) ;
+			distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
+			distance2[2][nde][naz] = _next->distance2(t1,t2)(d,a) ;
 
-                if ( a == num_az()-1 ) continue;
-                if ( _de_branch ) {
-                    if ( _curr->on_edge(d,a) ) continue ;
-                } else {
-                    if ( nde != 1 ) {
-                        if ( _curr->on_edge(d,a) ) continue ;
-                    }
-                }
+			// skip to next iteration if tested ray is on edge of ray family
+			// allows extrapolation outside of ray family
 
-                // test to see if the center value is the smallest
+			if ( a == 0 && ! _az_boundary ) continue;
+			if ( a == num_az()-1 ) continue;
+			if ( _de_branch ) {
+				if ( _curr->on_edge(d,a) ) continue ;
+			} else {
+				if ( nde != 1 ) {
+					if ( _curr->on_edge(d,a) ) continue ;
+				}
+			}
 
-                if ( nde == 2 || naz == 2 ) {
-                    if ( _de_branch ) {
-                        if ( az == 0 ) {
-                            if ( distance2[1][nde][naz] < center ) return false ;
-                        } else { return false ; }
-                    } else {
-                        if ( distance2[1][nde][naz] <= center ) return false ;
-                    }
-                } else {
-                    if ( distance2[1][nde][naz] < center ) return false ;
-                }
-                if ( distance2[2][nde][naz] <= center ) return false ;
-                if ( distance2[0][nde][naz] < center ) return false ;
-            }
-        }
-        return true ;
-    } else {
-        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
-            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
-                if ( nde == 1 && naz == 1 ) continue ;
-                // compute distances on the current, next, and previous wavefronts
+			// test to see if the center value is the smallest
 
-                size_t d = de + nde - 1 ;
-                size_t a = az + naz - 1 ;
-
-                distance2[0][nde][naz] = _prev->distance2(t1,t2)(d,a) ;
-                distance2[1][nde][naz] = _curr->distance2(t1,t2)(d,a) ;
-                distance2[2][nde][naz] = _next->distance2(t1,t2)(d,a) ;
-
-                // skip to next iteration if tested ray is on edge of ray family
-                // allows extrapolation outside of ray family
-
-                if ( a == 0 || a == num_az()-1 ) continue;
-                if ( _de_branch ) {
-                    if ( _curr->on_edge(d,a) ) continue ;
-                } else {
-                    if ( nde != 1 ) {
-                        if ( _curr->on_edge(d,a) ) continue ;
-                    }
-                }
-
-                // test to see if the center value is the smallest
-
-                if ( nde == 2 || naz == 2 ) {
-                    if ( _de_branch ) {
-                        if ( az == 0 ) {
-                            if ( distance2[1][nde][naz] < center ) return false ;
-                        } else { return false ; }
-                    } else {
-                        if ( distance2[1][nde][naz] <= center ) return false ;
-                    }
-                } else {
-                    if ( distance2[1][nde][naz] < center ) return false ;
-                }
-                if ( distance2[2][nde][naz] <= center ) return false ;
-                if ( distance2[0][nde][naz] < center ) return false ;
-            }
-        }
-        return true ;
-    } // end if _az_boundary
-
+			if ( nde == 2 || naz == 2 ) {
+				if ( _de_branch ) {
+					if ( az == 0 ) {
+						if ( distance2[1][nde][naz] < center ) return false ;
+					} else { return false ; }
+				} else {
+					if ( distance2[1][nde][naz] <= center ) return false ;
+				}
+			} else {
+				if ( distance2[1][nde][naz] < center ) return false ;
+			}
+			if ( distance2[2][nde][naz] <= center ) return false ;
+			if ( distance2[0][nde][naz] < center ) return false ;
+		}
+	}
+	return true ;
 } // end is_closest_ray
 
 /**
@@ -465,71 +413,47 @@ void wave_queue::build_eigenray(
 //         << " az(" << az << ")=" << (*_source_az)(az)
 //         << endl ;
 //#endif
-	// compute offsets
+
+    // compute offsets
     // limit to simple inverse if path types change in this neighborhood
 
-    c_vector<double,3> delta, offset, distance ;
-    delta(0) = _time_step ;
-    delta(1) = _source_de->increment(de) ;
-    delta(2) = _source_az->increment(az) ;
+    c_vector<double, 3> delta, offset, distance;
+    delta(0) = _time_step;
+    delta(1) = _source_de->increment(de);
+    delta(2) = _source_az->increment(az);
 
-    bool unstable = false ;
-    const int surface = _curr->surface(de,az) ;
-    const int bottom = _curr->bottom(de,az) ;
-    const int caustic = _curr->caustic(de,az) ;
-    /**
-     * In order to speed up the code, it required splitting the code
-     * to run faster. This then only checks the _az_boundary condition
-     * once per function call.
-     */
-    if(_az_boundary) {
-        for ( size_t nde=0 ; nde < 3 && !unstable ; ++nde ) {
-            size_t d = de + nde -1 ;
-            for ( size_t naz=0 ; naz < 3 && !unstable ; ++naz ) {
-                size_t a = az + naz -1 ;
-                if( (int)a < 0.0 ) {
-                    a = num_az() - 2 ;
-                } else
-                if( a >= (num_az() - 1) ) {
-                    a = 0 ;
+    bool unstable = false;
+    const int surface = _curr->surface(de, az);
+    const int bottom = _curr->bottom(de, az);
+    const int caustic = _curr->caustic(de, az);
+
+    for (size_t nde = 0; nde < 3 && !unstable; ++nde) {
+        size_t d = de + nde - 1;
+        for (size_t naz = 0; naz < 3 && !unstable; ++naz) {
+            size_t a = az + naz - 1;
+            if (_az_boundary) {
+                if ( az + naz == 0 ) {	// aka if a < 0
+                    a = num_az() - 2;
+                } else if (a >= num_az()-1) {
+                    a = 0;
                 }
-                if ( _prev->surface(d,a) != surface ||
-                     _curr->surface(d,a) != surface ||
-                     _next->surface(d,a) != surface ||
-                     _prev->bottom(d,a) != bottom ||
-                     _curr->bottom(d,a) != bottom ||
-                     _next->bottom(d,a) != bottom ||
-                     _prev->caustic(d,a) != caustic ||
-                     _curr->caustic(d,a) != caustic ||
-                     _next->caustic(d,a) != caustic )
-                {
-                    unstable = true ;
-                }
+            }
+            if ( _prev->surface(d, a) != surface
+              || _curr->surface(d, a) != surface
+              || _next->surface(d, a) != surface
+              || _prev->bottom(d, a) != bottom
+              || _curr->bottom(d, a) != bottom
+              || _next->bottom(d, a) != bottom
+              || _prev->caustic(d, a) != caustic
+              || _curr->caustic(d, a) != caustic
+              || _next->caustic(d, a) != caustic)
+            {
+                unstable = true;
             }
         }
     }
-    else {
-        for ( size_t nde=0 ; nde < 3 && !unstable ; ++nde ) {
-            size_t d = de + nde -1 ;
-            for ( size_t naz=0 ; naz < 3 && !unstable ; ++naz ) {
-                size_t a = az + naz -1 ;
-                if ( _prev->surface(d,a) != surface ||
-                     _curr->surface(d,a) != surface ||
-                     _next->surface(d,a) != surface ||
-                     _prev->bottom(d,a) != bottom ||
-                     _curr->bottom(d,a) != bottom ||
-                     _next->bottom(d,a) != bottom ||
-                     _prev->caustic(d,a) != caustic ||
-                     _curr->caustic(d,a) != caustic ||
-                     _next->caustic(d,a) != caustic )
-                {
-                    unstable = true ;
-                }
-            }
-        }
-    } // end if _az_boundary
 
-    compute_offsets( distance2, delta, offset, distance, unstable ) ;
+    compute_offsets(distance2, delta, offset, distance, unstable);
 
     // build basic eigenray products
 
@@ -583,70 +507,45 @@ void wave_queue::build_eigenray(
 
     bool bKeepRay = false ;
     for ( size_t i = 0; i < ray.intensity.size(); ++i) {
-		if ( ray.intensity(i) < _intensity_threshold  ) {
-			bKeepRay = true ;
-			break ;
-		}
-	}
+        if ( ray.intensity(i) < _intensity_threshold  ) {
+            bKeepRay = true ;
+            break ;
+        }
+    }
 
     if (!bKeepRay) {
-		return ;
-	}
+        return ;
+    }
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles
-    /**
-     * In order to speed up the code, it required splitting the code
-     * to run faster. This then only checks the _az_boundary condition
-     * once per function call.
-     */
-    if(_az_boundary) {
-        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
-            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
-                size_t d = de + nde - 1 ;
-                size_t a = az + naz - 1 ;
-                if( (int)a < 0.0 ) {
-                    a = num_az() - 2 ;
-                } else
-                if( a >= (num_az() - 1) ) {
-                    a = 0 ;
-                }
-                double dummy ;
-                {
-                    wvector1 ndir( _prev->ndirection, d, a ) ;
-                    ndir.direction( &distance2[0][nde][naz], &dummy ) ;
-                }
-                {
-                    wvector1 ndir( _curr->ndirection, d, a ) ;
-                    ndir.direction( &distance2[1][nde][naz], &dummy ) ;
-                }
-                {
-                    wvector1 ndir( _next->ndirection, d, a ) ;
-                    ndir.direction( &distance2[2][nde][naz], &dummy ) ;
+
+    for ( size_t nde=0 ; nde < 3 ; ++nde ) {
+    	for ( size_t naz=0 ; naz < 3 ; ++naz ) {
+    		size_t d = de + nde - 1 ;
+    		size_t a = az + naz - 1 ;
+            if (_az_boundary) {
+                if ( az + naz == 0 ) {	// aka if a < 0
+                    a = num_az() - 2;
+                } else if (a >= num_az()-1) {
+                    a = 0;
                 }
             }
-        }
-    } else {
-        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
-            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
-                size_t d = de + nde - 1 ;
-                size_t a = az + naz - 1 ;
-                double dummy ;
-                {
-                    wvector1 ndir( _prev->ndirection, d, a ) ;
-                    ndir.direction( &distance2[0][nde][naz], &dummy ) ;
-                }
-                {
-                    wvector1 ndir( _curr->ndirection, d, a ) ;
-                    ndir.direction( &distance2[1][nde][naz], &dummy ) ;
-                }
-                {
-                    wvector1 ndir( _next->ndirection, d, a ) ;
-                    ndir.direction( &distance2[2][nde][naz], &dummy ) ;
-                }
-            }
-        }
-    } // end if _az_boundary
+    		double dummy ;
+    		{
+    			wvector1 ndir( _prev->ndirection, d, a ) ;
+    			ndir.direction( &distance2[0][nde][naz], &dummy ) ;
+    		}
+    		{
+    			wvector1 ndir( _curr->ndirection, d, a ) ;
+    			ndir.direction( &distance2[1][nde][naz], &dummy ) ;
+    		}
+    		{
+    			wvector1 ndir( _next->ndirection, d, a ) ;
+    			ndir.direction( &distance2[2][nde][naz], &dummy ) ;
+    		}
+    	}
+    }
 
     double center ;
     c_vector<double,3> gradient ;
@@ -666,8 +565,7 @@ void wave_queue::build_eigenray(
                 double dummy ;
                 if( (int)a < 0.0 ) {
                     a = num_az() - 2 ;
-                } else
-                if( (int)a >= (num_az() - 1) ) {
+                } else if( a >= (num_az() - 1) ) {
                     a = 0 ;
                 }
                 {
@@ -847,12 +745,12 @@ void wave_queue::make_taylor_coeff(
 */
 bool wave_queue::addEigenrayListener(eigenrayListener* pListener) {
 
-	std::vector<eigenrayListener*>::iterator iter = find(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener);
-	if ( iter != _eigenrayListenerVec.end() ) {
-		return false;
-	}
-	_eigenrayListenerVec.push_back(pListener);
-	return true;
+    std::vector<eigenrayListener*>::iterator iter = find(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener);
+    if ( iter != _eigenrayListenerVec.end() ) {
+        return false;
+    }
+    _eigenrayListenerVec.push_back(pListener);
+    return true;
 }
 
 
@@ -861,13 +759,13 @@ bool wave_queue::addEigenrayListener(eigenrayListener* pListener) {
  */
 bool wave_queue::removeEigenrayListener(eigenrayListener* pListener){
 
-	std::vector<eigenrayListener*>::iterator iter = find(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener);
-	if ( iter == _eigenrayListenerVec.end() ){
-		return false;
-	} else {
-		_eigenrayListenerVec.erase(remove(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener));
-	}
-	return true;
+    std::vector<eigenrayListener*>::iterator iter = find(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener);
+    if ( iter == _eigenrayListenerVec.end() ){
+        return false;
+    } else {
+        _eigenrayListenerVec.erase(remove(_eigenrayListenerVec.begin(), _eigenrayListenerVec.end(), pListener));
+    }
+    return true;
 }
 
 /**
@@ -876,13 +774,13 @@ bool wave_queue::removeEigenrayListener(eigenrayListener* pListener){
  */
 bool wave_queue::notifyEigenrayListeners(size_t targetRow, size_t targetCol, eigenray pEigenray){
 
-	for (std::vector<eigenrayListener*>::iterator iter = _eigenrayListenerVec.begin();
-												iter != _eigenrayListenerVec.end(); ++iter){
-		eigenrayListener* pListener = *iter;
-		pListener->addEigenray(targetRow, targetCol, pEigenray, _run_id);
-	}
+    for (std::vector<eigenrayListener*>::iterator iter = _eigenrayListenerVec.begin();
+                                                iter != _eigenrayListenerVec.end(); ++iter){
+        eigenrayListener* pListener = *iter;
+        pListener->addEigenray(targetRow, targetCol, pEigenray, _run_id);
+    }
 
-	return (_eigenrayListenerVec.size() > 0);
+    return (_eigenrayListenerVec.size() > 0);
 }
 
 /**
@@ -892,11 +790,11 @@ bool wave_queue::notifyEigenrayListeners(size_t targetRow, size_t targetCol, eig
  */
 bool wave_queue::checkEigenrayListeners(long waveTime){
 
-	for (std::vector<eigenrayListener*>::iterator iter = _eigenrayListenerVec.begin();
-												iter != _eigenrayListenerVec.end(); ++iter){
-		eigenrayListener* pListener = *iter;
-		pListener->checkEigenrays(_run_id, waveTime);
-	}
+    for (std::vector<eigenrayListener*>::iterator iter = _eigenrayListenerVec.begin();
+                                                iter != _eigenrayListenerVec.end(); ++iter){
+        eigenrayListener* pListener = *iter;
+        pListener->checkEigenrays(_run_id, waveTime);
+    }
 
-	return (_eigenrayListenerVec.size() > 0);
+    return (_eigenrayListenerVec.size() > 0);
 }
