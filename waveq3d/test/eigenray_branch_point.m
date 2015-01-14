@@ -1,6 +1,6 @@
 
 clear ; close all
-[proploss_x, eigenray_x] = load_proploss('eigenray_branch_pt.nc') ;
+[proploss_x, eigenray_x] = load_netcdf_proploss('eigenray_branch_pt.nc') ;
 
 deg_2_m = 1852.0 * 60.0 / 1e3 ;      % conversion factor from deg lat to km
 source_x = proploss_x.source_longitude * deg_2_m ;

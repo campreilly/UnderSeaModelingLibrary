@@ -526,9 +526,9 @@ void wave_queue::build_eigenray(
     		size_t a = az + naz - 1 ;
             if (_az_boundary) {
                 if ( az + naz == 0 ) {	// aka if a < 0
-                    a = num_az() - 2;
+                    a = num_az() - 2 ;
                 } else if (a >= num_az()-1) {
-                    a = 0;
+                    a = 0 ;
                 }
             }
     		double dummy ;
@@ -556,53 +556,32 @@ void wave_queue::build_eigenray(
 
     // estimate target AZ angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store AZ angles
-
-    if(_az_boundary) {
-        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
-            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
-                size_t d = de + nde - 1 ;
-                size_t a = az + naz - 1 ;
-                double dummy ;
-                if( (int)a < 0.0 ) {
-                    a = num_az() - 2 ;
-                } else if( a >= (num_az() - 1) ) {
-                    a = 0 ;
-                }
-                {
-                    wvector1 ndir( _prev->ndirection, d, a ) ;
-                    ndir.direction( &dummy, &distance2[0][nde][naz] ) ;
-                }
-                {
-                    wvector1 ndir( _curr->ndirection, d, a ) ;
-                    ndir.direction( &dummy, &distance2[1][nde][naz] ) ;
-                }
-                {
-                    wvector1 ndir( _next->ndirection, d, a ) ;
-                    ndir.direction( &dummy, &distance2[2][nde][naz] ) ;
-                }
-            }
-        }
-    } else {
-        for ( size_t nde=0 ; nde < 3 ; ++nde ) {
-            for ( size_t naz=0 ; naz < 3 ; ++naz ) {
-                size_t d = de + nde - 1 ;
-                size_t a = az + naz - 1 ;
-                double dummy ;
-                {
-                    wvector1 ndir( _prev->ndirection, d, a ) ;
-                    ndir.direction( &dummy, &distance2[0][nde][naz] ) ;
-                }
-                {
-                    wvector1 ndir( _curr->ndirection, d, a ) ;
-                    ndir.direction( &dummy, &distance2[1][nde][naz] ) ;
-                }
-                {
-                    wvector1 ndir( _next->ndirection, d, a ) ;
-                    ndir.direction( &dummy, &distance2[2][nde][naz] ) ;
-                }
-            }
-        }
-    }// end if _az_boundary
+	for ( size_t nde=0 ; nde < 3 ; ++nde ) {
+		for ( size_t naz=0 ; naz < 3 ; ++naz ) {
+			size_t d = de + nde - 1 ;
+			size_t a = az + naz - 1 ;
+			if (_az_boundary) {
+				if ( az + naz == 0 ) {	// aka if a < 0
+					a = num_az() - 2 ;
+				} else if (a >= num_az()-1) {
+					a = 0 ;
+				}
+			}
+			double dummy ;
+			{
+				wvector1 ndir( _prev->ndirection, d, a ) ;
+				ndir.direction( &dummy, &distance2[0][nde][naz] ) ;
+			}
+			{
+				wvector1 ndir( _curr->ndirection, d, a ) ;
+				ndir.direction( &dummy, &distance2[1][nde][naz] ) ;
+			}
+			{
+				wvector1 ndir( _next->ndirection, d, a ) ;
+				ndir.direction( &dummy, &distance2[2][nde][naz] ) ;
+			}
+		}
+	}
 
     make_taylor_coeff( distance2, delta, center, gradient, hessian, unstable ) ;
     ray.target_az = center + inner_prod( gradient, offset )
