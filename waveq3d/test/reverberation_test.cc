@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     const double alt = 0.0 ;
     const double c0 = 1500.0 ;              // constant sound speed
     const double depth = 200.0 ;
-    unsigned bins = time_max / resolution ;
+    size_t bins = time_max / resolution ;
     const double SL = 200.0 ;
 
     // initialize propagation model
@@ -73,8 +73,8 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
 
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( lat, lng, alt ) ;
-    seq_rayfan de ;
-//    seq_rayfan de( -90.0, 0.0, 91 ) ;
+//    seq_rayfan de ;
+    seq_rayfan de( -90.0, 0.0, 91 ) ;
 //    seq_linear de( -89.5, 5.0, 89.5 ) ;
     seq_linear az( 0.0, 360.0, 360.0 ) ;
 
@@ -123,8 +123,8 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
     cout << std::setprecision(18);
 
     const vector<double> reverb_tl = reverb->reverberation_curve() ;
-    vector<double> r = SL + 10.0*log10(reverb_tl) ;
-    for ( unsigned i=0; i < bins; ++i ) {
+    vector<double> r = SL + 10.0*log10(2.0*reverb_tl) ;
+    for ( size_t i=0; i < bins; ++i ) {
         if( i % 10 == 0 ) {
             cout << "reverb_level(" << i << "): " << r(i) << endl ;
         }
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
 //    const double rcvr_lng = 0.0 ;
 //    const double rcvr_alt = -50.0 ;
 //    const double depth = 1000.0 ;
-//    unsigned bins = time_max / resolution ;
+//    size_t bins = time_max / resolution ;
 //    const double SL = 250.0 ;
 //
 //    // initialize propagation model
@@ -243,7 +243,7 @@ BOOST_AUTO_TEST_CASE( monostatic ) {
 //
 //    const vector<double> reverb_tl = reverb->reverberation_curve() ;
 //    vector<double> r = SL + 10.0*log10(reverb_tl) ;
-//    for ( unsigned i=0; i < bins; ++i ) {
+//    for ( size_t i=0; i < bins; ++i ) {
 //        if( i % 10 == 0 ) {
 //            cout << "reverb_level(" << i << "): " << r(i) << endl ;
 //        }

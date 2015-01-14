@@ -9,7 +9,7 @@ using namespace usml::waveq3d ;
 /**  Constructor  **/
 eigenverb_bistatic::eigenverb_bistatic( ocean_model& ocean,
     wave_queue_reverb& wave_source, wave_queue_reverb& wave_receiver,
-    double pulse, unsigned num_bins, double max_time )
+    double pulse, size_t num_bins, double max_time )
 {
         // Set all local member variables for use in calculations
     _pulse = pulse ;
@@ -19,7 +19,7 @@ eigenverb_bistatic::eigenverb_bistatic( ocean_model& ocean,
     _bottom_boundary = &ocean.bottom() ;
     _surface_boundary = &ocean.surface() ;
 
-    unsigned _n = ocean.num_volume() ;
+    size_t _n = ocean.num_volume() ;
     if ( _n > 0 ) {
         _receiver_upper.resize( _n ) ;
         _receiver_lower.resize( _n ) ;
@@ -47,10 +47,10 @@ eigenverb_bistatic::eigenverb_bistatic( ocean_model& ocean,
  * Places an eigenverb into the class of "upper" bins to be used for the overall
  * reverberation calculation.
  */
-void eigenverb_bistatic::notifyUpperCollision( unsigned de, unsigned az,
+void eigenverb_bistatic::notifyUpperCollision( size_t de, size_t az,
                double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, unsigned ID )
+               const wave_queue& wave, size_t ID )
 {
     #ifdef EIGENVERB_COLLISION_DEBUG
         std::cout << "**** Entering eigenverb_bistatic::notifyUpperCollision()" << std::endl ;
@@ -67,7 +67,7 @@ void eigenverb_bistatic::notifyUpperCollision( unsigned de, unsigned az,
         if( ID == _receiver_origin ) {
             _receiver_surface.push_back( verb ) ;
         } else {
-            unsigned layer ;
+        	size_t layer ;
             if( ID > _receiver_origin ) {
                 layer = ID - _receiver_origin - 1 ;
                 _receiver_upper.at(layer).push_back( verb ) ;
@@ -83,10 +83,10 @@ void eigenverb_bistatic::notifyUpperCollision( unsigned de, unsigned az,
  * Places an eigenverb into the class of "lower" bins to be used for the overall
  * reverberation calculation.
  */
-void eigenverb_bistatic::notifyLowerCollision( unsigned de, unsigned az,
+void eigenverb_bistatic::notifyLowerCollision( size_t de, size_t az,
                double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, unsigned ID )
+               const wave_queue& wave, size_t ID )
 {
     #ifdef EIGENVERB_COLLISION_DEBUG
         std::cout << "**** Entering eigenverb_bistatic::notifyLowerCollision()" << std::endl ;
@@ -103,7 +103,7 @@ void eigenverb_bistatic::notifyLowerCollision( unsigned de, unsigned az,
         if( ID == _receiver_origin ) {
             _receiver_bottom.push_back( verb ) ;
         } else {
-            unsigned layer ;
+        	size_t layer ;
             if( ID > _receiver_origin ) {
                 layer = ID - _receiver_origin - 1 ;
                 _receiver_lower.at(layer).push_back( verb ) ;
@@ -156,7 +156,7 @@ void eigenverb_bistatic::compute_upper_volume_energy() {
 //            cout << "**** Entering eigenverb_bistatic::compute_upper_volume_energy()"
 //                 << endl ;
 //        #endif
-//        unsigned layer = 0 ;
+//        size_t layer = 0 ;
 //        std::vector<std::vector<eigenverb> >::iterator i ;
 //        std::vector<std::vector<eigenverb> >::iterator j ;
 //        for(i=_source_upper.begin(), j=_receiver_upper.begin();
@@ -181,7 +181,7 @@ void eigenverb_bistatic::compute_lower_volume_energy() {
 //            cout << "**** Entering eigenverb_bistatic::compute_lower_volume_energy()"
 //                 << endl ;
 //        #endif
-//        unsigned layer = 0 ;
+//        size_t layer = 0 ;
 //        std::vector<std::vector<eigenverb> >::iterator i ;
 //        std::vector<std::vector<eigenverb> >::iterator j ;
 //        for(i=_source_lower.begin(), j=_receiver_lower.begin();

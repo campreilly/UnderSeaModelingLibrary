@@ -45,12 +45,12 @@ wave_queue_reverb::wave_queue_reverb(
     // prevent certain points on the wavefront from producing eigenverbs
     // this is to prevent out of bounds errors on the de/az vectors.
     _invalid_ray.clear() ;
-    const unsigned max_de = num_de() - 1 ;
-    const unsigned max_az = num_az() - 1 ;
-    for(unsigned i=0; i<num_az(); ++i) {
+    const size_t max_de = num_de() - 1 ;
+    const size_t max_az = num_az() - 1 ;
+    for(size_t i=0; i<num_az(); ++i) {
         _invalid_ray( max_de, i ) = true ;
     }
-    for(unsigned i=0; i<num_de(); ++i) {
+    for(size_t i=0; i<num_de(); ++i) {
         _invalid_ray( i, max_az ) = true ;
     }
 }
@@ -70,8 +70,8 @@ void wave_queue_reverb::detect_reflections() {
     // process all surface and bottom reflections, and vertices
     // note that multiple rays can reflect in the same time step
 
-    for (unsigned de = 0; de < num_de(); ++de) {
-        for (unsigned az = 0; az < num_az(); ++az) {
+    for (size_t de = 0; de < num_de(); ++de) {
+        for (size_t az = 0; az < num_az(); ++az) {
             if ( !detect_reflections_surface(de,az) ) {
                 if( !detect_reflections_bottom(de,az) ) {
                     detect_vertices(de,az) ;
@@ -98,8 +98,8 @@ void wave_queue_reverb::detect_volume_reflections() {
     std::size_t n = _ocean.num_volume() ;
     for(std::size_t i=0; i<n; ++i) {
         volume_model& layer = _ocean.volume(i) ;
-        for (unsigned de = 0; de < num_de(); ++de) {
-            for (unsigned az = 0; az < num_az(); ++az) {
+        for (size_t de = 0; de < num_de(); ++de) {
+            for (size_t az = 0; az < num_az(); ++az) {
                 if( _curr->on_edge(de,az) ) continue ;
                 double height ;
                 wposition1 pos_curr( _curr->position, de, az ) ;
@@ -115,7 +115,7 @@ void wave_queue_reverb::detect_volume_reflections() {
 }
 
 void wave_queue_reverb::collide_from_above(
-        unsigned de, unsigned az, double depth, unsigned layer )
+		size_t de, size_t az, double depth, size_t layer )
 {
     double MIN_REFLECT = 6.0 ;
     // extract position, direction, and sound speed from this ray
@@ -181,7 +181,7 @@ void wave_queue_reverb::collide_from_above(
     else { grazing = asin( -dot_full / c ) ; }
 
     if ( !is_ray_valid(de,az) ) {
-        unsigned ID = _run_id ;
+    	size_t ID = _run_id ;
         ID += layer + 1 ;
         _reflection_model->_reverberation->notifyLowerCollision( de, az, time_water, grazing, c,
                 position,  ndirection, *this, ID ) ;
@@ -190,7 +190,7 @@ void wave_queue_reverb::collide_from_above(
 
 /** @todo correct logic/signs for collisions from below the boundary **/
 void wave_queue_reverb::collide_from_below(
-        unsigned de, unsigned az, double depth, unsigned layer )
+		size_t de, size_t az, double depth, size_t layer )
 {
     double MIN_REFLECT = 6.0 ;
     // extract position, direction, and sound speed from this ray
@@ -256,7 +256,7 @@ void wave_queue_reverb::collide_from_below(
     else { grazing = asin( -dot_full / c ) ; }
 
     if ( !is_ray_valid(de,az) ) {
-        unsigned ID = _run_id ;
+    	size_t ID = _run_id ;
         ID += layer + 1 ;
         _reflection_model->_reverberation->notifyUpperCollision( de, az, time_water, grazing, c,
                 position,  ndirection, *this, ID ) ;
@@ -267,7 +267,7 @@ void wave_queue_reverb::collide_from_below(
  * Compute the precise location and direction at the point of collision.
  */
 void wave_queue_reverb::collision_location(
-    unsigned de, unsigned az, double time_water,
+	size_t de, size_t az, double time_water,
     wposition1* position, wvector1* ndirection, double* speed ) const
 {
     double drho, dtheta, dphi, d2rho, d2theta, d2phi ;

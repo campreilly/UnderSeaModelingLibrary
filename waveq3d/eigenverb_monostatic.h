@@ -27,7 +27,7 @@ class USML_DECLSPEC eigenverb_monostatic : public eigenverb_model {
         eigenverb_monostatic( ocean_model& ocean,
                               wave_queue_reverb& wave,
                               double pulse,
-                              unsigned num_bins,
+							  size_t num_bins,
                               double max_time ) ;
 
         virtual ~eigenverb_monostatic() {}
@@ -46,10 +46,10 @@ class USML_DECLSPEC eigenverb_monostatic : public eigenverb_model {
          * @param wave          Wave queue, used to extract various data
          * @param ID            (Used to identify source/receiver/volume layer)
          */
-        virtual void notifyUpperCollision( unsigned de, unsigned az,
+        virtual void notifyUpperCollision( size_t de, size_t az,
                double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, unsigned ID ) ;
+               const wave_queue& wave, size_t ID ) ;
 
         /**
          * React to the collision of a single ray with a reverberation
@@ -65,10 +65,10 @@ class USML_DECLSPEC eigenverb_monostatic : public eigenverb_model {
          * @param wave          Wave queue, used to extract various data
          * @param ID            (Used to identify source/receiver/volume layer)
          */
-        virtual void notifyLowerCollision( unsigned de, unsigned az,
+        virtual void notifyLowerCollision( size_t de, size_t az,
                double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, unsigned ID ) ;
+               const wave_queue& wave, size_t ID ) ;
 
          /**
           * Saves the eigenverb data to a text file.

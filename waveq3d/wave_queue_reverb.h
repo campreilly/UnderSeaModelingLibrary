@@ -67,7 +67,7 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
         /**
          * Accessor to validate a ray for reverberation contributions
          */
-        virtual bool is_ray_valid( unsigned de, unsigned az ) {
+        virtual bool is_ray_valid( size_t de, size_t az ) {
             bool result ;
             if( _time > 0 ) result = !_invalid_ray(de,az) ;
             else result = false ;
@@ -120,7 +120,7 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          * to determine the infromation needed to produce a volume reverberation calculation
          * from this layer when colliding from above the layer.
          */
-        void collide_from_above( unsigned de, unsigned az, double depth, unsigned layer ) ;
+        void collide_from_above( size_t de, size_t az, double depth, size_t layer ) ;
 
         /**
          * A modified version of the function reflection_model::surface_reflection used
@@ -129,7 +129,7 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          *      @todo need to rectify this code, it mimics the bottom_reflection but signs
          *            should be changed to adjust for approaching from below.
          */
-        void collide_from_below( unsigned de, unsigned az, double depth, unsigned layer ) ;
+        void collide_from_below( size_t de, size_t az, double depth, size_t layer ) ;
 
         /**
          * Computes a refined location and direction at the point of collision.
@@ -146,7 +146,7 @@ class USML_DECLSPEC wave_queue_reverb : public wave_queue {
          * @param speed         Speed of sound at the point of reflection (output).
          */
         void collision_location(
-            unsigned de, unsigned az, double dtime,
+        	size_t de, size_t az, double dtime,
             wposition1* position, wvector1* ndirection, double* speed ) const ;
 
 };

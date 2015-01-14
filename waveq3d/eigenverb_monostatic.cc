@@ -8,7 +8,7 @@ using namespace usml::waveq3d ;
 
 /**  Constructor  **/
 eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
-    wave_queue_reverb& wave, double pulse, unsigned num_bins, double max_time )
+    wave_queue_reverb& wave, double pulse, size_t num_bins, double max_time )
 {
         // Set all local member variables for use in calculations
     _pulse = pulse ;
@@ -18,7 +18,7 @@ eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
     _bottom_boundary = &ocean.bottom() ;
     _surface_boundary = &ocean.surface() ;
 
-    unsigned _n = ocean.num_volume() ;
+    size_t _n = ocean.num_volume() ;
     if ( _n > 0 ) {
         _upper.resize( _n ) ;
         _lower.resize( _n ) ;
@@ -42,10 +42,10 @@ eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
  * Places an eigenverb into the class of "upper" bins to be used for the overall
  * reverberation calculation.
  */
-void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az,
+void eigenverb_monostatic::notifyUpperCollision( size_t de, size_t az,
                double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, unsigned ID )
+               const wave_queue& wave, size_t ID )
 {
     #ifdef EIGENVERB_COLLISION_DEBUG
         cout << "**** Entering eigenverb_monostatic::notifyUpperCollision" << endl ;
@@ -59,7 +59,7 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az,
         if( ID == _source_origin ) {
             _surface.push_back( verb ) ;
         } else {
-            unsigned layer = ID - _source_origin - 1 ;
+        	size_t layer = ID - _source_origin - 1 ;
             _upper.at(layer).push_back( verb ) ;
         }
     }
@@ -69,10 +69,10 @@ void eigenverb_monostatic::notifyUpperCollision( unsigned de, unsigned az,
  * Places an eigenverb into the class of "lower" bins to be used for the overall
  * reverberation calculation.
  */
-void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az,
+void eigenverb_monostatic::notifyLowerCollision( size_t de, size_t az,
                double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, unsigned ID )
+               const wave_queue& wave, size_t ID )
 {
     #ifdef EIGENVERB_COLLISION_DEBUG
         cout << "**** Entering eigenverb_monostatic::notifyLowerCollision" << endl ;
@@ -86,7 +86,7 @@ void eigenverb_monostatic::notifyLowerCollision( unsigned de, unsigned az,
         if( ID == _source_origin ) {
             _bottom.push_back( verb ) ;
         } else {
-            unsigned layer = ID - _source_origin - 1 ;
+        	size_t layer = ID - _source_origin - 1 ;
             _lower.at(layer).push_back( verb ) ;
         }
     }
@@ -131,7 +131,7 @@ void eigenverb_monostatic::compute_upper_volume_energy() {
 //            cout << "**** Entering eigenverb_monostatic::compute_upper_volume_energy()"
 //                 << endl ;
 //        #endif
-//        unsigned layer = 0 ;
+//        size_t layer = 0 ;
 //        for(std::vector<std::vector<eigenverb> >::iterator k=_upper.begin();
 //                k!=_upper.end() && layer <= _n; ++k)
 //        {
@@ -153,7 +153,7 @@ void eigenverb_monostatic::compute_lower_volume_energy() {
 //            cout << "**** Entering eigenverb_monostatic::compute_lower_volume_energy()"
 //                 << endl ;
 //        #endif
-//        unsigned layer = 0 ;
+//        size_t layer = 0 ;
 //        for(std::vector<std::vector<eigenverb> >::iterator k=_lower.begin();
 //                k!=_lower.end() && layer <= _n; ++k)
 //        {

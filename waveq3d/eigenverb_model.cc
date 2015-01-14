@@ -11,7 +11,7 @@ using namespace usml::waveq3d ;
 /**
  * Creates an eigenverb from the provided data
  */
-void eigenverb_model::create_eigenverb( unsigned de, unsigned az,
+void eigenverb_model::create_eigenverb( size_t de, size_t az,
                double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
                const wave_queue& wave, eigenverb& verb ) const

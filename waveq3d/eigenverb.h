@@ -62,12 +62,12 @@ struct eigenverb {
     /**
      * The index of the lanuch DE.
      */
-    unsigned de_index ;
+    size_t de_index ;
 
     /**
      * The index of the lanuch AZ.
      */
-    unsigned az_index ;
+    size_t az_index ;
 
     /**
      * The DE of the path from launch.
@@ -98,12 +98,12 @@ struct eigenverb {
     /**
      * Number of interactions with the surface boundary
      */
-    unsigned surface ;
+    size_t surface ;
 
     /**
      * Number of interactions with the bottom boundary
      */
-    unsigned bottom ;
+    size_t bottom ;
 
 };
 
