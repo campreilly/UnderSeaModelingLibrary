@@ -20,9 +20,9 @@ using namespace usml::utilities ;
 int main() {
     cout << "=== reverberation_test: monostatic ===" << endl;
     typedef SharedPointerManager<reverberation_model>  Manager ;
-    const char* csvname = USML_TEST_DIR "/waveq3d/test/monostatic.csv" ;
+    const char* csvname = USML_STUDIES_DIR "/reverberation/monostatic.csv" ;
 	#ifdef MONOSTATIC_DEBUG
-		const char* nc_wave = USML_TEST_DIR "/waveq3d/test/monostatic_wave.nc" ;
+		const char* nc_wave = USML_STUDIES_DIR "/reverberation/monostatic_wave.nc" ;
 	#endif
     double time_max = 7.5 ;
     double time_step = 0.1 ;
