@@ -546,6 +546,35 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
                << "," << ray.bottom
                << "," << ray.caustic
                << endl;
+
+            // check that azimuthal targets match results predicted for eigenray_basic
+
+            if ( i > 1 ) {  // don't check the 2 targets above and below source
+                switch (n) {
+                case 0 :
+                    BOOST_CHECK_SMALL( ray.intensity(0)-66.9506, 0.1 );
+                    BOOST_CHECK_SMALL( ray.time-1.484018789, 0.002 );
+                    BOOST_CHECK_SMALL( ray.phase(0)-0.0, 1e-6 );
+                    BOOST_CHECK_SMALL( ray.source_de+0.01, 0.01 );
+                    BOOST_CHECK_SMALL( ray.target_de-0.01, 0.01 );
+                    break;
+                case 1 :
+                    BOOST_CHECK_SMALL( ray.intensity(0)-69.5211, 0.1 );
+                    BOOST_CHECK_SMALL( ray.time-1.995102731, 0.002 );
+                    BOOST_CHECK_SMALL( ray.phase(0)+M_PI, 1e-6 );
+                    BOOST_CHECK_SMALL( ray.source_de-41.93623171, 0.01 );
+                    BOOST_CHECK_SMALL( ray.target_de+41.93623171, 0.01 );
+                    break;
+                case 2 : // note that extrapolation is less accurate
+                    BOOST_CHECK_SMALL( ray.time-3.051676949, 0.02 );
+                    BOOST_CHECK_SMALL( ray.phase(0)-0.0, 1e-6 );
+                    BOOST_CHECK_SMALL( ray.source_de+60.91257162, 1.0 );
+                    BOOST_CHECK_SMALL( ray.target_de-60.91257162, 1.0 );
+                    break;
+                default :
+                    break;
+                }
+            }
         }
     }
 }
