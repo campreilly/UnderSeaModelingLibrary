@@ -5,9 +5,7 @@
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/waveq3d_reverb.h>
 #include <usml/utilities/SharedPointerManager.h>
-#include <iomanip>
 #include <fstream>
-#include <cstdio>
 
 using namespace usml::waveq3d ;
 using namespace usml::utilities ;
