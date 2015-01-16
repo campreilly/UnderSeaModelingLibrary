@@ -6,7 +6,25 @@
   <body>
     <h1>Under Sea Modeling Library (USML) Release Notes</h1>
     
-    <h2>Release 1.0 - Dec 2014</h2>
+    <h2>Release 1.0.0rc2 - Dec 2014</h2>
+    <ul>
+	<li>Bugs</li>
+	<ul>
+	    <li>Use differences in surface, bottom, and caustic counts to find ray family edges instead of trying to deduce from changes in direction.  Fixes accuracy errors in Lloyd's depth test and Pedersen tests.
+    	    <li>Remove explicit use of std::isnan() in netcdf_profile.cc to fix compile error in Visual C++.
+	</ul>
+	<li>Enhancements</li>
+	<ul>
+	    <li>Add checkEigenray() method to eigenrayListener interface to support support returning of eigenray as quickly as possible.
+	    <li>Added macros to usml_config.h to prevent Eclipse from finding semantic errors on macro that are not specfied until the compile line "-D".
+            <li>Guard against starting wavefront below bottom or above surface. Automatically adjusts source location if it is within 0.1 meters of being above the ocean surface or below the ocean bottom.
+	    <li>Add copysign functions specializations for double in math_traits.h
+	    <li>Modified Matlab implementation of raytrace plots to re-use logic from demo_gui.
+	    <li>Undo the splitting of wave_queue.cc code based on _az_boundary.  Minor slow down in execution speed, but simplifies maintenance.
+
+	</ul>
+    </ul>
+    <h2>Release 1.0.0rc1 - Dec 2014</h2>
     <ul>
 	<li>Bugs</li>
 	<ul>
@@ -41,7 +59,6 @@
     	    <li>Changed the name of the proplossListener class to eigenrayListener.
     	    <li>Added ability to compile USML without compiling Tests or Studies.  Broke the *.cmake files for Tests or Studies out of CMakeList.txt and into their own files.
     	    <li>Greatly simplified the installation on Windows systems by relying on pre-built binaries.
-            <li>Guard against starting wavefront below bottom or above surface. Automatically adjusts source location if it is within 0.1 meters of being above the ocean surface or below the ocean bottom.
 	</ul>
     </ul>
     <h2>Release 0.4.1 - Apr 2014</h2>
