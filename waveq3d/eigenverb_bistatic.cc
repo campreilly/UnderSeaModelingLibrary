@@ -28,8 +28,8 @@ eigenverb_bistatic::eigenverb_bistatic( ocean_model& ocean,
     }
 
         // Grab this wave's ID, used to determine volume layer interactions
-    _source_origin = wave_source.getID() ;
-    _receiver_origin = wave_receiver.getID() ;
+    _source_origin = wave_source.ID() ;
+    _receiver_origin = wave_receiver.ID() ;
         // Initialize all the memory of _reverberation_curve
     _reverberation_curve.resize( num_bins ) ;
     for(vector<double>::iterator i=_reverberation_curve.begin();

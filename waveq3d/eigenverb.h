@@ -107,6 +107,11 @@ struct eigenverb {
 
 };
 
+/*
+ * List of gaussian projections used for reverebration.
+ */
+typedef std::list< eigenverb > eigenverb_list ;
+
 /// @}
 }  // end of namespace waveq3d
 }  // end of namespace usml

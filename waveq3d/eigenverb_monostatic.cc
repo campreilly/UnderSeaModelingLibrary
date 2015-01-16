@@ -24,7 +24,7 @@ eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
         _lower.resize( _n ) ;
     }
         // Grab this wave's ID, used to determine volume layer interactions
-    _source_origin = wave.getID() ;
+    _source_origin = wave.ID() ;
         // Initialize all the memory of _reverberation_curve
     _reverberation_curve.resize( num_bins ) ;
     for(vector<double>::iterator i=_reverberation_curve.begin();
@@ -117,7 +117,7 @@ void eigenverb_monostatic::compute_surface_energy() {
         cout << "Number of surface eigenverbs: " << _surface.size() << endl ;
     #endif
     _current_boundary = _surface_boundary ;
-//    convolve_eigenverbs( &_surface ) ;
+    convolve_eigenverbs( &_surface ) ;
 }
 
 /**

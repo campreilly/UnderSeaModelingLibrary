@@ -76,8 +76,8 @@ int main() {
 
     wave_queue_reverb wave_source( ocean, freq, source, de, az, time_step ) ;
     wave_queue_reverb wave_receiver( ocean, freq, receiver, de, az, time_step ) ;
-    wave_source.setID( SOURCE_ID ) ;
-    wave_receiver.setID( RECEIVER_ID ) ;
+    wave_source.ID( SOURCE_ID ) ;
+    wave_receiver.ID( RECEIVER_ID ) ;
 
         // Set the reverberation model to a bistatic common cache
     Manager bistatic( new eigenverb_bistatic( ocean, wave_source, wave_receiver, T0, bins, time_max ) ) ;

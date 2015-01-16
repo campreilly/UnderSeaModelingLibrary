@@ -65,13 +65,13 @@ int main() {
 
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( lat, lng, alt ) ;
-//    seq_rayfan de ;
-    seq_rayfan de( -90.0, 0.0, 91 ) ;
+    seq_rayfan de ;
+//    seq_rayfan de( -90.0, 0.0, 91 ) ;
 //    seq_linear de( -89.5, 5.0, 89.5 ) ;
     seq_linear az( 0.0, 360.0, 360.0 ) ;
 
     wave_queue_reverb wave( ocean, freq, pos, de, az, time_step ) ;
-    wave.setID( SOURCE_ID ) ;
+    wave.ID( SOURCE_ID ) ;
 
         // Set the monostatic cache up
     Manager monostatic( new eigenverb_monostatic( ocean, wave, T0, bins, time_max ) ) ;
@@ -115,7 +115,7 @@ int main() {
     cout << std::setprecision(18);
 
     const vector<double> reverb_tl = reverb->reverberation_curve() ;
-    vector<double> r = SL + 10.0*log10(2.0*reverb_tl) ;
+    vector<double> r = SL + 10.0*log10(reverb_tl) ;
     for ( size_t i=0; i < bins; ++i ) {
         if( i % 10 == 0 ) {
             cout << "reverb_level(" << i << "): " << r(i) << endl ;

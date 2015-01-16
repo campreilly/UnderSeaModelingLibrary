@@ -265,12 +265,19 @@ class USML_DECLSPEC wave_queue {
 	 */
 	bool checkEigenrayListeners(long waveTime);
 
+	/**
+	 * Adds an eigenverb_collection to the wave_queue to store
+	 * all important information regarding eigenverbs to be used
+	 * to compute reverberation envelope.
+	 */
+	bool addEigenverbCollector( eigenverb_collection* pCollection ) ;
+
     /**
      * Set the type of wavefront that this is, i.e. a wavefront
      * originating from a source or receiver. This is exclusively
      * used within the reverbation models.
      */
-    inline void setID( size_t id ) {
+    inline void ID( size_t id ) {
         _run_id = id ;
     }
 
@@ -280,7 +287,7 @@ class USML_DECLSPEC wave_queue {
      * used within the reverbation models.
      * @return      Type of wavefront (receiver/source)
      */
-    inline const size_t getID() {
+    inline const size_t ID() {
         return _run_id ;
     }
 
