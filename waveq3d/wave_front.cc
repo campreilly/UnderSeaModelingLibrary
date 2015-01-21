@@ -186,8 +186,8 @@ void wave_front::find_edges() {
     }
 
     // search for a local maxima or minima in the rho direction
-    const size_t max_az = num_az() - 1 ;
-	for ( size_t az=0 ; az < num_az() ; az++ ) {
+
+    for ( size_t az=0 ; az < num_az() ; az++ ) {
 		for ( size_t de=1 ; de < max_de ; de++ ) {
 			bool change_family = surface(de,az) != surface(de+1,az) ||
 								 bottom(de,az) != bottom(de+1,az) ||
