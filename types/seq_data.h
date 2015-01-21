@@ -27,7 +27,7 @@ using boost::numeric::ublas::vector;
 class USML_DECLSPEC seq_data : public seq_vector {
 
     //**************************************************
-    // type definisions
+    // type definitions
 
     typedef seq_data self_type;
 public:
@@ -109,7 +109,7 @@ public:
      * Search for a value in this sequence. If the value is outside of the
      * legal range, the index for the nearest endpoint will be returned,
      * unless the nearest endpoint is that last index, in which the second
-     * to last index will be returned. This is to garuntee that there is
+     * to last index will be returned. This is to guarantee that there is
      * always an index to the right of the returned index.
      *
      * @param   value       Value of the element to find.
