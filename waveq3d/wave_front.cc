@@ -185,8 +185,9 @@ void wave_front::find_edges() {
         on_edge(0,az) = on_edge(max_de,az) = true ;
     }
 
-    // search for a local maxima or minima in the rho direction
-
+    // searches for changes in the number of surface/bottom/caustic interactions
+    // from neigherboring rays.
+    
     for ( size_t az=0 ; az < num_az() ; az++ ) {
 		for ( size_t de=1 ; de < max_de ; de++ ) {
 			bool change_family = surface(de,az) != surface(de+1,az) ||
