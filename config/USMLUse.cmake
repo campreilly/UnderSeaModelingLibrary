@@ -84,6 +84,7 @@ set(Boost_ADDITIONAL_VERSIONS
 )
 find_package( Boost 1.41 REQUIRED COMPONENTS
     unit_test_framework	# for usml_test.exe
+    thread
 )
 include_directories( ${Boost_INCLUDE_DIR} )
 
