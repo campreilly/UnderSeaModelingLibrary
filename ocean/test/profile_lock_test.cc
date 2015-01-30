@@ -20,7 +20,7 @@ using namespace usml::ocean;
  * @{
  */
 
-class USML_DECLSPEC tester_base
+class tester_base
 {
     public:
 
@@ -61,7 +61,7 @@ class USML_DECLSPEC tester_base
 
 };
 
-class USML_DECLSPEC linear_tester : public tester_base
+class linear_tester : public tester_base
 {
     public:
 
@@ -100,7 +100,7 @@ class USML_DECLSPEC linear_tester : public tester_base
 
 }; // end linear_tester class
 
-class USML_DECLSPEC mackenzie_tester : public tester_base
+class mackenzie_tester : public tester_base
 {
     public:
 

@@ -20,7 +20,7 @@ using namespace usml::ocean;
  * @{
  */
 
-class USML_DECLSPEC tester_base
+class tester_base
 {
     public:
 
@@ -58,7 +58,7 @@ class USML_DECLSPEC tester_base
         usml::ocean::boundary_lock* _lockableBoundary;
 };
 
-class USML_DECLSPEC etopo_boundary_tester : public tester_base
+class etopo_boundary_tester : public tester_base
 {
     public:
 
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE( etopo_boundary_lock_test ) {
     }
 }
 
-class USML_DECLSPEC reflect_loss_tester : public tester_base
+class reflect_loss_tester : public tester_base
 {
     public:
 
