@@ -55,7 +55,8 @@ protected:
      * Initialize sequence from a uBLAS vector.
      * Ensures that the sequence is a monotonic sequence.
      *
-     * @param  data		          Set of data elements to use.
+     * @param  data  Set of data elements to use.
+     * @param  size  Number of data elements.
      * @throws invalid_argument   If series not monotonic
      */
     void init( const double* data, size_t size ) {
