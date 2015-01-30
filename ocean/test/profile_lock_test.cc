@@ -24,14 +24,18 @@ class USML_DECLSPEC tester_base
 {
     public:
 
+        // Constructor
         tester_base() :
             _lockableProfile(NULL),
             _temp(NULL)
         {}
 
+        // Destructor
         virtual ~tester_base()
         {}
 
+        // Generate random value between 0.0001 seconds to 1.0 seconds
+        // and wait that amount of time.
         void random_wait()
         {
             double seed = randgen::uniform();
@@ -41,30 +45,45 @@ class USML_DECLSPEC tester_base
             boost::this_thread::sleep(boost::posix_time::milliseconds(msec));
         }
 
-        // This is the method which gets called from inside the thread.
+        // This is the method which gets called when the thread is instantiated.
         void operator () ()
         {
            for (int i = 0; i < 5; ++i)
            {
+               // Randomly wait from 0.0001 seconds to 1.0 seconds
                random_wait();
+               // Run the overloaded virtual test method.
                test();
+               // Print out the thread id and for loop id for output comparison.
                std::cout << "Thread " << boost::this_thread::get_id() << ": " << i << std::endl;
            }
         }
 
+        // Pure virtual method which must be overloaded in child classes.
         virtual void test() = 0;
 
     protected:
 
+        // The profile_lock instance used by all threads.
         usml::ocean::profile_lock* _lockableProfile;
-        usml::netcdf::netcdf_woa* _temp;
 
+        // The temperature values from the netcdf file
+        // Used for comparison in "test" method.
+        usml::netcdf::netcdf_woa* _temp;
 };
 
-class USML_DECLSPEC linear_tester : public tester_base
+/**
+ * linear_tester class the inherits the tester_base class above and is used
+ * to create a single instance of a profile_lock that is accessed by multiple threads.
+ * The test method is a replica of the profile_test/constant_profile_test.
+ */
+class linear_tester : public tester_base
 {
     public:
 
+    // The setup method is is used to create a profile_linear
+    // instance that is passed into the constructor of profile_lock.
+    // An attenuation_model is created set via the attenuation method.
     void setup()
     {
         // liner profile
@@ -74,6 +93,10 @@ class USML_DECLSPEC linear_tester : public tester_base
         _lockableProfile = new profile_lock(model);
     }
 
+    // This method overloads the pure virtual "test" method in the tester_base.
+    // It tests the _attenuationMutex inside the profile_lock via calls to attenuation()
+    // from multiple threads.
+    // The test method is a replica of the profile_test/constant_profile_test.
     void test()
     {
         // simple values for points and speed
@@ -100,10 +123,19 @@ class USML_DECLSPEC linear_tester : public tester_base
 
 }; // end linear_tester class
 
-class USML_DECLSPEC mackenzie_tester : public tester_base
+/**
+ * mackenzie_tester class the inherits the tester_base class above and is used
+ * to create a single instance of a profile_lock that is accessed by multiple threads.
+ * The test method is a replica of the profile_test/compute_mackenzie_test.
+ */
+class mackenzie_tester : public tester_base
 {
     public:
 
+    // The setup method is is used to create a profile_grid
+    // instance that is passed into the constructor of profile_lock.
+    // An attenuation_model is created and passed into the static
+    // data_grid_mackenzie::construct method.
     void setup()
     {
         int month = 6;
@@ -134,7 +166,11 @@ class USML_DECLSPEC mackenzie_tester : public tester_base
         _lockableProfile = new profile_lock(profile);
     }
 
-    void test()
+    // This method overloads the pure virtual "test" method in the tester_base.
+    // It tests the _sound_speedMutex and attenuationMutex inside the profile_lock via calls to
+    // sound_speed() and attenuation() from multiple threads.
+    // The test method is a replica of the profile_test/compute_mackenzie_test.
+    virtual void test()
     {
         size_t index[3];
         index[1] = 0;
@@ -187,7 +223,8 @@ class USML_DECLSPEC mackenzie_tester : public tester_base
 
 /**
  * Test the basic features of the profile_lock class using a constant profile model
- * and attenuation with a random wait between start of the test.
+ * and attenuation with a random wait between multiple "test" method calls.
+ * The test portion is a replica of the profile_test/constant_profile_test.
  * Generate errors if values differ by more that 1E-6 percent, or SIG Fault on thread error.
  */
 BOOST_AUTO_TEST_CASE( linear_profile_lock_test ) {
@@ -195,11 +232,19 @@ BOOST_AUTO_TEST_CASE( linear_profile_lock_test ) {
     cout << "=== profile_lock_test: linear_profile_lock_test ===" << endl;
     try {
 
+        // Instantiate a linear_tester class defined above.
+        // linear_tester class is a tester_base class that
+        // overloads the "test" method.
         linear_tester linear;
+
+        // Setup initial conditions
         linear.setup();
+
+        // Start two threads each one running the "test" method five times
         boost::thread t1(linear);
         boost::thread t2(linear);
 
+        // Wait for threads to finish then kill them.
         t1.join();
         t2.join();
 
@@ -209,9 +254,9 @@ BOOST_AUTO_TEST_CASE( linear_profile_lock_test ) {
 }
 
 /**
- * This test reproduces the mackenzie_profile_test found in the profile_test
+ * This test reproduces the mackenzie_profile_test found in profile_test
  * only accessing the profile_model with a data_grid via profile_lock class.
- * A random wait is used between the start of each thread that performs the test.
+ * A random wait is used between the start of multiple "test" calls from multiple threads.
  * Generate errors if values differ by more that 1E-3 percent or SIG Fault on thread error.
  */
 BOOST_AUTO_TEST_CASE( mackenzie_profile_lock_test ) {
@@ -219,12 +264,19 @@ BOOST_AUTO_TEST_CASE( mackenzie_profile_lock_test ) {
     cout << "=== profile_lock_test: mackenzie_profile_lock_test ===" << endl;
     try {
 
+        // Instantiate a mackenzie_tester class defined above.
+        // mackenzie_tester class is a tester_base class that
+        // overloads the "test" method.
         mackenzie_tester mackenzie;
+
+        // Setup initial conditions.
         mackenzie.setup();
 
+        // Start two threads each one running the "test" method five times.
         boost::thread t1(mackenzie);
         boost::thread t2(mackenzie);
 
+        // Wait for threads to finish then kill them.
         t1.join();
         t2.join();
 

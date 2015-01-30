@@ -20,17 +20,21 @@ using namespace usml::ocean;
  * @{
  */
 
-class USML_DECLSPEC tester_base
+class tester_base
 {
     public:
 
+        // Constructor
         tester_base() :
             _lockableBoundary(NULL)
         {}
 
+        // Destructor
         virtual ~tester_base()
         {}
 
+        // Generate random value between 0.0001 seconds to 1.0 seconds
+        // and wait that amount of time.
         void random_wait()
         {
             double seed = randgen::uniform();
@@ -40,28 +44,40 @@ class USML_DECLSPEC tester_base
             boost::this_thread::sleep(boost::posix_time::milliseconds(msec));
         }
 
-        // This is the method which gets called from inside the thread.
+        // This is the method which gets called when the thread is instantiated.
         void operator () ()
         {
            for (int i = 0; i < 5; ++i)
            {
+               // Randomly wait from 0.0001 seconds to 1.0 seconds
                random_wait();
+               // Run the overloaded virtual test method.
                test();
+               // Print out the thread id and for loop id for output comparison.
                std::cout << "Thread " << boost::this_thread::get_id() << ": " << i << std::endl;
            }
         }
 
+        // Pure virtual method which must be overloaded in child classes
         virtual void test() = 0;
 
     protected:
 
+        // The boundary_lock instance used by all threads.
         usml::ocean::boundary_lock* _lockableBoundary;
 };
 
-class USML_DECLSPEC etopo_boundary_tester : public tester_base
+/**
+ * etopo_boundary_tester class the inherits the tester_base class above and is used
+ * to create a single instance of a boundary_lock that is accessed by multiple threads.
+ * The test method is a replica of the boundary_test/etopo_boundary_test.
+ */
+class etopo_boundary_tester : public tester_base
 {
     public:
 
+    // The setup method is is used to create a boundary_grid
+    // that is passed into the constructor of boundary_lock.
     void setup()
     {
         boundary_grid<double, 2>* model =
@@ -71,7 +87,11 @@ class USML_DECLSPEC etopo_boundary_tester : public tester_base
         _lockableBoundary = new boundary_lock(model);
     }
 
-    void test()
+    // This method overloads the pure virtual "test" method in the tester_base.
+    // It tests the _heightMutex inside the boundary_lock via calls to height()
+    // from multiple threads.
+    // The test method is a replica of the boundary_test/etopo_boundary_test.
+    virtual void test()
     {
         // simple values for points and depth
 
@@ -103,17 +123,32 @@ class USML_DECLSPEC etopo_boundary_tester : public tester_base
 
 }; // end etopo_boundary_tester class
 
+/**
+ * Using the boundary_lock class and multiple threads test the basic
+ * features of the boundary_grid with calls to the height() method to
+ * obtain the bathymetry data. The test portion is a replica of the
+ * boundary_test/etopo_boundary_test.
+ * Generate errors if values differ by more that 1E-5 percent,
+ * or SIG Fault on thread error.
+ */
 BOOST_AUTO_TEST_CASE( etopo_boundary_lock_test ) {
 
     cout << "=== boundary_lock_test: etopo_boundary_lock_test ===" << endl;
     try {
 
+        // Instantiate a etopo_boundary_tester class defined above.
+        // etopo_boundary_tester class is a tester_base class that
+        // overloads the "test" method.
         etopo_boundary_tester etopo_boundary;
+
+        // Setup initial conditions
         etopo_boundary.setup();
 
+        // Start two threads each one running the "test" method five times
         boost::thread t1(etopo_boundary);
         boost::thread t2(etopo_boundary);
 
+        // Wait for threads to finish then kill them.
         t1.join();
         t2.join();
 
@@ -122,10 +157,18 @@ BOOST_AUTO_TEST_CASE( etopo_boundary_lock_test ) {
     }
 }
 
-class USML_DECLSPEC reflect_loss_tester : public tester_base
+/**
+ * reflect_loss_tester a class the inherits the tester_base class above and is used
+ * to create a single instance of a boundary_lock that is accessed by multiple threads.
+ * The test method is a replica of the reflect_loss_test/reflect_loss_netcdf_test.
+ */
+class reflect_loss_tester : public tester_base
 {
     public:
 
+    // The setup method is is used to create a reflect_loss_netcdf
+    // that is passed into the constructor of boundary_flat which is then
+    // passed into the boundary_lock constructor.
     void setup()
     {
         reflect_loss_netcdf* reflectLoss = new reflect_loss_netcdf( USML_DATA_DIR "/bottom_province/sediment_test.nc" ) ;
@@ -135,7 +178,11 @@ class USML_DECLSPEC reflect_loss_tester : public tester_base
         _lockableBoundary = new boundary_lock(model);
     }
 
-    void test()
+    // This method overloads the pure virtual "test" method in the tester_base.
+    // It tests the _reflect_lossMutex inside the boundary_lock via calls to the
+    // reflect_loss() method from multiple threads.
+    // The test method is a replica of the reflect_loss_test/reflect_loss_netcdf_test.
+    virtual void test()
     {
         seq_linear frequency(1000.0, 1000.0, 0.01) ;
         double angle = M_PI_2 ;
@@ -168,21 +215,30 @@ class USML_DECLSPEC reflect_loss_tester : public tester_base
 }; // end reflect_loss_tester class
 
 /**
- * Using the boundary_lock class and multiple threads test the basic features
- * of the reflection loss model using the netCDF bottom type file.
- * Generate errors if values differ by more that 1E-5 percent.
+ * Using the boundary_lock class and multiple threads test the basic
+ * features of the reflection loss model using the netCDF bottom type file.
+ * The test portion is a replica of the reflect_loss_test/reflect_loss_netcdf_test.
+ * Generate errors if values differ by more that 1E-5 percent,
+ * or SIG Fault on thread error.
  */
 BOOST_AUTO_TEST_CASE( reflect_loss_boundary_lock_test ) {
 
     cout << "=== boundary_lock_test: reflect_loss_boundary_lock_test ===" << endl;
     try {
 
+        // Instantiate a reflect_loss_tester class defined above.
+        // reflect_loss_tester class is a tester_base class that
+        // overloads the "test" method.
         reflect_loss_tester reflect_loss_boundary;
+
+        // Setup initial conditions
         reflect_loss_boundary.setup();
 
+        // Start two threads each one running the "test" method five times.
         boost::thread t1(reflect_loss_boundary);
         boost::thread t2(reflect_loss_boundary);
 
+        // Wait for threads to finish then kill them.
         t1.join();
         t2.join();
 
