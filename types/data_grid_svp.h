@@ -39,10 +39,7 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
          * data_grid.
          *
          * @param grid      The data_grid that is to be wrapped.
-         * @param copy_data If true, copies the data grids data
-         *                  fields as well as the axises.
          */
-
         data_grid_svp( const data_grid<double, 3>* grid )
             :   data_grid<double, 3>(*grid, true),
                 _kzmax(_axis[0]->size() - 1u),
