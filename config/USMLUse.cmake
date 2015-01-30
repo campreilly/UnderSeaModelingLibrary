@@ -82,10 +82,21 @@ set(Boost_ADDITIONAL_VERSIONS
 	"1.52" "1.52.0" "1.53" "1.53.0" "1.55" "1.55.0"
 	"1.56" "1.56.0" "1.57" "1.57.0"
 )
-find_package( Boost 1.41 REQUIRED COMPONENTS
-    unit_test_framework	# for usml_test.exe
-    thread
-)
+if( MSVC )
+    find_package( Boost 1.41 REQUIRED COMPONENTS
+        unit_test_framework	# for usml_test.exe
+        thread
+        date_time
+        system
+        chrono
+    )
+else ( MSVC )
+    find_package( Boost 1.41 REQUIRED COMPONENTS
+        unit_test_framework	# for usml_test.exe
+        thread
+    )
+endif ( MSVC )
+
 include_directories( ${Boost_INCLUDE_DIR} )
 
 # fix bug in boost/numeric/ublas/vector_expression.hpp lines 1409 through 1417

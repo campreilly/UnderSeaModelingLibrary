@@ -20,7 +20,7 @@ using namespace usml::ocean;
  * @{
  */
 
-class USML_DECLSPEC tester_base
+class tester_base
 {
     public:
 

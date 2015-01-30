@@ -1,5 +1,5 @@
 /**
- * @file profile_lock
+ * @file profile_lock.h
  * A wrapper for a USML profile model that provides each instantiation with its own set
  * of mutex's for the sound_speed() and attenuation() methods.
  */
