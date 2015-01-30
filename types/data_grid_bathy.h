@@ -40,10 +40,7 @@ class USML_DECLSPEC data_grid_bathy: public data_grid<double, 2> {
          * used at a later time during pchip calculations.
          *
          * @param grid      The data_grid that is to be wrapped.
-         * @param copy_data If true, copies the data grids data
-         *                  fields as well as the axises.
          */
-
         data_grid_bathy(const data_grid<double, 2>* grid) :
                 data_grid<double, 2>(*grid, true), _bicubic_coeff(16, 1),
                 _field(16, 1), _xyloc(1, 16), _result_pchip(1, 1), _value(4, 4),
