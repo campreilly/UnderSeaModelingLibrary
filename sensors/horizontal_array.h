@@ -46,6 +46,7 @@ class horizontal_array : public beam_pattern_line {
                 (*steering_angles) = (*steering_angles) + M_PI_2 ;
                 initialize_beams( c0, d, freq, *steering_angles ) ;
             }
+            _pitch = M_PI_2 ;
          }
 
         /**
