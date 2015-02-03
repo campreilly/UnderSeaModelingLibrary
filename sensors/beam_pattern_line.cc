@@ -42,8 +42,10 @@ void beam_pattern_line::initialize_beams(
     _steering_n = _n * _steering ;
         // compute the directivity index
     _directivity_index = scalar_vector<double>( frequencies.size(), 0.0 ) ;
+    vector<double> steer_plus = element_prod( 2.0*_omega, (sin(steering_angles) + 1) ) ;
+    vector<double> steer_minus = element_prod( 2.0*_omega, (sin(steering_angles) - 1) ) ;
     for(size_t p=1; p<_n; ++p) {
-        _directivity_index += element_div( (_n-p)*sin(p*2.0*_omega), p*2.0*_omega ) ;
+        _directivity_index += element_div( (_n-p)*(sin(p*steer_plus)-sin(p*steer_minus)), p*2.0*_omega ) ;
     }
     _directivity_index = 10.0*log10( _n / ( 1.0 + (2.0/_n)*_directivity_index ) ) ;
         // default to no pitch/roll/yaw

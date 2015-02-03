@@ -21,6 +21,10 @@ using namespace usml::sensors ;
  * a vertical array of elements model. Output data to a file
  * and run supplied matlab code to verify that the data is
  * comparable to the matlab generated version.
+ *
+ * Added a check to confirm the main lobe is in the correct
+ * direction. If the level value is different from 1.0 by
+ * 1e-4 an error is thrown.
  */
 BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     cout << "===== beam_pattern_test/vertical_array_test =====" << endl ;
@@ -31,14 +35,14 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     double c0 = 1500.0 ;
     double d = 0.75 ;
     double n = 5 ;
-    vector<double> steering( 1, M_PI/4.0 ) ;
+    vector<double> steering( 1, M_PI/32.0 ) ;
     seq_linear freq(900.0, 1.0, 1.0) ;
 
     vertical_array array( c0, d, n, freq, &steering ) ;
     cout << "Vertical array class has been constructed" << endl ;
 
     double roll = 0.0 * M_PI/180.0 ;
-    double pitch = 45.0 * M_PI/180.0 ;
+    double pitch = 35.0 * M_PI/180.0 ;
     double yaw = 45.0 * M_PI/180.0 ;
     array.orient_beam( roll, pitch, yaw ) ;
     cout << "beam oriented (roll,pitch,yaw): ("
@@ -58,6 +62,10 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
         of << endl ;
     }
 
+    // check that the main lobe is at the correct position
+    array.beam_level( -(pitch+steering(0)), -yaw, 0, &level ) ;
+    BOOST_CHECK_CLOSE( level(0), 1.0, 1e-4 ) ;
+
     std::ofstream ef( envname ) ;
     cout << "Saving environmental and array parameters to " << envname << endl ;
     ef << "c0,d,n,roll,pitch,yaw,steering,freq" << endl ;
@@ -73,16 +81,19 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
         if( i != freq.size()-1 ) ef << "," ;
     }
     ef << endl ;
+
+    cout << "directivity index(dB): " << array.directivity_index(0) << endl ;
+
 }
 
 /**
  * Test the basic features of the beam_pattern_model using
- * a vertical array of elements model. Output data to a file
+ * a horizontal array of elements model. Output data to a file
  * and run supplied matlab code to verify that the data is
  * comparable to the matlab generated version.
  */
 BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
-    cout << "===== beam_pattern_test/vertical_array_test =====" << endl ;
+    cout << "===== beam_pattern_test/horizontal_array_test =====" << endl ;
     const char* envname = USML_TEST_DIR "/sensors/test/horizontal_array_parameters.csv" ;
     const char* csvname = USML_TEST_DIR "/sensors/test/horizontal_array_beam_pattern.csv" ;
 
@@ -94,7 +105,7 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     seq_linear freq(900.0, 1.0, 1.0) ;
 
     horizontal_array array( c0, d, n, freq, &steering ) ;
-    cout << "Vertical array class has been constructed" << endl ;
+    cout << "Horizontal array class has been constructed" << endl ;
 
     double roll = 0.0 * M_PI/180.0 ;
     double pitch = 45.0 * M_PI/180.0 ;
@@ -117,6 +128,10 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
         of << endl ;
     }
 
+    // check that the main lobe is at the correct position
+    array.beam_level( pitch+steering(0)-M_PI/2.0, yaw, 0, &level ) ;
+    BOOST_CHECK_CLOSE( level(0), 1.0, 1e-4 ) ;
+
     std::ofstream ef( envname ) ;
     cout << "Saving environmental and array parameters to " << envname << endl ;
     ef << "c0,d,n,roll,pitch,yaw,steering,freq" << endl ;
@@ -132,6 +147,8 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
         if( i != freq.size()-1 ) ef << "," ;
     }
     ef << endl ;
+
+    cout << "directivity index(dB): " << array.directivity_index(0) << endl ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
