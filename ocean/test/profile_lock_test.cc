@@ -28,29 +28,35 @@ class tester_base
         tester_base() :
             _lockableProfile(NULL),
             _temp(NULL)
-        {}
+        {
+            //cout << "tester_base constructor" << endl;
+        }
 
         // Destructor
         virtual ~tester_base()
-        {}
+        {
+            //cout << "tester_base destructor" << endl;
+            delete _lockableProfile;
+            delete _temp;
+        }
 
-        // Generate random value between 0.0001 seconds to 1.0 seconds
+        // Generate random value between 0.1 seconds to 1.0 seconds
         // and wait that amount of time.
         void random_wait()
         {
             double seed = randgen::uniform();
-            if (seed == 0.0) seed = 0.0001;
+            if (seed < 0.1) seed = 0.1;
             int msec = seed * 1000;
             if (msec > 1000 ) msec = 1000;
             boost::this_thread::sleep(boost::posix_time::milliseconds(msec));
         }
 
         // This is the method which gets called when the thread is instantiated.
-        void operator () ()
+        void run()
         {
            for (int i = 0; i < 5; ++i)
            {
-               // Randomly wait from 0.0001 seconds to 1.0 seconds
+               // Randomly wait from 0.1 seconds to 1.0 seconds
                random_wait();
                // Run the overloaded virtual test method.
                test();
@@ -226,6 +232,7 @@ class mackenzie_tester : public tester_base
  * and attenuation with a random wait between multiple "test" method calls.
  * The test portion is a replica of the profile_test/constant_profile_test.
  * Generate errors if values differ by more that 1E-6 percent, or SIG Fault on thread error.
+ * When executed the output should show intertwining between the threads.
  */
 BOOST_AUTO_TEST_CASE( linear_profile_lock_test ) {
 
@@ -240,13 +247,22 @@ BOOST_AUTO_TEST_CASE( linear_profile_lock_test ) {
         // Setup initial conditions
         linear.setup();
 
-        // Start two threads each one running the "test" method five times
-        boost::thread t1(linear);
-        boost::thread t2(linear);
+        // Create thread group to hold threads
+        boost::thread_group tgroup;
 
-        // Wait for threads to finish then kill them.
-        t1.join();
-        t2.join();
+        // Start two threads each one running the "test" method five times
+        // Using thread group create a thread which executes the "run" method in tester_base
+        // Start first thread
+        tgroup.create_thread(boost::bind(&linear_tester::run, &linear));
+
+        // Wait 60 msec before starting next thread
+        boost::this_thread::sleep(boost::posix_time::milliseconds(60));
+
+        // Start second thread
+        tgroup.create_thread(boost::bind(&linear_tester::run, &linear));
+
+        // Wait for threads to finish then delete them.
+        tgroup.join_all();
 
     } catch (std::exception* except) {
         BOOST_ERROR(except->what());
@@ -258,6 +274,7 @@ BOOST_AUTO_TEST_CASE( linear_profile_lock_test ) {
  * only accessing the profile_model with a data_grid via profile_lock class.
  * A random wait is used between the start of multiple "test" calls from multiple threads.
  * Generate errors if values differ by more that 1E-3 percent or SIG Fault on thread error.
+ * When executed the output should show intertwining between the threads.
  */
 BOOST_AUTO_TEST_CASE( mackenzie_profile_lock_test ) {
 
@@ -272,13 +289,22 @@ BOOST_AUTO_TEST_CASE( mackenzie_profile_lock_test ) {
         // Setup initial conditions.
         mackenzie.setup();
 
-        // Start two threads each one running the "test" method five times.
-        boost::thread t1(mackenzie);
-        boost::thread t2(mackenzie);
+        // Create thread group to hold threads
+       boost::thread_group tgroup;
 
-        // Wait for threads to finish then kill them.
-        t1.join();
-        t2.join();
+       // Start two threads each one running the "test" method five times
+       // Using thread group create a thread which executes the "run" method in tester_base
+       // Start first thread
+       tgroup.create_thread(boost::bind(&mackenzie_tester::run, &mackenzie));
+
+       // Wait 60 msec before starting next thread
+       boost::this_thread::sleep(boost::posix_time::milliseconds(60));
+
+       // Start second thread
+       tgroup.create_thread(boost::bind(&mackenzie_tester::run, &mackenzie));
+
+       // Wait for threads to finish then delete them.
+       tgroup.join_all();
 
     } catch (std::exception* except) {
         BOOST_ERROR(except->what());
