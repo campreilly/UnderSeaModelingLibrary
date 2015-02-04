@@ -17,6 +17,31 @@ using namespace usml::sensors ;
  */
 
 /**
+ * Test the functionality of the omni-directional
+ * beam pattern class. The beam_level should always be 1.0
+ * and directivity index should be 0 dB. An error is passed
+ * if ever these things are not true.
+ */
+BOOST_AUTO_TEST_CASE( omni_pattern_test ) {
+    cout << "=== beam_pattern_test/omni_pattern_test ===" << endl ;
+    seq_linear freq(10.0, 10.0, 10) ;
+    beam_pattern_omni omni( freq ) ;
+    cout << "frequencies: " << freq << endl ;
+
+    BOOST_CHECK_EQUAL( omni.directivity_index(0), 0.0 ) ;
+    vector<double> level( freq.size(), 0.0 ) ;
+    for(int az=0; az<=360; ++az) {
+        for(int de=-90; de<=90; ++de) {
+            double de_rad = de * M_PI/180.0 ;
+            double az_rad = az * M_PI/180.0 ;
+            omni.beam_level( de_rad, az_rad, 0, &level ) ;
+            BOOST_CHECK_EQUAL( level(0), 1.0 ) ;
+        }
+    }
+
+}
+
+/**
  * Test the basic features of the beam_pattern_model using
  * a vertical array of elements model. Output data to a file
  * and run supplied matlab code to verify that the data is
@@ -43,7 +68,6 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     seq_linear freq(900.0, 1.0, 1.0) ;
 
     vertical_array array( c0, d, n, freq, &steering ) ;
-    cout << "Vertical array class has been constructed" << endl ;
 
     double roll = 0.0 * M_PI/180.0 ;
     double pitch = 35.0 * M_PI/180.0 ;
@@ -119,7 +143,6 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     seq_linear freq(900.0, 1.0, 1.0) ;
 
     horizontal_array array( c0, d, n, freq, &steering ) ;
-    cout << "Horizontal array class has been constructed" << endl ;
 
     double roll = 0.0 * M_PI/180.0 ;
     double pitch = 45.0 * M_PI/180.0 ;
