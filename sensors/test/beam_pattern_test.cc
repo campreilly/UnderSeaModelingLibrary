@@ -24,7 +24,11 @@ using namespace usml::sensors ;
  *
  * Added a check to confirm the main lobe is in the correct
  * direction. If the level value is different from 1.0 by
- * 1e-4 an error is thrown.
+ * 1e-4% an error is thrown. The Directivity index is also
+ * checked using a simpson rule integration approximation.
+ * The approximate integration is then compared to the
+ * analytic solution. An error is thrown if the values
+ * differ by more than 1%.
  */
 BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     cout << "===== beam_pattern_test/vertical_array_test =====" << endl ;
@@ -51,6 +55,7 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
     vector<double> level( freq.size(), 0.0 ) ;
+    double total = 0 ;
     for(int az=0; az<=360; ++az) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * M_PI/180.0 ;
@@ -58,6 +63,7 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
             array.beam_level( de_rad, az_rad, 0, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
+            total += level(0)*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
         }
         of << endl ;
     }
@@ -82,8 +88,8 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     }
     ef << endl ;
 
-    cout << "directivity index(dB): " << array.directivity_index(0) << endl ;
-
+    total = 10.0*log10( (4*M_PI)/total ) ;
+    BOOST_CHECK_CLOSE( array.directivity_index(0), total, 1.0 ) ;
 }
 
 /**
@@ -91,6 +97,14 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
  * a horizontal array of elements model. Output data to a file
  * and run supplied matlab code to verify that the data is
  * comparable to the matlab generated version.
+ *
+ * Added a check to confirm the main lobe is in the correct
+ * direction. If the level value is different from 1.0 by
+ * 1e-4% an error is thrown. The Directivity index is also
+ * checked using a simpson rule integration approximation.
+ * The approximate integration is then compared to the
+ * analytic solution. An error is thrown if the values
+ * differ by more than 1%.
  */
 BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     cout << "===== beam_pattern_test/horizontal_array_test =====" << endl ;
@@ -117,6 +131,7 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
     vector<double> level( freq.size(), 0.0 ) ;
+    double total = 0 ;
     for(int az=0; az<=360; ++az) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * M_PI/180.0 ;
@@ -124,6 +139,7 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
             array.beam_level( de_rad, az_rad, 0, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
+            total += level(0)*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
         }
         of << endl ;
     }
@@ -148,7 +164,8 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     }
     ef << endl ;
 
-    cout << "directivity index(dB): " << array.directivity_index(0) << endl ;
+    total = 10.0*log10( (4*M_PI)/total ) ;
+    BOOST_CHECK_CLOSE( array.directivity_index(0), total, 1.0 ) ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
