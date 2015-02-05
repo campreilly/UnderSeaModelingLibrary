@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     vector<double> steering( 1, M_PI/32.0 ) ;
     seq_linear freq(900.0, 1.0, 1.0) ;
 
-    vertical_array array( c0, d, n, freq, &steering ) ;
+    beam_pattern_line array( c0, d, n, freq, &steering ) ;
 
     double roll = 0.0 * M_PI/180.0 ;
     double pitch = 35.0 * M_PI/180.0 ;
@@ -243,7 +243,7 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     vector<double> steering( 1, M_PI/4.0 ) ;
     seq_linear freq(900.0, 1.0, 1.0) ;
 
-    horizontal_array array( c0, d, n, freq, &steering ) ;
+    beam_pattern_line array( c0, d, n, freq, &steering, beam_pattern_line::HORIZONTAL ) ;
 
     double roll = 0.0 * M_PI/180.0 ;
     double pitch = 45.0 * M_PI/180.0 ;

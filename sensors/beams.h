@@ -18,5 +18,3 @@
 #include <usml/sensors/beam_pattern_sine.h>
 
 #include <usml/sensors/beam_pattern_line.h>
-#include <usml/sensors/horizontal_array.h>
-#include <usml/sensors/vertical_array.h>

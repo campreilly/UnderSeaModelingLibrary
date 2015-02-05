@@ -24,6 +24,55 @@ class beam_pattern_line : public beam_pattern_model {
     public:
 
         /**
+         * Type of linear array
+         * Specifies which axis is the reference axis of
+         * the array. Vertical being in the z-direction
+         * spatially and horizontal being in the xy-planar
+         * direction.
+         */
+        typedef enum { VERTICAL, HORIZONTAL } reference_axis ;
+
+        /**
+         * Constructs a beam pattern for a linear array.
+         *
+         * @param sound_speed       speed of sound in water at the array
+         * @param spacing           distance between each element on the array
+         * @param elements          number of elements on the line array
+         * @param frequencies       list of operating frequencies
+         * @param steering_angles   list of steering angles relative to the
+         *                          reference axis
+         * @param reference_axis    the reference axis of the array.
+         */
+        beam_pattern_line( double c0, double d, size_t elements,
+                           const seq_vector& frequencies,
+                           vector<double>* steering_angles=NULL,
+                           reference_axis axis=VERTICAL ) : _axis(axis)
+        {
+            switch( _axis ) {
+                case HORIZONTAL :
+                    _n = elements ;
+                    if( !steering_angles ) {
+                        vector<double> steerings = scalar_vector<double>( 1, M_PI_2 ) ;
+                        initialize_beams( c0, d, frequencies, steerings ) ;
+                    } else {
+                        (*steering_angles) = (*steering_angles) + M_PI_2 ;
+                        initialize_beams( c0, d, frequencies, *steering_angles ) ;
+                    }
+                    _pitch = M_PI_2 ;
+                    break ;
+                default :
+                    _n = elements ;
+                    if( !steering_angles ) {
+                        vector<double> steerings = scalar_vector<double>( 1, 0.0 ) ;
+                        initialize_beams( c0, d, frequencies, steerings ) ;
+                    } else {
+                        initialize_beams( c0, d, frequencies, *steering_angles ) ;
+                    }
+                    break ;
+            }
+        }
+
+        /**
          * Computes the beam level
          *
          * @param  de            Depression/Elevation angle
@@ -41,7 +90,17 @@ class beam_pattern_line : public beam_pattern_model {
          * @param pitch     rotation of the beam around the East/West axis (up positive)
          * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
          */
-        virtual void orient_beam( double roll, double pitch, double yaw ) = 0 ;
+        virtual void orient_beam( double roll, double pitch, double yaw ) {
+            if( _axis == HORIZONTAL ) {
+                _roll = roll ;
+                _pitch = -(pitch + M_PI_2) ;
+                _yaw = -yaw ;
+            } else {
+                _roll = roll ;
+                _pitch = -pitch ;
+                _yaw = -yaw ;
+            }
+        }
 
     protected:
 
@@ -70,6 +129,12 @@ class beam_pattern_line : public beam_pattern_model {
         double _roll ;
         double _pitch ;
         double _yaw ;
+
+        /**
+         * Defines the reference axis for this linear array's beam
+         * pattern.
+         */
+        reference_axis _axis ;
 
         /**
          * Initializes the beam pattern. To save execution time, common computations
