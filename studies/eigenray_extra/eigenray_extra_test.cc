@@ -119,6 +119,11 @@ static const double bot_depth = 1e5 ;
  * deviate from the analytic results by more than 0.5 millisecs in time or
  * 0.2 degrees in angle.
  *
+ * When the wave_queue::compute_offsets() fallback calculation of
+ * offset(n) = -gradient(n) / hessian(n,n) is not limited to 1/2 of the
+ * beamwidth.  This test has large erorrs in D/E angle.  This illustrates
+ * the importance of this limitation.
+ *
  * @xref Weisstein, Eric W. "Newton's Method." From MathWorld--A Wolfram
  *       Web Resource. http://mathworld.wolfram.com/NewtonsMethod.html
  */
@@ -281,9 +286,9 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
                 if ( range(t1) >= 0.1 ) {
                     BOOST_CHECK_SMALL( ray.time - time, 0.0005 );
                     BOOST_CHECK_SMALL( ray.phase(0)-phase, 1e-6 );
-                    BOOST_CHECK_SMALL( ray.source_de - sde, 0.2 );
+                    BOOST_CHECK_SMALL( ray.source_de - sde, 0.3 );
                     BOOST_CHECK_SMALL( ray.source_az, 1e-6 );
-                    BOOST_CHECK_SMALL( ray.target_de - tde, 0.2 );
+                    BOOST_CHECK_SMALL( ray.target_de - tde, 0.3 );
                     BOOST_CHECK_SMALL( ray.target_az, 1e-6 );
                 }
 

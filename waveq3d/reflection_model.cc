@@ -72,7 +72,7 @@ bool reflection_model::bottom_reflection( size_t de, size_t az, double depth ) {
     // sound speed, bottom height, bottom slope, and grazing angle at the point of collision.
     // reduces grazing angle errors in highly refractive environments.
 
-    collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+    _wave.collision_location( de, az, time_water, &position, &ndirection, &c ) ;
     boundary.height( position, &bottom_rho, &bottom_normal ) ;
     if ( shallow ) {
     	N = sqrt( bottom_normal.theta()*bottom_normal.theta()
@@ -154,7 +154,7 @@ bool reflection_model::surface_reflection( size_t de, size_t az ) {
 
     wposition1 position ;
     wvector1 ndirection ;
-    collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+    _wave.collision_location( de, az, time_water, &position, &ndirection, &c ) ;
     double grazing = atan2( _wave._curr->ndirection.rho(de,az), sqrt(
         _wave._curr->ndirection.theta(de,az) *
         _wave._curr->ndirection.theta(de,az) +
@@ -187,97 +187,6 @@ bool reflection_model::surface_reflection( size_t de, size_t az ) {
     ndirection.rho( -ndirection.rho() ) ;
     reflection_reinit(de, az, time_water, position, ndirection, c ) ;
     return true ;
-}
-
-/**
- * Compute the precise location and direction at the point of collision.
- */
-void reflection_model::collision_location(
-    size_t de, size_t az, double time_water,
-    wposition1* position, wvector1* ndirection, double* speed ) const
-{
-    double drho, dtheta, dphi, d2rho, d2theta, d2phi ;
-    const double time1 = 2.0 * _wave._time_step ;
-    const double time2 = _wave._time_step * _wave._time_step ;
-    const double dtime2 = time_water * time_water ;
-
-    // second order Taylor series for sound speed
-
-    drho = ( _wave._next->sound_speed(de,az)
-        - _wave._prev->sound_speed(de,az) )
-        / time1 ;
-
-    d2rho = ( _wave._next->sound_speed(de,az)
-        + _wave._prev->sound_speed(de,az)
-        - 2.0 * _wave._curr->sound_speed(de,az) )
-        / time2 ;
-
-    *speed = _wave._curr->sound_speed(de,az)
-        + drho * time_water + 0.5 * d2rho * dtime2 ;
-
-    // second order Taylor series for position
-
-    drho = ( _wave._next->position.rho(de,az)
-        - _wave._prev->position.rho(de,az) )
-        / time1 ;
-    dtheta = ( _wave._next->position.theta(de,az)
-        - _wave._prev->position.theta(de,az) )
-        / time1 ;
-    dphi = ( _wave._next->position.phi(de,az)
-        - _wave._prev->position.phi(de,az) )
-        / time1 ;
-
-    d2rho = ( _wave._next->position.rho(de,az)
-        + _wave._prev->position.rho(de,az)
-        - 2.0 * _wave._curr->position.rho(de,az) )
-        / time2 ;
-    d2theta = ( _wave._next->position.theta(de,az)
-        + _wave._prev->position.theta(de,az)
-        - 2.0 * _wave._curr->position.theta(de,az) )
-        / time2 ;
-    d2phi = ( _wave._next->position.phi(de,az)
-        + _wave._prev->position.phi(de,az)
-        - 2.0 * _wave._curr->position.phi(de,az) )
-        / time2 ;
-
-    position->rho( _wave._curr->position.rho(de,az)
-        + drho * time_water + 0.5 * d2rho * dtime2 ) ;
-    position->theta( _wave._curr->position.theta(de,az)
-        + dtheta * time_water + 0.5 * d2theta * dtime2 ) ;
-    position->phi( _wave._curr->position.phi(de,az)
-        + dphi * time_water + 0.5 * d2phi * dtime2 ) ;
-
-    // second order Taylor series for ndirection
-
-    drho = ( _wave._next->ndirection.rho(de,az)
-        - _wave._prev->ndirection.rho(de,az) )
-        / time1 ;
-    dtheta = ( _wave._next->ndirection.theta(de,az)
-        - _wave._prev->ndirection.theta(de,az) )
-        / time1 ;
-    dphi = ( _wave._next->ndirection.phi(de,az)
-        - _wave._prev->ndirection.phi(de,az) )
-        / time1 ;
-
-    d2rho = ( _wave._next->ndirection.rho(de,az)
-        + _wave._prev->ndirection.rho(de,az)
-        - 2.0 * _wave._curr->ndirection.rho(de,az) )
-        / time2 ;
-    d2theta = ( _wave._next->ndirection.theta(de,az)
-        + _wave._prev->ndirection.theta(de,az)
-        - 2.0 * _wave._curr->ndirection.theta(de,az) )
-        / time2 ;
-    d2phi = ( _wave._next->ndirection.phi(de,az)
-        + _wave._prev->ndirection.phi(de,az)
-        - 2.0 * _wave._curr->ndirection.phi(de,az) )
-        / time2 ;
-
-    ndirection->rho( _wave._curr->ndirection.rho(de,az)
-        + drho * time_water + 0.5 * d2rho * dtime2 ) ;
-    ndirection->theta( _wave._curr->ndirection.theta(de,az)
-        + dtheta * time_water + 0.5 * d2theta * dtime2 ) ;
-    ndirection->phi( _wave._curr->ndirection.phi(de,az)
-        + dphi * time_water + 0.5 * d2phi * dtime2 ) ;
 }
 
 /**

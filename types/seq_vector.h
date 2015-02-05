@@ -4,13 +4,12 @@
  */
 #pragma once
 
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <usml/ublas/ublas.h>
 
 namespace usml {
 namespace types {
 
-using boost::numeric::ublas::vector;
+using namespace usml::ublas;
 
 /// @ingroup data_grid
 /// @{

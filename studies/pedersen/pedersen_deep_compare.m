@@ -2,8 +2,8 @@
 % for Pedersen deep source test.
 %
 disp('*** pedersen_deep_compare ***');
-% clear all
-% close all
+clear all;
+close all;
 earth_radius = 6378101.030201019 ; % earth radius at 45 deg north
 d2r = pi / 180 ;        % converts degrees to radians
 min_range = 0 ;
@@ -12,7 +12,7 @@ min_range = 0 ;
 if( exist('pedersen_eigenrays_deep.mat', 'file') ~= 2 )
     [d, s] = pedersen_eigenrays_deep() ;
     analytic.direct = d ;
-    analytic.surface = s ;
+    analytic.caustic = s ;
 else
     analytic = load('pedersen_eigenrays_deep.mat');
 end
@@ -21,7 +21,7 @@ caustic_index = find( ~isnan(analytic.caustic.travel_time) ) ;
 
 % load propagation loss data from FFP
 
-[data,desc] = xlsread('n2deep.csv');
+[data,desc] = xlsread('ffp_n2deep.csv');
 ffp.range = data(:,1)'/1e3 ;
 ffp.intensity = data(:,2)' ;
 clear data desc
@@ -103,11 +103,11 @@ figure(2) ;
 % compare intensity estimates
 
 n = find( grab.direct.range >= min_range ) ;
-% [ bias, dev, detcoef, lag ] = tl_stats( ...
-%     plr.direct.range, plr.direct.intensity, ...
-%     grab.direct.range(n), grab.direct.intensity(n) ) ;
-% fprintf('Direct: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
-%     bias, dev, detcoef, lag ) ;
+[ bias, dev, detcoef, lag ] = tl_stats( ...
+    plr.direct.range, plr.direct.intensity, ...
+    grab.direct.range(n), grab.direct.intensity(n) ) ;
+fprintf('Direct: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
+    bias, dev, detcoef, lag ) ;
 
 figure(1) ;
 subplot(2,2,1) ;
@@ -121,11 +121,11 @@ set(gca,'XLim',xscale)
 set(gca,'YLim',[-90 -50])
 
 n = find( grab.caustic.range >= min_range ) ;
-% [ bias, dev, detcoef, lag ] = tl_stats( ...
-%     plr.caustic.range, plr.caustic.intensity, ...
-%     grab.caustic.range(n), grab.caustic.intensity(n) ) ;
-% fprintf('Caustic: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
-%     bias, dev, detcoef, lag ) ;
+[ bias, dev, detcoef, lag ] = tl_stats( ...
+    plr.caustic.range, plr.caustic.intensity, ...
+    grab.caustic.range(n), grab.caustic.intensity(n) ) ;
+fprintf('Caustic: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
+    bias, dev, detcoef, lag ) ;
 
 figure(2) ;
 subplot(2,2,1) ;
@@ -273,17 +273,17 @@ print -deps pedersen_deep_compare2.eps
 % compare coherent TL estimates from all three models
 
 n = find( ffp.range >= min_range ) ;
-% [ bias, dev, detcoef, lag ] = tl_stats( ...
-%     grab.pressure.range, grab.pressure.level, ...
-%     ffp.range(n), ffp.intensity(n) ) ;
-% fprintf('GRAB: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
-%     bias, dev, detcoef, lag ) ;
+[ bias, dev, detcoef, lag ] = tl_stats( ...
+    grab.pressure.range, grab.pressure.level, ...
+    ffp.range(n), ffp.intensity(n) ) ;
+fprintf('GRAB: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
+    bias, dev, detcoef, lag ) ;
 
-% [ bias, dev, detcoef, lag ] = tl_stats( ...
-%     range, -plr.proploss.intensity, ...
-%     ffp.range(n), ffp.intensity(n) ) ;
-% fprintf('WaveQ3D: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
-%     bias, dev, detcoef, lag ) ;
+[ bias, dev, detcoef, lag ] = tl_stats( ...
+    range, -plr.proploss.intensity, ...
+    ffp.range(n), ffp.intensity(n) ) ;
+fprintf('WaveQ3D: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
+    bias, dev, detcoef, lag ) ;
 
 figure(3) ;
 plot( range, -plr.proploss.intensity, '-', ...

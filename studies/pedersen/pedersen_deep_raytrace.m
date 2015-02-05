@@ -18,7 +18,7 @@ function pedersen_deep_raytrace
     wavefront = load_netcdf_wavefront('pedersen_deep_raytrace.nc') ;
     proploss = load_netcdf_proploss('pedersen_deep_proploss.nc') ;
     wave_max_time = length(wavefront.travel_time) ;
-    time = 145 ;
+    time = 288 ;
     de = 1:length(wavefront.source_de) ;
     az = 1 ;
     t_index = 1:time ;

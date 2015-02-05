@@ -1,7 +1,7 @@
 % Compare cycle range computed in Cartesian and Spherical coordinates
 % using the Pedersen/Gordon n^2 linear profile.
 %
-% function pedersen_eigenrays_analytic()
+function pedersen_eigenrays_analytic()
 
 target_ranges = 3000:0.1:3100 ;
 source_angles=0.1:0.1:25 ;
@@ -27,4 +27,4 @@ grid
 xlabel('Source Angle (deg)');
 ylabel('Cycle Range (km)');
 legend('direct','caustic');
-% end
+end

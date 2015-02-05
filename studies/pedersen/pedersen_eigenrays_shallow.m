@@ -3,7 +3,7 @@
 % profile.  Records analytic eigenray solutions to disk.  
 % These values are NaN if the traget is outside of the ray fan.
 %
-function [direct,caustic] = pedersen_eigenrays_shallow( target_ranges )
+function [direct,surface] = pedersen_eigenrays_shallow( target_ranges )
 
 if ( nargin < 1 ), target_ranges=500.0:1.0:1000.0 ; end ;
 

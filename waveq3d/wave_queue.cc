@@ -8,13 +8,13 @@
 #include <usml/waveq3d/spreading_ray.h>
 #include <usml/waveq3d/spreading_hybrid_gaussian.h>
 
-
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/triangular.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 
 #include <iomanip>
 
+//#define DEBUG_EIGENRAYS
 using namespace usml::waveq3d ;
 
 /**
@@ -403,46 +403,41 @@ void wave_queue::build_eigenray(
    size_t de, size_t az,
    double distance2[3][3][3] )
 {
-    // compute offsets
-    // limit to simple inverse if path types change in this neighborhood
+    #ifdef DEBUG_EIGENRAYS
+        //cout << "*** wave_queue::step: time=" << time() << endl ;
+        wposition1 tgt( *(_curr->targets), t1, t2 ) ;
+        cout << "*** wave_queue::build_eigenray:" << endl
+             << "\ttarget(" << t1 << "," << t2 << ")="
+             << tgt.altitude() << "," << tgt.latitude() << "," << tgt.longitude()
+             << " time=" << _time
+             << " de(" << de << ")=" << (*_source_de)(de)
+             << " az(" << az << ")=" << (*_source_az)(az)
+             << endl ;
+        cout << "\tsurface=" << _curr->surface(de,az)
+             << " bottom=" << _curr->bottom(de,az)
+             << " caustic=" << _curr->caustic(de,az) << endl ;
+        //cout << "\tdistance2:" << endl ;
+        //for ( unsigned n1=0 ; n1 < 3 ; ++n1 ) {
+        //    cout << "\t    " ;
+        //    for ( unsigned n2=0 ; n2 < 3 ; ++n2 ) {
+        //        cout << ((n2)? "; " : "[ " ) ;
+        //        for ( unsigned n3=0 ; n3 < 3 ; ++n3 ) {
+        //            cout << ((n3)? "," : "[" ) << distance2[n1][n2][n3] ;
+        //        }
+        //        cout << "]" ;
+        //    }
+        //    cout << " ]" << endl ;
+        //}
+	#endif
+
+    // find relative offsets and true distances in time, D/E, and azimuth
 
     c_vector<double, 3> delta, offset, distance;
     delta(0) = _time_step;
     delta(1) = _source_de->increment(de);
     delta(2) = _source_az->increment(az);
 
-    bool unstable = false;
-    const int surface = _curr->surface(de, az);
-    const int bottom = _curr->bottom(de, az);
-    const int caustic = _curr->caustic(de, az);
-
-    for (size_t nde = 0; nde < 3 && !unstable; ++nde) {
-        size_t d = de + nde - 1;
-        for (size_t naz = 0; naz < 3 && !unstable; ++naz) {
-            size_t a = az + naz - 1;
-            if (_az_boundary) {
-                if ( az + naz == 0 ) {	// aka if a < 0
-                    a = num_az() - 2;
-                } else if (a >= num_az()-1) {
-                    a = 0;
-                }
-            }
-            if ( _prev->surface(d, a) != surface
-              || _curr->surface(d, a) != surface
-              || _next->surface(d, a) != surface
-              || _prev->bottom(d, a) != bottom
-              || _curr->bottom(d, a) != bottom
-              || _next->bottom(d, a) != bottom
-              || _prev->caustic(d, a) != caustic
-              || _curr->caustic(d, a) != caustic
-              || _next->caustic(d, a) != caustic)
-            {
-                unstable = true;
-            }
-        }
-    }
-
-    compute_offsets(distance2, delta, offset, distance, unstable);
+    compute_offsets(t1,t2,de,az,distance2,delta,offset,distance);
 
     // build basic eigenray products
 
@@ -539,12 +534,13 @@ void wave_queue::build_eigenray(
     double center ;
     c_vector<double,3> gradient ;
     c_matrix<double,3,3> hessian ;
-    make_taylor_coeff( distance2, delta, center, gradient, hessian, unstable ) ;
+    make_taylor_coeff( distance2, delta, center, gradient, hessian ) ;
     ray.target_de = center + inner_prod( gradient, offset )
                   + 0.5 * inner_prod( offset, prod( hessian, offset ) ) ;
 
     // estimate target AZ angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store AZ angles
+
 	for ( size_t nde=0 ; nde < 3 ; ++nde ) {
 		for ( size_t naz=0 ; naz < 3 ; ++naz ) {
 			size_t d = de + nde - 1 ;
@@ -572,10 +568,16 @@ void wave_queue::build_eigenray(
 		}
 	}
 
-    make_taylor_coeff( distance2, delta, center, gradient, hessian, unstable ) ;
+    make_taylor_coeff( distance2, delta, center, gradient, hessian ) ;
     ray.target_az = center + inner_prod( gradient, offset )
                   + 0.5 * inner_prod( offset, prod( hessian, offset ) ) ;
 
+    #ifdef DEBUG_OUTPUT_EIGENRAYS
+    cout << "wave_queue::build_eigenray() " << endl
+    		 << "\ttarget(" << t1 << "," << t2 << "):" << endl
+             << "\tt=" << ray.time << " inten=" << ray.intensity << " de=" << ray.source_de << " az=" << ray.source_az << endl
+             << "\tsurface=" << ray.surface << " bottom=" << ray.bottom << " caustic=" << ray.caustic << endl ;
+    #endif
     // Add eigenray to those objects which requested them
     notifyEigenrayListeners(t1,t2,ray);
 
@@ -585,17 +587,67 @@ void wave_queue::build_eigenray(
  * Find relative offsets and true distances in time, D/E, and azimuth.
  */
 void wave_queue::compute_offsets(
+    size_t t1, size_t t2, size_t de, size_t az,
     const double distance2[3][3][3], const c_vector<double,3>& delta,
-    c_vector<double,3>& offset, c_vector<double,3>& distance,
-    bool& unstable )
+    c_vector<double,3>& offset, c_vector<double,3>& distance )
 {
-    // compute 1st and 2nd derivatives of distance2
-    // use analytic solution for the determinant of a 3x3 matrix
+    // mark as "unstable" if path types change in this neighborhood
 
-    double center ;
-    c_vector<double,3> gradient ;
-    c_matrix<double,3,3> hessian ;
-    make_taylor_coeff( distance2, delta, center, gradient, hessian, unstable ) ;
+    bool unstable = false;
+    const int surface = _curr->surface(de, az);
+    const int bottom = _curr->bottom(de, az);
+    const int caustic = _curr->caustic(de, az);
+
+    for (size_t nde = 0; nde < 3 && !unstable; ++nde) {
+        size_t d = de + nde - 1;
+        for (size_t naz = 0; naz < 3 && !unstable; ++naz) {
+            size_t a = az + naz - 1;
+            if (_az_boundary) {
+                if ( az + naz == 0 ) {  // aka if a < 0
+                    a = num_az() - 2;
+                } else if (a >= num_az()-1) {
+                    a = 0;
+                }
+            }
+            if ( _prev->surface(d, a) != surface
+              || _curr->surface(d, a) != surface
+              || _next->surface(d, a) != surface
+              || _prev->bottom(d, a) != bottom
+              || _curr->bottom(d, a) != bottom
+              || _next->bottom(d, a) != bottom
+              || _prev->caustic(d, a) != caustic
+              || _curr->caustic(d, a) != caustic
+              || _next->caustic(d, a) != caustic
+              || _prev->on_edge(d, a)
+              || _prev->on_edge(d, a)
+              || _prev->on_edge(d, a) )
+            {
+                unstable = true;
+            }
+        }
+    }
+
+    // compute 1st and 2nd derivatives of distance squared
+
+    double center;
+    c_vector<double, 3> gradient;
+    c_matrix<double, 3, 3> hessian;
+    make_taylor_coeff(distance2, delta, center, gradient, hessian );
+
+    // prepare to compute inverse of Hessian matrix (2nd derivative)
+
+    c_matrix<double, 3, 3> inverse;
+    double determinant = max( 1e-6,
+            hessian(0,0) * ( hessian(1,1) * hessian(2,2) - hessian(1,2) * hessian(2,1) )
+          + hessian(0,1) * ( hessian(1,2) * hessian(2,0) - hessian(1,0) * hessian(2,2) )
+          + hessian(0,2) * ( hessian(1,0) * hessian(2,1) - hessian(2,1) * hessian(2,0) ) );
+    unstable = unstable || determinant < norm_2(gradient) ;
+
+    #ifdef DEBUG_EIGENRAYS
+        //cout << "*** wave_queue::compute_offsets ***" << endl;
+        cout << "\tgradient: " << gradient << " center: " << center << endl;
+        cout << "\thessian: " << hessian << endl;
+    #endif
 
     // fallback offset calculation using just diagonals
     // if inverse can not be computed because determinant is zero
@@ -604,51 +656,129 @@ void wave_queue::compute_offsets(
     for ( size_t n=0 ; n < 3 ; ++n ) {
         const double h = max( 1e-10, hessian(n,n) ) ;
         offset(n) = -gradient(n) / h ;
-    }
-    if ( abs(offset(1)/delta(1)) > 0.5 ) unstable = true ;
-
-    // compute offsets
-    // solves H x = g using x = inv(H) g ;
-    // uses analytic solution for the inverse of a symmetric 3x3 matrix
-
-    const double determinant = ( unstable ) ? 0.0 :
-        hessian(0,0) * ( hessian(1,1) * hessian(2,2) - hessian(1,2) * hessian(2,1) )
-      + hessian(0,1) * ( hessian(1,2) * hessian(2,0) - hessian(1,0) * hessian(2,2) )
-      + hessian(0,2) * ( hessian(1,0) * hessian(2,1) - hessian(2,1) * hessian(2,0) ) ;
-    if ( abs(determinant) > 1e-10 ) {
-        c_matrix<double,3,3> inverse ;
-        inverse(0,0) = hessian(1,1) * hessian(2,2) - hessian(1,2) * hessian(2,1) ;
-        inverse(1,0) = hessian(1,2) * hessian(2,0) - hessian(1,0) * hessian(2,2) ;
-        inverse(2,0) = hessian(1,0) * hessian(2,1) - hessian(1,1) * hessian(2,0) ;
-        inverse(0,1) = inverse(1,0) ;
-        inverse(1,1) = hessian(0,0) * hessian(2,2) - hessian(0,2) * hessian(2,0) ;
-        inverse(2,1) = hessian(2,0) * hessian(0,1) - hessian(0,0) * hessian(2,1) ;
-        inverse(0,2) = inverse(2,0) ;
-        inverse(1,2) = inverse(2,1) ;
-        inverse(2,2) = hessian(0,0) * hessian(1,1) - hessian(0,1) * hessian(1,0) ;
-        inverse /= determinant ;
-        noalias(offset) = prod( inverse, -gradient ) ;
-
+        if ( abs(offset(n)/delta(n)) > 0.5 ) {
+            unstable = true ;
+            offset(n) = copysign( 0.5*delta(n), offset(n) ) ;
+        }
     }
 
-    // compute distances from offsets
-    // for each coordinate, assumes the other two offsets are zero
-    // fixes DE distance instablity outside of ray fan
-    for ( size_t n=0 ; n < 3 ; ++n ) {
-        distance(n) = -gradient(n)*offset(n)
-                -0.5*hessian(n,n)*offset(n)*offset(n) ;
+    // compute offsets by inverting H x = g to create x = inv(H) g
+    // if stable, compute full 3x3 inverse in time, DE, AZ
+
+    if ( !unstable ) {
+        #ifdef DEBUG_EIGENRAYS
+            cout << "\tcompute full 3x3 inverse in (time,DE,AZ), det=" << determinant << endl ;
+        #endif
+        inverse(0,0) = hessian(1,1) * hessian(2,2) - hessian(1,2) * hessian(2,1);
+        inverse(1,0) = hessian(1,2) * hessian(2,0) - hessian(1,0) * hessian(2,2);
+        inverse(2,0) = hessian(1,0) * hessian(2,1) - hessian(1,1) * hessian(2,0);
+        inverse(0,1) = inverse(1,0);
+        inverse(1,1) = hessian(0,0) * hessian(2,2) - hessian(0,2) * hessian(2,0);
+        inverse(2,1) = hessian(2,0) * hessian(0,1) - hessian(0,0) * hessian(2,1);
+        inverse(0,2) = inverse(2,0);
+        inverse(1,2) = inverse(2,1);
+        inverse(2,2) = hessian(0,0) * hessian(1,1) - hessian(0,1) * hessian(1,0);
+        inverse /= determinant;
+        noalias(offset) = prod(inverse, -gradient);
+        unstable = unstable || abs(offset(1)) >= 0.5 * abs(delta(1)) ;
+
+    // if unstable, try computing 2x2 inverse in time, AZ
+
+    } else {
+        const double save_offset = offset(1) ;
+        // offset(1) = min( 0.5 * abs(delta(1)), abs(gradient(1)/hessian(1,1)) );
+        gradient(1) = 0.0 ;
+        determinant = hessian(0,0) * hessian(2,2) - hessian(0,2) * hessian(2,0) ;
+        if ( determinant >= norm_2(gradient) ) {
+            #ifdef DEBUG_EIGENRAYS
+                cout << "\tcompute 2x2 matrix in (time,AZ), det=" << determinant << endl ;
+            #endif
+            inverse = zero_matrix<double>(3,3) ;
+            inverse(0,0) =  hessian(2,2) ;
+            inverse(0,2) = -hessian(0,2);
+            inverse(1,1) = 1.0 ;
+            inverse(2,0) = -hessian(2,0);
+            inverse(2,2) =  hessian(0,0);
+            inverse /= determinant;
+            noalias(offset) = prod(inverse, -gradient);
+            offset(1) = save_offset ;
+        }
     }
+
+    // use forward Taylor series to compute distance along each axis
+
+    for (size_t n = 0; n < 3; ++n) {
+        distance(n) = -gradient(n) * offset(n)
+                - 0.5 * hessian(n,n) * offset(n) * offset(n);
+        distance(n) = sqrt(max(0.0, distance(n)));
+        if (offset(n) < 0.0) distance(n) *= -1.0;
+    }
+    #ifdef DEBUG_EIGENRAYS
+        cout << "\toffset: " << offset << " distance: " << distance << endl;
+    #endif
+
+    // if unstable, use distance in time, and AZ to find distance in DE
+
     if ( unstable ) {
-        distance(1) = center - distance(0) - distance(2) ;
-    }
 
-    // take sqrt() of distance and give it same sign as offset
-    // clip offsets to +/- one beam
+        // compute distance in DE direction as remainder from total distance
 
-    for ( size_t n=0 ; n < 3 ; ++n ) {
-        distance(n) = sqrt( max( 0.0, distance(n) ) ) ;
-        if ( offset(n) < 0.0 ) distance(n) *= -1.0 ;
-        offset(n) = max( -delta(n), min(delta(n),offset(n)) ) ;
+        distance(1) = center - distance(0)*distance(0) - distance(2)*distance(2) ;
+        //distance(1) = max( 0.0, distance(1) ) ;
+        if ( distance(1) <= 0.0 ) {
+            distance(1) = 0.0 ;
+            offset(1) = 0.0 ;
+        } else {
+            distance(1) = sqrt(distance(1));
+            offset(1) = abs(offset(1)) ;
+
+            // propagate CPA ray and DE+1 ray to time of collision
+            // use a second order Taylor series like reflection does
+ 
+            wposition1 cpa, nxt, prv, tgt ;
+            wvector1 dir ; double speed ;
+            collision_location( de, az, offset(0), &cpa, &dir, &speed ) ;
+            collision_location( de+1, az, offset(0), &nxt, &dir, &speed ) ;
+            collision_location( de-1, az, offset(0), &prv, &dir, &speed ) ;
+
+            // compute direction from CPA ray to DE+1 ray
+
+            c_vector<double,3> nxt_dir ;
+            nxt_dir[0] = nxt.rho() - cpa.rho() ;
+            nxt_dir[1] = ( nxt.theta() - prv.theta() ) * cpa.rho() ;
+            nxt_dir[2] = ( nxt.phi() - prv.phi() ) * cpa.rho() * sin( cpa.theta() ) ;
+
+            // workaround: 
+            // When the rays are very close together and the wavefront 
+            // is travelling almost straight down, small errors in the 
+            // rho difference create large errors in the direction 
+            // from CPA ray to DE+1 ray.  This check seems to work around 
+            // that problem.  Needs a better long term fix.
+
+            if ( abs(nxt_dir[0]) < 0.01 ) nxt_dir[0] = 0.0 ;
+
+            // compute direction from CPA ray to target
+
+            c_vector<double,3> tgt_dir ;
+            tgt_dir[0] =_targets->rho(t1,t2)  - cpa.rho() ;
+            tgt_dir[1] = ( _targets->theta(t1,t2) - cpa.theta() ) * cpa.rho() ;
+            tgt_dir[2] = ( _targets->phi(t1,t2) - cpa.phi() ) * cpa.rho() * sin( cpa.theta() ) ;
+
+            // switch the sign of distance and offset if target and DE+1 ray 
+            // on opposite sides of CPA ray in rho direction
+
+            double dot = inner_prod ( nxt_dir, tgt_dir ) ;
+            if ( dot < 0.0 ) {
+                distance(1) *= -1.0 ;
+                offset(1) *= -1.0 ;
+            }
+            #ifdef DEBUG_EIGENRAYS
+                cout << "\tnxt_dir: " << nxt_dir << " tgt_dir: " << tgt_dir << " dot: " << dot << endl ;
+            #endif
+        }
+        #ifdef DEBUG_EIGENRAYS
+            cout << "\trecompute offset(1): " << offset(1) << " distance(1): " << distance(1) << endl;
+        #endif
     }
 }
 
@@ -657,8 +787,7 @@ void wave_queue::compute_offsets(
  */
 void wave_queue::make_taylor_coeff(
     const double value[3][3][3], const c_vector<double,3>& delta,
-    double& center, c_vector<double,3>& gradient, c_matrix<double,3,3>& hessian,
-    bool diagonal_only
+    double& center, c_vector<double,3>& gradient, c_matrix<double,3,3>& hessian
 ) {
     const double d0 = 2.0 * delta(0) ;
     const double d1 = 2.0 * delta(1) ;
@@ -680,22 +809,20 @@ void wave_queue::make_taylor_coeff(
 
     // compute off-diagonal terms in Hessian matrix, unless told not to
 
-    if ( ! diagonal_only ) {
-        gradient(0) = ( value[2][0][1] - value[0][0][1] ) / d0 ;
-        gradient(2) = ( value[2][2][1] - value[0][2][1] ) / d0 ;
-        hessian(0,1) = ( gradient(2) - gradient(0) )      / d1 ;
-        hessian(1,0) = hessian(0,1) ;
+    gradient(0) = ( value[2][0][1] - value[0][0][1] ) / d0 ;
+    gradient(2) = ( value[2][2][1] - value[0][2][1] ) / d0 ;
+    hessian(0,1) = ( gradient(2) - gradient(0) )      / d1 ;
+    hessian(1,0) = hessian(0,1) ;
 
-        gradient(0) = ( value[2][1][0] - value[0][1][0] ) / d0 ;
-        gradient(2) = ( value[2][1][2] - value[0][1][2] ) / d0 ;
-        hessian(0,2) = ( gradient(2) - gradient(0) )      / d2 ;
-        hessian(2,0) = hessian(0,2) ;
+    gradient(0) = ( value[2][1][0] - value[0][1][0] ) / d0 ;
+    gradient(2) = ( value[2][1][2] - value[0][1][2] ) / d0 ;
+    hessian(0,2) = ( gradient(2) - gradient(0) )      / d2 ;
+    hessian(2,0) = hessian(0,2) ;
 
-        gradient(0) = ( value[1][2][0] - value[1][0][0] ) / d1 ;
-        gradient(2) = ( value[1][2][2] - value[1][0][2] ) / d1 ;
-        hessian(1,2) = ( gradient(2) - gradient(0) )      / d2 ;
-        hessian(2,1) = hessian(1,2) ;
-    }
+    gradient(0) = ( value[1][2][0] - value[1][0][0] ) / d1 ;
+    gradient(2) = ( value[1][2][2] - value[1][0][2] ) / d1 ;
+    hessian(1,2) = ( gradient(2) - gradient(0) )      / d2 ;
+    hessian(2,1) = hessian(1,2) ;
 
     // compute gradient near center point
 
@@ -705,7 +832,97 @@ void wave_queue::make_taylor_coeff(
     gradient(0) = ( value[2][1][1] - value[0][1][1] ) / d0 ;
     gradient(1) = ( value[1][2][1] - value[1][0][1] ) / d1 ;
     gradient(2) = ( value[1][1][2] - value[1][1][0] ) / d2 ;
+}
 
+/**
+ * Compute the precise location and direction at the point of collision.
+ */
+void wave_queue::collision_location(
+    size_t de, size_t az, double time_water,
+    wposition1* position, wvector1* ndirection, double* speed ) const
+{
+    double drho, dtheta, dphi, d2rho, d2theta, d2phi ;
+    const double time1 = 2.0 * _time_step ;
+    const double time2 = _time_step * _time_step ;
+    const double dtime2 = time_water * time_water ;
+
+    // second order Taylor series for sound speed
+
+    drho = ( _next->sound_speed(de,az)
+        - _prev->sound_speed(de,az) )
+        / time1 ;
+
+    d2rho = ( _next->sound_speed(de,az)
+        + _prev->sound_speed(de,az)
+        - 2.0 * _curr->sound_speed(de,az) )
+        / time2 ;
+
+    *speed = _curr->sound_speed(de,az)
+        + drho * time_water + 0.5 * d2rho * dtime2 ;
+
+    // second order Taylor series for position
+
+    drho = ( _next->position.rho(de,az)
+        - _prev->position.rho(de,az) )
+        / time1 ;
+    dtheta = ( _next->position.theta(de,az)
+        - _prev->position.theta(de,az) )
+        / time1 ;
+    dphi = ( _next->position.phi(de,az)
+        - _prev->position.phi(de,az) )
+        / time1 ;
+
+    d2rho = ( _next->position.rho(de,az)
+        + _prev->position.rho(de,az)
+        - 2.0 * _curr->position.rho(de,az) )
+        / time2 ;
+    d2theta = ( _next->position.theta(de,az)
+        + _prev->position.theta(de,az)
+        - 2.0 * _curr->position.theta(de,az) )
+        / time2 ;
+    d2phi = ( _next->position.phi(de,az)
+        + _prev->position.phi(de,az)
+        - 2.0 * _curr->position.phi(de,az) )
+        / time2 ;
+
+    position->rho( _curr->position.rho(de,az)
+        + drho * time_water + 0.5 * d2rho * dtime2 ) ;
+    position->theta( _curr->position.theta(de,az)
+        + dtheta * time_water + 0.5 * d2theta * dtime2 ) ;
+    position->phi( _curr->position.phi(de,az)
+        + dphi * time_water + 0.5 * d2phi * dtime2 ) ;
+
+    // second order Taylor series for ndirection
+
+    drho = ( _next->ndirection.rho(de,az)
+        - _prev->ndirection.rho(de,az) )
+        / time1 ;
+    dtheta = ( _next->ndirection.theta(de,az)
+        - _prev->ndirection.theta(de,az) )
+        / time1 ;
+    dphi = ( _next->ndirection.phi(de,az)
+        - _prev->ndirection.phi(de,az) )
+        / time1 ;
+
+    d2rho = ( _next->ndirection.rho(de,az)
+        + _prev->ndirection.rho(de,az)
+        - 2.0 * _curr->ndirection.rho(de,az) )
+        / time2 ;
+    d2theta = ( _next->ndirection.theta(de,az)
+        + _prev->ndirection.theta(de,az)
+        - 2.0 * _curr->ndirection.theta(de,az) )
+        / time2 ;
+    d2phi = ( _next->ndirection.phi(de,az)
+        + _prev->ndirection.phi(de,az)
+        - 2.0 * _curr->ndirection.phi(de,az) )
+        / time2 ;
+
+    ndirection->rho( _curr->ndirection.rho(de,az)
+        + drho * time_water + 0.5 * d2rho * dtime2 ) ;
+    ndirection->theta( _curr->ndirection.theta(de,az)
+        + dtheta * time_water + 0.5 * d2theta * dtime2 ) ;
+    ndirection->phi( _curr->ndirection.phi(de,az)
+        + dphi * time_water + 0.5 * d2phi * dtime2 ) ;
 }
 
 /**

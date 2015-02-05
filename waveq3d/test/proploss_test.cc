@@ -467,9 +467,8 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
  * - "detcoef" is the coefficient of determination and it measure of the
  *   fraction of the model that predicts the analytic solution.
  *
- * An automatic error is thrown if abs(bias) > 0.5 dB, detcoef < 80% or dev > 4 db.
- * Special case for dev on 10 Hz and 10000 Hz; abs(dev) > 5 db.
- *
+ * At 1000 Hz, an automatic error is thrown if abs(bias) > 1 dB, dev > 4 dB,
+ * or detcoef < 90%. Extremely low and high freq can have a greater deviations.
  *
  * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
  * "Computational Ocean Acoustics", pp. 16-19.
@@ -626,25 +625,28 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
          << " dev = " << dev << " dB"
          << " detcoef = " << detcoef << "%" << endl ;
 
-        BOOST_CHECK( detcoef >= 80.0 );
+        // extremely low and high freq can have a greater dev
 
-        // Extreme low and high freq can have a greater dev
         int iFreq = (int)freq(f);
         switch (iFreq) {
             case 10:
                 BOOST_CHECK( abs(bias) <= 10.0 );
                 BOOST_CHECK( dev <= 5.0 );
+                BOOST_CHECK( detcoef >= 90.0 );
                 break;
             case 100:
                 BOOST_CHECK( abs(bias) <= 2.0 );
                 BOOST_CHECK( dev <= 4.0 );
+                BOOST_CHECK( detcoef >= 90.0 );
                 break;
             case 10000:
-                BOOST_CHECK( dev <= 5.0 );
+                BOOST_CHECK( dev <= 6.0 );
+                BOOST_CHECK( detcoef >= 75.0 );
                 break;
             default:
                 BOOST_CHECK( abs(bias) <= 1.0 );
                 BOOST_CHECK( dev <= 4.0 );
+                BOOST_CHECK( detcoef >= 90 );
         }
 
     } // end Freq
@@ -715,9 +717,6 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
     const double wavenum = TWO_PI * freq(0) / c0;
 
     wposition1 pos(src_lat, src_lng, src_alt);
-//    seq_rayfan de( -90.0, 90.0, 361 ) ;
-//    seq_rayfan de( -17.0, 17.0, 363 ) ;
-//    seq_linear de( -5.0, 5.0, 720 );
     seq_rayfan de ;
     seq_linear az( -4.0, 1.0, 4.0 );
 
@@ -725,13 +724,11 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
 
     double degrees = src_lat + to_degrees(range / (wposition::earth_radius+src_alt)); // range in latitude
     seq_linear depth(-0.1, -0.5, -40.1); // depth in meters
-//    seq_linear depth(-26.1, 1.0, 1); // depth in meters
     wposition target(depth.size(), 1, degrees, src_lng, 0.0);
     for (size_t n = 0; n < target.size1(); ++n)
     {
         target.altitude(n, 0, depth(n));
     }
-//    wposition target(1,1,degrees,src_lng,-25.0);
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
