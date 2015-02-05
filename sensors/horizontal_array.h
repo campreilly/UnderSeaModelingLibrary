@@ -28,23 +28,24 @@ class horizontal_array : public beam_pattern_line {
          * horizontal, as such the steering angles and the pitch are corrected
          * by adding a pi/2.
          *
-         * @param sound_speed   speed of sound in water at the array
-         * @param spacing       distance between each element on the array
-         * @param elements      number of elements on the line array
+         * @param sound_speed       speed of sound in water at the array
+         * @param spacing           distance between each element on the array
+         * @param elements          number of elements on the line array
+         * @param frequencies       list of operating frequencies
+         * @param steering_angles   list of steering angles relative to the
+         *                          reference axis( vertical axis )
          */
         horizontal_array( double c0, double d, size_t elements,
-                          const seq_vector& freq,
+                          const seq_vector& frequencies,
                           vector<double>* steering_angles=NULL )
          {
             _n = elements ;
-            _omega = vector<double>( freq.size() ) ;
-            _omega_n = vector<double>( freq.size() ) ;
             if( !steering_angles ) {
                 vector<double> steerings = scalar_vector<double>( 1, M_PI_2 ) ;
-                initialize_beams( c0, d, freq, steerings ) ;
+                initialize_beams( c0, d, frequencies, steerings ) ;
             } else {
                 (*steering_angles) = (*steering_angles) + M_PI_2 ;
-                initialize_beams( c0, d, freq, *steering_angles ) ;
+                initialize_beams( c0, d, frequencies, *steering_angles ) ;
             }
             _pitch = M_PI_2 ;
          }

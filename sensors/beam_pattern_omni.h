@@ -42,9 +42,9 @@ class beam_pattern_omni : public beam_pattern_model {
         /**
          * Rotates the array by a given roll, pitch, and yaw
          *
-         * @param roll      rotation of the beam around the North/South axis (clockwise positive)
-         * @param pitch     rotation of the beam around the East/West axis (clockwise positive)
-         * @param yaw       rotation of the beam around the Up/Down axis (up positive)
+         * @param roll      rotation of the beam around the North/South axis (up positive)
+         * @param pitch     rotation of the beam around the East/West axis (up positive)
+         * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
          */
         virtual void orient_beam( double roll, double pitch, double yaw ) ;
 

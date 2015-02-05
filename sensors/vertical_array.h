@@ -23,22 +23,25 @@ class vertical_array : public beam_pattern_line {
     public:
 
         /**
-         * Cosntructor for a vertically oriented array of linear elements
+         * Constructor for a vertically oriented array of linear elements
          *
-         * @param sound_speed   speed of sound in water at the array
-         * @param spacing       distance between each element on the array
-         * @param elements      number of elements on the line array
+         * @param sound_speed       speed of sound in water at the array
+         * @param spacing           distance between each element on the array
+         * @param elements          number of elements on the line array
+         * @param frequencies       list of operating frequencies
+         * @param steering_angles   list of steering angles relative to the
+         *                          reference axis( horizontal axis )
          */
         vertical_array( double c0, double d, size_t elements,
-                        const seq_vector& freq,
+                        const seq_vector& frequencies,
                         vector<double>* steering_angles=NULL )
          {
             _n = elements ;
             if( !steering_angles ) {
                 vector<double> steerings = scalar_vector<double>( 1, 0.0 ) ;
-                initialize_beams( c0, d, freq, steerings ) ;
+                initialize_beams( c0, d, frequencies, steerings ) ;
             } else {
-                initialize_beams( c0, d, freq, *steering_angles ) ;
+                initialize_beams( c0, d, frequencies, *steering_angles ) ;
             }
          }
 

@@ -1,13 +1,13 @@
 /**
- * @file beam_pattern_cosine.cc
+ * @file beam_pattern_sine.cc
  */
 
-#include <usml/sensors/beam_pattern_cosine.h>
+#include <usml/sensors/beam_pattern_sine.h>
 
 using namespace usml::sensors ;
 
 /** Calculates the beam level in de, az, and frequency **/
-void beam_pattern_cosine::beam_level(
+void beam_pattern_sine::beam_level(
         double de, double az, size_t beam,
         vector<double>* level )
 {
@@ -25,22 +25,22 @@ void beam_pattern_cosine::beam_level(
  * The user may call this function but it has no effect on the
  * beam level.
  */
-void beam_pattern_cosine::orient_beam( double roll,
+void beam_pattern_sine::orient_beam( double roll,
         double pitch, double yaw )
 {
     _roll = roll ;
-    _pitch = M_PI_2 + pitch ;
-    _yaw = M_PI_2 - yaw ;
+    _pitch = pitch + M_PI_2 ;
+    _yaw = yaw ;
 }
 
 /**
  * Initializes the beam pattern
  */
-void beam_pattern_cosine::initialize_beams( const seq_vector& frequencies )
+void beam_pattern_sine::initialize_beams( const seq_vector& frequencies )
 {
     _directivity_index =
             scalar_vector<double>( frequencies.size(), 10.0*log10( 2.0 ) ) ;
     _roll = 0.0 ;
     _pitch = M_PI_2 ;
-    _yaw = M_PI_2 ;
+    _yaw = 0.0 ;
 }

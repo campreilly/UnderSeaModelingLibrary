@@ -1,5 +1,5 @@
 /**
- * @file beam_pattern_cosine.h
+ * @file beam_pattern_sine.h
  */
 #pragma once
 
@@ -15,18 +15,18 @@ using namespace usml::types ;
 /// @{
 
 /**
- * Models a North/South-directional beam pattern. This
+ * Models a East/West-directional beam pattern. This
  * pattern can be simulated by a line array with two
  * elements that are spaced by half the wavelength.
  */
-class beam_pattern_cosine : public beam_pattern_model {
+class beam_pattern_sine : public beam_pattern_model {
 
     public:
 
         /**
          * Constructor
          */
-        beam_pattern_cosine( const seq_vector& frequencies) {
+        beam_pattern_sine( const seq_vector& frequencies) {
             initialize_beams( frequencies ) ;
         }
 
@@ -44,9 +44,9 @@ class beam_pattern_cosine : public beam_pattern_model {
         /**
          * Rotates the array by a given roll, pitch, and yaw
          *
-         * @param roll      rotation of the beam around the North/South axis (clockwise positive)
-         * @param pitch     rotation of the beam around the East/West axis (clockwise positive)
-         * @param yaw       rotation of the beam around the Up/Down axis (up positive)
+         * @param roll      rotation of the beam around the North/South axis (up positive)
+         * @param pitch     rotation of the beam around the East/West axis (up positive)
+         * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
          */
         virtual void orient_beam( double roll, double pitch, double yaw ) ;
 
