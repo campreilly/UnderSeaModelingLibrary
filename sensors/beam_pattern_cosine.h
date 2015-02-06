@@ -18,25 +18,35 @@ using namespace usml::types ;
  * Models a North/South-directional beam pattern. This
  * pattern can be simulated by a line array with two
  * elements that are spaced by half the wavelength.
+ *
+ * NOTE: All computation are done in traditional theta and phi
+ * of spherical coordinates. As such all DE, AZ, roll, pitch,
+ * and yaw are transformed before used in computations.
  */
 class beam_pattern_cosine : public beam_pattern_model {
 
     public:
 
         /**
-         * Constructor
+         * Constructors an cosine-directional beam pattern.
+         * Uses the list of frequencies to construct vectors
+         * of the necessary size for computation.
+         *
+         * @param frequencies   list of the operating frequencies
          */
-        beam_pattern_cosine( const seq_vector& frequencies) {
+        beam_pattern_cosine( const seq_vector& frequencies ) {
             initialize_beams( frequencies ) ;
         }
 
         /**
-         * Computes the beam level
+         * Computes the response level in a specific DE/AZ pair and
+         * beam steering angle. The return, level, is passed
+         * back in linear units.
          *
-         * @param  de            Depression/Elevation angle
-         * @param  az            Azimuthal angle
-         * @param  beam          beam steering to find response level for
-         * @return level         beam level for each frequency (linear)
+         * @param  de            Depression/Elevation angle (rad)
+         * @param  az            Azimuthal angle (rad)
+         * @param  beam          beam steering to find response level (size_t)
+         * @param  level         beam level for each frequency
          */
         virtual void beam_level( double de, double az, size_t beam,
                                  vector<double>* level ) ;

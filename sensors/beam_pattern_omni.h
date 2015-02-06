@@ -22,19 +22,25 @@ class beam_pattern_omni : public beam_pattern_model {
     public:
 
         /**
-         * Constructor
+         * Constructors an omni-directional beam pattern.
+         * Uses the list of frequencies to construct vectors
+         * of the necessary size for computation.
+         *
+         * @param frequencies   list of the operating frequencies
          */
-        beam_pattern_omni( const seq_vector& frequencies) {
+        beam_pattern_omni( const seq_vector& frequencies ) {
             initialize_beams( frequencies ) ;
         }
 
         /**
-         * Computes the beam level
+         * Computes the response level in a specific DE/AZ pair and
+         * beam steering angle. The return, level, is passed
+         * back in linear units.
          *
-         * @param  de            Depression/Elevation angle
-         * @param  az            Azimuthal angle
-         * @param  beam          beam steering to find response level for
-         * @return level         beam level for each frequency (linear)
+         * @param  de            Depression/Elevation angle (rad)
+         * @param  az            Azimuthal angle (rad)
+         * @param  beam          beam steering to find response level (size_t)
+         * @param  level         beam level for each frequency
          */
         virtual void beam_level( double de, double az, size_t beam,
                                  vector<double>* level ) ;

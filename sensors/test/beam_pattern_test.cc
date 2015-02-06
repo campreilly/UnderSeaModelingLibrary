@@ -142,17 +142,20 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
 
 /**
  * Test the basic features of the beam_pattern_model using
- * a vertical array of elements model. Output data to a file
- * and run supplied matlab code to verify that the data is
- * comparable to the matlab generated version.
+ * a vertical array of elements model. Data is save to a
+ * file and support matlab code is provided to verify the
+ * spatial orientation of the beam pattern is correct.
  *
- * Added a check to confirm the main lobe is in the correct
- * direction. If the level value is different from 1.0 by
- * 1e-4% an error is thrown. The Directivity index is also
- * checked using a Simpson's rule integration approximation.
- * The approximate integration is then compared to the
- * analytic solution. An error is thrown if the values
- * differ by more than 1%.
+ * The test fails if either the following are false:
+ *
+ *  - The main lobe is in the correct is not in the correct
+ *    direction. If the maximum response is not in the
+ *    correct direction, the beam level will differ from
+ *    1.0 by greater than 1e-4%
+ *  - The Directivity index is also differs from a
+ *    a Simpson's rule integration approximation of
+ *    directivity index from beam level, by more than
+ *    1.0%.
  */
 BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     cout << "===== beam_pattern_test/vertical_array_test =====" << endl ;
@@ -219,17 +222,20 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
 
 /**
  * Test the basic features of the beam_pattern_model using
- * a horizontal array of elements model. Output data to a file
- * and run supplied matlab code to verify that the data is
- * comparable to the matlab generated version.
+ * a horizontal array of elements model. Data is save to a
+ * file and support matlab code is provided to verify the
+ * spatial orientation of the beam pattern is correct.
  *
- * Added a check to confirm the main lobe is in the correct
- * direction. If the level value is different from 1.0 by
- * 1e-4% an error is thrown. The Directivity index is also
- * checked using a simpson rule integration approximation.
- * The approximate integration is then compared to the
- * analytic solution. An error is thrown if the values
- * differ by more than 1%.
+ * The test fails if either the following are false:
+ *
+ *  - The main lobe is in the correct is not in the correct
+ *    direction. If the maximum response is not in the
+ *    correct direction, the beam level will differ from
+ *    1.0 by greater than 1e-4%
+ *  - The Directivity index is also differs from a
+ *    a Simpson's rule integration approximation of
+ *    directivity index from beam level, by more than
+ *    1.0%.
  */
 BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     cout << "===== beam_pattern_test/horizontal_array_test =====" << endl ;
@@ -292,6 +298,68 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     cout << "Directivity index" << endl ;
     cout << "analytic: " << array.directivity_index(0) << "\napproximation: " << total << endl ;
     BOOST_CHECK_CLOSE( array.directivity_index(0), total, 1.0 ) ;
+}
+
+/**
+ * Test the basic features of the beam_pattern_model using
+ * a beam pattern function of solid angle.
+ *
+ * The test fails if either the following are false:
+ *
+ *  - The main lobe is in the correct is not in the correct
+ *    direction. If the maximum response is not in the
+ *    correct direction, the beam level will differ from
+ *    1.0 by greater than 1e-4%
+ *  - The Directivity index is also differs from a
+ *    a Simpson's rule integration approximation of
+ *    directivity index from beam level, by more than
+ *    1.0%.
+ */
+BOOST_AUTO_TEST_CASE( solid_pattern_test ) {
+    cout << "===== beam_pattern_test/solid_pattern_test =====" << endl ;
+    const char* csvname = USML_TEST_DIR "/sensors/test/beam_pattern_solid.csv" ;
+
+    // Physical and Environmental parameters concerning the array
+    double max_de = 20.0 ;
+    double min_de = -20.0 ;
+    double max_az = 135.0 ;
+    double min_az = 45.0 ;
+    seq_linear freq(900.0, 1.0, 1.0) ;
+    beam_pattern_solid solid( max_de, min_de, max_az, min_az, freq ) ;
+
+    double pitch = 17.0 ;
+    double yaw = 41.0 ;
+    solid.orient_beam( 0.0, pitch*M_PI/180.0, yaw*M_PI/180.0 ) ;
+    cout << "beam oriented (roll,pitch,yaw): ("
+         << 0.0 << ", " << pitch << ", " << yaw << ")" << endl ;
+
+    std::ofstream of( csvname ) ;
+    cout << "Saving beam data to " << csvname << endl ;
+    vector<double> level( freq.size(), 0.0 ) ;
+    double total = 0 ;
+    for(int az=0; az<=360; ++az) {
+        for(int de=-90; de<=90; ++de) {
+            double de_rad = de * M_PI/180.0 ;
+            double az_rad = az * M_PI/180.0 ;
+            solid.beam_level( de_rad, az_rad, 0, &level ) ;
+            of << level(0) ;
+            if( de!=90 ) of << "," ;
+            total += level(0)*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
+            double result = 0.0 ;
+            if( (de<(max_de-pitch)) && (de>=(min_de-pitch)) ) {
+                if( (az<=(max_az+yaw)) && (az>=(min_az+yaw)) ) {
+                    result = 1.0 ;
+                }
+            }
+            BOOST_CHECK_EQUAL( level(0), result ) ;
+        }
+        of << endl ;
+    }
+
+    total = 10.0*log10( (4*M_PI)/total ) ;
+    cout << "Directivity index" << endl ;
+    cout << "analytic: " << solid.directivity_index(0) << "\napproximation: " << total << endl ;
+    BOOST_CHECK_CLOSE( solid.directivity_index(0), total, 1.5 ) ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

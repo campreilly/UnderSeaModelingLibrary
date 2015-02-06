@@ -18,6 +18,10 @@ using namespace usml::types ;
  * Models a beam pattern constructed from an array of elements
  * that are linearly oriented and spaced apart along the array's
  * major axis.
+ *
+ * NOTE: All computation are done in traditional theta and phi
+ * of spherical coordinates. As such all DE, AZ, roll, pitch,
+ * and yaw are transformed before used in computations.
  */
 class beam_pattern_line : public beam_pattern_model {
 
@@ -41,7 +45,7 @@ class beam_pattern_line : public beam_pattern_model {
          * @param frequencies       list of operating frequencies
          * @param steering_angles   list of steering angles relative to the
          *                          reference axis
-         * @param reference_axis    the reference axis of the array.
+         * @param axis              the reference axis of the array.
          */
         beam_pattern_line( double c0, double d, size_t elements,
                            const seq_vector& frequencies,
@@ -73,12 +77,14 @@ class beam_pattern_line : public beam_pattern_model {
         }
 
         /**
-         * Computes the beam level
+         * Computes the response level in a specific DE/AZ pair and
+         * beam steering angle. The return, level, is passed
+         * back in linear units.
          *
-         * @param  de            Depression/Elevation angle
-         * @param  az            Azimuthal angle
-         * @param  beam          beam steering to find response level for
-         * @return level         beam level for each frequency (linear)
+         * @param  de            Depression/Elevation angle (rad)
+         * @param  az            Azimuthal angle (rad)
+         * @param  beam          beam steering to find response level (size_t)
+         * @param  level         beam level for each frequency
          */
         virtual void beam_level( double de, double az, size_t beam,
                                  vector<double>* level ) ;
