@@ -66,9 +66,9 @@ class USML_DECLSPEC beam_pattern_model {
         /**
          * Rotates the array by a given roll, pitch, and yaw
          *
-         * @param roll      rotation of the beam around the North/South axis (clockwise positive)
+         * @param roll      rotation of the beam around the North/South axis (up positive)
          *                  Up is 0 and Down is PI.
-         * @param pitch     rotation of the beam around the East/West axis (clockwise positive)
+         * @param pitch     rotation of the beam around the East/West axis (up positive)
          *                  Up is 0 and Down is PI.
          * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
          *                  North is 0 and South is PI.
