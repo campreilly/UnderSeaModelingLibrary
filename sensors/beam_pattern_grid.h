@@ -45,7 +45,7 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                            const data_units& data_unit )
         {
             construct_pattern( axis, data, types, axes_units, data_unit ) ;
-            compute_directivity_index( data_unit ) ;
+            compute_directivity_index() ;
         }
 
         /**
@@ -99,7 +99,19 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                 interp_type( i, GRID_INTERP_LINEAR ) ;
             }
             this->_data = new value_type[N] ;
-            memcpy( this->_data, data, N*sizeof(value_type) ) ;
+            switch( data_unit ) {
+                case LOG_UNITS:
+                    value_ptr data_copy ;
+                    memcpy( data_copy, data, N*sizeof(value_type) ) ;
+                    for(size_type i=0; i<N; ++i) {
+                        (*data_copy++) = std::pow( 10.0, (-data_copy/10.0) ) ;
+                    }
+                    memcpy( this->_data, data_copy, N*sizeof(value_type) ) ;
+                    break ;
+                default:
+                    memcpy( this->_data, data, N*sizeof(value_type) ) ;
+                    break ;
+            }
             memset( this->_edge_limit, true, Dim*sizeof(bool) ) ;
         }
 
@@ -142,10 +154,8 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
 
        /**
         * Computes the directivity index for each frequency.
-        *
-        * @param data_unit      Units that the intensities are in
         */
-       void compute_directivity_index( const data_units& data_unit )
+       void compute_directivity_index()
        {
            size_type num_freq( _axis[0].size() ) ;
            _directivity_index =
@@ -156,7 +166,7 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                total = 4.0*M_PI ;
            }
            for(size_type i=0; i<num_freq; ++i) {
-               value_type sum = sum_data( this->_data, data_unit, i ) ;
+               value_type sum = sum_data( this->_data, i ) ;
                _directivity_index[i] = 10.0 * log10( total / sum ) ;
            }
        }
@@ -164,49 +174,65 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
        /**
         * Adds all intensities for a specific frequency.
         *
-        * @param units      Type of units that the data is in
         * @param index      Index for the frequency of interest
         * @return           The summation of all intensities for
         *                   this frequency
         */
-       value_type sum_data( const data_units& units,
-                            const size_type index )
+       void sum_data( const size_type index, value_type& total )
        {
+           switch( Dim ) {
+
+                   /**
+                    * 1-D grid of data points
+                    */
+               case 1 :
+                   total = _data[index] ;
+                   break ;
+
+                   /**
+                    * 2-D grid of data points
+                    */
+               case 2 :
+                   total = 0.0 ;
+                   size_type size( _axis[1]->size() ) ;
+                   value_ptr dtheta = &(_axis[1]->increment(0)) ;
+                   value_ptr theta = _axis[1]->begin() ;
+                   for(size_type i=0; i<size; ++i) {
+                       total += _data[index+i] * cos( (*theta+i) ) * (*dtheta+i) ;
+                   }
+                   break ;
+
+                   /**
+                    * 3-D grid of data points
+                    */
+               case 3 :
+                   total = 0.0 ;
+                   size_type size1( _axis[1]->size() ) ;
+                   size_type size2( _axis[2]->size() ) ;
+                   value_ptr theta = _axis[1]->begin() ;
+                   value_ptr dtheta = &(_axis[1]->increment(0)) ;
+                   value_ptr dphi = &(_axis[2]->increment(0)) ;
+                   for(size_type i=0; i<size1; ++i) {
+                       for(size_type j=0; j<size2; ++j) {
+                           total += _data[index+i*size1+j*size2] * cos( (*theta+i) )
+                                   * (*dtheta+i) * (*dphi+i) ;
+                       }
+                   }
+                   break ;
+
+                   /**
+                    * Invalid dimension value
+                    */
+               default:
+                   std::invalid_argument(
+                           "beam_pattern_grid must be 1-D, 2-D, or 3-D") ;
+                   break ;
+           }
            size_type N = 1 ;
            value_type result = 0.0 ;
            for(size_type i=1; i<Dim; ++i) {
                N *= _axis[i]->size() ;
            }
-           size_type axis_index[Dim-1] ;
-           std::memset( axis_index, 1, Dim*sizeof(size_type) ) ;
-           size_type offset( index*N ) ;
-           N = ( index + 1 ) * N ;          // Move to the next frequency
-           value_type integration_part = 1.0 ;
-           for(size_type i=1; i<Dim; ++i) {
-               integration_part *= _axis[i]->increment( 0 ) ;
-           }
-           while( offset < N ) {
-               if( units == LOG_UNITS ) {
-                   result += std::pow( 10.0, (-_data[offset]/10.0) )
-                             * cos( (_axis[1])[axis_index[1]] )
-                             * integration_part ;
-               } else {
-                   result += _data[offset] * cos( (_axis[1])[axis_index[1]] )
-                             * integration_part ;
-               }
-               ++offset ;
-               ++axis_index[1] ;
-               integration_part = _axis[1]->increment( axis_index[1] ) ;
-               for(size_type i=2; i<Dim; ++i) {
-                   axis_index[i-1]++ ;
-                   if( axis_index[i-1] > (_axis[i-1]->size()-1) ) {
-                       axis_index[i-1] = 1 ;
-                       axis_index[i]++ ;
-                   }
-                   integration_part *= _axis[i]->increment( axis_index[i] ) ;
-               }
-           }
-           return result ;
        }
 
 };
