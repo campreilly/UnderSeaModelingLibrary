@@ -59,6 +59,7 @@
 #include <usml/ocean/profile_catenary.h>
 #include <usml/ocean/profile_grid.h>
 #include <usml/ocean/profile_grid_fast.h>
+#include <usml/ocean/profile_lock.h>
 #include <usml/ocean/ascii_profile.h>
 #include <usml/ocean/data_grid_mackenzie.h>
 
@@ -75,6 +76,7 @@
 #include <usml/ocean/boundary_slope.h>
 #include <usml/ocean/boundary_grid.h>
 #include <usml/ocean/boundary_grid_fast.h>
+#include <usml/ocean/boundary_lock.h>
 #include <usml/ocean/ascii_arc_bathy.h>
 #include <usml/ocean/wave_height_pierson.h>
 

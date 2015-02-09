@@ -168,8 +168,7 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
 
         // compute sound speed
 
-        profile_grid<double,3> profile =
-            data_grid_mackenzie::construct(temperature, salinity) ;
+        profile_grid<double,3> profile(data_grid_mackenzie::construct(temperature, salinity)) ;
 
         // print results for first lat/long entry
 
