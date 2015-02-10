@@ -27,22 +27,20 @@ class beam_pattern_solid : public beam_pattern_model {
     public:
 
         /**
-         * Constructors an solid-angle beam pattern.
+         * Constructs a solid-angle beam pattern.
          * DE \elem [-90.0 90.0], AZ \elem [0.0 360.0]
          *
          * @param max_de        maximum DE of the solid angle (deg)
          * @param min_de        minimum DE of the solid angle (deg)
          * @param max_az        maximum AZ of the solid angle (deg)
          * @param min_az        minimum AZ of the solid angle (deg)
-         * @param frequencies   list of operating frequencies
          */
         beam_pattern_solid( double max_de, double min_de,
-                            double max_az, double min_az,
-                            const seq_vector& frequencies )
+                            double max_az, double min_az )
             : _max_de(max_de), _min_de(min_de),
               _max_az(max_az), _min_az(min_az)
         {
-            initialize_beams( frequencies ) ;
+            initialize_beam() ;
         }
 
         /**
@@ -50,12 +48,13 @@ class beam_pattern_solid : public beam_pattern_model {
          * beam steering angle. The return, level, is passed
          * back in linear units.
          *
-         * @param  de            Depression/Elevation angle (rad)
-         * @param  az            Azimuthal angle (rad)
-         * @param  beam          beam steering to find response level (size_t)
-         * @param  level         beam level for each frequency
+         * @param de            Depression/Elevation angle (rad)
+         * @param az            Azimuthal angle (rad)
+         * @param frequencies   list of frequencies to compute beam level for
+         * @param level         beam level for each frequency
          */
-        virtual void beam_level( double de, double az, size_t beam,
+        virtual void beam_level( double de, double az,
+                                 const vector<double>& frequencies,
                                  vector<double>* level ) ;
 
         /**
@@ -67,7 +66,18 @@ class beam_pattern_solid : public beam_pattern_model {
          */
         virtual void orient_beam( double roll, double pitch, double yaw ) ;
 
+        /**
+         *
+         */
+        virtual void directivity_index( const vector<double>& frequencies,
+                                        vector<double>* level ) ;
+
     protected:
+
+        /**
+         * Directivity index of this beam pattern
+         */
+        double _directivity_index ;
 
         /**
          * Solid angle information
@@ -97,7 +107,7 @@ class beam_pattern_solid : public beam_pattern_model {
          * The directivity index array size to frequencies size and
          * zero.
          */
-        void initialize_beams( const seq_vector& frequencies ) ;
+        void initialize_beam() ;
 
 };
 

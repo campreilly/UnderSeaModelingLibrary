@@ -55,12 +55,13 @@ class USML_DECLSPEC beam_pattern_model {
          * is a development choice and may be changed depending on how
          * this value is used in the final release state.
          *
-         * @param  de            Depression/Elevation angle (rad)
-         * @param  az            Azimuthal angle (rad)
-         * @param  beam          beam steering to find response level (size_t)
-         * @param  level         beam level for each frequency
+         * @param de            Depression/Elevation angle (rad)
+         * @param az            Azimuthal angle (rad)
+         * @param frequencies   list of frequencies to compute beam level for
+         * @param level         beam level for each frequency
          */
-        virtual void beam_level( double de, double az, size_t beam,
+        virtual void beam_level( double de, double az,
+                                 const vector<double>& frequencies,
                                  vector<double>* level ) = 0 ;
 
         /**
@@ -81,21 +82,13 @@ class USML_DECLSPEC beam_pattern_model {
          * @param   f    frequency index
          * @return       directivity index for this frequency
          */
-        inline double directivity_index( size_t f ) const {
-            return _directivity_index[f] ;
-        }
+        virtual void directivity_index( const vector<double>& frequencies,
+                                        vector<double>* level ) = 0 ;
 
         /**
          * Destructor
          */
         virtual ~beam_pattern_model() {}
-
-    protected:
-
-        /**
-         * Cache of the directivity index for an array.
-         */
-        vector<double> _directivity_index ;
 
 };
 

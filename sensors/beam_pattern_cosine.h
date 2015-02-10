@@ -28,14 +28,12 @@ class beam_pattern_cosine : public beam_pattern_model {
     public:
 
         /**
-         * Constructors an cosine-directional beam pattern.
-         * Uses the list of frequencies to construct vectors
-         * of the necessary size for computation.
-         *
-         * @param frequencies   list of the operating frequencies
+         * Constructs a cosine-directional beam pattern.
          */
-        beam_pattern_cosine( const seq_vector& frequencies ) {
-            initialize_beams( frequencies ) ;
+        beam_pattern_cosine() {
+            _roll = 0.0 ;
+            _pitch = M_PI_2 ;
+            _yaw = M_PI_2 ;
         }
 
         /**
@@ -43,12 +41,13 @@ class beam_pattern_cosine : public beam_pattern_model {
          * beam steering angle. The return, level, is passed
          * back in linear units.
          *
-         * @param  de            Depression/Elevation angle (rad)
-         * @param  az            Azimuthal angle (rad)
-         * @param  beam          beam steering to find response level (size_t)
-         * @param  level         beam level for each frequency
+         * @param de            Depression/Elevation angle (rad)
+         * @param az            Azimuthal angle (rad)
+         * @param frequencies   list of frequencies to compute beam level for
+         * @param level         beam level for each frequency
          */
-        virtual void beam_level( double de, double az, size_t beam,
+        virtual void beam_level( double de, double az,
+                                 const vector<double>& frequencies,
                                  vector<double>* level ) ;
 
         /**
@@ -60,13 +59,17 @@ class beam_pattern_cosine : public beam_pattern_model {
          */
         virtual void orient_beam( double roll, double pitch, double yaw ) ;
 
-    protected:
-
         /**
-         * The directivity index array size to frequencies size and
-         * zero.
+         * Directivity index for an cosine-directional beam pattern
+         * The gain for this type of beam pattern is 0 dB.
+         *
+         * @param frequencies   list of frequencies to compute DI for
+         * @param level         gain for each frequency
          */
-        void initialize_beams( const seq_vector& frequencies ) ;
+        virtual void directivity_index( const vector<double>& frequencies,
+                                        vector<double>* level ) ;
+
+    protected:
 
         /**
          * Spatial orientation of the array

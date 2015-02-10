@@ -46,7 +46,7 @@ class USML_DECLSPEC seq_linear : public seq_vector {
          * @param  increment    Spacing between elements.
          * @param  size         Number of elements in this sequence.
          */
-        seq_linear( value_type first, value_type increment, size_type size ) :
+        seq_linear( value_type first, value_type increment, int size ) :
             seq_vector( (size_type) size )
         {
             initialize( first, increment, (size_type) size ) ;

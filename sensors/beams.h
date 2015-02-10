@@ -19,3 +19,5 @@
 
 #include <usml/sensors/beam_pattern_line.h>
 #include <usml/sensors/beam_pattern_solid.h>
+
+#include <usml/sensors/beam_pattern_grid.h>

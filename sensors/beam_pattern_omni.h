@@ -23,26 +23,21 @@ class beam_pattern_omni : public beam_pattern_model {
 
         /**
          * Constructors an omni-directional beam pattern.
-         * Uses the list of frequencies to construct vectors
-         * of the necessary size for computation.
-         *
-         * @param frequencies   list of the operating frequencies
          */
-        beam_pattern_omni( const seq_vector& frequencies ) {
-            initialize_beams( frequencies ) ;
-        }
+        beam_pattern_omni() {}
 
         /**
          * Computes the response level in a specific DE/AZ pair and
          * beam steering angle. The return, level, is passed
          * back in linear units.
          *
-         * @param  de            Depression/Elevation angle (rad)
-         * @param  az            Azimuthal angle (rad)
-         * @param  beam          beam steering to find response level (size_t)
-         * @param  level         beam level for each frequency
+         * @param de            Depression/Elevation angle (rad)
+         * @param az            Azimuthal angle (rad)
+         * @param freuencies    list of frequencies to compute beam level for
+         * @param level         beam level for each frequency
          */
-        virtual void beam_level( double de, double az, size_t beam,
+        virtual void beam_level( double de, double az,
+                                 const vector<double>& frequencies,
                                  vector<double>* level ) ;
 
         /**
@@ -52,29 +47,17 @@ class beam_pattern_omni : public beam_pattern_model {
          * @param pitch     rotation of the beam around the East/West axis (up positive)
          * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
          */
-        virtual void orient_beam( double roll, double pitch, double yaw ) ;
-
-    protected:
+        virtual void orient_beam( double roll, double pitch, double yaw ) {}
 
         /**
-         * The directivity index array size to frequencies size and
-         * zero.
+         * Directivity index for an omni-directional beam pattern
+         * The gain for this type of beam pattern is 0 dB.
+         *
+         * @param frequencies   list of frequencies to compute DI for
+         * @param level         gain for each frequency
          */
-        void initialize_beams( const seq_vector& frequencies ) ;
-
-        /**
-         * Creating the beam_level return vector at instantion saves time
-         * by not requiring a constructor call when needed.
-         */
-        vector<double> _level ;
-
-        /**
-         * Spatial orientation of the array
-         */
-        double _roll ;
-        double _pitch ;
-        double _yaw ;
-
+        virtual void directivity_index( const vector<double>& frequencies,
+                                        vector<double>* level ) ;
 };
 
 /// @}

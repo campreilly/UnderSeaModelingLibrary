@@ -42,36 +42,23 @@ class beam_pattern_line : public beam_pattern_model {
          * @param sound_speed       speed of sound in water at the array
          * @param spacing           distance between each element on the array
          * @param elements          number of elements on the line array
-         * @param frequencies       list of operating frequencies
          * @param steering_angles   list of steering angles relative to the
          *                          reference axis
          * @param axis              the reference axis of the array.
          */
-        beam_pattern_line( double c0, double d, size_t elements,
-                           const seq_vector& frequencies,
-                           vector<double>* steering_angles=NULL,
+        beam_pattern_line( double sound_speed, double spacing,
+                           size_t elements, double steering_angle,
                            reference_axis axis=VERTICAL ) : _axis(axis)
         {
             switch( _axis ) {
                 case HORIZONTAL :
                     _n = elements ;
-                    if( !steering_angles ) {
-                        vector<double> steerings = scalar_vector<double>( 1, M_PI_2 ) ;
-                        initialize_beams( c0, d, frequencies, steerings ) ;
-                    } else {
-                        (*steering_angles) = (*steering_angles) + M_PI_2 ;
-                        initialize_beams( c0, d, frequencies, *steering_angles ) ;
-                    }
+                    initialize_beams( sound_speed, spacing, (steering_angle + M_PI_2) ) ;
                     _pitch = M_PI_2 ;
                     break ;
                 default :
                     _n = elements ;
-                    if( !steering_angles ) {
-                        vector<double> steerings = scalar_vector<double>( 1, 0.0 ) ;
-                        initialize_beams( c0, d, frequencies, steerings ) ;
-                    } else {
-                        initialize_beams( c0, d, frequencies, *steering_angles ) ;
-                    }
+                    initialize_beams( sound_speed, spacing, steering_angle ) ;
                     break ;
             }
         }
@@ -81,12 +68,14 @@ class beam_pattern_line : public beam_pattern_model {
          * beam steering angle. The return, level, is passed
          * back in linear units.
          *
-         * @param  de            Depression/Elevation angle (rad)
-         * @param  az            Azimuthal angle (rad)
-         * @param  beam          beam steering to find response level (size_t)
-         * @param  level         beam level for each frequency
+         * @param de            Depression/Elevation angle (rad)
+         * @param az            Azimuthal angle (rad)
+         * @param beam          beam steering to find response level (size_t)
+         * @param frequencies   frequencies to compute beam level for
+         * @param level         beam level for each frequency
          */
-        virtual void beam_level( double de, double az, size_t beam,
+        virtual void beam_level( double de, double az,
+                                 const vector<double>& frequencies,
                                  vector<double>* level ) ;
 
         /**
@@ -96,17 +85,16 @@ class beam_pattern_line : public beam_pattern_model {
          * @param pitch     rotation of the beam around the East/West axis (up positive)
          * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
          */
-        virtual void orient_beam( double roll, double pitch, double yaw ) {
-            if( _axis == HORIZONTAL ) {
-                _roll = roll ;
-                _pitch = -(pitch + M_PI_2) ;
-                _yaw = -yaw ;
-            } else {
-                _roll = roll ;
-                _pitch = -pitch ;
-                _yaw = -yaw ;
-            }
-        }
+        virtual void orient_beam( double roll, double pitch, double yaw ) ;
+
+        /**
+         * Computes the directivity index for a list of frequencies
+         *
+         * @param frequencies   frequencies to determine DI at
+         * @param level         gain for the provided frequencies
+         */
+        virtual void directivity_index( const vector<double>& frequencies,
+                                        vector<double>* level ) ;
 
     protected:
 
@@ -117,17 +105,17 @@ class beam_pattern_line : public beam_pattern_model {
 
         /**
          * Local cache of commonly computed values
-         * using the frequencies.
+         * for frequency computations.
          */
-        vector<double> _omega ;
-        vector<double> _omega_n ;
+        double _omega ;
+        double _omega_n ;
 
         /**
          * Local cache of commonly computed
          * using the steering angles
          */
-        vector<double> _steering ;
-        vector<double> _steering_n ;
+        double _steering ;
+        double _steering_n ;
 
         /**
          * Spatial orientation of the array
@@ -144,13 +132,11 @@ class beam_pattern_line : public beam_pattern_model {
 
         /**
          * Initializes the beam pattern. To save execution time, common computations
-         * are done and stored locally to be used at a later time. since directivity
-         * index is purely depenedent on the physical parameters of the array, this can
-         * be computed and then returned as needed.
+         * are done and stored locally to be used at a later time.
          */
-        void initialize_beams( double sound_speed, double spacing,
-                               const seq_vector& frequencies,
-                               vector<double>& steering_angles ) ;
+        void initialize_beams( double sound_speed,
+                               double spacing,
+                               double steering_angle ) ;
 
 };
 

@@ -8,7 +8,8 @@ using namespace usml::sensors ;
 
 /** Calculates the beam level in de, az, and frequency **/
 void beam_pattern_cosine::beam_level(
-        double de, double az, size_t beam,
+        double de, double az,
+        const vector<double>& frequencies,
         vector<double>* level )
 {
     double theta = de + M_PI_2 ;
@@ -18,12 +19,11 @@ void beam_pattern_cosine::beam_level(
     double dotnorm = 1.0 - 2.0 * ( sint * sint
                      + sin(theta) * sin(_pitch) * sinp * sinp ) ;
     noalias(*level) =
-            scalar_vector<double>( _directivity_index.size(), dotnorm ) ;
+            scalar_vector<double>( frequencies.size(), dotnorm ) ;
 }
 
 /**
- * The user may call this function but it has no effect on the
- * beam level.
+ * Orients the beam spatially.
  */
 void beam_pattern_cosine::orient_beam( double roll,
         double pitch, double yaw )
@@ -36,11 +36,10 @@ void beam_pattern_cosine::orient_beam( double roll,
 /**
  * Initializes the beam pattern
  */
-void beam_pattern_cosine::initialize_beams( const seq_vector& frequencies )
+void beam_pattern_cosine::directivity_index(
+        const vector<double>& frequencies,
+        vector<double>* level )
 {
-    _directivity_index =
+    noalias(*level) =
             scalar_vector<double>( frequencies.size(), 10.0*log10( 2.0 ) ) ;
-    _roll = 0.0 ;
-    _pitch = M_PI_2 ;
-    _yaw = M_PI_2 ;
 }
