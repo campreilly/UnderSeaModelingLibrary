@@ -17,7 +17,7 @@ using namespace usml::types ;
 /// @{
 
 /**
- * A beam pattern function as a gridded solution.
+ * A beam pattern function as a mesh or grid beam pattern.
  */
 template<class T, std::size_t Dim>
 class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
@@ -32,11 +32,22 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
         typedef enum { LINEAR_UNITS, LOG_UNITS }    data_units ;
 
         /**
-         * Constructor
+         * Constructs a grid or mesh of beam levels for a beam
+         * pattern. The axes order is dimension zero, frequencies
+         * dimension one, DEs and dimension two, AZs. The data
+         * is passed in as a pointer along with a data_unit.
+         * The construct pattern call then determines how to
+         * interpret the data passed in and adjusts it as needed.
          *
-         * @param axes
-         * @param data
-         * @param data_unit
+         * Once the data grid is constructed, the directivity index
+         * is computed. This uses the analytic definition of
+         * directivity index and then stores these values as a
+         * function of frequency in a separate data_grid.
+         *
+         * @param axes          list of axes for the beam pattern
+         * @param data          pointer to the beam levels
+         * @param data_unit     units that the data are in upon
+         *                      being passed in.
          */
         beam_pattern_grid( seq_vector* axes[], const value_ptr data,
                            const data_units& data_unit )
