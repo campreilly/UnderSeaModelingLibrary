@@ -5,6 +5,8 @@
 #include <boost/test/unit_test.hpp>
 #include <usml/sensors/beams.h>
 #include <fstream>
+#include <cstdlib>
+#include <ctime>
 
 BOOST_AUTO_TEST_SUITE(beam_pattern_test)
 
@@ -396,7 +398,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_1d_test ) {
     grid_type test_grid( axes, data, grid_type::LINEAR_UNITS ) ;
     cout << "frequencies: " << freq << endl ;
 
-    const char* grid_file = "beam_pattern_grid_test.nc" ;
+    const char* grid_file = "beam_pattern_grid1_test.nc" ;
     cout << "Writing data_grid to disk, " << grid_file << endl ;
     test_grid.write_netcdf( grid_file ) ;
 
@@ -418,10 +420,10 @@ BOOST_AUTO_TEST_CASE( grid_pattern_1d_test ) {
 }
 
 /**
- * Test for a mesh beam pattern for a 1-D beam pattern. With
- * 2-D beam patterns. This test fails if any values that are
- * passed back are different from the data points for either
- * directivity_index or beam_level.
+ * Test for a mesh beam pattern for a 2-D beam pattern.
+ * This test fails if any values that are passed back are
+ * different from the data points for either directivity
+ * index or beam level.
  */
 BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
     cout << "===== beam_pattern_test/grid_pattern_2d_test =====" << endl ;
@@ -441,7 +443,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
     int n = sqrt(N) ;
     seq_linear* frequencies = new seq_linear( 100.0, 100.0, n ) ;
     vector<double> freq = *frequencies ;
-    seq_vector* de = new seq_linear( -2.0, 1.0, n ) ;
+    seq_vector* de = new seq_linear( to_radians(-2.0), to_radians(1.0), n ) ;
     seq_vector* axes[2] ;
     axes[0] = frequencies ;
     axes[1] = de ;
@@ -453,7 +455,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
     grid_type test_grid( axes, data, grid_type::LINEAR_UNITS ) ;
     cout << "frequencies: " << freq << endl ;
 
-    const char* grid_file = "beam_pattern_grid_test.nc" ;
+    const char* grid_file = "beam_pattern_grid2_test.nc" ;
     cout << "Writing data_grid to disk, " << grid_file << endl ;
     test_grid.write_netcdf( grid_file ) ;
 
@@ -461,7 +463,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
     for(int i=0; i<de->size(); ++i) {
         test_grid.beam_level( (*de)[i], 0.0, freq, &level ) ;
         for(int j=0; j<level.size(); ++j) {
-            BOOST_CHECK_EQUAL( tmp_data[j*n+i], level(j) ) ;
+            BOOST_CHECK_CLOSE( tmp_data[j*n+i], level(j), 1e-8 ) ;
         }
     }
     cout << "beam level: " << level << endl ;
@@ -483,5 +485,80 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
     delete data ;
 }
 
+/**
+ * Test for a mesh beam pattern for a 3-D beam pattern.
+ * This test fails if any values that are passed back are
+ * different from the data points for either directivity
+ * index or beam level.
+ */
+BOOST_AUTO_TEST_CASE( grid_pattern_3d_test ) {
+    cout << "===== beam_pattern_test/grid_pattern_3d_test =====" << endl ;
+
+    typedef beam_pattern_grid<double,3>     grid_type ;
+    typedef grid_type::size_type            size_type ;
+
+    // ----> axis0
+    // |
+    // |
+    // v axis1
+    // * axis2
+
+    int n = 5 ;
+    int N = n*n*n ;
+    seq_linear frequencies( 100.0, 100.0, n ) ;
+    vector<double> freq = frequencies ;
+    seq_linear de( to_radians(-2.0), to_radians(1.0), n ) ;
+    seq_linear az( to_radians(0.0), to_radians(5.0), n ) ;
+    seq_vector* axes[3] ;
+    axes[0] = &frequencies ;
+    axes[1] = &de ;
+    axes[2] = &az ;
+    double* data = new double[N] ;
+    std::srand(1) ;
+    for(int i=0; i<N; ++i) {
+        double v = std::rand() ;
+        data[i] = v/RAND_MAX ;
+    }
+
+    grid_type test_grid( axes, data, grid_type::LINEAR_UNITS ) ;
+    cout << "frequencies: " << freq << endl ;
+
+    const char* grid_file = "beam_pattern_grid3_test.nc" ;
+    cout << "Writing data_grid to disk, " << grid_file << endl ;
+    test_grid.write_netcdf( grid_file ) ;
+
+    size_type num_freq( freq.size() ) ;
+    size_type num_de( de.size() ) ;
+    size_type num_az( az.size() ) ;
+    vector<double> level( num_freq, 0.0 ) ;
+    for(size_type i=0; i<num_de; ++i) {
+        for(size_type j=0; j<num_az; ++j) {
+            test_grid.beam_level( de[i], az[j], freq, &level ) ;
+            for(int k=0; k<num_freq; ++k) {
+                size_type index = j + num_az*(i + num_de*k) ;
+                BOOST_CHECK_CLOSE( data[index], level(k), 1e-8 ) ;
+            }
+        }
+    }
+    cout << "beam level: " << level << endl ;
+    test_grid.directivity_index( freq, &level ) ;
+    vector<double> sum( num_freq, 0.0 ) ;
+    for(size_type i=0; i<num_de; ++i) {
+        for(size_type j=0; j<num_az; ++j) {
+            for(size_type k=0; k<num_freq; ++k) {
+                size_type index = j + num_az*(i + num_de*k) ;
+                sum[k] += data[index] * cos( de[i] )
+                        * de.increment(i) * az.increment(j) ;
+            }
+        }
+    }
+    for(int i=0; i<num_freq; ++i) {
+        double result = 10.0*log10( (4.0*M_PI) / sum[i] ) ;
+        BOOST_CHECK_CLOSE( result, level(i), 1e-8 ) ;
+    }
+    cout << "Directivity index: " << level << endl ;
+
+    delete data ;
+}
 
 BOOST_AUTO_TEST_SUITE_END()

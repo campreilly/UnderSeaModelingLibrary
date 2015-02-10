@@ -254,8 +254,6 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
        void sum_data( const size_type index, value_type& total )
        {
            total = 0.0 ;
-           size_type size1( this->_axis[1]->size() ) ;
-           seq_vector* theta = this->_axis[1] ;
            switch( Dim ) {
 
                /**
@@ -270,8 +268,11 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                 */
                case 2 :
                {
-                   for(size_type i=0; i<size1; ++i) {
-                       total += this->_data[index*size1+i] * cos( (*theta)[i] ) * theta->increment(i) ;
+                   size_type num_de( this->_axis[1]->size() ) ;
+                   seq_vector* theta = this->_axis[1] ;
+                   for(size_type i=0; i<num_de; ++i) {
+                       total += this->_data[index*num_de+i] * cos( (*theta)[i] )
+                                * theta->increment(i) ;
                    }
                    break ;
                }
@@ -281,11 +282,14 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                 */
                case 3 :
                {
-                   size_type size2( this->_axis[2]->size() ) ;
+                   size_type num_de( this->_axis[1]->size() ) ;
+                   seq_vector* theta = this->_axis[1] ;
+                   size_type num_az( this->_axis[2]->size() ) ;
                    seq_vector* phi = this->_axis[2] ;
-                   for(size_type i=0; i<size1; ++i) {
-                       for(size_type j=0; j<size2; ++j) {
-                           total += this->_data[index*size1+i*size2+j] * cos( (*theta)[i] )
+                   for(size_type i=0; i<num_de; ++i) {
+                       for(size_type j=0; j<num_az; ++j) {
+                           size_type tmp = j + num_az * (i + num_de*index) ;
+                           total += this->_data[tmp] * cos( (*theta)[i] )
                                    * theta->increment(i) * phi->increment(j) ;
                        }
                    }
