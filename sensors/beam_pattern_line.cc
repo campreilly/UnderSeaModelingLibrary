@@ -9,9 +9,22 @@ using namespace usml::sensors ;
 /** Calculates the beam level in de, az, and frequency **/
 void beam_pattern_line::beam_level(
         double de, double az,
+        double pitch, double yaw,
         const vector<double>& frequencies,
         vector<double>* level )
 {
+    double _pitch ;
+    double _yaw ;
+    switch( _axis ) {
+        case HORIZONTAL :
+            _pitch = -(pitch + M_PI_2) ;
+            _yaw = -yaw ;
+            break ;
+        default :
+            _pitch = -pitch ;
+            _yaw = -yaw ;
+            break ;
+    }
     double theta = de + M_PI_2 ;
     double phi = -az ;
     double sint = sin( 0.5 * (theta - _pitch) + 1e-10 ) ;
@@ -39,31 +52,8 @@ void beam_pattern_line::initialize_beams(
         // compute sine of the steering angles and multiply by omega and n
     _steering = _omega * sin(steering_angle) ;
     _steering_n = _n * _steering ;
-        // default to no pitch/roll/yaw
-    _roll = 0.0 ;
-    _pitch = 0.0 ;
-    _yaw = 0.0 ;
 }
 
-/**
- * Orients the beam spatially.
- */
-void beam_pattern_line::orient_beam( double roll,
-        double pitch, double yaw )
-{
-    switch( _axis ) {
-        case HORIZONTAL :
-            _roll = roll ;
-            _pitch = -(pitch + M_PI_2) ;
-            _yaw = -yaw ;
-            break ;
-        default :
-            _roll = roll ;
-            _pitch = -pitch ;
-            _yaw = -yaw ;
-            break ;
-    }
-}
 /**
  * Computes the directivity index for a list of
  * frequencies.

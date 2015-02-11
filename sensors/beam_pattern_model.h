@@ -20,8 +20,7 @@ using namespace usml::types ;
  * A "beam pattern" computes the gain for an incident wave as a function
  * of incident angles, beam steering angle, and frequency.
  *
- * This class implements an abstract function used to spatially orient
- * the array, orient_beam, and two abstract functions to compute both
+ * This class implements an abstract function used to compute both
  * the directivity index of the array and the beam level gain.
  *
  * A beam pattern function is constructed based on the physical spacing
@@ -57,30 +56,21 @@ class USML_DECLSPEC beam_pattern_model {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
+         * @param pitch         pitch in the DE dimension (rad)
+         * @param yaw           yaw in the AZ dimension (rad)
          * @param frequencies   list of frequencies to compute beam level for
          * @param level         beam level for each frequency
          */
         virtual void beam_level( double de, double az,
+                                 double pitch, double yaw,
                                  const vector<double>& frequencies,
                                  vector<double>* level ) = 0 ;
 
         /**
-         * Rotates the array by a given roll, pitch, and yaw
-         *
-         * @param roll      rotation of the beam around the North/South axis (up positive)
-         *                  Up is 0 and Down is PI.
-         * @param pitch     rotation of the beam around the East/West axis (up positive)
-         *                  Up is 0 and Down is PI.
-         * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
-         *                  North is 0 and South is PI.
-         */
-        virtual void orient_beam( double roll, double pitch, double yaw ) = 0 ;
-
-        /**
          * Accesor to the directivity index
          *
-         * @param   f    frequency index
-         * @return       directivity index for this frequency
+         * @param freqeuncies    list of frequencies
+         * @param level          directivity index for these frequency
          */
         virtual void directivity_index( const vector<double>& frequencies,
                                         vector<double>* level ) = 0 ;

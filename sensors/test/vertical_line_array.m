@@ -6,12 +6,11 @@ close all ; clear all ;
 c0 = param(1) ;
 d = param(2) ;
 N = param(3) ;
-roll = param(4) ;
-pitch = param(5) ;
-yaw = param(6) ;
-steering = param(7) ;
-freq = param(8:end) ;
-line_pattern( c0, d, N, roll, pitch, yaw, steering, freq ) ;
+pitch = param(4) ;
+yaw = param(5) ;
+steering = param(6) ;
+freq = param(7:end) ;
+line_pattern( c0, d, N, pitch, yaw, steering, freq ) ;
 
 data = xlsread('vertical_array_beam_pattern.csv') ;
 

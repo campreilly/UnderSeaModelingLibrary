@@ -50,24 +50,21 @@ class beam_pattern_solid : public beam_pattern_model {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
+         * @param pitch         pitch in the DE dimension (rad)
+         * @param yaw           yaw in the AZ dimension (rad)
          * @param frequencies   list of frequencies to compute beam level for
          * @param level         beam level for each frequency
          */
         virtual void beam_level( double de, double az,
+                                 double pitch, double yaw,
                                  const vector<double>& frequencies,
                                  vector<double>* level ) ;
 
         /**
-         * Rotates the array by a given roll, pitch, and yaw
+         * Directivity index for a beam pattern of solid angle.
          *
-         * @param roll      rotation of the beam around the North/South axis (up positive)
-         * @param pitch     rotation of the beam around the East/West axis (up positive)
-         * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
-         */
-        virtual void orient_beam( double roll, double pitch, double yaw ) ;
-
-        /**
-         *
+         * @param frequencies   list of frequencies to compute DI for
+         * @param level         gain for each frequency
          */
         virtual void directivity_index( const vector<double>& frequencies,
                                         vector<double>* level ) ;
@@ -86,22 +83,6 @@ class beam_pattern_solid : public beam_pattern_model {
         double _min_de ;
         double _max_az ;
         double _min_az ;
-
-        /**
-         * Spatial orientation of the array
-         */
-        double _roll ;
-        double _pitch ;
-        double _yaw ;
-
-        /**
-         * The limits of the solid angle including the
-         * pitch and yaw of the array.
-         */
-        double _up ;        // absolute maximum DE
-        double _down ;      // absolute minimum DE
-        double _right ;     // absolute maximum AZ
-        double _left ;      // absolute minimun AZ
 
         /**
          * The directivity index array size to frequencies size and

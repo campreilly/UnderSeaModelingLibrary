@@ -54,7 +54,6 @@ class beam_pattern_line : public beam_pattern_model {
                 case HORIZONTAL :
                     _n = elements ;
                     initialize_beams( sound_speed, spacing, (steering_angle + M_PI_2) ) ;
-                    _pitch = M_PI_2 ;
                     break ;
                 default :
                     _n = elements ;
@@ -70,22 +69,16 @@ class beam_pattern_line : public beam_pattern_model {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
+         * @param pitch         pitch in the DE dimension (rad)
+         * @param yaw           yaw in the AZ dimension (rad)
          * @param beam          beam steering to find response level (size_t)
          * @param frequencies   frequencies to compute beam level for
          * @param level         beam level for each frequency
          */
         virtual void beam_level( double de, double az,
+                                 double pitch, double yaw,
                                  const vector<double>& frequencies,
                                  vector<double>* level ) ;
-
-        /**
-         * Rotates the array by a given roll, pitch, and yaw
-         *
-         * @param roll      rotation of the beam around the North/South axis (up positive)
-         * @param pitch     rotation of the beam around the East/West axis (up positive)
-         * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
-         */
-        virtual void orient_beam( double roll, double pitch, double yaw ) ;
 
         /**
          * Computes the directivity index for a list of frequencies
@@ -116,13 +109,6 @@ class beam_pattern_line : public beam_pattern_model {
          */
         double _steering ;
         double _steering_n ;
-
-        /**
-         * Spatial orientation of the array
-         */
-        double _roll ;
-        double _pitch ;
-        double _yaw ;
 
         /**
          * Defines the reference axis for this linear array's beam

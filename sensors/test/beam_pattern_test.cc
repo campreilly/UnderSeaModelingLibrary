@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE( omni_pattern_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * M_PI/180.0 ;
             double az_rad = az * M_PI/180.0 ;
-            omni.beam_level( de_rad, az_rad, freq, &level ) ;
+            omni.beam_level( de_rad, az_rad, 0, 0, freq, &level ) ;
             total += level(0)*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
             BOOST_CHECK_EQUAL( level(0), 1.0 ) ;
         }
@@ -71,7 +71,6 @@ BOOST_AUTO_TEST_CASE( sine_pattern_test ) {
     int pitch = 62 ;
     int yaw = 31 ;
     double d2r = M_PI / 180.0 ;
-    sine.orient_beam( 0.0, pitch*d2r, yaw*d2r ) ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -81,7 +80,7 @@ BOOST_AUTO_TEST_CASE( sine_pattern_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * d2r ;
             double az_rad = az * d2r ;
-            sine.beam_level( de_rad, az_rad, freq, &level ) ;
+            sine.beam_level( de_rad, az_rad, pitch*d2r, yaw*d2r, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += abs(level(0))*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
@@ -118,7 +117,6 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
     int pitch = 21 ;
     int yaw = 57 ;
     double d2r = M_PI / 180.0 ;
-    cosine.orient_beam( 0.0, pitch*d2r, yaw*d2r ) ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -128,7 +126,7 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * d2r ;
             double az_rad = az * d2r ;
-            cosine.beam_level( de_rad, az_rad, freq, &level ) ;
+            cosine.beam_level( de_rad, az_rad, pitch*d2r, yaw*d2r, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += abs(level(0))*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
@@ -176,12 +174,8 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
 
     beam_pattern_line array( c0, d, n, steering ) ;
 
-    double roll = 0.0 * M_PI/180.0 ;
     double pitch = 35.0 * M_PI/180.0 ;
     double yaw = 45.0 * M_PI/180.0 ;
-    array.orient_beam( roll, pitch, yaw ) ;
-    cout << "beam oriented (roll,pitch,yaw): ("
-         << roll << ", " << pitch << ", " << yaw << ")" << endl ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -191,7 +185,7 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * M_PI/180.0 ;
             double az_rad = az * M_PI/180.0 ;
-            array.beam_level( de_rad, az_rad, freq, &level ) ;
+            array.beam_level( de_rad, az_rad, pitch, yaw, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += level(0)*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
@@ -200,7 +194,7 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     }
 
     // check that the main lobe is at the correct position
-    array.beam_level( -(pitch+steering), -yaw, freq, &level ) ;
+    array.beam_level( -(pitch+steering), -yaw, pitch, yaw, freq, &level ) ;
     BOOST_CHECK_CLOSE( level(0), 1.0, 1e-4 ) ;
 
     std::ofstream ef( envname ) ;
@@ -209,7 +203,6 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     ef << c0 << ","
        << d << ","
        << n << ","
-       << roll << ","
        << pitch << ","
        << yaw << ","
        << steering << "," ;
@@ -257,12 +250,8 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
 
     beam_pattern_line array( c0, d, n, steering, beam_pattern_line::HORIZONTAL ) ;
 
-    double roll = 0.0 * M_PI/180.0 ;
     double pitch = 45.0 * M_PI/180.0 ;
     double yaw = 45.0 * M_PI/180.0 ;
-    array.orient_beam( roll, pitch, yaw ) ;
-    cout << "beam oriented (roll,pitch,yaw): ("
-         << roll << ", " << pitch << ", " << yaw << ")" << endl ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -272,7 +261,7 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * M_PI/180.0 ;
             double az_rad = az * M_PI/180.0 ;
-            array.beam_level( de_rad, az_rad, freq, &level ) ;
+            array.beam_level( de_rad, az_rad, pitch, yaw, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += level(0)*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
@@ -281,7 +270,7 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     }
 
     // check that the main lobe is at the correct position
-    array.beam_level( pitch+steering, yaw, freq, &level ) ;
+    array.beam_level( pitch+steering, yaw, pitch, yaw, freq, &level ) ;
     BOOST_CHECK_CLOSE( level(0), 1.0, 1e-3 ) ;
 
     std::ofstream ef( envname ) ;
@@ -290,7 +279,6 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     ef << c0 << ","
        << d << ","
        << n << ","
-       << roll << ","
        << pitch << ","
        << yaw << ","
        << steering << "," ;
@@ -336,9 +324,7 @@ BOOST_AUTO_TEST_CASE( solid_pattern_test ) {
 
     double pitch = 17.0 ;
     double yaw = 41.0 ;
-    solid.orient_beam( 0.0, pitch*M_PI/180.0, yaw*M_PI/180.0 ) ;
-    cout << "beam oriented (roll,pitch,yaw): ("
-         << 0.0 << ", " << pitch << ", " << yaw << ")" << endl ;
+    double d2r = M_PI / 180.0 ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -348,7 +334,7 @@ BOOST_AUTO_TEST_CASE( solid_pattern_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * M_PI/180.0 ;
             double az_rad = az * M_PI/180.0 ;
-            solid.beam_level( de_rad, az_rad, freq, &level ) ;
+            solid.beam_level( de_rad, az_rad, pitch*d2r, yaw*d2r, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += level(0)*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
@@ -403,7 +389,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_1d_test ) {
     test_grid.write_netcdf( grid_file ) ;
 
     vector<double> level( N, 0.0 ) ;
-    test_grid.beam_level( 0.0, 0.0, freq, &level ) ;
+    test_grid.beam_level( 0.0, 0.0, 0.0, 0.0, freq, &level ) ;
     for(int i=0; i<level.size(); ++i) {
         BOOST_CHECK_EQUAL( tmp_data[i], level(i) ) ;
     }
@@ -461,7 +447,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
 
     vector<double> level( freq.size(), 0.0 ) ;
     for(int i=0; i<de->size(); ++i) {
-        test_grid.beam_level( (*de)[i], 0.0, freq, &level ) ;
+        test_grid.beam_level( (*de)[i], 0.0, 0.0, 0.0, freq, &level ) ;
         for(int j=0; j<level.size(); ++j) {
             BOOST_CHECK_CLOSE( tmp_data[j*n+i], level(j), 1e-8 ) ;
         }
@@ -533,7 +519,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_3d_test ) {
     vector<double> level( num_freq, 0.0 ) ;
     for(size_type i=0; i<num_de; ++i) {
         for(size_type j=0; j<num_az; ++j) {
-            test_grid.beam_level( de[i], az[j], freq, &level ) ;
+            test_grid.beam_level( de[i], az[j], 0.0, 0.0, freq, &level ) ;
             for(int k=0; k<num_freq; ++k) {
                 size_type index = j + num_az*(i + num_de*k) ;
                 BOOST_CHECK_CLOSE( data[index], level(k), 1e-8 ) ;

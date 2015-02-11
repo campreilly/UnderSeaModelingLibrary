@@ -30,11 +30,7 @@ class beam_pattern_sine : public beam_pattern_model {
         /**
          * Constructs a sine-directional beam pattern.
          */
-        beam_pattern_sine() {
-            _roll = 0.0 ;
-            _pitch = M_PI_2 ;
-            _yaw = 0.0 ;
-        }
+        beam_pattern_sine() {}
 
         /**
          * Computes the response level in a specific DE/AZ pair and
@@ -43,40 +39,24 @@ class beam_pattern_sine : public beam_pattern_model {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
+         * @param pitch         pitch in the DE dimension (rad)
+         * @param yaw           yaw in the AZ dimension (rad)
          * @param frequencies   list of frequencies to compute beam level for
          * @param level         beam level for each frequency
          */
         virtual void beam_level( double de, double az,
+                                 double pitch, double yaw,
                                  const vector<double>& frequencies,
                                  vector<double>* level ) ;
 
         /**
-         * Rotates the array by a given roll, pitch, and yaw
-         *
-         * @param roll      rotation of the beam around the North/South axis (up positive)
-         * @param pitch     rotation of the beam around the East/West axis (up positive)
-         * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
-         */
-        virtual void orient_beam( double roll, double pitch, double yaw ) ;
-
-        /**
          * Directivity index for an sine-directional beam pattern
-         * The gain for this type of beam pattern is 0 dB.
          *
          * @param frequencies   list of frequencies to compute DI for
          * @param level         gain for each frequency
          */
         virtual void directivity_index( const vector<double>& frequencies,
                                         vector<double>* level ) ;
-
-    protected:
-
-        /**
-         * Spatial orientation of the array
-         */
-        double _roll ;
-        double _pitch ;
-        double _yaw ;
 
 };
 

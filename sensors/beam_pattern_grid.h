@@ -72,11 +72,13 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
-         * @param beam          beam steering to find response level (size_t)
+         * @param pitch         pitch in the DE dimension (rad)
+         * @param yaw           yaw in the AZ dimension (rad)
          * @param frequencies   frequencies to compute beam level for
          * @param level         beam level for each frequency
          */
         virtual void beam_level( double de, double az,
+                                 double pitch, double yaw,
                                  const vector<double>& frequencies,
                                  vector<double>* level )
         {
@@ -100,7 +102,7 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                  * 2-D gridded beam levels
                  */
                 case 2 :
-                    location[1] = de ;
+                    location[1] = de - pitch ;
                     for(size_type i=0; i<num_freq; ++i) {
                         location[0] = frequencies[i] ;
                         tmp[i] = this->interpolate( location ) ;
@@ -112,8 +114,8 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                  * 3-D gridded beam levels
                  */
                 case 3 :
-                    location[1] = de ;
-                    location[2] = az ;
+                    location[1] = de - pitch ;
+                    location[2] = az - yaw ;
                     for(size_type i=0; i<num_freq; ++i) {
                         location[0] = frequencies[i] ;
                         tmp[i] = this->interpolate( location ) ;
@@ -130,15 +132,6 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                     break ;
             }
         }
-
-        /**
-         * Rotates the array by a given roll, pitch, and yaw
-         *
-         * @param roll      rotation of the beam around the North/South axis (up positive)
-         * @param pitch     rotation of the beam around the East/West axis (up positive)
-         * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
-         */
-        virtual void orient_beam( double roll, double pitch, double yaw ) {}
 
         /**
          * Computes the directivity index for each frequency.
@@ -243,7 +236,10 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
         }
 
        /**
-        *
+        * Computes the directivity index by summing all beam
+        * level contributions for each frequency along every
+        * DE and AZ. Stores the gird locally to be used
+        * on call.
         */
        void construct_directivity_grid() {
            size_type num_freq( this->_axis[0]->size() ) ;

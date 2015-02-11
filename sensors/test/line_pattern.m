@@ -11,7 +11,7 @@
 %     freq          : signal frequency
 % Produces 3-D plot as function of solid angle.
 %
-function line_pattern( sound_speed, spacing, N, roll, pitch, yaw, steering, freq )
+function line_pattern( sound_speed, spacing, N, pitch, yaw, steering, freq )
 
     theta_tilt = pitch ;  % pitch relative to straight up
     phi_tilt = yaw ;

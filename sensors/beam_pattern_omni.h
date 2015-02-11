@@ -33,21 +33,15 @@ class beam_pattern_omni : public beam_pattern_model {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
+         * @param pitch         pitch in the DE dimension (rad)
+         * @param yaw           yaw in the AZ dimension (rad)
          * @param freuencies    list of frequencies to compute beam level for
          * @param level         beam level for each frequency
          */
         virtual void beam_level( double de, double az,
+                                 double pitch, double yaw,
                                  const vector<double>& frequencies,
                                  vector<double>* level ) ;
-
-        /**
-         * Rotates the array by a given roll, pitch, and yaw
-         *
-         * @param roll      rotation of the beam around the North/South axis (up positive)
-         * @param pitch     rotation of the beam around the East/West axis (up positive)
-         * @param yaw       rotation of the beam around the Up/Down axis (clockwise positive)
-         */
-        virtual void orient_beam( double roll, double pitch, double yaw ) {}
 
         /**
          * Directivity index for an omni-directional beam pattern
