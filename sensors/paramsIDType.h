@@ -1,0 +1,20 @@
+/**
+ *  @file paramsIDType.h
+ *  Definition of the typedef paramsIDType
+ *  Created on: 11-Feb-2015 12:05:41 PM
+ */
+
+#pragma once
+
+namespace usml {
+namespace sensors {
+
+/**
+ * @author tedburns
+ * @version 1.0
+ * @created 11-Feb-2015 12:05:41 PM
+ */
+typedef int paramsIDType;
+
+} // end of namespace sensors
+} // end of namespace usml
