@@ -260,6 +260,7 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
         * Adds all intensities for a specific frequency.
         *
         * @param index      Index for the frequency of interest
+        * @param total      Reference to return the total values
         * @return           The summation of all intensities for
         *                   this frequency
         */

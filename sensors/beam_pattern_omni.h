@@ -35,7 +35,7 @@ class USML_DECLSPEC beam_pattern_omni : public beam_pattern_model {
          * @param az            Azimuthal angle (rad)
          * @param pitch         pitch in the DE dimension (rad)
          * @param yaw           yaw in the AZ dimension (rad)
-         * @param freuencies    list of frequencies to compute beam level for
+         * @param frequencies    list of frequencies to compute beam level for
          * @param level         beam level for each frequency
          */
         virtual void beam_level( double de, double az,
