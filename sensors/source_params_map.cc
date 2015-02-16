@@ -8,7 +8,6 @@
 
 using namespace usml::sensors;
 
-
 source_params_map* source_params_map::_instance = NULL;
 
 source_params_map::source_params_map()
@@ -28,7 +27,7 @@ source_params_map* source_params_map::instance()
 	return _instance;
 }
 
-void source_params_map::insert(const paramsIDType sourceID, const source_params source_params)
+void source_params_map::insert(const paramsIDType sourceID, const source_params* source_params)
 {
 
 }

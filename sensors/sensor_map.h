@@ -24,7 +24,7 @@ using namespace usml::sensors;
  * @version 0.1
  * @created 12-Feb-2015 3:41:30 PM
  */
-class USML_DECLSPEC sensor_map : public std::map < sensorIDType, sensor >
+class USML_DECLSPEC sensor_map : public std::map < sensorIDType, sensor* >
 {
 public:
 
@@ -44,7 +44,7 @@ public:
 	 * @param sensorID
 	 * @param sensor
 	 */
-	void insert(const sensorIDType sensorID, const sensor sensor);
+	void insert(const sensorIDType sensorID, const sensor* sensor);
 
 	/**
 	 * 
@@ -57,7 +57,7 @@ public:
 	 * @param sensorID
 	 * @param sensor
 	 */
-	void update(const sensorIDType sensorID, const sensor sensor);
+	void update(const sensorIDType sensorID, const sensor* sensor);
 
 	/**
 	 * 

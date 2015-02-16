@@ -20,7 +20,7 @@ namespace sensors {
  * @version 0.1
  * @created 10-Feb-2015 12:49:09 PM
  */
-class USML_DECLSPEC source_params_map : public std::map<paramsIDType, source_params>
+class USML_DECLSPEC source_params_map : public std::map<paramsIDType, source_params*>
 {
 
 public:
@@ -40,7 +40,7 @@ public:
 	 * @param sourceID
 	 * @param source_params
 	 */
-	void insert(const paramsIDType sourceID, const source_params source_params);
+	void insert(const paramsIDType sourceID, const source_params* source_params);
 
 	/**
 	 * 

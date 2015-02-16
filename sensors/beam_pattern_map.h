@@ -28,7 +28,7 @@ namespace sensors {
  * @version 1.0
  * @created 10-Feb-2015 12:49:08 PM
  */
-class USML_DECLSPEC beam_pattern_map : public std::map <beamIDType, beam_pattern_model>
+class USML_DECLSPEC beam_pattern_map : public std::map <beamIDType, beam_pattern_model*>
 {
 
 public:

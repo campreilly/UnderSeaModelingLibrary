@@ -30,7 +30,7 @@ public:
 
 private:
     paramsIDType _receiverID;
-    std::list<beam_pattern_model> _receiver_beams;
+    std::list<beam_pattern_model*> _receiver_beams;
     beam_pattern_map* _beam_pattern_map;
 
 };

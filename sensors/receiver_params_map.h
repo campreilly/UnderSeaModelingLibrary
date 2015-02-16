@@ -19,7 +19,7 @@ namespace sensors {
  * @version 1.0
  * @created 10-Feb-2015 12:49:09 PM
  */
-class USML_DECLSPEC receiver_params_map : public std::map<paramsIDType, receiver_params>
+class USML_DECLSPEC receiver_params_map : public std::map<paramsIDType, receiver_params*>
 {
 
 public:
@@ -46,7 +46,7 @@ public:
 	 * @param receiverID
 	 * @param receiver_params
 	 */
-    void insert(const paramsIDType receiverID, const receiver_params receiver_params);
+    void insert(const paramsIDType receiverID, const receiver_params *receiver_params);
 
 protected:
     /**

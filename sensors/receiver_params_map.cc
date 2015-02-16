@@ -32,7 +32,7 @@ receiver_params* receiver_params_map::find(paramsIDType receiverID)
 	return NULL;
 }
 
-void receiver_params_map::insert(const paramsIDType receiverID, const receiver_params receiver_params)
+void receiver_params_map::insert(const paramsIDType receiverID, const receiver_params* receiver_params)
 {
 
 }

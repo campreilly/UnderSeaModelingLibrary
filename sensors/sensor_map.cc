@@ -27,7 +27,7 @@ sensor_map* sensor_map::instance()
 	return _instance;
 }
 
-void sensor_map::insert(const sensorIDType sensorID, const sensor sensor)
+void sensor_map::insert(const sensorIDType sensorID, const sensor* sensor)
 {
 
 }
@@ -37,7 +37,7 @@ void sensor_map::erase(const sensorIDType sensorID)
 
 }
 
-void sensor_map::update(const sensorIDType sensorID, const sensor sensor)
+void sensor_map::update(const sensorIDType sensorID, const sensor* sensor)
 {
 
 }
