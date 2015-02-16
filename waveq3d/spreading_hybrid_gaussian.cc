@@ -138,7 +138,7 @@ void spreading_hybrid_gaussian::intensity_de( size_t de, size_t az,
         // cell's cell_width
         if( virtual_ray ) {
             cell_dist += cell_width ;
-            _new_norm = _norm_de(d-1) ;
+            _new_norm = _norm_de(d+1) ;
         }
         else {
             cell_width = width_de(d, az, offset) ;
@@ -171,7 +171,7 @@ void spreading_hybrid_gaussian::intensity_de( size_t de, size_t az,
         // cell's cell_width
         if( virtual_ray ) {
             cell_dist -= cell_width ;
-            _new_norm = _norm_de(d+1) ;
+            _new_norm = _norm_de(d-1) ;
         }
         else {
             cell_width = width_de(d, az, offset) ;
