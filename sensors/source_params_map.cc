@@ -8,6 +8,9 @@
 
 using namespace usml::sensors;
 
+
+source_params_map* source_params_map::_instance = NULL;
+
 source_params_map::source_params_map()
 {
 

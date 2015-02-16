@@ -8,6 +8,8 @@
 
 using namespace usml::sensors;
 
+sensor_map* sensor_map::_instance = NULL;
+
 sensor_map::sensor_map()
 {
 

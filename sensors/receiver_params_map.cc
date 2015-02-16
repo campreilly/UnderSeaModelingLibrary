@@ -8,6 +8,8 @@
 
 using namespace usml::sensors;
 
+receiver_params_map* receiver_params_map::_instance = NULL;
+
 receiver_params_map::receiver_params_map()
 {
 
