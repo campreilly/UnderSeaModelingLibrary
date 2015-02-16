@@ -173,6 +173,13 @@ class USML_DLLEXPORT data_grid {
         }
 
         /**
+         * Extracts a const pointer to the data member.
+         */
+        inline DATA_TYPE* data() const {
+            return _data ;
+        }
+
+        /**
          * Extract a data value at a specific combination of indices.
          *
          * @param  index            Index number in each dimension.
