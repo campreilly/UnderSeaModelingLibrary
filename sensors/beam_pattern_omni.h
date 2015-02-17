@@ -17,7 +17,7 @@ using namespace usml::types ;
 /**
  * Models an omni-directional beam pattern.
  */
-class beam_pattern_omni : public beam_pattern_model {
+class USML_DECLSPEC beam_pattern_omni : public beam_pattern_model {
 
     public:
 

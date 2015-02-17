@@ -5,7 +5,9 @@
 #pragma once
 
 #include <boost/numeric/ublas/vector_expression.hpp>
+#include <usml/usml_config.h>
 #include <usml/types/types.h>
+
 
 namespace usml {
 namespace sensors {

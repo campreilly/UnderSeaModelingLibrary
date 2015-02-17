@@ -20,7 +20,7 @@ using namespace usml::types ;
  * A beam pattern function as a mesh or grid beam pattern.
  */
 template<class T, std::size_t Dim>
-class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
+class USML_DECLSPEC beam_pattern_grid : public beam_pattern_model, public data_grid<T, Dim> {
 
     public:
 

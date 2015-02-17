@@ -229,6 +229,11 @@ class USML_DLLEXPORT data_grid {
                 type = ncDouble ;
             }
 
+#ifdef _WINDOWS // Turn off size_t to long warning
+            // Note: Using size_type instead of long for data_size
+            // doesn't work on VC++ 32 bit, data_var->put() requires long.
+            #pragma warning(disable:4267)
+#endif
             NcVar* earth_radius = _file->add_var( "earth_radius", ncDouble, 0 ) ;
             for(long i=0; i < NUM_DIMS; ++i) {
                 std::stringstream ss ;
@@ -236,8 +241,12 @@ class USML_DLLEXPORT data_grid {
                 axis_dim[i] = _file->add_dim( (ss.str()).c_str(), _axis[i]->size() ) ;
                 axis_size[i] = axis_dim[i] ;
                 axis_var[i] = _file->add_var( (ss.str()).c_str(), type, axis_dim[i] ) ;
-                data_size[i] = _axis[i]->size() ;
+                data_size[i] = _axis[i]->size();
             }
+
+#ifdef _WINDOWS    // Turn on size_t to long warning
+            #pragma warning(default:4267)
+#endif
             NcVar* data_var = _file->add_var( "data", type, NUM_DIMS, &*axis_size ) ;
 
             earth_radius->put( &wposition::earth_radius, 1 ) ;
