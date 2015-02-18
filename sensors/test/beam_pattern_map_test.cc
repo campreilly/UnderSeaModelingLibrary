@@ -19,43 +19,40 @@ using namespace usml::sensors;
 
 /**
 * @ingroup sensors_test
-* Test the ability to instanicate a beam_pattern_map and insert 
-* several beam_pattern_models into it.
-* Generate errors if 
+* Test the ability to instantiate a beam_pattern_map
+* and insert several beam_pattern_models into it.
+* Also test the find method and the destructor.
+* Generate errors if pointer values are not equal.
+* For Destructor testing run with Valgrind memcheck.
 */
-BOOST_AUTO_TEST_CASE(insert_test) {
+BOOST_AUTO_TEST_CASE(base_test) {
 
-    cout << "=== beam_patterm_map_test: insert_test ===" << endl;
-
+    cout << "=== beam_patterm_map_test: base_test ===" << endl;
 
     beam_pattern_map* bpMap = beam_pattern_map::instance();
-    beam_pattern_model* beamModelHeap = new beam_pattern_omni();
+    beam_pattern_model* beamModelHeap1 = new beam_pattern_omni();
    
-    bpMap->insert(1, beamModelHeap);
+    bpMap->insert(1, beamModelHeap1);
 
-    beamModelHeap = new beam_pattern_omni();
+    beam_pattern_model* beamModelHeap2 = new beam_pattern_omni();
 
-    bpMap->insert(2, beamModelHeap);
+    bpMap->insert(2, beamModelHeap2);
 
-    usml::sensors::beam_pattern_model* bpm = bpMap->find(1);
+    const usml::sensors::beam_pattern_model* bpm1 = bpMap->find(1);
+
+    BOOST_CHECK_EQUAL(bpm1, beamModelHeap1);
+
+    const usml::sensors::beam_pattern_model* bpm2 = bpMap->find(2);
+
+    BOOST_CHECK_EQUAL(bpm2, beamModelHeap2);
+
+    // Check key not found returns null
+    const usml::sensors::beam_pattern_model* bpm = bpMap->find(3);
+
+    BOOST_CHECK_EQUAL(bpm, (const usml::sensors::beam_pattern_model*)0);
+
+    // Run with valgrind memcheck to verify.
+    delete bpMap;
 }
-
-/**
- * @ingroup sensors_test
- * 
- * Generate errors if 
- */
-BOOST_AUTO_TEST_CASE( find_test ) {
-   
-    cout << "=== beam_patterm_map_test: find_test ===" << endl;
-}
-
-/**
- * @ingroup types_test
- * Generate errors if values
- */
-//BOOST_AUTO_TEST_CASE( find_test ) {
-//  
-//}
 
 BOOST_AUTO_TEST_SUITE_END()

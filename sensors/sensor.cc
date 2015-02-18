@@ -31,11 +31,11 @@ void sensor::run_waveq3d()
 std::list<int>* sensor::get_envelope()
 {
 
-	return  nullptr;
+	return  NULL;
 }
 
 std::list<int>* sensor::get_discrete_envelope()
 {
 
-	return  nullptr;
+	return  NULL;
 }

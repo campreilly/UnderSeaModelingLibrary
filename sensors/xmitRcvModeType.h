@@ -14,7 +14,7 @@ namespace sensors {
  * @version 1.0
  * @created 10-Feb-2015 12:49:09 PM
  */
-enum class xmitRcvModeType
+enum xmitRcvModeType
 {
     RECEIVER = 1,
 	SOURCE = 2,
