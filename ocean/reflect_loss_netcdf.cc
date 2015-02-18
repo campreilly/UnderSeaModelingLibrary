@@ -65,7 +65,7 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
         for(int j=0; j<londim; j++) {
             index[0] = i ;
             index[1] = j ;
-            _bottom_grid->data(index, type_num[i*latdim+j]) ;
+            _bottom_grid->data(index, type_num[i*londim+j]) ;
         }
     }
 

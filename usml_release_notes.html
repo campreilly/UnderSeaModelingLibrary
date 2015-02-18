@@ -6,7 +6,7 @@
   <body>
     <h1>Under Sea Modeling Library (USML) Release Notes</h1>
     
-    <h2>Release 1.0.0rc2 - Dec 2014</h2>
+    <h2>Release 1.0.0rc2 - Jan 2015</h2>
     <ul>
 	<li>Bugs</li>
 	<ul>
@@ -15,6 +15,7 @@
 	</ul>
 	<li>Enhancements</li>
 	<ul>
+	    <li>Added profile_lock and boundary_lock classes to allow multiple threads to access boundary_model(s) and profile_model(s) via boost mutexs.
 	    <li>Add checkEigenray() method to eigenrayListener interface to support support returning of eigenray as quickly as possible.
 	    <li>Added macros to usml_config.h to prevent Eclipse from finding semantic errors on macro that are not specfied until the compile line "-D".
             <li>Guard against starting wavefront below bottom or above surface. Automatically adjusts source location if it is within 0.1 meters of being above the ocean surface or below the ocean bottom.

@@ -1,7 +1,7 @@
 The Under Sea Modeling Library (USML) is distributed in accordance with 
 the BSD 2-Clause License.
 
-Copyright (c) 2012, 2013, Sean M. Reilly, University of Rhode Island, Ocean Engineering Department
+Copyright (c) 2012-2015, Sean M. Reilly, University of Rhode Island, Ocean Engineering Department
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, 

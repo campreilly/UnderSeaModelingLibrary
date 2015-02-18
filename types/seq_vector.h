@@ -125,10 +125,10 @@ public:
 
 protected:
     /** Number of elements in the sequence. */
-    const size_type _size;
+    size_type _size;
 
     /** Largest valid index number (one less than _size). */
-    const size_type _max_index ;
+    size_type _max_index ;
 
 public:
     /**
