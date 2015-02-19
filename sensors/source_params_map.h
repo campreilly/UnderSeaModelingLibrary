@@ -9,59 +9,60 @@
 #include <map>
 
 #include <usml/usml_config.h>
+#include <usml/sensors/singleton_map.h>
 #include <usml/sensors/paramsIDType.h>
 #include <usml/sensors/source_params.h>
 
 namespace usml {
 namespace sensors {
 
+/// @ingroup sensors
+/// @{
+
 /**
- * @author tedburns
- * @version 0.1
+ * Storage for all the source_params's in use by the USML.
+ * This class inherits from the templated singleton_map class.
+ * Inheritance template shows source_params as data values
+ * however, the map stores pointers to source_params and take's
+ * ownership of the pointers. See usml/sensors/singleton_map.h
+ * A typedef of paramsIDType has been defined to allow for
+ * modification of the key of the map at a later time if needed.
+ */
+
+/**
+ * @author Ted Burns, AEgis Technologies Inc.
+ * @version 1.0
  * @created 10-Feb-2015 12:49:09 PM
  */
-class USML_DECLSPEC source_params_map : public std::map<paramsIDType, source_params*>
+class USML_DECLSPEC source_params_map : public singleton_map <paramsIDType, source_params>
 {
-
 public:
-    /**
-    * Singleton Constructor
-    *   Creates receiver_params_map instance just once, then accesable everywhere.
-    */
-	static source_params_map* instance();
-
-    /**
-    * Destructor
-    */
-    virtual ~source_params_map();
 
 	/**
-	 * 
-	 * @param sourceID
-	 * @param source_params
-	 */
-	void insert(const paramsIDType sourceID, const source_params* source_params);
-
-	/**
-	 * 
-	 * @param sourceID
-	 */
-	source_params* find(const paramsIDType sourceID);
+     * Destructor - Deletes pointers to source_params's
+     */
+    virtual ~source_params_map() {}
 
 protected:
     /**
      * Default Constructor
-     *   Protected to prevent access other than instance call
+     *   Protected to prevent access.
      */
-	source_params_map();
+    source_params_map() {}
 
 private:
     /**
-     * The singleton access pointer
+     * Prevent access to copy constructor
      */
-	static source_params_map* _instance;
+    source_params_map(source_params_map const&);
+
+    /**
+     * Prevent access to assignment operator
+     */
+    source_params_map& operator=(source_params_map const&);
 
 };
 
+/// @}
 } // end of namespace sensors
 } // end of namespace usml
