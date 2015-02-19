@@ -19,11 +19,12 @@ namespace sensors {
 /// @{
 
 /** 
- * This class holds all the beam_pattern_model's in use by the USML. It is defined as a GOF 
+ * Storage for all the beam_pattern_model's in use by the USML. It is defined as a GOF
  * singleton pattern, that has a std::map which implements the insert and find methods.
  * std::map is a sorted associative container that contains key-value pairs with unique keys. 
  * A typedef of beamIDType has been defined to allow for modification of the Key of the map
  * at a later time if needed.
+ * This class takes ownership of all heap pointers inserted, and deletes them in the destructor,
  *
  * Design Rational
  *  The beam_pattern_map was designed to contain a std::map vs inheriting from a std::map.
@@ -77,12 +78,12 @@ protected:
 
 private:
     /**
-    * The singleton access pointer.
-    */
+     * The singleton access pointer.
+     */
     static beam_pattern_map* _instance;
 
     /**
-     * The singleton access pointer.
+     * The std::map that stores the beam_pattern_model's by beamIDType
      */
     std::map <const beamIDType, const beam_pattern_model*> _map;
 };

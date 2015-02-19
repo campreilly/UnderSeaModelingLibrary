@@ -8,15 +8,12 @@
 
 using namespace usml::sensors;
 
-
 // Must set static value to NULL initially
 beam_pattern_map* beam_pattern_map::_instance = NULL;
 
 //Protected Constructor
 beam_pattern_map::beam_pattern_map()
-{
-
-}
+{}
 
 // Destructor
 // Clean up pointers to beam_pattern_model's
