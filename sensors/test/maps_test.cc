@@ -160,31 +160,31 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
     cout << "=== maps_test: sensor_test ===" << endl;
 
+
+    singleton_map< const paramsIDType, const source_params* >* spMap = source_params_map::instance();
+    source_params* src_params = new source_params();
+
+    // Insert
+    spMap->insert(1, src_params);
+
+    singleton_map< const paramsIDType, const receiver_params* >* rpMap = receiver_params_map::instance();
+    receiver_params* rcv_params = new receiver_params();
+
+    // Insert
+    rpMap->insert(1, rcv_params);
+
+
     singleton_map< const sensorIDType, sensor* >* sMap = sensor_map::instance();
-    sensor* heap1 = new sensor();
+    sensor* sensor_data = new sensor();
 
     // Insert
-    sMap->insert(1, heap1);
-
-    sensor* heap2 = new sensor();
-
-    // Insert
-    sMap->insert(2, heap2);
+    sMap->insert(1, sensor_data);
 
     // find(1)
     usml::sensors::sensor* m1 = sMap->find(1);
 
-    BOOST_CHECK_EQUAL(m1, heap1);
+    BOOST_CHECK_EQUAL(m1, sensor_data);
 
-    // find(2)
-    usml::sensors::sensor* m2 = sMap->find(2);
-
-    BOOST_CHECK_EQUAL(m2, heap2);
-
-    // Check key not found returns null
-    usml::sensors::sensor* m = sMap->find(3);
-
-    BOOST_CHECK_EQUAL(m, (usml::sensors::sensor*)0);
 
     // Run with valgrind memcheck to verify.
     delete sMap;

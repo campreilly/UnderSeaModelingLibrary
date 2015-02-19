@@ -26,7 +26,7 @@ using namespace usml::waveq3d;
 /// @{
 
 /**
- * Combines the effects of surface, bottom, volume, and profile into a single model.
+ *
  * @version 1.0
  * @created 10-Feb-2015 12:49:09 PM
  */
@@ -43,8 +43,8 @@ public:
 
 private:
     sensorIDType _sensorID;
-	xmitRcvModeType _xmitRcvMode;
     paramsIDType _paramsID;
+    xmitRcvModeType _xmitRcvMode;
 
 	double _latitude;
 	double _longitude;
