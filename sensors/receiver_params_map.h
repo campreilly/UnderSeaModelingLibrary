@@ -6,62 +6,57 @@
 
 #pragma once
 
-#include <map>
-
 #include <usml/usml_config.h>
+#include <usml/sensors/singleton_map.h>
 #include <usml/sensors/paramsIDType.h>
 #include <usml/sensors/receiver_params.h>
 
 namespace usml {
 namespace sensors {
 
+/// @ingroup sensors
+/// @{
+
 /**
+ * Storage for all the receiver_params's in use by the USML.
+ * This class inherits from the templated singleton_map class.
+ * The map stores pointers to receiver_params and take's
+ * ownership of the pointers. See usml/sensors/singleton_map.h
+ * A typedef of paramsIDType has been defined to allow for
+ * modification of the key of the map at a later time if needed.
+ *
+ * @author Ted Burns, AEgis Technologies Inc.
  * @version 1.0
  * @created 10-Feb-2015 12:49:09 PM
  */
-class USML_DECLSPEC receiver_params_map : public std::map<paramsIDType, receiver_params*>
+class USML_DECLSPEC receiver_params_map : public singleton_map <const paramsIDType, const receiver_params*>
 {
-
 public:
-    
     /**
-     * Singleton Constructor 
-     *   Creates receiver_params_map instance just once, then accesable everywhere.
-     */
-	static receiver_params_map* instance();
-
-    /**
-     * Destructor
+     * Destructor - See singleton_map destructor.
      */
     virtual ~receiver_params_map();
 
-    /**
-	 * 
-	 * @param receiverID
-	 */
-    receiver_params* find(const paramsIDType receiverID);
-
-    /**
-	 * 
-	 * @param receiverID
-	 * @param receiver_params
-	 */
-    void insert(const paramsIDType receiverID, const receiver_params *receiver_params);
-
 protected:
     /**
-     * Default Constructor 
-     *   Protected to prevent access other than instance call 
+     * Default Constructor
+     *   Protected to prevent access.
      */
 	receiver_params_map();
 
 private:
+	/**
+     * Prevent access to copy constructor
+     */
+	receiver_params_map(receiver_params_map const&);
+
     /**
-    * The singleton access pointer
-    */
-	static receiver_params_map* _instance;
+     * Prevent access to assignment operator
+     */
+	receiver_params_map& operator=(receiver_params_map const&);
 
 };
 
+/// @}
 } // end of namespace sensors
 } // end of namespace usml

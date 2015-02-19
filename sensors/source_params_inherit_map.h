@@ -51,7 +51,7 @@ protected:
      * Default Constructor
      *   Protected to prevent access.
      */
-	source_params_inherit_map();
+	source_params_inherit_map() {}
 
 private:
     /**

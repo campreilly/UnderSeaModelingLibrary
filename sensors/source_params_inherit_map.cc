@@ -11,10 +11,6 @@ using namespace usml::sensors;
 // Must set static value to NULL initially
 source_params_inherit_map* source_params_inherit_map::_instance = NULL;
 
-//Protected Constructor
-source_params_inherit_map::source_params_inherit_map()
-{}
-
 // Destructor
 // Clean up pointers to beam_pattern_model's
 source_params_inherit_map::~source_params_inherit_map()
