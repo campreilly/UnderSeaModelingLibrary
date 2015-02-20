@@ -20,9 +20,10 @@
 #include <fstream>
 
 namespace usml {
-namespace waveq3d {
+namespace eigenverb {
 
 using namespace usml::ocean ;
+using namespace usml::waveq3d ;
 
 using namespace boost::numeric::ublas ;
 

@@ -7,7 +7,7 @@
 #include <usml/waveq3d/eigenverb.h>
 
 namespace usml {
-namespace waveq3d {
+namespace eigenverb {
 
 class eigenverb_collection {
 

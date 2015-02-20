@@ -1,43 +1,43 @@
 /**
- * @file eigenverb_bistatic.h
+ * @file eigenverb_monostatic.h
  */
 #pragma once
 
 #include <usml/waveq3d/eigenverb_model.h>
 
 namespace usml {
-namespace waveq3d {
+namespace eigenverb {
 
 using namespace usml::ocean ;
 
-using boost::numeric::ublas::vector;
+using namespace boost::numeric::ublas ;
 
 /// @ingroup waveq3d
 /// @{
 
 /**
  * A reverberation model listens for interface collision callbacks from
- * a wavefront. Used in bistatic scenarios, i.e. source and receiver are not
+ * a wavefront. Used in monostatic scenarios, i.e. source and receiver are
  * co-located.
  */
-class USML_DECLSPEC eigenverb_bistatic : public eigenverb_model {
+class USML_DECLSPEC eigenverb_monostatic : public eigenverb_model {
 
     public:
 
-        eigenverb_bistatic( ocean_model& ocean,
-                            wave_queue_reverb& wave_source,
-                            wave_queue_reverb& wave_receiver,
-                            double pulse, size_t num_bins,
-                            double max_time ) ;
+        eigenverb_monostatic( ocean_model& ocean,
+                              wave_queue_reverb& wave,
+                              double pulse,
+							  size_t num_bins,
+                              double max_time ) ;
 
-        virtual ~eigenverb_bistatic() {}
+        virtual ~eigenverb_monostatic() {}
 
         /**
          * React to the collision of a single ray with a reverberation
          * when colliding from below the boundary.
          *
-         * @param de            D/E angle index
-         * @param az            AZ angle index
+         * @param de            D/E angle index number.
+         * @param az            AZ angle index number.
          * @param dt            Offset in time to collision with the boundary
          * @param grazing       The grazing angle at point of impact (rads)
          * @param speed         Speed of sound at the point of collision.
@@ -55,8 +55,8 @@ class USML_DECLSPEC eigenverb_bistatic : public eigenverb_model {
          * React to the collision of a single ray with a reverberation
          * when colliding from above the boundary.
          *
-         * @param de            D/E angle index
-         * @param az            AZ angle index
+         * @param de            D/E angle index number.
+         * @param az            AZ angle index number.
          * @param dt            Offset in time to collision with the boundary
          * @param grazing       The grazing angle at point of impact (rads)
          * @param speed         Speed of sound at the point of collision.
@@ -69,6 +69,11 @@ class USML_DECLSPEC eigenverb_bistatic : public eigenverb_model {
                double dt, double grazing, double speed,
                const wposition1& position, const wvector1& ndirection,
                const wave_queue& wave, size_t ID ) ;
+
+         /**
+          * Saves the eigenverb data to a text file.
+          */
+         virtual void save_eigenverbs(const char* filename) ;
 
     private:
 
@@ -101,57 +106,29 @@ class USML_DECLSPEC eigenverb_bistatic : public eigenverb_model {
          * eigenverbs with itself and makes contributions to the reverebation
          * level curve.
          */
-        void convolve_eigenverbs( std::vector<eigenverb>* set1,
-                std::vector<eigenverb>* set2 ) ;
+        void convolve_eigenverbs( std::vector<eigenverb>* set ) ;
 
         /**
-         * Vector of eigenverbs that originate from the
-         * source and impact the surface.
+         * Vector of eigenverbs that impacted the surface.
          */
-        std::vector< eigenverb > _source_surface ;
+        std::vector< eigenverb > _surface ;
 
         /**
-         * Vector of eigenverbs that originate from the
-         * receiver and impact the surface.
+         * Vector of eigenverbs that impacted the bottom.
          */
-        std::vector< eigenverb > _receiver_surface ;
+        std::vector< eigenverb > _bottom ;
 
         /**
-         * Vector of eigenverbs that originate from the
-         * source and impact the bottom.
+         * Vector of eigenverbs that collide with the volume
+         * boundarys from below.
          */
-        std::vector< eigenverb > _source_bottom ;
+        std::vector< std::vector< eigenverb > > _upper ;
 
         /**
-         * Vector of eigenverbs that originate from the
-         * receiver and impact the bottom.
+         * Vector of eigenverbs that collide with the volume
+         * boundarys from above.
          */
-        std::vector< eigenverb > _receiver_bottom ;
-
-        /**
-         * Vector of eigenverbs that originate from the
-         * source and impact the volume layer from below.
-         */
-        std::vector< std::vector< eigenverb > > _source_upper ;
-
-        /**
-         * Vector of eigenverbs that originate from the
-         * receiver and impact the volume layer from below.
-         */
-        std::vector< std::vector< eigenverb > > _receiver_upper ;
-
-        /**
-         * Vector of eigenverbs that originate from the
-         * source and impact the volume layer from above.
-         */
-        std::vector< std::vector< eigenverb > > _source_lower ;
-
-        /**
-         * Vector of eigenverbs that originate from the
-         * receiver and impact the volume layer from above.
-         */
-        std::vector< std::vector< eigenverb > > _receiver_lower ;
-
+        std::vector< std::vector< eigenverb > > _lower ;
 
 };
 

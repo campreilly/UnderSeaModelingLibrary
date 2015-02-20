@@ -7,7 +7,7 @@
 #include <usml/types/types.h>
 
 namespace usml {
-namespace waveq3d {
+namespace eigenverb {
 
 using namespace usml::types ;
 

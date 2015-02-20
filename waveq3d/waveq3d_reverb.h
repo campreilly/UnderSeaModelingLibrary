@@ -8,8 +8,8 @@
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/wave_queue_reverb.h>
-#include <usml/waveq3d/eigenverb.h>
-#include <usml/waveq3d/eigenverb_monostatic.h>
-#include <usml/waveq3d/eigenverb_bistatic.h>
+#include <usml/eigenverb/eigenverb.h>
+#include <usml/eigenverb/eigenverb_monostatic.h>
+#include <usml/eigenverb/eigenverb_bistatic.h>
 
 #endif
