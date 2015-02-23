@@ -7,12 +7,14 @@
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/eigenrayListener.h>
+#include <usml/eigenverb/eigenverb_collection.h>
 #include <netcdfcpp.h>
 
 namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
+using namespace usml::eigenverb ;
 class reflection_model ;
 class spreading_model ;
 class spreading_ray ;

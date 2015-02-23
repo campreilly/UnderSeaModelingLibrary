@@ -99,7 +99,7 @@ bool reflection_model::bottom_reflection( size_t de, size_t az, double depth ) {
 
     // invoke bottom reverberation callback
     if( _wave.is_ray_valid(de,az) ) {
-        int ID = _wave.getID() ;
+        int ID = _wave.ID() ;
         _reverberation->notifyLowerCollision( de, az, time_water, grazing, c,
             position,  ndirection, _wave, ID ) ;
     }
@@ -165,7 +165,7 @@ bool reflection_model::surface_reflection( size_t de, size_t az ) {
 
     // surface reverberation callback
     if( _wave.is_ray_valid(de,az) ) {
-        int ID = _wave.getID() ;
+        int ID = _wave.ID() ;
         _reverberation->notifyUpperCollision( de, az, time_water, grazing, c,
             position,  ndirection, _wave, ID ) ;
     }

@@ -4,10 +4,15 @@
 
 #pragma once
 
-#include <usml/waveq3d/eigenverb.h>
+#include <usml/eigenverb/eigenverb.h>
+#include <usml/waveq3d/wave_queue.h>
 
 namespace usml {
 namespace eigenverb {
+
+using namespace usml::types ;
+using namespace usml::waveq3d ;
+class wave_queue ;
 
 class eigenverb_collection {
 
