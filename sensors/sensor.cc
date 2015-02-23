@@ -21,7 +21,7 @@ using namespace usml::sensors;
  * @param yaw
  * @param description
  */
-void sensor::sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType xmitRcvMode, 
+sensor::sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType xmitRcvMode, 
 	const wposition1 position, const double tilt_angle, const double tilt_direction, 
 	const double pitch, const double yaw, const std::string description) 
 	:	_sensorID(sensorID),
@@ -60,16 +60,16 @@ sensor::~sensor()
  */
 void sensor::latitude(double latitude)
 {
-	_position.
+    _position.latitude(latitude);
 }
 
 /**
  * Gets the latitude of the sensor.
- * @return latitude  in decimal degrees.
+ * @return latitude in decimal degrees.
  */
 double sensor::latitude(){
 
-	return 0.0;
+    return _position.latitude();
 }
 
 /**
@@ -79,7 +79,7 @@ double sensor::latitude(){
  */
 void sensor::longitude(double longitude)
 {
-	_position.
+    _position.longitude(longitude);
 }
 
 /**
@@ -88,7 +88,7 @@ void sensor::longitude(double longitude)
  */
 double sensor::longitude()
 {
-	return 0.0;
+    return _position.longitude();
 }
 
 /**
@@ -98,7 +98,8 @@ double sensor::longitude()
  */
 void sensor::depth(double depth)
 {
-	_position.
+    // Set wposition1.altitude
+    _position.altitude(-depth);
 }
 
 /**
@@ -107,7 +108,7 @@ void sensor::depth(double depth)
  */
 double sensor::depth()
 {
-	return 0.0;
+    return -(_position.altitude());
 }
 
 /**

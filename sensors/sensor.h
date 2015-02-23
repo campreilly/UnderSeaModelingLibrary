@@ -40,7 +40,7 @@ class USML_DECLSPEC sensor
 
 public:
 	/**
-	 * Default Constructor
+	 * Constructor
 	 */
 	sensor();
 	/**
@@ -55,7 +55,7 @@ public:
 	 * @param yaw
 	 * @param description
 	 */
-	void sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType xmitRcvMode, 
+	sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType xmitRcvMode, 
 				const wposition1 position, const double tilt_angle, const double tilt_direction, 
 				const double pitch, const double yaw, const std::string description = NULL);
 
@@ -69,7 +69,7 @@ public:
 	 * 
 	 * @param sensorID of the sensorIDType
 	 */
-	void sensor::sensorID(sensorIDType sensorID)
+	void sensorID(sensorIDType sensorID)
 	{
 		_sensorID = sensorID;
 	}
@@ -77,7 +77,7 @@ public:
 	 * Get method for the sensorID attribute.
 	 * @return sensorID of the sensorIDType
 	 */
-	sensorIDType sensor::sensorID()
+	sensorIDType sensorID()
 	{
 		return _sensorID;
 	}
@@ -88,7 +88,7 @@ public:
 	 * receiver_params_map.
 	 * @param paramsID of the paramsIDType.
 	 */
-	void sensor::paramsID(paramsIDType paramsID)
+	void paramsID(paramsIDType paramsID)
 	{
 		_paramsID = paramsID;
 	}
@@ -97,7 +97,7 @@ public:
 	 * Get method for the paramsID attribute.
 	 * @return paramsID of the paramsIDType
 	 */
-	paramsIDType sensor::paramsID()
+	paramsIDType paramsID()
 	{
 		return _paramsID;
 	}
@@ -107,7 +107,7 @@ public:
 	 * The xmitRcvMode defines if the sensor is a source, or receive or both.
 	 * @param xmitRcvMode of the xmitRcvModeType.
 	 */
-	void sensor::xmitRcvMode(xmitRcvModeType xmitRcvMode)
+	void xmitRcvMode(xmitRcvModeType xmitRcvMode)
 	{
 		_xmitRcvMode = xmitRcvMode;
 	}
@@ -116,7 +116,7 @@ public:
 	 * Get method for the xmitRcvMode attribute.
 	 * @return xmitRcvMode of the xmitRcvModeType
 	 */
-	xmitRcvModeType sensor::xmitRcvMode()
+	xmitRcvModeType xmitRcvMode()
 	{
 		return _xmitRcvMode;
 	}
@@ -126,7 +126,7 @@ public:
 	 * Expects a wposition1 type.
 	 * @param position of wposition1 type.
 	 */
-	void sensor::position(wposition1 position)
+	void position(wposition1 position)
 	{
 		_position = position;
 	}
@@ -135,7 +135,7 @@ public:
 	 * Gets the position of the sensor
 	 * @return position of type wposition1
 	 */
-	wposition1 sensor::position()
+	wposition1 position()
 	{
 		return _position;
 	}
@@ -185,7 +185,7 @@ public:
 	 * Expects tilt_angle to be in radians.
 	 * @param tilt_angle
 	 */
-	void sensor::tilt_angle(double tilt_angle)
+	void tilt_angle(double tilt_angle)
 	{
 		_tilt_angle = tilt_angle;
 	}
@@ -193,7 +193,7 @@ public:
 	 * Gets the tilt_angle of the sensor.
 	 * @return tilt_angle in radians.
 	 */
-	double sensor::tilt_angle()
+	double tilt_angle()
 	{
 		return _tilt_angle;
 	}
@@ -201,7 +201,7 @@ public:
 	 * Sets the tilt_direction attribute of the sensor. 
 	 * @param tilt_direction in radians.
 	 */
-	void sensor::tilt_direction(double tilt_direction)
+	void tilt_direction(double tilt_direction)
 	{
 		_tilt_direction = tilt_direction;
 	}
@@ -209,7 +209,7 @@ public:
 	 * Gets the tilt_direction of the sensor.
 	 * @return tilt_direction in radians.
 	 */
-	double sensor::tilt_direction()
+	double tilt_direction()
 	{
 		return _tilt_direction;
 	}
@@ -218,7 +218,7 @@ public:
 	 * Expects pitch to be in radians.
 	 * @param pitch
 	 */
-	void sensor::pitch(double pitch)
+	void pitch(double pitch)
 	{
 		_pitch = pitch;
 	}
@@ -226,7 +226,7 @@ public:
 	 * Gets the pitch of the sensor.
 	 * @return pitch in radians.
 	 */
-	double sensor::pitch()
+	double pitch()
 	{
 		return _pitch;
 	}
@@ -236,7 +236,7 @@ public:
 	 * Expects yaw to be in radians.
 	 * @param yaw
 	 */
-	void sensor::yaw(double yaw)
+	void yaw(double yaw)
 	{
 		_yaw = yaw;
 	}
@@ -245,7 +245,7 @@ public:
 	 * Gets the yaw of the sensor.
 	 * @return yaw in radians.
 	 */
-	double sensor::yaw()
+	double yaw()
 	{
 		return _yaw;
 	}
@@ -254,7 +254,7 @@ public:
 	 * Sets the source_params of the sensor. 
 	 * @param source_params pointer
      */
-    void sensor::source(source_params* source_params)
+    void source(source_params* source_params)
     {
 		_source = source_params;
 	}
@@ -263,7 +263,7 @@ public:
 	 * Gets the source_params of the sensor.
 	 * @return source_params pointer.
 	 */
-	source_params* sensor::source()
+	source_params* source()
 	{
 		return _source;
 	}
@@ -272,7 +272,7 @@ public:
 	 * Sets the receiver_params of the sensor. 
 	 * @param receiver_params pointer
 	 */
-	void sensor::receiver(receiver_params* receiver_params)
+	void receiver(receiver_params* receiver_params)
 	{
 		_receiver = receiver_params;
 	}
@@ -281,7 +281,7 @@ public:
 	 * Gets the receiver_params of the sensor.
 	 * @return receiver_params pointer.
 	 */
-	receiver_params* sensor::receiver()
+	receiver_params* receiver()
 	{
 		return _receiver;
 	}
@@ -308,7 +308,7 @@ private:
   
 	std::list<int> _eigenverbs;
 	wave_queue*    _wave;
-	std::string*   _description;			
+	std::string    _description;			
 };
 
 /// @}

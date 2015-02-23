@@ -21,10 +21,46 @@ namespace sensors {
  */
 class USML_DECLSPEC source_params
 {
-
 public:
-	source_params();
-	virtual ~source_params();
+    /**
+    * Constructor
+    * @param sourceID
+    * @param sourceStrength
+    * @param transmitFrequency
+    * @param initialPingTime
+    * @param repeationInterval
+    * @param source_beam
+    * @param beamMap
+    */
+    source_params(const paramsIDType sourceID, const double sourceStrength, 
+        const double transmitFrequency, const double initialPingTime, const double repeationInterval,
+        beam_pattern_model* source_beam, beam_pattern_map* beamMap);
+
+    // Default Constructor
+    source_params();
+
+    // Destructor
+    virtual ~source_params();
+
+    /**
+    * Set method for the sourceID attribute. The sourceID attribute is used as the
+    * key to lookup the source_params in the source_params_map.
+    * @param sourceID of the paramsIDType.
+    */
+    void sourceID(paramsIDType sourceID)
+    {
+        _sourceID = sourceID;
+    }
+
+    /**
+    * Get method for the sourceID attribute.
+    * @return sourceID of the paramsIDType
+    */
+    paramsIDType sourceID()
+    {
+        return _sourceID;
+    }
+
 	void ping();
 
 private:
@@ -33,9 +69,8 @@ private:
 	double _transmitFrequency;
 	double _initialPingTime;
 	double _repeationInterval;
-	beam_pattern_model* _source_beam;
-	beam_pattern_map* _beam_pattern_map;
-
+    beam_pattern_map* _beam_pattern_map;
+    beam_pattern_model* _source_beam;
 };
 
 } // end of namespace sensors
