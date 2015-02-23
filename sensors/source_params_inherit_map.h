@@ -28,7 +28,7 @@ namespace sensors {
 /**
  * @author Ted Burns, AEgis Technologies Inc.
  * @version 1.0
- * @created 10-Feb-2015 12:49:09 PM
+ * @updated 20-Feb-2015 4:31:16 PM
  */
 class USML_DECLSPEC source_params_inherit_map : public std::map<const paramsIDType, const source_params*>
 {

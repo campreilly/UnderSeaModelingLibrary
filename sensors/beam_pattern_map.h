@@ -27,7 +27,7 @@ namespace sensors {
  *
  * @author Ted Burns, AEgis Technologies Inc.
  * @version 1.0
- * @created 10-Feb-2015 12:49:08 PM
+ * @updated 20-Feb-2015 4:31:12 PM
  */
 class USML_DECLSPEC beam_pattern_map : public singleton_map <const beamIDType, const beam_pattern_model*>
 {

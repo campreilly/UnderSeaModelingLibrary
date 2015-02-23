@@ -29,9 +29,9 @@ namespace sensors {
  *
  * @author Ted Burns, AEgis Technologies Inc.
  * @version 1.0
- * @created 12-Feb-2015 3:41:30 PM
+ * @updated 20-Feb-2015 4:31:15 PM
  */
-class USML_DECLSPEC sensor_map : public singleton_map < const sensorIDType, sensor* >
+class USML_DECLSPEC sensor_map : public singleton_map <const sensorIDType, sensor* >
 {
 public:
     /**

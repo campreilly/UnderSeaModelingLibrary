@@ -27,8 +27,9 @@ namespace sensors {
  *
  * @author Ted Burns, AEgis Technologies Inc.
  * @version 1.0
- * @created 10-Feb-2015 12:49:09 PM
+ * @updated 20-Feb-2015 4:31:14 PM
  */
+	
 class USML_DECLSPEC receiver_params_map : public singleton_map <const paramsIDType, const receiver_params*>
 {
 public:
