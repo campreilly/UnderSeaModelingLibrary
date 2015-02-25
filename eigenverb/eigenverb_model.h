@@ -7,15 +7,7 @@
 //#define EIGENVERB_MODEL_DEBUG
 
 #include <usml/ocean/ocean.h>
-#include <usml/ublas/math_traits.h>
-#include <usml/waveq3d/eigenverb.h>
-#include <usml/waveq3d/reverberation_model.h>
-#include <usml/waveq3d/wave_queue_reverb.h>
-#include <usml/waveq3d/spreading_model.h>
-#include <usml/ublas/ublas.h>
-#include <boost/numeric/ublas/lu.hpp>
-#include <usml/types/types.h>
-#include <vector>
+#include <usml/eigenverb/eigenverb_collection.h>
 #include <iostream>
 #include <fstream>
 
@@ -23,14 +15,12 @@ namespace usml {
 namespace eigenverb {
 
 using namespace usml::ocean ;
-using namespace usml::waveq3d ;
-
 using namespace boost::numeric::ublas ;
 
 /// @ingroup waveq3d
 /// @{
 
-class USML_DECLSPEC eigenverb_model : public reverberation_model {
+class USML_DECLSPEC eigenverb_model {
 
     public:
 
@@ -38,44 +28,6 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
          * Virtual destructor
          */
         virtual ~eigenverb_model() {}
-
-        /**
-         * React to the collision of a single ray with a reverberation
-         * when colliding from below the boundary.
-         *
-         * @param de            D/E angle index number.
-         * @param az            AZ angle index number.
-         * @param dt            Offset in time to collision with the boundary
-         * @param grazing       The grazing angle at point of impact (rads)
-         * @param speed         Speed of sound at the point of collision.
-         * @param position      Location at which the collision occurs
-         * @param ndirection    Normalized direction at the point of collision.
-         * @param wave          Wave queue, used to extract various data
-         * @param ID            (Used to identify source/receiver/volume layer)
-         */
-        virtual void notifyUpperCollision( size_t de, size_t az,
-               double dt, double grazing, double speed,
-               const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, size_t ID ) {}
-
-        /**
-         * React to the collision of a single ray with a reverberation
-         * when colliding from above the boundary.
-         *
-         * @param de            D/E angle index number.
-         * @param az            AZ angle index number.
-         * @param dt            Offset in time to collision with the boundary
-         * @param grazing       The grazing angle at point of impact (rads)
-         * @param speed         Speed of sound at the point of collision.
-         * @param position      Location at which the collision occurs
-         * @param ndirection    Normalized direction at the point of collision.
-         * @param wave          Wave queue, used to extract various data
-         * @param ID            (Used to identify source/receiver/volume layer)
-         */
-        virtual void notifyLowerCollision( size_t de, size_t az,
-               double dt, double grazing, double speed,
-               const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, size_t ID ) {}
 
         /**
          * Computes the reverberation curve from the data cataloged from the
@@ -106,28 +58,11 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
     protected:
 
         /**
-         * Constructs and eigenverb from the data provided in a notify collision.
-         *
-         * @param de            D/E angle index number.
-         * @param az            AZ angle index number.
-         * @param dt            Offset in time to collision with the boundary
-         * @param grazing       The grazing angle at point of impact (rads)
-         * @param speed         Speed of sound at the point of collision.
-         * @param position      Location at which the collision occurs
-         * @param ndirection    Normalized direction at the point of collision.
-         * @param wave          Wave queue, used to extract various data
-         * @return verb         newly constructed eigenverb
-         */
-        void create_eigenverb( size_t de, size_t az,
-               double dt, double grazing, double speed,
-               const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, eigenverb& verb ) const ;
-
-        /**
          * Computes the contribution value of two eigenverbs to the total
          * reverberation level.
          */
-        void compute_contribution( const eigenverb* u, const eigenverb* v ) ;
+         void compute_contribution( const eigenverb* u, const eigenverb* v ) ;
+//         void compute_contribution( const eigenverb_collection::eigenverb_tree* u, const eigenverb* v ) ;
 
         /**
          * Computes the energy contributions to the reverberation
@@ -172,16 +107,6 @@ class USML_DECLSPEC eigenverb_model : public reverberation_model {
          * Number of layers within the volume
          */
         size_t _n ;
-
-        /**
-         * Origin ID of the source wavefront
-         */
-        size_t _source_origin ;
-
-        /**
-         * Origin ID of the reciever wavefront
-         */
-        size_t _receiver_origin ;
 
         /**
          * Defines the type of boundary model for the bottom.

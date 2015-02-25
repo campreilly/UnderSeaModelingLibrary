@@ -98,10 +98,9 @@ bool reflection_model::bottom_reflection( size_t de, size_t az, double depth ) {
     else { grazing = asin( -dot_full / c ) ; }
 
     // invoke bottom reverberation callback
-    if( _wave.is_ray_valid(de,az) ) {
-        int ID = _wave.getID() ;
-        _reverberation->notifyLowerCollision( de, az, time_water, grazing, c,
-            position,  ndirection, _wave, ID ) ;
+    if( _collection && _wave.is_ray_valid(de,az) ) {
+        build_eigenverb( de, az, time_water, grazing, c,
+            position, ndirection, BOTTOM ) ;
     }
 
     // compute reflection loss
@@ -164,10 +163,9 @@ bool reflection_model::surface_reflection( size_t de, size_t az ) {
     if ( grazing <= 0.0 ) return false ;	// near miss of the surface
 
     // surface reverberation callback
-    if( _wave.is_ray_valid(de,az) ) {
-        int ID = _wave.getID() ;
-        _reverberation->notifyUpperCollision( de, az, time_water, grazing, c,
-            position,  ndirection, _wave, ID ) ;
+    if( _collection && _wave.is_ray_valid(de,az) ) {
+        build_eigenverb( de, az, time_water, grazing, c,
+            position, ndirection, SURFACE ) ;
     }
 
     // compute reflection loss
@@ -397,4 +395,53 @@ void reflection_model::reflection_copy(
     element->sound_speed( de, az ) = results.sound_speed(0,0) ;
     element->distance( de, az ) = results.distance(0,0) ;
     element->path_length( de, az ) += results.path_length(0,0) ;
+}
+
+/**
+ * Builds the eigenverb used in reverberation calculations
+ */
+void reflection_model::build_eigenverb(
+    size_t de, size_t az, double dt, double grazing,
+    double speed, const wposition1& position,
+    const wvector1& ndirection, interface_type type )
+{
+    eigenverb verb ;
+    verb.distance = _wave.curr()->path_length(de,az) + speed * dt ;
+    double true_distance = verb.distance ;
+    double spreading_loss = 1.0 / (true_distance * true_distance) ;
+    vector<double> amp( _wave.frequencies()->size(), spreading_loss ) ;
+    vector<double> boundary_loss = pow( 10.0, -0.1 * _wave.curr()->attenuation(de,az) ) ;
+    verb.intensity = element_prod( amp, boundary_loss ) ;
+
+    // Only continue if the verb meets the threshold intensity
+    if ( verb.intensity(0) > 1e-10 ) {
+        verb.de_index = de ;
+        verb.az_index = az ;
+        verb.launch_az = _wave.source_az(az) ;
+        verb.launch_de = _wave.source_de(de) ;
+        verb.travel_time = _wave.time() + dt ;
+        verb.grazing = grazing ;
+        verb.sound_speed = speed ;
+        verb.position = position ;
+        verb.direction = ndirection ;
+        verb.frequencies = _wave.frequencies() ;
+        verb.surface = _wave.curr()->surface(de,az) ;
+        verb.bottom = _wave.curr()->bottom(de,az) ;
+
+        // Calculate the one way TL and the width of the gaussian
+        // at the time of impact with the boundary.
+        double delta_de ;
+        if( de == 0 ) {
+            delta_de = M_PI * ( _wave.source_de(de+1) - _wave.source_de(de) ) / 180.0  ;
+        } else {
+            delta_de = M_PI * ( _wave.source_de(de+1) - _wave.source_de(de-1) ) / 360.0  ;
+        }
+        verb.sigma_de = true_distance * delta_de / sin(grazing) ;
+        double delta_az = M_PI * ( _wave.source_az(az+1) - _wave.source_az(az) ) / 180.0 ;
+        verb.sigma_az = delta_az * cos(grazing) * true_distance ;   // horizontal distance * azimuthal spacing
+        if( abs(grazing) > (M_PI_2 - 1e-10) ) verb.sigma_az = TWO_PI * true_distance ;
+
+        // Add the eigenverb to the collection
+        _collection->add_eigenverb( verb, type )
+    }
 }

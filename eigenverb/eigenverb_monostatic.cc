@@ -8,7 +8,7 @@ using namespace usml::waveq3d ;
 
 /**  Constructor  **/
 eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
-    wave_queue_reverb& wave, double pulse, size_t num_bins, double max_time )
+    size_t num_radials, double pulse, size_t num_bins, double max_time )
 {
         // Set all local member variables for use in calculations
     _pulse = pulse ;
@@ -17,15 +17,9 @@ eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
         // extract pointers to various spreading/boundary model(s)
     _bottom_boundary = &ocean.bottom() ;
     _surface_boundary = &ocean.surface() ;
+//    _volume_boundary = &ocean.volume() ;
 
-    size_t _n = ocean.num_volume() ;
-    if ( _n > 0 ) {
-        _upper.resize( _n ) ;
-        _lower.resize( _n ) ;
-    }
-        // Grab this wave's ID, used to determine volume layer interactions
-    _source_origin = wave.ID() ;
-        // Initialize all the memory of _reverberation_curve
+    // Initialize all the memory of _reverberation_curve
     _reverberation_curve.resize( num_bins ) ;
     for(vector<double>::iterator i=_reverberation_curve.begin();
             i!=_reverberation_curve.end(); ++i) {
@@ -35,60 +29,6 @@ eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
     double resolution = max_time / num_bins ;
     for(size_t i=0; i<num_bins; ++i) {
         _two_way_time[i] = i * resolution ;
-    }
-}
-
-/**
- * Places an eigenverb into the class of "upper" bins to be used for the overall
- * reverberation calculation.
- */
-void eigenverb_monostatic::notifyUpperCollision( size_t de, size_t az,
-               double dt, double grazing, double speed,
-               const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, size_t ID )
-{
-    #ifdef EIGENVERB_COLLISION_DEBUG
-        cout << "**** Entering eigenverb_monostatic::notifyUpperCollision" << endl ;
-        cout << "de: " << de << " az: " << az << " time: " << time << endl ;
-        cout << "grazing: " << grazing << " ID: " << ID << endl ;
-    #endif
-    eigenverb verb ;
-    create_eigenverb( de, az, dt, grazing, speed, position, ndirection, wave, verb ) ;
-        // Don't bother adding the ray it its too quiet
-    if ( verb.intensity(0) > 1e-10 ) {
-        if( ID == _source_origin ) {
-            _surface.push_back( verb ) ;
-        } else {
-        	size_t layer = ID - _source_origin - 1 ;
-            _upper.at(layer).push_back( verb ) ;
-        }
-    }
-}
-
-/**
- * Places an eigenverb into the class of "lower" bins to be used for the overall
- * reverberation calculation.
- */
-void eigenverb_monostatic::notifyLowerCollision( size_t de, size_t az,
-               double dt, double grazing, double speed,
-               const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, size_t ID )
-{
-    #ifdef EIGENVERB_COLLISION_DEBUG
-        cout << "**** Entering eigenverb_monostatic::notifyLowerCollision" << endl ;
-        cout << "de: " << de << " az: " << az << " time: " << time << endl ;
-        cout << "grazing: " << grazing << " ID: " << ID << endl ;
-    #endif
-    eigenverb verb ;
-    create_eigenverb( de, az, dt, grazing, speed, position, ndirection, wave, verb ) ;
-        // Don't bother adding the ray it its too quiet
-    if ( 1e-10 < verb.intensity(0) ) {
-        if( ID == _source_origin ) {
-            _bottom.push_back( verb ) ;
-        } else {
-        	size_t layer = ID - _source_origin - 1 ;
-            _lower.at(layer).push_back( verb ) ;
-        }
     }
 }
 

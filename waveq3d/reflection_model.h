@@ -6,12 +6,13 @@
 
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/wave_queue_reverb.h>
-#include <usml/utilities/SharedPointerManager.h>
+#include <usml/eigenverb/eigenverb_collection.h>
 
 namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
+using namespace usml::eigenverb ;
 class wave_queue ;      // forward reference for friend declaration
 class wave_queue_reverb ;
 
@@ -53,13 +54,11 @@ class USML_DECLSPEC reflection_model
 
   private:
 
-    typedef usml::utilities::SharedPointerManager<reverberation_model>	Pointer_Manager ;
-
     /** Wavefront object associated with this model. */
     wave_queue& _wave ;
 
-    /** Associated reverberation model **/
-    reverberation_model* _reverberation ;
+    /** Associated eigenverb collection **/
+    eigenverb_collection* _collection ;
 
     /**
      * If the water is too shallow, bottom_reflection() uses a horizontal
@@ -93,18 +92,11 @@ class USML_DECLSPEC reflection_model
      * Hide default constructor to prohibit use by non-friends.
      */
     reflection_model( wave_queue& wave )
-    	: _wave( wave ), _reverberation( NULL ),
+    	: _wave( wave ), _collection( NULL ),
     	  TOO_SHALLOW( 300.0 * wave._time_step )
     	{}
 
     virtual ~reflection_model() {}
-
-    /**
-     * Sets the reverberation model
-     */
-    inline void reverberation( Pointer_Manager m ) {
-    	_reverberation = m.pointer() ;
-    }
 
     /**
      * Reflect a single acoustic ray from the ocean bottom.
@@ -237,6 +229,25 @@ class USML_DECLSPEC reflection_model
     static void reflection_copy(
         wave_front* element, size_t de, size_t az,
         wave_front& results ) ;
+
+    /**
+     * Constructs an eigenverb from the data provided. If the eigenverb meets
+     * the intensity threshold, the eigenverb is passed to the collision
+     * listener who then calls its collector to save the eigenverb.
+     *
+     * @param de            D/E angle index number.
+     * @param az            AZ angle index number.
+     * @param dt            Offset in time to collision with the boundary
+     * @param grazing       The grazing angle at point of impact (rads)
+     * @param speed         Speed of sound at the point of collision.
+     * @param position      Location at which the collision occurs
+     * @param ndirection    Normalized direction at the point of collision.
+     * @param type          Interface enumeration for this eigenverb
+     */
+    void build_eigenverb(
+        size_t de, size_t az, double dt, double grazing,
+        double speed, const wposition1& position,
+        const wvector1& ndirection, interface_type type ) ;
 } ;
 
 }  // end of namespace waveq3d
