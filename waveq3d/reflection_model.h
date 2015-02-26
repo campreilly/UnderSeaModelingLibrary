@@ -5,7 +5,6 @@
 #pragma once
 
 #include <usml/waveq3d/wave_queue.h>
-#include <usml/waveq3d/wave_queue_reverb.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 
 namespace usml {
@@ -14,7 +13,6 @@ namespace waveq3d {
 using namespace usml::ocean ;
 using namespace usml::eigenverb ;
 class wave_queue ;      // forward reference for friend declaration
-class wave_queue_reverb ;
 
 /**
  * @internal
@@ -50,7 +48,6 @@ class USML_DECLSPEC reflection_model
 {
 
     friend class wave_queue ;
-    friend class wave_queue_reverb ;
 
   private:
 

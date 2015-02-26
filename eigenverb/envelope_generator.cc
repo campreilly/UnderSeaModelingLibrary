@@ -1,8 +1,8 @@
 /**
- * @file eigenverb_model.cc
+ * @file envelope_generator.cc
  */
 
-#include <usml/eigenverb/eigenverb_model.h>
+#include <usml/eigenverb/envelope_generator.h>
 
 //#define DEBUG_CONVOLUTION
 using namespace usml::eigenverb ;
@@ -10,7 +10,7 @@ using namespace usml::eigenverb ;
 /**
  * Computes the contribution value
  */
-void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb* v )
+void envelope_generator::compute_contribution( const eigenverb* u, const eigenverb* v )
 {
         // determine the relative angle and distance between the projected gaussians
     double alpha, chi, beta, dummy ;
@@ -30,10 +30,17 @@ void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb*
     double Ws2 = Ws*Ws ;
     double Ls = u->sigma_de ;
     double Ls2 = Ls*Ls ;
-    double det_sr = 0.5 * ( 2.0*(Ls2*Ws2 + Lr2*Wr2) + (Ls2+Ws2)*(Lr2+Wr2) - (Ls2-Ws2)*(Lr2-Wr2)*cos(2.0*alpha) ) ;
-    double kappa = -0.25 * (xs*xs*((Ls2+Ws2)+(Ls2-Ws2)*cos(2.0*alpha)+2.0*Lr2)
-                          + ys*ys*((Ls2+Ws2)-(Ls2-Ws2)*cos(2.0*alpha)+2.0*Wr2)
-                          - xs*ys*(Ls2-Ws2)*sin(2.0*alpha)) / det_sr ;
+    double s_minus = Ls2 - Ws2 ;
+    double r_minus = Ls2 - Ws2 ;
+    double s_plus = Ls2 + Ws2 ;
+    double det_sr = 0.5 * ( 2.0*(Ls2*Ws2 + Lr2*Wr2) + s_plus*(Lr2+Wr2) - s_minus*r_minus*cos(2.0*alpha) ) ;
+    double kappa = -0.25 * ( xs*xs*(s_plus + s_minus*cos(2.0*alpha) + 2.0*Lr2)
+                             + ys*ys*(s_plus - s_minus*cos(2.0*alpha) + 2.0*Wr2)
+                             - xs*ys*s_minus*sin(2.0*alpha) ) / det_sr ;
+//    double det_sr = 0.5 * ( 2.0*(Ls2*Ws2 + Lr2*Wr2) + (Ls2+Ws2)*(Lr2+Wr2) - (Ls2-Ws2)*(Lr2-Wr2)*cos(2.0*alpha) ) ;
+//    double kappa = -0.25 * (xs*xs*((Ls2+Ws2)+(Ls2-Ws2)*cos(2.0*alpha)+2.0*Lr2)
+//                          + ys*ys*((Ls2+Ws2)-(Ls2-Ws2)*cos(2.0*alpha)+2.0*Wr2)
+//                          - xs*ys*(Ls2-Ws2)*sin(2.0*alpha)) / det_sr ;
     double _area = 0.5 * Lr * Ls * Ws * Wr * exp( kappa ) / sqrt(det_sr) ;
         // Compute the energy reflected off of this patch
         // and the scattering loss from the interface
@@ -67,6 +74,7 @@ void eigenverb_model::compute_contribution( const eigenverb* u, const eigenverb*
         double Tarea = sqrt(sigma_p_yy) * sin(v->grazing) / v->sound_speed ;
         double Tsr = 0.5 * sqrt(_pulse*_pulse + Tarea*Tarea) ;
         double time = u->travel_time + v->travel_time + Tsr ;
+//        _envelope_collection->add_gaussian( _energy, time, Tsr, v->launch_az ) ;
         vector<double> time_exp = (_two_way_time-time) * ( 1.0 / Tsr ) ;
         time_exp = element_prod( time_exp, time_exp ) ;
         vector<double> _time_spread = ( _energy / ( Tsr * sqrt(TWO_PI) ) ) * exp( -0.5 * time_exp ) ;

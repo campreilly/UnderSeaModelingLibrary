@@ -98,7 +98,7 @@ bool reflection_model::bottom_reflection( size_t de, size_t az, double depth ) {
     else { grazing = asin( -dot_full / c ) ; }
 
     // invoke bottom reverberation callback
-    if( _collection && _wave.is_ray_valid(de,az) ) {
+    if( _wave.is_ray_valid(de,az) ) {
         build_eigenverb( de, az, time_water, grazing, c,
             position, ndirection, BOTTOM ) ;
     }
@@ -163,7 +163,7 @@ bool reflection_model::surface_reflection( size_t de, size_t az ) {
     if ( grazing <= 0.0 ) return false ;	// near miss of the surface
 
     // surface reverberation callback
-    if( _collection && _wave.is_ray_valid(de,az) ) {
+    if( _wave.is_ray_valid(de,az) ) {
         build_eigenverb( de, az, time_water, grazing, c,
             position, ndirection, SURFACE ) ;
     }
@@ -337,8 +337,7 @@ void reflection_model::build_eigenverb(
         verb.surface = _wave.curr()->surface(de,az) ;
         verb.bottom = _wave.curr()->bottom(de,az) ;
 
-        // Calculate the one way TL and the width of the gaussian
-        // at the time of impact with the boundary.
+        // Calculate the width of the gaussian at the time of impact
         double delta_de ;
         if( de == 0 ) {
             delta_de = M_PI * ( _wave.source_de(de+1) - _wave.source_de(de) ) / 180.0  ;

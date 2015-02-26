@@ -1,13 +1,13 @@
 /**
- * @file eigenverb_monostatic.cc
+ * @file envelope_monostatic.cc
  */
 
-#include <usml/waveq3d/eigenverb_monostatic.h>
+#include <usml/eigenverb/envelope_monostatic.h>
 
-using namespace usml::waveq3d ;
+using namespace usml::eigenverb ;
 
 /**  Constructor  **/
-eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
+envelope_monostatic::envelope_monostatic( ocean_model& ocean,
     size_t num_radials, double pulse, size_t num_bins, double max_time )
 {
         // Set all local member variables for use in calculations
@@ -36,7 +36,7 @@ eigenverb_monostatic::eigenverb_monostatic( ocean_model& ocean,
  * Computes the energy contributions to the reverberation
  * energy curve from the bottom interactions.
  */
-void eigenverb_monostatic::compute_bottom_energy() {
+void envelope_monostatic::compute_bottom_energy() {
     #ifndef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_monostatic::compute_bottom_energy()"
              << endl ;
@@ -50,7 +50,7 @@ void eigenverb_monostatic::compute_bottom_energy() {
  * Computes the energy contributions to the reverberation
  * energy curve from the surface interactions.
  */
-void eigenverb_monostatic::compute_surface_energy() {
+void envelope_monostatic::compute_surface_energy() {
     #ifndef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_monostatic::compute_surface_energy()"
              << endl ;
@@ -64,7 +64,7 @@ void eigenverb_monostatic::compute_surface_energy() {
  * Compute all of the upper collision contributions due
  * to interactions with the volume layers
  */
-void eigenverb_monostatic::compute_upper_volume_energy() {
+void envelope_monostatic::compute_upper_volume_energy() {
 //@todo Fix volume reverberation
 //    if ( _volume_boundary ) {
 //        #ifdef EIGENVERB_MODEL_DEBUG
@@ -86,7 +86,7 @@ void eigenverb_monostatic::compute_upper_volume_energy() {
  * Compute all of the lower collision contributions due
  * to interactions with the volume layers
  */
-void eigenverb_monostatic::compute_lower_volume_energy() {
+void envelope_monostatic::compute_lower_volume_energy() {
 //@todo Fix volume reverberation
 //    if ( _volume_boundary ) {
 //        #ifdef EIGENVERB_MODEL_DEBUG
@@ -109,7 +109,7 @@ void eigenverb_monostatic::compute_lower_volume_energy() {
  * and makes contributions to the reverberation levels curve when
  * a contribution is significant enough.
  */
-void eigenverb_monostatic::convolve_eigenverbs( std::vector<eigenverb>* set )
+void envelope_monostatic::convolve_eigenverbs( std::vector<eigenverb>* set )
 {
 //    double a, b, r, x, y, scale_x, scale_y ;
 //    double lat1, lat2, alpha_s, ir, is ;
@@ -155,7 +155,7 @@ void eigenverb_monostatic::convolve_eigenverbs( std::vector<eigenverb>* set )
 /**
  * Saves the eigenverb data to a text file
  */
-void eigenverb_monostatic::save_eigenverbs(const char* filename) {
+void envelope_monostatic::save_eigenverbs(const char* filename) {
     std::ofstream of(filename) ;
     of << "                                     ************************\n"
        << "                                     * Eigenverb Monostatic *\n"

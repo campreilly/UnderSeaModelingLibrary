@@ -8,7 +8,6 @@
 #include <usml/waveq3d/spreading_ray.h>
 #include <usml/waveq3d/spreading_hybrid_gaussian.h>
 
-
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/triangular.hpp>
 #include <boost/numeric/ublas/lu.hpp>
@@ -107,7 +106,7 @@ wave_queue::~wave_queue() {
 /**
  * Assigns an eigeverb_collection to the reflection model
  */
-wave_queue::eigenverb_collection( eigenverb_collection* collection ) {
+wave_queue::add_eigenverb_listener( eigenverb_collection* collection ) {
     if( _reflection_model->_collection ) delete _reflection_model->_collection ;
     _reflection_model->_collection = collection ;
 }
@@ -397,9 +396,9 @@ void wave_queue_reverb::collide_from_above(
     else
         grazing = asin( -dot_full / c ) ;
 
-    if( !is_ray_valid(de,az) ) {
-        build_eigenverb( de, az, time_water, grazing, c,
-            position, ndirection, VOLUME_LOWER ) ;
+    if( is_ray_valid(de,az) ) {
+        _reflection_model->build_eigenverb( de, az, time_water,
+            grazing, c, position, ndirection, VOLUME_LOWER ) ;
     }
 }
 
@@ -470,9 +469,9 @@ void wave_queue_reverb::collide_from_below(
     else if ( dot_full / c <= -1.0 ) { grazing = M_PI_2 ; }
     else { grazing = asin( -dot_full / c ) ; }
 
-    if ( !is_ray_valid(de,az) ) {
-        build_eigenverb( de, az, time_water, grazing, c,
-            position, ndirection, VOLUME_UPPER ) ;
+    if( is_ray_valid(de,az) ) {
+        _reflection_model->build_eigenverb( de, az, time_water,
+            grazing, c, position, ndirection, VOLUME_UPPER ) ;
     }
 }
 

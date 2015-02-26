@@ -1,9 +1,9 @@
 /**
- * @file eigenverb_monostatic.h
+ * @file envelope_monostatic.h
  */
 #pragma once
 
-#include <usml/waveq3d/eigenverb_model.h>
+#include <usml/eigenverb/envelope_generator.h>
 
 namespace usml {
 namespace eigenverb {
@@ -11,7 +11,7 @@ namespace eigenverb {
 using namespace usml::ocean ;
 using namespace boost::numeric::ublas ;
 
-/// @ingroup waveq3d
+/// @ingroup eigenverb
 /// @{
 
 /**
@@ -19,11 +19,11 @@ using namespace boost::numeric::ublas ;
  * a wavefront. Used in monostatic scenarios, i.e. source and receiver are
  * co-located.
  */
-class USML_DECLSPEC eigenverb_monostatic : public eigenverb_model {
+class USML_DECLSPEC envelope_monostatic : public envelope_generator {
 
     public:
 
-        eigenverb_monostatic( ocean_model& ocean,
+        envelope_monostatic( ocean_model& ocean,
                               size_t num_radials,
                               double pulse,
 							  size_t num_bins,

@@ -1,13 +1,13 @@
 /**
- * @file eigenverb_bistatic.cc
+ * @file envelope_bistatic.cc
  */
 
-#include <usml/waveq3d/eigenverb_bistatic.h>
+#include <usml/eigenverb/envelope_bistatic.h>
 
-using namespace usml::waveq3d ;
+using namespace usml::eigenverb ;
 
 /**  Constructor  **/
-eigenverb_bistatic::eigenverb_bistatic( ocean_model& ocean,
+envelope_bistatic::envelope_bistatic( ocean_model& ocean,
     wave_queue_reverb& wave_source, wave_queue_reverb& wave_receiver,
     double pulse, size_t num_bins, double max_time )
 {
@@ -44,82 +44,10 @@ eigenverb_bistatic::eigenverb_bistatic( ocean_model& ocean,
 }
 
 /**
- * Places an eigenverb into the class of "upper" bins to be used for the overall
- * reverberation calculation.
- */
-void eigenverb_bistatic::notifyUpperCollision( size_t de, size_t az,
-               double dt, double grazing, double speed,
-               const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, size_t ID )
-{
-    #ifdef EIGENVERB_COLLISION_DEBUG
-        std::cout << "**** Entering eigenverb_bistatic::notifyUpperCollision()" << std::endl ;
-        std::cout << "de: " << de << " az: " << az << " time: " << time << std::endl ;
-        std::cout << "grazing: " << grazing << " ID: " << ID << std::endl ;
-    #endif
-    eigenverb verb ;
-    create_eigenverb( de, az, dt, grazing, speed, position, ndirection, wave, verb ) ;
-        // Don't bother adding the ray it its too quiet
-    if ( 1e-20 < verb.intensity(0) ) {
-        if( ID == _source_origin ) {
-            _source_surface.push_back( verb ) ;
-        } else
-        if( ID == _receiver_origin ) {
-            _receiver_surface.push_back( verb ) ;
-        } else {
-        	size_t layer ;
-            if( ID > _receiver_origin ) {
-                layer = ID - _receiver_origin - 1 ;
-                _receiver_upper.at(layer).push_back( verb ) ;
-            } else {
-                layer = ID - _source_origin - 1 ;
-                _source_upper.at(layer).push_back( verb ) ;
-            }
-        }
-    }
-}
-
-/**
- * Places an eigenverb into the class of "lower" bins to be used for the overall
- * reverberation calculation.
- */
-void eigenverb_bistatic::notifyLowerCollision( size_t de, size_t az,
-               double dt, double grazing, double speed,
-               const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, size_t ID )
-{
-    #ifdef EIGENVERB_COLLISION_DEBUG
-        std::cout << "**** Entering eigenverb_bistatic::notifyLowerCollision()" << std::endl ;
-        std::cout << "de: " << de << " az: " << az << " time: " << time << std::endl ;
-        std::cout << "grazing: " << grazing << " ID: " << ID << std::endl ;
-    #endif
-    eigenverb verb ;
-    create_eigenverb( de, az, dt, grazing, speed, position, ndirection, wave, verb ) ;
-        // Don't bother adding the ray it its too quiet
-    if ( 1e-20 < verb.intensity(0) ) {
-        if( ID == _source_origin ) {
-            _source_bottom.push_back( verb ) ;
-        } else
-        if( ID == _receiver_origin ) {
-            _receiver_bottom.push_back( verb ) ;
-        } else {
-        	size_t layer ;
-            if( ID > _receiver_origin ) {
-                layer = ID - _receiver_origin - 1 ;
-                _receiver_lower.at(layer).push_back( verb ) ;
-            } else {
-                layer = ID - _source_origin - 1 ;
-                _source_lower.at(layer).push_back( verb ) ;
-            }
-        }
-    }
-}
-
-/**
  * Computes the energy contributions to the reverberation
  * energy curve from the bottom interactions.
  */
-void eigenverb_bistatic::compute_bottom_energy() {
+void envelope_bistatic::compute_bottom_energy() {
     #ifdef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_bistatic::compute_bottom_energy()"
              << endl ;
@@ -134,7 +62,7 @@ void eigenverb_bistatic::compute_bottom_energy() {
  * Computes the energy contributions to the reverberation
  * energy curve from the surface interactions.
  */
-void eigenverb_bistatic::compute_surface_energy() {
+void envelope_bistatic::compute_surface_energy() {
     #ifdef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_bistatic::compute_surface_energy()"
              << endl ;
@@ -149,7 +77,7 @@ void eigenverb_bistatic::compute_surface_energy() {
  * Compute all of the upper collision contributions due
  * to interactions with the volume layers
  */
-void eigenverb_bistatic::compute_upper_volume_energy() {
+void envelope_bistatic::compute_upper_volume_energy() {
 //@todo Fix volume reverberation
 //    if ( _volume_boundary ) {
 //        #ifdef EIGENVERB_MODEL_DEBUG
@@ -174,7 +102,7 @@ void eigenverb_bistatic::compute_upper_volume_energy() {
  * Compute all of the lower collision contributions due
  * to interactions with the volume layers
  */
-void eigenverb_bistatic::compute_lower_volume_energy() {
+void envelope_bistatic::compute_lower_volume_energy() {
 //@todo Fix volume reverberation
 //    if ( _volume_boundary ) {
 //        #ifdef EIGENVERB_MODEL_DEBUG
@@ -200,7 +128,7 @@ void eigenverb_bistatic::compute_lower_volume_energy() {
  * and makes contributions to the reverberation levels curve when
  * a contribution is significant enough.
  */
-void eigenverb_bistatic::convolve_eigenverbs( std::vector<eigenverb>* set1,
+void envelope_bistatic::convolve_eigenverbs( std::vector<eigenverb>* set1,
             std::vector<eigenverb>* set2 )
 {
     for(std::vector<eigenverb>::iterator i=set1->begin();

@@ -1,5 +1,5 @@
 /**
- * @file eigenverb_model.h
+ * @file envelope_generator.h
  */
 #pragma once
 
@@ -8,6 +8,7 @@
 
 #include <usml/ocean/ocean.h>
 #include <usml/eigenverb/eigenverb_collection.h>
+#include <usml/eigenverb/envelope_collection.h>
 #include <iostream>
 #include <fstream>
 
@@ -20,14 +21,14 @@ using namespace boost::numeric::ublas ;
 /// @ingroup waveq3d
 /// @{
 
-class USML_DECLSPEC eigenverb_model {
+class USML_DECLSPEC envelope_generator {
 
     public:
 
         /**
          * Virtual destructor
          */
-        virtual ~eigenverb_model() {}
+        virtual ~envelope_generator() {}
 
         /**
          * Computes the reverberation curve from the data cataloged from the
@@ -40,16 +41,6 @@ class USML_DECLSPEC eigenverb_model {
             compute_lower_volume_energy() ;
         }
 
-        /**
-         * Gains access to the reverberation data. The user should first execute
-         * compute_reverberation() prior to requesting access to the entire
-         * reverberation curve.
-         * @return      pointer to _reverberation_curve
-         */
-         virtual const vector<double> reverberation_curve() {
-            return _reverberation_curve ;
-         }
-
          /**
           * Saves the eigenverb data to a text file.
           */
@@ -58,11 +49,15 @@ class USML_DECLSPEC eigenverb_model {
     protected:
 
         /**
+         * Storage for the envelope collection
+         */
+        envelope_collection* _envelope ;
+
+        /**
          * Computes the contribution value of two eigenverbs to the total
          * reverberation level.
          */
          void compute_contribution( const eigenverb* u, const eigenverb* v ) ;
-//         void compute_contribution( const eigenverb_collection::eigenverb_tree* u, const eigenverb* v ) ;
 
         /**
          * Computes the energy contributions to the reverberation
@@ -122,12 +117,6 @@ class USML_DECLSPEC eigenverb_model {
          * The current boundary that computations need
          */
         boundary_model* _current_boundary ;
-
-        /**
-         * The reverberation energy distribution curve. The values in this
-         * array are in linear units.
-         */
-        vector<double> _reverberation_curve ;
 
         /**
          * Time resolution of the reverberation curve. This is used to spread

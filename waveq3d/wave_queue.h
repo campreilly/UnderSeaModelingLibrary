@@ -272,7 +272,7 @@ class USML_DECLSPEC wave_queue {
 	 * all important information regarding eigenverbs to be used
 	 * to compute reverberation envelope.
 	 */
-	void eigenverb_collection( eigenverb_collection* collection ) ;
+	void add_eigenverb_listener( eigenverb_collection* collection ) ;
 
     /**
      * Set the type of wavefront that this is, i.e. a wavefront
