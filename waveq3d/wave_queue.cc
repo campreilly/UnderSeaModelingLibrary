@@ -35,7 +35,9 @@ wave_queue::wave_queue(
     _frequencies( freq.clone() ),
     _source_pos( pos ),
     _source_de( de.clone() ),
+    _max_de( de.size()-1 ),
     _source_az( az.clone() ),
+    _max_az( az.size()-1 ),
     _time_step( time_step ),
     _time( 0.0 ),
     _targets( targets ),
@@ -100,6 +102,27 @@ wave_queue::~wave_queue() {
     delete _prev ;
     delete _curr ;
     delete _next ;
+}
+
+/**
+ * Assigns an eigeverb_collection to the reflection model
+ */
+wave_queue::eigenverb_collection( eigenverb_collection* collection ) {
+    if( _reflection_model->_collection ) delete _reflection_model->_collection ;
+    _reflection_model->_collection = collection ;
+}
+
+/**
+ * Determines if the ray is a valid candidate to produce an eigenverb
+ */
+bool wave_queue::is_ray_valid( size_t de, size_t az ) {
+    if( _reflection_model->_collection ) {
+        if( de != _max_de )
+            if( az != _max_az )
+                if( _time > 0 )
+                    return true ;
+    }
+    return false ;
 }
 
 /**
@@ -203,8 +226,13 @@ void wave_queue::detect_reflections() {
         }
     }
 
-    // search for other changes in wavefront
+    // Check for volume interactions if we need to and there are
+    // volume layers in the ocean model.
+    if ( _reflection_model->_collection && _ocean.num_volume() ) {
+        detect_volume_reflections() ;
+    }
 
+    // search for other changes in wavefront
     _next->find_edges() ;
 }
 
@@ -258,8 +286,7 @@ void wave_queue::detect_vertices( size_t de, size_t az ) {
  *  Detects and processes the caustics along the next wavefront
  */
 void wave_queue::detect_caustics( size_t de, size_t az ) {
-    const size_t max_de = num_de() - 1 ;
-    if ( de < max_de ) {
+    if ( de < _max_de ) {
         double A = _curr->position.rho(de+1,az) ;
         double B = _curr->position.rho(de,az) ;
         double C = _next->position.rho(de+1,az) ;
@@ -273,6 +300,179 @@ void wave_queue::detect_caustics( size_t de, size_t az ) {
                 _next->phase(de+1,az)(f) -= M_PI_2;
             }
         }
+    }
+}
+
+/**
+ * Detect volume boundary reflections for reverberation contributions
+ */
+void wave_queue_reverb::detect_volume_reflections() {
+    std::size_t n = _ocean.num_volume() ;
+    for(std::size_t i=0; i<n; ++i) {
+        volume_model& layer = _ocean.volume(i) ;
+        for (size_t de = 0; de < num_de(); ++de) {
+            for (size_t az = 0; az < num_az(); ++az) {
+                if( _curr->on_edge(de,az) ) continue ;
+                double height ;
+                wposition1 pos_curr( _curr->position, de, az ) ;
+                wposition1 pos_next( _next->position, de, az ) ;
+                layer.depth( pos_next, &height, NULL ) ;
+                double d1 = height - pos_next.rho() ;
+                double d2 = height - pos_curr.rho() ;
+                if ( d1 > 0 && d2 < 0 ) { collide_from_above(de,az, d1, i) ; }
+                else if ( d1 < 0 && d2 > 0 ) { collide_from_below(de,az, d2, i) ; }
+            }
+        }
+    }
+}
+
+void wave_queue_reverb::collide_from_above(
+        size_t de, size_t az, double depth, size_t layer )
+{
+    double MIN_REFLECT = 6.0 ;
+    // extract position, direction, and sound speed from this ray
+    // at a point just before it goes below the layer
+
+    wposition1 position( _curr->position, de, az ) ;
+    wvector1 ndirection( _curr->ndirection, de, az ) ;
+    double c = _curr->sound_speed( de, az ) ;
+    double c2 = c*c ;
+
+    // extract radial height and slope at current location
+    // height_water = initial ray height above the layer (must be positive)
+
+    double layer_rho ;
+    wvector1 layer_normal( 1.0, 0.0, 0.0 ) ;
+    volume_model& volume = _ocean.volume(layer) ;
+    volume.depth( position, &layer_rho ) ;
+    double height_water = position.rho() - layer_rho ;
+
+    // compute dot_full = dot product of the full dr/dt with layer_normal (negative #)
+    // converts ndirection to dr/dt in rectangular coordinates relative to reflection point
+
+    ndirection.rho(   c2 * ndirection.rho() ) ;
+    ndirection.theta( c2 * ndirection.theta() ) ;
+    ndirection.phi(   c2 * ndirection.phi() ) ;
+    double dot_full = layer_normal.rho() * ndirection.rho()
+                    + layer_normal.theta() * ndirection.theta()
+                    + layer_normal.phi() * ndirection.phi() ;
+
+    // compute the smallest "dot_full" that could have led to this penetration depth
+    // assume minimum depth change, along normal, of 1.0 meters
+
+    double max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+    if ( dot_full >= max_dot ) dot_full = max_dot ;
+
+    // compute time_water = fraction of time step needed to strike the layer
+    // time step = ratio of in water dot product to full dot product
+    // dot_water = component of "height_water" parallel to layer normal (negative #)
+
+    const double dot_water = -height_water * layer_normal.rho() ;
+    double time_water = max( 0.0, dot_water / dot_full ) ;
+
+    // compute the more precise values for position, direction,
+    // sound speed, layer height, layer slope, and grazing angle at the point of collision.
+    // reduces grazing angle errors in highly refractive environments.
+
+    collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+    volume.depth( position, &layer_rho ) ;
+    c2 = c*c ;
+    height_water = position.rho() - layer_rho ;
+
+    ndirection.rho(   c2 * ndirection.rho() ) ;
+    ndirection.theta( c2 * ndirection.theta() ) ;
+    ndirection.phi(   c2 * ndirection.phi() ) ;
+    dot_full = layer_normal.rho() * ndirection.rho()
+        + layer_normal.theta() * ndirection.theta()
+        + layer_normal.phi() * ndirection.phi() ;  // negative #
+    max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+    if( dot_full >= max_dot )
+        dot_full = max_dot ;
+
+    double grazing = 0.0 ;
+    if( dot_full / c >= 1.0 )
+        grazing = -M_PI_2 ;
+    else if( dot_full / c <= -1.0 )
+        grazing = M_PI_2 ;
+    else
+        grazing = asin( -dot_full / c ) ;
+
+    if( !is_ray_valid(de,az) ) {
+        build_eigenverb( de, az, time_water, grazing, c,
+            position, ndirection, VOLUME_LOWER ) ;
+    }
+}
+
+/** @todo correct logic/signs for collisions from below the boundary **/
+void wave_queue_reverb::collide_from_below(
+        size_t de, size_t az, double depth, size_t layer )
+{
+    double MIN_REFLECT = 6.0 ;
+    // extract position, direction, and sound speed from this ray
+    // at a point just before it goes below the layer
+
+    wposition1 position( _curr->position, de, az ) ;
+    wvector1 ndirection( _curr->ndirection, de, az ) ;
+    double c = _curr->sound_speed( de, az ) ;
+    double c2 = c*c ;
+
+    // extract radial height and slope at current location
+    // height_water = initial ray height above the layer (must be positive)
+
+    double layer_rho ;
+    wvector1 layer_normal( -1.0, 0.0, 0.0 ) ;
+    volume_model& volume = _ocean.volume(layer) ;
+    volume.depth( position, &layer_rho ) ;
+    double height_water = position.rho() - layer_rho ;
+
+    // compute dot_full = dot product of the full dr/dt with layer_normal (negative #)
+    // converts ndirection to dr/dt in rectangular coordinates relative to reflection point
+
+    ndirection.rho(   c2 * ndirection.rho() ) ;
+    ndirection.theta( c2 * ndirection.theta() ) ;
+    ndirection.phi(   c2 * ndirection.phi() ) ;
+    double dot_full = layer_normal.rho() * ndirection.rho()
+                    + layer_normal.theta() * ndirection.theta()
+                    + layer_normal.phi() * ndirection.phi() ;
+
+    // compute the smallest "dot_full" that could have led to this penetration depth
+    // assume minimum depth change, along normal, of 1.0 meters
+
+    double max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+    if ( dot_full >= max_dot ) dot_full = max_dot ;
+
+    // compute time_water = fraction of time step needed to strike the layer
+    // time step = ratio of in water dot product to full dot product
+    // dot_water = component of "height_water" parallel to layer normal (negative #)
+
+    const double dot_water = -height_water * layer_normal.rho() ;
+    double time_water = max( 0.0, dot_water / dot_full ) ;
+
+    // compute the more precise values for position, direction,
+    // sound speed, layer height, layer slope, and grazing angle at the point of collision.
+    // reduces grazing angle errors in highly refractive environments.
+
+    collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+    volume.depth( position, &layer_rho ) ;
+    c2 = c*c ;
+    height_water = position.rho() - layer_rho ;
+
+    ndirection.rho(   c2 * ndirection.rho() ) ;
+    ndirection.theta( c2 * ndirection.theta() ) ;
+    ndirection.phi(   c2 * ndirection.phi() ) ;
+    dot_full = layer_normal.rho() * ndirection.rho()
+        + layer_normal.theta() * ndirection.theta()
+        + layer_normal.phi() * ndirection.phi() ;  // negative #
+    max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+    if ( dot_full >= max_dot ) dot_full = max_dot ;
+    double grazing = 0.0 ;
+    if ( dot_full / c >= 1.0 ) { grazing = -M_PI_2 ; }
+    else if ( dot_full / c <= -1.0 ) { grazing = M_PI_2 ; }
+    else { grazing = asin( -dot_full / c ) ; }
+
+    if ( !is_ray_valid(de,az) ) {
+        build_eigenverb( de, az, time_water, grazing, c,
+            position, ndirection, VOLUME_UPPER ) ;
     }
 }
 
@@ -296,8 +496,8 @@ void wave_queue::detect_eigenrays() {
             }
 
             // Loop over all rays
-            for ( size_t de=1 ; de < num_de() - 1 ; ++de ) {
-                for ( size_t az=az_start ; az < num_az() - 1 ; ++az ) {
+            for ( size_t de=1 ; de < _max_de ; ++de ) {
+                for ( size_t az=az_start ; az < _max_az ; ++az ) {
 
                     // *******************************************
                     // When central ray is at the edge of ray family
@@ -352,7 +552,7 @@ bool wave_queue::is_closest_ray(
 			if ( _az_boundary ) {
 				if ( az + naz == 0 ) {	// aka if a < 0
 					a = num_az() - 2 ;
-				} else if( a >= (num_az() - 1) ) {
+				} else if( a >= _max_az ) {
 					a = 0 ;
 				}
 			}
@@ -365,7 +565,7 @@ bool wave_queue::is_closest_ray(
 			// allows extrapolation outside of ray family
 
 			if ( a == 0 && ! _az_boundary ) continue;
-			if ( a == num_az()-1 ) continue;
+			if ( a == _max_az ) continue;
 			if ( _de_branch ) {
 				if ( _curr->on_edge(d,a) ) continue ;
 			} else {
@@ -417,14 +617,14 @@ void wave_queue::build_eigenray(
     const int caustic = _curr->caustic(de, az);
 
     for (size_t nde = 0; nde < 3 && !unstable; ++nde) {
-        size_t d = de + nde - 1;
+        size_t d = de + nde - 1 ;
         for (size_t naz = 0; naz < 3 && !unstable; ++naz) {
-            size_t a = az + naz - 1;
+            size_t a = az + naz - 1 ;
             if (_az_boundary) {
                 if ( az + naz == 0 ) {	// aka if a < 0
-                    a = num_az() - 2;
-                } else if (a >= num_az()-1) {
-                    a = 0;
+                    a = _max_az-1 ;
+                } else if (a >= _max_az) {
+                    a = 0 ;
                 }
             }
             if ( _prev->surface(d, a) != surface
@@ -515,8 +715,8 @@ void wave_queue::build_eigenray(
     		size_t a = az + naz - 1 ;
             if (_az_boundary) {
                 if ( az + naz == 0 ) {	// aka if a < 0
-                    a = num_az() - 2 ;
-                } else if (a >= num_az()-1) {
+                    a = _max_az - 1 ;
+                } else if (a >= _max_az) {
                     a = 0 ;
                 }
             }
@@ -551,8 +751,8 @@ void wave_queue::build_eigenray(
 			size_t a = az + naz - 1 ;
 			if (_az_boundary) {
 				if ( az + naz == 0 ) {	// aka if a < 0
-					a = num_az() - 2 ;
-				} else if (a >= num_az()-1) {
+					a = _max_az - 1 ;
+				} else if (a >= _max_az) {
 					a = 0 ;
 				}
 			}
@@ -706,6 +906,97 @@ void wave_queue::make_taylor_coeff(
     gradient(1) = ( value[1][2][1] - value[1][0][1] ) / d1 ;
     gradient(2) = ( value[1][1][2] - value[1][1][0] ) / d2 ;
 
+}
+
+/**
+ * Compute the precise location and direction at the point of collision.
+ */
+void wave_queue::collision_location(
+    size_t de, size_t az, double time_water,
+    wposition1* position, wvector1* ndirection, double* speed ) const
+{
+    double drho, dtheta, dphi, d2rho, d2theta, d2phi ;
+    const double time1 = 2.0 * _wave._time_step ;
+    const double time2 = _wave._time_step * _wave._time_step ;
+    const double dtime2 = time_water * time_water ;
+
+    // second order Taylor series for sound speed
+
+    drho = ( _wave._next->sound_speed(de,az)
+        - _wave._prev->sound_speed(de,az) )
+        / time1 ;
+
+    d2rho = ( _wave._next->sound_speed(de,az)
+        + _wave._prev->sound_speed(de,az)
+        - 2.0 * _wave._curr->sound_speed(de,az) )
+        / time2 ;
+
+    *speed = _wave._curr->sound_speed(de,az)
+        + drho * time_water + 0.5 * d2rho * dtime2 ;
+
+    // second order Taylor series for position
+
+    drho = ( _wave._next->position.rho(de,az)
+        - _wave._prev->position.rho(de,az) )
+        / time1 ;
+    dtheta = ( _wave._next->position.theta(de,az)
+        - _wave._prev->position.theta(de,az) )
+        / time1 ;
+    dphi = ( _wave._next->position.phi(de,az)
+        - _wave._prev->position.phi(de,az) )
+        / time1 ;
+
+    d2rho = ( _wave._next->position.rho(de,az)
+        + _wave._prev->position.rho(de,az)
+        - 2.0 * _wave._curr->position.rho(de,az) )
+        / time2 ;
+    d2theta = ( _wave._next->position.theta(de,az)
+        + _wave._prev->position.theta(de,az)
+        - 2.0 * _wave._curr->position.theta(de,az) )
+        / time2 ;
+    d2phi = ( _wave._next->position.phi(de,az)
+        + _wave._prev->position.phi(de,az)
+        - 2.0 * _wave._curr->position.phi(de,az) )
+        / time2 ;
+
+    position->rho( _wave._curr->position.rho(de,az)
+        + drho * time_water + 0.5 * d2rho * dtime2 ) ;
+    position->theta( _wave._curr->position.theta(de,az)
+        + dtheta * time_water + 0.5 * d2theta * dtime2 ) ;
+    position->phi( _wave._curr->position.phi(de,az)
+        + dphi * time_water + 0.5 * d2phi * dtime2 ) ;
+
+    // second order Taylor series for ndirection
+
+    drho = ( _wave._next->ndirection.rho(de,az)
+        - _wave._prev->ndirection.rho(de,az) )
+        / time1 ;
+    dtheta = ( _wave._next->ndirection.theta(de,az)
+        - _wave._prev->ndirection.theta(de,az) )
+        / time1 ;
+    dphi = ( _wave._next->ndirection.phi(de,az)
+        - _wave._prev->ndirection.phi(de,az) )
+        / time1 ;
+
+    d2rho = ( _wave._next->ndirection.rho(de,az)
+        + _wave._prev->ndirection.rho(de,az)
+        - 2.0 * _wave._curr->ndirection.rho(de,az) )
+        / time2 ;
+    d2theta = ( _wave._next->ndirection.theta(de,az)
+        + _wave._prev->ndirection.theta(de,az)
+        - 2.0 * _wave._curr->ndirection.theta(de,az) )
+        / time2 ;
+    d2phi = ( _wave._next->ndirection.phi(de,az)
+        + _wave._prev->ndirection.phi(de,az)
+        - 2.0 * _wave._curr->ndirection.phi(de,az) )
+        / time2 ;
+
+    ndirection->rho( _wave._curr->ndirection.rho(de,az)
+        + drho * time_water + 0.5 * d2rho * dtime2 ) ;
+    ndirection->theta( _wave._curr->ndirection.theta(de,az)
+        + dtheta * time_water + 0.5 * d2theta * dtime2 ) ;
+    ndirection->phi( _wave._curr->ndirection.phi(de,az)
+        + dphi * time_water + 0.5 * d2phi * dtime2 ) ;
 }
 
 /**

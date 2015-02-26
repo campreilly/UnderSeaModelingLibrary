@@ -3,6 +3,7 @@
  */
 #pragma once
 
+#include <cstddef>
 #include <boost/numeric/ublas/vector_expression.hpp>
 
 namespace usml {

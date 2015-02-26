@@ -7,14 +7,14 @@
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/eigenrayListener.h>
-//#include <usml/eigenverb/eigenverb_collection.h>
+#include <usml/eigenverb/eigenverb_collection.h>
 #include <netcdfcpp.h>
 
 namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
-//using namespace usml::eigenverb ;
+using namespace usml::eigenverb ;
 class reflection_model ;
 class spreading_model ;
 class spreading_ray ;
@@ -272,7 +272,7 @@ class USML_DECLSPEC wave_queue {
 	 * all important information regarding eigenverbs to be used
 	 * to compute reverberation envelope.
 	 */
-//	bool addEigenverbCollector( eigenverb_collection* pCollection ) ;
+	void eigenverb_collection( eigenverb_collection* collection ) ;
 
     /**
      * Set the type of wavefront that this is, i.e. a wavefront
@@ -294,12 +294,12 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
-     * Protoype of the function that is needed during reflections
-     * and only implemented in reverberation wave_queues.
+     * Determines if a ray is a valid candidate to make an eigenverb.
+     * All rays are false if the reflection model does not have an
+     * eigenverb_collection, if time is at time zero, or if the ray
+     * is max_de/max_az.
      */
-    virtual bool is_ray_valid( size_t de, size_t az ) {
-        return false ;
-    }
+    bool is_ray_valid( size_t de, size_t az )
 
     /**
      * Marches to the next integration step in the acoustic propagation.
@@ -352,14 +352,24 @@ class USML_DECLSPEC wave_queue {
      * source location (degrees, positive is up).
      * Defined as a pointer to support virtual methods in seq_vector class.
      */
-    const seq_vector *_source_de ;
+    const seq_vector* _source_de ;
+
+    /**
+     * Maximum index for source_de
+     */
+    const size_t _max_de ;
 
     /**
      * Initial azimuthal angle (AZ) at the source location
      * (degrees, clockwise from true north).
      * Defined as a pointer to support virtual methods in seq_vector class.
      */
-    const seq_vector *_source_az ;
+    const seq_vector* _source_az ;
+
+    /**
+     * Maximum index for source_az
+     */
+    const size_t _max_az ;
 
     /** Propagation step size (seconds). */
     double _time_step ;
@@ -372,10 +382,10 @@ class USML_DECLSPEC wave_queue {
      */
     const wposition* _targets;
 
-     /** Run Identification */
+    /** Run Identification */
     size_t _run_id ;
 
-	/**
+    /**
 	 * Intermediate term: sin of colatitude for targets.
 	 * By caching this value here, we avoid re-calculating it each time
 	 * the that wave_front::compute_target_distance() needs to
@@ -471,7 +481,7 @@ class USML_DECLSPEC wave_queue {
      * A ray family is defined by a set of rays that have the same
      * surface, bottom, or caustic count.
      */
-    virtual void detect_reflections() ;
+    void detect_reflections() ;
 
     /**
      * Detect and process surface reflection for a single (DE,AZ) combination.
@@ -516,6 +526,34 @@ class USML_DECLSPEC wave_queue {
      */
 
     void detect_caustics( size_t de, size_t az ) ;
+
+    /**
+     * Specialized call within wave_queue reverberation calculations. This call
+     * searches the volume layers of the ocean for layer collisions and sends the
+     * appropriate data to the reverberation model to be used in volume reverberation
+     * contributions.
+     *
+     * The function checks every point along the wavefront if the current altitude
+     * and the next time step altitude of the point cross a layer. If a point crosses
+     * a boundary in a time step, collide_from_above or collide_from_below are called.
+     */
+    void detect_volume_reflections() ;
+
+    /**
+     * A modified version of the function reflection_model::bottom_reflection used
+     * to determine the infromation needed to produce a volume reverberation calculation
+     * from this layer when colliding from above the layer.
+     */
+    void collide_from_above( size_t de, size_t az, double depth, size_t layer ) ;
+
+    /**
+     * A modified version of the function reflection_model::surface_reflection used
+     * to determine the infromation needed to produce a volume reverberation calculation
+     * from this layer when colliding from below the layer.
+     *      @todo need to rectify this code, it mimics the bottom_reflection but signs
+     *            should be changed to adjust for approaching from below.
+     */
+    void collide_from_below( size_t de, size_t az, double depth, size_t layer ) ;
 
     //**************************************************
     // eigenray estimation routines
@@ -698,6 +736,24 @@ class USML_DECLSPEC wave_queue {
         const double value[3][3][3], const c_vector<double,3>& delta,
         double& center, c_vector<double,3>& gradient, c_matrix<double,3,3>& hessian,
         bool diagonal_only = false ) ;
+
+    /**
+     * Computes a refined location and direction at the point of collision.
+     * Uses a second order Taylor series around the current location to
+     * estimate these values.
+     *
+     * @param de            D/E angle index number.
+     * @param az            AZ angle index number.
+     * @param dtime         The distance (in time) from the "current"
+     *                      wavefront to the boundary collision.
+     * @param position      Refined position of the reflection (output).
+     * @param ndirection    Normalized direction at the point
+     *                      of reflection (output).
+     * @param speed         Speed of sound at the point of reflection (output).
+     */
+    void collision_location(
+        size_t de, size_t az, double dtime,
+        wposition1* position, wvector1* ndirection, double* speed ) const ;
 
     //**************************************************
     // wavefront_netcdf routines
