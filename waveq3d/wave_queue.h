@@ -7,14 +7,14 @@
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/eigenrayListener.h>
-#include <usml/eigenverb/eigenverb_collection.h>
+//#include <usml/eigenverb/eigenverb_collection.h>
 #include <netcdfcpp.h>
 
 namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
-using namespace usml::eigenverb ;
+//using namespace usml::eigenverb ;
 class reflection_model ;
 class spreading_model ;
 class spreading_ray ;
@@ -272,7 +272,7 @@ class USML_DECLSPEC wave_queue {
 	 * all important information regarding eigenverbs to be used
 	 * to compute reverberation envelope.
 	 */
-	bool addEigenverbCollector( eigenverb_collection* pCollection ) ;
+//	bool addEigenverbCollector( eigenverb_collection* pCollection ) ;
 
     /**
      * Set the type of wavefront that this is, i.e. a wavefront
