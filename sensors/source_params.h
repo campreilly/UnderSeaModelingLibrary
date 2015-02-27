@@ -14,6 +14,13 @@
 namespace usml {
 namespace sensors {
 
+/// @ingroup sensors
+/// @{
+
+/**
+ * Models all the sensor parameter characterisics whihc are unique to the source.
+ * Contains the references to the beam_pattern and the beam_pattern_map.
+ */
 /**
  * @author tedburns
  * @version 1.0
@@ -73,5 +80,6 @@ private:
     beam_pattern_model* _source_beam;
 };
 
+/// @}
 } // end of namespace sensors
 } // end of namespace usml

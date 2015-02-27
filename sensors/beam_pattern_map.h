@@ -18,16 +18,15 @@ namespace sensors {
 /// @{
 
 /**
- * Storage for all the beam_pattern_model's in use by the USML.
- * This class inherits from the templated singleton_map class.
- * The map stores pointers to beam_pattern_model and take's
- * ownership of the pointers. See usml/sensors/singleton_map.h
- * A typedef of beamIDType has been defined to allow for
- * modification of the key of the map at a later time if needed.
+ * Storage for all the beam_pattern_model's in use by the USML. This class
+ * inherits from the templated singleton_map class. The map stores pointers to
+ * beam_pattern_model and take's ownership of the pointers. See
+ * usml/sensors/singleton_map.h A typedef of beamIDType has been defined to allow
+ * for modification of the key of the map at a later time if needed.
  *
  * @author Ted Burns, AEgis Technologies Inc.
  * @version 1.0
- * @updated 20-Feb-2015 4:31:12 PM
+ * @updated 27-Feb-2015 3:14:26 PM
  */
 class USML_DECLSPEC beam_pattern_map : public singleton_map <const beamIDType, const beam_pattern_model*>
 {

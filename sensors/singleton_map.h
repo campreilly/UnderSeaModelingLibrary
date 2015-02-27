@@ -17,34 +17,33 @@ namespace sensors {
 /// @ingroup sensors
 /// @{
 
-/** 
- * Storage for all the usml/sensors namespace data payloads in use by the USML.
- * It is defined as a GOF singleton pattern, that has a std::map which implements
- * the insert and find methods. std::map is a sorted associative container that
- * contains key-value pairs with unique keys.
- * This class takes ownership of payload_types that are pointers and deletes
- * them in the destructor.
- *
+/**
+ * Storage for all the usml/sensors namespace data payloads in use by the USML. It
+ * is defined as a GOF singleton pattern, that has a std::map which implements the
+ * insert and find methods. std::map is a sorted associative container that
+ * contains key-value pairs with unique keys. This class takes ownership of
+ * payload_types that are pointers and deletes them in the destructor.
+
  * Design Rational
- *  The singleton_map was designed to contain a std::map vs inheriting from a std::map.
- *  Reasons are as follows:
- *      General OOD principal to constrain the public API, std::map is wide open.
- *      Limited API provides for easily extendible child classes.
- *      Unwrapping std:map calls will all be internal, allowing for cleaner singleton_map calls.
+ * The singleton_map was designed to contain a std::map vs inheriting
+ * from a std::map. Reasons are as follows: 
+ *   General OOD principal to constrain the public API, std::map is wide open. 
+ *   Limited API provides for easily extendible child classes. 
+ *   Unwrapping std:map calls will all be internal, allowing for cleaner singleton_map calls.
  *
  * @author Ted Burns, AEgis Technologies Inc.
  * @version 1.0
- * @updated 20-Feb-2015 4:31:15 PM
+ * @updated 27-Feb-2015 3:15:07 PM
  */
 
 template<class K, class P>
 class USML_DLLEXPORT singleton_map
 {
 public:
-    typedef K                   key_type ;
-    typedef P                   payload_type ;
-    typedef singleton_map<K,P>  self_type;
-    typedef singleton_map<K,P>* self_type_ptr ;
+    typedef K key_type;
+    typedef P payload_type;
+    typedef singleton_map<K,P> self_type;
+    typedef singleton_map<K,P>* self_type_ptr;
 
     /**
     * Singleton Constructor - Creates singleton_map instance just once, then
@@ -85,7 +84,7 @@ public:
     * @param keyID is the associated key.
     * @return payload_type as defined by the P template parameter.
     */
-    payload_type find (const key_type keyID) const
+    payload_type find(const key_type keyID) const
     {
         if (_map.count(keyID) == 0) {
             return (NULL);

@@ -11,8 +11,9 @@ using namespace usml::sensors;
 // Must set static value to NULL initially
 source_params_inherit_map* source_params_inherit_map::_instance = NULL;
 
-// Destructor
-// Clean up pointers to beam_pattern_model's
+/**
+ * Destructor - Deletes pointers to beam_pattern_model's
+ */
 source_params_inherit_map::~source_params_inherit_map()
 {
     std::map <const paramsIDType, const source_params*>::iterator iter;
@@ -24,7 +25,11 @@ source_params_inherit_map::~source_params_inherit_map()
     clear();
 }
 
-// Static instance method
+/**
+ * Singleton Constructor - Creates beam_pattern_map instance just once, then
+ * Accessible everywhere.
+ * @return  pointer to the instance of the source_params_inherit_map.
+ */
 source_params_inherit_map* source_params_inherit_map::instance()
 {
 	if( _instance == NULL )

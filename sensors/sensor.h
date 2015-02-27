@@ -28,12 +28,12 @@ using namespace usml::waveq3d;
 
 /**
  * All active sensors in a simulation are represented by an instance of this class.
- * As the sensor moves all required attributes are updated. If the attributes change beyond 
- * established thresholds a new reverb generation is started.
+ * As the sensor moves all required attributes are updated. If the attributes
+ * change beyond established thresholds a new reverb generation is started.
  *
  * @author Ted Burns, AEgis Technologies Inc.
  * @version 1.0
- * @updated 23-Feb-2015 3:47:23 PM
+ * @updated 27-Feb-2015 3:15:01 PM
  */
 class USML_DECLSPEC sensor
 {
@@ -285,11 +285,36 @@ public:
 	{
 		return _receiver;
 	}
-	
-	void update();
 	void run_waveq3d();
-	std::list<int>* get_envelope();
-	std::list<int>* get_discrete_envelope();
+	
+	/**
+	 * Updates the sensor.
+	 */
+	void update_sensor();
+
+	/**
+	 * 
+	 * @param eigenverbs
+	 */
+	void update_eigenverbs(eigenverb_collection* eigenverbs);
+
+	/**
+	 * 
+	 * @param fathometers
+	 */
+	void update_fathometers(eigenray_collection* fathometers);
+
+	/**
+	 * 
+	 * @param listener
+	 */
+	void add_sensor_listener(sensor_listener* listener);
+
+	/**
+	 * 
+	 * @param listener
+	 */
+	void remove_sensor_listener(sensor_listener* listener);
 			
 
 private:

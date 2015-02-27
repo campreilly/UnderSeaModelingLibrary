@@ -6,7 +6,18 @@
 
 using namespace usml::sensors ;
 
-/** Calculates the beam level in de, az, and frequency **/
+/**
+ * Computes the response level in a specific DE/AZ pair and beam steering angle.
+ * The return, level, is passed back in linear units.
+ * @param beam          beam steering to find response level (size_t)
+ * 
+ * @param de    Depression/Elevation angle (rad)
+ * @param az    Azimuthal angle (rad)
+ * @param pitch    pitch in the DE dimension (rad)
+ * @param yaw    yaw in the AZ dimension (rad)
+ * @param frequencies    frequencies to compute beam level for
+ * @param level    beam level for each frequency
+ */
 void beam_pattern_line::beam_level(
         double de, double az,
         double pitch, double yaw,
@@ -40,7 +51,12 @@ void beam_pattern_line::beam_level(
 }
 
 /**
- * Initializes the beam pattern
+ * Initializes the beam pattern. To save execution time, common computations are
+ * done and stored locally to be used at a later time.
+ * 
+ * @param sound_speed
+ * @param spacing
+ * @param steering_angle
  */
 void beam_pattern_line::initialize_beams(
         double sound_speed, double spacing,
@@ -55,8 +71,10 @@ void beam_pattern_line::initialize_beams(
 }
 
 /**
- * Computes the directivity index for a list of
- * frequencies.
+ * Computes the directivity index for a list of frequencies
+ * 
+ * @param frequencies    frequencies to determine DI at
+ * @param level    gain for the provided frequencies
  */
 void beam_pattern_line::directivity_index(
         const vector<double>& frequencies,

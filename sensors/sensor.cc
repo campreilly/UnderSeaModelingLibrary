@@ -94,7 +94,7 @@ double sensor::longitude()
 /**
  * Sets the depth of the sensor in meters.
  * Expects depth to be positive value from surface.
- * @param longitude
+ * @param depth
  */
 void sensor::depth(double depth)
 {
@@ -112,14 +112,6 @@ double sensor::depth()
 }
 
 /**
- * Updates the sensor.
- */
-void sensor::update()
-{
-
-}
-
-/**
  * Run the waveq3d model.
  */
 void sensor::run_waveq3d()
@@ -127,13 +119,46 @@ void sensor::run_waveq3d()
 
 }
 
-std::list<int>* sensor::get_envelope()
-{
-	return  NULL;
+
+/**
+ * Updates the sensor.
+ */
+void sensor::update_sensor(){
+
 }
 
-std::list<int>* sensor::get_discrete_envelope()
-{
 
-	return  NULL;
+/**
+ * 
+ * @param eigenverbs
+ */
+void sensor::update_eigenverbs(eigenverb_collection* eigenverbs){
+
+}
+
+
+/**
+ * 
+ * @param fathometers
+ */
+void sensor::update_fathometers(eigenray_collection* fathometers){
+
+}
+
+
+/**
+ * 
+ * @param listener
+ */
+void sensor::add_sensor_listener(sensor_listener* listener){
+
+}
+
+
+/**
+ * 
+ * @param listener
+ */
+void sensor::remove_sensor_listener(sensor_listener* listener){
+
 }

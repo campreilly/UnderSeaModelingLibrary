@@ -12,6 +12,9 @@
 namespace usml {
 namespace waveq3d {
 
+/// @ingroup waveq3d
+/// @{
+
 /**
  * @class eigenrayListener
  * @brief This class is part of a Observer/Subject pattern for the wave_queue class

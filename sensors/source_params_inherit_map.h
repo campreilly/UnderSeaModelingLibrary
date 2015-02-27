@@ -20,15 +20,14 @@ namespace sensors {
 
 /**
  * Storage for all the source_params's in use by the USML. It is defined as a GOF
- * singleton pattern, that is std::map.
- * std::map is a sorted associative container that contains key-value pairs with unique keys.
- * A typedef of paramsIDType has been defined to allow for modification of the Key of the map
- * at a later time if needed.
- *
-/**
+ * singleton pattern, that is std::map. std::map is a sorted associative container
+ * that contains key-value pairs with unique keys. A typedef of paramsIDType has
+ * been defined to allow for modification of the Key of the map at a later time if
+ * needed.  
+ * 
  * @author Ted Burns, AEgis Technologies Inc.
  * @version 1.0
- * @updated 20-Feb-2015 4:31:16 PM
+ * @updated 27-Feb-2015 3:15:08 PM
  */
 class USML_DECLSPEC source_params_inherit_map : public std::map<const paramsIDType, const source_params*>
 {

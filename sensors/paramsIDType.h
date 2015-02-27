@@ -9,12 +9,14 @@
 namespace usml {
 namespace sensors {
 
-/**
- * @author tedburns
- * @version 1.0
- * @created 11-Feb-2015 12:05:41 PM
- */
-typedef int paramsIDType;
+//// @ingroup sensors
+/// @{
 
+    /**
+    * source and receiver paramsIDType typedef
+    */
+    typedef int paramsIDType;
+
+/// @}
 } // end of namespace sensors
 } // end of namespace usml

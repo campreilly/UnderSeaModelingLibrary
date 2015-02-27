@@ -9,12 +9,15 @@
 namespace usml {
 namespace sensors {
 
-/**
- * @author tedburns
- * @version 1.0
- * @updated 10-Feb-2015 12:47:39 PM
- */
-typedef int sensorIDType;
+/// @ingroup sensors
+/// @{
+
+    /**
+     * sensorIDType typedef 
+     */
+    typedef int sensorIDType;
+
+/// @}
 
 } // end of namespace sensors
 } // end of namespace usml

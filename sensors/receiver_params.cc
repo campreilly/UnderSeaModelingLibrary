@@ -9,11 +9,12 @@
 using namespace usml::sensors;
 
 /**
-* Constructor
-* @param receiverID
-* @param beamList
-* @param beamMap
-*/
+ * Constructor
+ * 
+ * @param receiverID
+ * @param beamList
+ * @param beamMap
+ */
 receiver_params::receiver_params(const paramsIDType receiverID, const std::list<beam_pattern_model*> beamList, beam_pattern_map* beamMap)
     :   _receiverID(receiverID),
         _receiver_beams(beamList),

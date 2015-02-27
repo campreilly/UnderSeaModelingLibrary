@@ -9,15 +9,16 @@
 using namespace usml::sensors;
 
 /**
-* Constructor
-* @param sourceID
-* @param sourceStrength
-* @param transmitFrequency
-* @param initialPingTime
-* @param repeationInterval
-* @param beamList
-* @param beamMap
-*/
+ * Constructor
+ * 
+ * @param sourceID
+ * @param sourceStrength
+ * @param transmitFrequency
+ * @param initialPingTime
+ * @param repeationInterval
+ * @param source_beam
+ * @param beamMap
+ */
 source_params::source_params(const paramsIDType sourceID, const double sourceStrength,
                             const double transmitFrequency, const double initialPingTime, const double repeationInterval,
                             beam_pattern_model* source_beam, beam_pattern_map* beamMap)
