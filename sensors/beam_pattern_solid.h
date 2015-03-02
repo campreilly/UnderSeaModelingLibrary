@@ -22,7 +22,7 @@ using namespace usml::types ;
  * in the zero DE direction. As such no transformations
  * are necessary prior to computation.
  */
-class beam_pattern_solid : public beam_pattern_model {
+class USML_DECLSPEC beam_pattern_solid : public beam_pattern_model {
 
     public:
 

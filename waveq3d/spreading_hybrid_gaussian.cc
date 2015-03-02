@@ -161,7 +161,7 @@ void spreading_hybrid_gaussian::intensity_de( size_t de, size_t az,
     cell_width = initial_width;
     cell_dist = L - cell_width ;
 
-    const int size = _wave._source_de->size() - 1 ;
+    const size_t size = _wave._source_de->size() - 1 ;
     for(d = (int) de + 1; d < size; ++d) {
         bool virtual_ray = _wave._curr->on_edge(d+1,az) && _wave._curr->on_edge(d,az) ;
     	double _new_norm ;				// corrected normalization when using a virtual ray

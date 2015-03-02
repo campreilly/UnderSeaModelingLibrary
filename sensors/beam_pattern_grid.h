@@ -84,7 +84,6 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
         {
             size_type num_freq( frequencies.size() ) ;
             vector<double> tmp( num_freq, 0.0 ) ;
-            value_type location[Dim] ;
             switch( Dim ) {
 
                 /**
@@ -101,26 +100,32 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                 /**
                  * 2-D gridded beam levels
                  */
-                case 2 :
-                    location[1] = de - pitch ;
-                    for(size_type i=0; i<num_freq; ++i) {
-                        location[0] = frequencies[i] ;
-                        tmp[i] = this->interpolate( location ) ;
-                    }
-                    noalias(*level) = tmp ;
+				case 2:
+					{
+						value_type location[2];
+						location[1] = de - pitch;
+						for (size_type i = 0; i < num_freq; ++i) {
+							location[0] = frequencies[i];
+							tmp[i] = this->interpolate(location);
+						}
+						noalias(*level) = tmp;
+					}
                     break ;
 
                 /**
                  * 3-D gridded beam levels
                  */
-                case 3 :
-                    location[1] = de - pitch ;
-                    location[2] = az - yaw ;
-                    for(size_type i=0; i<num_freq; ++i) {
-                        location[0] = frequencies[i] ;
-                        tmp[i] = this->interpolate( location ) ;
-                    }
-                    noalias(*level) = tmp ;
+				case 3:
+					{
+						value_type location[3];
+						location[1] = de - pitch;
+						location[2] = az - yaw;
+						for (size_type i = 0; i < num_freq; ++i) {
+							location[0] = frequencies[i];
+							tmp[i] = this->interpolate(location);
+						}
+						noalias(*level) = tmp;
+					}
                     break ;
 
                 /**

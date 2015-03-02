@@ -45,7 +45,7 @@ public:
 	 *  @param  waveTime Current Time of the wavefront used to check elapsed time.
 	 *  @return  		   True on Success, false otherwise.
 	 */
-	virtual bool checkEigenrays(unsigned long runID, long waveTime)
+	virtual bool checkEigenrays(size_t runID, long waveTime)
 	{
 		return false;
 	}

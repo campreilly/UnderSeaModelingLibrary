@@ -23,7 +23,7 @@ using namespace usml::types ;
  * of spherical coordinates. As such all DE, AZ, roll, pitch,
  * and yaw are transformed before used in computations.
  */
-class beam_pattern_line : public beam_pattern_model {
+class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
 
     public:
 
