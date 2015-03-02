@@ -9,19 +9,26 @@
 #include <list>
 
 #include <usml/types/wposition1.h>
+#include <usml/waveq3d/proploss.h>
+#include <usml/waveq3d/wave_queue.h>
 #include <usml/sensors/sensorIDType.h>
 #include <usml/sensors/paramsIDType.h>
 #include <usml/sensors/xmitRcvModeType.h>
 
 #include <usml/sensors/source_params.h>
 #include <usml/sensors/receiver_params.h>
+#include <usml/sensors/sensor_listener.h>
+#include <usml/eigenverb/envelope_collection.h>
+#include <usml/eigenverb/eigenverb_collection.h>
 
-#include <usml/waveq3d/wave_queue.h>
 
 namespace usml {
 namespace sensors {
 
-using namespace usml::waveq3d;
+using namespace usml::eigenverb ;
+using namespace usml::waveq3d ;
+
+class sensor_listener;
 
 /// @ingroup sensors
 /// @{
@@ -291,31 +298,37 @@ public:
 	 * Updates the sensor.
 	 */
 	void update_sensor();
-
-	/**
-	 * 
-	 * @param eigenverbs
-	 */
-	void update_eigenverbs(eigenverb_collection* eigenverbs);
-
+	
 	/**
 	 * 
 	 * @param fathometers
 	 */
-	void update_fathometers(eigenray_collection* fathometers);
+	void update_fathometers(proploss* fathometers);
+
+    /**
+    *
+    * @param eigenverbs
+    */
+    void update_eigenverbs(eigenverb_collection* eigenverbs);
+
 
 	/**
-	 * 
+     * Add a sensor_listener to the _sensor_listener_vec vector
 	 * @param listener
 	 */
-	void add_sensor_listener(sensor_listener* listener);
+	bool add_sensor_listener(sensor_listener* listener);
 
 	/**
-	 * 
+	 * Remove a sensor_listener to the _sensor_listener_vec vector
 	 * @param listener
 	 */
-	void remove_sensor_listener(sensor_listener* listener);
-			
+	bool remove_sensor_listener(sensor_listener* listener);
+		
+    /**
+    * For each sensor_listener in the _sensor_listener_vec vector
+    * call the sensor_changed method of each registered class.
+    */
+    bool notify_sensor_listeners(sensorIDType sensorID);
 
 private:
     sensorIDType _sensorID;
@@ -333,7 +346,15 @@ private:
   
 	std::list<int> _eigenverbs;
 	wave_queue*    _wave;
-	std::string    _description;			
+	std::string    _description;	
+
+    /**
+    * Vector containing the references of objects that will be used to
+    * update classes that require sensor be informed as they are changed.
+    * These classes must implement sensor_changed method.
+    */
+    std::vector<sensor_listener*> _sensor_listener_vec;
+    		
 };
 
 /// @}

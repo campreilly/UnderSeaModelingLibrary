@@ -10,9 +10,9 @@
 #include <usml/usml_config.h>
 
 namespace usml {
-namespace eigebverb {
+namespace eigenverb {
 
-/// @ingroup eigebverb
+/// @ingroup eigenverb
 /// @{
 
 class USML_DECLSPEC eigenverb_collection
@@ -25,5 +25,5 @@ public:
 };
 
 /// @}
-} // end of namespace eigebverb
+} // end of namespace eigenverb
 } // end of namespace usml

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////
-//  envelope_collection.h
+//  @file envelope_collection.h
 //  Implementation of the Class envelope_collection
 //  Created on:      26-Feb-2015 5:39:17 PM
 //  Original author: Ted Burns, AEgis Technologies
@@ -10,9 +10,9 @@
 #include <usml/usml_config.h>
 
 namespace usml {
-namespace eigebverb {
+namespace eigenverb {
 
-/// @ingroup waveq3d
+/// @ingroup eigenverb
 /// @{
 
 class USML_DECLSPEC envelope_collection
@@ -24,18 +24,13 @@ public:
 
 	/**
 	 * 
-	 * @param DuplicateParam_1
+	 * @param envelopes
 	 */
-	add_envelope(DuplicateParam_1);
-	/**
-	 * 
-	 * @param DuplicateParam_1
-	 */
-	add_envelope(DuplicateParam_1);
+    void add_envelope(envelope_collection* envelopes);
 
 };
 
 /// @}
-} // end of namespace eigebverb
+} // end of namespace eigenverb
 } // end of namespace usml
 

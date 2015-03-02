@@ -119,46 +119,78 @@ void sensor::run_waveq3d()
 
 }
 
-
 /**
  * Updates the sensor.
  */
-void sensor::update_sensor(){
+void sensor::update_sensor()
+{
 
 }
-
-
-/**
- * 
- * @param eigenverbs
- */
-void sensor::update_eigenverbs(eigenverb_collection* eigenverbs){
-
-}
-
 
 /**
  * 
  * @param fathometers
  */
-void sensor::update_fathometers(eigenray_collection* fathometers){
+void sensor::update_fathometers(proploss* fathometers)
+{
 
 }
 
-
 /**
- * 
- * @param listener
- */
-void sensor::add_sensor_listener(sensor_listener* listener){
+*
+* @param eigenverbs
+*/
+void sensor::update_eigenverbs(eigenverb_collection* eigenverbs)
+{
 
 }
 
-
 /**
- * 
+ * Add a sensor_listener to the _sensor_listener_vec vector
  * @param listener
  */
-void sensor::remove_sensor_listener(sensor_listener* listener){
+bool sensor::add_sensor_listener(sensor_listener* listener)
+{  
+    std::vector<sensor_listener*>::iterator iter = find(_sensor_listener_vec.begin(), _sensor_listener_vec.end(), listener);
+    if ( iter != _sensor_listener_vec.end() )
+    {
+        return false;
+    }   
+    _sensor_listener_vec.push_back(listener);
+    return true;  
+}
 
+/**
+ * Remove a sensor_listener from the _sensor_listener_vec vector
+ * @param listener
+ */
+bool sensor::remove_sensor_listener(sensor_listener* listener)
+{
+    std::vector<sensor_listener*>::iterator iter = find(_sensor_listener_vec.begin(), _sensor_listener_vec.end(), listener);
+    if ( iter == _sensor_listener_vec.end() )
+    {
+        return false;
+    }
+    else
+    {
+        _sensor_listener_vec.erase(remove(_sensor_listener_vec.begin(), _sensor_listener_vec.end(), listener));
+    }
+    return true;
+}
+
+/**
+* For each sensor_listener in the _sensor_listener_vec vector
+* call the sensor_changed method with the sensorID.
+*/
+bool sensor::notify_sensor_listeners(sensorIDType sensorID)
+{
+
+    for ( std::vector<sensor_listener*>::iterator iter = _sensor_listener_vec.begin();
+        iter != _sensor_listener_vec.end(); ++iter )
+    {
+        sensor_listener* pListener = *iter;
+        pListener->sensor_changed(sensorID);
+    }
+
+    return ( _sensor_listener_vec.size() > 0 );
 }
