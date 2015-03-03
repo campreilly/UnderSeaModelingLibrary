@@ -2,7 +2,6 @@
  * @file envelope_collection.cc
  */
 #include <usml/eigenverb/envelope_collection.h>
-#include <iostream>
 
 using namespace usml::eigenverb ;
 using namespace boost ;
@@ -29,9 +28,8 @@ void envelope_collection::initialize(
     size_t size, double resolution )
 {
     // Initialize the envelope vectors to 1e-20
-    for(size_t i=0; i<_envelopes.size(); ++i) {
-        _envelopes(i) = new vector<double>( size, 1e-20 ) ;
-    }
+	BOOST_FOREACH(vector<double>*& i, _envelopes)
+		i = new vector<double>( size, 1e-20 ) ;
 
     // Initialize the two way travel time vector
     // based on the resolution or number of bins
@@ -39,7 +37,7 @@ void envelope_collection::initialize(
     _two_way_time.resize( size ) ;
     _two_way_time.clear() ;
     size_t count = 0 ;
-    BOOST_FOREACH( double i, _two_way_time )
+    BOOST_FOREACH( double& i, _two_way_time )
         i = resolution * count++;
 }
 

@@ -4,7 +4,7 @@
 #include <boost/test/unit_test.hpp>
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/waveq3d/waveq3d.h>
-#include <usml/waveq3d/reverberation_model.h>
+//#include <usml/waveq3d/reverberation_model.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
