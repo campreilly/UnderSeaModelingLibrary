@@ -29,10 +29,9 @@
  * and bound_functors that apply to shapes. At present quadtree functors are only
  * provided for points in a 2D space and a criteria of maximum size.
  */
+#pragma once
 
 #include <cstddef>
-
-#pragma once
 
 namespace usml {
 namespace types {
@@ -52,7 +51,7 @@ template<class T, class D> class quad ;
  * @tparam N    maximum number of elements in each quad
  */
 template<class T, std::size_t N>
-struct max_count {
+struct USML_DLLEXPORT max_count {
     typedef quad<T>*    argument_type ;
     typedef bool        result_type ;
 
@@ -77,7 +76,7 @@ struct max_count {
  * @tparam T    element stored within the quadtree
  */
 template<class B, class T>
-struct split_points {
+struct USML_DLLEXPORT split_points {
     typedef T                 value_type ;
     typedef B                 bound_functor ;
     typedef quad<value_type>  node_type ;
@@ -137,7 +136,7 @@ struct split_points {
  * @tparam T    element stored within the quadtree
  */
 template<class T>
-struct bound_box {
+struct USML_DLLEXPORT bound_box {
     typedef T                    value_type ;
     typedef quad<value_type>*    bounding_node ;
     typedef bool                 result_type ;
