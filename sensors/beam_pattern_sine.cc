@@ -6,17 +6,7 @@
 
 using namespace usml::sensors ;
 
-/**
- * Computes the response level in a specific DE/AZ pair and beam steering angle.
- * The return, level, is passed back in linear units.
- * 
- * @param de    Depression/Elevation angle (rad)
- * @param az    Azimuthal angle (rad)
- * @param pitch    pitch in the DE dimension (rad)
- * @param yaw    yaw in the AZ dimension (rad)
- * @param frequencies    list of frequencies to compute beam level for
- * @param level    beam level for each frequency
- */
+/** Calculates the beam level in de, az, and frequency **/
 void beam_pattern_sine::beam_level(
         double de, double az,
         double pitch, double yaw,
@@ -35,10 +25,7 @@ void beam_pattern_sine::beam_level(
 }
 
 /**
- * Directivity index for an sine-directional beam pattern
- * 
- * @param frequencies    list of frequencies to compute DI for
- * @param level    gain for each frequency
+ * Computes the directivity index
  */
 void beam_pattern_sine::directivity_index(
         const vector<double>& frequencies,

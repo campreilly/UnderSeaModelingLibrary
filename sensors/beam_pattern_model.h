@@ -5,9 +5,7 @@
 #pragma once
 
 #include <boost/numeric/ublas/vector_expression.hpp>
-#include <usml/usml_config.h>
 #include <usml/types/types.h>
-
 
 namespace usml {
 namespace sensors {
@@ -71,7 +69,7 @@ class USML_DECLSPEC beam_pattern_model {
         /**
          * Accesor to the directivity index
          *
-         * @param freqeuncies    list of frequencies
+         * @param frequencies    list of frequencies
          * @param level          directivity index for these frequency
          */
         virtual void directivity_index( const vector<double>& frequencies,

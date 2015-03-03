@@ -20,15 +20,15 @@ using namespace usml::types ;
  * A beam pattern function as a mesh or grid beam pattern.
  */
 template<class T, std::size_t Dim>
-class USML_DLLEXPORT beam_pattern_grid : public beam_pattern_model, public data_grid<T, Dim> {
+class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
 
     public:
 
-        typedef T value_type;
-        typedef T* value_ptr;
-        typedef value_ptr* value_double_ptr;
-        typedef std::size_t size_type;
-        typedef beam_pattern_grid<T,Dim> self_type;
+        typedef T               value_type ;
+        typedef T*              value_ptr ;
+        typedef value_ptr*      value_double_ptr ;
+        typedef std::size_t     size_type ;
+        typedef beam_pattern_grid<T,Dim>    self_type ;
         typedef enum { LINEAR_UNITS, LOG_UNITS }    data_units ;
 
         /**
@@ -49,9 +49,9 @@ class USML_DLLEXPORT beam_pattern_grid : public beam_pattern_model, public data_
          * @param data_unit     units that the data are in upon
          *                      being passed in.
          */
-        beam_pattern_grid(seq_vector* axes[], const value_ptr data, const data_units& data_unit)
-			    : data_grid<T,Dim>( axes )
-
+        beam_pattern_grid( seq_vector* axes[], const value_ptr data,
+                           const data_units& data_unit )
+            : data_grid<T,Dim>( axes )
         {
             construct_pattern( data, data_unit ) ;
             construct_directivity_grid() ;
@@ -84,7 +84,6 @@ class USML_DLLEXPORT beam_pattern_grid : public beam_pattern_model, public data_
         {
             size_type num_freq( frequencies.size() ) ;
             vector<double> tmp( num_freq, 0.0 ) ;
-            value_type location[Dim] ;
             switch( Dim ) {
 
                 /**
@@ -101,26 +100,32 @@ class USML_DLLEXPORT beam_pattern_grid : public beam_pattern_model, public data_
                 /**
                  * 2-D gridded beam levels
                  */
-                case 2 :
-                    location[1] = de - pitch ;
-                    for(size_type i=0; i<num_freq; ++i) {
-                        location[0] = frequencies[i] ;
-                        tmp[i] = this->interpolate( location ) ;
-                    }
-                    noalias(*level) = tmp ;
+				case 2:
+					{
+						value_type location[2];
+						location[1] = de - pitch;
+						for (size_type i = 0; i < num_freq; ++i) {
+							location[0] = frequencies[i];
+							tmp[i] = this->interpolate(location);
+						}
+						noalias(*level) = tmp;
+					}
                     break ;
 
                 /**
                  * 3-D gridded beam levels
                  */
-                case 3 :
-                    location[1] = de - pitch ;
-                    location[2] = az - yaw ;
-                    for(size_type i=0; i<num_freq; ++i) {
-                        location[0] = frequencies[i] ;
-                        tmp[i] = this->interpolate( location ) ;
-                    }
-                    noalias(*level) = tmp ;
+				case 3:
+					{
+						value_type location[3];
+						location[1] = de - pitch;
+						location[2] = az - yaw;
+						for (size_type i = 0; i < num_freq; ++i) {
+							location[0] = frequencies[i];
+							tmp[i] = this->interpolate(location);
+						}
+						noalias(*level) = tmp;
+					}
                     break ;
 
                 /**
@@ -198,7 +203,8 @@ class USML_DLLEXPORT beam_pattern_grid : public beam_pattern_model, public data_
         /**
          * Constructs the data grid using the passed in data.
          */
-        void construct_pattern(const value_ptr data, const data_units& data_unit)
+        void construct_pattern( const value_ptr data,
+                                const data_units& data_unit )
         {
             size_type N = 1 ;
             for(size_type i=0; i<Dim; ++i) {
@@ -254,10 +260,11 @@ class USML_DLLEXPORT beam_pattern_grid : public beam_pattern_model, public data_
         * Adds all intensities for a specific frequency.
         *
         * @param index      Index for the frequency of interest
+        * @param total      Reference to return the total values
         * @return           The summation of all intensities for
         *                   this frequency
         */
-       void sum_data(const size_type index, value_type& total)
+       void sum_data( const size_type index, value_type& total )
        {
            total = 0.0 ;
            switch( Dim ) {

@@ -391,7 +391,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_1d_test ) {
     vector<double> level( N, 0.0 ) ;
     test_grid.beam_level( 0.0, 0.0, 0.0, 0.0, freq, &level ) ;
     for(int i=0; i<level.size(); ++i) {
-        BOOST_CHECK_EQUAL( tmp_data[i], level(i) ) ;
+        BOOST_CHECK_CLOSE( tmp_data[i], level(i), 1e-8 ) ;
     }
     cout << "beam level: " << level << endl ;
     test_grid.directivity_index( freq, &level ) ;
