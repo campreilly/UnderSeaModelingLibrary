@@ -3,8 +3,9 @@
  */
 #include <boost/progress.hpp>
 #include <usml/ocean/ocean.h>
-#include <usml/waveq3d/waveq3d_reverb.h>
-#include <usml/utilities/SharedPointerManager.h>
+#include <usml/waveq3d/waveq3d.h>
+#include <usml/eigenverb/eigenverb_collection.h>
+#include <usml/eigenverb/envelope_generator.h>
 #include <fstream>
 
 using namespace usml::waveq3d ;
@@ -18,7 +19,6 @@ using namespace usml::utilities ;
  * classic results.
  */
 int main() {
-    typedef SharedPointerManager<reverberation_model>  Manager ;
     cout << "=== reverberation_bistatic ===" << endl ;
 
     const char* csvname = USML_STUDIES_DIR "/reverberation/bistatic.csv" ;

@@ -72,7 +72,7 @@ bool reflection_model::bottom_reflection( size_t de, size_t az, double depth ) {
     // sound speed, bottom height, bottom slope, and grazing angle at the point of collision.
     // reduces grazing angle errors in highly refractive environments.
 
-    collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+    _wave.collision_location( de, az, time_water, &position, &ndirection, &c ) ;
     boundary.height( position, &bottom_rho, &bottom_normal ) ;
     if ( shallow ) {
     	N = sqrt( bottom_normal.theta()*bottom_normal.theta()
@@ -99,9 +99,8 @@ bool reflection_model::bottom_reflection( size_t de, size_t az, double depth ) {
 
     // invoke bottom reverberation callback
     if( _wave.is_ray_valid(de,az) ) {
-        int ID = _wave.ID() ;
-        _reverberation->notifyLowerCollision( de, az, time_water, grazing, c,
-            position,  ndirection, _wave, ID ) ;
+        build_eigenverb( de, az, time_water, grazing, c,
+            position, ndirection, BOTTOM ) ;
     }
 
     // compute reflection loss
@@ -154,7 +153,7 @@ bool reflection_model::surface_reflection( size_t de, size_t az ) {
 
     wposition1 position ;
     wvector1 ndirection ;
-    collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+    _wave.collision_location( de, az, time_water, &position, &ndirection, &c ) ;
     double grazing = atan2( _wave._curr->ndirection.rho(de,az), sqrt(
         _wave._curr->ndirection.theta(de,az) *
         _wave._curr->ndirection.theta(de,az) +
@@ -165,9 +164,8 @@ bool reflection_model::surface_reflection( size_t de, size_t az ) {
 
     // surface reverberation callback
     if( _wave.is_ray_valid(de,az) ) {
-        int ID = _wave.ID() ;
-        _reverberation->notifyUpperCollision( de, az, time_water, grazing, c,
-            position,  ndirection, _wave, ID ) ;
+        build_eigenverb( de, az, time_water, grazing, c,
+            position, ndirection, SURFACE ) ;
     }
 
     // compute reflection loss
@@ -187,97 +185,6 @@ bool reflection_model::surface_reflection( size_t de, size_t az ) {
     ndirection.rho( -ndirection.rho() ) ;
     reflection_reinit(de, az, time_water, position, ndirection, c ) ;
     return true ;
-}
-
-/**
- * Compute the precise location and direction at the point of collision.
- */
-void reflection_model::collision_location(
-    size_t de, size_t az, double time_water,
-    wposition1* position, wvector1* ndirection, double* speed ) const
-{
-    double drho, dtheta, dphi, d2rho, d2theta, d2phi ;
-    const double time1 = 2.0 * _wave._time_step ;
-    const double time2 = _wave._time_step * _wave._time_step ;
-    const double dtime2 = time_water * time_water ;
-
-    // second order Taylor series for sound speed
-
-    drho = ( _wave._next->sound_speed(de,az)
-        - _wave._prev->sound_speed(de,az) )
-        / time1 ;
-
-    d2rho = ( _wave._next->sound_speed(de,az)
-        + _wave._prev->sound_speed(de,az)
-        - 2.0 * _wave._curr->sound_speed(de,az) )
-        / time2 ;
-
-    *speed = _wave._curr->sound_speed(de,az)
-        + drho * time_water + 0.5 * d2rho * dtime2 ;
-
-    // second order Taylor series for position
-
-    drho = ( _wave._next->position.rho(de,az)
-        - _wave._prev->position.rho(de,az) )
-        / time1 ;
-    dtheta = ( _wave._next->position.theta(de,az)
-        - _wave._prev->position.theta(de,az) )
-        / time1 ;
-    dphi = ( _wave._next->position.phi(de,az)
-        - _wave._prev->position.phi(de,az) )
-        / time1 ;
-
-    d2rho = ( _wave._next->position.rho(de,az)
-        + _wave._prev->position.rho(de,az)
-        - 2.0 * _wave._curr->position.rho(de,az) )
-        / time2 ;
-    d2theta = ( _wave._next->position.theta(de,az)
-        + _wave._prev->position.theta(de,az)
-        - 2.0 * _wave._curr->position.theta(de,az) )
-        / time2 ;
-    d2phi = ( _wave._next->position.phi(de,az)
-        + _wave._prev->position.phi(de,az)
-        - 2.0 * _wave._curr->position.phi(de,az) )
-        / time2 ;
-
-    position->rho( _wave._curr->position.rho(de,az)
-        + drho * time_water + 0.5 * d2rho * dtime2 ) ;
-    position->theta( _wave._curr->position.theta(de,az)
-        + dtheta * time_water + 0.5 * d2theta * dtime2 ) ;
-    position->phi( _wave._curr->position.phi(de,az)
-        + dphi * time_water + 0.5 * d2phi * dtime2 ) ;
-
-    // second order Taylor series for ndirection
-
-    drho = ( _wave._next->ndirection.rho(de,az)
-        - _wave._prev->ndirection.rho(de,az) )
-        / time1 ;
-    dtheta = ( _wave._next->ndirection.theta(de,az)
-        - _wave._prev->ndirection.theta(de,az) )
-        / time1 ;
-    dphi = ( _wave._next->ndirection.phi(de,az)
-        - _wave._prev->ndirection.phi(de,az) )
-        / time1 ;
-
-    d2rho = ( _wave._next->ndirection.rho(de,az)
-        + _wave._prev->ndirection.rho(de,az)
-        - 2.0 * _wave._curr->ndirection.rho(de,az) )
-        / time2 ;
-    d2theta = ( _wave._next->ndirection.theta(de,az)
-        + _wave._prev->ndirection.theta(de,az)
-        - 2.0 * _wave._curr->ndirection.theta(de,az) )
-        / time2 ;
-    d2phi = ( _wave._next->ndirection.phi(de,az)
-        + _wave._prev->ndirection.phi(de,az)
-        - 2.0 * _wave._curr->ndirection.phi(de,az) )
-        / time2 ;
-
-    ndirection->rho( _wave._curr->ndirection.rho(de,az)
-        + drho * time_water + 0.5 * d2rho * dtime2 ) ;
-    ndirection->theta( _wave._curr->ndirection.theta(de,az)
-        + dtheta * time_water + 0.5 * d2theta * dtime2 ) ;
-    ndirection->phi( _wave._curr->ndirection.phi(de,az)
-        + dphi * time_water + 0.5 * d2phi * dtime2 ) ;
 }
 
 /**
@@ -397,4 +304,52 @@ void reflection_model::reflection_copy(
     element->sound_speed( de, az ) = results.sound_speed(0,0) ;
     element->distance( de, az ) = results.distance(0,0) ;
     element->path_length( de, az ) += results.path_length(0,0) ;
+}
+
+/**
+ * Builds the eigenverb used in reverberation calculations
+ */
+void reflection_model::build_eigenverb(
+    size_t de, size_t az, double dt, double grazing,
+    double speed, const wposition1& position,
+    const wvector1& ndirection, interface_type type )
+{
+    usml::eigenverb::eigenverb verb ;
+    verb.distance = _wave.curr()->path_length(de,az) + speed * dt ;
+    double true_distance = verb.distance ;
+    double spreading_loss = 1.0 / (true_distance * true_distance) ;
+    vector<double> amp( _wave.frequencies()->size(), spreading_loss ) ;
+    vector<double> boundary_loss = pow( 10.0, -0.1 * _wave.curr()->attenuation(de,az) ) ;
+    verb.intensity = element_prod( amp, boundary_loss ) ;
+
+    // Only continue if the verb meets the threshold intensity
+    if ( verb.intensity(0) > 1e-10 ) {
+        verb.de_index = de ;
+        verb.az_index = az ;
+        verb.launch_az = _wave.source_az(az) ;
+        verb.launch_de = _wave.source_de(de) ;
+        verb.travel_time = _wave.time() + dt ;
+        verb.grazing = grazing ;
+        verb.sound_speed = speed ;
+        verb.position = position ;
+        verb.direction = ndirection ;
+        verb.frequencies = _wave.frequencies() ;
+        verb.surface = _wave.curr()->surface(de,az) ;
+        verb.bottom = _wave.curr()->bottom(de,az) ;
+
+        // Calculate the width of the gaussian at the time of impact
+        double delta_de ;
+        if( de == 0 ) {
+            delta_de = M_PI * ( _wave.source_de(de+1) - _wave.source_de(de) ) / 180.0  ;
+        } else {
+            delta_de = M_PI * ( _wave.source_de(de+1) - _wave.source_de(de-1) ) / 360.0  ;
+        }
+        verb.sigma_de = true_distance * delta_de / sin(grazing) ;
+        double delta_az = M_PI * ( _wave.source_az(az+1) - _wave.source_az(az) ) / 180.0 ;
+        verb.sigma_az = delta_az * cos(grazing) * true_distance ;   // horizontal distance * azimuthal spacing
+        if( abs(grazing) > (M_PI_2 - 1e-10) ) verb.sigma_az = TWO_PI * true_distance ;
+
+        // Add the eigenverb to the collection
+        _collection->add_eigenverb( verb, type ) ;
+    }
 }

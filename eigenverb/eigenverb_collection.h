@@ -1,101 +1,112 @@
 /*
- * @file eigenverb_collection
+ * @file eigenverb_collection.h
  */
-
 #pragma once
 
 #include <usml/eigenverb/eigenverb.h>
-#include <usml/waveq3d/wave_queue.h>
+//#include <usml/types/quadtree.h>
+
+using namespace usml::types ;
+//using namespace usml::waveq3d ;
 
 namespace usml {
 namespace eigenverb {
 
-using namespace usml::types ;
-using namespace usml::waveq3d ;
-class wave_queue ;
-
-class eigenverb_collection {
+/**
+ *
+ */
+class USML_DECLSPEC eigenverb_collection {
 
     public:
+
+//        typedef quadtree_type::points<eigenverb,10>     eigenverb_tree ;
 
         /**
          * Constructor
          */
-        eigenverb_collection( const size_t layers = 0 )
-            : _upper(layers), _lower(layers)
-        {}
+        eigenverb_collection( const size_t layers = 0 ) ;
 
         /*
          * Destructor
          */
-        ~eigenverb_collection() {}
-
-
-        /**
-         * React to the collision of a single ray with a reverberation
-         * when colliding from below the boundary.
-         *
-         * @param de            D/E angle index number.
-         * @param az            AZ angle index number.
-         * @param dt            Offset in time to collision with the boundary
-         * @param grazing       The grazing angle at point of impact (rads)
-         * @param speed         Speed of sound at the point of collision.
-         * @param position      Location at which the collision occurs
-         * @param ndirection    Normalized direction at the point of collision.
-         * @param wave          Wave queue, used to extract various data
-         * @param ID            (Used to identify source/receiver/volume layer)
-         */
-        void notifyUpperCollision( size_t de, size_t az,
-            double dt, double grazing, double speed,
-            const wposition1& position, const wvector1& ndirection,
-            const wave_queue& wave, size_t ID ) ;
+        virtual ~eigenverb_collection() ;
 
         /**
-         * React to the collision of a single ray with a reverberation
-         * when colliding from above the boundary.
          *
-         * @param de            D/E angle index number.
-         * @param az            AZ angle index number.
-         * @param dt            Offset in time to collision with the boundary
-         * @param grazing       The grazing angle at point of impact (rads)
-         * @param speed         Speed of sound at the point of collision.
-         * @param position      Location at which the collision occurs
-         * @param ndirection    Normalized direction at the point of collision.
-         * @param wave          Wave queue, used to extract various data
-         * @param ID            (Used to identify source/receiver/volume layer)
+         *
+         * @param e
+         * @param i
          */
-        void notifyLowerCollision( size_t de, size_t az,
-            double dt, double grazing, double speed,
-            const wposition1& position, const wvector1& ndirection,
-            const wave_queue& wave, size_t ID ) ;
+        virtual void add_eigenverb(
+            eigenverb e, interface_type i ) ;
 
-        /*
-         * Creates an eigenverb from the provided data
+        /**
+         * Returns the list of eigenverbs for the bottom
+         * interface
          */
-        void create_eigenverb( size_t de, size_t az,
-            double dt, double grazing, double speed,
-            const wposition1& position, const wvector1& ndirection,
-            const wave_queue& wave, eigenverb& verb ) ;
+        eigenverb_list bottom() const ;
 
-        /*
+        /**
+         * Returns the list of eigenverbs for the surface
+         * interface
+         */
+        eigenverb_list surface() const ;
+
+        /**
+         * Returns the list of eigenverbs for the volume
+         * upper interface
+         */
+        vector<eigenverb_list> upper() const ;
+
+        /**
+         * Returns the list of eigenverbs for the l'th volume
+         * upper interface
+         */
+        eigenverb_list upper( size_t l ) const ;
+
+        /**
+         * Returns the list of eigenverbs for the volume
+         * lower interface
+         */
+        vector<eigenverb_list> lower() const ;
+
+        /**
+         * Returns the list of eigenverbs for the l'th volume
+         * lower interface
+         */
+        eigenverb_list lower( size_t l ) const ;
+
+        /**
+         * Returns true if there are volume layers, ie the size
+         * of either _upper or _lower are not zero.
+         */
+        bool volume() const ;
+
+    protected:
+
+        /**
          * List of all the eigenverbs for bottom boundary collisions
          */
         eigenverb_list _bottom ;
+//        eigenverb_tree _bottom ;
 
-        /*
+        /**
          * List of all the eigenverbs for surface boundary collisions
          */
         eigenverb_list _surface ;
+//        eigenverb_tree _surface ;
 
-        /*
-         * List of all the eigenverbs for upper volume layer collisions
+        /**
+         * Vector of eigenverb lists for upper volume layer collisions
          */
-        std::list< eigenverb_list > _upper ;
+        vector<eigenverb_list> _upper ;
+//        vector<eigenverb_tree> _upper ;
 
-        /*
-         * List of all the eigenverbs for lower volume layer collisions
+        /**
+         * Vector of eigenverb lists for lower volume layer collisions
          */
-        std::list< eigenverb_list > _lower ;
+        vector<eigenverb_list> _lower ;
+//        vector<eigenverb_tree> _lower ;
 };
 
 }   // end of namespace waveq3d

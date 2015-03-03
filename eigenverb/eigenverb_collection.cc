@@ -2,76 +2,124 @@
  * @file eigenverb_collection.cc
  */
 
-#include <usml/waveq3d/eigenverb_collection.h>
+#include <usml/eigenverb/eigenverb_collection.h>
 
-/*
- * Call for tabulating upper collisions.
+using namespace usml::eigenverb ;
+
+/**
+ * Cosntructor
  */
-eigevern_collection::notifyUpperCollision( size_t de, size_t az,
-        double dt, double grazing, double speed,
-        const wposition1& position, const wvector1& ndirection,
-        const wave_queue& wave, size_t ID )
+eigenverb_collection::eigenverb_collection(
+    const size_t layers )
+    : _upper(layers), _lower(layers)
 {
-    eigenverb verb ;
-    create_eigenverb( de, az, dt, grazing, speed, position, ndirection, wave, verb ) ;
-     // Don't bother adding the ray it its too quiet
-    if ( verb.intensity(0) > 1e-10 ) {
-        if( ID == _source_origin ) {
-            _surface.push_back( verb ) ;
-        } else {
-            std::list<eigenverb_list>::iterator it = _upper.begin() ;
-            (*it+ID).push_back( verb ) ;
+
+}
+
+/**
+ * Destructor
+ */
+eigenverb_collection::~eigenverb_collection()
+{
+
+}
+
+/**
+ * Adds an eigenverb to the collection
+ */
+void eigenverb_collection::add_eigenverb(
+    eigenverb e, interface_type i )
+{
+    switch(i) {
+        case BOTTOM:
+            _bottom.push_back( e ) ;
+    //                    _bottom.insert( e ) ;
+            break;
+        case SURFACE:
+            _surface.push_back( e ) ;
+    //                    _surface.insert( e ) ;
+            break;
+        case VOLUME_UPPER:
+        {
+            size_t something = 0 ;
+            _upper(something).push_back( e ) ;
+    //                    _upper(something).insert( e ) ;
         }
+            break;
+        case VOLUME_LOWER:
+        {
+            size_t something = 0 ;
+            _lower(something).push_back( e ) ;
+    //                    _lower(something).insert( e ) ;
+        }
+            break;
+        default:
+            throw std::invalid_argument(
+                    "Invalid interface type. Must be one defined in eigenverb.h") ;
+            break;
     }
 }
 
 /**
- * Creates an eigenverb from the provided data
+ * Returns the list of eigenverbs for the bottom
+ * interface
  */
-void eigenverb_model::create_eigenverb( size_t de, size_t az,
-               double dt, double grazing, double speed,
-               const wposition1& position, const wvector1& ndirection,
-               const wave_queue& wave, eigenverb& verb ) const
+eigenverb_list eigenverb_collection::bottom() const
 {
-    verb.de_index = de ;
-    verb.az_index = az ;
-    verb.launch_az = wave.source_az(az) ;
-    verb.launch_de = wave.source_de(de) ;
-    verb.distance = wave.curr()->path_length(de,az) + speed * dt ;
-    verb.travel_time = wave.time() + dt ;
-    verb.grazing = grazing ;
-    verb.sound_speed = speed ;
-    verb.position = position ;
-    verb.direction = ndirection ;
-    verb.frequencies = wave.frequencies() ;
-    verb.surface = wave.curr()->surface(de,az) ;
-    verb.bottom = wave.curr()->bottom(de,az) ;
+    return _bottom ;
+}
 
-        // Calculate the one way TL and the width of the gaussian
-        // at the time of impact with the boundary.
-    double true_distance = verb.distance ;
-    double spreading_loss = 1.0 / (true_distance * true_distance) ;
-    vector<double> amp( wave.frequencies()->size(), spreading_loss ) ;
-    vector<double> boundary_loss = pow( 10.0, -0.1 * wave.curr()->attenuation(de,az) ) ;
-    verb.intensity = element_prod( amp, boundary_loss ) ;
+/**
+ * Returns the list of eigenverbs for the surface
+ * interface
+ */
+eigenverb_list eigenverb_collection::surface() const
+{
+    return _surface ;
+}
 
-    double delta_de ;
-    if( de == 0 ) {
-        delta_de = M_PI * ( wave.source_de(de+1) - wave.source_de(de) ) / 180.0  ;
-    } else {
-        delta_de = M_PI * ( wave.source_de(de+1) - wave.source_de(de-1) ) / 360.0  ;
-    }
-    verb.sigma_de = true_distance * delta_de / sin(grazing) ;
-    double delta_az = M_PI * ( wave.source_az(az+1) - wave.source_az(az) ) / 180.0 ;
-    verb.sigma_az = delta_az * cos(grazing) * true_distance ;   // horizontal distance * azimuthal spacing
-    if( abs(grazing) > (M_PI_2 - 1e-10) ) verb.sigma_az = TWO_PI * true_distance ;
+/**
+ * Returns the list of eigenverbs for the volume
+ * upper interface
+ */
+vector<eigenverb_list> eigenverb_collection::upper() const
+{
+    return _upper ;
+}
 
-    #ifdef EIGENVERB_COLLISION_DEBUG
-        cout << "\t---Added eigenverb to collection---" << endl ;
-        cout << "\tverb de: " << verb.launch_de << " az: " << verb.launch_az
-             << " time: " << verb.travel_time << endl ;
-        cout << "\tgrazing: " << verb.grazing*180.0/M_PI << " speed: " << verb.sound_speed << endl ;
-        cout << "\tintensity: " << verb.intensity << " sigma_de: " << verb.sigma_de
-             << " sigma_az: " << verb.sigma_az << endl ;
-    #endif
+/**
+ * Returns the list of eigenverbs for the l'th volume
+ * upper interface
+ */
+eigenverb_list eigenverb_collection::upper( size_t l ) const
+{
+    return _upper(l) ;
+}
+
+
+/**
+ * Returns the list of eigenverbs for the volume
+ * lower interface
+ */
+vector<eigenverb_list> eigenverb_collection::lower() const
+{
+    return _lower ;
+}
+
+/**
+ * Returns the list of eigenverbs for the l'th volume
+ * lower interface
+ */
+eigenverb_list eigenverb_collection::lower( size_t l ) const
+{
+    return _lower(l) ;
+}
+
+/**
+ * Determines if there are volumes layers
+ */
+bool eigenverb_collection::volume() const {
+    if( _upper.size() != 0 )
+        return true ;
+    return false ;
 }

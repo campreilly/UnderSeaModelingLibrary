@@ -4,17 +4,32 @@
  */
 #pragma once
 
-#include <usml/types/types.h>
+#include <usml/types/wposition1.h>
+#include <usml/types/seq_vector.h>
+#include <list>
+#include <cstddef>
 
 namespace usml {
 namespace eigenverb {
 
 using namespace usml::types ;
 
-using boost::numeric::ublas::vector;
+using boost::numeric::ublas::vector ;
 
-/// @ingroup waveq3d
+/// @ingroup eigenverb
 /// @{
+
+/**
+ * Types of interface interactions that eigenverbs need to
+ * keep track of.
+ */
+typedef enum
+{
+    BOTTOM,
+    SURFACE,
+    VOLUME_UPPER,
+    VOLUME_LOWER
+}   interface_type ;
 
 /**
  * A single acoustic path between a source or receiver and a boundary.
@@ -29,7 +44,7 @@ struct eigenverb {
     /**
      * One way transmission loss for this path (linear units).
      */
-    vector< double > intensity ;
+    vector<double> intensity ;
 
     /**
      * The grazing angle of this path at impact of the
@@ -110,7 +125,7 @@ struct eigenverb {
 /*
  * List of gaussian projections used for reverebration.
  */
-typedef std::list< eigenverb > eigenverb_list ;
+typedef std::list<eigenverb> eigenverb_list ;
 
 /// @}
 }  // end of namespace waveq3d
