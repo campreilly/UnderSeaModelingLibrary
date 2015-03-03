@@ -360,6 +360,9 @@ class USML_DLLEXPORT quadtree {
 
 /**
  * Specialized definitions of Quadtrees
+ * Having the specialized typedef defines available reduces the need to clutter
+ * code with multiple instances of the same type of templated quadtree, hence reducing
+ * code bloat.
  */
 template<class T, std::size_t N>
 struct quadtree_type {
