@@ -23,13 +23,22 @@ class USML_DECLSPEC envelope_monostatic : public envelope_generator {
 
     public:
 
-        envelope_monostatic( ocean_model& ocean,
-                              size_t num_radials,
-                              double pulse,
-							  size_t num_bins,
-                              double max_time ) ;
+        /**
+         * Constructor
+         *
+         * @param ocean
+         * @param pulse
+         * @param max_time
+         */
+        envelope_monostatic(
+            ocean_model& ocean,
+            double pulse,
+            double max_time ) ;
 
-        virtual ~eigenverb_monostatic() {}
+        /**
+         * Destructor
+         */
+        virtual ~envelope_monostatic() {}
 
          /**
           * Saves the eigenverb data to a text file.
@@ -38,40 +47,80 @@ class USML_DECLSPEC envelope_monostatic : public envelope_generator {
 
     private:
 
-        /**
-         * Computes the energy contributions to the reverberation
-         * energy curve from the bottom interactions.
-         */
-        virtual void compute_bottom_energy() ;
+         /**
+          * Computes the energy contributions to the reverberation
+          * energy curve from the bottom interactions.
+          *
+          * @param source
+          * @param receiver
+          * @param levels
+          */
+         virtual void compute_bottom_energy(
+                 const eigenverb_collection& source,
+                 const eigenverb_collection& receiver,
+                 envelope_collection* levels ) ;
 
-        /**
-         * Computes the energy contributions to the reverberation
-         * energy curve from the surface interactions.
-         */
-        virtual void compute_surface_energy() ;
+         /**
+          * Computes the energy contributions to the reverberation
+          * energy curve from the surface interactions.
+          *
+          * @param source
+          * @param receiver
+          * @param levels
+          */
+         virtual void compute_surface_energy(
+                 const eigenverb_collection& source,
+                 const eigenverb_collection& receiver,
+                 envelope_collection* levels ) ;
 
-        /**
-         * Calculate the contributions due to collisions from below
-         * a volume layer.
-         */
-        virtual void compute_upper_volume_energy() ;
+         /**
+          * Calculate the contributions due to collisions from below
+          * a volume layer.
+          *
+          * @param source
+          * @param receiver
+          * @param levels
+          */
+         virtual void compute_upper_volume_energy(
+                 const eigenverb_collection& source,
+                 const eigenverb_collection& receiver,
+                 envelope_collection* levels ) ;
 
-        /**
-         * Calculate the contributions due to collisions from above
-         * a volume layer.
-         */
-        virtual void compute_lower_volume_energy() ;
+         /**
+          * Calculate the contributions due to collisions from above
+          * a volume layer.
+          *
+          * @param source
+          * @param receiver
+          * @param levels
+          */
+         virtual void compute_lower_volume_energy(
+                 const eigenverb_collection& source,
+                 const eigenverb_collection& receiver,
+                 envelope_collection* levels ) ;
 
         /**
          * Takes a set of eigenrays, boundary model, and convolves the set of
          * eigenverbs with itself and makes contributions to the reverebation
          * level curve.
          */
-        void convolve_eigenverbs( std::vector<eigenverb>* set ) ;
+        void convolve_eigenverbs(
+                const eigenverb_list& source,
+                envelope_collection* levels ) ;
 //        void convolve_eigenverbs( const eigenverb_collection::eigenverb_tree* set ) ;
+
+        /**
+         * Defines the type of boundary model for the bottom.
+         */
+        boundary_model* _bottom_boundary ;
+
+        /**
+         * Defines the type of boundary model for the surface.
+         */
+        boundary_model* _surface_boundary ;
 
 };
 
 /// @}
-}  // end of namespace waveq3d
+}  // end of namespace eigenverb
 }  // end of namespace usml

@@ -6,11 +6,11 @@
 #include <usml/eigenverb/eigenverb.h>
 //#include <usml/types/quadtree.h>
 
+using namespace usml::types ;
+//using namespace usml::waveq3d ;
+
 namespace usml {
 namespace eigenverb {
-
-using namespace usml::types ;
-using namespace usml::waveq3d ;
 
 /**
  *
@@ -24,44 +24,63 @@ class USML_DECLSPEC eigenverb_collection {
         /**
          * Constructor
          */
-        eigenverb_collection( const size_t layers = 0 )
-            : _upper(layers), _lower(layers)
-        {}
+        eigenverb_collection( const size_t layers = 0 ) ;
 
         /*
          * Destructor
          */
-        virtual ~eigenverb_collection() {}
+        virtual ~eigenverb_collection() ;
 
         /**
          *
+         *
+         * @param e
+         * @param i
          */
-        virtual void add_eigenverb( eigenverb e, interface_type i ) {
-            switch(i) {
-                case BOTTOM:
-                    _bottom.push_back( e ) ;
-//                    _bottom.insert( e ) ;
-                    break;
-                case SURFACE:
-                    _surface.push_back( e ) ;
-//                    _surface.insert( e ) ;
-                    break;
-                case VOLUME_UPPER:
-                    size_t something = 0 ;
-                    _upper(something).push_back( e ) ;
-//                    _upper(something).insert( e ) ;
-                    break;
-                case VOLUME_LOWER:
-                    size_t something = 0 ;
-                    _lower(something).push_back( e ) ;
-//                    _lower(something).insert( e ) ;
-                    break;
-                default:
-                    throw std::invalid_argument(
-                            "Invalid interface type. Must be one defined in eigenverb.h") ;
-                    break;
-            }
-        }
+        virtual void add_eigenverb(
+            eigenverb e, interface_type i ) ;
+
+        /**
+         * Returns the list of eigenverbs for the bottom
+         * interface
+         */
+        eigenverb_list bottom() const ;
+
+        /**
+         * Returns the list of eigenverbs for the surface
+         * interface
+         */
+        eigenverb_list surface() const ;
+
+        /**
+         * Returns the list of eigenverbs for the volume
+         * upper interface
+         */
+        vector<eigenverb_list> upper() const ;
+
+        /**
+         * Returns the list of eigenverbs for the l'th volume
+         * upper interface
+         */
+        eigenverb_list upper( size_t l ) const ;
+
+        /**
+         * Returns the list of eigenverbs for the volume
+         * lower interface
+         */
+        vector<eigenverb_list> lower() const ;
+
+        /**
+         * Returns the list of eigenverbs for the l'th volume
+         * lower interface
+         */
+        eigenverb_list lower( size_t l ) const ;
+
+        /**
+         * Returns true if there are volume layers, ie the size
+         * of either _upper or _lower are not zero.
+         */
+        bool volume() const ;
 
     protected:
 

@@ -4,9 +4,11 @@
 #pragma once
 
 #include <cstddef>
-#include <boost/numeric/ublas/vector_expression.hpp>
+#include <usml/ublas/vector_math.h>
+#include <boost/foreach.hpp>
 
 using boost::numeric::ublas::vector ;
+using namespace usml::ublas ;
 
 namespace usml {
 namespace eigenverb {
@@ -16,20 +18,31 @@ class USML_DECLSPEC envelope_collection {
     public:
 
         /**
-         *
-         */
-        typedef vector<double>      envelope ;
-        typedef vector<envelope>    collection ;
-
-        /**
          * Constructor
+         *
+         * @param resolution
+         * @param num_bins
+         * @param num_az
          */
-        envelope_collection() {}
+        envelope_collection(
+                double resolution,
+                size_t num_bins,
+                size_t num_az ) ;
 
         /**
          * Destructor
          */
-        virtual ~envelope_collection() {}
+        virtual ~envelope_collection() ;
+
+        /**
+         * Initializes the envelope and two way travel time
+         * containers that are used to compute and add
+         * Guassian projections.
+         *
+         * @param size
+         * @param resolution
+         */
+        void initialize( size_t size, double resolution ) ;
 
         /**
          * Adds a gaussian contribution to the time series,
@@ -49,23 +62,19 @@ class USML_DECLSPEC envelope_collection {
          *
          * @param az
          */
-         const envelope envelope( size_t az ) {
-            return (*_envelopes)(az) ;
-         }
+         vector<double> envelopes( size_t az ) const ;
 
          /**
           * Returns the entire reveberation envelope collection
           */
-         const collection* envelope() {
-             return _envelopes ;
-         }
+         vector<vector<double>*> envelopes() const ;
 
     private:
 
          /**
           * Reverberation envelope collection
           */
-         collection* _envelopes ;
+         vector<vector<double>*> _envelopes ;
 
          /**
           * Reveberation time duration

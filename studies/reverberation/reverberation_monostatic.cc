@@ -4,6 +4,7 @@
 #include <boost/progress.hpp>
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/waveq3d.h>
+#include <usml/eigenverb/eigenverb_collection.h>
 #include <usml/eigenverb/envelope_monostatic.h>
 #include <fstream>
 
@@ -70,8 +71,8 @@ int main() {
     seq_linear az( 0.0, 360.0, 360.0 ) ;
 
     wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
-    eigenverb_collection monostatic( ocean.volume() ) ;
-    wave.add_eigenverb_listener( monostatic ) ;
+    eigenverb_collection monostatic( ocean.num_volume() ) ;
+    wave.add_eigenverb_listener( &monostatic ) ;
 
 	#ifdef MONOSTATIC_DEBUG
 		cout << "Saving wavefront to " << nc_wave << endl ;
@@ -96,12 +97,12 @@ int main() {
 //    cout << "writing eigenverb data to " << eigenverb_file << endl ;
 //    verb_model->save_eigenverbs(eigenverb_file) ;
 
-    envelope_collection envelopes( T0, max_time, bins, resolution, az.size() )
-    envelope_generator reverb( ocean ) ;
+    envelope_collection levels( resolution, bins, az.size() ) ;
+    envelope_monostatic reverb( ocean, T0, time_max ) ;
     cout << "computing reverberation levels" << endl ;
     {
         boost::progress_timer timer ;
-    	reverb.generate_envelopes( monostatic, monostatic, &envelopes ) ;
+    	reverb.generate_envelopes( monostatic, monostatic, &levels ) ;
     }
 
     cout << "writing reverberation curve to " << csvname << endl;
@@ -110,8 +111,8 @@ int main() {
     os << std::setprecision(18);
     cout << std::setprecision(18);
 
-    envelope_collection reverb_tl = reverb.envelope() ;
-    vector<double> r = SL + 10.0*log10( (reverb_tl(0) + reverb_tl(1)) ) ;
+    vector<double> r =
+            SL + 10.0*log10( (levels.envelopes(0) + levels.envelopes(1)) ) ;
     for ( size_t i=0; i < bins; ++i ) {
         if( i % 10 == 0 ) {
             cout << "reverb_level(" << i << "): " << r(i) << endl ;

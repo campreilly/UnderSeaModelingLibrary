@@ -33,13 +33,15 @@ class USML_DECLSPEC envelope_generator {
         /**
          * Computes the reverberation curve from the data cataloged from the
          * wavefront(s).
+         *
+         * @param source
+         * @param receiver
+         * @param curves
          */
-        virtual void compute_reverberation() {
-            compute_bottom_energy() ;
-            compute_surface_energy() ;
-            compute_upper_volume_energy() ;
-            compute_lower_volume_energy() ;
-        }
+        void generate_envelopes(
+                const eigenverb_collection& source,
+                const eigenverb_collection& receiver,
+                envelope_collection* levels ) ;
 
          /**
           * Saves the eigenverb data to a text file.
@@ -56,32 +58,66 @@ class USML_DECLSPEC envelope_generator {
         /**
          * Computes the contribution value of two eigenverbs to the total
          * reverberation level.
+         *
+         * @param u
+         * @param v
+         * @param levels
          */
-         void compute_contribution( const eigenverb* u, const eigenverb* v ) ;
+         void compute_contribution(
+             const eigenverb* u, const eigenverb* v,
+             envelope_collection* levels ) ;
 
         /**
          * Computes the energy contributions to the reverberation
          * energy curve from the bottom interactions.
+         *
+         * @param source
+         * @param receiver
+         * @param levels
          */
-        virtual void compute_bottom_energy() = 0 ;
+        virtual void compute_bottom_energy(
+                const eigenverb_collection& source,
+                const eigenverb_collection& receiver,
+                envelope_collection* levels ) = 0 ;
 
         /**
          * Computes the energy contributions to the reverberation
          * energy curve from the surface interactions.
+         *
+         * @param source
+         * @param receiver
+         * @param levels
          */
-        virtual void compute_surface_energy() = 0 ;
+        virtual void compute_surface_energy(
+                const eigenverb_collection& source,
+                const eigenverb_collection& receiver,
+                envelope_collection* levels ) = 0 ;
 
         /**
          * Calculate the contributions due to collisions from below
          * a volume layer.
+         *
+         * @param source
+         * @param receiver
+         * @param levels
          */
-        virtual void compute_upper_volume_energy() = 0 ;
+        virtual void compute_upper_volume_energy(
+                const eigenverb_collection& source,
+                const eigenverb_collection& receiver,
+                envelope_collection* levels ) = 0 ;
 
         /**
          * Calculate the contributions due to collisions from above
          * a volume layer.
+         *
+         * @param source
+         * @param receiver
+         * @param levels
          */
-        virtual void compute_lower_volume_energy() = 0 ;
+        virtual void compute_lower_volume_energy(
+                const eigenverb_collection& source,
+                const eigenverb_collection& receiver,
+                envelope_collection* levels ) = 0 ;
 
         /**
          * Pulse length of the signal (sec)
@@ -89,29 +125,9 @@ class USML_DECLSPEC envelope_generator {
         double _pulse ;
 
         /**
-         * Number of time bins to store the energy distribution
-         */
-        size_t _max_index ;
-
-        /**
          * Max time for the reverberation curve
          */
         double _max_time ;
-
-        /**
-         * Number of layers within the volume
-         */
-        size_t _n ;
-
-        /**
-         * Defines the type of boundary model for the bottom.
-         */
-        boundary_model* _bottom_boundary ;
-
-        /**
-         * Defines the type of boundary model for the surface.
-         */
-        boundary_model* _surface_boundary ;
 
         /**
          * The current boundary that computations need

@@ -314,7 +314,7 @@ void reflection_model::build_eigenverb(
     double speed, const wposition1& position,
     const wvector1& ndirection, interface_type type )
 {
-    eigenverb verb ;
+    usml::eigenverb::eigenverb verb ;
     verb.distance = _wave.curr()->path_length(de,az) + speed * dt ;
     double true_distance = verb.distance ;
     double spreading_loss = 1.0 / (true_distance * true_distance) ;
@@ -350,6 +350,6 @@ void reflection_model::build_eigenverb(
         if( abs(grazing) > (M_PI_2 - 1e-10) ) verb.sigma_az = TWO_PI * true_distance ;
 
         // Add the eigenverb to the collection
-        _collection->add_eigenverb( verb, type )
+        _collection->add_eigenverb( verb, type ) ;
     }
 }

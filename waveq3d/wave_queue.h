@@ -299,7 +299,7 @@ class USML_DECLSPEC wave_queue {
      * eigenverb_collection, if time is at time zero, or if the ray
      * is max_de/max_az.
      */
-    bool is_ray_valid( size_t de, size_t az )
+    bool is_ray_valid( size_t de, size_t az ) ;
 
     /**
      * Marches to the next integration step in the acoustic propagation.

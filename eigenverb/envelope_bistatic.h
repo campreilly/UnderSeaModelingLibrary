@@ -23,47 +23,97 @@ class USML_DECLSPEC envelope_bistatic : public envelope_generator {
 
     public:
 
-        envelope_bistatic( ocean_model& ocean,
-                            wave_queue_reverb& wave_source,
-                            wave_queue_reverb& wave_receiver,
-                            double pulse, size_t num_bins,
-                            double max_time ) ;
+        /**
+         * Constructor
+         *
+         * @param ocean
+         * @param pulse
+         * @param max_time
+         */
+        envelope_bistatic(
+            ocean_model& ocean,
+            double pulse,
+            double max_time ) ;
 
-        virtual ~eigenverb_bistatic() {}
+        /**
+         * Destructor
+         */
+        virtual ~envelope_bistatic() ;
 
     private:
 
         /**
          * Computes the energy contributions to the reverberation
          * energy curve from the bottom interactions.
+         *
+         * @param source
+         * @param receiver
+         * @param levels
          */
-        virtual void compute_bottom_energy() ;
+        virtual void compute_bottom_energy(
+                const eigenverb_collection& source,
+                const eigenverb_collection& receiver,
+                envelope_collection* levels ) ;
 
         /**
          * Computes the energy contributions to the reverberation
          * energy curve from the surface interactions.
+         *
+         * @param source
+         * @param receiver
+         * @param levels
          */
-        virtual void compute_surface_energy() ;
+        virtual void compute_surface_energy(
+                const eigenverb_collection& source,
+                const eigenverb_collection& receiver,
+                envelope_collection* levels ) ;
 
         /**
          * Calculate the contributions due to collisions from below
          * a volume layer.
+         *
+         * @param source
+         * @param receiver
+         * @param levels
          */
-        virtual void compute_upper_volume_energy() ;
+        virtual void compute_upper_volume_energy(
+                const eigenverb_collection& source,
+                const eigenverb_collection& receiver,
+                envelope_collection* levels ) ;
 
         /**
          * Calculate the contributions due to collisions from above
          * a volume layer.
+         *
+         * @param source
+         * @param receiver
+         * @param levels
          */
-        virtual void compute_lower_volume_energy() ;
+        virtual void compute_lower_volume_energy(
+                const eigenverb_collection& source,
+                const eigenverb_collection& receiver,
+                envelope_collection* levels ) ;
 
         /**
          * Takes a set of eigenrays, boundary model, and convolves the set of
          * eigenverbs with itself and makes contributions to the reverebation
          * level curve.
          */
-        void convolve_eigenverbs( std::vector<eigenverb>* set1,
-                std::vector<eigenverb>* set2 ) ;
+        void convolve_eigenverbs(
+                const eigenverb_list& source,
+                const eigenverb_list& receiver,
+                envelope_collection* levels ) ;
+//        void convolve_eigenverbs( const eigenverb_collection::eigenverb_tree* set ) ;
+
+        /**
+         * Defines the type of boundary model for the bottom.
+         */
+        boundary_model* _bottom_boundary ;
+
+        /**
+         * Defines the type of boundary model for the surface.
+         */
+        boundary_model* _surface_boundary ;
 
 };
 
