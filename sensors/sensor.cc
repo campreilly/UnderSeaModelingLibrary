@@ -189,7 +189,7 @@ bool sensor::notify_sensor_listeners(sensorIDType sensorID)
         iter != _sensor_listener_vec.end(); ++iter )
     {
         sensor_listener* pListener = *iter;
-        pListener->sensor_changed(sensorID);
+        pListener->sensor_changed(_xmitRcvMode, sensorID);
     }
 
     return ( _sensor_listener_vec.size() > 0 );

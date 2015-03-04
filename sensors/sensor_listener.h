@@ -10,6 +10,7 @@
 #include <usml/usml_config.h>
 #include <usml/sensors/sensor.h>
 #include <usml/sensors/sensorIDType.h>
+#include <usml/sensors/xmitRcvModeType.h>
 
 namespace usml {
 namespace sensors {
@@ -35,9 +36,10 @@ class USML_DECLSPEC sensor_listener
     /**
      * sensor_changed
      * Pure virtual method to add eigenray to an object.
+     *  @param mode  sensor type - Receiver, Source, or Both
      *  @param   sensorID  of the sensor.
      */
-    virtual bool sensor_changed(sensorIDType sensorID) = 0;
+    virtual bool sensor_changed(xmitRcvModeType mode, sensorIDType sensorID) = 0;
 
   protected:
 

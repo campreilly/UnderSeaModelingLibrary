@@ -1,3 +1,4 @@
+
 ///////////////////////////////////////////////////////////
 //  sensor_pair_map.h
 //  Implementation of the Class sensor_pair_map
@@ -7,11 +8,15 @@
 
 #pragma once
 
+#include <map>
+#include <utility>
+
 #include <usml/usml_config.h>
 #include <usml/types/wposition1.h>
 #include <usml/waveq3d/proploss.h>
 #include <usml/sensors/sensor.h>
 #include <usml/sensors/sensorIDType.h>
+#include <usml/sensors/xmitRcvModeType.h>
 #include <usml/sensors/sensor_listener.h>
 #include <usml/eigenverb/data_collections.h>
 #include <usml/eigenverb/eigenverb_collection.h>
@@ -26,6 +31,9 @@ using namespace eigenverb ;
 /// @ingroup sensors
 /// @{
 
+typedef std::pair<sensorIDType, sensorIDType> key_type;
+
+
 /**
  * Provides storage for all the sensor pair's in use by the USML. 
  * The sensor pair contains a source, receiver acoustic pair.
@@ -37,10 +45,10 @@ using namespace eigenverb ;
 class USML_DECLSPEC sensor_pair_map : public sensor_listener
 {
 
-public:
+public:    
 
     /**
-    * Singleton Constructor - Creates sensor_pair_map instance just once, then
+    * Singleton Constructor - Creates sensor_pair_map instance just once.
     * Accessible everywhere.
     * @return  pointer to the instance of the sensor_pair_map.
     */
@@ -85,20 +93,49 @@ public:
 
     /**
     * Overloaded sensor_changed via the sensor_listener interface
+    * @param mode  sensor type - Receiver, Source, or Both
     * @param sensorID
     */
-    bool sensor_changed(sensorIDType sensorID);
+    bool sensor_changed(xmitRcvModeType mode, sensorIDType sensorID);
 
 	/**
 	 * 
-	 * @param sensor
+	 * @param sourceID
+     * @param receiverID
+     * @param data the data_collections structure 
 	 */
-	void add_sensor(sensor sensor);
-	/**
-	 * 
-	 * @param sensor
-	 */
-    void remove_sensor(sensor sensor);
+    void add_sensor_pair(sensorIDType sourceID, sensorIDType receiverID, data_collections data);
+
+    /**
+    *
+    * @param sourceID
+    * @param receiverID
+    */
+    void remove_sensor_pair(sensorIDType sourceID, sensorIDType receiverID);
+
+private:
+
+    /**
+    * finds the data_collections associated with the mode, and sensorID.
+    * @param mode  sensor type - Receiver, Source, or Both
+    * @param sensorID
+    */
+    void find(xmitRcvModeType mode, sensorIDType sensorID) const;
+
+    /**
+    * finds the data_collections structure associated with the key_pair.
+    * @param key_pair is the associated key.
+    * @return data_collections structure.
+    */
+    void find_pair(const key_type key_pair) const;
+
+    /**
+    * Inserts the supplied data_collections structure into the map 
+    * with the key_pair provided.
+    * @param key_pair is the associated key to the payload_type.
+    * @param payload to be inserted.
+    */
+    void insert(key_type key_pair, data_collections payload);
 
 protected:
     /**
@@ -124,11 +161,10 @@ protected:
      static sensor_pair_map* _instance;
 
     /**
-    * The std::map that stores that uses the first sensorID as a key and
-    * the payload of the map is another std::map that uses the second sensorID as
-    * the second key and the sensorData as the second payload.  
+    * The std::map that stores the sourceID and receiverID in a std::pair for the "first" item
+    * of the map. The second item is the payload of the map and is a data_collections structure.
     */
-    std::map < std::pair<sensorIDType, sensorIDType>, data_collections& > _map ;
+    std::map< std::pair<sensorIDType, sensorIDType>, data_collections& > _map ;
 
 };
 
