@@ -40,11 +40,6 @@ class USML_DECLSPEC envelope_monostatic : public envelope_generator {
          */
         virtual ~envelope_monostatic() {}
 
-         /**
-          * Saves the eigenverb data to a text file.
-          */
-         virtual void save_eigenverbs(const char* filename) ;
-
     private:
 
          /**
@@ -105,7 +100,7 @@ class USML_DECLSPEC envelope_monostatic : public envelope_generator {
          * level curve.
          */
         void convolve_eigenverbs(
-                const eigenverb_list& source,
+                const eigenverb_tree& source,
                 envelope_collection* levels ) ;
 //        void convolve_eigenverbs( const eigenverb_collection::eigenverb_tree* set ) ;
 

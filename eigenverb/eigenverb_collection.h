@@ -4,13 +4,14 @@
 #pragma once
 
 #include <usml/eigenverb/eigenverb.h>
-//#include <usml/types/quadtree.h>
+#include <usml/types/quadtree.h>
 
 using namespace usml::types ;
-//using namespace usml::waveq3d ;
 
 namespace usml {
 namespace eigenverb {
+
+typedef quadtree_type<eigenverb,100>::points   eigenverb_tree ;
 
 /**
  *
@@ -19,12 +20,20 @@ class USML_DECLSPEC eigenverb_collection {
 
     public:
 
-//        typedef quadtree_type::points<eigenverb,10>     eigenverb_tree ;
-
         /**
          * Constructor
+         *
+         * @param lon
+         * @param lat
+         * @param lon_range
+         * @param lat_range
+         * @param layers
          */
-        eigenverb_collection( const size_t layers = 0 ) ;
+        eigenverb_collection(
+                double lon,
+                double lat,
+                double lon_range, double lat_range,
+                size_t layers = 0 ) ;
 
         /*
          * Destructor
@@ -44,37 +53,37 @@ class USML_DECLSPEC eigenverb_collection {
          * Returns the list of eigenverbs for the bottom
          * interface
          */
-        eigenverb_list bottom() const ;
+        eigenverb_tree bottom() const ;
 
         /**
          * Returns the list of eigenverbs for the surface
          * interface
          */
-        eigenverb_list surface() const ;
+        eigenverb_tree surface() const ;
 
         /**
          * Returns the list of eigenverbs for the volume
          * upper interface
          */
-        vector<eigenverb_list> upper() const ;
+        vector<eigenverb_tree*> upper() const ;
 
         /**
          * Returns the list of eigenverbs for the l'th volume
          * upper interface
          */
-        eigenverb_list upper( size_t l ) const ;
+        eigenverb_tree upper( size_t l ) const ;
 
         /**
          * Returns the list of eigenverbs for the volume
          * lower interface
          */
-        vector<eigenverb_list> lower() const ;
+        vector<eigenverb_tree*> lower() const ;
 
         /**
          * Returns the list of eigenverbs for the l'th volume
          * lower interface
          */
-        eigenverb_list lower( size_t l ) const ;
+        eigenverb_tree lower( size_t l ) const ;
 
         /**
          * Returns true if there are volume layers, ie the size
@@ -87,26 +96,22 @@ class USML_DECLSPEC eigenverb_collection {
         /**
          * List of all the eigenverbs for bottom boundary collisions
          */
-        eigenverb_list _bottom ;
-//        eigenverb_tree _bottom ;
+        eigenverb_tree* _bottom ;
 
         /**
          * List of all the eigenverbs for surface boundary collisions
          */
-        eigenverb_list _surface ;
-//        eigenverb_tree _surface ;
+        eigenverb_tree* _surface ;
 
         /**
          * Vector of eigenverb lists for upper volume layer collisions
          */
-        vector<eigenverb_list> _upper ;
-//        vector<eigenverb_tree> _upper ;
+        vector<eigenverb_tree*> _upper ;
 
         /**
          * Vector of eigenverb lists for lower volume layer collisions
          */
-        vector<eigenverb_list> _lower ;
-//        vector<eigenverb_tree> _lower ;
+        vector<eigenverb_tree*> _lower ;
 };
 
 }   // end of namespace waveq3d

@@ -62,6 +62,13 @@ class USML_DLLEXPORT quadtree {
         }
 
         /**
+         * Empty constructor
+         */
+        quadtree() {
+            _root = NULL ;
+        }
+
+        /**
          * Destructor, calls the destroy tree function from the
          * root node, which then recursively destroys each node
          * within the tree.
@@ -126,7 +133,7 @@ class USML_DLLEXPORT quadtree {
          * @param l     pointer to the container to populate the data to
          */
         template<class Box, class List>
-        void query( const Box b, List* l ) {
+        void query( const Box b, List* l ) const {
             construct_list( _root, b, l ) ;
         }
 
@@ -189,7 +196,7 @@ class USML_DLLEXPORT quadtree {
          * @param l     pointer to the container to populate the data to
          */
         template<class Box, class List>
-        void construct_list( node_ptr n, const Box b, List* l ) {
+        void construct_list( node_ptr n, const Box b, List* l ) const {
             if( (b.x <= n->_x) && (b.y <= n->_y) &&
                 ((n->_x+n->_w) <= (b.x+b.width)) &&
                 ((n->_y+n->_h) <= (b.y+b.height)) )
@@ -230,7 +237,7 @@ class USML_DLLEXPORT quadtree {
          * @param b2     a box to check for intersection with
          */
         template<class Box>
-        bool intersect( const Box& b1, const Box& b2 ) {
+        bool intersect( const Box& b1, const Box& b2 ) const {
             return ( corners(b1,b2) || corners(b2,b1) ) ;
         }
 
@@ -245,7 +252,7 @@ class USML_DLLEXPORT quadtree {
          * @param b2     the box to check for intersection
          */
         template<class Box>
-        bool corners( const Box b1, const Box b2 ) {
+        bool corners( const Box b1, const Box b2 ) const {
             bool lower_x = (b2.x <= b1.x) && (b1.x < (b2.x+b2.width)) ;
             bool lower_y = (b2.y <= b1.y) && (b1.y < (b2.y+b2.height)) ;
             // Is the SW corner of the node in the box?
@@ -275,7 +282,7 @@ class USML_DLLEXPORT quadtree {
          * @param l     pointer to the container to populate the data to
          */
         template<class List>
-        void add_sector( node_ptr n, List* l ) {
+        void add_sector( node_ptr n, List* l ) const {
             size_type size( n->size() ) ;
             for(size_type i=0; i<size; ++i) {
                 l->push_back( n->data(i) ) ;
@@ -346,15 +353,17 @@ class USML_DLLEXPORT quadtree {
          * @param node  node to be deleted
          */
         void destroy_tree( node_ptr node ) {
-            if( node->top_right() )
-                destroy_tree( node->top_right() ) ;
-            if( node->top_left() )
-                destroy_tree( node->top_left() ) ;
-            if( node->bottom_left() )
-                destroy_tree( node->bottom_left() ) ;
-            if( node->bottom_right() )
-                destroy_tree( node->bottom_right() ) ;
-            delete node ;
+            if( node ) {
+                if( node->top_right() )
+                    destroy_tree( node->top_right() ) ;
+                if( node->top_left() )
+                    destroy_tree( node->top_left() ) ;
+                if( node->bottom_left() )
+                    destroy_tree( node->bottom_left() ) ;
+                if( node->bottom_right() )
+                    destroy_tree( node->bottom_right() ) ;
+                delete node ;
+            }
     }
 };
 

@@ -332,6 +332,8 @@ void reflection_model::build_eigenverb(
         verb.grazing = grazing ;
         verb.sound_speed = speed ;
         verb.position = position ;
+        verb.x = position.longitude() ;
+        verb.y = position.latitude() ;
         verb.direction = ndirection ;
         verb.frequencies = _wave.frequencies() ;
         verb.surface = _wave.curr()->surface(de,az) ;

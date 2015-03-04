@@ -10,10 +10,20 @@ using namespace usml::eigenverb ;
  * Cosntructor
  */
 eigenverb_collection::eigenverb_collection(
-    const size_t layers )
-    : _upper(layers), _lower(layers)
+    double lon, double lat,
+    double lon_range, double lat_range,
+    size_t layers )
 {
-
+    _bottom = new eigenverb_tree( lon, lat, lon_range, lat_range ) ;
+    _surface = new eigenverb_tree( lon, lat, lon_range, lat_range ) ;
+    if( layers > 0 ) {
+        _upper.resize( layers ) ;
+        _lower.resize( layers ) ;
+        for(size_t i=0; i<layers; ++i) {
+            _upper(i) = new eigenverb_tree( lon, lat, lon_range, lat_range ) ;
+            _lower(i) = new eigenverb_tree( lon, lat, lon_range, lat_range ) ;
+        }
+    }
 }
 
 /**
@@ -21,7 +31,16 @@ eigenverb_collection::eigenverb_collection(
  */
 eigenverb_collection::~eigenverb_collection()
 {
-
+    if( _bottom )
+        delete _bottom ;
+    if( _surface )
+        delete _surface ;
+    for(size_t i=0; i<_upper.size(); ++i) {
+        if( _upper(i) )
+            delete _upper(i) ;
+        if( _lower(i) )
+            delete _lower(i) ;
+    }
 }
 
 /**
@@ -32,25 +51,21 @@ void eigenverb_collection::add_eigenverb(
 {
     switch(i) {
         case BOTTOM:
-            _bottom.push_back( e ) ;
-    //                    _bottom.insert( e ) ;
+            _bottom->insert( e ) ;
             break;
         case SURFACE:
-            _surface.push_back( e ) ;
-    //                    _surface.insert( e ) ;
+            _surface->insert( e ) ;
             break;
         case VOLUME_UPPER:
         {
             size_t something = 0 ;
-            _upper(something).push_back( e ) ;
-    //                    _upper(something).insert( e ) ;
+            _upper(something)->insert( e ) ;
         }
             break;
         case VOLUME_LOWER:
         {
             size_t something = 0 ;
-            _lower(something).push_back( e ) ;
-    //                    _lower(something).insert( e ) ;
+            _lower(something)->insert( e ) ;
         }
             break;
         default:
@@ -64,25 +79,25 @@ void eigenverb_collection::add_eigenverb(
  * Returns the list of eigenverbs for the bottom
  * interface
  */
-eigenverb_list eigenverb_collection::bottom() const
+eigenverb_tree eigenverb_collection::bottom() const
 {
-    return _bottom ;
+    return *_bottom ;
 }
 
 /**
  * Returns the list of eigenverbs for the surface
  * interface
  */
-eigenverb_list eigenverb_collection::surface() const
+eigenverb_tree eigenverb_collection::surface() const
 {
-    return _surface ;
+    return *_surface ;
 }
 
 /**
  * Returns the list of eigenverbs for the volume
  * upper interface
  */
-vector<eigenverb_list> eigenverb_collection::upper() const
+vector<eigenverb_tree*> eigenverb_collection::upper() const
 {
     return _upper ;
 }
@@ -91,9 +106,9 @@ vector<eigenverb_list> eigenverb_collection::upper() const
  * Returns the list of eigenverbs for the l'th volume
  * upper interface
  */
-eigenverb_list eigenverb_collection::upper( size_t l ) const
+eigenverb_tree eigenverb_collection::upper( size_t l ) const
 {
-    return _upper(l) ;
+    return *_upper(l) ;
 }
 
 
@@ -101,7 +116,7 @@ eigenverb_list eigenverb_collection::upper( size_t l ) const
  * Returns the list of eigenverbs for the volume
  * lower interface
  */
-vector<eigenverb_list> eigenverb_collection::lower() const
+vector<eigenverb_tree*> eigenverb_collection::lower() const
 {
     return _lower ;
 }
@@ -110,9 +125,9 @@ vector<eigenverb_list> eigenverb_collection::lower() const
  * Returns the list of eigenverbs for the l'th volume
  * lower interface
  */
-eigenverb_list eigenverb_collection::lower( size_t l ) const
+eigenverb_tree eigenverb_collection::lower( size_t l ) const
 {
-    return _lower(l) ;
+    return *_lower(l) ;
 }
 
 /**

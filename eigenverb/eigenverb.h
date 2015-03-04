@@ -36,6 +36,8 @@ typedef enum
  */
 struct eigenverb {
 
+    typedef double coord_type ;
+
     /**
      * One way travel time for this path (sec).
      */
@@ -119,6 +121,12 @@ struct eigenverb {
      * Number of interactions with the bottom boundary
      */
     size_t bottom ;
+
+    /**
+     * Both used for eigenverb boxes
+     */
+    double x ;
+    double y ;
 
 };
 

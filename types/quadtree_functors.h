@@ -32,6 +32,7 @@
 #pragma once
 
 #include <cstddef>
+#include <usml/eigenverb/eigenverb.h>
 
 namespace usml {
 namespace types {
@@ -55,9 +56,10 @@ struct USML_DLLEXPORT max_count {
     typedef quad<T>*    argument_type ;
     typedef bool        result_type ;
 
+    static const std::size_t size = N ;
     static result_type
     check( argument_type a ) {
-        return (a->size() >= N) ;
+        return (a->size() >= size) ;
     }
 };
 
@@ -163,6 +165,42 @@ struct USML_DLLEXPORT bound_box {
     bottom( bounding_node n, value_type v )
     {
         return ( v.y < (n->_y + 0.5 * n->_h) ) ;
+    }
+};
+
+/**
+ * Bound functor specialized for eigenverbs. Latitude
+ * is along the y-axis and longitude is along the
+ * x-axis.
+ */
+template<>
+struct USML_DLLEXPORT bound_box<usml::eigenverb::eigenverb> {
+    typedef usml::eigenverb::eigenverb   value_type ;
+    typedef quad<value_type>*    bounding_node ;
+    typedef bool                 result_type ;
+
+    static result_type
+    left( bounding_node n, value_type v )
+    {
+        return ( v.position.longitude() < (n->_x + 0.5 * n->_w) ) ;
+    }
+
+    static result_type
+    right( bounding_node n, value_type v )
+    {
+        return ( v.position.longitude() > (n->_x + 0.5 * n->_w) ) ;
+    }
+
+    static result_type
+    top( bounding_node n, value_type v )
+    {
+        return ( v.position.latitude() > (n->_y + 0.5 * n->_h) ) ;
+    }
+
+    static result_type
+    bottom( bounding_node n, value_type v )
+    {
+        return ( v.position.latitude() < (n->_y + 0.5 * n->_h) ) ;
     }
 };
 

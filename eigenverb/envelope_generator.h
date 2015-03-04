@@ -43,11 +43,6 @@ class USML_DECLSPEC envelope_generator {
                 const eigenverb_collection& receiver,
                 envelope_collection* levels ) ;
 
-         /**
-          * Saves the eigenverb data to a text file.
-          */
-         virtual void save_eigenverbs(const char* filename) {}
-
     protected:
 
         /**
