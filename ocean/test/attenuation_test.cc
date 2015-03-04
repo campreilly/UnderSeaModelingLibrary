@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE( thorp_test_b ) {
 
     // compute attenuation
 
-    seq_linear freq(0.0, 10.0, 1e7);
+    seq_log freq(10.0, pow(2.0,0.1), 1e7);
     matrix < vector<double> > atten(1, 1);
     atten(0, 0).resize(freq.size());
 
@@ -122,38 +122,6 @@ BOOST_AUTO_TEST_CASE( thorp_test_b ) {
     os << "freq,atten" << endl ;
     for (size_t f = 0; f < freq.size(); ++f) {
         os << freq(f) << "," << atten(0, 0)(f) << endl ;
-    }
-}
-
-BOOST_AUTO_TEST_CASE( complex_impedance ) {
-    cout << "=== attenuation_test: complex_impedance ===" << endl;
-
-    const double speed = 1700 ;
-    const double attenuation = 0.5 ;
-    const double _speed_water = 1500 ;
-    const double inc = 1e-7 ;
-    const complex< double > c( speed, -attenuation*speed ) ;
-    complex< double > cosA ;
-//    complex< double > v_err[2] ;
-
-    for(double angle = 0.0; angle < 1.5; angle += inc) {
-            complex< double > sinA = sin(angle) * c / _speed_water ;
-//        try {
-            complex<double> something = sinA * sinA ;
-            cosA = something ;
-            complex<double> one(1.0,0.0) ;
-            one -= something ;
-//            v_err[0] = angle ;
-//            v_err[1] = sinA ;
-//            throw(v_err) ;
-//        } catch (complex<double> v[]) {
-//            cout << "*** angle = " << angle ;
-//            cout << "\tsomething: " << something << "\tabs(): " << abs(something) << endl;
-//            cout << "*** angle = " << angle << " ***" << endl;
-//            cout << "sin(angle): " << sin(angle) << "\t c/_speed_water: " << c / _speed_water << endl;
-//            cout << "cosA: " << cosA << "\tsinA: " << sinA << endl;
-//        }
-            cosA = sqrt( one ) ;
     }
 }
 

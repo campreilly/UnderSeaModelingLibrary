@@ -5,16 +5,17 @@ clear all ; close all
 
 % propagate over a 1000 meter bottom depth
 % use an initial direction that results in a 0.2 deg hop distance
+% @todo reflect_flat_test disabled until reverb model delivered
 
-[data,desc] = xlsread('reflect_flat_test.csv');
-dt = ( data(2,1) - data(1,1) ) * 1000.0 ;
-
-figure ;
-h = plot( data(:,2), data(:,4), 'k-', 'LineWidth', 1.25 ) ;
-grid ;
-ylabel('Depth (m)')
-xlabel('Latitude (deg)')
-print -deps reflect_flat_test
+% [data,desc] = xlsread('reflect_flat_test.csv');
+% dt = ( data(2,1) - data(1,1) ) * 1000.0 ;
+% 
+% figure ;
+% h = plot( data(:,2), data(:,4), 'k-', 'LineWidth', 1.25 ) ;
+% grid ;
+% ylabel('Depth (m)')
+% xlabel('Latitude (deg)')
+% print -deps reflect_flat_test
 
 % propagate up a flat slope
 % creates a 2 degree increase in grazing angle for each reflection
