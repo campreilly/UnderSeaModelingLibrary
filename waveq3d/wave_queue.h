@@ -160,6 +160,20 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
+     * Propagation step size (seconds).
+     */
+    inline double time_step() const {
+        return _time_step ;
+    }
+
+    /**
+     * List of acoustic targets.
+     */
+    inline const wposition* targets() const {
+        return _targets;
+    }
+
+    /**
      * Return next element in the wavefront.
      */
     inline const wave_front* next() {
@@ -604,43 +618,16 @@ class USML_DECLSPEC wave_queue {
 
     /**
      * Used by detect_eigenrays() to compute eigneray parameters and
-     * add a new eigenray entry to the current target. Inverts
-     * the 3-D Taylor series to find offsets in time, source D/E,
-     * and source AZ that minimize the distance to the target.
-     * \f[
-     *      d^2( \vec{\rho} ) = c + \vec{b} \cdot \vec{\rho}
-     *          + \frac{1}{2} \vec{\rho} \cdot A \cdot \vec{\rho}
-     * \f]\f[
-     *      \frac{ \delta d^2 }{ \delta \vec{\rho} } =
-     *          \vec{b} + A \cdot \vec{\rho} = 0
-     * \f]\f[
-     *      A \cdot \vec{\rho} = - \vec{b}
-     * \f]\f[
-     *      \vec{\rho} = - A^{-1} \vec{b}
-     * \f]
-     * where:
-     *      - \f$ \vec{ \rho } \f$ = offsets in time, D/E, AZ
-     *      - \f$ A          \f$ = Hessian matrix (2nd derivative)
-     *      - \f$ \vec{b}    \f$ = gradient vector (1st derivative)
-     *      - \f$ c          \f$ = constant
-     *
-     * This routine uses these offsets and a Taylor series for direction to
-     * compute the target D/E and AZ. It avoids extrapolating source and
-     * target angles too far into shadow zone by limiting the D/E and AZ offsets
-     * to the width of one beam.
+     * add a new eigenray entry to the current target. Uses compute_offset()
+     * to find offsets in time, source D/E, and source AZ that minimize 
+     * the distance to the target. This routine uses these offsets and 
+     * a Taylor series for direction to compute the target D/E and AZ. 
      *
      * Intensity is computed using either a classic ray theory or a hybrid
      * Gaussian beam summation across the wavefront. Attenuation is
      * incorporated into the ray intensity using an interpolation in time
      * along the CPA ray. Phase is copied from the CPA as are the counts
      * for surface, bottom, and caustics.
-     *
-     * There is an interesting degenerate case that happens for targets
-     * near the source location.  The CPA calculation from detect_eigenrays()
-     * creates non-physical eigenrays around the point at which the 2nd
-     * wavefront transitions from occurring before surface reflection to
-     * including just after it. This routines examines the offsets in time and
-     * ensonified area to eliminate these non-physical eigenrays.
      *
      * @param   t1          Row number of the current target.
      * @param   t2          Column number of the current target.
@@ -659,12 +646,6 @@ class USML_DECLSPEC wave_queue {
         double distance2[3][3][3] ) ;
 
     /**
-	 * For each eigenrayListener in the _eigenrayListenerVec vector
-	 * call the addEigenray method to provide eigenrays to object that requested them.
-	 */
-	bool notifyEigenrayListeners(size_t targetRow, size_t targetCol, eigenray pEigenray);
-
-    /**
      * Find relative offsets and true distances in time, D/E, and AZ.
      * Uses the analytic solution for the inverse of a symmetric 3x3 matrix
      * to solve
@@ -677,21 +658,51 @@ class USML_DECLSPEC wave_queue {
      *  - g is the gradient (1st derviative) of the distances around CPA, and
      *  - H is the Hessian (2nd derviative) of the distances around CPA.
      *
-     * This implementation reverts to a simplier calculation using just
-     * the diagonals of the Hessian if the inverse can not be computed.
+     * If the determinant of the 3x3 matrix is very small, the inverse is
+     * unstable, and this implementation falls back to a 2x2 calculation
+     * in the time and AZ directions.  If the determinant of the 2x2 matrix
+     * is also very small,  This implementation falls back to a solution that
+     * just uses the diagonal of the Hessian.
+     * <pre>
+     *              x(n) = - g(n) / H(n,n)
+     * </pre>
+     * This fallback solution is limited to 1/2 of the beamwidth.  If this
+     * clipping is not performed, the eigenray_extra_test/eigenray_lloyds
+     * will generate significant errors in D/E.  But including this clipping
+     * leads to large D/E errors when the target is outside of the ray fan,
+     * like it is in the Bottom Bounce path for eigenray_test/eigenray_basic.
      *
-     * Compute distances from offsets, for each coordinate, by assuming that
+     * Computes distances from offsets, for each coordinate, by assuming that
      * the other two offsets are zero.
      * <pre>
      *              d(n)^2 = - g(n) x(n) - 0.5*H(n,n) x(n)^2
      * </pre>
-     * The DE distance calculations can be unstable if the target is far
-     * from CPA.  This routine deals with this by computing the DE distance
-     * from the time and AZ distances.
+     * If this Taylor series around the CPA is unstable, this implementation
+     * reverts to a simpler calculation that limits the inverse to the
+     * time and AZ directions.  The neighborhood is treated as unstable if:
+     *
+     *  - The number of surface, bottom, and caustics is not the same for
+     *    wavefront points around the CPA.
+     *  - One of the wavefront points around the CPA is on the edge
+     *    of the wavefront.
+     *  - The determinant of the full Hesssian is very small, which indicates
+     *    that the inverse unstable.
+     *  - The DE offset computed by the full inverse is more than 50% of the
+     *    beam width.
+     *
+     * If the neighborhood is unstable, the distance in the DE direction
+     * is computed by subtracting the time and AZ distance from the total
+     * distances at CPA.
      * <pre>
      *              d(DE)^2 = d(total)^2 - d(time)^2 - d(AZ)^2
      * </pre>
      *
+     * @param   t1          Row number of the current target.
+     * @param   t2          Column number of the current target.
+     * @param   de          D/E angle index number.  Can not equal a value
+     *                      at the edge of the ray fan.
+     * @param   az          AZ angle index number.  Can not equal a value
+     *                      at the edge of the ray fan.
      * @param   distance2   Distance squared to each of the 27 neighboring
      *                      points. The first index is time, the second is D/E
      *                      and the third is AZ.
@@ -705,14 +716,12 @@ class USML_DECLSPEC wave_queue {
      * @param   distance    Distance to the current target in world coordinate
      *                      units (meters). Give the distance the same sign
      *                      as the relative offset. (output)
-     * @param   unstable    True if full inverse is expected to be unstable.
-     *                      May be updated by this routine if target is far
-     *                      outside of ray fan. (input/output)
      */
-    static void compute_offsets(
+    void compute_offsets(
+        size_t t1, size_t t2,
+        size_t de, size_t az,
         const double distance2[3][3][3], const c_vector<double,3>& delta,
-        c_vector<double,3>& offset, c_vector<double,3>& distance,
-        bool& unstable ) ;
+        c_vector<double,3>& offset, c_vector<double,3>& distance ) ;
 
     /**
      * Computes the Taylor series coefficients used to compute eigenrays.
@@ -727,15 +736,13 @@ class USML_DECLSPEC wave_queue {
      * @param   center      Value at the center of the grid (output).
      * @param   gradient    First derivative in 3 dimensions (output).
      * @param   hessian     Second derivative in 3 dimensions (output).
-     * @param   diagonal_only   Zeros out Hessian cross terms when true.
      *
      * @xref Weisstein, Eric W. "Hessian." From MathWorld--A Wolfram Web
      *       Resource. http://mathworld.wolfram.com/Hessian.html
      */
     static void make_taylor_coeff(
         const double value[3][3][3], const c_vector<double,3>& delta,
-        double& center, c_vector<double,3>& gradient, c_matrix<double,3,3>& hessian,
-        bool diagonal_only = false ) ;
+        double& center, c_vector<double,3>& gradient, c_matrix<double,3,3>& hessian ) ;
 
     /**
      * Computes a refined location and direction at the point of collision.
@@ -745,15 +752,21 @@ class USML_DECLSPEC wave_queue {
      * @param de            D/E angle index number.
      * @param az            AZ angle index number.
      * @param dtime         The distance (in time) from the "current"
-     *                      wavefront to the boundary collision.
-     * @param position      Refined position of the reflection (output).
+     *                      wavefront to the collision.
+     * @param position      Refined position of the collision (output).
      * @param ndirection    Normalized direction at the point
-     *                      of reflection (output).
-     * @param speed         Speed of sound at the point of reflection (output).
+     *                      of collision (output).
+     * @param speed         Speed of sound at the point of collision (output).
      */
     void collision_location(
         size_t de, size_t az, double dtime,
         wposition1* position, wvector1* ndirection, double* speed ) const ;
+
+    /**
+	 * For each eigenrayListener in the _eigenrayListenerVec vector
+	 * call the addEigenray method to provide eigenrays to object that requested them.
+	 */
+	bool notifyEigenrayListeners(size_t targetRow, size_t targetCol, eigenray pEigenray);
 
     //**************************************************
     // wavefront_netcdf routines

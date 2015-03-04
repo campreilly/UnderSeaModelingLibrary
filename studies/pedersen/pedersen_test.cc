@@ -253,7 +253,7 @@ BOOST_AUTO_TEST_CASE( pedersen_deep_raytrace ) {
     cout << "=== pedersen_deep_raytrace ===" << endl ;
     seq_linear de( 20.00, 0.2, 60.00 ) ;
     analyze_raytrace( -1000.0, de,
-        2.0, 0.02, 3.5,
+        2.0, 0.01, 3.5,
         0.008, 10.0, 0.03,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_raytrace.nc",
         USML_STUDIES_DIR "/pedersen/pedersen_deep_raytrace.csv" ) ;
@@ -354,7 +354,7 @@ void analyze_proploss(
 BOOST_AUTO_TEST_CASE( pedersen_shallow_proploss ) {
     cout << "=== pedersen_shallow_proploss ===" << endl ;
     seq_linear ranges(500.0,1.0,1000.0) ;
-    seq_linear de( 0.0, 0.02, 25.0 ) ;
+    seq_linear de( 0.0, 0.025, 25.0 ) ;
     analyze_proploss( de, -75.0, -75.0, ranges,
         0.01, 0.85,
         USML_STUDIES_DIR "/pedersen/pedersen_shallow_proploss.nc",
@@ -383,57 +383,56 @@ BOOST_AUTO_TEST_CASE( pedersen_shallow_proploss ) {
 BOOST_AUTO_TEST_CASE( pedersen_deep_proploss ) {
     cout << "=== pedersen_deep_proploss ===" << endl ;
     seq_linear ranges(3000.0,0.25,3120.0) ;
-//    seq_rayfan de( 20.0, 60.0, 181, 51.21 ) ;
-    seq_linear de( 20.0, 0.2, 60.0 ) ;
+    seq_linear de( 20.0, 0.25, 60.0 ) ;
     analyze_proploss( de, -1000.0, -800.0, ranges,
         0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.nc",
         USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.csv" ) ;
 }
 
-///**
-// * Tests the sensitivity of the proploss model the D/E angular resolution
-// * near the caustic. The source is located at a depth of 1000 yds. Receivers
-// * have a depth of 800 yds and ranges from 3100 to 3180 yds. Uses a ray fan
-// * from +40 to +51 degrees with increments of 0.025, 0.05, 0.10, and 0.20
-// * degrees. This configuration test the models sensitivity to ray spacing
-// * near the caustic.
-// *
-// * The N^2 linear test case developed by Pedersen and Gordon was specifically
-// * chosen because we expect it to be very sensitive to the ray geometry near
-// * the caustic.  This sensitivity is especially true for the deep source
-// * varient, because the profile below 200 meters is more extreme than those
-// * found in the real world.
-// */
-//BOOST_AUTO_TEST_CASE( pedersen_deep_sensitivity ) {
-//    cout << "=== pedersen_deep_sensitivity ===" << endl ;
-//    seq_linear ranges(3000.0,0.25,3120.0) ;
-//
-//    seq_rayfan de( -90.0, 90.0, 181, 51.21 ) ;
-//    analyze_proploss( de, -1000, -800.0, ranges, 0.01, 3.5,
-//        "pedersen_deep_sensitivity_tan.nc",
-//        "pedersen_deep_sensitivity_tan.csv" ) ;
-//
-//    seq_linear de1000( 40.00, 0.100, 60.00 ) ;
-//    analyze_proploss( de1000, -1000, -800.0, ranges, 0.01, 3.5,
-//        "pedersen_deep_sensitivity_1000.nc",
-//        "pedersen_deep_sensitivity_1000.csv" ) ;
-//
-//    seq_linear de0500( 40.00, 0.05000, 60.00 ) ;
-//    analyze_proploss( de0500, -1000, -800.0, ranges, 0.01, 3.5,
-//        "pedersen_deep_sensitivity_0500.nc",
-//        "pedersen_deep_sensitivity_0500.csv" ) ;
-//
-//    seq_linear de0250( 40.00, 0.0250, 60.00 ) ;
-//    analyze_proploss( de0250, -1000, -800.0, ranges, 0.01, 3.5,
-//        "pedersen_deep_sensitivity_0250.nc",
-//        "pedersen_deep_sensitivity_0250.csv" ) ;
-//
-//    seq_linear de0125( 40.00, 0.0125, 60.00 ) ;
-//    analyze_proploss( de0125, -1000, -800.0, ranges, 0.01, 3.5,
-//        "pedersen_deep_sensitivity_0125.nc",
-//        "pedersen_deep_sensitivity_0125.csv" ) ;
-//}
+/**
+ * Tests the sensitivity of the proploss model the D/E angular resolution
+ * near the caustic. The source is located at a depth of 1000 yds. Receivers
+ * have a depth of 800 yds and ranges from 3100 to 3180 yds. Uses a ray fan
+ * from +40 to +51 degrees with increments of 0.025, 0.05, 0.10, and 0.20
+ * degrees. This configuration test the models sensitivity to ray spacing
+ * near the caustic.
+ *
+ * The N^2 linear test case developed by Pedersen and Gordon was specifically
+ * chosen because we expect it to be very sensitive to the ray geometry near
+ * the caustic.  This sensitivity is especially true for the deep source
+ * varient, because the profile below 200 meters is more extreme than those
+ * found in the real world.
+ */
+BOOST_AUTO_TEST_CASE( pedersen_deep_sensitivity ) {
+    cout << "=== pedersen_deep_sensitivity ===" << endl ;
+    seq_linear ranges(3000.0,0.25,3120.0) ;
+
+    seq_rayfan de( -90.0, 90.0, 181, 51.21 ) ;
+    analyze_proploss( de, -1000, -800.0, ranges, 0.01, 3.5,
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_tan.nc",
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_tan.csv" ) ;
+
+    seq_linear de1000( 40.00, 0.100, 60.00 ) ;
+    analyze_proploss( de1000, -1000, -800.0, ranges, 0.01, 3.5,
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_1000.nc",
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_1000.csv" ) ;
+
+    seq_linear de0500( 40.00, 0.05000, 60.00 ) ;
+    analyze_proploss( de0500, -1000, -800.0, ranges, 0.01, 3.5,
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0500.nc",
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0500.csv" ) ;
+
+    seq_linear de0250( 40.00, 0.0250, 60.00 ) ;
+    analyze_proploss( de0250, -1000, -800.0, ranges, 0.01, 3.5,
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0250.nc",
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0250.csv" ) ;
+
+    seq_linear de0125( 40.00, 0.0125, 60.00 ) ;
+    analyze_proploss( de0125, -1000, -800.0, ranges, 0.01, 3.5,
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0125.nc",
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0125.csv" ) ;
+}
 
 /// @}
 
