@@ -29,7 +29,7 @@ for ray = (Nrays-1):-1:(Nrays-50)
           wlat(m,ray), walt(m,ray), 'k--', ...
           wlat(k,ray), walt(k,ray), 'k:', ...
           'LineWidth', 1.25 ) ;
-    axis([0 0.05 -50 0]) ;
+    axis([0 0.025 -50 0]) ;
     hold on
 end
 xlabel('Latitude Change (deg)');
@@ -37,7 +37,7 @@ ylabel('Depth (m)');
 legend('Direct Path','Surface Reflected','Discontinuity','Location','SouthEast')
 
 a = get(gca,'Xlim') ;
-set(gca,'XTick',a(1):0.01:a(2));
+set(gca,'XTick',a(1):0.005:a(2));
 title(sprintf('%.2f km Range Window',(a(2)-a(1))*(1852.0*60.0)/1e3) ) ;
 
 print -deps eigenray_lloyds_zoom.eps
