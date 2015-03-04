@@ -21,7 +21,7 @@ surface_index = find( ~isnan(analytic.surface.travel_time) ) ;
 
 % load propagation loss data from FFP
 
-[data,desc] = xlsread('ffp_n2shallow.csv');
+[data,desc] = xlsread('n2shallow.csv');
 ffp.range = data(:,1)'/1e3 ;
 ffp.intensity = data(:,2)' ;
 clear data desc
