@@ -100,26 +100,8 @@ class USML_DLLEXPORT quadtree {
          * @param v     element to be inserted into the quadtree.
          */
         void insert( value_type v ) {
-            node_ptr tmp = find_node( _root, v ) ;
-            if( criteria_functor::check( tmp ) ) {
-                node_ptr tmp2 = split_functor::apply( tmp ) ;
-                if( tmp == _root ) {
-                    _root = tmp2 ;
-                    delete tmp ;
-                } else {
-                    if( tmp == tmp->parent()->top_left() ) {
-                        tmp->parent()->top_left( tmp2 ) ;
-                    } else if( tmp == tmp->parent()->top_right() ) {
-                        tmp->parent()->top_right( tmp2 ) ;
-                    } else if( tmp == tmp->parent()->bottom_left() ) {
-                        tmp->parent()->bottom_left( tmp2 ) ;
-                    } else {
-                        tmp->parent()->bottom_right( tmp2 ) ;
-                    }
-                }
-                tmp = find_node( tmp2, v ) ;
-            }
-            tmp->add(v) ;
+            node_ptr n = find_node( _root, v ) ;
+            insert( n, v ) ;
         }
 
         /**
@@ -136,52 +118,80 @@ class USML_DLLEXPORT quadtree {
         void query( const Box b, List* l ) const {
             construct_list( _root, b, l ) ;
         }
-
-        /**
-         * Test funciton -- Not permanent
-         */
-        void print() {
-            std::cout << "ROOT"
-                      << " x[" << _root->_x << " " << _root->_x+_root->_w << "]"
-                      << " y[" << _root->_y << " " << _root->_y+_root->_h << "]"
-                      << std::endl ;
-            print( _root ) ;
-        }
+//
+//        /**
+//         * Test funciton -- Not permanent
+//         */
+//        void print() {
+//            std::cout << "ROOT"
+//                      << " x[" << _root->_x << " " << _root->_x+_root->_w << "]"
+//                      << " y[" << _root->_y << " " << _root->_y+_root->_h << "]"
+//                      << std::endl ;
+//            print( _root ) ;
+//        }
 
     protected:
 
         /**
-         * Test function
+         * Recursive engine for inserting elements into the
+         * quadtree.
          */
-        void print( node_ptr n ) {
-            size_type size( n->size() ) ;
-            if( n != _root ) {
-                std::cout << "\tNEXT LEVEL"
-                << " x[" << n->_x << " " << n->_x+n->_w << "]"
-                << " y[" << n->_y << " " << n->_y+n->_h << "]"
-                << std::endl ;
-            }
-            for(size_type i=0; i<size; ++i) {
-                value_type tmp = n->data(i) ;
-                std::cout << tmp << std::endl ;
-            }
-            if( n->top_left() ) {
-                std::cout << "TOP_LEFT:" << std::endl ;
-                print( n->top_left() ) ;
-            }
-            if( n->top_right() ) {
-                std::cout << "TOP_RIGHT:" << std::endl ;
-                print( n->top_right() ) ;
-            }
-            if( n->bottom_left() ) {
-                std::cout << "BOTTOM_LEFT:" << std::endl ;
-                print( n->bottom_left() ) ;
-            }
-            if( n->bottom_right() ) {
-                std::cout << "BOTTOM_RIGHT:" << std::endl ;
-                print( n->bottom_right() ) ;
+        void insert( node_ptr n, value_type v ) {
+            if( criteria_functor::check( n ) ) {
+                node_ptr tmp = split_functor::apply( n ) ;
+                if( n == _root ) {
+                    _root = tmp ;
+                    delete n ;
+                } else {
+                    if( n == n->parent()->top_left() ) {
+                        n->parent()->top_left( tmp ) ;
+                    } else if( n == n->parent()->top_right() ) {
+                        n->parent()->top_right( tmp ) ;
+                    } else if( n == n->parent()->bottom_left() ) {
+                        n->parent()->bottom_left( tmp ) ;
+                    } else {
+                        n->parent()->bottom_right( tmp ) ;
+                    }
+                }
+                n = find_node( tmp, v ) ;
+                insert( n, v ) ;
+            } else {
+                n->add(v) ;
             }
         }
+
+//        /**
+//         * Test function
+//         */
+//        void print( node_ptr n ) {
+//            size_type size( n->size() ) ;
+//            if( n != _root ) {
+//                std::cout << "\tNEXT LEVEL"
+//                << " x[" << n->_x << " " << n->_x+n->_w << "]"
+//                << " y[" << n->_y << " " << n->_y+n->_h << "]"
+//                << std::endl ;
+//            }
+//            for(size_type i=0; i<size; ++i) {
+//                value_type tmp = n->data(i) ;
+//                std::cout << tmp << std::endl ;
+//            }
+//            if( n->top_left() ) {
+//                std::cout << "TOP_LEFT:" << std::endl ;
+//                print( n->top_left() ) ;
+//            }
+//            if( n->top_right() ) {
+//                std::cout << "TOP_RIGHT:" << std::endl ;
+//                print( n->top_right() ) ;
+//            }
+//            if( n->bottom_left() ) {
+//                std::cout << "BOTTOM_LEFT:" << std::endl ;
+//                print( n->bottom_left() ) ;
+//            }
+//            if( n->bottom_right() ) {
+//                std::cout << "BOTTOM_RIGHT:" << std::endl ;
+//                print( n->bottom_right() ) ;
+//            }
+//        }
 
         /**
          * Recursively searches the quadtree and constructs the list
@@ -364,7 +374,7 @@ class USML_DLLEXPORT quadtree {
                     destroy_tree( node->bottom_right() ) ;
                 delete node ;
             }
-    }
+        }
 };
 
 /**

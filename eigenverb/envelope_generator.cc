@@ -89,18 +89,6 @@ void envelope_generator::compute_contribution(
         double Tarea = sqrt(sigma_p_yy) * sin(v->grazing) / v->sound_speed ;
         double Tsr = 0.5 * sqrt(_pulse*_pulse + Tarea*Tarea) ;
         double time = u->travel_time + v->travel_time + Tsr ;
-        levels->add_gaussian( energy, time, Tsr, v->launch_az ) ;
-//        vector<double> time_exp = (_two_way_time-time) * ( 1.0 / Tsr ) ;
-//        time_exp = element_prod( time_exp, time_exp ) ;
-//        vector<double> _time_spread = ( _energy / ( Tsr * sqrt(TWO_PI) ) ) * exp( -0.5 * time_exp ) ;
-//        #ifdef DEBUG_CONVOLUTION
-//            cout << "        Lp:         " << sigma_p_yy << endl ;
-//            cout << "      Tarea:        " << Tarea << endl ;
-//            cout << "       Tsr:         " << Tsr << endl ;
-//            cout << "       time:        " << time << endl ;
-//            cout << "     time diff:     " << _two_way_time-time << endl ;
-//            cout << "    time_spread:    " << _time_spread << endl ;
-//        #endif
-//        _reverberation_curve += _time_spread ;
+        levels->add_gaussian( energy, time, Tsr, v->az_index ) ;
     }
 }

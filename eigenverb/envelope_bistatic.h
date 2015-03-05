@@ -100,10 +100,9 @@ class USML_DECLSPEC envelope_bistatic : public envelope_generator {
          * level curve.
          */
         void convolve_eigenverbs(
-                const eigenverb_list& source,
-                const eigenverb_list& receiver,
+                const eigenverb_tree& source,
+                const eigenverb_tree& receiver,
                 envelope_collection* levels ) ;
-//        void convolve_eigenverbs( const eigenverb_collection::eigenverb_tree* set ) ;
 
         /**
          * Defines the type of boundary model for the bottom.

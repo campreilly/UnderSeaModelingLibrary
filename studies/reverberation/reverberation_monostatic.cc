@@ -65,10 +65,10 @@ int main() {
 
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( lat, lng, alt ) ;
-//    seq_rayfan de ;
+    seq_rayfan de ;
 //    seq_rayfan de( -90.0, 0.0, 91 ) ;
-    seq_linear de( -89.5, 0.5, 1.0 ) ;
-    seq_linear az( 0.0, 360.0, 360.0 ) ;
+//    seq_linear de( -89.5, 0.5, 1.0 ) ;
+    seq_linear az( 0.0, 15.0, 360.0 ) ;
 
     wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
     eigenverb_collection monostatic( lng, lat, M_PI/10.0, M_PI/10.0, ocean.num_volume() ) ;
@@ -111,8 +111,11 @@ int main() {
     os << std::setprecision(18);
     cout << std::setprecision(18);
 
-    vector<double> r =
-            SL + 10.0*log10( (levels.envelopes(0) + levels.envelopes(1)) ) ;
+    vector<double> r = levels.envelopes(0) ;
+    for(size_t i=1; i<az.size(); ++i) {
+        r += levels.envelopes(i) ;
+    }
+    r = SL + 10.0*log10( r ) ;
     for ( size_t i=0; i < bins; ++i ) {
         if( i % 10 == 0 ) {
             cout << "reverb_level(" << i << "): " << r(i) << endl ;

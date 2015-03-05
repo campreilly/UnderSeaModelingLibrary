@@ -17,36 +17,6 @@ envelope_bistatic::envelope_bistatic(
 {
     _pulse = pulse ;
     _max_time = max_time ;
-        // Set all local member variables for use in calculations
-//    _pulse = pulse ;
-//    _max_index = num_bins-1 ;
-//    _max_time = max_time ;
-//        // extract pointers to various spreading/boundary model(s)
-//    _bottom_boundary = &ocean.bottom() ;
-//    _surface_boundary = &ocean.surface() ;
-//
-//    size_t _n = ocean.num_volume() ;
-//    if ( _n > 0 ) {
-//        _receiver_upper.resize( _n ) ;
-//        _receiver_lower.resize( _n ) ;
-//        _source_upper.resize( _n ) ;
-//        _source_lower.resize( _n ) ;
-//    }
-//
-//        // Grab this wave's ID, used to determine volume layer interactions
-//    _source_origin = wave_source.ID() ;
-//    _receiver_origin = wave_receiver.ID() ;
-//        // Initialize all the memory of _reverberation_curve
-//    _reverberation_curve.resize( num_bins ) ;
-//    for(vector<double>::iterator i=_reverberation_curve.begin();
-//            i!=_reverberation_curve.end(); ++i) {
-//        (*i) = 1e-20 ;
-//    }
-//    _two_way_time.resize( num_bins ) ;
-//    double resolution = max_time / num_bins ;
-//    for(size_t i=0; i<num_bins; ++i) {
-//        _two_way_time[i] = i * resolution ;
-//    }
 }
 
 /**
@@ -69,8 +39,8 @@ void envelope_bistatic::compute_bottom_energy(
     #ifdef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_bistatic::compute_bottom_energy()"
              << endl ;
-//        cout << "Number of source bottom verbs: " << _source_bottom.size() << endl ;
-//        cout << "Number of receiver bottom verbs: " << _receiver_bottom.size() << endl ;
+//        cout << "Number of source bottom verbs: " << source.bottom().size() << endl ;
+//        cout << "Number of receiver bottom verbs: " << receiver.bottom().size() << endl ;
     #endif
     _current_boundary = _bottom_boundary ;
     convolve_eigenverbs( source.bottom(), receiver.bottom(), levels ) ;
@@ -88,8 +58,8 @@ void envelope_bistatic::compute_surface_energy(
     #ifdef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_bistatic::compute_surface_energy()"
              << endl ;
-//        cout << "Number of source surface verbs: " << _source_surface.size() << endl ;
-//        cout << "Number of receiver surface verbs: " << _receiver_surface.size() << endl ;
+//        cout << "Number of source surface verbs: " << source.surface().size() << endl ;
+//        cout << "Number of receiver surface verbs: " << receiver.surface().size() << endl ;
     #endif
     _current_boundary = _surface_boundary ;
     convolve_eigenverbs( source.surface(), receiver.surface(), levels ) ;
@@ -159,20 +129,11 @@ void envelope_bistatic::compute_lower_volume_energy(
  * a contribution is significant enough.
  */
 void envelope_bistatic::convolve_eigenverbs(
-    const eigenverb_list& source,
-    const eigenverb_list& receiver,
+    const eigenverb_tree& source,
+    const eigenverb_tree& receiver,
     envelope_collection* levels )
 {
-    BOOST_FOREACH( eigenverb s, source )
-            BOOST_FOREACH( eigenverb r, receiver )
-                compute_contribution( &s, &r, levels ) ;
-//    for(std::vector<eigenverb>::iterator i=set1->begin();
-//            i!=set1->end(); ++i)
-//    {
-//        for(std::vector<eigenverb>::iterator j=set2->begin();
-//                j!=set2->end(); ++j)
-//        {
-//            compute_contribution( &(*i), &(*j) ) ;
-//        }
-//    }
+//    BOOST_FOREACH( eigenverb s, source )
+//            BOOST_FOREACH( eigenverb r, receiver )
+//                compute_contribution( &s, &r, levels ) ;
 }
