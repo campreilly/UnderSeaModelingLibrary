@@ -34,15 +34,26 @@ BOOST_AUTO_TEST_CASE(init_test) {
 
     sensorIDType receivers[] = { 1, 5, 6, 8 };
 
+    spMap->add_sensor_source(sources[0]);
+
     for ( unsigned i = 0; i < sizeof(sources); ++i )
     {
         for ( unsigned j = 0; j < sizeof(receivers); ++j )
         {
-            spMap->add_sensor_pair(sources[i], receivers[j], data);
+            spMap->add_sensor_pair(sources[i], receivers[j]);
         }
     }
 
     //spMap->find(1);
+
+    for (outer_map_type::iterator oi = spMap->begin(); oi != spMap->end(); ++oi)
+    {
+        inner_map_type &im = oi->second;
+        for (inner_map_type::iterator ii = im.begin(); ii != im.end(); ++ii)
+        {
+            cout << "_map[" << oi->first << "][" << ii->first << "] =" << endl;
+        }
+    }
 
     // Run with valgrind memcheck to verify.
     delete spMap;

@@ -42,19 +42,16 @@ public:
     /**
      * proploss - contains targets and eigenrays 
      */
-    
     proploss_shared_ptr proploss;
 	
     /**
     * envelopes - contains the reverb envelopes
     */
-
     envelopes_shared_ptr envelopes;
 
     /**
     * proploss - contain all eigenverbs
     */
-
     eigenverbs_shared_ptr eigenverbs;
 
 };

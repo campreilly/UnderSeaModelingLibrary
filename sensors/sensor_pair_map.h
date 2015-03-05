@@ -1,13 +1,14 @@
 
 ///////////////////////////////////////////////////////////
-//  sensor_pair_map.h
-//  Implementation of the Class sensor_pair_map
+//  @file sensor_pair_map.h
+//  Definition of the Class sensor_pair_map
 //  Created on:      26-Feb-2015 5:46:35 PM
 //  Original author: Ted Burns, AEgis Technologies
 ///////////////////////////////////////////////////////////
 
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <utility>
 
@@ -31,7 +32,14 @@ using namespace eigenverb ;
 /// @ingroup sensors
 /// @{
 
-typedef std::pair<sensorIDType, sensorIDType> key_type;
+
+/**
+ * The _map is a std:map < sourceID_key, payload >. The payload of the outer
+ * map is a std::map < receiverID_key, data>. The payload of the inner map
+ * is a reference to data_collections structure.
+ */
+typedef std::map<sensorIDType, data_collections> inner_map_type;
+typedef std::map<sensorIDType, inner_map_type> outer_map_type;
 
 
 /**
@@ -39,8 +47,8 @@ typedef std::pair<sensorIDType, sensorIDType> key_type;
  * The sensor pair contains a source, receiver acoustic pair.
  * The sensor_pair_map stores pointers to the data required for each sensor pair.
  * This class inherits it's base map from the std::map.
- * The sensor_pair_map contists of two keys and a pointer to the data_collections. 
- * The first one represents the source an the second key represents the reciever. 
+ * The sensor_pair_map consists of two keys and a pointer to the data_collections.
+ * The first one represents the source an the second key represents the receiver.
  */
 class USML_DECLSPEC sensor_pair_map : public sensor_listener
 {
@@ -98,13 +106,17 @@ public:
     */
     bool sensor_changed(xmitRcvModeType mode, sensorIDType sensorID);
 
+    /**
+    *
+    */
+    void add_sensor_source(sensorIDType sourceID);
+
 	/**
 	 * 
 	 * @param sourceID
      * @param receiverID
-     * @param data the data_collections structure 
 	 */
-    void add_sensor_pair(sensorIDType sourceID, sensorIDType receiverID, data_collections data);
+    void add_sensor_pair(sensorIDType sourceID, sensorIDType receiverID);
 
     /**
     *
@@ -113,21 +125,45 @@ public:
     */
     void remove_sensor_pair(sensorIDType sourceID, sensorIDType receiverID);
 
-private:
+    /**
+    * Returns an iterator to the beginning of the map
+    * @result outer_map_type::iterator
+    */
+    outer_map_type::iterator begin(){
+        return _map.begin();
+    }
 
     /**
-    * finds the data_collections associated with the mode, and sensorID.
-    * @param mode  sensor type - Receiver, Source, or Both
-    * @param sensorID
+    * Returns an iterator to the end of the map
+    * @result outer_map_type::iterator
     */
-    void find(xmitRcvModeType mode, sensorIDType sensorID) const;
+    outer_map_type::iterator end(){
+        return _map.end();
+    }
+
+    /**
+     * finds data associated with sourceID.
+     * @param sourceID
+     * @result inner_map_type pointer
+     */
+    inner_map_type* find(sensorIDType sourceID);
+
+    /**
+     * finds the data_collections associated with the mode, and sensorID.
+     * @param mode  sensor type - Receiver, Source, or Both
+     * @param sensorID
+     */
+    void find(const usml::sensors::xmitRcvModeType mode, sensorIDType sensorID);
+
+
+private:
 
     /**
     * finds the data_collections structure associated with the key_pair.
     * @param key_pair is the associated key.
     * @return data_collections structure.
     */
-    void find_pair(const key_type key_pair) const;
+    void find_pair(const int key_pair) const;
 
     /**
     * Inserts the supplied data_collections structure into the map 
@@ -135,7 +171,7 @@ private:
     * @param key_pair is the associated key to the payload_type.
     * @param payload to be inserted.
     */
-    void insert(key_type key_pair, data_collections payload);
+    void insert(int key_pair, data_collections& payload);
 
 protected:
     /**
@@ -161,10 +197,11 @@ protected:
      static sensor_pair_map* _instance;
 
     /**
-    * The std::map that stores the sourceID and receiverID in a std::pair for the "first" item
-    * of the map. The second item is the payload of the map and is a data_collections structure.
+    * The _map is a std:map < sourceID_key, payload >. The payload of the outer
+    * map is a std::map < receiverID_key, data>. The payload of the inner map
+    * is a reference to data_collections structure.
     */
-    std::map< std::pair<sensorIDType, sensorIDType>, data_collections& > _map ;
+     outer_map_type _map ;
 
 };
 
