@@ -33,7 +33,7 @@ int main() {
     const double lng = 0.0 ;
     const double alt = 0.0 ;
     const double c0 = 1500.0 ;              // constant sound speed
-    const double depth = 3000.0 ;
+    const double depth = 200.0 ;
     size_t bins = time_max / resolution ;
     const double SL = 200.0 ;
 
@@ -68,10 +68,11 @@ int main() {
     seq_rayfan de ;
 //    seq_rayfan de( -90.0, 0.0, 91 ) ;
 //    seq_linear de( -89.5, 0.5, 1.0 ) ;
-    seq_linear az( 0.0, 15.0, 360.0 ) ;
+    seq_linear az( 0.0, 180.0, 360.0 ) ;
 
     wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
-    eigenverb_collection monostatic( lng, lat, M_PI/10.0, M_PI/10.0, ocean.num_volume() ) ;
+    eigenverb_collection monostatic( ocean.num_volume() ) ;
+//    eigenverb_collection monostatic( lng, lat, M_PI/10.0, M_PI/10.0, ocean.num_volume() ) ;
     wave.add_eigenverb_listener( &monostatic ) ;
 
 	#ifdef MONOSTATIC_DEBUG

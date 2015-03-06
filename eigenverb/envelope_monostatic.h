@@ -100,7 +100,7 @@ class USML_DECLSPEC envelope_monostatic : public envelope_generator {
          * level curve.
          */
         void convolve_eigenverbs(
-                const eigenverb_tree& source,
+                const eigenverb_list& source,
                 envelope_collection* levels ) ;
 //        void convolve_eigenverbs( const eigenverb_collection::eigenverb_tree* set ) ;
 

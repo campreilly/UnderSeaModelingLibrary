@@ -48,10 +48,10 @@ void envelope_monostatic::compute_bottom_energy(
         const eigenverb_collection& receiver,
         envelope_collection* levels )
 {
-    #ifdef EIGENVERB_MODEL_DEBUG
+    #ifndef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_monostatic::compute_bottom_energy()"
              << endl ;
-        cout << "Number of bottom eigenverbs: " << source.bottom.size() << endl ;
+        cout << "Number of bottom eigenverbs: " << source.bottom().size() << endl ;
     #endif
     _current_boundary = _bottom_boundary ;
     convolve_eigenverbs( source.bottom(), levels ) ;
@@ -66,10 +66,10 @@ void envelope_monostatic::compute_surface_energy(
     const eigenverb_collection& receiver,
     envelope_collection* levels )
 {
-    #ifdef EIGENVERB_MODEL_DEBUG
+    #ifndef EIGENVERB_MODEL_DEBUG
         cout << "**** Entering eigenverb_monostatic::compute_surface_energy()"
              << endl ;
-        cout << "Number of surface eigenverbs: " << source.surface.size() << endl ;
+        cout << "Number of surface eigenverbs: " << source.surface().size() << endl ;
     #endif
     _current_boundary = _surface_boundary ;
     convolve_eigenverbs( source.surface(), levels ) ;
@@ -133,17 +133,20 @@ void envelope_monostatic::compute_lower_volume_energy(
  * a contribution is significant enough.
  */
 void envelope_monostatic::convolve_eigenverbs(
-    const eigenverb_tree& source,
+    const eigenverb_list& source,
     envelope_collection* levels )
 {
-    eigenverb_list rec ;
-    source.query( eigenverb_box(), &rec ) ;
-    BOOST_FOREACH( eigenverb r, rec )
-    {
-        eigenverb_list src ;
-        eigenverb_box ebox( r ) ;
-        source.query( ebox, &src ) ;
-        BOOST_FOREACH( eigenverb s, src )
-            compute_contribution( &r, &s, levels ) ;
-    }
+    BOOST_FOREACH( eigenverb r, source )
+            BOOST_FOREACH( eigenverb s, source )
+                compute_contribution( &r, &s, levels ) ;
+//    eigenverb_list rec ;
+//    source.query( eigenverb_box(), &rec ) ;
+//    BOOST_FOREACH( eigenverb r, rec )
+//    {
+//        eigenverb_list src ;
+//        eigenverb_box ebox( r ) ;
+//        source.query( ebox, &src ) ;
+//        BOOST_FOREACH( eigenverb s, src )
+//            compute_contribution( &r, &s, levels ) ;
+//    }
 }

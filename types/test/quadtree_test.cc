@@ -24,19 +24,19 @@ BOOST_AUTO_TEST_CASE( quadtree_points ) {
     cout << "=== quadtree_test: quadtree_points ===" << endl;
 
     cout << "Creating a quadtree..." ;
-    quadtree_type<point,5>::points point_tree(0,0,100,100) ;
+    quadtree_type<point,1000>::points point_tree(-5000,-5000,10000,10000) ;
     cout << "done." << endl ;
 
     point p ;
-    box b( 22, 71, 70, 10 ) ;
-//    box b( 0, 0, 74, 100 ) ;
+//    box b( 22, 71, 70, 10 ) ;
+    box b( -100, -37, 45, 20 ) ;
     list<point> truth ;
     srand(1) ;
-    size_t N = 50 ;
+    size_t N = 1000000 ;
     cout << "Populating the quadtree..." ;
     for(size_t i=0; i<N; ++i) {
-        p.x = rand() % 100 ;
-        p.y = rand() % 100 ;
+        p.x = rand() % 5000 * std::pow( -1.0, i ) ;
+        p.y = rand() % 5000 * std::pow( -1.0, i ) ;
         if( b.x <= p.x && p.x <= (b.x+b.width) ) {
             if( b.y <= p.y && p.y <= (b.y+b.height) ) {
                 truth.push_back( p ) ;

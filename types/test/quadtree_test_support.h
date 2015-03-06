@@ -86,5 +86,8 @@ void print_list( const L& out ) {
  */
 template<class P>
 bool sort_by_x( const P& p1, const P& p2 ) {
-    return p1.x < p2.x ;
+    if( p1.x == p2.x )
+        return p1.y < p2.y ;
+    else
+        return p1.x < p2.x ;
 }
