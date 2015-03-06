@@ -137,9 +137,9 @@ void sensor::update_fathometers(proploss* fathometers)
 }
 
 /**
-*
-* @param eigenverbs
-*/
+ *
+ * @param eigenverbs
+ */
 void sensor::update_eigenverbs(eigenverb_collection* eigenverbs)
 {
 
@@ -179,9 +179,9 @@ bool sensor::remove_sensor_listener(sensor_listener* listener)
 }
 
 /**
-* For each sensor_listener in the _sensor_listener_vec vector
-* call the sensor_changed method with the sensorID.
-*/
+ * For each sensor_listener in the _sensor_listener_vec vector
+ * call the sensor_changed method with the sensorID.
+ */
 bool sensor::notify_sensor_listeners(sensorIDType sensorID)
 {
 
@@ -189,7 +189,7 @@ bool sensor::notify_sensor_listeners(sensorIDType sensorID)
         iter != _sensor_listener_vec.end(); ++iter )
     {
         sensor_listener* pListener = *iter;
-        pListener->sensor_changed(_xmitRcvMode, sensorID);
+        pListener->sensor_changed(sensorID, _xmitRcvMode);
     }
 
     return ( _sensor_listener_vec.size() > 0 );

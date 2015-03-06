@@ -14,12 +14,14 @@ namespace sensors {
  * @version 1.0
  * @created 10-Feb-2015 12:49:09 PM
  */
-enum xmitRcvModeType
+enum xmitRcvMode
 {
     RECEIVER = 1,
 	SOURCE = 2,
 	BOTH = 3
 };
+
+typedef xmitRcvMode xmitRcvModeType;
 
 } // end of namespace sensors
 } // end of namespace usml

@@ -8,12 +8,43 @@
 
 using namespace usml::sensors;
 
-void sensor_map::erase(const sensorIDType sensorID)
+/**
+ * Destructor - See singleton_map destructor.
+ */
+sensor_map::~sensor_map()
 {
 
 }
 
-void sensor_map::update(const sensorIDType sensorID, const sensor* sensor)
+/**
+ * Removes a sensor pointer from the sensor_map
+ */
+bool sensor_map::erase(const sensorIDType sensorID)
 {
+    bool result = false;  // EVAR needs to return correct code
+                          // when keyID does not pre-exist
+    // Check for Pre-existance
+    if (find(sensorID) != 0)
+    {
+        //_map.erase(sensorID );
+        result = true;
+    }
+    return result;
+}
 
+/**
+ *  * Updates a pre-existing sensor pointer at the sensorID key.
+ */
+bool sensor_map::update(const sensorIDType sensorID, const sensor* sensor)
+{
+    // EVAR needs to return correct error code
+    // when keyID does not pre-exist
+    bool result = false;
+
+    // Check for Pre-existance
+    if (find(sensorID) != 0)
+    {
+        //result = insert(sensorID, sensor);
+    }
+    return result;
 }

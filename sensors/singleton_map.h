@@ -96,10 +96,18 @@ public:
     * Inserts the supplied payload_type into the map with the key provided.
     * @param keyID is the associated key to the payload_type.
     * @param payload to be inserted.
+    * @return false if keyID was already in the map.
     */
-    void insert(key_type keyID, payload_type payload)
+    bool insert(key_type keyID, payload_type payload)
     {
-        _map.insert(std::pair<key_type, payload_type >(keyID, payload) );
+        bool result = false;  // EVAR needs to return correct
+                              // when keyID pre-exist
+        // Check for Pre-existance
+        if (this->find(keyID) == 0) {
+            _map.insert(std::pair<key_type, payload_type >(keyID, payload) );
+            result = true;
+        }
+        return result;
     }
 
 protected:

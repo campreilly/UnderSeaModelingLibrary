@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <boost/shared_ptr.hpp>
+
 #include <usml/usml_config.h>
 
 namespace usml {
@@ -21,14 +23,10 @@ class USML_DECLSPEC envelope_collection
 public:
 	envelope_collection();
 	virtual ~envelope_collection();
-
-	/**
-	 * 
-	 * @param envelopes
-	 */
-    void add_envelope(envelope_collection* envelopes);
-
 };
+
+// Reverb Envelopes
+typedef boost::shared_ptr <envelope_collection> envelopes_shared_ptr;
 
 /// @}
 } // end of namespace eigenverb

@@ -335,6 +335,9 @@ public:
 
 };
 
+// proploss shared_ptr
+typedef boost::shared_ptr<proploss> proploss_shared_ptr;
+
 /// @}
 } // end of namespace waveq3d
 } // end of namespace usml

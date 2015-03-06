@@ -18,12 +18,3 @@ envelope_collection::~envelope_collection()
 {
 
 }
-
-/**
- * 
- * @param envelopes 
- */
-void envelope_collection::add_envelope(envelope_collection* envelopes)
-{
-
-}

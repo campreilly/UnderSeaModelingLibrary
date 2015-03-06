@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <boost/shared_ptr.hpp>
+
 #include <usml/usml_config.h>
 
 namespace usml {
@@ -23,6 +25,9 @@ public:
 	virtual ~eigenverb_collection();
 
 };
+
+// eigenverbs
+typedef boost::shared_ptr <eigenverb_collection> eigenverbs_shared_ptr;
 
 /// @}
 } // end of namespace eigenverb

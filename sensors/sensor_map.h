@@ -33,25 +33,28 @@ namespace sensors {
 class USML_DECLSPEC sensor_map : public singleton_map <const sensorIDType, sensor* >
 {
 public:
+
     /**
      * Destructor - See singleton_map destructor.
      */
 	virtual ~sensor_map();
 
 	/**
-	 * 
-	 * @param sensorID
-	 */
-	void erase(const sensorIDType sensorID);
+     * Removes a sensor pointer from the sensor_map
+     * @param sensorID the ID for the sensor.
+     * @return false if sensorID is not found in the map
+     */
+	bool erase(const sensorIDType sensorID);
 
 	/**
-	 * 
-	 * @param sensorID
-	 * @param sensor
+	 * Updates a pre-existing sensor pointer at the sensorID key.
+	 * @param sensorID the ID for the sensor in the map.S
+	 * @param sensor pointer
 	 */
-	void update(const sensorIDType sensorID, const sensor* sensor);
+	bool update(const sensorIDType sensorID, const sensor* sensor);
 
 protected:
+
     /**
      * Default Constructor
      *   Protected to prevent access other than instance call
