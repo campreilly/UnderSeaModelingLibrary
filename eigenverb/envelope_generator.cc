@@ -35,6 +35,7 @@ void envelope_generator::compute_contribution(
     double range = v->position.gc_range( u->position ) ;
     double xs = range * sin( alpha ) ;
     double ys = range * cos( alpha ) ;
+    double cos_2alpha = cos( 2.0 * alpha ) ;
 
         // Compute the intersection of the gaussian profiles
     double Wr = v->sigma_az ;
@@ -46,11 +47,11 @@ void envelope_generator::compute_contribution(
     double Ls = u->sigma_de ;
     double Ls2 = Ls*Ls ;
     double s_minus = Ls2 - Ws2 ;
-    double r_minus = Ls2 - Ws2 ;
+    double r_minus = Lr2 - Wr2 ;
     double s_plus = Ls2 + Ws2 ;
-    double det_sr = 0.5 * ( 2.0*(Ls2*Ws2 + Lr2*Wr2) + s_plus*(Lr2+Wr2) - s_minus*r_minus*cos(2.0*alpha) ) ;
-    double kappa = -0.25 * ( xs*xs*(s_plus + s_minus*cos(2.0*alpha) + 2.0*Lr2)
-                             + ys*ys*(s_plus - s_minus*cos(2.0*alpha) + 2.0*Wr2)
+    double det_sr = 0.5 * ( 2.0*(Ls2*Ws2 + Lr2*Wr2) + s_plus*(Lr2+Wr2) - s_minus*r_minus*cos_2alpha ) ;
+    double kappa = -0.25 * ( xs*xs*(s_plus + s_minus*cos_2alpha + 2.0*Lr2)
+                             + ys*ys*(s_plus - s_minus*cos_2alpha + 2.0*Wr2)
                              - xs*ys*s_minus*sin(2.0*alpha) ) / det_sr ;
 //    double det_sr = 0.5 * ( 2.0*(Ls2*Ws2 + Lr2*Wr2) + (Ls2+Ws2)*(Lr2+Wr2) - (Ls2-Ws2)*(Lr2-Wr2)*cos(2.0*alpha) ) ;
 //    double kappa = -0.25 * (xs*xs*((Ls2+Ws2)+(Ls2-Ws2)*cos(2.0*alpha)+2.0*Lr2)
@@ -84,8 +85,10 @@ void envelope_generator::compute_contribution(
         // Only added value if contribution is significant
     if ( energy > 1e-18 ) {
             // Calculate the time spread of the energy
-        double sigma_p_yy = ( Lr2 * ( Wr2*Ws2 + Ls2*(Wr2+2.0*Ws2) + Wr2*(Ls2-Ws2)*cos(2.0*alpha) ) ) /
-            ( Ls2*Wr2 + 2.0*Ls2*Ws2 + Wr2*Ws2 + Lr2*(Ls2+2.0*Wr2+Ws2) - (Lr2-Wr2)*(Ls2-Ws2)*cos(2.0*alpha) ) ;
+        double sigma_p_yy = ( Lr2 * ( Wr2*Ws2 + Ls2*(Wr2+2.0*Ws2) + Wr2*s_minus*cos_2alpha ) ) /
+            ( Ls2*Wr2 + 2.0*Ls2*Ws2 + Wr2*Ws2 + Lr2*(Ls2+2.0*Wr2+Ws2) - r_minus*s_minus*cos_2alpha ) ;
+//        double sigma_p_yy = ( Lr2 * ( Wr2*Ws2 + Ls2*(Wr2+2.0*Ws2) + Wr2*(Ls2-Ws2)*cos_2alpha ) ) /
+//            ( Ls2*Wr2 + 2.0*Ls2*Ws2 + Wr2*Ws2 + Lr2*(Ls2+2.0*Wr2+Ws2) - (Lr2-Wr2)*(Ls2-Ws2)*cos_2alpha ) ;
         double Tarea = sqrt(sigma_p_yy) * sin(v->grazing) / v->sound_speed ;
         double Tsr = 0.5 * sqrt(_pulse*_pulse + Tarea*Tarea) ;
         double time = u->travel_time + v->travel_time + Tsr ;

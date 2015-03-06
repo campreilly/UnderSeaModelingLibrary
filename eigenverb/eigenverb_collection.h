@@ -92,6 +92,14 @@ class USML_DECLSPEC eigenverb_collection {
          */
         bool volume() const ;
 
+        /**
+         * Saves the eigenverbs from an interface to a netcdf file
+         *
+         * @param filename
+         * @param i
+         */
+        void write_netcdf( const char* filename, interface_type i ) ;
+
     protected:
 
         /**

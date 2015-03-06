@@ -68,7 +68,7 @@ int main() {
     seq_rayfan de ;
 //    seq_rayfan de( -90.0, 0.0, 91 ) ;
 //    seq_linear de( -89.5, 0.5, 1.0 ) ;
-    seq_linear az( 0.0, 180.0, 360.0 ) ;
+    seq_linear az( 0.0, 45.0, 360.0 ) ;
 
     wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
     eigenverb_collection monostatic( ocean.num_volume() ) ;
@@ -93,10 +93,15 @@ int main() {
     	wave.close_netcdf() ;
 	#endif
 
-   // compute coherent propagation loss and write eigenrays to disk
-//    const char* eigenverb_file = "eigenverb_data.txt" ;
-//    cout << "writing eigenverb data to " << eigenverb_file << endl ;
-//    verb_model->save_eigenverbs(eigenverb_file) ;
+   // write eigenverbs to disk
+    #ifdef MONOSTATIC_DEBUG
+        const char* bottom_eigenverbs = USML_STUDIES_DIR "/reverberation/monostatic_eigenverbs_bottom.nc" ;
+        const char* surface_eigenverbs = USML_STUDIES_DIR "/reverberation/monostatic_eigenverbs_surface.nc" ;
+        cout << "writing bottom eigenverbs to " << bottom_eigenverbs << endl ;
+        monostatic.write_netcdf(bottom_eigenverbs, usml::eigenverb::BOTTOM) ;
+        cout << "writing surface eigenverbs to " << surface_eigenverbs << endl ;
+        monostatic.write_netcdf(surface_eigenverbs, usml::eigenverb::SURFACE) ;
+    #endif
 
     envelope_collection levels( resolution, bins, az.size() ) ;
     envelope_monostatic reverb( ocean, T0, time_max ) ;
@@ -106,23 +111,27 @@ int main() {
     	reverb.generate_envelopes( monostatic, monostatic, &levels ) ;
     }
 
-    cout << "writing reverberation curve to " << csvname << endl;
-    std::ofstream os(csvname);
-    os << "time,intensity" << endl ;
-    os << std::setprecision(18);
-    cout << std::setprecision(18);
+    const char* reverb_file = USML_STUDIES_DIR "/reverberation/monostatic_envelopes.nc" ;
+    cout << "writing reverberation curves to " << reverb_file << endl ;
+    levels.write_netcdf( reverb_file ) ;
+
+//    cout << "writing reverberation curve to " << csvname << endl;
+//    std::ofstream os(csvname);
+//    os << "time,intensity" << endl ;
+//    os << std::setprecision(18);
+//    cout << std::setprecision(18);
 
     vector<double> r = levels.envelopes(0) ;
-    for(size_t i=1; i<az.size(); ++i) {
-        r += levels.envelopes(i) ;
-    }
+//    for(size_t i=1; i<az.size(); ++i) {
+//        r += levels.envelopes(i) ;
+//    }
     r = SL + 10.0*log10( r ) ;
     for ( size_t i=0; i < bins; ++i ) {
         if( i % 10 == 0 ) {
             cout << "reverb_level(" << i << "): " << r(i) << endl ;
         }
-        os << ( i * time_max / bins )
-           << "," << r(i)
-           << endl ;
+//        os << ( i * time_max / bins )
+//           << "," << r(i)
+//           << endl ;
     }
 }

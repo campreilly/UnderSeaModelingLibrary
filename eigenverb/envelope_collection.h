@@ -8,6 +8,7 @@
 #include <usml/types/quad.h>
 #include <usml/ublas/vector_math.h>
 #include <boost/foreach.hpp>
+#include <netcdfcpp.h>
 
 using boost::numeric::ublas::vector ;
 using namespace usml::ublas ;
@@ -70,6 +71,11 @@ class USML_DECLSPEC envelope_collection {
           * Returns the entire reveberation envelope collection
           */
          vector<vector<double>*> envelopes() const ;
+
+         /**
+          * Writes the envelope data to disk
+          */
+         void write_netcdf( const char* filename ) ;
 
     private:
 
