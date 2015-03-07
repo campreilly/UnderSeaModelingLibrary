@@ -26,7 +26,7 @@ namespace sensors {
  * usml/sensors/singleton_map.h A typedef of paramsIDType has been defined to
  * allow for modification of the key of the map at a later time if needed.
  *
- * @author Ted Burns, AEgis Technologies Inc.
+ * @author Ted Burns, AEgis Technologies Group, Inc.
  * @version 1.0
  * @updated 27-Feb-2015 3:15:08 PM
  */
@@ -57,6 +57,8 @@ private:
     source_params_map& operator=(source_params_map const&);
 
 };
+
+typedef singleton_map< const paramsIDType, const source_params* >* source_params_map_ptr;
 
 /// @}
 } // end of namespace sensors

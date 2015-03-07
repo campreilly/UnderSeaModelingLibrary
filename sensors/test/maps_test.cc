@@ -31,12 +31,16 @@ using namespace usml::sensors;
 * Also test the find method and the destructor.
 * Generate errors if pointer values are not equal.
 * For Destructor testing run with Valgrind memcheck.
+*
+* @author Ted Burns, AEgis Technologies Group, Inc.
+* @version 1.0
+* @updated 6-Mar-2015 3:15:03 PM
 */
 BOOST_AUTO_TEST_CASE(beam_pattern_test) {
 
     cout << "=== maps_test: beam_pattern_test ===" << endl;
 
-    singleton_map < const beamIDType, const beam_pattern_model* >* bpMap = beam_pattern_map::instance();
+    beam_pattern_map_ptr bpMap = beam_pattern_map::instance();
 
     beam_pattern_model* beamModelHeap1 = new beam_pattern_omni();
    
@@ -76,7 +80,7 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 
     cout << "=== maps_test: source_params_test ===" << endl;
 
-    singleton_map< const paramsIDType, const source_params* >* spMap = source_params_map::instance();
+    source_params_map_ptr spMap = source_params_map::instance();
     source_params* sourceParamsHeap1 = new source_params();
 
     // Insert
@@ -117,7 +121,7 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
     cout << "=== maps_test: receiver_params_test ===" << endl;
 
-    singleton_map< const paramsIDType, const receiver_params* >* rpMap = receiver_params_map::instance();
+    receiver_params_map_ptr rpMap = receiver_params_map::instance();
     receiver_params* paramsHeap1 = new receiver_params();
 
     // Insert
@@ -160,30 +164,40 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
     cout << "=== maps_test: sensor_test ===" << endl;
 
-
-    singleton_map< const paramsIDType, const source_params* >* spMap = source_params_map::instance();
+    source_params_map_ptr spMap = source_params_map::instance();
     source_params* src_params = new source_params();
 
     // Insert
     spMap->insert(1, src_params);
 
-    singleton_map< const paramsIDType, const receiver_params* >* rpMap = receiver_params_map::instance();
+    receiver_params_map_ptr rpMap = receiver_params_map::instance();
     receiver_params* rcv_params = new receiver_params();
 
     // Insert
     rpMap->insert(1, rcv_params);
 
+    sensor_map_ptr sMap = sensor_map::instance();
+    sensor* sensor_data;
+    sensor_data = new sensor();
 
-    singleton_map< const sensorIDType, sensor* >* sMap = sensor_map::instance();
-    sensor* sensor_data = new sensor();
+    sensor_data->source(*src_params);
+    sensor_data->receiver(*rcv_params);
 
-    // Insert
+    // insert
     sMap->insert(1, sensor_data);
 
     // find(1)
     usml::sensors::sensor* m1 = sMap->find(1);
 
+    // Check find
     BOOST_CHECK_EQUAL(m1, sensor_data);
+
+    // update
+    sensor_data = new sensor();
+
+
+
+    // erase
 
 
     // Run with valgrind memcheck to verify.

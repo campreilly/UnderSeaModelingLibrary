@@ -9,7 +9,6 @@
 #include <usml/usml_config.h>
 #include <usml/sensors/paramsIDType.h>
 #include <usml/sensors/beam_pattern_model.h>
-#include <usml/sensors/beam_pattern_map.h>
 
 namespace usml {
 namespace sensors {
@@ -18,11 +17,11 @@ namespace sensors {
 /// @{
 
 /**
- * Models all the sensor parameter characterisics whihc are unique to the source.
+ * Models all the sensor parameter characteristics which are unique to the source.
  * Contains the references to the beam_pattern and the beam_pattern_map.
  */
 /**
- * @author tedburns
+ * @author Ted Burns, AEgis Technologies Group, Inc.
  * @version 1.0
  * @created 10-Feb-2015 12:49:09 PM
  */
@@ -40,11 +39,16 @@ public:
     * @param beamMap
     */
     source_params(const paramsIDType sourceID, const double sourceStrength, 
-        const double transmitFrequency, const double initialPingTime, const double repeationInterval,
-        beam_pattern_model* source_beam, beam_pattern_map* beamMap);
-
-    // Default Constructor
+                    const double transmitFrequency, const double initialPingTime,
+                    const double repeationInterval,beam_pattern_model* source_beam);
+    /**
+     * Prevent access to default constructor
+     */
     source_params();
+
+
+     // Copy Constructor - Deep
+    source_params(const source_params& other);
 
     // Destructor
     virtual ~source_params();
@@ -70,13 +74,20 @@ public:
 
 	void ping();
 
+protected:
+
+    /**
+     * Prevent access to assignment operator
+     */
+    source_params& operator=(source_params const&);
+
 private:
+
 	paramsIDType _sourceID;
 	double _sourceStrength;
 	double _transmitFrequency;
 	double _initialPingTime;
 	double _repeationInterval;
-    beam_pattern_map* _beam_pattern_map;
     beam_pattern_model* _source_beam;
 };
 

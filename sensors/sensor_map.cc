@@ -33,9 +33,9 @@ bool sensor_map::erase(const sensorIDType sensorID)
 }
 
 /**
- *  * Updates a pre-existing sensor pointer at the sensorID key.
+ *  * Updates sensor pointer at the pre-existing sensorID key.
  */
-bool sensor_map::update(const sensorIDType sensorID, const sensor* sensor)
+bool sensor_map::update(const sensorIDType sensorID, sensor* sensor)
 {
     // EVAR needs to return correct error code
     // when keyID does not pre-exist
@@ -44,7 +44,7 @@ bool sensor_map::update(const sensorIDType sensorID, const sensor* sensor)
     // Check for Pre-existance
     if (find(sensorID) != 0)
     {
-        //result = insert(sensorID, sensor);
+        result = insert(sensorID, sensor);
     }
     return result;
 }

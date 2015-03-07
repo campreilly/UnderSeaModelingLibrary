@@ -38,18 +38,19 @@ class sensor_listener;
  * As the sensor moves all required attributes are updated. If the attributes
  * change beyond established thresholds a new reverb generation is started.
  *
- * @author Ted Burns, AEgis Technologies Inc.
+ * @author Ted Burns, AEgis Technologies Group, Inc.
  * @version 1.0
  * @updated 27-Feb-2015 3:15:01 PM
  */
 class USML_DECLSPEC sensor
 {
-
 public:
+
 	/**
-	 * Constructor
+	 * Default Constructor
 	 */
 	sensor();
+
 	/**
 	 * Constructor
 	 * @param sensorID
@@ -70,6 +71,7 @@ public:
 	 * Destructor
 	 */
 	virtual ~sensor();
+
 	/**
 	 * Set method for the sensorID attribute. The sensorID attribute is used as the
 	 * key to lookup sensors in the sensor_map.
@@ -80,6 +82,7 @@ public:
 	{
 		_sensorID = sensorID;
 	}
+
 	/**
 	 * Get method for the sensorID attribute.
 	 * @return sensorID of the sensorIDType
@@ -258,12 +261,13 @@ public:
 	}
 	
 	/**
-	 * Sets the source_params of the sensor. 
-	 * @param source_params pointer
+	 * Sets the source_params of the sensor by
+	 * making a deep copy of the data.
+	 * @param src_params source_params reference
      */
-    void source(source_params* source_params)
+    void source(const source_params& src_params)
     {
-		_source = source_params;
+		_source = new source_params(src_params);
 	}
 
 	/**
@@ -276,12 +280,13 @@ public:
 	}
 
 	/**
-	 * Sets the receiver_params of the sensor. 
-	 * @param receiver_params pointer
+	 * Sets the receiver_params of the sensor by
+     * making a deep copy of the data.
+	 * @param rcv_params receiver_params reference
 	 */
-	void receiver(receiver_params* receiver_params)
+	void receiver(const receiver_params& rcv_params)
 	{
-		_receiver = receiver_params;
+		_receiver = new receiver_params(rcv_params);
 	}
 
 	/**
@@ -311,7 +316,6 @@ public:
     */
     void update_eigenverbs(eigenverb_collection* eigenverbs);
 
-
 	/**
      * Add a sensor_listener to the _sensor_listener_vec vector
 	 * @param listener
@@ -331,6 +335,7 @@ public:
     bool notify_sensor_listeners(sensorIDType sensorID);
 
 private:
+
     sensorIDType _sensorID;
     paramsIDType _paramsID;
     xmitRcvModeType _xmitRcvMode;

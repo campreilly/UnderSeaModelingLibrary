@@ -26,7 +26,7 @@ namespace sensors {
  * sensorIDType has been defined to allow for modification of the key of the map
  * at a later time if needed.
  *
- * @author Ted Burns, AEgis Technologies Inc.
+ * @author Ted Burns, AEgis Technologies Group, Inc.
  * @version 1.0
  * @updated 27-Feb-2015 3:15:03 PM
  */
@@ -51,7 +51,7 @@ public:
 	 * @param sensorID the ID for the sensor in the map.S
 	 * @param sensor pointer
 	 */
-	bool update(const sensorIDType sensorID, const sensor* sensor);
+	bool update(const sensorIDType sensorID, sensor* sensor);
 
 protected:
 
@@ -83,6 +83,8 @@ private:
 	receiver_params_map* _receiver_params_map;
 
 };
+
+typedef singleton_map< const sensorIDType, sensor* >* sensor_map_ptr;
 
 /// @}
 } // end of namespace sensors

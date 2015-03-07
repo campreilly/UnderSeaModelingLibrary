@@ -18,8 +18,8 @@ namespace sensors {
 /// @{
 
 /**
- * Storage for all the usml/sensors namespace data payloads in use by the USML. It
- * is defined as a GOF singleton pattern, that has a std::map which implements the
+ * Storage for all the usml/sensors namespace mapped_type data in use by the USML.
+ * Defined as a GOF singleton pattern, that has a std::map which implements the
  * insert and find methods. std::map is a sorted associative container that
  * contains key-value pairs with unique keys. This class takes ownership of
  * payload_types that are pointers and deletes them in the destructor.
@@ -36,19 +36,19 @@ namespace sensors {
  * @updated 27-Feb-2015 3:15:07 PM
  */
 
-template<class K, class P>
+template<class K, class T>
 class USML_DLLEXPORT singleton_map
 {
 public:
     typedef K key_type;
-    typedef P payload_type;
-    typedef singleton_map<K,P> self_type;
-    typedef singleton_map<K,P>* self_type_ptr;
+    typedef T mapped_type;
+    typedef singleton_map<K,T> self_type;
+    typedef singleton_map<K,T>* self_type_ptr;
 
     /**
     * Singleton Constructor - Creates singleton_map instance just once, then
     * Accessible everywhere.
-    * @return  pointer to the instance of the singleton_map<key_type, payload_type>
+    * @return  pointer to the instance of the singleton_map<key_type, mapped_type>
     */
     // Static instance method
     static self_type_ptr instance()
@@ -57,18 +57,18 @@ public:
     }
 
     /**
-     * Destructor - Deletes payload_type's that are data pointers
-     *              and clears the map
+     * Destructor - Deletes the mapped_type's that
+     *              are data pointers and clears the map
      */
     virtual ~singleton_map()
     {
-        // Check if payload is a pointer
+        // Check if mapped_type is a pointer
         const std::type_info& check  = typeid(_map.begin()->second);
         const char * type_name = check.name();
         // First char will be a 'P'
         if (type_name[0] == 'P') {
 
-            typename std::map <key_type, payload_type>::iterator iter;
+            typename std::map <key_type, mapped_type>::iterator iter;
             for (iter = _map.begin(); iter != _map.end(); ++iter) {
 
                 delete iter->second;
@@ -80,11 +80,11 @@ public:
     }
 
     /**
-    * finds the payload_type associated with the keyID.
+    * Finds the mapped_type associated with the keyID.
     * @param keyID is the associated key.
-    * @return payload_type as defined by the P template parameter.
+    * @return mapped_type as defined by the T template parameter.
     */
-    payload_type find(const key_type keyID) const
+    mapped_type find(const key_type keyID) const
     {
         if (_map.count(keyID) == 0) {
             return (NULL);
@@ -93,18 +93,18 @@ public:
     }
 
     /**
-    * Inserts the supplied payload_type into the map with the key provided.
-    * @param keyID is the associated key to the payload_type.
-    * @param payload to be inserted.
+    * Inserts the supplied mapped_type into the map with the key provided.
+    * @param keyID is the associated key to the mapped_type.
+    * @param mapped is mapped_type to be inserted.
     * @return false if keyID was already in the map.
     */
-    bool insert(key_type keyID, payload_type payload)
+    bool insert(const key_type keyID, mapped_type mapped)
     {
         bool result = false;  // EVAR needs to return correct
                               // when keyID pre-exist
         // Check for Pre-existance
         if (this->find(keyID) == 0) {
-            _map.insert(std::pair<key_type, payload_type >(keyID, payload) );
+            _map.insert(std::pair<key_type, mapped_type>(keyID, mapped));
             result = true;
         }
         return result;
@@ -134,15 +134,15 @@ private:
     static self_type_ptr _instance;
 
     /**
-     * The std::map that stores the payload's by key_type
+     * The std::map that stores the mapped_types by key_type
      */
-    std::map <key_type, payload_type> _map;
+    std::map <key_type, mapped_type> _map;
 };
 
 /**
  * Initialization of private static member _instance
  */
-template <class K,class P> singleton_map<K,P>* singleton_map<K,P>::_instance=NULL;
+template <class K,class T> singleton_map<K,T>* singleton_map<K,T>::_instance=NULL;
 
 /// @}
 } // end of namespace sensors

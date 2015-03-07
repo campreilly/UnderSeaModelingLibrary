@@ -3,7 +3,7 @@
 //  @file sensor_pair_manager.h
 //  Definition of the Class sensor_pair_manager
 //  Created on:      26-Feb-2015 5:46:35 PM
-//  Original author: Ted Burns, AEgis Technologies
+//  Original author: Ted Burns, AEgis Technologies Group, Inc.
 ///////////////////////////////////////////////////////////
 
 #pragma once
@@ -39,17 +39,22 @@ using namespace eigenverb ;
  * to the data required for each sensor pair.
  * The sensor_pair_manager consists of a map for the both source and receiver data.
  * A Map which the uses the sourceID as a key to all the receiverID's for that source.
- * Another map which uses the receiverID as the key to all sourceID's for thay receiver,
+ * Another map which uses the receiverID as the key to all sourceID's for that receiver,
  * and lists of all the active sources and receivers.
  * The first one represents the source an the second key represents the receiver.
+ */
+
+/**
+ * @author Ted Burns, AEgis Technologies Group, Inc.
+ * @version 1.0
+ * @updated 6-Mar-2015 3:15:03 PM
  */
 
 typedef std::list<sensorIDType>::iterator sensor_iter;
 
 class USML_DECLSPEC sensor_pair_manager : public sensor_listener
 {
-
-public:    
+public:
 
     /**
      * Singleton Constructor - Creates sensor_pair_manager instance just once.
@@ -64,16 +69,18 @@ public:
     virtual ~sensor_pair_manager();
 
     /**
-     *
-     * @return envelopes
+     * Gets the fathometers for the sourceID requested
+     * @param sourceID ID for the source
+     * @return proploss pointer
      */
-    envelope_collection* get_envelopes();
+    proploss* get_fathometers(sensorIDType sourceID);
 
     /**
-     *
-     * @return proploss
+     * Gets the envelopes for the receiverID requested
+     * @param receiverID ID for the receiver
+     * @return envelopes in the envelope_collection pointer
      */
-    proploss* get_fathometers();
+    envelope_collection* get_envelopes(sensorIDType receiverID);
 
     /**
      * Update Proploss for the Source provided.
@@ -109,17 +116,15 @@ public:
      * Adds the sensor to the sensor_pair_manager
      * @param sensorID sensor ID
      * @param mode  sensor type: Source, Receiver or Both
-     * @return false if sensorID was already activated.
      */
-    bool add_sensor(sensorIDType sensorID, xmitRcvModeType mode);
+    void add_sensor(sensorIDType sensorID, xmitRcvModeType mode);
 
     /**
      * Removes a sensor from the sensor_pair_manager
      * @param sensorID sensor ID
      * @param mode  sensor type: Source, Receiver or Both
-     * @return false if sensorID was already activated.
      */
-    bool remove_sensor(sensorIDType sensorID, xmitRcvModeType mode);
+    void remove_sensor(sensorIDType sensorID, xmitRcvModeType mode);
 
     /**
      * Adds the source and receiver sensor pair to the sensor_pair_manager
@@ -135,14 +140,6 @@ public:
      */
     void remove_sensor_pair(sensorIDType sourceID, sensorIDType receiverID);
 
-    /**
-     * finds the data_collections associated with the mode, and sensorID.
-     * @param sensorID sensor ID
-     * @param mode sensor type: Source, Receiver or Both
-     */
-    void find(sensorIDType sensorID,  xmitRcvModeType mode);
-
-
 private:
 
     /**
@@ -150,7 +147,6 @@ private:
      * the active source and receiver lists.
      */
     void synch_sensor_pairs();
-
 
 protected:
     /**

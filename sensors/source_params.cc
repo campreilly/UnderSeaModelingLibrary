@@ -17,32 +17,40 @@ using namespace usml::sensors;
  * @param initialPingTime
  * @param repeationInterval
  * @param source_beam
- * @param beamMap
  */
 source_params::source_params(const paramsIDType sourceID, const double sourceStrength,
                             const double transmitFrequency, const double initialPingTime, const double repeationInterval,
-                            beam_pattern_model* source_beam, beam_pattern_map* beamMap)
+                            beam_pattern_model* source_beam)
     :   _sourceID(sourceID),
         _sourceStrength(sourceStrength),
         _transmitFrequency(transmitFrequency),
         _initialPingTime(initialPingTime),
         _repeationInterval(repeationInterval),
-        _source_beam(source_beam),
-        _beam_pattern_map(beamMap)
+        _source_beam(source_beam)
 {
-
 }
 
 // Default Constructor
 source_params::source_params()
 {
+}
 
+// Copy Constructor - Deep
+source_params::source_params(const source_params& other)
+    : _sourceID(other._sourceID),
+      _sourceStrength(other._sourceStrength),
+      _transmitFrequency(other._transmitFrequency),
+      _initialPingTime(other._initialPingTime),
+      _repeationInterval(other._repeationInterval),
+      _source_beam(other._source_beam->clone())
+{
 }
 
 // Destructor
 source_params::~source_params()
 {
-
+    if (_source_beam != NULL)
+        delete _source_beam;
 }
 
 void source_params::ping()
