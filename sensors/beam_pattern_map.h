@@ -24,7 +24,7 @@ namespace sensors {
  * usml/sensors/singleton_map.h A typedef of beamIDType has been defined to allow
  * for modification of the key of the map at a later time if needed.
  *
- * @author Ted Burns, AEgis Technologies Inc.
+ * @author Ted Burns, AEgis Technologies Group, Inc.
  * @version 1.0
  * @updated 27-Feb-2015 3:14:26 PM
  */
@@ -32,20 +32,22 @@ class USML_DECLSPEC beam_pattern_map : public singleton_map <const beamIDType, c
 {
 
 public:
+
     /**
-    * Destructor - See singleton_map destructor.
-    */
+     * Destructor - See singleton_map destructor.
+     */
     virtual ~beam_pattern_map();
 
-
 protected:
+
     /**
-    * Default Constructor
-    *   Protected to prevent access.
-    */
+     * Default Constructor
+     *   Protected to prevent access.
+     */
     beam_pattern_map();
 
 private:
+
     /**
      * Prevent access to copy constructor
      */
@@ -56,6 +58,8 @@ private:
      */
     beam_pattern_map& operator=(beam_pattern_map const&);
 };
+
+typedef singleton_map<const beamIDType,const beam_pattern_model*>* beam_pattern_map_ptr;
 
 /// @}
 } // end of namespace sensors

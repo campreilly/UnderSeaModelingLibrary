@@ -192,6 +192,13 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
             noalias(*level) = tmp ;
         }
 
+        /**
+         * Clone method for derived classes of beam_pattern_model
+         * to make a copy of itself.
+         */
+        virtual beam_pattern_model* clone() {
+            return NULL;
+        }
 
     private:
 

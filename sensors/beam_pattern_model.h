@@ -76,6 +76,11 @@ class USML_DECLSPEC beam_pattern_model {
                                         vector<double>* level ) = 0 ;
 
         /**
+         * clone method for derived classes to make a copy of itself.
+         */
+        virtual beam_pattern_model* clone() = 0;
+
+        /**
          * Destructor
          */
         virtual ~beam_pattern_model() {}
