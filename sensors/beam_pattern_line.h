@@ -88,14 +88,6 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
         virtual void directivity_index( const vector<double>& frequencies,
                                         vector<double>* level ) ;
 
-        /**
-         * Clone method for derived classes of beam_pattern_model
-         * to make a copy of itself.
-         */
-        virtual beam_pattern_model* clone() {
-            return NULL;
-        }
-
     protected:
 
         /**
