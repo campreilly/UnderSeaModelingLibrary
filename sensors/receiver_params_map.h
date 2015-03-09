@@ -6,8 +6,10 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include <usml/usml_config.h>
-#include <usml/sensors/singleton_map.h>
+#include <usml/sensors/map_template.h>
 #include <usml/sensors/paramsIDType.h>
 #include <usml/sensors/receiver_params.h>
 
@@ -18,33 +20,42 @@ namespace sensors {
 /// @{
 
 /**
- * Storage for all the receiver_params's in use by the USML. This class inherits
- * from the templated singleton_map class. The map stores pointers to
- * receiver_params and take's ownership of the pointers. See
- * usml/sensors/singleton_map.h A typedef of paramsIDType has been defined to
- * allow for modification of the key of the map at a later time if needed.
+ * Container for all the receiver_params's in use by the USML. This class inherits
+ * from the map_template class. This class implements the singleton GOF pattern.
+ * The map stores pointers to receiver_params's and take's ownership of the pointers.
+ * See usml/sensors/map_template.h A typedef of paramsIDType has been defined
+ * to allow for modification of the key of the map at a later time if needed.
  *
  * @author Ted Burns, AEgis Technologies Group, Inc.
  * @version 1.0
  * @updated 27-Feb-2015 3:15:00 PM
  */
 	
-class USML_DECLSPEC receiver_params_map : public singleton_map <const paramsIDType, const receiver_params*>
+class USML_DECLSPEC receiver_params_map : public map_template <const paramsIDType, const receiver_params*>
 {
-public:
-    /**
-     * Destructor - See singleton_map destructor.
-     */
-    virtual ~receiver_params_map();
 
-protected:
+public:
+
     /**
-     * Default Constructor
-     *   Protected to prevent access.
+     * Singleton Constructor - Creates receiver_params_map instance just once.
+     * Accessible everywhere.
+     * @return  pointer to the instance of the singleton receiver_params_map
      */
-	receiver_params_map();
+    static receiver_params_map* instance();
+
+    /**
+     * Destructor - See map_template destructor.
+     */
+    virtual ~receiver_params_map() {}
 
 private:
+
+	/**
+     * Default Constructor
+     *   Prevent creation/access other than static instance()
+     */
+    receiver_params_map() {}
+
 	/**
      * Prevent access to copy constructor
      */
@@ -55,9 +66,11 @@ private:
      */
 	receiver_params_map& operator=(receiver_params_map const&);
 
+	/**
+     * The singleton access pointer.
+     */
+    static receiver_params_map* _instance;
 };
-
-typedef singleton_map<const paramsIDType,const receiver_params*>* receiver_params_map_ptr;
 
 /// @}
 } // end of namespace sensors

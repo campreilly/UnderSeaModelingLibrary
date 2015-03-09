@@ -54,6 +54,7 @@ typedef std::list<sensorIDType>::iterator sensor_iter;
 
 class USML_DECLSPEC sensor_pair_manager : public sensor_listener
 {
+
 public:
 
     /**
@@ -148,14 +149,13 @@ private:
      */
     void synch_sensor_pairs();
 
-protected:
+private:
+
     /**
      * Default Constructor
-     *   Protected to prevent access.
+     *   private to prevent access.
      */
     sensor_pair_manager() {}
-
-private:
 
     /**
     * Prevent access to copy constructor

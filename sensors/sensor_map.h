@@ -7,11 +7,12 @@
 #pragma once
 
 #include <usml/usml_config.h>
-#include <usml/sensors/singleton_map.h>
-#include <usml/sensors/sensorIDType.h>
+
 #include <usml/sensors/sensor.h>
+#include <usml/sensors/sensorIDType.h>
 #include <usml/sensors/source_params_map.h>
 #include <usml/sensors/receiver_params_map.h>
+#include <usml/sensors/map_template.h>
 
 namespace usml {
 namespace sensors {
@@ -20,48 +21,40 @@ namespace sensors {
 /// @{
 
 /**
- * Storage for all the sensor's in use by the USML. This class inherits from the
- * templated singleton_map class. The map stores pointers to sensor's and take's
- * ownership of the pointers. See usml/sensors/singleton_map.h A typedef of
- * sensorIDType has been defined to allow for modification of the key of the map
- * at a later time if needed.
+ * Container for all the sensor's in use by the USML. This class inherits from
+ * the map_template class. This class implements the singleton GOF pattern.
+ * The map stores pointers to sensor's and take's ownership of the pointers.
+ * See usml/sensors/map_template.h A typedef of sensorIDType has been defined
+ * to allow for modification of the key of the map at a later time if needed.
  *
  * @author Ted Burns, AEgis Technologies Group, Inc.
  * @version 1.0
  * @updated 27-Feb-2015 3:15:03 PM
  */
-class USML_DECLSPEC sensor_map : public singleton_map <const sensorIDType, sensor* >
+class USML_DECLSPEC sensor_map : public map_template <const sensorIDType, sensor*>
 {
 public:
 
     /**
-     * Destructor - See singleton_map destructor.
+     * Singleton Constructor - Creates sensor_map instance just once.
+     * Accessible everywhere.
+     * @return  pointer to the instance of the singleton sensor_map
      */
-	virtual ~sensor_map();
-
-	/**
-     * Removes a sensor pointer from the sensor_map
-     * @param sensorID the ID for the sensor.
-     * @return false if sensorID is not found in the map
-     */
-	bool erase(const sensorIDType sensorID);
-
-	/**
-	 * Updates a pre-existing sensor pointer at the sensorID key.
-	 * @param sensorID the ID for the sensor in the map.S
-	 * @param sensor pointer
-	 */
-	bool update(const sensorIDType sensorID, sensor* sensor);
-
-protected:
+    static sensor_map* instance();
 
     /**
-     * Default Constructor
-     *   Protected to prevent access other than instance call
+     * Destructor - See map_template destructor.
      */
-	sensor_map();
+	virtual ~sensor_map() {}
 
 private:
+
+	/**
+     * Default Constructor
+     *   Prevent creation/access other than static instance()
+     */
+    sensor_map() {}
+
 	/**
      * Prevent access to copy constructor
      */
@@ -73,18 +66,10 @@ private:
 	sensor_map& operator=(sensor_map const&);
 
 	/**
-     * Access to source_params
+     * The singleton access pointer.
      */
-	source_params_map* _source_params_map;
-
-	/**
-     * Access to reciever_params
-     */
-	receiver_params_map* _receiver_params_map;
-
+    static sensor_map* _instance;
 };
-
-typedef singleton_map< const sensorIDType, sensor* >* sensor_map_ptr;
 
 /// @}
 } // end of namespace sensors

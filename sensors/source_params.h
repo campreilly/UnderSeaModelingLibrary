@@ -6,9 +6,11 @@
 
 #pragma once
 
+#include <list>
+
 #include <usml/usml_config.h>
+#include <usml/sensors/beamIDType.h>
 #include <usml/sensors/paramsIDType.h>
-#include <usml/sensors/beam_pattern_model.h>
 
 namespace usml {
 namespace sensors {
@@ -19,8 +21,7 @@ namespace sensors {
 /**
  * Models all the sensor parameter characteristics which are unique to the source.
  * Contains the references to the beam_pattern and the beam_pattern_map.
- */
-/**
+ *
  * @author Ted Burns, AEgis Technologies Group, Inc.
  * @version 1.0
  * @created 10-Feb-2015 12:49:09 PM
@@ -36,22 +37,20 @@ public:
     * @param initialPingTime
     * @param repeationInterval
     * @param source_beam
-    * @param beamMap
     */
     source_params(const paramsIDType sourceID, const double sourceStrength, 
                     const double transmitFrequency, const double initialPingTime,
-                    const double repeationInterval,beam_pattern_model* source_beam);
+                    const double repeationInterval, std::list<beamIDType>& beamList);
+
     /**
-     * Prevent access to default constructor
+     * Copy Constructor - Deep
      */
-    source_params();
-
-
-     // Copy Constructor - Deep
     source_params(const source_params& other);
 
-    // Destructor
-    virtual ~source_params();
+    /**
+     * Destructor
+     */
+    virtual ~source_params() {}
 
     /**
     * Set method for the sourceID attribute. The sourceID attribute is used as the
@@ -72,23 +71,39 @@ public:
         return _sourceID;
     }
 
+    /**
+     * Add a beam pattern to the source parameters
+     * @params beamID to be added to the list of source beams
+     */
+    void add_beam_pattern(beamIDType beamID);
+
+    /**
+     * Delete a beam pattern from the source list
+     * @params beamID to be removed from the list of source beams
+     */
+    void remove_beam_pattern(beamIDType beamID);
+
 	void ping();
 
-protected:
+private:
+
+    /**
+     * Prevent access to default constructor
+     */
+    source_params();
 
     /**
      * Prevent access to assignment operator
      */
     source_params& operator=(source_params const&);
 
-private:
 
 	paramsIDType _sourceID;
 	double _sourceStrength;
 	double _transmitFrequency;
 	double _initialPingTime;
 	double _repeationInterval;
-    beam_pattern_model* _source_beam;
+    std::list<beamIDType> _source_beams;
 };
 
 /// @}

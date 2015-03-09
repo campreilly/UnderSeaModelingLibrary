@@ -4,6 +4,8 @@
  *  Created on: 10-Feb-2015 12:49:09 PM
  */
 
+#include <algorithm>
+
 #include "source_params.h"
 
 using namespace usml::sensors;
@@ -19,19 +21,14 @@ using namespace usml::sensors;
  * @param source_beam
  */
 source_params::source_params(const paramsIDType sourceID, const double sourceStrength,
-                            const double transmitFrequency, const double initialPingTime, const double repeationInterval,
-                            beam_pattern_model* source_beam)
+                            const double transmitFrequency, const double initialPingTime,
+                            const double repeationInterval, std::list<beamIDType>& beamList)
     :   _sourceID(sourceID),
         _sourceStrength(sourceStrength),
         _transmitFrequency(transmitFrequency),
         _initialPingTime(initialPingTime),
         _repeationInterval(repeationInterval),
-        _source_beam(source_beam)
-{
-}
-
-// Default Constructor
-source_params::source_params()
+        _source_beams(beamList)
 {
 }
 
@@ -42,15 +39,24 @@ source_params::source_params(const source_params& other)
       _transmitFrequency(other._transmitFrequency),
       _initialPingTime(other._initialPingTime),
       _repeationInterval(other._repeationInterval),
-      _source_beam(other._source_beam->clone())
+      _source_beams(other._source_beams)
 {
 }
 
-// Destructor
-source_params::~source_params()
+// add_beam_pattern
+void source_params::add_beam_pattern(beamIDType beamID)
 {
-    if (_source_beam != NULL)
-        delete _source_beam;
+    _source_beams.push_back(beamID);
+}
+
+// remove_beam_pattern
+void source_params::remove_beam_pattern(beamIDType beamID)
+{
+    std::list<beamIDType>::iterator findIter;
+    findIter = std::find(_source_beams.begin(), _source_beams.end(), beamID);
+    if (findIter != _source_beams.end()){
+        _source_beams.erase(findIter);
+    }
 }
 
 void source_params::ping()

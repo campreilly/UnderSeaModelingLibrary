@@ -6,16 +6,10 @@
 
 #include <iostream>
 
-#include <usml/sensors/singleton_map.h>
-#include <usml/sensors/beams.h>
-#include <usml/sensors/beam_pattern_map.h>
-#include <usml/sensors/source_params.h>
-#include <usml/sensors/source_params_map.h>
-#include <usml/sensors/receiver_params.h>
-#include <usml/sensors/receiver_params_map.h>
-#include <usml/sensors/sensor.h>
 #include <usml/sensors/sensor_map.h>
-#include <usml/sensors/source_params_inherit_map.h>
+#include <usml/sensors/beam_pattern_map.h>
+#include <usml/sensors/source_params_map.h>
+#include <usml/sensors/receiver_params_map.h>
 
 
 BOOST_AUTO_TEST_SUITE(maps_test)
@@ -40,31 +34,31 @@ BOOST_AUTO_TEST_CASE(beam_pattern_test) {
 
     cout << "=== maps_test: beam_pattern_test ===" << endl;
 
-    beam_pattern_map_ptr bpMap = beam_pattern_map::instance();
+    beam_pattern_map* beam_map = beam_pattern_map::instance();
 
-    beam_pattern_model* beamModelHeap1 = new beam_pattern_omni();
+    beam_pattern_model* beam_heap1 = new beam_pattern_omni();
    
-    bpMap->insert(1, beamModelHeap1);
+    beam_map->insert(1, beam_heap1);
 
-    beam_pattern_model* beamModelHeap2 = new beam_pattern_omni();
+    beam_pattern_model* beam_heap2 = new beam_pattern_omni();
 
-    bpMap->insert(2, beamModelHeap2);
+    beam_map->insert(2, beam_heap2);
 
-    const usml::sensors::beam_pattern_model* bpm1 = bpMap->find(1);
+    const usml::sensors::beam_pattern_model* bpm1 = beam_map->find(1);
 
-    BOOST_CHECK_EQUAL(bpm1, beamModelHeap1);
+    BOOST_CHECK_EQUAL(bpm1, beam_heap1);
 
-    const usml::sensors::beam_pattern_model* bpm2 = bpMap->find(2);
+    const usml::sensors::beam_pattern_model* bpm2 = beam_map->find(2);
 
-    BOOST_CHECK_EQUAL(bpm2, beamModelHeap2);
+    BOOST_CHECK_EQUAL(bpm2, beam_heap2);
 
     // Check key not found returns null
-    const usml::sensors::beam_pattern_model* bpm = bpMap->find(3);
+    const usml::sensors::beam_pattern_model* bpm = beam_map->find(3);
 
     BOOST_CHECK_EQUAL(bpm, (const usml::sensors::beam_pattern_model*)0);
 
     // Run with valgrind memcheck to verify.
-    delete bpMap;
+    delete beam_map;
 }
 
 /**
@@ -80,32 +74,56 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 
     cout << "=== maps_test: source_params_test ===" << endl;
 
-    source_params_map_ptr spMap = source_params_map::instance();
-    source_params* sourceParamsHeap1 = new source_params();
+//    // Create beam_pattern_line
+//    // Physical and Environmental parameters concerning the array
+//    double c0 = 1500.0 ;
+//    double d = 0.75 ;
+//    double n = 5 ;
+//    double steering = M_PI/32.0 ;
+//    vector<double> freq( 1, 900.0 ) ;
+//
+//    beam_pattern_line array1( c0, d, n, steering ) ;
 
-    // Insert
-    spMap->insert(1, sourceParamsHeap1);
+    std::list<beamIDType> beamList1;
+    beamList1.push_back(1);
+    beamList1.push_back(2);
 
-    source_params* sourceParamsHeap2 = new source_params();
+    // Set up ID 1
+    paramsIDType sourceID = 1;
+    // Insert array in source
+    source_params* source_heap1 = new source_params(sourceID, 20, 900, 0.5, 100.0, beamList1);
 
-    // Insert
-    spMap->insert(2, sourceParamsHeap2);
+    // Grab source_map
+    source_params_map* source_map = source_params_map::instance();
+    // Insert into map
+    source_map->insert(sourceID, source_heap1);
 
-    const usml::sensors::source_params* spm1 = spMap->find(1);
+    // Set up ID 2
+    std::list<beamIDType> beamList2;
+    beamList2.push_back(3);
+    beamList2.push_back(4);
 
-    BOOST_CHECK_EQUAL(spm1, sourceParamsHeap1);
+    sourceID = 2;
+    source_params* source_heap2 = new source_params(sourceID, 10, 900, 0.5, 100.0, beamList2);
 
-    const usml::sensors::source_params* spm2 = spMap->find(2);
+    // Insert into map
+    source_map->insert(sourceID, source_heap2);
 
-    BOOST_CHECK_EQUAL(spm2, sourceParamsHeap2);
+    const usml::sensors::source_params* spm1 = source_map->find(1);
+
+    BOOST_CHECK_EQUAL(spm1, source_heap1);
+
+    const usml::sensors::source_params* spm2 = source_map->find(2);
+
+    BOOST_CHECK_EQUAL(spm2, source_heap2);
 
     // Check key not found returns null
-    const usml::sensors::source_params* spm = spMap->find(3);
+    const usml::sensors::source_params* spm3 = source_map->find(3);
 
-    BOOST_CHECK_EQUAL(spm, (const usml::sensors::source_params*)0);
+    BOOST_CHECK_EQUAL(spm3, (const usml::sensors::source_params*)0);
 
     // Run with valgrind memcheck to verify.
-    delete spMap;
+    delete source_map;
 }
 
 /**
@@ -121,34 +139,52 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
     cout << "=== maps_test: receiver_params_test ===" << endl;
 
-    receiver_params_map_ptr rpMap = receiver_params_map::instance();
-    receiver_params* paramsHeap1 = new receiver_params();
+    std::list<beamIDType> beamList1;
+    beamList1.push_back(1);
+    beamList1.push_back(2);
 
-    // Insert
-    rpMap->insert(1, paramsHeap1);
+    paramsIDType receiverID = 1;
 
-    receiver_params* paramsHeap2 = new receiver_params();
+    // Grab receiver_map
+    receiver_params_map* receiver_map = receiver_params_map::instance();
+    // Insert  beam array list in receiver
+    receiver_params* paramsHeap1 = new receiver_params(receiverID, beamList1);
 
-    // Insert
-    rpMap->insert(2, paramsHeap2);
+    // Insert receiver in receiver_map
+    receiver_map->insert(receiverID, paramsHeap1);
+
+    std::list<beamIDType> beamList2;
+    beamList2.push_back(3);
+    beamList2.push_back(4);
+
+    // Bump ID
+    receiverID = 2;
+
+    // Insert  beam array list in receiver
+    receiver_params* paramsHeap2 = new receiver_params(receiverID, beamList2 );
+
+    // Insert in receiver map
+    receiver_map->insert(2, paramsHeap2);
 
     // find(1)
-    const usml::sensors::receiver_params* rpm1 = rpMap->find(1);
+    receiverID = 1;
+    const usml::sensors::receiver_params* rpm1 = receiver_map->find(receiverID);
 
     BOOST_CHECK_EQUAL(rpm1, paramsHeap1);
 
     // find(2)
-    const usml::sensors::receiver_params* rpm2 = rpMap->find(2);
+    receiverID = 2;
+    const usml::sensors::receiver_params* rpm2 = receiver_map->find(receiverID);
 
     BOOST_CHECK_EQUAL(rpm2, paramsHeap2);
 
     // Check key not found returns null
-    const usml::sensors::receiver_params* rpm = rpMap->find(3);
+    const usml::sensors::receiver_params* rpm = receiver_map->find(3);
 
     BOOST_CHECK_EQUAL(rpm, (const usml::sensors::receiver_params*)0);
 
     // Run with valgrind memcheck to verify.
-    delete rpMap;
+    delete receiver_map;
 }
 
 /**
@@ -164,98 +200,67 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
     cout << "=== maps_test: sensor_test ===" << endl;
 
-    source_params_map_ptr spMap = source_params_map::instance();
-    source_params* src_params = new source_params();
+    std::list<beamIDType> beamList1;
+    beamList1.push_back(1);
+    beamList1.push_back(2);
 
-    // Insert
-    spMap->insert(1, src_params);
+    // Grab the source map
+    source_params_map* source_map = source_params_map::instance();
 
-    receiver_params_map_ptr rpMap = receiver_params_map::instance();
-    receiver_params* rcv_params = new receiver_params();
+    // Insert array in source
+    paramsIDType paramID = 1;
+    source_params* src_params = new source_params(paramID, 20, 900, 0.5, 100.0, beamList1);
 
-    // Insert
-    rpMap->insert(1, rcv_params);
+    // Insert source_param into source map
+    source_map->insert(paramID, src_params);
 
-    sensor_map_ptr sMap = sensor_map::instance();
+    // Grab the receiver map
+    receiver_params_map* receiver_map = receiver_params_map::instance();
+
+    std::list<beamIDType> beamList2;
+    beamList2.push_back(2);
+    beamList2.push_back(3);
+
+    receiver_params* rcv_params = new receiver_params(paramID, beamList2);
+
+    // Insert in receiver map
+    receiver_map->insert(paramID, rcv_params);
+
+    // Get sensor_map
+    sensor_map* sensorMap = sensor_map::instance();
+
     sensor* sensor_data;
+    //No sensorID
     sensor_data = new sensor();
 
+    // Test change xmitRcvMode
+    sensor_data->mode(usml::sensors::SOURCE);
     sensor_data->source(*src_params);
-    sensor_data->receiver(*rcv_params);
 
     // insert
-    sMap->insert(1, sensor_data);
+    sensorIDType sensorID = 1;
+    sensorMap->insert(sensorID, sensor_data);
 
     // find(1)
-    usml::sensors::sensor* m1 = sMap->find(1);
+    usml::sensors::sensor* m1 = sensorMap->find(sensorID);
 
     // Check find
     BOOST_CHECK_EQUAL(m1, sensor_data);
 
-    // update
-    sensor_data = new sensor();
+    // Modify #1 paramID #1
+    sensor_data = new sensor(sensorID, paramID, usml::sensors::BOTH,
+                             wposition1(0.0,0.0,0.0), 0.0, 0.0, 0.0, 0.0);
+    sensor_data->source(*src_params);
+    sensor_data->receiver(*rcv_params);
+    if (sensorMap->update(sensorID, sensor_data) == 0) {
+        BOOST_FAIL("sensor_test::Failed to update sensor!");
+    }
 
-
-
-    // erase
-
+    // erase #2
+    sensorMap->erase(1);
 
     // Run with valgrind memcheck to verify.
-    delete sMap;
-}
-
-/**
-* @ingroup sensors_test
-* Test the ability to instantiate a source_params_map
-* and insert several source_params into it.
-* Also test the find method and the destructor.
-* Generate errors if pointer values are not equal.
-* For Destructor testing run with Valgrind memcheck.
-*/
-BOOST_AUTO_TEST_CASE(source_params_inherit_test) {
-
-    cout << "=== maps_test: source_params_inherit_test ===" << endl;
-
-    source_params_inherit_map* spMap = source_params_inherit_map::instance();
-    source_params* sourceParamsHeap1 = new source_params();
-
-    // Insert
-    (*spMap)[1] = sourceParamsHeap1;
-    source_params* sourceParamsHeap2 = new source_params();
-
-    // Insert
-    (*spMap)[2] = sourceParamsHeap2;
-
-    //find(1);
-    const usml::sensors::source_params* spm1 = spMap->find(1)->second;
-
-    BOOST_CHECK_EQUAL(spm1, sourceParamsHeap1);
-
-    //find(2);
-    const usml::sensors::source_params* spm2 = spMap->find(2)->second;
-
-    BOOST_CHECK_EQUAL(spm2, sourceParamsHeap2);
-
-    // Check key not found returns end()
-    std::map <const paramsIDType, const source_params*>::iterator iter;
-    iter = spMap->find(3);
-    if (iter != spMap->end()) {
-        BOOST_ERROR("Found value other than end");
-    }
-
-    // Accessing a non-existing element creates it
-    if ((*spMap)[4] == spm2) {
-        std::cout << "Oha!\n";
-        BOOST_FAIL("Found non-existing element");
-    }
-
-    iter = spMap->find(4);
-    if (iter != spMap->end()) {
-        cout << "Created non-existing element by accessing it" << endl;
-    }
-
-    // Run with valgrind memcheck to verify.
-    delete spMap;
+    delete sensorMap;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

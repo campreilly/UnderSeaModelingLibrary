@@ -9,8 +9,8 @@
 #include <list>
 
 #include <usml/usml_config.h>
+#include <usml/sensors/beamIDType.h>
 #include <usml/sensors/paramsIDType.h>
-#include <usml/sensors/beam_pattern_model.h>
 
 namespace usml {
 namespace sensors {
@@ -35,14 +35,8 @@ public:
      * Constructor
      * @param receiverID
      * @param beamList
-     * @param beamMap
      */
-    receiver_params(const paramsIDType receiverID, const std::list<beam_pattern_model*> beamList);
-
-    /**
-     * Default Constructor
-     */
-    receiver_params();
+    receiver_params(const paramsIDType receiverID, const std::list<beamIDType>& beamList);
 
     /**
      * Copy Constructor - Deep
@@ -52,7 +46,7 @@ public:
     /**
      * Destructor
      */
-    virtual ~receiver_params();
+    virtual ~receiver_params() {}
 
     /**
      * Set method for the _receiverID attribute. The _receiverID attribute is used as the
@@ -75,18 +69,30 @@ public:
 
     /**
      * Add a beam pattern to the receiver parameters
+     * @params beamID to be added to the list of receiver beams
      */
-    void add_beam_pattern(beam_pattern_model* beam_pattern);
+    void add_beam_pattern(beamIDType beamID);
 
     /**
      * Delete a beam pattern from the receivers list
+     * @params beamID to be removed from the list of receiver beams
      */
-    void remove_beam_pattern(beam_pattern_model* beam_pattern);
+    void remove_beam_pattern(beamIDType beamID);
 
 private:
 
+    /**
+     * Prevent access to default constructor
+     */
+    receiver_params();
+
+    /**
+     * Prevent access to assignment operator
+     */
+    receiver_params& operator=(receiver_params const&);
+
     paramsIDType _receiverID;
-    std::list<beam_pattern_model*> _receiver_beams;
+    std::list<beamIDType> _receiver_beams;
 };
 
 /// @}

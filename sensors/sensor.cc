@@ -13,7 +13,7 @@ using namespace usml::sensors;
  * 
  * @param sensorID
  * @param paramsID
- * @param xmitRcvMode
+ * @param mode
  * @param position
  * @param tilt_angle
  * @param tilt_direction
@@ -21,28 +21,72 @@ using namespace usml::sensors;
  * @param yaw
  * @param description
  */
-sensor::sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType xmitRcvMode, 
+sensor::sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType mode,
 	const wposition1 position, const double tilt_angle, const double tilt_direction, 
 	const double pitch, const double yaw, const std::string description) 
 	:	_sensorID(sensorID),
 		_paramsID(paramsID),
-		_xmitRcvMode(xmitRcvMode),
+		_src_rcv_mode(mode),
 		_position(position),
 		_tilt_angle(tilt_angle),
 		_tilt_direction(tilt_direction),
 		_pitch(pitch),
 		_yaw(yaw),
-		_description(description)
+		_description(description),
+		_fathometers(NULL),
+		_eigenverbs(NULL)
 {
+    // Use _paramsID to lookup source and receiver from map's
+    // Make a copy of what was obtained from the associated map.
+    // call to source() or receiver can replace.
+    // Ownership of _source and/or _receiver starts here.
 
-}
+    source_params_map* source_map = source_params_map::instance();
+    receiver_params_map* receiver_map = receiver_params_map::instance();
 
-/**
- * Default Constructor
- */
-sensor::sensor()
-{
-
+    switch (mode)
+    {
+        default:
+            assert(false);
+            _source = NULL;
+            _receiver = NULL;
+            break;
+        case usml::sensors::SOURCE:
+        {
+            const source_params* sp = source_map->find(_paramsID);
+            if (sp != NULL) {
+                _source = new source_params(*sp);
+            } else {
+                _source = NULL;
+            }
+            break;
+        }
+        case usml::sensors::RECEIVER:
+        {
+            const receiver_params* rp = receiver_map->find(_paramsID);
+            if (rp != NULL) {
+                _receiver = new receiver_params(*rp);
+            } else {
+                _receiver = NULL;
+            }
+            break;
+        }
+        case usml::sensors::BOTH:
+        {
+            const source_params* sp = source_map->find(_paramsID);
+            if (sp != NULL) {
+                _source = new source_params(*sp);
+            } else {
+                _source = NULL;
+            }
+            const receiver_params* rp = receiver_map->find(_paramsID);
+            if (rp != NULL) {
+                _receiver = new receiver_params(*rp);
+            } else {
+                _receiver = NULL;
+            }
+        }
+    }
 }
 
 /**
@@ -50,7 +94,12 @@ sensor::sensor()
  */
 sensor::~sensor()
 {
-
+    if (_source != NULL) {
+        delete _source;
+    }
+    if (_receiver != NULL){
+        delete _receiver;
+    }
 }
 
 /**
@@ -67,8 +116,8 @@ void sensor::latitude(double latitude)
  * Gets the latitude of the sensor.
  * @return latitude in decimal degrees.
  */
-double sensor::latitude(){
-
+double sensor::latitude()
+{
     return _position.latitude();
 }
 
@@ -112,9 +161,9 @@ double sensor::depth()
 }
 
 /**
- * Run the waveq3d model.
+ * Initialize the wave_generator thread  to start the waveq3d model.
  */
-void sensor::run_waveq3d()
+void sensor::init_wave_generator()
 {
 
 }
@@ -189,7 +238,7 @@ bool sensor::notify_sensor_listeners(sensorIDType sensorID)
         iter != _sensor_listener_vec.end(); ++iter )
     {
         sensor_listener* pListener = *iter;
-        pListener->sensor_changed(sensorID, _xmitRcvMode);
+        pListener->sensor_changed(sensorID, _src_rcv_mode);
     }
 
     return ( _sensor_listener_vec.size() > 0 );

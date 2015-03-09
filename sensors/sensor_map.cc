@@ -9,42 +9,18 @@
 using namespace usml::sensors;
 
 /**
- * Destructor - See singleton_map destructor.
- */
-sensor_map::~sensor_map()
-{
-
-}
+* Initialization of private static member _instance
+*/
+sensor_map* sensor_map::_instance = NULL;
 
 /**
- * Removes a sensor pointer from the sensor_map
+ * Singleton Constructor
  */
-bool sensor_map::erase(const sensorIDType sensorID)
+sensor_map* sensor_map::instance()
 {
-    bool result = false;  // EVAR needs to return correct code
-                          // when keyID does not pre-exist
-    // Check for Pre-existance
-    if (find(sensorID) != 0)
+    if (_instance == NULL)
     {
-        //_map.erase(sensorID );
-        result = true;
+        _instance = new sensor_map();
     }
-    return result;
-}
-
-/**
- *  * Updates sensor pointer at the pre-existing sensorID key.
- */
-bool sensor_map::update(const sensorIDType sensorID, sensor* sensor)
-{
-    // EVAR needs to return correct error code
-    // when keyID does not pre-exist
-    bool result = false;
-
-    // Check for Pre-existance
-    if (find(sensorID) != 0)
-    {
-        result = insert(sensorID, sensor);
-    }
-    return result;
+    return _instance;
 }

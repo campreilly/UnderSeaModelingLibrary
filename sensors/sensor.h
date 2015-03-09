@@ -17,6 +17,8 @@
 
 #include <usml/sensors/source_params.h>
 #include <usml/sensors/receiver_params.h>
+#include <usml/sensors/source_params_map.h>
+#include <usml/sensors/receiver_params_map.h>
 #include <usml/sensors/sensor_listener.h>
 #include <usml/eigenverb/envelope_collection.h>
 #include <usml/eigenverb/eigenverb_collection.h>
@@ -49,13 +51,26 @@ public:
 	/**
 	 * Default Constructor
 	 */
-	sensor();
+	sensor() :
+	    _sensorID(-1),
+        _paramsID(-1),
+        _src_rcv_mode(usml::sensors::SOURCE),
+        _position(wposition1(0.0, 0.0, 0.0)),
+        _tilt_angle(0.0),
+        _tilt_direction(0.0),
+        _pitch(0.0),
+        _yaw(0.0),
+        _source(NULL),
+        _receiver(NULL),
+        _fathometers(NULL),
+        _eigenverbs(NULL){}
 
 	/**
 	 * Constructor
+	 * Uses the paramID to lookup source and/or receiver from there associated map.
 	 * @param sensorID
 	 * @param paramsID
-	 * @param xmitRcvMode
+	 * @param mode
 	 * @param position
 	 * @param tilt_angle
 	 * @param tilt_direction
@@ -63,7 +78,7 @@ public:
 	 * @param yaw
 	 * @param description
 	 */
-	sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType xmitRcvMode, 
+	sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType mode,
 				const wposition1 position, const double tilt_angle, const double tilt_direction, 
 				const double pitch, const double yaw, const std::string description = NULL);
 
@@ -113,22 +128,22 @@ public:
 	}
 
 	/**
-	 * Set method for the xmitRcvMode attribute. 
-	 * The xmitRcvMode defines if the sensor is a source, or receive or both.
-	 * @param xmitRcvMode of the xmitRcvModeType.
+	 * Set method for the _src_rcv_mode attribute.
+	 * The mode defines if the sensor is a source, or receive or both.
+	 * @param mode of the xmitRcvModeType.
 	 */
-	void xmitRcvMode(xmitRcvModeType xmitRcvMode)
+	void mode(xmitRcvModeType mode)
 	{
-		_xmitRcvMode = xmitRcvMode;
+		_src_rcv_mode = mode;
 	}
 
 	/**
-	 * Get method for the xmitRcvMode attribute.
-	 * @return xmitRcvMode of the xmitRcvModeType
+	 * Get method for the _src_rcv_mode attribute.
+	 * @return _src_rcv_mode of the xmitRcvModeType
 	 */
-	xmitRcvModeType xmitRcvMode()
+	xmitRcvModeType mode()
 	{
-		return _xmitRcvMode;
+		return _src_rcv_mode;
 	}
 
 	/**
@@ -267,6 +282,10 @@ public:
      */
     void source(const source_params& src_params)
     {
+        // Assumes constructor populated
+        if (_source != NULL) {
+            delete _source;
+        }
 		_source = new source_params(src_params);
 	}
 
@@ -286,6 +305,9 @@ public:
 	 */
 	void receiver(const receiver_params& rcv_params)
 	{
+	    if (_receiver != NULL ) {
+	        delete _receiver;
+	    }
 		_receiver = new receiver_params(rcv_params);
 	}
 
@@ -297,7 +319,11 @@ public:
 	{
 		return _receiver;
 	}
-	void run_waveq3d();
+
+	/**
+	 * Initialize the wave_generator thread  to start the waveq3d model.
+	 */
+	void init_wave_generator();
 	
 	/**
 	 * Updates the sensor.
@@ -305,15 +331,15 @@ public:
 	void update_sensor();
 	
 	/**
-	 * 
+	 * Updates the sensors fathometers
 	 * @param fathometers
 	 */
 	void update_fathometers(proploss* fathometers);
 
     /**
-    *
-    * @param eigenverbs
-    */
+     * Updates the sensors eigenverb_collection
+     * @param eigenverbs
+     */
     void update_eigenverbs(eigenverb_collection* eigenverbs);
 
 	/**
@@ -338,7 +364,7 @@ private:
 
     sensorIDType _sensorID;
     paramsIDType _paramsID;
-    xmitRcvModeType _xmitRcvMode;
+    xmitRcvModeType _src_rcv_mode;
 
 	wposition1 _position;
 	double _tilt_angle;
@@ -349,8 +375,8 @@ private:
 	source_params* _source;
     receiver_params* _receiver;
   
-	std::list<int> _eigenverbs;
-	wave_queue*    _wave;
+    proploss* _fathometers;
+	eigenverb_collection* _eigenverbs;
 	std::string    _description;	
 
     /**
