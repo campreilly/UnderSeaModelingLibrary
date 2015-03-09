@@ -73,3 +73,20 @@ public:
 /// @}
 } // end of namespace types
 } // end of namespace usml
+
+/**
+ * Defines necessary to use BOOST_FOREACH
+ */
+namespace boost {
+
+    template<>
+    struct range_mutable_iterator< usml::types::seq_rayfan > {
+        typedef usml::types::seq_vector::const_iterator type ;
+    };
+
+    template<>
+    struct range_const_iterator< usml::types::seq_rayfan > {
+        typedef usml::types::seq_vector::const_iterator type ;
+    };
+
+}   // end of boost namespace

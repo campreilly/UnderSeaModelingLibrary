@@ -4,6 +4,8 @@
 #include <boost/test/unit_test.hpp>
 #include <usml/types/types.h>
 #include <iostream>
+#include <boost/foreach.hpp>
+#include <cstdlib>
 
 BOOST_AUTO_TEST_SUITE(sequence_test)
 
@@ -406,6 +408,64 @@ BOOST_AUTO_TEST_CASE( sequence_rayfan_test ) {
         cout << *current++ << " ";
     }
     cout << endl;
+}
+
+/**
+ * Tests the functionality of BOOST_FOREACH with all
+ * sequence classes. Because of the inheritance chain
+ * of seq_vectors, boost was unable to deduce the type
+ * of iterator that was appropriate for the seq_vector
+ * classes provided. Creating specialized template typedefs
+ * for each subclass of seq_vector resolves this issue.
+ */
+BOOST_AUTO_TEST_CASE( sequence_foreach_test ) {
+
+    using namespace boost ;
+
+    cout << "=== sequence_test: sequence_foreach_test ===" << endl ;
+    bool complete = false ;
+    size_t N = 5 ;
+
+    // Tests foreach for rayfan
+    seq_rayfan fan( -5.0, 5.0, N ) ;
+    cout << "seq_rayfan: " << fan << endl ;
+    cout << "using foreach: " ;
+    BOOST_FOREACH( double i, fan )
+        complete = false, cout << i << " ", complete = true ;
+    cout << endl ;
+    BOOST_CHECK( complete ) ;
+
+    // Tests foreach for linear
+    seq_linear line( -5.0, 5.0, N ) ;
+    cout << "seq_linear: " << line << endl ;
+    cout << "using foreach: " ;
+    BOOST_FOREACH( double i, line )
+        complete = false, cout << i << " ", complete = true ;
+    cout << endl ;
+    BOOST_CHECK( complete ) ;
+
+    // Tests foreach for log
+    seq_log log( 1.0, 5.0, N ) ;
+    cout << "seq_log: " << log << endl ;
+    cout << "using foreach: " ;
+    BOOST_FOREACH( double i, log )
+        complete = false, cout << i << " ", complete = true ;
+    cout << endl ;
+    BOOST_CHECK( complete ) ;
+
+    // Tests foreach for data
+    std::srand( 1 ) ;
+    double* sample = new double[N] ;
+    for(size_t i=0; i<N; ++i)
+        sample[i] = ((double)std::rand() / RAND_MAX) * 100.0 ;
+    std::sort( sample, sample+N ) ;
+    seq_data data( sample, N ) ;
+    cout << "seq_data: " << data << endl ;
+    cout << "using foreach: " ;
+    BOOST_FOREACH( double i, data )
+        complete = false, cout << i << " ", complete = true ;
+    cout << endl ;
+    BOOST_CHECK( complete ) ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
