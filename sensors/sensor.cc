@@ -54,7 +54,7 @@ sensor::sensor(const sensorIDType sensorID, const paramsIDType paramsID, const x
         case usml::sensors::SOURCE:
         {
             const source_params* sp = source_map->find(_paramsID);
-            if (sp != NULL) {
+            if (sp == NULL) {
                 _source = new source_params(*sp);
             } else {
                 _source = NULL;
@@ -64,7 +64,7 @@ sensor::sensor(const sensorIDType sensorID, const paramsIDType paramsID, const x
         case usml::sensors::RECEIVER:
         {
             const receiver_params* rp = receiver_map->find(_paramsID);
-            if (rp != NULL) {
+            if (rp == NULL) {
                 _receiver = new receiver_params(*rp);
             } else {
                 _receiver = NULL;
@@ -74,13 +74,13 @@ sensor::sensor(const sensorIDType sensorID, const paramsIDType paramsID, const x
         case usml::sensors::BOTH:
         {
             const source_params* sp = source_map->find(_paramsID);
-            if (sp != NULL) {
+            if (sp == NULL) {
                 _source = new source_params(*sp);
             } else {
                 _source = NULL;
             }
             const receiver_params* rp = receiver_map->find(_paramsID);
-            if (rp != NULL) {
+            if (rp == NULL) {
                 _receiver = new receiver_params(*rp);
             } else {
                 _receiver = NULL;

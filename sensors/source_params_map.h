@@ -43,10 +43,11 @@ public:
      */
     static source_params_map* instance();
 
-	/**
-     * Destructor - See map_template destructor.
+    /**
+     * Singleton Destructor - Deletes source_params_map instance
+     * Accessible everywhere.
      */
-    virtual ~source_params_map() {}
+    static void destroy();
 
 private:
 
@@ -55,6 +56,12 @@ private:
      *   Prevent creation/access other than static instance()
      */
     source_params_map() {}
+
+    /**
+     * Destructor - See map_template destructor.
+     *   Prevent use of delete, use static destroy above.
+     */
+    virtual ~source_params_map() {}
 
     /**
      * Prevent access to copy constructor

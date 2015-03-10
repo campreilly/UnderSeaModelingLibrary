@@ -24,3 +24,12 @@ sensor_map* sensor_map::instance()
     }
     return _instance;
 }
+
+/**
+ * Singleton Destructor
+ */
+void sensor_map::destroy()
+{
+    delete _instance;
+    _instance = NULL;
+}

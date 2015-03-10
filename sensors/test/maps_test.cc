@@ -36,6 +36,8 @@ BOOST_AUTO_TEST_CASE(beam_pattern_test) {
 
     beam_pattern_map* beam_map = beam_pattern_map::instance();
 
+     cout << " beam_map " << beam_map << endl;
+
     beam_pattern_model* beam_heap1 = new beam_pattern_omni();
    
     beam_map->insert(1, beam_heap1);
@@ -58,7 +60,7 @@ BOOST_AUTO_TEST_CASE(beam_pattern_test) {
     BOOST_CHECK_EQUAL(bpm, (const usml::sensors::beam_pattern_model*)0);
 
     // Run with valgrind memcheck to verify.
-    delete beam_map;
+    beam_pattern_map::destroy();
 }
 
 /**
@@ -74,16 +76,6 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 
     cout << "=== maps_test: source_params_test ===" << endl;
 
-//    // Create beam_pattern_line
-//    // Physical and Environmental parameters concerning the array
-//    double c0 = 1500.0 ;
-//    double d = 0.75 ;
-//    double n = 5 ;
-//    double steering = M_PI/32.0 ;
-//    vector<double> freq( 1, 900.0 ) ;
-//
-//    beam_pattern_line array1( c0, d, n, steering ) ;
-
     std::list<beamIDType> beamList1;
     beamList1.push_back(1);
     beamList1.push_back(2);
@@ -95,6 +87,9 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 
     // Grab source_map
     source_params_map* source_map = source_params_map::instance();
+
+    cout << " source_map " << source_map << endl;
+
     // Insert into map
     source_map->insert(sourceID, source_heap1);
 
@@ -123,7 +118,7 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
     BOOST_CHECK_EQUAL(spm3, (const usml::sensors::source_params*)0);
 
     // Run with valgrind memcheck to verify.
-    delete source_map;
+    source_params_map::destroy();
 }
 
 /**
@@ -147,6 +142,9 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
     // Grab receiver_map
     receiver_params_map* receiver_map = receiver_params_map::instance();
+
+    cout << " receiver_map " << receiver_map << endl;
+
     // Insert  beam array list in receiver
     receiver_params* paramsHeap1 = new receiver_params(receiverID, beamList1);
 
@@ -184,7 +182,7 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
     BOOST_CHECK_EQUAL(rpm, (const usml::sensors::receiver_params*)0);
 
     // Run with valgrind memcheck to verify.
-    delete receiver_map;
+    receiver_params_map::destroy();
 }
 
 /**
@@ -207,6 +205,8 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     // Grab the source map
     source_params_map* source_map = source_params_map::instance();
 
+    cout << " source_map " << source_map << endl;
+
     // Insert array in source
     paramsIDType paramID = 1;
     source_params* src_params = new source_params(paramID, 20, 900, 0.5, 100.0, beamList1);
@@ -216,6 +216,8 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
     // Grab the receiver map
     receiver_params_map* receiver_map = receiver_params_map::instance();
+
+     cout << " receiver_map " << receiver_map << endl;
 
     std::list<beamIDType> beamList2;
     beamList2.push_back(2);
@@ -228,6 +230,8 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
     // Get sensor_map
     sensor_map* sensorMap = sensor_map::instance();
+
+    cout << " sensorMap " << sensorMap << endl;
 
     sensor* sensor_data;
     //No sensorID
@@ -250,6 +254,7 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     // Modify #1 paramID #1
     sensor_data = new sensor(sensorID, paramID, usml::sensors::BOTH,
                              wposition1(0.0,0.0,0.0), 0.0, 0.0, 0.0, 0.0);
+
     sensor_data->source(*src_params);
     sensor_data->receiver(*rcv_params);
     if (sensorMap->update(sensorID, sensor_data) == 0) {
@@ -260,7 +265,9 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     sensorMap->erase(1);
 
     // Run with valgrind memcheck to verify.
-    delete sensorMap;
+    sensor_map::destroy();
+    source_params_map::destroy();
+    receiver_params_map::destroy();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

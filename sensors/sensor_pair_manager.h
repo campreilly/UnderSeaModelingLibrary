@@ -65,9 +65,10 @@ public:
     static sensor_pair_manager* instance();
 
     /**
-     * Destructor - Deletes all pointers its has taken ownership to.
+     * Singleton Destructor - Deletes sensor_pair_manager instance
+     * Accessible everywhere.
      */
-    virtual ~sensor_pair_manager();
+    static void destroy();
 
     /**
      * Gets the fathometers for the sourceID requested
@@ -149,13 +150,17 @@ private:
      */
     void synch_sensor_pairs();
 
-private:
-
     /**
      * Default Constructor
      *   private to prevent access.
      */
     sensor_pair_manager() {}
+
+    /**
+     * Destructor - Deletes all pointers its has taken ownership to.
+     *   Prevent use of delete, use static destroy above.
+     */
+    virtual ~sensor_pair_manager();
 
     /**
     * Prevent access to copy constructor
@@ -166,6 +171,8 @@ private:
      * Prevent access to assignment operator
      */
     sensor_pair_manager& operator=( sensor_pair_manager const& );
+
+private:
 
     /**
      * The singleton access pointer.

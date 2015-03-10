@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(init_test) {
     }
 
     // Run with valgrind memcheck to verify.
-    delete spManager;
+    sensor_pair_manager::destroy();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -24,3 +24,12 @@ beam_pattern_map* beam_pattern_map::instance()
     }
     return _instance;
 }
+
+/**
+ * Singleton Destructor
+ */
+void beam_pattern_map::destroy()
+{
+    delete _instance;
+    _instance = NULL;
+}

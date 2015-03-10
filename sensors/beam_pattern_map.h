@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include <usml/usml_config.h>
 
 #include <usml/sensors/beams.h>
@@ -42,9 +44,10 @@ public:
     static beam_pattern_map* instance();
 
     /**
-     * Destructor - See map_template destructor.
+     * Singleton Destructor - Deletes beam_pattern_map instance
+     * Accessible everywhere.
      */
-    virtual ~beam_pattern_map() {}
+    static void destroy();
 
 private:
 
@@ -53,6 +56,12 @@ private:
      *   Prevent creation/access other than static instance()
      */
     beam_pattern_map() {}
+
+    /**
+     * Destructor - See map_template destructor.
+     *   Prevent use of delete, use static destroy above.
+     */
+    virtual ~beam_pattern_map() {}
 
     /**
      * Prevent access to copy constructor

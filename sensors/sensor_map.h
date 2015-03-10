@@ -43,9 +43,10 @@ public:
     static sensor_map* instance();
 
     /**
-     * Destructor - See map_template destructor.
+     * Singleton Destructor - Deletes source_params_map instance
+     * Accessible everywhere.
      */
-	virtual ~sensor_map() {}
+    static void destroy();
 
 private:
 
@@ -54,6 +55,12 @@ private:
      *   Prevent creation/access other than static instance()
      */
     sensor_map() {}
+
+    /**
+     * Destructor - See map_template destructor.
+     *  Prevent use of delete, use static destroy above.
+     */
+    virtual ~sensor_map() {}
 
 	/**
      * Prevent access to copy constructor

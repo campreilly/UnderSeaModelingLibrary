@@ -23,3 +23,12 @@ source_params_map* source_params_map::instance()
     }
     return _instance;
 }
+
+/**
+ * Singleton Destructor
+ */
+void source_params_map::destroy()
+{
+    delete _instance;
+    _instance = NULL;
+}

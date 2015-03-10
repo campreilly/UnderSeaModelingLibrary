@@ -80,7 +80,7 @@ public:
 	 */
 	sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType mode,
 				const wposition1 position, const double tilt_angle, const double tilt_direction, 
-				const double pitch, const double yaw, const std::string description = NULL);
+				const double pitch, const double yaw, const std::string description = std::string());
 
     /**
 	 * Destructor

@@ -44,9 +44,12 @@ public:
     static receiver_params_map* instance();
 
     /**
-     * Destructor - See map_template destructor.
+     * Singleton Destructor - Deletes receiver_params_map instance
+     * Accessible everywhere.
      */
-    virtual ~receiver_params_map() {}
+    static void destroy();
+
+
 
 private:
 
@@ -55,6 +58,12 @@ private:
      *   Prevent creation/access other than static instance()
      */
     receiver_params_map() {}
+
+     /**
+     * Destructor - See map_template destructor.
+     *   Prevent use of delete, use static destroy above.
+     */
+    virtual ~receiver_params_map() {}
 
 	/**
      * Prevent access to copy constructor
