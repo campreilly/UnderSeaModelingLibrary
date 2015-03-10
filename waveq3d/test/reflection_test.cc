@@ -376,7 +376,7 @@ BOOST_AUTO_TEST_CASE( reflect_slope_test ) {
  * latitude direction, the ray does not stay in the east-west plane.
  *
  * When the gcc -ffast-math compiler option is turned off, these results are
- * expected to be accurate to at least 1e-6 percent.  With fast-math turned on,
+ * expected to be accurate to at least 0.09 percent.  With fast-math turned on,
  * the accuracy of the lat/long drops to 5e-5 percent, and about 6 meters
  * are lost on the accuracy in depth.
  */
@@ -484,7 +484,7 @@ BOOST_AUTO_TEST_CASE( reflect_grid_test ) {
         #ifdef __FAST_MATH__
             const double position_accuracy = 5e-4 ;
         #else
-            const double position_accuracy = 1e-6 ;
+            const double position_accuracy = 0.09 ;
         #endif
         BOOST_CHECK_CLOSE( wave.curr()->position.latitude(0,0), 36.169253160619995, position_accuracy ) ;
         BOOST_CHECK_CLOSE( wave.curr()->position.longitude(0,0), 16.012084836798909, position_accuracy ) ;

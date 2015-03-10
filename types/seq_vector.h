@@ -52,50 +52,78 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
         typedef vector_reference<self_type> closure_type ;
 
         /**
-         * Destructor
+         * Virtual destructor
          */
         virtual ~seq_vector() {}
 
-        /**
-         * Clone function
-         */
+        /** Create a copy using a reference to the base class. */
         virtual self_type* clone() const = 0 ;
 
         /**
-         * Search for a value in the data container, or the nearest
-         * endpoint.
+         * Search for a value in this sequence. If the value is outside of the
+         * legal range, the index for the nearest endpoint will be returned.
+         *
+         * This reverse lookup is the principle feature that distinguishes
+         * seq_vector objects from ordinary vectors.
+         *
+         * @param   value       Value of the element to find.
+         * @return              Index of the largest value that is not greater
+         *                      than the argument.
          */
         virtual size_type find_index( value_type value ) = 0 ;
 
         /**
-         * Element Accessors
+         * Retrieves the value at a specified index in the sequence in the fastest
+         * way possible. Problems will occur if the index is outside of the
+         * range [0,size-1),
+         *
+         * @param   index       The element number to retrieve (zero indexed).
+         * @return              The value between the "index" element.
          */
-        reference operator[] ( size_type i ) const {
-            return data () [i] ;
+        reference operator[] ( size_type index ) const {
+            return data () [index] ;
         }
 
-        reference data( size_type i ) const {
-            return data () [i] ;
-        }
+//        reference data( size_type i ) const {
+//            return data () [i] ;
+//        }
 
-        const_reference operator () ( size_type i ) const {
-            return _data[i];
-        }
-
-        reference increment( size_type i ) const {
-            i = std::max( (size_type)0, std::min(_max_index,i) ) ;
-            return _increment[i] ;
+        /**
+         * Retrieves the value at a specified index in the sequence in the safest
+         * way possible. If the index is outside of the range [0,size), the value
+         * for the nearest endpoint will be returned.
+         *
+         * @param  index        The index of element to retrieve (zero indexed).
+         * @return              The value at the indexed element.
+         */
+        const_reference operator () ( size_type index ) const {
+            index = max( (size_type) 0, min(_max_index,index) ) ;
+            return _data[index];
         }
 
         /**
-         * size of data
+         * Retrieves the increment between two elements in this sequence.
+         * If the index is outside of the range [0,size-1), the value for
+         * the nearest endpoint will be returned.
+         *
+         * @param   index       The element number to retrieve (zero indexed).
+         * @return              The difference between the element at "index"
+         *                      and the element at "index+1".
+         */
+        reference increment( size_type index ) const {
+            index = std::max( (size_type)0, std::min(_max_index,index) ) ;
+            return _increment[index] ;
+        }
+
+        /**
+         * Returns the number of elements in this sequence.
          */
         size_type size() const {
             return data ().size() ;
         }
 
         /**
-         * reference to the array for data
+         * Convert sequence into a normal C++ array
          */
         array_type data() const {
             return _data ;
@@ -112,6 +140,9 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
             return data ().end() ;
         }
 
+        /**
+         * Reverse iterators needed for data_grid _axes call
+         */
         reverse_iterator rbegin() const {
             return data ().rbegin() ;
         }
@@ -132,18 +163,27 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
         {}
 
         /**
-         * Copy Constructor
+         * Copies data from another seq_vector object.
+         *
+         * @param  copy         The object to be copied.
          */
         seq_vector( const self_type& other )
-            : _data(other._data), _increment(other._increment),
+            : vector_container<self_type> (),
+              _data(other._data), _increment(other._increment),
               _max_index(other._max_index)
         {}
 
         /**
-         * Data cache
+         * Cache of sequence values.
          */
         array_type _data ;
+
+        /**
+         * Cache of increment values.
+         */
         array_type _increment ;
+
+        /** Largest valid index number (one less than size() ). */
         size_type _max_index ;
 
 }; // end of class
