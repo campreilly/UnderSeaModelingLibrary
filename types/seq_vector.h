@@ -84,10 +84,6 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
             return data () [index] ;
         }
 
-//        reference data( size_type i ) const {
-//            return data () [i] ;
-//        }
-
         /**
          * Retrieves the value at a specified index in the sequence in the safest
          * way possible. If the index is outside of the range [0,size), the value
