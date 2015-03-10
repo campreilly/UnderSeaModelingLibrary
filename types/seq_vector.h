@@ -46,7 +46,7 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
         typedef vector<value_type>::storage_category storage_category ;
         typedef array_type::size_type  size_type ;
         typedef const value_type* iterator ;
-        typedef array_type::reverse_iterator    reverse_iterator ;
+        typedef array_type::const_reverse_iterator    reverse_iterator ;
         typedef array_type::difference_type  difference_type ;
         typedef const vector_reference<const self_type> const_closure_type ;
         typedef vector_reference<self_type> closure_type ;
@@ -81,7 +81,7 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
          * @return              The value between the "index" element.
          */
         reference operator[] ( size_type index ) const {
-            return data () [index] ;
+            return _data[index] ;
         }
 
         /**
@@ -115,7 +115,7 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
          * Returns the number of elements in this sequence.
          */
         size_type size() const {
-            return data ().size() ;
+            return _data.size() ;
         }
 
         /**
@@ -140,11 +140,11 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
          * Reverse iterators needed for data_grid _axes call
          */
         reverse_iterator rbegin() const {
-            return data ().rbegin() ;
+            return _data.rbegin() ;
         }
 
         reverse_iterator rend() const {
-            return data ().rend() ;
+            return _data.rend() ;
         }
 
     protected:
