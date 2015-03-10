@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_SUITE(datagrid_test)
 using namespace boost::unit_test;
 using namespace usml::types;
 
-typedef seq_vector::const_iterator iterator;
+typedef seq_vector::iterator iterator;
 
 /**
  * As a note when using valgrind mem-check, there are many instances

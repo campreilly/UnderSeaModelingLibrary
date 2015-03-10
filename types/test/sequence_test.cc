@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE( sequence_linear_test1 ) {
 
     // test iterator looping
     // separate dereferencing and pre-increment operations
-    seq_linear::const_iterator current = seq.begin();
+    seq_linear::iterator current = seq.begin();
     cout << "iterator           => ";
     while ( current != seq.end() ) {
         cout << *current << " ";
@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE( sequence_linear_test2 ) {
 
     // test iterator looping
     // integrate dereferencing and post-increment operations
-    seq_linear::const_iterator current = seq.begin();
+    seq_linear::iterator current = seq.begin();
     cout << "iterator           => ";
     while ( current != seq.end() ) {
         cout << *current++ << " ";
@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_CASE( sequence_log_test ) {
 
     // test iterator looping
     // integrate dereferencing and post-increment operations
-    seq_log::const_iterator current = seq.begin();
+    seq_log::iterator current = seq.begin();
     cout << "iterator           => ";
     while ( current != seq.end() ) {
         cout << *current++ << " ";
@@ -249,7 +249,7 @@ BOOST_AUTO_TEST_CASE( sequence_data_test1 ) {
 
     // test iterator looping
     // integrate dereferencing and post-increment operations
-    seq_data::const_iterator current = seq.begin();
+    seq_data::iterator current = seq.begin();
     cout << "iterator           => ";
     while ( current != seq.end() ) {
         cout << *current++ << " ";
@@ -312,7 +312,7 @@ BOOST_AUTO_TEST_CASE( sequence_data_test2 ) {
 
     // test iterator looping
     // integrate dereferencing and post-increment operations
-    seq_data::const_iterator current = seq.begin();
+    seq_data::iterator current = seq.begin();
     cout << "iterator           => ";
     while ( current != seq.end() ) {
         cout << *current++ << " ";
@@ -372,7 +372,7 @@ BOOST_AUTO_TEST_CASE( sequence_data_test3 ) {
 
     // test iterator looping
     // integrate dereferencing and post-increment operations
-    seq_data::const_iterator current = seq.begin();
+    seq_data::iterator current = seq.begin();
     cout << "iterator           => ";
     while ( current != seq.end() ) {
         cout << *current++ << " ";
@@ -402,7 +402,7 @@ BOOST_AUTO_TEST_CASE( sequence_rayfan_test ) {
 
     // test iterator looping
     // integrate dereferencing and post-increment operations
-    seq_log::const_iterator current = seq.begin();
+    seq_log::iterator current = seq.begin();
     cout << "iterator           => ";
     while ( current != seq.end() ) {
         cout << *current++ << " ";
@@ -466,6 +466,58 @@ BOOST_AUTO_TEST_CASE( sequence_foreach_test ) {
         complete = false, cout << i << " ", complete = true ;
     cout << endl ;
     BOOST_CHECK( complete ) ;
+}
+
+/**
+ * Tests the uBLas capabilities of seq_vectors
+ */
+BOOST_AUTO_TEST_CASE( seq_ublas_test ) {
+    cout << "=== sequence_test/seq_ublas_test ===" << endl ;
+
+    // Tests the use of seq_linear
+    seq_linear line( -5.0, 1.0, 5.0 ) ;
+    size_t n( line.size() ) ;
+    vector<double> result(n) ;
+    noalias(result) = 6.0 * line ;
+    size_t count = 0 ;
+    BOOST_FOREACH( double i, result )
+        BOOST_CHECK_EQUAL( i, 6.0*line(count++) ) ;
+    cout << "result_linear: " << result << endl ;
+
+    // Tests the use of seq_log
+    seq_log log( 1.0, 10.0, n ) ;
+    result = 2.0 * log10( log ) ;
+    count = 0 ;
+    BOOST_FOREACH( double i, result )
+        BOOST_CHECK_EQUAL( i, 2.0*log10(log(count++)) ) ;
+    cout << "result_log: " << result << endl ;
+
+    // Tests the use of seq_rayfan
+    seq_rayfan fan( -90.0, 90.0, n ) ;
+    result = atan( fan ) / 2.0 ;
+    count = 0 ;
+    BOOST_FOREACH( double i, result )
+        BOOST_CHECK_EQUAL( i, (atan( fan(count++) ) / 2.0) ) ;
+    cout << "result_rayfan: " << result << endl ;
+
+    // Tests the use of seq_data
+    std::srand(1) ;
+    double* d = new double[n] ;
+    for(size_t i=0; i<n; ++i)
+        d[i] = ((double)std::rand() / RAND_MAX ) * 100.0 ;
+    std::sort( d, d+n ) ;
+    seq_data sdata( d, n ) ;
+    result = element_div(element_prod(exp(sdata), line), log) ;
+    count = 0 ;
+    double tmp = 0 ;
+    BOOST_FOREACH( double i, result )
+    {
+        tmp = exp(sdata(count)) * line(count) / log(count) ;
+        ++count ;
+        BOOST_CHECK_EQUAL( i, tmp ) ;
+    }
+    cout << "result_data: " << result << endl ;
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()
