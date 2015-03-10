@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(init_test) {
 
     cout << "=== sensor_pair_map_test: init_test ===" << endl;
 
-    sensor_pair_manager* spManager = sensor_pair_manager::instance();
+    sensor_pair_manager* sp_manager = sensor_pair_manager::instance();
 
     sensorIDType sources[] = {1, 3, 4, 7};
 
@@ -35,13 +35,13 @@ BOOST_AUTO_TEST_CASE(init_test) {
 
     xmitRcvModeType sensor_type = usml::sensors::SOURCE;
 
-    spManager->add_sensor(sources[0], sensor_type );
+    sp_manager->add_sensor(sources[0], sensor_type );
 
     for ( unsigned i = 0; i < sizeof(sources)/sizeof(sensorIDType); ++i )
     {
         for ( unsigned j = 0; j < sizeof(receivers)/sizeof(sensorIDType) ; ++j )
         {
-            spManager->add_sensor_pair(sources[i], receivers[j]);
+            sp_manager->add_sensor_pair(sources[i], receivers[j]);
         }
     }
 

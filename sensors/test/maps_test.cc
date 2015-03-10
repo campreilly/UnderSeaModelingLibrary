@@ -36,8 +36,6 @@ BOOST_AUTO_TEST_CASE(beam_pattern_test) {
 
     beam_pattern_map* beam_map = beam_pattern_map::instance();
 
-     cout << " beam_map " << beam_map << endl;
-
     beam_pattern_model* beam_heap1 = new beam_pattern_omni();
    
     beam_map->insert(1, beam_heap1);
@@ -87,8 +85,6 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 
     // Grab source_map
     source_params_map* source_map = source_params_map::instance();
-
-    cout << " source_map " << source_map << endl;
 
     // Insert into map
     source_map->insert(sourceID, source_heap1);
@@ -142,8 +138,6 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
     // Grab receiver_map
     receiver_params_map* receiver_map = receiver_params_map::instance();
-
-    cout << " receiver_map " << receiver_map << endl;
 
     // Insert  beam array list in receiver
     receiver_params* paramsHeap1 = new receiver_params(receiverID, beamList1);
@@ -205,33 +199,23 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     // Grab the source map
     source_params_map* source_map = source_params_map::instance();
 
-    cout << " source_map " << source_map << endl;
-
     // Insert array in source
     paramsIDType paramID = 1;
     source_params* src_params = new source_params(paramID, 20, 900, 0.5, 100.0, beamList1);
-
     // Insert source_param into source map
     source_map->insert(paramID, src_params);
 
     // Grab the receiver map
     receiver_params_map* receiver_map = receiver_params_map::instance();
 
-     cout << " receiver_map " << receiver_map << endl;
-
     std::list<beamIDType> beamList2;
     beamList2.push_back(2);
     beamList2.push_back(3);
 
     receiver_params* rcv_params = new receiver_params(paramID, beamList2);
-
     // Insert in receiver map
     receiver_map->insert(paramID, rcv_params);
 
-    // Get sensor_map
-    sensor_map* sensorMap = sensor_map::instance();
-
-    cout << " sensorMap " << sensorMap << endl;
 
     sensor* sensor_data;
     //No sensorID
@@ -241,11 +225,15 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     sensor_data->mode(usml::sensors::SOURCE);
     sensor_data->source(*src_params);
 
+    // Get sensor_map
+    sensor_map* sensorMap = sensor_map::instance();
+
     // insert
     sensorIDType sensorID = 1;
     sensorMap->insert(sensorID, sensor_data);
 
-    // find(1)
+
+    // Test find(1)
     usml::sensors::sensor* m1 = sensorMap->find(sensorID);
 
     // Check find
@@ -255,13 +243,14 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     sensor_data = new sensor(sensorID, paramID, usml::sensors::BOTH,
                              wposition1(0.0,0.0,0.0), 0.0, 0.0, 0.0, 0.0);
 
+    // Test update
     sensor_data->source(*src_params);
     sensor_data->receiver(*rcv_params);
     if (sensorMap->update(sensorID, sensor_data) == 0) {
         BOOST_FAIL("sensor_test::Failed to update sensor!");
     }
 
-    // erase #2
+    // Test erase #1
     sensorMap->erase(1);
 
     // Run with valgrind memcheck to verify.

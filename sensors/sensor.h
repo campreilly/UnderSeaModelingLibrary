@@ -67,7 +67,7 @@ public:
 
 	/**
 	 * Constructor
-	 * Uses the paramID to lookup source and/or receiver from there associated map.
+	 * Uses the paramID and mode, looks up source and/or receiver from there associated map.
 	 * @param sensorID
 	 * @param paramsID
 	 * @param mode

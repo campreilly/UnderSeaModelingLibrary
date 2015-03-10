@@ -13,6 +13,7 @@
 #include <usml/sensors/source_params_map.h>
 #include <usml/sensors/receiver_params_map.h>
 #include <usml/sensors/map_template.h>
+#include <usml/sensors/sensor_pair_manager.h>
 
 namespace usml {
 namespace sensors {
@@ -48,19 +49,42 @@ public:
      */
     static void destroy();
 
+    /**
+    * Inserts the supplied sensor pointer into the sensor_map and the
+    * sensor_pair_manager map with the sensorID provided.
+    * @param sensorID is the associated key to the sensor pointer.
+    * @param in_sensor is sensor pointer to be inserted.
+    * @return false if sensorID was already in the map.
+    */
+    bool insert(const sensorIDType sensorID, sensor* in_sensor);
+
+    /**
+    * Deletes the sensor pointer from the heap and the associated sensorID
+    * from the map. Also deletes the sensor from the sensor_pair_manager
+    * @param sensorID is the associated key to the map.
+    * @return false if sensorID was not in the map or the sensor_pair_manager.
+    */
+    bool erase(const sensorIDType sensorID);
+
 private:
 
 	/**
      * Default Constructor
      *   Prevent creation/access other than static instance()
      */
-    sensor_map() {}
+    sensor_map()
+    {
+        _sensor_pair_manager = sensor_pair_manager::instance();
+    }
 
     /**
      * Destructor - See map_template destructor.
      *  Prevent use of delete, use static destroy above.
      */
-    virtual ~sensor_map() {}
+    virtual ~sensor_map()
+    {
+        sensor_pair_manager::destroy();
+    }
 
 	/**
      * Prevent access to copy constructor
@@ -71,6 +95,11 @@ private:
      * Prevent access to assignment operator
      */
 	sensor_map& operator=(sensor_map const&);
+
+	/**
+     * The sensor_pair_manager singleton.
+     */
+    sensor_pair_manager* _sensor_pair_manager;
 
 	/**
      * The singleton access pointer.

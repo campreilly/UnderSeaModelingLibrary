@@ -33,3 +33,30 @@ void sensor_map::destroy()
     delete _instance;
     _instance = NULL;
 }
+
+bool sensor_map::insert(const sensorIDType sensorID, sensor* in_sensor)
+{
+    // Insert in the map
+    bool result = false;
+    result = map_template<const sensorIDType, sensor*>::insert(sensorID, in_sensor);
+
+    if (result != false) {
+        //Add to the sensor_pair_manager
+        _sensor_pair_manager->add_sensor(sensorID, in_sensor->mode() );
+    }
+
+    return result;
+}
+
+bool sensor_map::erase(const sensorIDType sensorID)
+{
+    // Insert in the map
+    bool result = false;
+    result = map_template<const sensorIDType, sensor*>::erase(sensorID);
+
+    if (result != false) {
+        //Add to the sensor_pair_manager
+        result = _sensor_pair_manager->remove_sensor(sensorID);
+    }
+    return result;
+}

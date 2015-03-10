@@ -50,7 +50,10 @@ using namespace eigenverb ;
  * @updated 6-Mar-2015 3:15:03 PM
  */
 
-typedef std::list<sensorIDType>::iterator sensor_iter;
+typedef std::list<sensorIDType>::iterator sensor_list_iter;
+typedef std::map <sensorIDType, std::list<sensorIDType> >::iterator sensor_map_iter;
+typedef std::map <sensorIDType, source_data>::iterator source_data_iter;
+typedef std::map <sensorIDType, receiver_data>::iterator receiver_data_iter;
 
 class USML_DECLSPEC sensor_pair_manager : public sensor_listener
 {
@@ -124,9 +127,9 @@ public:
     /**
      * Removes a sensor from the sensor_pair_manager
      * @param sensorID sensor ID
-     * @param mode  sensor type: Source, Receiver or Both
+     * @return false if sensorID was in Source or Receiver list.
      */
-    void remove_sensor(sensorIDType sensorID, xmitRcvModeType mode);
+    bool remove_sensor(sensorIDType sensorID);
 
     /**
      * Adds the source and receiver sensor pair to the sensor_pair_manager

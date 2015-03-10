@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <map>
 #include <typeinfo>
 
@@ -79,11 +80,14 @@ public:
     * Erases the mapped_type associated with the keyID.
     * If the mapped_type is a pointer it deletes it from the heap.
     * @param keyID is the associated key.
+    * @return false if keyID was not found in the map.
     */
-    void erase(const key_type keyID)
+    bool erase(const key_type keyID)
     {
+       // EVAR needs to return correct
+       // when keyID does not pre-exist
         if (_map.count(keyID) == 0) {
-            return;
+            return false;
         }
         // Check if mapped_type is a pointer
         const std::type_info& check  = typeid(_map.begin()->second);
@@ -94,12 +98,13 @@ public:
             delete mapped;
         }
         _map.erase(keyID);
+        return true;
     }
 
     /**
     * Finds the mapped_type associated with the keyID.
     * @param keyID is the associated key.
-    * @return mapped_type as defined by the T template parameter.
+    * @return mapped_type as defined by the T template parameter or NULL if not found.
     */
     mapped_type find(const key_type keyID) const
     {
