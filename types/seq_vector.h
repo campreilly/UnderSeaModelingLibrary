@@ -45,7 +45,7 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
         typedef vector_type::const_iterator  const_iterator ;
         typedef vector<value_type>::storage_category storage_category ;
         typedef array_type::size_type  size_type ;
-        typedef array_type::iterator iterator ;
+        typedef const value_type* iterator ;
         typedef array_type::reverse_iterator    reverse_iterator ;
         typedef array_type::difference_type  difference_type ;
         typedef const vector_reference<const self_type> const_closure_type ;
@@ -129,11 +129,11 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
          * Iterators needed for BOOST_FOREACH
          */
         iterator begin() const {
-            return data ().begin() ;
+            return _data.begin() ;
         }
 
         iterator end() const {
-            return data ().end() ;
+            return _data.end() ;
         }
 
         /**
