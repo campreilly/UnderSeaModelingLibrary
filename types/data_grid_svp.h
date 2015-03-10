@@ -172,7 +172,7 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
                 // limit interpolation to axis domain if _edge_limit turned on
 
                 if (edge_limit(dim)) {
-                    double a = (*_axis[dim])[0];
+                    double a = *(_axis[dim]->begin());
                     double b = *(_axis[dim]->rbegin());
                     double inc = _axis[dim]->increment(0);
                     if (inc < 0) {                                // a > b
