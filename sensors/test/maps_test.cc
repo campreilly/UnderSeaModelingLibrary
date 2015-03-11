@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     // Test update
     sensor_data->source(*src_params);
     sensor_data->receiver(*rcv_params);
-    if (sensorMap->update(sensorID, sensor_data) == 0) {
+    if (sensorMap->update(sensorID, sensor_data) == false) {
         BOOST_FAIL("sensor_test::Failed to update sensor!");
     }
 

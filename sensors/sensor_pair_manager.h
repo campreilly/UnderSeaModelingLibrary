@@ -132,18 +132,40 @@ public:
     bool remove_sensor(sensorIDType sensorID);
 
     /**
-     * Adds the source and receiver sensor pair to the sensor_pair_manager
-     * @param sourceID the source sensor ID
-     * @param receiverID the receiver sensor ID
+     * Gets the source receiver pair map.
      */
-    void add_sensor_pair(sensorIDType sourceID, sensorIDType receiverID);
+    const std::map<sensorIDType, std::list<sensorIDType> > src_rcv_pair_map()
+    {
+        // TODO: set mutex read guard(s) on source or receivers data map
+        return _src_rcv_pair_map;;
+    }
 
     /**
-     * Removes the source and receiver sensor pair from the sensor_pair_manager
-     * @param sourceID the source sensor ID
-     * @param receiverID the receiver sensor ID
+     * Gets the receiver source pair map.
      */
-    void remove_sensor_pair(sensorIDType sourceID, sensorIDType receiverID);
+    const std::map<sensorIDType, std::list<sensorIDType> > rcv_src_pair_map()
+    {
+        // TODO: set mutex read guard(s) on source or receivers data map
+        return _rcv_src_pair_map;;
+    }
+
+    /**
+     * Gets the source data map.
+     */
+    const std::map <sensorIDType, source_data> src_data_map()
+    {
+        // TODO: set mutex read guard(s) on source or receivers data map
+        return _src_data_map;;
+    }
+
+    /**
+     * Gets the receiver data map.
+     */
+    const std::map <sensorIDType, receiver_data> rcv_data_map()
+    {
+        // TODO: set mutex read guard(s) on source or receivers data map
+        return _rcv_data_map;;
+    }
 
 private:
 
@@ -152,6 +174,17 @@ private:
      * the active source and receiver lists.
      */
     void synch_sensor_pairs();
+
+    /**
+     * Initializes the source and receiver data maps based
+     * on the active source and receiver lists.
+     */
+    void init_sensor_data();
+
+    /**
+     * Prints to console the all source and receiver maps
+     */
+    void print_sensor_pairs();
 
     /**
      * Default Constructor
