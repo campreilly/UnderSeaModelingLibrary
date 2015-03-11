@@ -38,8 +38,8 @@ public:
      */
     virtual size_type find_index( value_type value ) {
         return (size_type) max(
-            (difference_type) 0, min( (difference_type) _size-2,
-            (difference_type) floor( (value - _data(0)) / _increment(0) )));
+            (difference_type) 0, min( (difference_type) size()-2,
+            (difference_type) floor( (value - _data[0]) / _increment[0] )));
     }
 
     //***************************************************************
@@ -112,7 +112,7 @@ public:
             : max((difference_type) 1, (difference_type) floor(1.0 + (log(
             last / first) / log(increment)))) )
     {
-        initialize( first, increment, _size ) ;
+        initialize( first, increment, size() ) ;
     }
 
     /**

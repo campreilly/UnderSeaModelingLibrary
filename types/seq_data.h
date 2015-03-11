@@ -62,7 +62,6 @@ protected:
     void init( const double* data, size_t size ) {
         _data.resize(size) ;
         _increment.resize(size) ;
-        _size = size;
         _max_index = size-1;
         _index = 0;
         _value = data[0];
@@ -139,7 +138,7 @@ public:
             // then new point is less than, or equal to, the search value.
 
             for (difference_type n = _index - 1; n >= 0 && _index_data > value; --n) {
-                _index_data = _data(--_index) * _sign;
+                _index_data = _data[--_index] * _sign;
             }
 
             // search forwards (toward the back)?
@@ -151,14 +150,14 @@ public:
 
             difference_type N = size() - 2;
             for (difference_type n = _index + 1; n <= N && _index_data < value; ++n) {
-                _index_data = _data(++_index) * _sign;
+                _index_data = _data[++_index] * _sign;
             }
 
             // If new point is greater than the search value,
             // we've gone too far and we need to back up by one.
 
             if (_index_data > value && _index > 0) {
-                _index_data = _data(--_index) * _sign;
+                _index_data = _data[--_index] * _sign;
             }
 
         }
@@ -228,6 +227,5 @@ public:
 }; // end of class
 
 /// @}
-}
- // end of namespace types
-}// end of namespace usml
+} // end of namespace types
+} // end of namespace usml
