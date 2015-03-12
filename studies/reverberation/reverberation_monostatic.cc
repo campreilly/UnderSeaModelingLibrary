@@ -68,7 +68,7 @@ int main() {
     seq_rayfan de ;
 //    seq_rayfan de( -90.0, 0.0, 91 ) ;
 //    seq_linear de( -89.5, 0.5, 1.0 ) ;
-    seq_linear az( 0.0, 45.0, 360.0 ) ;
+    seq_linear az( 0.0, 360.0, 360.0 ) ;
 
     wave_queue wave( ocean, freq, pos, de, az, time_step ) ;
     eigenverb_collection monostatic( ocean.num_volume() ) ;

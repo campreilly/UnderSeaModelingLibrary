@@ -100,8 +100,8 @@ class USML_DECLSPEC envelope_bistatic : public envelope_generator {
          * level curve.
          */
         void convolve_eigenverbs(
-                const eigenverb_tree& source,
-                const eigenverb_tree& receiver,
+                const eigenverb_list& source,
+                const eigenverb_list& receiver,
                 envelope_collection* levels ) ;
 
         /**

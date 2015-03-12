@@ -73,16 +73,14 @@ int main() {
     wposition1 receiver( rcvr_lat, rcvr_lng, rcvr_alt ) ;
     seq_linear de( -90.0, 1.0, 90.0 ) ;
     seq_linear az( 0.0, 45.0, 360.0 ) ;
-
-    wave_queue_reverb wave_source( ocean, freq, source, de, az, time_step ) ;
-    wave_queue_reverb wave_receiver( ocean, freq, receiver, de, az, time_step ) ;
-    wave_source.ID( SOURCE_ID ) ;
-    wave_receiver.ID( RECEIVER_ID ) ;
+    wave_queue wave_source( ocean, freq, source, de, az, time_step ) ;
+    wave_queue wave_receiver( ocean, freq, receiver, de, az, time_step ) ;
 
         // Set the reverberation model to a bistatic common cache
-    Manager bistatic( new eigenverb_bistatic( ocean, wave_source, wave_receiver, T0, bins, time_max ) ) ;
-    wave_source.reverberation( bistatic ) ;
-    wave_receiver.reverberation( bistatic ) ;
+    eigenverb_collection source_bistatic( ocea.num_volume() ) ;
+    eigenverb_collection receiver_bistatic( ocea.num_volume() ) ;
+    wave_source.add_eigenverb_listener( &source_bistatic ) ;
+    wave_receiver.add_eigenverb_listener( &receiver_bistatic ) ;
     cout << "Bistatic reverberation source and receiver wave have been set." << endl ;
 
 	#ifdef BISTATIC_DEBUG
@@ -109,22 +107,36 @@ int main() {
 		wave_receiver.close_netcdf() ;
 	#endif
 
+    #ifdef BISTATIC_DEBUG
+        const char* src_bottom_eigenverbs = USML_STUDIES_DIR "/reverberation/source_bistatic_eigenverbs_bottom.nc" ;
+        const char* src_surface_eigenverbs = USML_STUDIES_DIR "/reverberation/source_bistatic_eigenverbs_surface.nc" ;
+        cout << "writing source bottom eigenverbs to " << src_bottom_eigenverbs << endl ;
+        source_bistatic.write_netcdf(src_bottom_eigenverbs, usml::eigenverb::BOTTOM) ;
+        cout << "writing source surface eigenverbs to " << src_surface_eigenverbs << endl ;
+        source_bistatic.write_netcdf(src_surface_eigenverbs, usml::eigenverb::SURFACE) ;
+        const char* rcv_bottom_eigenverbs = USML_STUDIES_DIR "/reverberation/receiver_bistatic_eigenverbs_bottom.nc" ;
+        const char* rcv_surface_eigenverbs = USML_STUDIES_DIR "/reverberation/receiver_bistatic_eigenverbs_surface.nc" ;
+        cout << "writing receiver bottom eigenverbs to " << rcv_bottom_eigenverbs << endl ;
+        receiver_bistatic.write_netcdf(rcv_bottom_eigenverbs, usml::eigenverb::BOTTOM) ;
+        cout << "writing receiver surface eigenverbs to " << rcv_surface_eigenverbs << endl ;
+        receiver_bistatic.write_netcdf(rcv_surface_eigenverbs, usml::eigenverb::SURFACE) ;
+    #endif
+
    // compute coherent propagation loss and write eigenrays to disk
-    reverberation_model* reverb = bistatic.pointer() ;
+    envelope_collection levels( resolution, bins, az.size() ) ;
+    envelope_monostatic reverb( ocean, T0, time_max ) ;
     cout << "computing reverberation levels" << endl ;
     {
         boost::progress_timer timer ;
-    	reverb->compute_reverberation() ;
+        reverb.generate_envelopes( source_bistatic, receiver_bistatic, &levels ) ;
     }
 
-    cout << "writing reverberation curve to " << csvname << endl;
-    std::ofstream os(csvname);
-    os << "time,intensity" << endl ;
-    os << std::setprecision(18);
-    cout << std::setprecision(18);
+    const char* reverb_file = USML_STUDIES_DIR "/reverberation/bistatic_envelopes.nc" ;
+    cout << "writing reverberation curves to " << reverb_file << endl ;
+    levels.write_netcdf( reverb_file ) ;
 
-    const vector<double> reverb_tl = reverb->reverberation_curve() ;
-    vector<double> r = SL + 10.0*log10(reverb_tl) ;
+    vector<double> r = levels.envelopes(0) ;
+    r = SL + 10.0*log10( r ) ;
     for ( size_t i=0; i < bins; ++i ) {
         if( i % 10 == 0 ) {
             cout << "reverb_level(" << i << "): " << r(i) << endl ;

@@ -129,11 +129,11 @@ void envelope_bistatic::compute_lower_volume_energy(
  * a contribution is significant enough.
  */
 void envelope_bistatic::convolve_eigenverbs(
-    const eigenverb_tree& source,
-    const eigenverb_tree& receiver,
+    const eigenverb_list& source,
+    const eigenverb_list& receiver,
     envelope_collection* levels )
 {
-//    BOOST_FOREACH( eigenverb s, source )
-//            BOOST_FOREACH( eigenverb r, receiver )
-//                compute_contribution( &s, &r, levels ) ;
+    BOOST_FOREACH( eigenverb s, source )
+            BOOST_FOREACH( eigenverb r, receiver )
+                compute_contribution( &s, &r, levels ) ;
 }

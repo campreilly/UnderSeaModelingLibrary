@@ -15,12 +15,9 @@ namespace types {
  * Sequence defined by an evenly spaced grid of points.
  * Designed to serve the same function as the a=1:2:N Matlab construct.
  */
-class USML_DECLSPEC seq_linear : public seq_vector {
-
-        typedef seq_linear self_type;
+class USML_DECLSPEC seq_linear : public seq_vector
+{
     public:
-        typedef const vector_reference<const self_type> const_closure_type;
-        typedef vector_reference<self_type> closure_type;
 
         /**
          * Construct sequence using first value, increment/last, and size.
@@ -123,7 +120,7 @@ class USML_DECLSPEC seq_linear : public seq_vector {
                 v += increment ;
             }
         }
-}; // end of class
+    }; // end of class
 
 /// @}
 }  // end of namespace types

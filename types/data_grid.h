@@ -110,7 +110,7 @@ class USML_DLLEXPORT data_grid {
                 _axis[n] = other._axis[n]->clone() ;
                 N *= _axis[n]->size();
             }
-            _data = new DATA_TYPE[N] ;
+            _data = new DATA_TYPE[N];
             if (copy_data) {
                 memcpy(_data, other._data, N * sizeof(DATA_TYPE)) ;
             } else {

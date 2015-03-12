@@ -15,61 +15,12 @@ namespace types {
  * Sequence defined by a logarithmically spaced grid of points. 
  * Designed to be used as the frequency axis for acoustic properties.
  */
-class USML_DECLSPEC seq_log: public seq_vector {
-
-    typedef seq_log self_type;
+class USML_DECLSPEC seq_log: public seq_vector
+{
 public:
-    typedef const vector_reference<const self_type> const_closure_type;
-    typedef vector_reference<self_type> closure_type;
-
-    //***************************************************************
-    // vritual functions
-
-public:
-
-    /**
-     * Search for a value in this sequence. If the value is outside of the
-     * legal range, the index for the nearest endpoint will
-     * be returned.
-     *
-     * @param   value       Value of the element to find.
-     * @return              Index of the largest value that is not greater
-     *                      than the argument.
-     */
-    virtual size_type find_index( value_type value ) {
-        return (size_type) max(
-            (difference_type) 0, min( (difference_type) size()-2,
-            (difference_type) floor( (value - _data[0]) / _increment[0] )));
-    }
 
     //***************************************************************
     // constructors and destructors
-
-private:
-
-    /**
-     * Construct sequence using first value, increment, and size.
-     *
-     * @param  first        Value at start of sequence.
-     * @param  increment    Spacing between elements.
-     * @param  size         Number of elements in this sequence.
-     */
-    void initialize( value_type first, value_type increment, size_type size ) {
-        value_type v = first ;
-        for (size_type n = 0; n < size; ++n) {
-            _data[n] = v ;
-            v *= increment ;
-            if ( n > 0 ) {
-                _increment[n-1] = _data[n] - _data[n-1];
-                _increment[n] = _increment[n-1] ;
-            }
-        }
-    }
-
-public:
-
-    /** Virtual destructor. */
-    virtual ~seq_log() {}
 
     /**
      * Construct sequence using first value, increment, and size.
@@ -128,6 +79,47 @@ public:
         return new seq_log( *this ) ;
     }
 
+    /** Virtual destructor. */
+    virtual ~seq_log() {}
+
+    //***************************************************************
+    // vritual functions
+
+    /**
+     * Search for a value in this sequence. If the value is outside of the
+     * legal range, the index for the nearest endpoint will
+     * be returned.
+     *
+     * @param   value       Value of the element to find.
+     * @return              Index of the largest value that is not greater
+     *                      than the argument.
+     */
+    virtual size_type find_index( value_type value ) {
+        return (size_type) max(
+            (difference_type) 0, min( (difference_type) size()-2,
+            (difference_type) floor( (value - _data[0]) / _increment[0] )));
+    }
+
+private:
+
+    /**
+     * Construct sequence using first value, increment, and size.
+     *
+     * @param  first        Value at start of sequence.
+     * @param  increment    Spacing between elements.
+     * @param  size         Number of elements in this sequence.
+     */
+    void initialize( value_type first, value_type increment, size_type size ) {
+        value_type v = first ;
+        for (size_type n = 0; n < size; ++n) {
+            _data[n] = v ;
+            v *= increment ;
+            if ( n > 0 ) {
+                _increment[n-1] = _data[n] - _data[n-1];
+                _increment[n] = _increment[n-1] ;
+            }
+        }
+    }
 
 }; // end of class
 
