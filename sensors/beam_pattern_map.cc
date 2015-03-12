@@ -14,15 +14,24 @@ using namespace usml::sensors;
 beam_pattern_map* beam_pattern_map::_instance = NULL;
 
 /**
- * Singleton Constructor
+ * Singleton Constructor - Double Check Locking Pattern DCLP
  */
 beam_pattern_map* beam_pattern_map::instance()
 {
-    if (_instance == NULL)
+    beam_pattern_map* tmp = _instance;
+    // TODO: insert memory barrier.
+    if (tmp == NULL)
     {
-        _instance = new beam_pattern_map();
+        write_lock_guard(_mutex);
+        tmp = _instance;
+        if (tmp == NULL)
+        {
+            tmp = new beam_pattern_map();
+            // TODO: insert memory barrier
+            _instance = tmp;
+        }
     }
-    return _instance;
+    return tmp;
 }
 
 /**

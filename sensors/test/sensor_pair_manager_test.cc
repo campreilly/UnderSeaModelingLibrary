@@ -23,7 +23,7 @@ using namespace usml::eigenverb;
 * @ingroup sensors_test
 * 
 */
-BOOST_AUTO_TEST_CASE(init_test) {
+BOOST_AUTO_TEST_CASE(add_remove_test) {
 
     cout << "=== sensor_pair_map_test: init_test ===" << endl;
 

@@ -14,15 +14,24 @@ using namespace usml::sensors;
 sensor_map* sensor_map::_instance = NULL;
 
 /**
- * Singleton Constructor
+ * Singleton Constructor - Double Check Locking Pattern DCLP
  */
 sensor_map* sensor_map::instance()
 {
-    if (_instance == NULL)
+    sensor_map* tmp = _instance;
+    // TODO: insert memory barrier.
+    if (tmp == NULL)
     {
-        _instance = new sensor_map();
+        write_lock_guard(_mutex);
+        tmp = _instance;
+        if (tmp == NULL)
+        {
+            tmp = new sensor_map();
+            // TODO: insert memory barrier
+            _instance = tmp;
+        }
     }
-    return _instance;
+    return tmp;
 }
 
 /**

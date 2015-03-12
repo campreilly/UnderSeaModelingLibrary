@@ -14,15 +14,24 @@ using namespace usml::sensors;
 receiver_params_map* receiver_params_map::_instance = NULL;
 
 /**
- * Singleton Constructor
+ * Singleton Constructor - Double Check Locking Pattern DCLP
  */
 receiver_params_map* receiver_params_map::instance()
 {
-    if (_instance == NULL)
+    receiver_params_map* tmp = _instance;
+    // TODO: insert memory barrier.
+    if (tmp == NULL)
     {
-        _instance = new receiver_params_map();
+        write_lock_guard(_mutex);
+        tmp = _instance;
+        if (tmp == NULL)
+        {
+            tmp = new receiver_params_map();
+            // TODO: insert memory barrier
+            _instance = tmp;
+        }
     }
-    return _instance;
+    return tmp;
 }
 
 /**

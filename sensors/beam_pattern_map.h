@@ -13,9 +13,12 @@
 #include <usml/sensors/beams.h>
 #include <usml/sensors/beamIDType.h>
 #include <usml/sensors/map_template.h>
+#include <usml/threads/read_write_lock.h>
 
 namespace usml {
 namespace sensors {
+
+using namespace usml::threads;
 
 /// @ingroup sensors
 /// @{
@@ -77,6 +80,11 @@ private:
      * The singleton access pointer.
      */
     static beam_pattern_map* _instance;
+
+    /**
+     * The _mutex for the singleton pointer.
+     */
+    read_write_lock _mutex ;
 };
 
 /// @}

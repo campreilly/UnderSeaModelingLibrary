@@ -22,12 +22,17 @@
 #include <usml/sensors/sensor_listener.h>
 #include <usml/eigenverb/source_data.h>
 #include <usml/eigenverb/receiver_data.h>
+#include <usml/threads/read_write_lock.h>
 
 namespace usml {
 namespace sensors {
 
+using namespace threads ;
 using namespace waveq3d ;
 using namespace eigenverb ;
+
+
+
 
 /// @ingroup sensors
 /// @{

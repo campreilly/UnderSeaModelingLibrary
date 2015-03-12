@@ -13,9 +13,12 @@
 #include <usml/sensors/map_template.h>
 #include <usml/sensors/paramsIDType.h>
 #include <usml/sensors/source_params.h>
+#include <usml/threads/read_write_lock.h>
 
 namespace usml {
 namespace sensors {
+
+using namespace threads ;
 
 /// @ingroup sensors
 /// @{
@@ -77,6 +80,11 @@ private:
      * The singleton access pointer.
      */
     static source_params_map* _instance;
+
+    /**
+     * The _mutex for the singleton pointer.
+     */
+    read_write_lock _mutex ;
 };
 
 /// @}
