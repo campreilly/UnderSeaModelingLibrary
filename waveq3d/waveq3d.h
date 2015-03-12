@@ -54,7 +54,7 @@
  *   valid answers in the outermost cells of the D/E and AZ grid. This
  *   is because the model needs a supporting Gaussian beam on either side
  *   to maintain proper normalization. For this reason, all ray fans
- *   should include at least 3 rays in each launch angle dimension.
+ *   should include at least 3 rays on each side of the desired azimuth.
  *
  * - The model operates at its maximum efficiency when there are a large
  *   number of targets for each sensor, but the number of targets is
