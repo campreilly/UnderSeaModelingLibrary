@@ -31,9 +31,6 @@ using namespace threads ;
 using namespace waveq3d ;
 using namespace eigenverb ;
 
-
-
-
 /// @ingroup sensors
 /// @{
 
@@ -219,6 +216,11 @@ private:
      * The singleton access pointer.
      */
     static sensor_pair_manager* _instance;
+
+    /**
+     * The _mutex for the singleton pointer.
+     */
+    static read_write_lock _mutex;
 
     /**
      * List of all active Source's

@@ -14,6 +14,11 @@ using namespace usml::sensors;
 beam_pattern_map* beam_pattern_map::_instance = NULL;
 
 /**
+ * The _mutex for the singleton pointer.
+ */
+read_write_lock beam_pattern_map::_mutex;
+
+/**
  * Singleton Constructor - Double Check Locking Pattern DCLP
  */
 beam_pattern_map* beam_pattern_map::instance()
@@ -22,7 +27,7 @@ beam_pattern_map* beam_pattern_map::instance()
     // TODO: insert memory barrier.
     if (tmp == NULL)
     {
-        write_lock_guard(_mutex);
+        write_lock_guard guard(_mutex);
         tmp = _instance;
         if (tmp == NULL)
         {

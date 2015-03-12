@@ -18,6 +18,11 @@ using namespace usml::sensors ;
 sensor_pair_manager* sensor_pair_manager::_instance = NULL;
 
 /**
+ * The _mutex for the singleton pointer.
+ */
+read_write_lock sensor_pair_manager::_mutex;
+
+/**
  * Singleton Constructor - Double Check Locking Pattern DCLP
  */
 sensor_pair_manager* sensor_pair_manager::instance()
@@ -26,7 +31,7 @@ sensor_pair_manager* sensor_pair_manager::instance()
     // TODO: insert memory barrier.
     if (tmp == NULL)
     {
-        write_lock_guard(_mutex);
+        write_lock_guard guard(_mutex);
         tmp = _instance;
         if (tmp == NULL)
         {

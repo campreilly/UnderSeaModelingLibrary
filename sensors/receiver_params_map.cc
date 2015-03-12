@@ -14,6 +14,11 @@ using namespace usml::sensors;
 receiver_params_map* receiver_params_map::_instance = NULL;
 
 /**
+ * The _mutex for the singleton pointer.
+ */
+read_write_lock receiver_params_map::_mutex;
+
+/**
  * Singleton Constructor - Double Check Locking Pattern DCLP
  */
 receiver_params_map* receiver_params_map::instance()
@@ -22,7 +27,7 @@ receiver_params_map* receiver_params_map::instance()
     // TODO: insert memory barrier.
     if (tmp == NULL)
     {
-        write_lock_guard(_mutex);
+        write_lock_guard guard(_mutex);
         tmp = _instance;
         if (tmp == NULL)
         {

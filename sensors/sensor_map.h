@@ -53,21 +53,29 @@ public:
     static void destroy();
 
     /**
-    * Inserts the supplied sensor pointer into the sensor_map and the
-    * sensor_pair_manager map with the sensorID provided.
-    * @param sensorID is the associated key to the sensor pointer.
-    * @param in_sensor is sensor pointer to be inserted.
-    * @return false if sensorID was already in the map.
-    */
+     * Inserts the supplied sensor pointer into the sensor_map and the
+     * sensor_pair_manager map with the sensorID provided.
+     * @param sensorID is the associated key to the sensor pointer.
+     * @param in_sensor is sensor pointer to be inserted.
+     * @return false if sensorID was already in the map.
+     */
     bool insert(const sensorIDType sensorID, sensor* in_sensor);
 
     /**
-    * Deletes the sensor pointer from the heap and the associated sensorID
-    * from the map. Also deletes the sensor from the sensor_pair_manager
-    * @param sensorID is the associated key to the map.
-    * @return false if sensorID was not in the map or the sensor_pair_manager.
-    */
+     * Deletes the sensor pointer from the heap and the associated sensorID
+     * from the map. Also deletes the sensor from the sensor_pair_manager
+     * @param sensorID is the associated key to the map.
+     * @return false if sensorID was not in the map or the sensor_pair_manager.
+     */
     bool erase(const sensorIDType sensorID);
+
+    /**
+     * Updates a pre-existing the sensor and the associated sensorID
+     * in the the map. Also updates the sensor in the sensor_pair_manager
+     * @param sensorID is the associated key to the map.
+     * @return false if sensorID was not in the map or the sensor_pair_manager.
+     */
+    bool update(const sensorIDType sensorID, sensor* in_sensor);
 
 private:
 
@@ -112,7 +120,7 @@ private:
     /**
      * The _mutex for the singleton pointer.
      */
-    read_write_lock _mutex ;
+    static read_write_lock _mutex ;
 };
 
 /// @}

@@ -14,6 +14,11 @@ using namespace usml::sensors;
 sensor_map* sensor_map::_instance = NULL;
 
 /**
+ * The _mutex for the singleton pointer.
+ */
+read_write_lock sensor_map::_mutex;
+
+/**
  * Singleton Constructor - Double Check Locking Pattern DCLP
  */
 sensor_map* sensor_map::instance()
@@ -22,7 +27,7 @@ sensor_map* sensor_map::instance()
     // TODO: insert memory barrier.
     if (tmp == NULL)
     {
-        write_lock_guard(_mutex);
+        write_lock_guard guard(_mutex);
         tmp = _instance;
         if (tmp == NULL)
         {
@@ -67,5 +72,20 @@ bool sensor_map::erase(const sensorIDType sensorID)
         //Add to the sensor_pair_manager
         result = _sensor_pair_manager->remove_sensor(sensorID);
     }
+    return result;
+}
+
+bool sensor_map::update(const sensorIDType sensorID, sensor* in_sensor)
+{
+    // Insert in the map
+    bool result = false;
+    result = map_template<const sensorIDType, sensor*>::update(sensorID, in_sensor);
+
+    if (result != false) {
+        //Add to the sensor_pair_manager
+        _sensor_pair_manager->remove_sensor(sensorID);
+        _sensor_pair_manager->add_sensor(sensorID, in_sensor->mode() );
+    }
+
     return result;
 }

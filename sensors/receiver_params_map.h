@@ -86,7 +86,7 @@ private:
      /**
      * The _mutex for the singleton pointer.
      */
-    read_write_lock _mutex ;
+    static read_write_lock _mutex;
 };
 
 /// @}
