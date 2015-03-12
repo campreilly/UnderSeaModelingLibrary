@@ -4,6 +4,7 @@
  */
 #include <usml/waveq3d/spreading_hybrid_gaussian.h>
 
+//#define DEBUG_EIGENRAYS
 using namespace usml::waveq3d;
 
 const double spreading_hybrid_gaussian::SPREADING_WIDTH = TWO_PI ;
@@ -73,9 +74,11 @@ const vector<double>& spreading_hybrid_gaussian::intensity(
 
     size_t d = de, a = az ;
     vector<double> new_offset = offset ;
+
     // Preserve offset of the AZ dimension and accumulate the correct
     // gaussian contributions in the DE dimension by correcting
     // the distance and offsets.
+
     if( offset(2) < 0.0 ) {
 		if( az > 0 ) {
 			a = az - 1 ;
@@ -87,9 +90,11 @@ const vector<double>& spreading_hybrid_gaussian::intensity(
     	new_offset(2) = offset(2) + _wave._source_az->increment(a) ;
     }
 	intensity_de(de, a, new_offset, distance) ;
+
     // Preserve offset of the DE dimension and accumulate the correct
     // gaussian contributions in the AZ dimension by correcting
     // the distance and offsets.
+
     new_offset = offset ;
     if( offset(1) < 0.0 && !_wave._curr->on_edge(de-1,az) ) {
     	d = de - 1 ;
@@ -106,22 +111,56 @@ const vector<double>& spreading_hybrid_gaussian::intensity(
 void spreading_hybrid_gaussian::intensity_de( size_t de, size_t az,
     const vector<double>& offset, const vector<double>& distance )
 {
+    #ifdef DEBUG_EIGENRAYS
+        cout << "spreading_hybrid_gaussian::intensity_de:"
+             << endl << "\ttime=" << _wave._time
+             << " de(" << de << ")=" << (*_wave._source_de)(de)
+             << " az(" << az << ")=" << (*_wave._source_az)(az)
+             << " srf=" << _wave._curr->surface(de, az)
+             << " btm=" << _wave._curr->bottom(de, az)
+             << " cst=" << _wave._curr->caustic(de, az)
+             << " offset=" << offset(1)
+             << " distance=" << distance(1)
+             << endl;
+    #endif
+
     // compute contribution from center cell
+
     int d = (int) de ;
     double cell_width = width_de(d, az, offset) ;// half width of center cell
     const double initial_width = cell_width ;    // save for upper angles
-    const double L = distance(1) ;              // D/E dist from nearest ray
-    double cell_dist = L - cell_width ;           // dist from center of this cell
+    const double L = distance(1) ;               // D/E dist from nearest ray
+    double cell_dist = L - cell_width ;          // dist from center of this cell
     _intensity_de = gaussian(cell_dist, cell_width, _norm_de(d)) ;
 
-    // contribution from DE angle one lower than central cell
+    #ifdef DEBUG_EIGENRAYS
+        cout << "\t** center" << endl
+             << "\tde(" << d << ")=" << (*_wave._source_de)(d)
+             << " cell_dist=" << cell_dist
+             << " cell_width=" << cell_width
+             << " beam_width=" << sqrt(_beam_width)
+             << " norm=" << _norm_de(d)
+             << " intensity=" << _intensity_de
+             << endl
+             << "\t** lower " << endl;
+    #endif
+
 
     d = (int) de - 1 ;
     cell_width = width_de(d, az, offset) ;   // half width of this cell
     cell_dist = L + cell_width ;             // dist from center of this cell
     _intensity_de += gaussian(cell_dist, cell_width, _norm_de(d)) ;
 
-    // exit early if central rays have a tiny contribution
+    #ifdef DEBUG_EIGENRAYS
+        cout << "\tde(" << d << ")=" << (*_wave._source_de)(d)
+             << " cell_dist=" << cell_dist
+             << " cell_width=" << cell_width
+             << " beam_width=" << sqrt(_beam_width)
+             << " norm=" << _norm_de(d)
+             << " intensity=" << _intensity_de
+             << endl;
+    #endif
+
 
     if( _intensity_de(0) < 1e-10 ) return ;
 
@@ -133,9 +172,10 @@ void spreading_hybrid_gaussian::intensity_de( size_t de, size_t az,
     	bool virtual_ray = _wave._curr->on_edge(d+1,az) && _wave._curr->on_edge(d,az) ;
     	double _new_norm ;				// corrected normalization when using a virtual ray
         cell_dist += cell_width ;       // add half width of prev cell
-        // compute propagation loss contribution of this cell,
-        // use a virtual ray if needed by duplicating the previous
-        // cell's cell_width
+
+        // compute propagation loss contribution of this cell
+        // virtual rays use previous cell's cell_width
+
         if( virtual_ray ) {
             cell_dist += cell_width ;
             _new_norm = _norm_de(d+1) ;
@@ -150,7 +190,16 @@ void spreading_hybrid_gaussian::intensity_de( size_t de, size_t az,
 
         _intensity_de += gaussian(cell_dist, cell_width, _new_norm) ;
 
-        if( _intensity_de(0) / old_tl < THRESHOLD ) break ;
+        #ifdef DEBUG_EIGENRAYS
+            cout << "\tde(" << d << ")=" << (*_wave._source_de)(d)
+                 << " cell_dist=" << cell_dist
+                 << " cell_width=" << cell_width
+                 << " beam_width=" << sqrt(_beam_width)
+                 << " norm=" << _norm_de(d)
+                 << " intensity=" << _intensity_de
+                 << endl;
+        #endif
+        if ( _intensity_de(0) / old_tl < THRESHOLD ) break;
         if( virtual_ray ) break ;
     }
 
@@ -158,17 +207,23 @@ void spreading_hybrid_gaussian::intensity_de( size_t de, size_t az,
     // stop after processing last entry in ray family
     // stop when lowest frequency PL changes by < threshold
 
+    #ifdef DEBUG_EIGENRAYS
+        cout << "\t** higher" << endl ;
+    #endif
+
     cell_width = initial_width;
     cell_dist = L - cell_width ;
 
-    const int size = _wave._source_de->size() - 1 ;
+    const size_t size = _wave._source_de->size() - 1 ;
     for(d = (int) de + 1; d < size; ++d) {
         bool virtual_ray = _wave._curr->on_edge(d+1,az) && _wave._curr->on_edge(d,az) ;
     	double _new_norm ;				// corrected normalization when using a virtual ray
         cell_dist -= cell_width ;		// add half width of prev cell
-        // compute propagation loss contribution of this cell,
-        // use a virtual ray if needed by duplicating the previous
-        // cell's cell_width
+
+        // compute propagation loss contribution of this cell
+        // virtual rays use previous cell's cell_width
+
+
         if( virtual_ray ) {
             cell_dist -= cell_width ;
             _new_norm = _norm_de(d-1) ;
@@ -182,7 +237,16 @@ void spreading_hybrid_gaussian::intensity_de( size_t de, size_t az,
         const double old_tl = _intensity_de(0) ;
         _intensity_de += gaussian(cell_dist, cell_width, _new_norm) ;
 
-        if( _intensity_de(0) / old_tl < THRESHOLD ) break ;
+        #ifdef DEBUG_EIGENRAYS
+            cout << "\tde(" << d << ")=" << (*_wave._source_de)(d)
+                 << " cell_dist=" << cell_dist
+                 << " cell_width=" << cell_width
+                 << " beam_width=" << sqrt(_beam_width)
+                 << " norm=" << _norm_de(d)
+                 << " intensity=" << _intensity_de
+                 << endl;
+        #endif
+        if ( _intensity_de(0) / old_tl < THRESHOLD ) break;
         if( virtual_ray ) break ;
     }
 }
@@ -197,8 +261,10 @@ void spreading_hybrid_gaussian::intensity_az( size_t de, size_t az,
     size_t az_upper, az_lower, max_az, max_de ;
     max_de = _wave._source_de->size() - 2 ;			// Maximum allowed DE
     max_az = _wave._source_az->size() - 1 ;			// Maximum index in AZ
+
     // Check for an az branch point condition and set the upper and lower
     // AZ indices appropriately
+
     if( _wave._az_boundary ) {
     	az_lower = az_upper = az ;
     } else {
@@ -215,7 +281,9 @@ void spreading_hybrid_gaussian::intensity_az( size_t de, size_t az,
     const double L = distance(2) ;              	// AZ dist from nearest ray
     double cell_dist = L - cell_width ;         	// dist from center of this cell
     double _new_norm ;
+
     // Check for an abnormal normalization constant, ie when DE is close to a de branch pt
+
     if( de >= max_de ) _new_norm = _norm_az(1,a) ;
     else _new_norm = _norm_az(de,a) ;
     _intensity_az = gaussian(cell_dist, cell_width, _new_norm) ;
@@ -227,7 +295,9 @@ void spreading_hybrid_gaussian::intensity_az( size_t de, size_t az,
     _duplicate(a,0) = true ;
     cell_width = width_az(de, a, offset) ;   // half width of this cell
     cell_dist = L + cell_width ;             // dist from center of this cell
+
     // Check for an abnormal normalization constant, ie when DE is close to a de branch pt
+
     if( de >= max_de ) _new_norm = _norm_az(1,a) ;
     else _new_norm = _norm_az(de,a) ;
     _intensity_az += gaussian(cell_dist, cell_width, _new_norm) ;
@@ -257,7 +327,9 @@ void spreading_hybrid_gaussian::intensity_az( size_t de, size_t az,
         // compute propagation loss contribution of this cell
 
         const double old_tl = _intensity_az(0) ;
+
         // Check for an abnormal normalization constant, ie when DE is close to a de branch pt
+
         if ( de >= max_de ) _new_norm = _norm_az(1,a) ;
         else _new_norm = _norm_az(de,a) ;
         _intensity_az += gaussian(cell_dist, cell_width, _new_norm) ;
@@ -313,6 +385,7 @@ double spreading_hybrid_gaussian::width_de(
 
     const double u = fabs(offset(0)) / _wave._time_step;
     const double v = fabs(offset(2)) / (*_wave._source_az).increment(az);
+
     // compute the DE width for the current time step
     //      L1 = cell width from DE to DE+1 along AZ
     //      L2 = cell width from DE to DE+1 along AZ+1
@@ -373,6 +446,7 @@ double spreading_hybrid_gaussian::width_az(
 
     const double u = fabs(offset(0)) / _wave._time_step ;
     const double v = fabs(offset(1)) / (*_wave._source_de).increment(de) ;
+
     // compute the AZ width for the current time step
     //      L1 = cell width from AZ to AZ+1 along DE
     //      L2 = cell width from AZ to AZ+1 along DE+1
@@ -400,6 +474,7 @@ double spreading_hybrid_gaussian::width_az(
     }
 
     // treat nearly zero time offset as a special case
+
     if( u < 1e-10 ) return 0.5 * length1 ;
 
     // compute the AZ width for the next time step

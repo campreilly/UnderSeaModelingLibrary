@@ -17,10 +17,7 @@ namespace types {
  */
 class USML_DECLSPEC seq_linear : public seq_vector {
 
-        typedef seq_linear self_type;
     public:
-        typedef const vector_reference<const self_type> const_closure_type;
-        typedef vector_reference<self_type> closure_type;
 
         /**
          * Construct sequence using first value, increment/last, and size.
@@ -67,7 +64,7 @@ class USML_DECLSPEC seq_linear : public seq_vector {
               (difference_type) 1,
               (difference_type) floor(1.0+(last-first)/increment)))
         {
-            initialize( first, increment, _size ) ;
+            initialize( first, increment, size() ) ;
         }
 
         /**
@@ -100,8 +97,8 @@ class USML_DECLSPEC seq_linear : public seq_vector {
          */
         virtual size_type find_index( value_type value ) {
             return (size_type) max(
-                (difference_type) 0, min( (difference_type) _size-2,
-                (difference_type) floor( (value - _data(0)) / _increment(0) )));
+                (difference_type) 0, min( (difference_type) this->size()-2,
+                (difference_type) floor( (value - _data[0]) / _increment[0]) ));
         }
 
         //***************************************************************
