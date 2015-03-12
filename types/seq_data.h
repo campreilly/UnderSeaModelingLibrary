@@ -26,14 +26,6 @@ using boost::numeric::ublas::vector;
  */
 class USML_DECLSPEC seq_data : public seq_vector {
 
-    //**************************************************
-    // type definitions
-
-    typedef seq_data self_type;
-public:
-    typedef const vector_reference<const self_type> const_closure_type;
-    typedef vector_reference<self_type> closure_type;
-
 protected:
 
     /** index number from the last search */

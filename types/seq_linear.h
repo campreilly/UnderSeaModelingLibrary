@@ -17,10 +17,7 @@ namespace types {
  */
 class USML_DECLSPEC seq_linear : public seq_vector {
 
-        typedef seq_linear self_type;
     public:
-        typedef const vector_reference<const self_type> const_closure_type;
-        typedef vector_reference<self_type> closure_type;
 
         /**
          * Construct sequence using first value, increment/last, and size.

@@ -17,11 +17,6 @@ namespace types {
  */
 class USML_DECLSPEC seq_log: public seq_vector {
 
-    typedef seq_log self_type;
-public:
-    typedef const vector_reference<const self_type> const_closure_type;
-    typedef vector_reference<self_type> closure_type;
-
     //***************************************************************
     // vritual functions
 
