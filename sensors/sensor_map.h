@@ -65,9 +65,10 @@ public:
      * Deletes the sensor pointer from the heap and the associated sensorID
      * from the map. Also deletes the sensor from the sensor_pair_manager
      * @param sensorID is the associated key to the map.
+     * @param mode is sensor pointer to be inserted.
      * @return false if sensorID was not in the map or the sensor_pair_manager.
      */
-    bool erase(const sensorIDType sensorID);
+    bool erase(const sensorIDType sensorID, xmitRcvModeType mode);
 
     /**
      * Updates a pre-existing the sensor and the associated sensorID

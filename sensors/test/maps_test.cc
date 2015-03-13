@@ -251,7 +251,7 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     }
 
     // Test erase #1
-    sensorMap->erase(1);
+    sensorMap->erase(1, usml::sensors::BOTH);
 
     // Run with valgrind memcheck to verify.
     sensor_map::destroy();
