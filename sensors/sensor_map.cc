@@ -44,8 +44,12 @@ sensor_map* sensor_map::instance()
  */
 void sensor_map::destroy()
 {
-    delete _instance;
-    _instance = NULL;
+    write_lock_guard guard(_mutex);
+    if ( _instance != NULL )
+    {
+        delete _instance;
+        _instance = NULL;
+    }
 }
 
 bool sensor_map::insert(const sensorIDType sensorID, sensor* in_sensor)

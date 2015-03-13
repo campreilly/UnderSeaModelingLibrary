@@ -44,6 +44,10 @@ source_params_map* source_params_map::instance()
  */
 void source_params_map::destroy()
 {
-    delete _instance;
-    _instance = NULL;
+    write_lock_guard guard(_mutex);
+    if ( _instance != NULL )
+    {
+        delete _instance;
+        _instance = NULL;
+    }
 }

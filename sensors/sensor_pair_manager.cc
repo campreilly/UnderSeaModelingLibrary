@@ -44,12 +44,16 @@ sensor_pair_manager* sensor_pair_manager::instance()
 }
 
 /**
- * Singleton Destructor
- */
+* Singleton Destructor
+*/
 void sensor_pair_manager::destroy()
 {
-    delete _instance;
-    _instance = NULL;
+    write_lock_guard guard(_mutex);
+    if ( _instance != NULL )
+    {
+        delete _instance;
+        _instance = NULL;
+    }
 }
 
 /**

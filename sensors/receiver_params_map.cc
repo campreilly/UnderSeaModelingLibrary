@@ -40,10 +40,14 @@ receiver_params_map* receiver_params_map::instance()
 }
 
 /**
- * Singleton Destructor
- */
+* Singleton Destructor
+*/
 void receiver_params_map::destroy()
 {
-    delete _instance;
-    _instance = NULL;
+    write_lock_guard guard(_mutex);
+    if ( _instance != NULL )
+    {
+        delete _instance;
+        _instance = NULL;
+    }
 }

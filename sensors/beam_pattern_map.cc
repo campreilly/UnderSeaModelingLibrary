@@ -44,6 +44,9 @@ beam_pattern_map* beam_pattern_map::instance()
  */
 void beam_pattern_map::destroy()
 {
-    delete _instance;
-    _instance = NULL;
+    write_lock_guard guard(_mutex);
+    if ( _instance != NULL ) {
+        delete _instance ;
+        _instance = NULL ;
+    }
 }
