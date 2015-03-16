@@ -8,29 +8,25 @@
     
     <h2>Release 1.0.0 - March 2015</h2>
     <ul>
+	<li>Bugs</li>
+	<ul>
+	    <li>Re-work the implementation of seq_vector and it sub-classes to allow better in ublas expressions. Fixes issues #95 and #66.
+		<ul>
+		<li>Restructured seq_vector to follow the design pattern of a typical ublas vector but still preserves the read-only nature of the original implementation.
+		<li>Removed depricated function data( size_type i ) const as it is not used or needed.
+		<li>Removed dependancy of ublas vector from seq_vector.
+		</ul>
+	</ul>
 	<li>Enhancements</li>
 	<ul>
 	    <li>Improve the way offsets are computed to fix accuracy issues pointed out by ARL/UT IV&V report.  Fixes issue #106.
 		<ul>
 		<li>Use folds in the wavefront to determine on_edge instead of path type.  This keeps the wavefront from becoming
                     all "edges" in long range surface ducts.
-		<li>Have compute offsets revert to 2x2 inverse if unstable.
-                <li>Don't assume that we can use the sign of the Hessian inverse's offset when unstable. 
+		<li>Modifed compute offsets revert to 2x2 inverse if unstable.
+                <li>Changed assumption on the sign of the Hessian inverse's offset when unstable. 
 		<li>Extrapolate the location of the wavefront points using time offset and compare differences in depth.
 		<li>Pull evaluation of instability from build_eigenrays into compute_offsets. No longer a need to share unstable flag outside of compute_offsets.
-		</ul>
-	    <li>Re-work the implementation of seq_data and it sub-classes to allow better its use as ublas vector. Fixes issues #95 and #66.
-		<ul>
-		<li>Restructured seq_vector to follow the design pattern of a typical ublas vector but still preserves the read-only nature of the original implementation.
-		<li>Accessors for _axis within data_grid and its children classes now access data by the [] operator after dereferencing.
-		<li>Removed depricated function data( size_type i ) const as it is not used or needed.
-		<li>Removed dependancy of ublas vector from seq_vector.
-		</ul>
-	    <li>Add mutex versions of profile_model and boundary_model. Fixes issue #102.
-		<ul>
-		<li>We previously had routines that had been customized for LVCMS. But, other any users working in a multi-threaded environment are going to 
-		need these as well. 
-		<li>This change takes the LVCMS routines and make a generic version that is based on the boost::thread library. 
 		</ul>
 	</ul>
     </ul>
@@ -80,7 +76,7 @@
     	    <li>Added run_id to each wave_queue object.  Used by eigenrayListener to keep track of cases where multiple wavefronts are active at the same time.
     	    <li>Add write_netcdf() method to data_grid class so that any grid can written to netCDF file.
     	    <li>Change the default earth radius from 6378101.30201019 (the WGS-84 value at 45 degrees) to 6371000 meters (the FAI standard).  This is the same value used to compute that 1 degree of latitude equals 60 nautical miles.
-    	    <li>Change the datatypes for netCDF outputs from proploss.c so that indicies use ncLong instead of ncShort.  Allows creations of larger outputs files.
+    	    <li>Change the datatypes for netCDF outputs from proploss.cc so that indices use ncLong instead of ncShort.  Allows creations of larger outputs files.
     	    <li>Make deletion of incoming grids by data_grid_mackenzie optional.
     	    <li>Replace #include guards with #prama once statements.  The new style is less prone to error.
     	    <li>Added non-const version of seq_vector* axis in data_grid.
