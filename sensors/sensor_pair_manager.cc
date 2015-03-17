@@ -61,11 +61,19 @@ void sensor_pair_manager::destroy()
  */
 sensor_pair_manager::~sensor_pair_manager()
 {
+    // Clean up _sensor_pair_map
+    sensor_pair_map_iter map_iter;
 
+    for (map_iter = _sensor_pair_map.begin(); map_iter != _sensor_pair_map.end(); ++map_iter)
+    {
+        sensor_pair* pair = map_iter->second;
+        delete pair;
+    }
+    _sensor_pair_map.clear();
 }
 
 /**
- *
+ * Get Fathometers
  */
 proploss* sensor_pair_manager::get_fathometers(sensorIDType sourceID)
 {
@@ -99,7 +107,7 @@ void sensor_pair_manager::update_eigenverbs(sensorIDType sensorID, xmitRcvModeTy
     sensorIDType receiverID;
     sensor_list_iter iter;
 
-     // TODO: set mutex write guard(s) on source or receivers data map
+    write_lock_guard guard(_mutex);
     switch (mode)
     {
         default:
@@ -111,7 +119,7 @@ void sensor_pair_manager::update_eigenverbs(sensorIDType sensorID, xmitRcvModeTy
                 receiverID = *iter;
                 std::stringstream hash_key;
                 hash_key << sensorID << "_" <<  receiverID;
-                sensor_pair* the_sensor_pair = _sensor_pair_map.find(hash_key)->second;
+                sensor_pair* the_sensor_pair = _sensor_pair_map.find(hash_key.str())->second;
                 the_sensor_pair->update_eigenverbs(usml::sensors::SOURCE, eigenverbs);
             }
             break;
@@ -121,8 +129,8 @@ void sensor_pair_manager::update_eigenverbs(sensorIDType sensorID, xmitRcvModeTy
             for (iter = _src_list.begin(); iter != _src_list.end(); ++iter) {
                 sourceID = *iter;
                 std::stringstream hash_key;
-                hash_key<< sourceID << "_" <<  sensorID;
-                sensor_pair* the_sensor_pair = _sensor_pair_map.find(hash_key)->second;
+                hash_key << sourceID << "_" <<  sensorID;
+                sensor_pair* the_sensor_pair = _sensor_pair_map.find(hash_key.str())->second;
                 the_sensor_pair->update_eigenverbs(usml::sensors::RECEIVER, eigenverbs);
             }
             break;
@@ -133,30 +141,18 @@ void sensor_pair_manager::update_eigenverbs(sensorIDType sensorID, xmitRcvModeTy
                 receiverID = *iter;
                 std::stringstream hash_key;
                 hash_key << sensorID << "_" <<  receiverID;
-                sensor_pair* the_sensor_pair = _sensor_pair_map.find(hash_key)->second;
+                sensor_pair* the_sensor_pair = _sensor_pair_map.find(hash_key.str())->second;
                 the_sensor_pair->update_eigenverbs(usml::sensors::SOURCE, eigenverbs);
             }
             for (iter = _src_list.begin(); iter != _src_list.end(); ++iter) {
                 sourceID = *iter;
                 std::stringstream hash_key;
                 hash_key << sourceID << "_" <<  sensorID;
-                sensor_pair* the_sensor_pair = _sensor_pair_map.find(hash_key)->second;
+                sensor_pair* the_sensor_pair = _sensor_pair_map.find(hash_key.str())->second;
                 the_sensor_pair->update_eigenverbs(usml::sensors::RECEIVER, eigenverbs);
             }
         }
     }
-}
-
-/**
- * Initializes the source and receiver data maps based
- * on the active source and receiver lists.
- */
-void sensor_pair_manager::init_sensor_data()
-{
-    sensor_list_iter iter;
-    sensorIDType sourceID;
-    sensorIDType receiverID;
-
 }
 
 /**
@@ -167,6 +163,8 @@ bool sensor_pair_manager::sensor_changed(sensorIDType sensorID, xmitRcvModeType 
     sensor_list_iter findIter; // For lookup in list(s)
     bool result = false;  // EVAR needs to return ErrorCode = 0x36000004
                           // AssetID Not Found
+
+    write_lock_guard guard(_mutex);
     switch (mode)
     {
         default:
@@ -176,7 +174,7 @@ bool sensor_pair_manager::sensor_changed(sensorIDType sensorID, xmitRcvModeType 
         {
             findIter = std::find(_src_list.begin(), _src_list.end(), sensorID);
             if (findIter != _src_list.end()) {
-                _src_list.erase(findIter);
+                map_update( sensorID, usml::sensors::SOURCE);
             }
             break;
         }
@@ -184,41 +182,40 @@ bool sensor_pair_manager::sensor_changed(sensorIDType sensorID, xmitRcvModeType 
         {
             findIter = std::find(_rcv_list.begin(), _rcv_list.end(), sensorID);
             if (findIter != _src_list.end()) {
-                _rcv_list.erase(findIter);
+                map_update( sensorID, usml::sensors::RECEIVER);
             }
             break;
         }
         case usml::sensors::BOTH:
         {
             findIter = std::find(_src_list.begin(), _src_list.end(), sensorID);
-            if (findIter != _src_list.end()) {
-                _src_list.erase(findIter);
-            }
-            findIter = std::find(_rcv_list.begin(), _rcv_list.end(), sensorID);
-            if (findIter != _src_list.end()) {
-                _rcv_list.erase(findIter);
+            if (findIter != _src_list.end())
+            {
+                findIter = std::find(_rcv_list.begin(), _rcv_list.end(), sensorID);
+                if (findIter != _rcv_list.end())
+                {
+                    map_update(sensorID, usml::sensors::SOURCE);
+                    map_update(sensorID, usml::sensors::RECEIVER);
+                }
             }
         }
     }
 
-    if (result) {
-        synch_sensor_pairs();
+#ifdef USML_DEBUG
+    //print_sensor_pairs();
+#endif
 
-        init_sensor_data();
-
-        #ifdef USML_DEBUG
-            print_sensor_pairs();
-        #endif
-    }
     return result;
 }
 
 /**
- * Adds the sensor to the sensor_pair_manager and synchronizes the maps.
+ * Adds the sensor to the sensor_pair_manager and synchronizes the map
  */
 void sensor_pair_manager::add_sensor(sensorIDType sensorID, xmitRcvModeType mode)
 {
-    sensor_list_iter findIter; // For lookup in list(s)
+    sensor_list_iter findIter;
+
+    write_lock_guard guard(_mutex);
     switch (mode)
     {
         default:
@@ -230,6 +227,8 @@ void sensor_pair_manager::add_sensor(sensorIDType sensorID, xmitRcvModeType mode
              if (findIter == _src_list.end())
              {
                  _src_list.push_back(sensorID);
+                 // Add to _sensor_pair_map
+                 map_insert( sensorID, usml::sensors::SOURCE);
              }
             break;
         }
@@ -239,6 +238,8 @@ void sensor_pair_manager::add_sensor(sensorIDType sensorID, xmitRcvModeType mode
             if (findIter == _rcv_list.end())
             {
                 _rcv_list.push_back(sensorID);
+                // Add to _sensor_pair_map
+                map_insert( sensorID, usml::sensors::RECEIVER);
             }
             break;
         }
@@ -248,21 +249,19 @@ void sensor_pair_manager::add_sensor(sensorIDType sensorID, xmitRcvModeType mode
             if (findIter == _src_list.end())
             {
                 _src_list.push_back(sensorID);
+                map_insert( sensorID, usml::sensors::SOURCE);
             }
             findIter = std::find(_rcv_list.begin(), _rcv_list.end(), sensorID);
             if (findIter == _rcv_list.end())
             {
                 _rcv_list.push_back(sensorID);
+                map_insert( sensorID, usml::sensors::RECEIVER);
             }
         }
     }
 
-    synch_sensor_pairs();
-
-    init_sensor_data();
-
 #ifdef USML_DEBUG
-    print_sensor_pairs();
+    //print_sensor_pairs();
 #endif
 
 }
@@ -275,11 +274,11 @@ bool sensor_pair_manager::remove_sensor(sensorIDType sensorID, xmitRcvModeType m
 
     bool result = false;  // EVAR needs to return ErrorCode = 0x36000004
                           // AssetID Not Found
-    sensorIDType sourceID;
-    sensorIDType receiverID;
-    sensor_list_iter iter;
 
     sensor_list_iter findIter; // For lookup in list(s)
+    sensor_list_iter rcvfindIter; // For lookup in list(s)
+
+    write_lock_guard guard(_mutex);
     switch (mode)
     {
         default:
@@ -287,36 +286,26 @@ bool sensor_pair_manager::remove_sensor(sensorIDType sensorID, xmitRcvModeType m
             break;
         case usml::sensors::SOURCE:
         {
-            // Remove from _sensor_pair_map
-             for (iter = _rcv_list.begin(); iter != _rcv_list.end(); ++iter)
-             {
-                 receiverID = *iter;
-                 std::stringstream hash_key;
-                 hash_key << sensorID << "_" << receiverID;
-                 _sensor_pair_map.erase(hash_key);
-             }
-             // Remove from _src_list
-             findIter = std::find(_src_list.begin(), _src_list.end(), sensorID);
-             if (findIter == _src_list.end())
-             {
-                 _src_list.erase(findIter);
-                 result = true;
-             }
+            // Verify existence
+            findIter = std::find(_src_list.begin(), _src_list.end(), sensorID);
+            if (findIter != _src_list.end())
+            {
+                // Remove from _sensor_pair_map
+                map_erase(sensorID, usml::sensors::SOURCE);
+                _src_list.erase(findIter);
+                result = true;
+            }
             break;
         }
         case usml::sensors::RECEIVER:
         {
-            // Remove from _sensor_pair_map
-            for (iter = _src_list.begin(); iter != _src_list.end(); ++iter) {
-                sourceID = *iter;
-                std::stringstream hash_key;
-                hash_key<< sourceID << "_" <<  sensorID;
-                _sensor_pair_map.erase(hash_key);
-            }
-            // Remove from _src_list
+            // Verify existence
             findIter = std::find(_rcv_list.begin(), _rcv_list.end(), sensorID);
-            if (findIter == _rcv_list.end())
+            if (findIter != _rcv_list.end())
             {
+                // Remove from _sensor_pair_map
+                map_erase(sensorID, usml::sensors::RECEIVER);
+                // Remove from _rcv_list
                 _rcv_list.erase(findIter);
                 result = true;
             }
@@ -324,45 +313,130 @@ bool sensor_pair_manager::remove_sensor(sensorIDType sensorID, xmitRcvModeType m
         }
         case usml::sensors::BOTH:
         {
-
-            // Remove from _sensor_pair_map
-             for (iter = _rcv_list.begin(); iter != _rcv_list.end(); ++iter)
-             {
-                 receiverID = *iter;
-                 std::stringstream hash_key;
-                 hash_key << sensorID << "_" << receiverID;
-                 _sensor_pair_map.erase(hash_key);
-             }
-             // Remove from _sensor_pair_map
-            for (iter = _src_list.begin(); iter != _src_list.end(); ++iter) {
-                sourceID = *iter;
-                std::stringstream hash_key;
-                hash_key<< sourceID << "_" <<  sensorID;
-                _sensor_pair_map.erase(hash_key);
-            }
+            // Verify existence in BOTH
             findIter = std::find(_src_list.begin(), _src_list.end(), sensorID);
-            if (findIter == _src_list.end())
+            if (findIter != _src_list.end()) // Found in src_list
             {
-                _src_list.erase(findIter);
-                result = true;
-            }
-            findIter = std::find(_rcv_list.begin(), _rcv_list.end(), sensorID);
-            if (findIter == _rcv_list.end())
-            {
-                _rcv_list.erase(findIter);
-                result = true;
+                rcvfindIter = std::find(_rcv_list.begin(), _rcv_list.end(), sensorID);
+                if (rcvfindIter != _rcv_list.end()) // Found in rcv_list
+                {
+                    // Remove from _sensor_pair_map as sourceID
+                    map_erase(sensorID, usml::sensors::SOURCE);
+                    // Remove from list's
+                    _src_list.erase(findIter);
+                    // Remove from _sensor_pair_map as receiverID
+                    map_erase(sensorID, usml::sensors::RECEIVER);
+                     // Remove from list's
+                    _rcv_list.erase(rcvfindIter);
+                    result = true;
+                }
             }
         }
     }
 
-    if (result)
-    {
-        synch_sensor_pairs();
 #ifdef USML_DEBUG
-        print_sensor_pairs();
+        //print_sensor_pairs();
 #endif
-    }
+
     return result;
+
+}
+
+/**
+ * Inserts the sensor into the _sensor_pair_map
+ */
+void sensor_pair_manager::map_insert(sensorIDType sensorID, xmitRcvModeType mode)
+{
+    sensor_list_iter iter;
+    sensor_pair_map_iter map_iter;
+    sensorIDType sourceID;
+    sensorIDType receiverID;
+
+    if (mode == usml::sensors::SOURCE)
+    {
+        sourceID = sensorID;
+        // Add to _sensor_pair_map
+        for (iter = _rcv_list.begin(); iter != _rcv_list.end(); ++iter)
+        {
+            receiverID = *iter;
+            std::stringstream hash_key;
+            hash_key << sourceID << "_" << receiverID;
+            _sensor_pair_map.insert(
+                std::pair<std::string, sensor_pair*>(hash_key.str(),
+                    new sensor_pair(sourceID, receiverID)));
+        }
+
+    } else { // usml::sensors::RECEIVER
+
+        receiverID = sensorID;
+        // Add to _sensor_pair_map
+        for (iter = _src_list.begin(); iter != _src_list.end(); ++iter)
+        {
+            sourceID = *iter;
+            std::stringstream hash_key;
+            hash_key << sourceID << "_" << receiverID;
+            // Dont insert a pair that was already inserted mode BOTH
+            map_iter = _sensor_pair_map.find(hash_key.str());
+            if (map_iter == _sensor_pair_map.end()){
+                _sensor_pair_map.insert(
+                    std::pair<std::string, sensor_pair*>(hash_key.str(),
+                    new sensor_pair(sourceID, receiverID)));
+            }
+        }
+    }
+}
+
+/**
+ * Erases from the sensor_pair_map
+ */
+void sensor_pair_manager::map_erase(sensorIDType sensorID, xmitRcvModeType mode)
+{
+    sensor_list_iter iter;
+    sensor_pair_map_iter map_iter;
+
+    sensorIDType sourceID;
+    sensorIDType receiverID;
+
+    if (mode == usml::sensors::SOURCE)
+    {
+        sourceID = sensorID;
+        for (iter = _rcv_list.begin(); iter != _rcv_list.end(); ++iter)
+        {
+            receiverID = *iter;
+            std::stringstream hash_key;
+            hash_key << sourceID << "_" << receiverID;
+            map_iter = _sensor_pair_map.find(hash_key.str());
+            if (map_iter != _sensor_pair_map.end()) {
+                sensor_pair* pair = map_iter->second;
+                delete pair;
+                _sensor_pair_map.erase(hash_key.str());
+            }
+        }
+
+    } else { // usml::sensors::RECEIVER
+
+        receiverID = sensorID;
+        for (iter = _src_list.begin(); iter != _src_list.end(); ++iter)
+        {
+            sourceID = *iter;
+            std::stringstream hash_key;
+            hash_key << sourceID << "_" << receiverID;
+            map_iter = _sensor_pair_map.find(hash_key.str());
+            if (map_iter != _sensor_pair_map.end()) {
+                sensor_pair* pair = map_iter->second;
+                delete pair;
+                _sensor_pair_map.erase(hash_key.str());
+            }
+        }
+    }
+}
+
+/**
+ * Updates the sensor_pair_map
+ */
+void sensor_pair_manager::map_update(sensorIDType sourceID, xmitRcvModeType mode)
+{
+
 }
 
 /**
@@ -377,12 +451,12 @@ void sensor_pair_manager::print_sensor_pairs()
     {
         cout << "_sensor_pair_map[" << iter->first << "] = ";
         sensor_pair* data = iter->second;
-        cout <<  "      sourceID: " << data->sourceID;
-        cout <<  "    receiverID: " << data->receiverID;
-        cout <<  "      proploss: " << data->proploss;
-        cout <<  "src eigenverbs: " << data->src_eigenverbs;
-        cout <<  "rcv eigenverbs: " << data->rcv_eigenverbs;
-        cout <<  "     envelopes: " << data->envelopes << endl;
+        cout <<  "  sourceID: " << data->sourceID();
+        cout <<  "  receiverID: " << data->receiverID();
+        cout <<  "  proploss: " << data->proploss();
+        cout <<  "  src eigenverbs: " << data->src_eigenverbs();
+        cout <<  "  rcv eigenverbs: " << data->rcv_eigenverbs();
+        cout <<  "  envelopes: " << data->envelopes() << endl;
     }
     cout << endl;
 }

@@ -36,14 +36,11 @@ using namespace eigenverb ;
 
 /**
  * Manages the containers for all the sensor pair's in use by the USML.
- * A sensor pair contains a source, receiver acoustic pair.
- * The sensor_pair_manager stores boost::shared_ptrs pointers
- * to the data required for each sensor pair.
- * The sensor_pair_manager consists of a map for the both source and receiver data.
- * A Map which the uses the sourceID as a key to all the receiverID's for that source.
- * Another map which uses the receiverID as the key to all sourceID's for that receiver,
- * and lists of all the active sources and receivers.
- * The first one represents the source an the second key represents the receiver.
+ * A sensor pair contains a source, receiver acoustic pair and it's
+ * associated data. The each sensor_pair uses boost::shared_ptrs to the data
+ * required. The sensor_pair_manager has a std::map, sensor_pair_map, that
+ * uses a key that is a std::string type and consists of the sourceID + "_" + receiverID.
+ * The payload of the sensor_pair_map is a pointer to the sensor_pair data.
  */
 
 /**
@@ -55,8 +52,8 @@ using namespace eigenverb ;
 typedef std::list<sensorIDType> sensor_list_type;
 typedef std::list<sensorIDType>::iterator sensor_list_iter;
 
-typedef std::map <std::stringstream, sensor_pair*> sensor_pair_map_type;
-typedef std::map <std::stringstream, sensor_pair*>::iterator sensor_pair_map_iter;
+typedef std::map <std::string, sensor_pair*> sensor_pair_map_type;
+typedef std::map <std::string, sensor_pair*>::iterator sensor_pair_map_iter;
 
 class USML_DECLSPEC sensor_pair_manager : public sensor_listener
 {
@@ -130,27 +127,37 @@ public:
 
     /**
      * Gets the sensor pair map.
+     * @return const pointer to the _sensor_pair_map
      */
-    sensor_pair_map_type* sensor_pair_map()
+    const sensor_pair_map_type* sensor_pair_map() const
     {
-        // TODO: set mutex read guard(s) on source or receivers data map
-        //return _sensor_pair_map;
-        return 0;
+        read_lock_guard guard(_mutex);
+        return &_sensor_pair_map;
     }
 
 private:
 
     /**
-     * Synchronizes the source and receiver maps to
-     * the active source and receiver lists.
+     * Inserts the sensor into sensor_pair_map
+     * @param sensorID  ID of the sensor to insert.
+     * @param mode  sensor type: Source, Receiver or Both
      */
-    void synch_sensor_pairs();
+    void map_insert(sensorIDType sensorID, xmitRcvModeType mode);
 
     /**
-     * Initializes the source and receiver data maps based
-     * on the active source and receiver lists.
+     * Erases the sensor from the sensor_pair_map
+     * @param sensorID  ID of the sensor to erase
+     * @param mode  sensor type: Source, Receiver or Both
+     * @param the_list either the _src_list or rcv_list
      */
-    void init_sensor_data();
+    void map_erase(sensorIDType sensorID, xmitRcvModeType mode);
+
+    /**
+     * Updates the sensor data in  sensor_pair_map
+     * @param sensorID  ID of the sensor to update
+     * @param mode  sensor type: Source, Receiver or Both
+     */
+    void map_update(sensorIDType sensorID, xmitRcvModeType mode);
 
     /**
      * Prints to console the all source and receiver maps
@@ -203,11 +210,11 @@ private:
 
     /**
      * sensor pair map container.
-     *  Key is a stringstream concatenation of
+     *  Key is a string concatenation of
      *  "sourceID" + "_" + receiverID"
-     *  Payload is a poniter to sensor_pair object.
+     *  Payload is a pointer to sensor_pair object.
      */
-    std::map <std::stringstream, sensor_pair*> _sensor_pair_map;
+    std::map <std::string, sensor_pair*> _sensor_pair_map;
 
 };
 
