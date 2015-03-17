@@ -592,7 +592,7 @@ class USML_DLLEXPORT data_grid {
 
             // build interpolation coefficients
 
-            size_t next[NUM_DIMS];
+			size_t* next = new size_t[NUM_DIMS];	// dynamic creation works around Win64 problem
             memcpy(next, index, NUM_DIMS * sizeof(size_t));
             ++next[dim];
 
@@ -600,6 +600,7 @@ class USML_DLLEXPORT data_grid {
             const DATA_TYPE b = interp(dim - 1, next, location, db, deriv_vec);
             const size_t k = index[dim];
             seq_vector* ax = _axis[dim];
+			delete[] next;
 
             // compute field value in this dimension
 
