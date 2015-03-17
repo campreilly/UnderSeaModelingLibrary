@@ -8,16 +8,14 @@
 
 #include <usml/sensors/sensorIDType.h>
 #include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/sensors/sensor_pair_manager.h>
-#include <usml/eigenverb/source_data.h>
-#include <usml/eigenverb/receiver_data.h>
 
 BOOST_AUTO_TEST_SUITE(sensor_pair_manager_test)
 
 using namespace boost::unit_test;
 
 using namespace usml::sensors;
-using namespace usml::eigenverb;
 
 /**
 * @ingroup sensors_test
@@ -32,13 +30,13 @@ class thread_test_base
         thread_test_base() :
             _sensor_pair_manager(NULL)
         {
-            //cout << "tester_base constructor" << endl;
+            //cout << "thread_test_base constructor" << endl;
         }
 
         // Destructor
         virtual ~thread_test_base()
         {
-            //cout << "tester_base destructor" << endl;
+            //cout << "thread_test_base destructor" << endl;
             sensor_pair_manager::destroy();
         }
 
