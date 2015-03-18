@@ -226,10 +226,10 @@ class USML_DLLEXPORT data_grid {
             for(long i=0; i < NUM_DIMS; ++i) {
                 std::stringstream ss ;
                 ss << "axis" << i << "\0" ;
-                axis_dim[i] = _file->add_dim( (ss.str()).c_str(), _axis[i]->size() ) ;
+                axis_dim[i] = _file->add_dim( (ss.str()).c_str(), (long) _axis[i]->size() ) ;
                 axis_size[i] = axis_dim[i] ;
                 axis_var[i] = _file->add_var( (ss.str()).c_str(), type, axis_dim[i] ) ;
-                data_size[i] = _axis[i]->size() ;
+                data_size[i] = (long) _axis[i]->size() ;
             }
             NcVar* data_var = _file->add_var( "data", type, NUM_DIMS, &*axis_size ) ;
 
