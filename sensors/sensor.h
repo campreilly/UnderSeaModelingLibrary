@@ -56,8 +56,6 @@ public:
         _paramsID(-1),
         _src_rcv_mode(usml::sensors::SOURCE),
         _position(wposition1(0.0, 0.0, 0.0)),
-        _tilt_angle(0.0),
-        _tilt_direction(0.0),
         _pitch(0.0),
         _yaw(0.0),
         _source(NULL),
@@ -79,8 +77,8 @@ public:
 	 * @param description
 	 */
 	sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType mode,
-				const wposition1 position, const double tilt_angle, const double tilt_direction, 
-				const double pitch, const double yaw, const std::string description = std::string());
+				const wposition1 position, const double pitch, const double yaw, 
+                                                const std::string description = std::string());
 
     /**
 	 * Destructor

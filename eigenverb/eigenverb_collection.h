@@ -20,7 +20,7 @@ namespace eigenverb {
 class USML_DECLSPEC eigenverb_collection
 {
 
-public:			wave_generator *_wave_generator;
+public:
 	eigenverb_collection();
 	virtual ~eigenverb_collection();
 

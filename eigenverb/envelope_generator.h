@@ -6,7 +6,7 @@
 ///////////////////////////////////////////////////////////
 
 #include <usml/usml_config.h>
-#include <usml/eigenverbs/envelope_collection.h>
+#include <usml/eigenverb/envelope_collection.h>
 
 namespace usml {
 namespace eigenverb {

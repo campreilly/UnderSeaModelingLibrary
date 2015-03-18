@@ -241,7 +241,7 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
     // Modify #1 paramID #1
     sensor_data = new sensor(sensorID, paramID, usml::sensors::BOTH,
-                             wposition1(0.0,0.0,0.0), 0.0, 0.0, 0.0, 0.0);
+                             wposition1(0.0,0.0,0.0), 0.0, 0.0);
 
     // Test update
     sensor_data->source(*src_params);

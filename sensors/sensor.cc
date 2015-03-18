@@ -23,14 +23,11 @@ using namespace usml::sensors;
  * @param description
  */
 sensor::sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType mode,
-	const wposition1 position, const double tilt_angle, const double tilt_direction, 
-	const double pitch, const double yaw, const std::string description) 
+	const wposition1 position, const double pitch, const double yaw, const std::string description) 
 	:	_sensorID(sensorID),
 		_paramsID(paramsID),
 		_src_rcv_mode(mode),
 		_position(position),
-		_tilt_angle(tilt_angle),
-		_tilt_direction(tilt_direction),
 		_pitch(pitch),
 		_yaw(yaw),
 		_description(description),
