@@ -1,5 +1,5 @@
 /**
- * @example studies/reverberation/reverberation_bistatic.cc
+ * @example studies/reverberation/reverberation_monostatic.cc
  */
 #include <boost/progress.hpp>
 #include <usml/ocean/ocean.h>
