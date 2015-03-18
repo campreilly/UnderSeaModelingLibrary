@@ -42,7 +42,7 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          * @param sound_speed       speed of sound in water at the array
          * @param spacing           distance between each element on the array
          * @param elements          number of elements on the line array
-         * @param steering_angles   list of steering angles relative to the
+         * @param steering_angle    list of steering angles relative to the
          *                          reference axis
          * @param axis              the reference axis of the array.
          */
@@ -71,7 +71,6 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          * @param az            Azimuthal angle (rad)
          * @param pitch         pitch in the DE dimension (rad)
          * @param yaw           yaw in the AZ dimension (rad)
-         * @param beam          beam steering to find response level (size_t)
          * @param frequencies   frequencies to compute beam level for
          * @param level         beam level for each frequency
          */
