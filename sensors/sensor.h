@@ -42,7 +42,7 @@ class sensor_listener;
  *
  * @author Ted Burns, AEgis Technologies Group, Inc.
  * @version 1.0
- * @updated 27-Feb-2015 3:15:01 PM
+ * @updated 18-Mar-2015 12:18:44 PM
  */
 class USML_DECLSPEC sensor
 {
@@ -204,40 +204,6 @@ public:
 	 * @return depth of the sensor in meters.
 	 */
 	double depth();
-	
-	/**
-	 * Sets the tilt_angle attribute of the sensor. 
-	 * Expects tilt_angle to be in radians.
-	 * @param tilt_angle
-	 */
-	void tilt_angle(double tilt_angle)
-	{
-		_tilt_angle = tilt_angle;
-	}
-	/**
-	 * Gets the tilt_angle of the sensor.
-	 * @return tilt_angle in radians.
-	 */
-	double tilt_angle()
-	{
-		return _tilt_angle;
-	}
-	/**
-	 * Sets the tilt_direction attribute of the sensor. 
-	 * @param tilt_direction in radians.
-	 */
-	void tilt_direction(double tilt_direction)
-	{
-		_tilt_direction = tilt_direction;
-	}
-	/**
-	 * Gets the tilt_direction of the sensor.
-	 * @return tilt_direction in radians.
-	 */
-	double tilt_direction()
-	{
-		return _tilt_direction;
-	}
 	/**
 	 * Sets the pitch of the sensor. 
 	 * Expects pitch to be in radians.
@@ -326,9 +292,15 @@ public:
 	void init_wave_generator();
 	
 	/**
-	 * Updates the sensor.
+	 * Updates the sensor data, checks position, pitch, yaw, thresholds
+	 * to determine if new wave_generator needs to be run, then kicks 
+	 * off the waveq3d model.
+	 * @param position  updated position data
+	 * @param pitch     updated pitch value
+	 * @param yaw       updated yaw value
+	 * @param force_run defaults to false, set true to force new run
 	 */
-	void update_sensor();
+	void update_sensor(wposition1 position, double pitch, double yaw, bool force_update=false);
 	
 	/**
 	 * Updates the sensors fathometers
@@ -367,8 +339,6 @@ private:
     xmitRcvModeType _src_rcv_mode;
 
 	wposition1 _position;
-	double _tilt_angle;
-	double _tilt_direction;	
 	double _pitch;
     double _yaw;
 	
@@ -384,8 +354,7 @@ private:
     * update classes that require sensor be informed as they are changed.
     * These classes must implement sensor_changed method.
     */
-    std::vector<sensor_listener*> _sensor_listener_vec;
-    		
+    std::vector<sensor_listener*> _sensor_listener_vec; 		
 };
 
 /// @}

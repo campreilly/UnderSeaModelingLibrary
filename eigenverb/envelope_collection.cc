@@ -18,3 +18,8 @@ envelope_collection::~envelope_collection()
 {
 
 }
+
+void add_envelope() 
+{
+
+}

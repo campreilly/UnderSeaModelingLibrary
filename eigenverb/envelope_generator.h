@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////
 
 #include <usml/usml_config.h>
+#include <usml/eigenverbs/envelope_collection.h>
 
 namespace usml {
 namespace eigenverb {
@@ -15,6 +16,8 @@ namespace eigenverb {
 
 class USML_DECLSPEC envelope_generator
 {
+private:
+	envelope_collection* _envelope_collection;
 
 public:
 	envelope_generator();

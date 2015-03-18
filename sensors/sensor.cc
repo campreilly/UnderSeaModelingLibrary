@@ -9,7 +9,8 @@
 using namespace usml::sensors;
 
 /**
- * Constructor
+ * Constructor Uses the paramID and mode, looks up source and/or receiver from
+ * there associated map.
  * 
  * @param sensorID
  * @param paramsID
@@ -103,9 +104,8 @@ sensor::~sensor()
 }
 
 /**
- * Sets the latitude of the sensor. 
- * Expects latitude to be in decimal degrees.
- * @param latitude
+ * Sets the latitude of the sensor. Expects latitude to be in decimal degrees.
+ * @param latitude    latitude
  */
 void sensor::latitude(double latitude)
 {
@@ -113,7 +113,7 @@ void sensor::latitude(double latitude)
 }
 
 /**
- * Gets the latitude of the sensor.
+ * Get method for the latitude of the sensor.
  * @return latitude in decimal degrees.
  */
 double sensor::latitude()
@@ -122,9 +122,8 @@ double sensor::latitude()
 }
 
 /**
- * Sets the longitude of the sensor. 
- * Expects longitude to be in decimal degrees.
- * @param longitude
+ * Sets the longitude of the sensor. Expects longitude to be in decimal degrees.
+ * @param longitude    longitude
  */
 void sensor::longitude(double longitude)
 {
@@ -132,7 +131,7 @@ void sensor::longitude(double longitude)
 }
 
 /**
- * Gets the longitude of the sensor.
+ * Get method for the longitude of the sensor.
  * @return longitude in decimal degrees.
  */
 double sensor::longitude()
@@ -141,9 +140,8 @@ double sensor::longitude()
 }
 
 /**
- * Sets the depth of the sensor in meters.
- * Expects depth to be positive value from surface.
- * @param depth
+ * Sets the depth of the sensor. Expects depth to be in meters.
+ * @param depth    depth
  */
 void sensor::depth(double depth)
 {
@@ -152,8 +150,8 @@ void sensor::depth(double depth)
 }
 
 /**
- * Gets the depth of the sensor.
- * @return depth in meters.
+ * Get method for the depth of the sensor.
+ * @return depth of the sensor in meters.
  */
 double sensor::depth()
 {
@@ -169,14 +167,22 @@ void sensor::init_wave_generator()
 }
 
 /**
- * Updates the sensor.
+ * Updates the sensor data, checks position, pitch, yaw, thresholds to determine
+ * if new wave_generator needs to be run, then kicks off the waveq3d model.
+ * @param force_run defaults to false, set true to force new run
+ * 
+ * @param position    updated position data
+ * @param pitch    updated pitch value
+ * @param yaw    updated yaw value
+ * @param force_update
  */
-void sensor::update_sensor()
+void sensor::update_sensor(wposition1 position, double pitch, double yaw, bool force_run)
 {
-
+	
 }
 
 /**
+ * Updates the sensors fathometers (eigenrays)
  * 
  * @param fathometers
  */
@@ -186,7 +192,7 @@ void sensor::update_fathometers(proploss* fathometers)
 }
 
 /**
- *
+ * Updates the sensors eigenverb_collection
  * @param eigenverbs
  */
 void sensor::update_eigenverbs(eigenverb_collection* eigenverbs)
@@ -228,8 +234,9 @@ bool sensor::remove_sensor_listener(sensor_listener* listener)
 }
 
 /**
- * For each sensor_listener in the _sensor_listener_vec vector
- * call the sensor_changed method with the sensorID.
+ * For each sensor_listener in the _sensor_listener_vec vector call the
+ * sensor_changed method of each registered class. 
+ * @param sensorID
  */
 bool sensor::notify_sensor_listeners(sensorIDType sensorID)
 {

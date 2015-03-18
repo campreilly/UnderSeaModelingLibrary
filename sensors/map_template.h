@@ -148,6 +148,7 @@ public:
         if (find(keyID) != 0)
         {
             // Delete first then add
+			// erase will delete mapped data that are heap space.
             erase(keyID);
             result = insert(keyID, mapped);
         }

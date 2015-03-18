@@ -23,6 +23,7 @@ class USML_DECLSPEC envelope_collection
 public:
 	envelope_collection();
 	virtual ~envelope_collection();
+	void add_envelope();
 };
 
 // Reverb Envelopes

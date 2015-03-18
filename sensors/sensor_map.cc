@@ -81,15 +81,16 @@ bool sensor_map::erase(const sensorIDType sensorID, xmitRcvModeType mode)
 
 bool sensor_map::update(const sensorIDType sensorID, sensor* in_sensor)
 {
-    // Insert in the map
-    bool result = false;
-    result = map_template<const sensorIDType, sensor*>::update(sensorID, in_sensor);
+	// Input sensor does not contain "all" sensor data
+	// Get current data
+	sensor* current_sensor = find(sensorID);
+	
+	// Ensure pre-existance
+	if (current_sensor != 0) {
+		
+		current_sensor->update_sensor(in_sensor->position(), in_sensor->pitch(), in_sensor->yaw());
+		return true;
+	}
 
-    if (result != false) {
-        //Add to the sensor_pair_manager
-        _sensor_pair_manager->remove_sensor(sensorID, in_sensor->mode() );
-        _sensor_pair_manager->add_sensor(sensorID, in_sensor->mode() );
-    }
-
-    return result;
+    return false;
 }
