@@ -119,7 +119,10 @@ int main( int argc, char* argv[] ) {
         boost::progress_timer timer ;
         while ( wave.time() < time_max ) {
             wave.step() ;
-        }
+		#ifdef USML_DEBUG
+			wave.save_netcdf();
+		#endif
+		}
     }
 
     #ifdef USML_DEBUG
