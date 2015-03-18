@@ -21,7 +21,7 @@ caustic_index = find( ~isnan(analytic.caustic.travel_time) ) ;
 
 % load propagation loss data from FFP
 
-[data,desc] = xlsread('n2deep.csv');
+[data,desc] = xlsread('ffp_n2deep.csv');
 ffp.range = data(:,1)'/1e3 ;
 ffp.intensity = data(:,2)' ;
 clear data desc
