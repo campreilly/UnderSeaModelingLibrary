@@ -402,7 +402,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_1d_test ) {
     cout << "Directivity index: " << level << endl ;
 
     delete axes[0] ;
-    delete data ;
+    delete[] data ;
 }
 
 /**
@@ -468,7 +468,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
 
     delete frequencies ;
     delete de ;
-    delete data ;
+    delete[] data ;
 }
 
 /**
@@ -544,7 +544,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_3d_test ) {
     }
     cout << "Directivity index: " << level << endl ;
 
-    delete data ;
+    delete[] data ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

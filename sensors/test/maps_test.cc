@@ -257,6 +257,7 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     sensor_map::destroy();
     source_params_map::destroy();
     receiver_params_map::destroy();
+    delete sensor_data ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

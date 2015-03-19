@@ -466,6 +466,7 @@ BOOST_AUTO_TEST_CASE( sequence_foreach_test ) {
         complete = false, cout << i << " ", complete = true ;
     cout << endl ;
     BOOST_CHECK( complete ) ;
+    delete[] sample ;
 }
 
 /**
@@ -517,7 +518,7 @@ BOOST_AUTO_TEST_CASE( seq_ublas_test ) {
         BOOST_CHECK_EQUAL( i, tmp ) ;
     }
     cout << "result_data: " << result << endl ;
-
+    delete[] d ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
