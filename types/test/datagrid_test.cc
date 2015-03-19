@@ -547,6 +547,7 @@ BOOST_AUTO_TEST_CASE(grid_2d_test) {
 
 	}
 	delete bathy;
+        delete[] location;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

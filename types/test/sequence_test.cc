@@ -466,6 +466,7 @@ BOOST_AUTO_TEST_CASE( sequence_foreach_test ) {
         complete = false, cout << i << " ", complete = true ;
     cout << endl ;
     BOOST_CHECK( complete ) ;
+    delete[] sample ;
 }
 
 /**
