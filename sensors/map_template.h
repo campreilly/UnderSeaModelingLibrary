@@ -11,6 +11,7 @@
 #include <typeinfo>
 
 #include <usml/usml_config.h>
+#include <boost/type_traits/is_pointer.hpp>
 
 namespace usml {
 namespace sensors {
@@ -60,11 +61,7 @@ public:
     virtual ~map_template()
     {
         // Check if mapped_type is a pointer
-        const std::type_info& check  = typeid(_map.begin()->second);
-        const char * type_name = check.name();
-        // First char will be a 'P'
-        if (type_name[0] == 'P') {
-
+		if (boost::is_pointer<mapped_type>::value) {
             typename std::map <key_type, mapped_type>::iterator iter;
             for (iter = _map.begin(); iter != _map.end(); ++iter)
             {
