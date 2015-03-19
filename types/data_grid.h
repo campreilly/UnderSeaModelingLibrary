@@ -599,12 +599,11 @@ class USML_DLLEXPORT data_grid {
 
             // build interpolation coefficients
 
-            size_t next[NUM_DIMS];
-            memcpy(next, index, NUM_DIMS * sizeof(size_t));
-            ++next[dim];
-
             const DATA_TYPE a = interp(dim - 1, index, location, da, deriv_vec);
-            const DATA_TYPE b = interp(dim - 1, next, location, db, deriv_vec);
+			size_t next[NUM_DIMS];
+			memcpy(next, index, NUM_DIMS * sizeof(size_t));
+			++next[dim];
+			const DATA_TYPE b = interp(dim - 1, next, location, db, deriv_vec);
             const size_t k = index[dim];
             seq_vector* ax = _axis[dim];
 
