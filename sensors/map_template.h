@@ -87,10 +87,7 @@ public:
             return false;
         }
         // Check if mapped_type is a pointer
-        const std::type_info& check  = typeid(_map.begin()->second);
-        const char * type_name = check.name();
-        // First char will be a 'P'
-        if (type_name[0] == 'P') {
+		if (boost::is_pointer<mapped_type>::value) {
             mapped_type mapped = _map.find(keyID)->second;
             delete mapped;
         }
