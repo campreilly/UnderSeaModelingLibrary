@@ -16,6 +16,7 @@
 		<li>Removed depricated function data( size_type i ) const as it is not used or needed.
 		<li>Removed dependancy of ublas vector from seq_vector.
 		</ul>
+	   <li>Fix implementation of (v / t) [i] = v [i] / t in config/vector_expressions.h so that it uses scalar_divides instead of scalar_multiplies.
 	</ul>
 	<li>Enhancements</li>
 	<ul>

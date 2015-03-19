@@ -158,7 +158,7 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
         /**
          * Copies data from another seq_vector object.
          *
-         * @param  copy         The object to be copied.
+         * @param  other         The object to be copied.
          */
         seq_vector( const self_type& other )
             : vector_container<self_type> (),
