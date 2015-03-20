@@ -206,6 +206,7 @@ BOOST_AUTO_TEST_CASE( random_producer ) {
     cout << "=== ocean_shared_test: random_producer ===" << endl;
     randgen::seed(0); // create same results each time
     ocean_shared_tester(10,0.5,0.25).run() ;
+	thread_controller::destroy();
 }
 
 /// @}
