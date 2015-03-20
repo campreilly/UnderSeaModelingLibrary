@@ -8,6 +8,7 @@
 #include <usml/types/seq_vector.h>
 #include <list>
 #include <cstddef>
+#include <boost/shared_ptr.hpp>
 
 namespace usml {
 namespace eigenverb {

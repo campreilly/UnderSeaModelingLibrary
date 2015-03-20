@@ -173,6 +173,13 @@ class USML_DLLEXPORT data_grid {
         }
 
         /**
+         * Extracts a const pointer to the data member.
+         */
+        inline DATA_TYPE* data() const {
+            return _data ;
+        }
+
+        /**
          * Extract a data value at a specific combination of indices.
          *
          * @param  index            Index number in each dimension.
@@ -211,7 +218,7 @@ class USML_DLLEXPORT data_grid {
             long* data_size = new long[NUM_DIMS] ; 
 				// Note: Using size_type instead of long for this variable
 			    // doesn't work on VC++ 32 bit, data_var->put() requires long.
-            NcType type ;
+            NcType type = ncDouble ;
             const std::type_info& dt = typeid(DATA_TYPE) ;
             const char* dtype = dt.name() ;
             if( dtype == typeid(int).name() ) {
@@ -223,13 +230,13 @@ class USML_DLLEXPORT data_grid {
             }
 
             NcVar* earth_radius = _file->add_var( "earth_radius", ncDouble, 0 ) ;
-            for(long i=0; i < NUM_DIMS; ++i) {
+            for(size_t i=0; i < NUM_DIMS; ++i) {
                 std::stringstream ss ;
                 ss << "axis" << i << "\0" ;
-                axis_dim[i] = _file->add_dim( (ss.str()).c_str(), _axis[i]->size() ) ;
+                axis_dim[i] = _file->add_dim( (ss.str()).c_str(), (long)_axis[i]->size() ) ;
                 axis_size[i] = axis_dim[i] ;
                 axis_var[i] = _file->add_var( (ss.str()).c_str(), type, axis_dim[i] ) ;
-                data_size[i] = _axis[i]->size() ;
+                data_size[i] = (long)_axis[i]->size() ;
             }
             NcVar* data_var = _file->add_var( "data", type, NUM_DIMS, &*axis_size ) ;
 
@@ -592,12 +599,11 @@ class USML_DLLEXPORT data_grid {
 
             // build interpolation coefficients
 
-            size_t next[NUM_DIMS];
-            memcpy(next, index, NUM_DIMS * sizeof(size_t));
-            ++next[dim];
-
             const DATA_TYPE a = interp(dim - 1, index, location, da, deriv_vec);
-            const DATA_TYPE b = interp(dim - 1, next, location, db, deriv_vec);
+			size_t next[NUM_DIMS];
+			memcpy(next, index, NUM_DIMS * sizeof(size_t));
+			++next[dim];
+			const DATA_TYPE b = interp(dim - 1, next, location, db, deriv_vec);
             const size_t k = index[dim];
             seq_vector* ax = _axis[dim];
 

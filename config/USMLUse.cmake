@@ -20,6 +20,7 @@ if( MSVC )
     add_definitions( -MP )          # multi-processor compilation
     add_definitions( -D_USE_MATH_DEFINES ) # symbols like M_PI
     add_definitions(                # quiet some harmless warning
+	   -D_WIN32_WINNT=0x0501
         -D_CRT_SECURE_NO_WARNINGS
         -wd4244 -wd4996 -wd4018 -wd4251 )
     if ( BUILD_SHARED_LIBS )
@@ -89,11 +90,13 @@ if( MSVC )
         date_time
         system
         chrono
+	    regex
     )
 else ( MSVC )
     find_package( Boost 1.41 REQUIRED COMPONENTS
         unit_test_framework	# for usml_test.exe
         thread
+        system
     )
 endif ( MSVC )
 

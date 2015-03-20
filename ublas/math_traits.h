@@ -778,11 +778,12 @@ inline math_traits<double>::value_type copysign(
         #define NAN std::numeric_limits<double>::quiet_NaN()
     #endif
     inline int isnan(double x) { return _isnan(x); }
-    inline int round(double x) { return floor(x + 0.5); }
 
 #if (_MSC_VER < 1800 )  // Visual Sudio eariler than 2013
 
-    inline math_traits<double>::value_type acosh(
+	inline int round(double x) { return floor(x + 0.5); }
+
+	inline math_traits<double>::value_type acosh(
         math_traits<double>::const_reference t)
     {
         return math_traits<double>::acosh(t);

@@ -30,14 +30,13 @@ file(STRINGS config/VERSION.txt PACKAGE_VERSION)
 message(STATUS "USML version ${PACKAGE_VERSION}" )
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/config" )
 
-set( PACKAGE_MODULES ublas types netcdf ocean waveq3d eigenverb )
+set( PACKAGE_MODULES ublas types netcdf ocean sensors eigenverb threads waveq3d)
 if( MSVC )	# work around for missing netcdf_c++ on windows
     set( PACKAGE_MODULES ${PACKAGE_MODULES} netcdf/msvc )
 endif( MSVC )	
 
 option( USML_BUILD_TESTS "build all Tests" ON )
 option( USML_BUILD_STUDIES "build all Studies" OFF )
-option( USML_BUILD_ADDITIONS "build all Additions" OFF )
 
 include ( USMLUse )
 include_directories(
@@ -137,18 +136,3 @@ endif (USML_BUILD_TESTS)
 if (USML_BUILD_STUDIES)
     include ( usmlBuildStudies )
 endif(USML_BUILD_STUDIES)
-
-######################################################################
-# USML Additions
-#
-# Uses the USML_ADDITIONS_ROOT (variable or environment) to
-# over-ride the root of the Additions directory.
-
-if (USML_BUILD_ADDITIONS)
-    if( NOT DEFINED USML_ADDITIONS_DIR AND DEFINED ENV{USML_ADDITIONS_ROOT} )
-        set( USML_ADDITIONS_DIR $ENV{USML_ADDITIONS_ROOT} CACHE PATH "Root of USML Additions Dir" )
-    else()
-	 set( USML_ADDITIONS_DIR "" CACHE PATH "USML Additions directory" )
-    endif( NOT DEFINED USML_ADDITIONS_DIR AND DEFINED ENV{USML_ADDITIONS_ROOT} )
-    include (${USML_ADDITIONS_DIR}/usmlBuildAdditions.cmake OPTIONAL)
-endif(USML_BUILD_ADDITIONS)

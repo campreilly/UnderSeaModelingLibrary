@@ -495,4 +495,59 @@ BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
     delete axis[1] ;
 }
 
+/**
+* @ingroup types_test
+* Test for issue #114 - data_grid linear interpolation produces unpredictable 
+* results in Win64 release builds.  When running usml_test using a Win x64 
+* release build the reflection_test/reflect_grid_test fails.  We traced this
+* down to an error in using the linear() interpolation method with a 2-D data_grid.
+* If we add debug cout statements after the const DATA_TYPE a = interp() 
+* and const DATA_TYPE b = interp() we can see that a changes value 
+* while b is being computed. Even though linear is used recursively, 
+* a is a local variable and this should not happen.  It only seems to happen 
+* for linear 2-D interpolation of ETOPO1 bathymetry, and only using the 
+* Release x64 model of Visual C+++ 2012 in Visual Studio 2013. Perhaps 
+* it has something to do with optimizing a recursive template function.
+*/
+BOOST_AUTO_TEST_CASE(grid_2d_test) {
+	cout << "=== grid_2d_test ===" << endl;
+	const double lat1 = 35.5;  // Mediterranean sea
+	const double lat2 = 36.5;  // malta escarpment
+	const double lng1 = 15.25; // south-east of Sicily
+	const double lng2 = 16.25;
+	data_grid<double, 2>* bathy = new usml::netcdf::netcdf_bathy(
+		USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+		lat1, lat2, lng1, lng2);
+
+	const char* filename = USML_TEST_DIR "/types/test/grid_2d_test.nc";
+	bathy->write_netcdf(filename);
+	bathy->interp_type(0, GRID_INTERP_LINEAR);
+	bathy->interp_type(1, GRID_INTERP_LINEAR);
+	//bathy->interp_type(0, GRID_INTERP_PCHIP);
+	//bathy->interp_type(1, GRID_INTERP_PCHIP);
+
+	std::srand(0);
+	size_t N = 100;
+	double rho = 0;
+	size_t size1(bathy->axis(0)->size());
+	size_t size2(bathy->axis(1)->size());
+	size_t loc = 0;
+	double* location = new double[2];
+	for (size_t i = 0; i < N; ++i) {
+		loc = std::rand() % size1;
+		location[0] = (*bathy->axis(0))[loc];
+		// cout << "loc[0]: " << location[0];
+		loc = std::rand() % size2;
+		location[1] = (*bathy->axis(1))[loc];
+		// cout << " loc[1]: " << location[1] << endl;
+		rho = bathy->interpolate(location);
+		double height = rho - wposition::earth_radius;
+		// cout << "height: " << height << endl;
+		BOOST_CHECK(height > -6000.0);
+
+	}
+	delete bathy;
+        delete[] location;
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -137,5 +137,8 @@ struct USML_DECLSPEC eigenverb_box {
     coord_type height ;
 };
 
+// shared pointer
+typedef boost::shared_ptr<envelope_collection> envelopes_shared_ptr;
+
 }   // end of namespace eigenverb
 }   // end of namespace usml
