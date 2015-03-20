@@ -18,4 +18,4 @@
 /scripts
 /msg
 /usml.spec
-/build
+*.eps

@@ -42,7 +42,7 @@ int main( int argc, char* argv[] ) {
     wposition::compute_earth_radius( (lat1+lat2)/2.0 ) ;
 
     wposition1 pos( 35.983333333, 16.0, -10.0 ) ;
-    seq_rayfan de( 0.0, 45.0, 181 ) ;
+    seq_rayfan de( -45.0, 0.0, 181 ) ;
     seq_linear az( 225.0, 5.0, 315.0 ) ;
     const double time_max = 60.0 ;
     const double time_step = 0.050 ;
