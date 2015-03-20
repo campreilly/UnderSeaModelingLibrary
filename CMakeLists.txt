@@ -37,7 +37,6 @@ endif( MSVC )
 
 option( USML_BUILD_TESTS "build all Tests" ON )
 option( USML_BUILD_STUDIES "build all Studies" OFF )
-option( USML_BUILD_ADDITIONS "build all Additions" OFF )
 
 include ( USMLUse )
 include_directories(
