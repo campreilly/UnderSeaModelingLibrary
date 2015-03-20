@@ -20,7 +20,6 @@ using namespace usml::eigenverb ;
  */
 int main() {
     cout << "=== reverberation_test: monostatic ===" << endl;
-    const char* csvname = USML_STUDIES_DIR "/reverberation/monostatic.csv" ;
 	#ifdef MONOSTATIC_DEBUG
 		const char* nc_wave = USML_STUDIES_DIR "/reverberation/monostatic_wave.nc" ;
 	#endif
@@ -66,7 +65,7 @@ int main() {
     seq_log freq( f0, 1.0, 1 );
     wposition1 pos( lat, lng, alt ) ;
     seq_rayfan de ;
-//    seq_rayfan de( -90.0, 0.0, 91 ) ;
+    //seq_rayfan de( -90.0, 0.0, 91 ) ;
 //    seq_linear de( -89.5, 0.5, 1.0 ) ;
     seq_linear az( 0.0, 360.0, 360.0 ) ;
 
@@ -115,12 +114,6 @@ int main() {
     cout << "writing reverberation curves to " << reverb_file << endl ;
     levels.write_netcdf( reverb_file ) ;
 
-//    cout << "writing reverberation curve to " << csvname << endl;
-//    std::ofstream os(csvname);
-//    os << "time,intensity" << endl ;
-//    os << std::setprecision(18);
-//    cout << std::setprecision(18);
-
     vector<double> r = levels.envelopes(0) ;
 //    for(size_t i=1; i<az.size(); ++i) {
 //        r += levels.envelopes(i) ;
@@ -130,8 +123,5 @@ int main() {
         if( i % 10 == 0 ) {
             cout << "reverb_level(" << i << "): " << r(i) << endl ;
         }
-//        os << ( i * time_max / bins )
-//           << "," << r(i)
-//           << endl ;
     }
 }

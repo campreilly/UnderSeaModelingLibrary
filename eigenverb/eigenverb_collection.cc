@@ -275,8 +275,8 @@ void eigenverb_collection::write_netcdf(
         v = e.direction.rho(); nrho_var->put(&v, 1);
         v = e.direction.theta(); ntheta_var->put(&v, 1);
         v = e.direction.phi(); nphi_var->put(&v, 1);
-        long i = e.de_index; de_index_var->put(&i, 1);
-        i = e.az_index; az_index_var->put(&i, 1);
+        long i = (long) e.de_index; de_index_var->put(&i, 1);
+		i = (long) e.az_index; az_index_var->put(&i, 1);
         launch_de_var->put(&e.launch_de, 1);
         launch_az_var->put(&e.launch_az, 1);
         sigma_de_var->put(&e.sigma_de, 1);
@@ -284,8 +284,8 @@ void eigenverb_collection::write_netcdf(
 //        sigma_de_var->put(e.sigma_de.data().begin(), 1, freq_dim);
 //        sigma_az_var->put(e.sigma_az.data().begin(), 1, freq_dim);
         speed_var->put(&e.sound_speed, 1);
-        i = e.surface; surface_var->put(&i, 1);
-        i = e.bottom; bottom_var->put(&i, 1);
+		i = (long) e.surface; surface_var->put(&i, 1);
+		i = (long) e.bottom; bottom_var->put(&i, 1);
     }
 
     // close file
