@@ -30,9 +30,9 @@ sensor::sensor(const sensorIDType sensorID, const paramsIDType paramsID, const x
 		_position(position),
 		_pitch(pitch),
 		_yaw(yaw),
-		_description(description),
 		_fathometers(NULL),
-		_eigenverbs(NULL)
+		_eigenverbs(NULL),
+        _description(description)
 {
     // Use _paramsID to lookup source and receiver from map's
     // Make a copy of what was obtained from the associated map.

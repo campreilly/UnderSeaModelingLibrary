@@ -218,7 +218,7 @@ class USML_DLLEXPORT data_grid {
             long* data_size = new long[NUM_DIMS] ; 
 				// Note: Using size_type instead of long for this variable
 			    // doesn't work on VC++ 32 bit, data_var->put() requires long.
-            NcType type ;
+            NcType type = ncDouble ;
             const std::type_info& dt = typeid(DATA_TYPE) ;
             const char* dtype = dt.name() ;
             if( dtype == typeid(int).name() ) {
