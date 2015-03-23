@@ -308,12 +308,12 @@ void proploss::write_netcdf( const char* filename, const char* long_name )
     src_lat_var->put(&v);
     v = _source_pos.longitude();   src_lng_var->put(&v);
     v = _source_pos.altitude();    src_alt_var->put(&v);
-    for (unsigned d = 0; d < _source_de->size(); ++d) {
-        launch_de_var->set_cur(d);
+    for (size_t d = 0; d < _source_de->size(); ++d) {
+        launch_de_var->set_cur((long)d);
         v = (*_source_de)(d);       launch_de_var->put(&v, 1);
     }
-    for (unsigned a = 0; a < _source_az->size(); ++a) {
-        launch_az_var->set_cur(a);
+    for (size_t a = 0; a < _source_az->size(); ++a) {
+        launch_az_var->set_cur((long)a);
         v = (*_source_az)(a);       launch_az_var->put(&v, 1);
     }
     v = _time_step;

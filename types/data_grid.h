@@ -84,7 +84,7 @@ class USML_DLLEXPORT data_grid {
         data_grid(seq_vector *axis[])
         {
         	size_type N = 1 ;
-            for (unsigned n = 0; n < NUM_DIMS; ++n) {
+            for (size_t n = 0; n < NUM_DIMS; ++n) {
                 _axis[n] = axis[n]->clone();
                 N *= _axis[n]->size();
                 interp_type( n, GRID_INTERP_LINEAR ) ;
@@ -106,11 +106,11 @@ class USML_DLLEXPORT data_grid {
         data_grid(const data_grid& other, bool copy_data)
         {
         	size_type N = 1 ;
-            for (unsigned n = 0; n < NUM_DIMS; ++n) {
+            for (size_type n = 0; n < NUM_DIMS; ++n) {
                 _axis[n] = other._axis[n]->clone() ;
                 N *= _axis[n]->size();
             }
-            _data = new DATA_TYPE[N] ;
+            _data = new DATA_TYPE[N];
             if (copy_data) {
                 memcpy(_data, other._data, N * sizeof(DATA_TYPE)) ;
             } else {
@@ -146,7 +146,7 @@ class USML_DLLEXPORT data_grid {
          */
         virtual ~data_grid()
         {
-            for (size_t n = 0; n < NUM_DIMS; ++n) {
+            for (size_type n = 0; n < NUM_DIMS; ++n) {
                 if (_axis[n] != NULL) {
                     delete _axis[n];
                 }
@@ -496,7 +496,7 @@ class USML_DLLEXPORT data_grid {
          */
         data_grid() {
 
-            for (unsigned n = 0; n < NUM_DIMS; ++n) {
+            for (size_t n = 0; n < NUM_DIMS; ++n) {
                 _axis[n] = NULL ;
             }
             _data = NULL ;

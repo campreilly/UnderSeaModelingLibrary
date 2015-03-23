@@ -5,11 +5,13 @@
 #pragma once
 
 #include <usml/waveq3d/wave_queue.h>
+#include <usml/eigenverb/eigenverb_collection.h>
 
 namespace usml {
 namespace waveq3d {
 
 using namespace usml::ocean ;
+using namespace usml::eigenverb ;
 class wave_queue ;      // forward reference for friend declaration
 
 /**
@@ -52,6 +54,9 @@ class USML_DECLSPEC reflection_model
     /** Wavefront object associated with this model. */
     wave_queue& _wave ;
 
+    /** Associated eigenverb collection **/
+    eigenverb_collection* _collection ;
+
     /**
      * If the water is too shallow, bottom_reflection() uses a horizontal
      * normal to simulate reflection from "dry land".  Without this, the
@@ -84,7 +89,7 @@ class USML_DECLSPEC reflection_model
      * Hide default constructor to prohibit use by non-friends.
      */
     reflection_model( wave_queue& wave )
-    	: _wave( wave ),
+    	: _wave( wave ), _collection( NULL ),
     	  TOO_SHALLOW( 300.0 * wave._time_step )
     	{}
 
@@ -173,24 +178,6 @@ class USML_DECLSPEC reflection_model
     bool surface_reflection( size_t de, size_t az ) ;
 
     /**
-     * Computes a refined location and direction at the point of collision.
-     * Uses a second order Taylor series around the current location to
-     * estimate these values.
-     *
-     * @param de            D/E angle index number.
-     * @param az            AZ angle index number.
-     * @param dtime         The distance (in time) from the "current"
-     *                      wavefront to the boundary collision.
-     * @param position      Refined position of the reflection (output).
-     * @param ndirection    Normalized direction at the point
-     *                      of reflection (output).
-     * @param speed         Speed of sound at the point of reflection (output).
-     */
-    void collision_location(
-        size_t de, size_t az, double dtime,
-        wposition1* position, wvector1* ndirection, double* speed ) const ;
-
-    /**
      * Re-initialize an individual ray after reflection.
      * Uses the position and reflected direction to initialize
      * a temporary 1x1 wavefront. Then, the position and direction
@@ -221,6 +208,25 @@ class USML_DECLSPEC reflection_model
     static void reflection_copy(
         wave_front* element, size_t de, size_t az,
         wave_front& results ) ;
+
+    /**
+     * Constructs an eigenverb from the data provided. If the eigenverb meets
+     * the intensity threshold, the eigenverb is passed to the collision
+     * listener who then calls its collector to save the eigenverb.
+     *
+     * @param de            D/E angle index number.
+     * @param az            AZ angle index number.
+     * @param dt            Offset in time to collision with the boundary
+     * @param grazing       The grazing angle at point of impact (rads)
+     * @param speed         Speed of sound at the point of collision.
+     * @param position      Location at which the collision occurs
+     * @param ndirection    Normalized direction at the point of collision.
+     * @param type          Interface enumeration for this eigenverb
+     */
+    void build_eigenverb(
+        size_t de, size_t az, double dt, double grazing,
+        double speed, const wposition1& position,
+        const wvector1& ndirection, interface_type type ) ;
 } ;
 
 }  // end of namespace waveq3d

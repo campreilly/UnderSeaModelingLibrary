@@ -35,7 +35,9 @@ wave_queue::wave_queue(
     _frequencies( freq.clone() ),
     _source_pos( pos ),
     _source_de( de.clone() ),
+    _max_de( de.size()-1 ),
     _source_az( az.clone() ),
+    _max_az( az.size()-1 ),
     _time_step( time_step ),
     _time( 0.0 ),
     _targets( targets ),
@@ -100,6 +102,29 @@ wave_queue::~wave_queue() {
     delete _prev ;
     delete _curr ;
     delete _next ;
+}
+
+/**
+ * Assigns an eigeverb_collection to the reflection model
+ */
+void wave_queue::add_eigenverb_listener(
+    eigenverb_collection* collection )
+{
+    if( _reflection_model->_collection ) delete _reflection_model->_collection ;
+    _reflection_model->_collection = collection ;
+}
+
+/**
+ * Determines if the ray is a valid candidate to produce an eigenverb
+ */
+bool wave_queue::is_ray_valid( size_t de, size_t az ) {
+    if( _reflection_model->_collection ) {
+        if( de != _max_de )
+            if( az != _max_az )
+                if( _time > 0 )
+                    return true ;
+    }
+    return false ;
 }
 
 /**
@@ -203,8 +228,13 @@ void wave_queue::detect_reflections() {
         }
     }
 
-    // search for other changes in wavefront
+    // Check for volume interactions if we need to and there are
+    // volume layers in the ocean model.
+    if ( _reflection_model->_collection && _ocean.num_volume() ) {
+        detect_volume_reflections() ;
+    }
 
+    // search for other changes in wavefront
     _next->find_edges() ;
 }
 
@@ -258,8 +288,7 @@ void wave_queue::detect_vertices( size_t de, size_t az ) {
  *  Detects and processes the caustics along the next wavefront
  */
 void wave_queue::detect_caustics( size_t de, size_t az ) {
-    const size_t max_de = num_de() - 1 ;
-    if ( de < max_de ) {
+    if ( de < _max_de ) {
         double A = _curr->position.rho(de+1,az) ;
         double B = _curr->position.rho(de,az) ;
         double C = _next->position.rho(de+1,az) ;
@@ -273,6 +302,146 @@ void wave_queue::detect_caustics( size_t de, size_t az ) {
                 _next->phase(de+1,az)(f) -= M_PI_2;
             }
         }
+    }
+}
+
+/**
+ * Detect volume boundary reflections for reverberation contributions
+ */
+void wave_queue::detect_volume_reflections() {
+    std::size_t n = _ocean.num_volume() ;
+    for(std::size_t i=0; i<n; ++i) {
+        volume_model& layer = _ocean.volume(i) ;
+        for (size_t de = 0; de < num_de(); ++de) {
+            for (size_t az = 0; az < num_az(); ++az) {
+                if( _curr->on_edge(de,az) ) continue ;
+                double height ;
+                wposition1 pos_curr( _curr->position, de, az ) ;
+                wposition1 pos_next( _next->position, de, az ) ;
+                layer.depth( pos_next, &height, NULL ) ;
+                double d1 = height - pos_next.rho() ;
+                double d2 = height - pos_curr.rho() ;
+                if ( d1 > 0 && d2 < 0 ) { collide_from_above(de,az, d1, i) ; }
+                else if ( d1 < 0 && d2 > 0 ) { collide_from_below(de,az, d2, i) ; }
+            }
+        }
+    }
+}
+
+void wave_queue::collide_from_above(
+        size_t de, size_t az, double depth, size_t layer )
+{
+    if( is_ray_valid(de,az) ) {
+        double MIN_REFLECT = 6.0 ;
+        wposition1 position( _curr->position, de, az ) ;
+        wvector1 ndirection( _curr->ndirection, de, az ) ;
+        double c = _curr->sound_speed( de, az ) ;
+        double c2 = c*c ;
+
+        double layer_rho ;
+        wvector1 layer_normal( 1.0, 0.0, 0.0 ) ;
+        volume_model& volume = _ocean.volume(layer) ;
+        volume.depth( position, &layer_rho ) ;
+        double height_water = position.rho() - layer_rho ;
+
+        ndirection.rho(   c2 * ndirection.rho() ) ;
+        ndirection.theta( c2 * ndirection.theta() ) ;
+        ndirection.phi(   c2 * ndirection.phi() ) ;
+        double dot_full = layer_normal.rho() * ndirection.rho()
+                        + layer_normal.theta() * ndirection.theta()
+                        + layer_normal.phi() * ndirection.phi() ;
+
+        double max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+        if ( dot_full >= max_dot ) dot_full = max_dot ;
+
+        const double dot_water = -height_water * layer_normal.rho() ;
+        double time_water = max( 0.0, dot_water / dot_full ) ;
+
+        collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+        volume.depth( position, &layer_rho ) ;
+        c2 = c*c ;
+        height_water = position.rho() - layer_rho ;
+
+        ndirection.rho(   c2 * ndirection.rho() ) ;
+        ndirection.theta( c2 * ndirection.theta() ) ;
+        ndirection.phi(   c2 * ndirection.phi() ) ;
+        dot_full = layer_normal.rho() * ndirection.rho()
+            + layer_normal.theta() * ndirection.theta()
+            + layer_normal.phi() * ndirection.phi() ;  // negative #
+        max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+        if( dot_full >= max_dot )
+            dot_full = max_dot ;
+
+        double grazing = 0.0 ;
+        if( dot_full / c >= 1.0 )
+            grazing = -M_PI_2 ;
+        else if( dot_full / c <= -1.0 )
+            grazing = M_PI_2 ;
+        else
+            grazing = asin( -dot_full / c ) ;
+
+        // build the eigenverb
+        _reflection_model->build_eigenverb( de, az, time_water,
+            grazing, c, position, ndirection, VOLUME_LOWER ) ;
+    }
+}
+
+/** @todo correct logic/signs for collisions from below the boundary **/
+void wave_queue::collide_from_below(
+        size_t de, size_t az, double depth, size_t layer )
+{
+    if( is_ray_valid(de,az) ) {
+        double MIN_REFLECT = 6.0 ;
+        wposition1 position( _curr->position, de, az ) ;
+        wvector1 ndirection( _curr->ndirection, de, az ) ;
+        double c = _curr->sound_speed( de, az ) ;
+        double c2 = c*c ;
+        double layer_rho ;
+        wvector1 layer_normal( -1.0, 0.0, 0.0 ) ;
+        volume_model& volume = _ocean.volume(layer) ;
+        volume.depth( position, &layer_rho ) ;
+        double height_water = position.rho() - layer_rho ;
+
+        ndirection.rho(   c2 * ndirection.rho() ) ;
+        ndirection.theta( c2 * ndirection.theta() ) ;
+        ndirection.phi(   c2 * ndirection.phi() ) ;
+        double dot_full = layer_normal.rho() * ndirection.rho()
+                        + layer_normal.theta() * ndirection.theta()
+                        + layer_normal.phi() * ndirection.phi() ;
+
+        double max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+        if( dot_full >= max_dot )
+            dot_full = max_dot ;
+
+        const double dot_water = -height_water * layer_normal.rho() ;
+        double time_water = max( 0.0, dot_water / dot_full ) ;
+
+        collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+        volume.depth( position, &layer_rho ) ;
+        c2 = c*c ;
+        height_water = position.rho() - layer_rho ;
+
+        ndirection.rho(   c2 * ndirection.rho() ) ;
+        ndirection.theta( c2 * ndirection.theta() ) ;
+        ndirection.phi(   c2 * ndirection.phi() ) ;
+        dot_full = layer_normal.rho() * ndirection.rho()
+            + layer_normal.theta() * ndirection.theta()
+            + layer_normal.phi() * ndirection.phi() ;  // negative #
+        max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+        if( dot_full >= max_dot )
+            dot_full = max_dot ;
+
+        double grazing = 0.0 ;
+        if( dot_full / c >= 1.0 )
+            grazing = -M_PI_2 ;
+        else if( dot_full / c <= -1.0 )
+            grazing = M_PI_2 ;
+        else
+            grazing = asin( -dot_full / c ) ;
+
+        // build the eigenverb
+        _reflection_model->build_eigenverb( de, az, time_water,
+            grazing, c, position, ndirection, VOLUME_UPPER ) ;
     }
 }
 
@@ -296,8 +465,8 @@ void wave_queue::detect_eigenrays() {
             }
 
             // Loop over all rays
-            for ( size_t de=1 ; de < num_de() - 1 ; ++de ) {
-                for ( size_t az=az_start ; az < num_az() - 1 ; ++az ) {
+            for ( size_t de=1 ; de < _max_de ; ++de ) {
+                for ( size_t az=az_start ; az < _max_az ; ++az ) {
 
                     // *******************************************
                     // When central ray is at the edge of ray family
@@ -352,7 +521,7 @@ bool wave_queue::is_closest_ray(
 			if ( _az_boundary ) {
 				if ( az + naz == 0 ) {	// aka if a < 0
 					a = num_az() - 2 ;
-				} else if( a >= (num_az() - 1) ) {
+				} else if( a >= _max_az ) {
 					a = 0 ;
 				}
 			}
@@ -365,7 +534,7 @@ bool wave_queue::is_closest_ray(
 			// allows extrapolation outside of ray family
 
 			if ( a == 0 && ! _az_boundary ) continue;
-			if ( a == num_az()-1 ) continue;
+			if ( a == _max_az ) continue;
 			if ( _de_branch ) {
 				if ( _curr->on_edge(d,a) ) continue ;
 			} else {
@@ -436,6 +605,37 @@ void wave_queue::build_eigenray(
     delta(0) = _time_step;
     delta(1) = _source_de->increment(de);
     delta(2) = _source_az->increment(az);
+
+    bool unstable = false;
+    const int surface = _curr->surface(de, az);
+    const int bottom = _curr->bottom(de, az);
+    const int caustic = _curr->caustic(de, az);
+
+    for (size_t nde = 0; nde < 3 && !unstable; ++nde) {
+        size_t d = de + nde - 1 ;
+        for (size_t naz = 0; naz < 3 && !unstable; ++naz) {
+            size_t a = az + naz - 1 ;
+            if (_az_boundary) {
+                if ( az + naz == 0 ) {	// aka if a < 0
+                    a = _max_az-1 ;
+                } else if (a >= _max_az) {
+                    a = 0 ;
+                }
+            }
+            if ( _prev->surface(d, a) != surface
+              || _curr->surface(d, a) != surface
+              || _next->surface(d, a) != surface
+              || _prev->bottom(d, a) != bottom
+              || _curr->bottom(d, a) != bottom
+              || _next->bottom(d, a) != bottom
+              || _prev->caustic(d, a) != caustic
+              || _curr->caustic(d, a) != caustic
+              || _next->caustic(d, a) != caustic)
+            {
+                unstable = true;
+            }
+        }
+    }
 
     compute_offsets(t1,t2,de,az,distance2,delta,offset,distance);
 
@@ -510,8 +710,8 @@ void wave_queue::build_eigenray(
     		size_t a = az + naz - 1 ;
             if (_az_boundary) {
                 if ( az + naz == 0 ) {	// aka if a < 0
-                    a = num_az() - 2 ;
-                } else if (a >= num_az()-1) {
+                    a = _max_az - 1 ;
+                } else if (a >= _max_az) {
                     a = 0 ;
                 }
             }
@@ -547,8 +747,8 @@ void wave_queue::build_eigenray(
 			size_t a = az + naz - 1 ;
 			if (_az_boundary) {
 				if ( az + naz == 0 ) {	// aka if a < 0
-					a = num_az() - 2 ;
-				} else if (a >= num_az()-1) {
+					a = _max_az - 1 ;
+				} else if (a >= _max_az) {
 					a = 0 ;
 				}
 			}
@@ -978,7 +1178,7 @@ bool wave_queue::checkEigenrayListeners(long waveTime){
     for (std::vector<eigenrayListener*>::iterator iter = _eigenrayListenerVec.begin();
                                                 iter != _eigenrayListenerVec.end(); ++iter){
         eigenrayListener* pListener = *iter;
-        pListener->checkEigenrays(_run_id, waveTime);
+        pListener->checkEigenrays((unsigned long)_run_id, waveTime);
     }
 
     return (_eigenrayListenerVec.size() > 0);
