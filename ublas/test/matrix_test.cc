@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE( real_matrix_test ) {
     cout << "abs2(a):   " << abs2(rmat) << endl;
     USML_MATRIX_REAL_TESTER( abs2(rmat), rmat, abs2_helper<double> ) ;
     cout << "arg(a):    " << arg(rmat) << endl;
-    USML_MATRIX_REAL_TESTER( arg(rmat), rmat, std::arg<double> ) ;
+    USML_MATRIX_REAL_TESTER( arg(rmat), rmat, zero_helper<double> ) ;
     cout << "sqrt(a):   " << sqrt(rmat) << endl;
     USML_MATRIX_REAL_TESTER( sqrt(rmat), rmat, std::sqrt<double> ) ;
 

@@ -120,6 +120,11 @@ T arg_helper( const complex<T> t ) {
 }
 
 template<class T>
+T zero_helper(const T t) {
+	return 0.0;
+}
+
+template<class T>
 void check_helper( const T t1, const T t2 ) {
     BOOST_CHECK_CLOSE( t1, t2, 1e-10 );
 }

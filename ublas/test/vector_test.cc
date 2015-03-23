@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE( real_vector_test ) {
     cout << "abs2(a):   " << abs2(rvect) << endl;
     USML_VECTOR_REAL_TESTER( abs2(rvect), rvect, abs2_helper<double> ) ;
     cout << "arg(a):    " << arg(rvect) << endl;
-    USML_VECTOR_REAL_TESTER( arg(rvect), rvect, std::arg<double> ) ;
+    USML_VECTOR_REAL_TESTER( arg(rvect), rvect, zero_helper<double> ) ;
     cout << "sqrt(a):   " << sqrt(rvect) << endl;
     USML_VECTOR_REAL_TESTER( sqrt(rvect), rvect, std::sqrt<double> ) ;
 
