@@ -43,7 +43,7 @@ else( CMAKE_COMPILER_IS_GNUCXX )
         set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
     endif()
     if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) ) # min optimizations
-	add_definitions( -g -O1 )	
+	add_definitions( -g -O0 )	
     else()                              	# max optimizations
 	add_definitions( -g -ffast-math -fno-finite-math-only )
     endif()

@@ -568,7 +568,6 @@ namespace ublas {
         typedef complex<T> result_type ;
 
         static inline result_type apply(argument_type t) {
-            return math_traits<result_type>::sin(t);
             return result_type( math_traits<T>::sin(t),
 			        math_traits<T>::cos(t) ) ;
         }
