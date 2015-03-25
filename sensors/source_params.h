@@ -1,16 +1,13 @@
 /**
- *  @file source_params.h
- *  Definition of the Class source_params
- *  Created on: 10-Feb-2015 12:49:09 PM
+ * @file source_params.h
+ * Sensor characteristics for the source behaviors of a sensor.
  */
-
 #pragma once
 
-#include <list>
-
-#include <usml/usml_config.h>
-#include <usml/sensors/beamIDType.h>
-#include <usml/sensors/paramsIDType.h>
+//#include <usml/usml_config.h>
+#include <usml/sensors/beam_pattern_model.h>
+//#include <list>
+//#include <map>
 
 namespace usml {
 namespace sensors {
@@ -19,93 +16,120 @@ namespace sensors {
 /// @{
 
 /**
- * Models all the sensor parameter characteristics which are unique to the source.
- * Contains the references to the beam_pattern and the beam_pattern_map.
+ * Sensor characteristics for the source behaviors of a sensor.
+ * Each sensor_params object represents the settings for the transmission
+ * of one kind of pulse and a single beam pattern. But, it supports an
+ * option to compute results at multiple frequencies.
  *
- * @author Ted Burns, AEgis Technologies Group, Inc.
- * @version 1.0
- * @created 10-Feb-2015 12:49:09 PM
+ * Initially, the sonar training system passes this information to the
+ * reverberation model, and the reverberation model stores this information
+ * in the source_params_map.  Then, each sensor makes a clone of these
+ * parameters for its own use.
+ *
  */
-class USML_DECLSPEC source_params
-{
+class USML_DECLSPEC source_params {
 public:
-    /**
-    * Constructor
-    * @param sourceID
-    * @param sourceStrength
-    * @param transmitFrequency
-    * @param initialPingTime
-    * @param repeationInterval
-    * @param source_beam
-    */
-    source_params(const paramsIDType sourceID, const double sourceStrength, 
-                    const double transmitFrequency, const double initialPingTime,
-                    const double repeationInterval, std::list<beamIDType>& beamList);
 
-    /**
-     * Copy Constructor - Deep
-     */
-    source_params(const source_params& other);
+	/**
+	 * Data type used for sensorID.
+	 */
+	typedef int id_type;
 
-    /**
-     * Destructor
-     */
-    virtual ~source_params() {}
+	/**
+	 * Data type used for reference to source_params.
+	 */
+	typedef unique_ptr<const source_params> const_reference;
 
-    /**
-    * Set method for the sourceID attribute. The sourceID attribute is used as the
-    * key to lookup the source_params in the source_params_map.
-    * @param sourceID of the paramsIDType.
-    */
-    void sourceID(paramsIDType sourceID)
-    {
-        _sourceID = sourceID;
-    }
+	/**
+	 * Data type used for store beam patterns in this sensor.
+	 */
+	typedef std::map<beam_pattern_model::id_type, beam_pattern_model::reference> beam_pattern_container;
 
-    /**
-    * Get method for the sourceID attribute.
-    * @return sourceID of the paramsIDType
-    */
-    paramsIDType sourceID()
-    {
-        return _sourceID;
-    }
+	/**
+	 * Construct new class of source.
+	 *
+	 * @param	sensorID		Identification used to find this sensor type
+	 * 							in source_params_map.
+	 * @param   source_level	Peak intensity of the transmitted pulse
+	 * 							(dB//uPa@1m)
+	 * @param	frequencies		Frequencies of transmitted pulse.
+	 * 							Multiple frequencies can be used to compute
+	 * 							multiple results at the same time.
+	 * 							These are the frequencies at which transmission
+	 * 							loss and reverberation are computed.
+	 * 							This is cloned during construction.
+	 * @param   beamID			Reference to the beam pattern used during
+	 * 							transmission.
+	 */
+	source_params(source_params::id_type sensorID, double source_level,
+		const seq_vector& frequencies, beam_pattern_model::id_type beamID);
 
-    /**
-     * Add a beam pattern to the source parameters
-     * @params beamID to be added to the list of source beams
-     */
-    void add_beam_pattern(beamIDType beamID);
+	/**
+	 * Clone source parameters from an existing source class.
+	 */
+	source_params(const source_params& other) ;
 
-    /**
-     * Delete a beam pattern from the source list
-     * @params beamID to be removed from the list of source beams
-     */
-    void remove_beam_pattern(beamIDType beamID);
+	/**
+	 * Virtual destructor
+	 */
+	virtual ~source_params() {
+	}
 
-	void ping();
+	/**
+	 * Identification used to find this sensor type in source_params_map.
+	 */
+	source_params::id_type sourceID() const {
+		return _sourceID;
+	}
+
+	/**
+	 * Identification used to find this sensor type in source_params_map.
+	 */
+	void sourceID(source_params::id_type sensorID) {
+		_sourceID = sensorID;
+	}
+
+	/**
+	 * Set a beam pattern for the source using beamID.
+	 * @params beamID to be used for this source.
+	 */
+	void beam_pattern(beam_pattern_model::id_type beamID);
 
 private:
 
-    /**
-     * Prevent access to default constructor
-     */
-    source_params();
+	/**
+	 * Prevent access to default constructor
+	 */
+	source_params();
 
-    /**
-     * Prevent access to assignment operator
-     */
-    source_params& operator=(source_params const&);
+	/**
+	 * Prevent access to assignment operator
+	 */
+	source_params& operator=(source_params const&);
 
+	/**
+	 * Identification used to find this sensor type in source_params_map.
+	 */
+	id_type _sourceID;
 
-	paramsIDType _sourceID;
-	double _sourceStrength;
-	double _transmitFrequency;
-	double _initialPingTime;
-	double _repeationInterval;
-    std::list<beamIDType> _source_beams;
+	/**
+	 * Peak intensity of the transmitted pulse (dB//uPa@1m)
+	 */
+	double _source_level;
+
+	/**
+	 * Frequencies of transmitted pulse. Multiple frequencies can be
+	 * used to compute multiple results at the same time. These are the
+	 * frequencies at which transmission loss and reverberation are computed.
+	 */
+	unique_ptr<seq_vector> _frequencies ;
+
+	/**
+	 * Shared reference to the beam patterns for this source.
+	 */
+	beam_pattern_model::reference _beam_pattern;
 };
 
 /// @}
-} // end of namespace sensors
+}// end of namespace sensors
 } // end of namespace usml

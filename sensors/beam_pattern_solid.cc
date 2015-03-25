@@ -13,6 +13,7 @@ void beam_pattern_solid::beam_level(
         const vector<double>& frequencies,
         vector<double>* level )
 {
+	write_lock_guard(_mutex);
     double up = _max_de - pitch ;
     double down = _min_de - pitch ;
     double left = _min_az + yaw ;
@@ -33,6 +34,7 @@ void beam_pattern_solid::directivity_index(
         const vector<double>& frequencies,
         vector<double>* level )
 {
+	write_lock_guard(_mutex);
     noalias(*level) =
             scalar_vector<double>( frequencies.size(), _directivity_index ) ;
 }

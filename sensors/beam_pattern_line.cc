@@ -13,6 +13,7 @@ void beam_pattern_line::beam_level(
         const vector<double>& frequencies,
         vector<double>* level )
 {
+	write_lock_guard(_mutex);
     double _pitch ;
     double _yaw ;
     switch( _axis ) {
@@ -62,6 +63,7 @@ void beam_pattern_line::directivity_index(
         const vector<double>& frequencies,
         vector<double>* level )
 {
+	write_lock_guard(_mutex);
     vector<double> di( frequencies.size(), 0.0 ) ;
     vector<double> steer_plus = 2.0*(_omega+_steering)*frequencies ;
     vector<double> steer_minus = 2.0*(_omega-_steering)*frequencies ;

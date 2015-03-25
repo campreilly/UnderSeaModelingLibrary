@@ -75,48 +75,48 @@ private:
         ocean_shared::update(ocean);
     }
 
-//    /**
-//     * Defines sensor parameters for source and receiver behaviors.
-//     *
-//     * <pre>
-//     * profile:             constant 1500 m/s
-//     * source strength:     200 dB
-//     * transmit frequency:  3000 dB
-//     * beam pattern:        omni directional
-//     * </pre>
-//     *
-//     * Generates the sensor parameter then updates the sensor parameter
-//     * singletons.
-//     */
-//    void define_sensor_characteristics() {
-//
-//        // define beam patterns
-//
-//        beam_pattern_map::instance()->insert( 1, new beam_pattern_omni() ) ;
-//
-//        // define source parameters
-//
-//        std::list<beamIDType> source_beams ;
-//        source_beams.push_back(1);
-//
-//        source_params* source = new source_params(
-//                1,          // sourceID
-//                200.0,      // sourceStrength
-//                3000.0,     // transmitFrequency
-//                0.0,        // initialPingTime
-//                0.0,        // repeationInterval
-//                source_beams ) ;
-//        source_params_map::instance()->insert( 1, source ) ;
-//
-//        // define receiver parameters
-//
-//        std::list<beamIDType> receiver_beams ;
-//        receiver_beams.push_back(1);
-//
-//        receiver_params* receiver = new receiver_params( receiver_beams ) ;
-//        receiver_params_map::instance()->insert( 1, receiver ) ;
-//    }
-//
+    /**
+     * Defines sensor parameters for source and receiver behaviors.
+     *
+     * <pre>
+     * profile:             constant 1500 m/s
+     * source strength:     200 dB
+     * transmit frequency:  3000 dB
+     * beam pattern:        omni directional
+     * </pre>
+     *
+     * Generates the sensor parameter then updates the sensor parameter
+     * singletons.
+     */
+    void define_sensor_characteristics() {
+
+        // define beam patterns
+
+        beam_pattern_map::instance()->insert( 1, new beam_pattern_omni() ) ;
+
+        // define source parameters
+
+        std::list<beamIDType> source_beams ;
+        source_beams.push_back(1);
+
+        source_params* source = new source_params(
+                1,          // sourceID
+                200.0,      // sourceStrength
+                3000.0,     // transmitFrequency
+                0.0,        // initialPingTime
+                0.0,        // repeationInterval
+                source_beams ) ;
+        source_params_map::instance()->insert( 1, source ) ;
+
+        // define receiver parameters
+
+        std::list<beamIDType> receiver_beams ;
+        receiver_beams.push_back(1);
+
+        receiver_params* receiver = new receiver_params( receiver_beams ) ;
+        receiver_params_map::instance()->insert( 1, receiver ) ;
+    }
+
 //    /**
 //     * Creates a new instance of the sensor, and adds it to the reverberation model.
 //     * Cause reverberation calculations to start.

@@ -4,16 +4,39 @@
  */
 #pragma once
 
-#include <usml/usml_config.h>
-#include <boost/thread/locks.hpp>
-#include <boost/thread/shared_mutex.hpp>
+/**
+ * Use std:: versions of mutex and lock for
+ * compilers that support C++14 and beyond.
+ */
+#if __cplusplus >= 201402L
 
-namespace usml {
-namespace threads {
+	#include <mutex>
+	#include <shared_mutex>
 
-using boost::shared_mutex ;
-using boost::shared_lock ;
-using boost::unique_lock ;
+	namespace usml {
+	namespace threads {
+
+	using std::shared_mutex ;
+	using std::shared_lock ;
+	using std::unique_lock ;
+
+/**
+ * Use boost:: versions of mutex and lock for
+ * compilers that do not yet support the std:: versions.
+ */
+#else
+
+	#include <boost/thread/locks.hpp>
+	#include <boost/thread/shared_mutex.hpp>
+
+	namespace usml {
+	namespace threads {
+
+	using boost::shared_mutex ;
+	using boost::shared_lock ;
+	using boost::unique_lock ;
+
+#endif
 
 /// @ingroup threads
 /// @{
@@ -60,14 +83,14 @@ using boost::unique_lock ;
  * Defining these as typedefs allow us to easily migrate from
  * using std:: threads and locks when shared locks become available
  * in the C++14 standard.
- *  Notice to Mariners:
- *       The following will compile even if the _mutex is not defined:
- *          write_lock_guard(_mutex);
- *     The C++ parser sees:
- *              type  write_lock_guard
- *              name  _mutex()  default constructor
- *     Parser allows "name" inside () and type "write_lock_guard" has an
- *     empty default constructor that does not require ().
+ *
+ * A serious error occurs if you attempt to use an anonymous in the form
+ * <pre>
+ * 		write_lock_guard(_mutex);
+ * </pre>
+ * when _mutex is not defined. The compiler sees this as an error to
+ * invoke the default constructor on write_lock_guard() and the default
+ * constructor does no locking.
  *
  * @xref "Readers–writer lock" article on Wikipedia, the free encyclopedia,
  * http://en.wikipedia.org/wiki/Readers-writer_lock

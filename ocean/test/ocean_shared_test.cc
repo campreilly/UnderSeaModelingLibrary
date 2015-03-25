@@ -72,7 +72,7 @@ public:
      * in a separate thread.
      */
     virtual void run() {
-        shared_ptr<ocean_model> ocean = ocean_shared::current() ;
+        boost::shared_ptr<ocean_model> ocean = ocean_shared::current() ;
         cout << id() << " consumer: accessing ocean_model=" << ocean.get() << endl ;
         long msec = (long) ( 1000.0 * _delay ) ;
         boost::this_thread::sleep(boost::posix_time::milliseconds(msec));
@@ -206,7 +206,6 @@ BOOST_AUTO_TEST_CASE( random_producer ) {
     cout << "=== ocean_shared_test: random_producer ===" << endl;
     randgen::seed(0); // create same results each time
     ocean_shared_tester(10,0.5,0.25).run() ;
-	thread_controller::destroy();
 }
 
 /// @}

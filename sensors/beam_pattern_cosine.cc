@@ -13,6 +13,7 @@ void beam_pattern_cosine::beam_level(
         const vector<double>& frequencies,
         vector<double>* level )
 {
+	write_lock_guard(_mutex);
     double _pitch = M_PI_2 + pitch ;
     double _yaw = M_PI_2 - yaw ;
     double theta = de + M_PI_2 ;
@@ -32,6 +33,7 @@ void beam_pattern_cosine::directivity_index(
         const vector<double>& frequencies,
         vector<double>* level )
 {
+	write_lock_guard(_mutex);
     noalias(*level) =
             scalar_vector<double>( frequencies.size(), 10.0*log10( 2.0 ) ) ;
 }

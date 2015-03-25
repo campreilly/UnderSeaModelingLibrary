@@ -1,65 +1,32 @@
 /**
- *  @file source_params.cc
- *  Implementation of the Class source_params
- *  Created on: 10-Feb-2015 12:49:09 PM
+ * @file source_params.cc
+ * Sensor characteristics for the source behaviors of a sensor.
  */
-
+#include <usml/sensors/source_params.h>
+#include <usml/sensors/beam_pattern_map.h>
 #include <algorithm>
-
-#include "source_params.h"
 
 using namespace usml::sensors;
 
 /**
- * Constructor
- * 
- * @param sourceID
- * @param sourceStrength
- * @param transmitFrequency
- * @param initialPingTime
- * @param repeationInterval
- * @param source_beam
+ * Construct new class of source.
  */
-source_params::source_params(const paramsIDType sourceID, const double sourceStrength,
-                            const double transmitFrequency, const double initialPingTime,
-                            const double repeationInterval, std::list<beamIDType>& beamList)
-    :   _sourceID(sourceID),
-        _sourceStrength(sourceStrength),
-        _transmitFrequency(transmitFrequency),
-        _initialPingTime(initialPingTime),
-        _repeationInterval(repeationInterval),
-        _source_beams(beamList)
+source_params::source_params(source_params::id_type sourceID, double source_level,
+	const seq_vector& frequencies, beam_pattern_model::id_type beamID)
+	: _sourceID(sourceID),
+	  _source_level(source_level)
 {
+	_frequencies.reset( frequencies.clone() ) ;
+	_beam_pattern = beam_pattern_map::instance()->find(beamID) ;
 }
 
-// Copy Constructor - Deep
+/**
+ * Clone source parameters from an existing source class.
+ */
 source_params::source_params(const source_params& other)
-    : _sourceID(other._sourceID),
-      _sourceStrength(other._sourceStrength),
-      _transmitFrequency(other._transmitFrequency),
-      _initialPingTime(other._initialPingTime),
-      _repeationInterval(other._repeationInterval),
-      _source_beams(other._source_beams)
+	: _sourceID(other._sourceID),
+	  _source_level(other._source_level)
 {
-}
-
-// add_beam_pattern
-void source_params::add_beam_pattern(beamIDType beamID)
-{
-    _source_beams.push_back(beamID);
-}
-
-// remove_beam_pattern
-void source_params::remove_beam_pattern(beamIDType beamID)
-{
-    std::list<beamIDType>::iterator findIter;
-    findIter = std::find(_source_beams.begin(), _source_beams.end(), beamID);
-    if (findIter != _source_beams.end()){
-        _source_beams.erase(findIter);
-    }
-}
-
-void source_params::ping()
-{
-
+	_frequencies.reset( other._frequencies->clone() ) ;
+	_beam_pattern = other._beam_pattern ;
 }
