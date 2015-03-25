@@ -28,17 +28,12 @@ using namespace usml::threads ;
  *
  * Uses mutex locking to control multi-threaded access to the current() and
  * update() methods.  Multiple readers can access the current() simultaneously,
- * but updating the ocean using update() blocks other readers and writers. *
+ * but updating the ocean using update() blocks other readers and writers.
  *
  * Warnings:
  * - The shared ocean must be build using the _lock variants of the
  *   profile_model, boundary_model, and volume_model. These variants
  *   use mutex locking when the models are used by multiple execution threads.
- * - The shared ocean must be build dynamically using the "new" C++ operation,
- *   The shared ocean is stored in the form of a shared pointer and
- *   it will be autmatically deleted when when no clients refer to it.
- *   Passed a pointer to a non-dynamic pointer, such as a local variable,
- *   will break during the delete process.
  */
 class USML_DECLSPEC ocean_shared {
 
@@ -54,16 +49,14 @@ public:
      * Returns a null reference if ocean has not yet been
      * defined using update().
      */
-    static reference current() ;
+    static ocean_shared::reference current() ;
 
     /**
      * Update shared ocean singleton with new data.
      *
-     * @param   ocean   Data used to update this singleton. The singleton
-     *                  converts this reference to a shared_ptr and
-     *                  automatically deletes it when it is no longer needed.
+     * @param   ocean  Shared pointer to the data used to update this singleton.
      */
-    static void update( ocean_model* ocean ) ;
+    static void update( ocean_shared::reference& ocean ) ;
 
 private:
 

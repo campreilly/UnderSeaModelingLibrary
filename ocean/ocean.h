@@ -86,5 +86,6 @@
 
 #include <usml/ocean/volume_model.h>
 #include <usml/ocean/volume_flat.h>
+#include <usml/ocean/volume_lock.h>
 
 #include <usml/ocean/ocean_model.h>

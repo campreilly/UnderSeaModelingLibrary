@@ -20,7 +20,7 @@ ocean_shared::reference ocean_shared::current() {
 /**
  * Update shared ocean with new data.
  */
-void ocean_shared::update( ocean_model* ocean ) {
+void ocean_shared::update( ocean_shared::reference& ocean ) {
     write_lock_guard(_lock) ;
-    _current = ocean_shared::reference(ocean) ;
+    _current = ocean ;
 }

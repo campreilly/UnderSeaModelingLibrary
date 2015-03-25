@@ -71,7 +71,7 @@ private:
         btm->scattering(new scattering_lambert());
         boundary_lock* bottom = new boundary_lock( btm ) ;
 
-        ocean_model* ocean = new ocean_model(surface, bottom, profile);
+        ocean_shared::reference ocean( new ocean_model(surface, bottom, profile) );
         ocean_shared::update(ocean);
     }
 
