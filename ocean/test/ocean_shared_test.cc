@@ -19,11 +19,11 @@ using namespace usml::ocean;
  */
 
 /**
- * Testing task that creates ocean data.  The run() method builds a simole ocean
- * and uses that ocean to update the ocean_shared singleton.  In a real
+ * Testing task that creates ocean data.  The run() method builds a simple
+ * ocean and uses that ocean to update the ocean_shared singleton.  In a real
  * sonar training system, the producer would have properties that controlled
- * the data extraction (example: area of interest), and these properties would be
- * used by the run() method to control the creation of the ocean.
+ * the data extraction (example: area of interest), and these properties
+ * would be used by the run() method to control the creation of the ocean.
  */
 class ocean_producer : public thread_task {
 
@@ -33,12 +33,12 @@ public:
      * Create a new set of ocean data.
      */
     virtual void run() {
-        boundary_model* surface = new boundary_lock( new boundary_flat() );
-        boundary_model* bottom = new boundary_lock( new boundary_flat(1000.0) );
-        profile_model* profile = new profile_lock( new profile_linear() ) ;
-        ocean_model* ocean = new ocean_model( surface, bottom, profile ) ;
-        cout << id() << " producer: creating ocean_model=" << ocean << endl ;
-        ocean_shared::update( ocean ) ;
+        boundary_model* surface = new boundary_lock(new boundary_flat());
+        boundary_model* bottom = new boundary_lock(new boundary_flat(1000.0));
+        profile_model* profile = new profile_lock(new profile_linear());
+        ocean_shared::reference ocean(new ocean_model(surface, bottom, profile));
+        cout << id() << " producer: creating ocean_model=" << ocean << endl;
+        ocean_shared::update(ocean);
     }
 } ;
 
@@ -72,7 +72,7 @@ public:
      * in a separate thread.
      */
     virtual void run() {
-        shared_ptr<ocean_model> ocean = ocean_shared::current() ;
+        boost::shared_ptr<ocean_model> ocean = ocean_shared::current() ;
         cout << id() << " consumer: accessing ocean_model=" << ocean.get() << endl ;
         long msec = (long) ( 1000.0 * _delay ) ;
         boost::this_thread::sleep(boost::posix_time::milliseconds(msec));
@@ -206,7 +206,6 @@ BOOST_AUTO_TEST_CASE( random_producer ) {
     cout << "=== ocean_shared_test: random_producer ===" << endl;
     randgen::seed(0); // create same results each time
     ocean_shared_tester(10,0.5,0.25).run() ;
-	thread_controller::destroy();
 }
 
 /// @}

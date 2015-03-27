@@ -40,52 +40,54 @@ sensor::sensor(const id_type sensorID, const paramsIDType paramsID, const xmitRc
     // call to source() or receiver can replace.
     // Ownership of _source and/or _receiver starts here.
 
-    source_params_map* source_map = source_params_map::instance();
-    receiver_params_map* receiver_map = receiver_params_map::instance();
+///@todo
 
-    switch (mode)
-    {
-        default:
-            assert(false);
-            _source = NULL;
-            _receiver = NULL;
-            break;
-        case usml::sensors::SOURCE:
-        {
-            const source_params* sp = source_map->find(_paramsID);
-            if (sp == NULL) {
-                _source = new source_params(*sp);
-            } else {
-                _source = NULL;
-            }
-            break;
-        }
-        case usml::sensors::RECEIVER:
-        {
-            const receiver_params* rp = receiver_map->find(_paramsID);
-            if (rp == NULL) {
-                _receiver = new receiver_params(*rp);
-            } else {
-                _receiver = NULL;
-            }
-            break;
-        }
-        case usml::sensors::BOTH:
-        {
-            const source_params* sp = source_map->find(_paramsID);
-            if (sp == NULL) {
-                _source = new source_params(*sp);
-            } else {
-                _source = NULL;
-            }
-            const receiver_params* rp = receiver_map->find(_paramsID);
-            if (rp == NULL) {
-                _receiver = new receiver_params(*rp);
-            } else {
-                _receiver = NULL;
-            }
-        }
-    }
+//    source_params_map* source_map = source_params_map::instance();
+//    receiver_params_map* receiver_map = receiver_params_map::instance();
+//
+//    switch (mode)
+//    {
+//        default:
+//            assert(false);
+//            _source = NULL;
+//            _receiver = NULL;
+//            break;
+//        case usml::sensors::SOURCE:
+//        {
+//            source_params::reference sp = source_map->find(_paramsID);
+//            if (sp == NULL) {
+//                _source = new source_params(*sp);
+//            } else {
+//                _source = NULL;
+//            }
+//            break;
+//        }
+//        case usml::sensors::RECEIVER:
+//        {
+//            const receiver_params* rp = receiver_map->find(_paramsID);
+//            if (rp == NULL) {
+//                _receiver = new receiver_params(*rp);
+//            } else {
+//                _receiver = NULL;
+//            }
+//            break;
+//        }
+//        case usml::sensors::BOTH:
+//        {
+//            const source_params* sp = source_map->find(_paramsID);
+//            if (sp == NULL) {
+//                _source = new source_params(*sp);
+//            } else {
+//                _source = NULL;
+//            }
+//            const receiver_params* rp = receiver_map->find(_paramsID);
+//            if (rp == NULL) {
+//                _receiver = new receiver_params(*rp);
+//            } else {
+//                _receiver = NULL;
+//            }
+//        }
+//    }
 }
 
 /**

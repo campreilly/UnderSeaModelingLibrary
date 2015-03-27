@@ -20,6 +20,21 @@ namespace threads {
  */
 class USML_DECLSPEC thread_controller {
 
+public:
+
+    /**
+     * Provides a reference to the thread_pool owned by this singleton.
+     * If this is the first time that this has been invoked, the singleton
+     * is automatically constructed.  The double check locking pattern
+     * is used to prevent multiple threads from simultaneously trying to
+     * construct the singleton.
+     *
+     * @xref 	Meyers, S., Alexandrescu, A.: C++ and the perils of
+     * 		 	double-checked locking. Dr. Dobbs Journal (July-August 2004)
+     * @return  Reference to the thread_controller singleton.
+     */
+    static thread_pool* instance();
+
 private:
 
     /**
@@ -31,10 +46,12 @@ private:
     /**
      * Reference to the thread_pool owned by this singleton.
      */
-    static thread_pool* _instance ;
+    static unique_ptr<thread_pool> _instance ;
 
-    /** Mutex to lock multiple properties at once. */
-    static read_write_lock _lock ;
+    /**
+     * Mutex to lock creation of instance.
+     */
+    static read_write_lock _instance_mutex ;
 
     /**
      * Hide constructors to prevent incorrect use of singleton.
@@ -45,19 +62,6 @@ private:
      * Hide Destructor to prevent incorrect use of singleton.
      */
     ~thread_controller() {}
-
-public:
-
-    /**
-     * Provides a reference to the thread_pool owned by this singleton.
-     * Constructs the object on the first time that this method is called.
-     */
-    static thread_pool* instance();
-
-    /**
-     * Singleton Destructor to delete static _instance.
-     */
-    static void destroy();
 
 };
 

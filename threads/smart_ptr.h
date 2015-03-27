@@ -43,19 +43,10 @@
 	 * unique_ptr using the Boost scoped pointer.  It performs the same memory
 	 * management tasks as unique_ptr, but can not handle arrays at this time.
 	 */
-	template<typename T> class unique_ptr : public boost::scoped_ptr<T> {
+	template<typename T> class unique_ptr: public boost::scoped_ptr<T> {
 	public:
-		/** Alias for operator=() that unique_ptr supports */
-		unique_ptr& operator=( T* p ) {
-			reset(p) ;
-			return *this ;
-		}
-	} ;
-
-	/** Alias for operator=() that unique_ptr supports */
-//	template<typename T> T& operator=( unique_ptr<T> p ) {
-//		return p.get() ;
-//	}
+		explicit unique_ptr<T>(T * p = 0) : boost::scoped_ptr<T>(p) {}
+	};
 
 #endif
 

@@ -29,7 +29,7 @@
  */
 #pragma once
 
-#include <usml/sensors/beamIDType.h>
+#include <usml/sensors/beam_pattern_model.h>
 #include <usml/sensors/beam_pattern_map.h>
 #include <usml/sensors/beam_pattern_model.h>
 

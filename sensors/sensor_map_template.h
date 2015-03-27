@@ -12,7 +12,7 @@
 namespace usml {
 namespace sensors {
 
-using namespace usml::threads ;
+using namespace usml::threads;
 
 /// @ingroup sensors
 /// @{
@@ -49,7 +49,8 @@ public:
 	 */
 	mapped_type find(key_type keyID) const {
 		read_lock_guard guard(_map_mutex);
-		if (_map.count(keyID) == 0) return mapped_type();
+		if (_map.count(keyID) == 0)
+			return mapped_type();
 		return _map.find(keyID)->second;
 	}
 
@@ -61,11 +62,12 @@ public:
 	 * @param	mapped	Sensor type parameters.
 	 * @return 			False if keyID was already in the map.
 	 */
-    bool insert(key_type keyID, mapped_type mapped) {
+	bool insert(key_type keyID, mapped_type mapped) {
 		write_lock_guard guard(_map_mutex);
-		if ( find(keyID) == NULL ) return false ;
-		_map[keyID] = mapped ;
-		return true ;
+		if (_map.count(keyID) != 0)
+			return false;
+		_map[keyID] = mapped;
+		return true;
 	}
 
 	/**
@@ -76,7 +78,8 @@ public:
 	 */
 	bool erase(key_type keyID) {
 		write_lock_guard guard(_map_mutex);
-		if (_map.count(keyID) == 0) return false;
+		if (_map.count(keyID) == 0)
+			return false;
 		_map.erase(keyID);
 		return true;
 	}
@@ -112,10 +115,10 @@ private:
 	 */
 	std::map<key_type, mapped_type> _map;
 
-    /**
-     * The _mutex for multi-threaded access.
-     */
-	mutable read_write_lock _map_mutex ;
+	/**
+	 * The _mutex for multi-threaded access.
+	 */
+	mutable read_write_lock _map_mutex;
 };
 
 /// @}

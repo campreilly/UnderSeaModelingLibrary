@@ -1,56 +1,45 @@
 /**
- *  @file receiver_params.cc
- *  Implementation of the Class receiver_params
- *  Created on: 10-Feb-2015 12:49:09 PM
+ * @file receiver_params.cc
+ * Sensor characteristics for the receiver behaviors of a sensor.
  */
-
+#include <usml/sensors/receiver_params.h>
+#include <usml/sensors/beam_pattern_map.h>
+#include <boost/foreach.hpp>
 #include <algorithm>
-
-#include "receiver_params.h"
 
 using namespace usml::sensors;
 
 /**
- * Constructor
- * 
- * @param receiverID
- * @param beamList
+ * Construct new class of receiver.
  */
-receiver_params::receiver_params(const paramsIDType receiverID, const std::list<beamIDType>& beamList)
-    :   _receiverID(receiverID),
-        _receiver_beams(beamList)
+receiver_params::receiver_params(receiver_params::id_type receiverID,
+  bool bistatic, const std::list<beam_pattern_model::id_type>& beamList)
+  : _receiverID(receiverID), _bistatic(bistatic)
 {
+	BOOST_FOREACH( beam_pattern_model::id_type beamID, beamList ) {
+		add_beam_pattern( beamID );
+	}
 }
 
-// Copy Constructor - Deep
+/**
+ * Clone receiver parameters from an existing receiver class.
+ */
 receiver_params::receiver_params(const receiver_params& other)
-    : _receiverID(other._receiverID)
+	: _receiverID(other._receiverID), _bistatic(other._bistatic),
+	  _beam_patterns(other._beam_patterns)
+{}
 
-{
-    std::list<beamIDType>::iterator iter;
-    //Delete previous beamID's
-    _receiver_beams.clear();
-
-    // Add in new beamID data
-    std::list<beamIDType> other_beams_list = other._receiver_beams;
-    for ( iter = other_beams_list.begin(); iter != other_beams_list.end(); ++iter ) {
-        _receiver_beams.push_back(*iter);
-    }
+/**
+ * Add a beam pattern to the receiver parameters using beamID.
+ */
+void receiver_params::add_beam_pattern(beam_pattern_model::id_type beamID) {
+	_beam_patterns[beamID] = beam_pattern_map::instance()->find(beamID) ;
 }
 
-// add_beam_pattern
-void receiver_params::add_beam_pattern(beamIDType beamID)
-{
-    _receiver_beams.push_back(beamID);
-}
-
-// remove_beam_pattern
-void receiver_params::remove_beam_pattern(beamIDType beamID)
-{
-    std::list<beamIDType>::iterator findIter;
-    findIter = std::find(_receiver_beams.begin(), _receiver_beams.end(), beamID);
-    if (findIter != _receiver_beams.end()){
-        _receiver_beams.erase(findIter);
-    }
+/**
+ * Delete a beam pattern to the receiver parameters using beamID.
+ */
+void receiver_params::remove_beam_pattern(beam_pattern_model::id_type beamID) {
+	_beam_patterns.erase(beamID) ;
 }
 
