@@ -36,7 +36,7 @@ sensor_pair_manager* sensor_pair_manager::instance()
         if (tmp == NULL)
         {
             tmp = new sensor_pair_manager();
-            _instance = tmp;
+            _instance.reset(tmp);
         }
     }
     return tmp;

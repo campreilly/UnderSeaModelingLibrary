@@ -95,5 +95,5 @@ void sensor_pair::remove_sensor(sensor* the_sensor)
  */
 sensor* sensor_pair::sensor_complement(sensor* the_sensor)
 {
-
+    return NULL;
 }

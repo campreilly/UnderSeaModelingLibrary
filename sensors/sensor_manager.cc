@@ -31,7 +31,7 @@ sensor_manager* sensor_manager::instance()
         if (tmp == NULL)
         {
             tmp = new sensor_manager();
-            _instance = tmp;
+            _instance.reset(tmp);
         }
     }
     return tmp;
