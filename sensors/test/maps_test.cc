@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include <usml/sensors/sensor_map.h>
+#include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/beam_pattern_map.h>
 #include <usml/sensors/source_params_map.h>
 #include <usml/sensors/receiver_params_map.h>
@@ -216,25 +216,21 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     // Insert in receiver map
     receiver_map->insert(paramID, rcv_params);
 
-
     sensor* sensor_data;
+    wposition1 pos(0.0,0.0,0.0);
     //No sensorID
-    sensor_data = new sensor();
+    sensor_data = new sensor(1,0,usml::sensors::BOTH, pos, 0.0, 0.0);
 
-    // Test change xmitRcvMode
-    sensor_data->mode(usml::sensors::SOURCE);
-    sensor_data->source(*src_params);
-
-    // Get sensor_map
-    sensor_map* sensorMap = sensor_map::instance();
+    // Get sensor_manager
+    sensor_manager* sensorManager = sensor_manager::instance();
 
     // insert
-    sensorIDType sensorID = 1;
-    sensorMap->insert(sensorID, sensor_data);
+    sensor::id_type sensorID = 1;
+    sensorManager->insert(sensorID, sensor_data);
 
 
     // Test find(1)
-    usml::sensors::sensor* m1 = sensorMap->find(sensorID);
+    usml::sensors::sensor* m1 = sensorManager->find(sensorID);
 
     // Check find
     BOOST_CHECK_EQUAL(m1, sensor_data);
@@ -246,15 +242,14 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     // Test update
     sensor_data->source(*src_params);
     sensor_data->receiver(*rcv_params);
-    if (sensorMap->update(sensorID, sensor_data) == false) {
+    if (sensorManager->update(sensorID, sensor_data) == false) {
         BOOST_FAIL("sensor_test::Failed to update sensor!");
     }
 
     // Test erase #1
-    sensorMap->erase(1, usml::sensors::BOTH);
+    sensorManager->erase(1);
 
-    // Run with valgrind memcheck to verify.
-    sensor_map::destroy();
+    // Run with valgrind sensor_managero sensor_manager  sensor_manager::destroy();
     source_params_map::destroy();
     receiver_params_map::destroy();
     delete sensor_data ;

@@ -35,7 +35,7 @@ thread_pool::~thread_pool() {
 /**
  * Adds a task to the scheduler.
  */
-void thread_pool::run( shared_ptr<thread_task> task ) {
+void thread_pool::run( thread_task::reference task ) {
     _scheduler.post( boost::bind(&thread_task::start, task) ) ;
 }
 

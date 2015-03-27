@@ -1,4 +1,3 @@
-
 ///////////////////////////////////////////////////////////
 //  @file sensor_pair_manager.h
 //  Definition of the Class sensor_pair_manager
@@ -18,18 +17,21 @@
 #include <usml/types/wposition1.h>
 #include <usml/waveq3d/proploss.h>
 #include <usml/sensors/sensor.h>
-#include <usml/sensors/sensorIDType.h>
+#include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/xmitRcvModeType.h>
-#include <usml/sensors/sensor_listener.h>
 #include <usml/sensors/sensor_pair.h>
 #include <usml/threads/read_write_lock.h>
+#include <usml/eigenverb/envelope_collection.h>
+#include <usml/eigenverb/eigenverb_collection.h>
 
 namespace usml {
 namespace sensors {
 
-using namespace threads ;
-using namespace waveq3d ;
-using namespace eigenverb ;
+using namespace usml::threads ;
+using namespace usml::waveq3d ;
+using namespace usml::eigenverb ;
+
+class sensor_pair;
 
 /// @ingroup sensors
 /// @{
@@ -49,16 +51,18 @@ using namespace eigenverb ;
  * @updated 6-Mar-2015 3:15:03 PM
  */
 
-typedef std::list<sensorIDType> sensor_list_type;
-typedef std::list<sensorIDType>::iterator sensor_list_iter;
 
-typedef std::map <std::string, sensor_pair*> sensor_pair_map_type;
-typedef std::map <std::string, sensor_pair*>::iterator sensor_pair_map_iter;
 
-class USML_DECLSPEC sensor_pair_manager : public sensor_listener
+class USML_DECLSPEC sensor_pair_manager
 {
 
 public:
+
+    typedef std::list<sensor::id_type> sensor_list_type;
+    typedef std::list<sensor::id_type>::iterator sensor_list_iter;
+
+    typedef std::map <std::string, sensor_pair*> sensor_pair_map_type;
+    typedef std::map <std::string, sensor_pair*>::iterator sensor_pair_map_iter;
 
     /**
      * Singleton Constructor - Creates sensor_pair_manager instance just once.
@@ -67,63 +71,38 @@ public:
      */
     static sensor_pair_manager* instance();
 
-    /**
-     * Singleton Destructor - Deletes sensor_pair_manager instance
-     * Accessible everywhere.
+     /**
+     * Destructor - Deletes all pointers its has taken ownership to.
+     *   Prevent use of delete, use static destroy above.
      */
-    static void destroy();
+    virtual ~sensor_pair_manager();
 
     /**
      * Gets the fathometers for the sourceID requested
      * @param sourceID ID for the source
      * @return proploss pointer
      */
-    proploss* get_fathometers(sensorIDType sourceID);
+    proploss* get_fathometers(sensor::id_type sourceID);
 
     /**
      * Gets the envelopes for the receiverID requested
      * @param receiverID ID for the receiver
      * @return envelopes in the envelope_collection pointer
      */
-    envelope_collection* get_envelopes(sensorIDType receiverID);
-
-    /**
-     * Update Proploss for the Source provided.
-     * @param sourceID ID of the Source
-     * @param fathometers shared_ptr to proploss class
-     */
-    void update_fathometers(sensorIDType sourceID, proploss_shared_ptr fathometers);
-
-    /**
-     * Update eigenverbs for the Source, Receiver or Both
-     * @param sensorID sensor ID
-     * @param mode  sensor type: Source, Receiver or Both
-     * @param eigenverbs shared_ptr to eigenverb_collection class
-     */
-    void update_eigenverbs(sensorIDType sensorID, xmitRcvModeType mode, eigenverbs_shared_ptr eigenverbs);
-
-    /**
-    * Overloaded sensor_changed method via the sensor_listener interface
-    * @param sensorID sensor ID
-    * @param mode  sensor type: Source, Receiver or Both
-    * @return false if sensorID was already activated.
-    */
-    bool sensor_changed(sensorIDType sensorID,  xmitRcvModeType mode);
+    envelope_collection* get_envelopes(sensor::id_type receiverID);
 
     /**
      * Adds the sensor to the sensor_pair_manager
-     * @param sensorID sensor ID
-     * @param mode  sensor type: Source, Receiver or Both
+     * @param sensor_ pointer to the sensor to add.
      */
-    void add_sensor(sensorIDType sensorID, xmitRcvModeType mode);
+    void add_sensor(sensor* sensor_);
 
     /**
      * Removes a sensor from the sensor_pair_manager
-     * @param sensorID sensor ID
-     * @param mode  sensor type: Source, Receiver or Both
-     * @return false if sensorID was in Source or Receiver list.
+     * @param sensor_ pointer to the sensor to remove.
+     * @return false if sensorID was not in Source or Receiver list.
      */
-    bool remove_sensor(sensorIDType sensorID, xmitRcvModeType mode);
+    bool remove_sensor(sensor* sensor_);
 
     /**
      * Gets the sensor pair map.
@@ -139,25 +118,21 @@ private:
 
     /**
      * Inserts the sensor into sensor_pair_map
-     * @param sensorID  ID of the sensor to insert.
-     * @param mode  sensor type: Source, Receiver or Both
+     * @param sensor_ pointer to the sensor to insert in the sensor_pair_map
      */
-    void map_insert(sensorIDType sensorID, xmitRcvModeType mode);
+    void map_insert(sensor* sensor_);
 
     /**
      * Erases the sensor from the sensor_pair_map
-     * @param sensorID  ID of the sensor to erase
-     * @param mode  sensor type: Source, Receiver or Both
-     * @param the_list either the _src_list or rcv_list
+     * @param sensor_ pointer to the sensor to erase from the sensor_pair_map
      */
-    void map_erase(sensorIDType sensorID, xmitRcvModeType mode);
+    void map_erase(sensor* sensor_);
 
-    /**
-     * Updates the sensor data in  sensor_pair_map
-     * @param sensorID  ID of the sensor to update
-     * @param mode  sensor type: Source, Receiver or Both
-     */
-    void map_update(sensorIDType sensorID, xmitRcvModeType mode);
+//    /**
+//     * Updates the sensor data in  sensor_pair_map
+//     * @param sensor_ pointer to the sensor to update in the sensor_pair_map
+//     */
+//    void map_update(sensor* sensor_);
 
     /**
      * Prints to console the all source and receiver maps
@@ -169,12 +144,6 @@ private:
      *   private to prevent access.
      */
     sensor_pair_manager() {}
-
-    /**
-     * Destructor - Deletes all pointers its has taken ownership to.
-     *   Prevent use of delete, use static destroy above.
-     */
-    virtual ~sensor_pair_manager();
 
     /**
     * Prevent access to copy constructor
@@ -191,7 +160,7 @@ private:
     /**
      * The singleton access pointer.
      */
-    static sensor_pair_manager* _instance;
+    static unique_ptr<sensor_pair_manager> _instance;
 
     /**
      * The _mutex for the singleton pointer.
@@ -201,12 +170,12 @@ private:
     /**
      * List of all active Source's
      */
-    std::list <sensorIDType> _src_list;
+    std::list <sensor::id_type> _src_list;
 
     /**
      * List of all active Receiver's
      */
-    std::list <sensorIDType> _rcv_list;
+    std::list <sensor::id_type> _rcv_list;
 
     /**
      * sensor pair map container.

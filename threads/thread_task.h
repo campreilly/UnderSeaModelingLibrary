@@ -44,26 +44,10 @@ class USML_DECLSPEC thread_task {
 
     friend class thread_pool ;
 
-private:
-
-    /** Next identification number to be assigned to a task. */
-    static size_t _id_next ;
-
-    /** Automatically assigned identification number for this task. */
-    size_t _id ;
-
-    /**
-     * Safely initiates a task in the thread pool.
-     * Traps uncaught exceptions to prevent thread_pool from crashing.
-     */
-    void start() ;
-
-protected:
-
-    /** Indication that task needs to abort. */
-    bool _abort ;
-
 public:
+
+    // Boost self type shared_ptr
+    typedef shared_ptr<thread_task> reference;
 
     /**
      * Default constructor, assigns a new id to this task.
@@ -102,6 +86,24 @@ public:
         _abort  = true ;
     }
 
+ protected:
+
+    /** Indication that task needs to abort. */
+    bool _abort ;
+
+ private:
+
+    /**
+     * Safely initiates a task in the thread pool.
+     * Traps uncaught exceptions to prevent thread_pool from crashing.
+     */
+    void start() ;
+
+    /** Next identification number to be assigned to a task. */
+    static size_t _id_next ;
+
+     /** Automatically assigned identification number for this task. */
+    size_t _id ;
 };
 
 /// @}

@@ -12,7 +12,7 @@
 
 #include <usml/sensors/beams.h>
 #include <usml/sensors/beamIDType.h>
-#include <usml/sensors/map_template.h>
+#include <usml/sensors/sensor_map_template.h>
 #include <usml/threads/read_write_lock.h>
 
 namespace usml {
@@ -34,7 +34,7 @@ using namespace usml::threads;
  * @version 1.0
  * @updated 27-Feb-2015 3:14:26 PM
  */
-class USML_DECLSPEC beam_pattern_map : public map_template <const beamIDType, const beam_pattern_model*>
+class USML_DECLSPEC beam_pattern_map : public sensor_map_template <const beamIDType, const beam_pattern_model*>
 {
 
 public:

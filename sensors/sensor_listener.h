@@ -9,20 +9,22 @@
 
 #include <usml/usml_config.h>
 #include <usml/sensors/sensor.h>
-#include <usml/sensors/sensorIDType.h>
-#include <usml/sensors/xmitRcvModeType.h>
 
 namespace usml {
 namespace sensors {
 
+class sensor;
+
 /// @ingroup sensors
 /// @{
 
-/**
-* This class is part of a Observer/Subject pattern for the sensor class
-* and allows for multiple sensor_listener's to be added to the sensor class.
-* The sensor_changed call must be defined in each class which inherits it.
-*/
+/* @class sensor_listener interface
+ * This class is part of a Observer/Subject pattern for the sensor class.
+ * and allows other classes to call methods in the class that implemented it.
+ * The update_fathometers and update_eigenverbs methods must be defined in
+ * each class which inherits it. The primary purpose for this class was to access
+ * sensor_pair data.
+ */
       
 class USML_DECLSPEC sensor_listener
 {
@@ -34,12 +36,32 @@ class USML_DECLSPEC sensor_listener
     virtual ~sensor_listener() {}
 
     /**
-     * sensor_changed
-     * Pure virtual method to add eigenray to an object.
-     *  @param   sensorID  of the sensor.
-     *  @param mode  sensor type - Receiver, Source, or Both
+     * update_fathometers
+     * Pure virtual method to update the fathometers in the sensor_pair
+     * @param  Pointer to the sensor object which contains fathometers to update.
      */
-    virtual bool sensor_changed(sensorIDType sensorID, xmitRcvModeType mode) = 0;
+    virtual void update_fathometers(sensor* the_sensor) = 0;
+
+    /**
+     * update_eigenverbs
+     * Pure virtual method to update the eigenverb_collection sensor_pair
+     * @param  Pointer to the sensor object which contains eigenverbs to update.
+     */
+    virtual void update_eigenverbs(sensor* the_sensor) = 0;
+
+   /**
+    * remove_sensor
+    * Pure virtual method to remove the sensor object from the sensor_pair.
+    * @param  Pointer to the sensor object which will be removed.
+    */
+    virtual void remove_sensor(sensor* the_sensor) = 0;
+
+    /**
+    * sensor_complement
+    * Pure virtual method to return the complement sensor of the sensor_pair
+    * @return  Pointer to the sensor object which will be removed.
+    */
+    virtual sensor* sensor_complement (sensor* the_sensor) = 0;
 
   protected:
 

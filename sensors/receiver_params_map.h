@@ -9,7 +9,7 @@
 #include <cstddef>
 
 #include <usml/usml_config.h>
-#include <usml/sensors/map_template.h>
+#include <usml/sensors/sensor_map_template.h>
 #include <usml/sensors/paramsIDType.h>
 #include <usml/sensors/receiver_params.h>
 #include <usml/threads/read_write_lock.h>
@@ -34,7 +34,7 @@ using namespace usml::threads;
  * @updated 27-Feb-2015 3:15:00 PM
  */
 	
-class USML_DECLSPEC receiver_params_map : public map_template <const paramsIDType, const receiver_params*>
+class USML_DECLSPEC receiver_params_map : public sensor_map_template <const paramsIDType, const receiver_params*>
 {
 
 public:
