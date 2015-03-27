@@ -13,6 +13,7 @@ void beam_pattern_omni::beam_level(
         const vector<double>& frequencies,
         vector<double>* level )
 {
+	write_lock_guard(_mutex);
     noalias(*level) = scalar_vector<double>( frequencies.size(), 1.0 ) ;
 }
 
@@ -24,5 +25,6 @@ void beam_pattern_omni::directivity_index(
         const vector<double>& frequencies,
         vector<double>* level )
 {
+	write_lock_guard(_mutex);
     noalias(*level) = scalar_vector<double>( frequencies.size(), 0.0 ) ;
 }

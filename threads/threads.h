@@ -15,3 +15,4 @@
 #include <usml/threads/thread_pool.h>
 #include <usml/threads/thread_task.h>
 #include <usml/threads/read_write_lock.h>
+#include <usml/threads/smart_ptr.h>

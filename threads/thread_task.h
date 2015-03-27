@@ -5,14 +5,13 @@
 #pragma once
 
 #include <usml/usml_config.h>
-#include <boost/shared_ptr.hpp>
+#include <usml/threads/smart_ptr.h>
 #include <cstddef>
 
 namespace usml {
 namespace threads {
 
 using std::size_t ;
-using boost::shared_ptr ;
 
 /** Forward references. */
 class thread_pool ;

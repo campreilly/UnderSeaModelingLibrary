@@ -56,7 +56,7 @@ bool sensor_map::insert(const sensorIDType sensorID, sensor* in_sensor)
 {
     // Insert in the map
     bool result = false;
-    result = map_template<const sensorIDType, sensor*>::insert(sensorID, in_sensor);
+//    result = sensor_map_template<const sensorIDType, sensor*>::insert(sensorID, in_sensor);
 
     if (result != false) {
         //Add to the sensor_pair_manager
@@ -70,7 +70,7 @@ bool sensor_map::erase(const sensorIDType sensorID, xmitRcvModeType mode)
 {
     // Insert in the map
     bool result = false;
-    result = map_template<const sensorIDType, sensor*>::erase(sensorID);
+    result = sensor_map_template<const sensorIDType, sensor*>::erase(sensorID);
 
     if (result != false) {
         //remove from the sensor_pair_manager

@@ -13,6 +13,7 @@ void beam_pattern_sine::beam_level(
         const vector<double>& frequencies,
         vector<double>* level )
 {
+	write_lock_guard(_mutex);
     double _pitch = pitch + M_PI_2 ;
     double theta = de + M_PI_2 ;
     double phi = -az ;
@@ -31,6 +32,7 @@ void beam_pattern_sine::directivity_index(
         const vector<double>& frequencies,
         vector<double>* level )
 {
+	write_lock_guard(_mutex);
     noalias(*level) =
             scalar_vector<double>( frequencies.size(), 10.0*log10( 2.0 ) ) ;
 }

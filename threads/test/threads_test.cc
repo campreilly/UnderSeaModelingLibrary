@@ -12,6 +12,8 @@ using namespace boost::unit_test;
 using namespace usml::threads;
 using namespace usml::ublas;
 
+//#define DEBUG_THREAD_TASK
+
 /**
  * @ingroup ocean_test
  * @{
@@ -56,14 +58,18 @@ public:
         _num_calcs = (size_t) ( randgen::uniform() * max_calcs ) ;
         _result = -1.0 ;
         _done = false ;
-        cout << id() << " task:   created with num_calcs=" << _num_calcs << endl ;
+		#ifdef DEBUG_THREAD_TASK
+        	cout << id() << " task:   created with num_calcs=" << _num_calcs << endl ;
+		#endif
     }
 
     /**
      * Destructor prints a debugging message.
      */
     virtual ~sqrt_task() {
-        cout<< id() << " task:   destroyed" << endl ;
+		#ifdef DEBUG_THREAD_TASK
+        	cout<< id() << " task:   destroyed" << endl ;
+		#endif
     }
 
     /**
@@ -75,7 +81,9 @@ public:
         // check to see if task has already been aborted
 
         if ( _abort ) {
-            cout << id() << " task:   *** aborted before execution ***" << endl ;
+			#ifdef DEBUG_THREAD_TASK
+            	cout << id() << " task:   *** aborted before execution ***" << endl ;
+			#endif
             return ;
         }
 
@@ -86,18 +94,22 @@ public:
 
         // computes sqrt() one million times per iteration
 
-        cout << id() << " task:   run" << endl ;
+		#ifdef DEBUG_THREAD_TASK
+        	cout << id() << " task:   run" << endl ;
+		#endif
         for ( size_t n=0 ; n < _num_calcs ; ++n ) {
             if ( _abort ) {
-                cout << id() << " task:   ### aborted during execution ###" << endl ;
+				#ifdef DEBUG_THREAD_TASK
+                	cout << id() << " task:   ### aborted during execution ###" << endl ;
+				#endif
                 return ;
             }
             for ( size_t m=0; m < 1000000 ; ++m ) {
                 _result = sqrt( (double) n ) ;
             }
         }
-        cout << id() << " task:   computed result=" << _result 
-             << " in " << timer.elapsed() << " sec" << endl ;
+		cout << id() << " task:   computed result=" << _result
+			 << " in " << timer.elapsed() << " sec" << endl ;
 
         // mark result as complete
 
@@ -185,7 +197,9 @@ public:
             if ( n < _num_tasks-1 ) {
                 random_wait() ;
                 if ( randgen::uniform() < _percent_cancel ) {
-                    cout << task->id() << " tester: %%% abort task %%%" << endl ;
+					#ifdef DEBUG_THREAD_TASK
+                    	cout << task->id() << " tester: %%% abort task %%%" << endl ;
+					#endif
                     task->abort() ;
                 }
             }
@@ -200,7 +214,9 @@ public:
             while ( ! task->done() ) {
                 boost::this_thread::sleep(boost::posix_time::milliseconds(1));
             }
-            cout << task->id() << " tester: waited for " << timer.elapsed() << " secs" << endl ;
+			#ifdef DEBUG_THREAD_TASK
+            	cout << task->id() << " tester: waited for " << timer.elapsed() << " secs" << endl ;
+			#endif
         }
 
         // test ability to extract results via shared pointer
@@ -235,10 +251,10 @@ private:
  *   - extract results via shared pointer
  *
  * Setup:
- *  - 30   Number of tasks to create, add tasks to increase scope of test
- *  - 1000 Maximum number of calcs per task, avg execution time of 0.5 sec.
- *  - 0.25 Maximum amount of time to wait before starting new task (sec).
- *  - 0.25 Percentage of tasks to cancel
+ *  - 10,30   	Number of tasks to create, add tasks to increase scope of test
+ *  - 100,1000 	Maximum number of calcs per task, avg execution time of 0.5 sec.
+ *  - 0.25 		Maximum amount of time to wait before starting new task (sec).
+ *  - 0.25 		Percentage of tasks to cancel
  *
  * This test passes if:
  *   - it runs successfully to conclusion
@@ -248,8 +264,11 @@ private:
 BOOST_AUTO_TEST_CASE( thread_controller_test ) {
     cout << "=== threads_test: thread_controller_test ===" << endl;
     randgen::seed(0); // create same results each time
-    sqrt_task_tester(30,1000,0.25,0.25).run() ;
-    thread_controller::destroy();
+	#ifdef DEBUG_THREAD_TASK
+    	sqrt_task_tester(30,1000,0.25,0.25).run() ;
+	#else
+		sqrt_task_tester(10,100,0.25,0.25).run() ;
+	#endif
 }
 
 /// @}

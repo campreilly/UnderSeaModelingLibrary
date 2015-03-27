@@ -4,14 +4,17 @@
  */
 #pragma once
 
-#include <boost/numeric/ublas/vector_expression.hpp>
 #include <usml/types/types.h>
+#include <usml/threads/read_write_lock.h>
+#include <usml/threads/smart_ptr.h>
+#include <boost/numeric/ublas/vector_expression.hpp>
 
 namespace usml {
 namespace sensors {
 
-using boost::numeric::ublas::vector ;
-using namespace usml::types ;
+using boost::numeric::ublas::vector;
+using namespace usml::types;
+using namespace usml::threads;
 
 /// @ingroup beams
 /// @{
@@ -42,46 +45,83 @@ using namespace usml::types ;
  */
 class USML_DECLSPEC beam_pattern_model {
 
-    public:
+public:
 
-        /**
-         * Computes the beam level gain along a specific DE and AZ direction
-         * for a specific beam steering angle. The DE and AZ are passed in as
-         * Eta/VarPhi values and then transformed to a theta/phi equivalent
-         * that are used for computation.
-         *
-         * NOTE: The choice of return in linear units
-         * is a development choice and may be changed depending on how
-         * this value is used in the final release state.
-         *
-         * @param de            Depression/Elevation angle (rad)
-         * @param az            Azimuthal angle (rad)
-         * @param pitch         pitch in the DE dimension (rad)
-         * @param yaw           yaw in the AZ dimension (rad)
-         * @param frequencies   list of frequencies to compute beam level for
-         * @param level         beam level for each frequency
-         */
-        virtual void beam_level( double de, double az,
-                                 double pitch, double yaw,
-                                 const vector<double>& frequencies,
-                                 vector<double>* level ) = 0 ;
+	/**
+	 * Data type used for beamId.
+	 */
+	typedef int id_type;
 
-        /**
-         * Accesor to the directivity index
-         *
-         * @param frequencies    list of frequencies
-         * @param level          directivity index for these frequency
-         */
-        virtual void directivity_index( const vector<double>& frequencies,
-                                        vector<double>* level ) = 0 ;
+	/**
+	 * Data type used for beamId.
+	 */
+	typedef shared_ptr<beam_pattern_model> reference;
 
-        /**
-         * Destructor
-         */
-        virtual ~beam_pattern_model() {}
+	/**
+	 * Identification used to find this beam pattern in beam_pattern_map.
+	 */
+	id_type beamID() const {
+		return _beamID;
+	}
+
+	/**
+	 * Identification used to find this beam pattern in beam_pattern_map.
+	 */
+	void beamID(id_type beamID) {
+		_beamID = beamID;
+	}
+
+	/**
+	 * Computes the beam level gain along a specific DE and AZ direction
+	 * for a specific beam steering angle. The DE and AZ are passed in as
+	 * Eta/VarPhi values and then transformed to a theta/phi equivalent
+	 * that are used for computation.
+	 *
+	 * NOTE: The choice of return in linear units
+	 * is a development choice and may be changed depending on how
+	 * this value is used in the final release state.
+	 *
+	 * @param de            Depression/Elevation angle (rad)
+	 * @param az            Azimuthal angle (rad)
+	 * @param pitch         Pitch in the DE dimension (rad)
+	 * @param yaw           Yaw in the AZ dimension (rad)
+	 * @param frequencies   List of frequencies to compute beam level for
+	 * @param level         Beam level for each frequency (linear units)
+	 */
+	virtual void beam_level(double de, double az, double pitch, double yaw,
+			const vector<double>& frequencies, vector<double>* level) = 0;
+
+	/**
+	 * Accesor to the directivity index
+	 *
+	 * @param frequencies    list of frequencies
+	 * @param level          directivity index for these frequency
+	 */
+	virtual void directivity_index(const vector<double>& frequencies,
+			vector<double>* level) = 0;
+
+	/**
+	 * Destructor
+	 */
+	virtual ~beam_pattern_model() {
+	}
+
+protected:
+
+	/**
+	 * Reader-write lock for multi-thread access.
+	 */
+	read_write_lock _mutex;
+
+private:
+
+	/**
+	 * Identification used to find this beam pattern in beam_pattern_map.
+	 */
+	id_type _beamID;
 
 };
 
 /// @}
-}   // end of namespace sensors
+}// end of namespace sensors
 }   // end of namespace usml
