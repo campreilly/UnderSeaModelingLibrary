@@ -26,7 +26,7 @@ source_params_map* source_params_map::instance() {
 		tmp = _instance.get();
 		if (tmp == NULL) {
 			tmp = new source_params_map();
-			_instance = tmp ;
+			_instance.reset(tmp) ;
 		}
 	}
 	return tmp;

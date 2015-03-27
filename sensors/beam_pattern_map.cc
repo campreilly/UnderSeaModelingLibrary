@@ -26,7 +26,7 @@ beam_pattern_map* beam_pattern_map::instance() {
 		tmp = _instance.get();
 		if (tmp == NULL) {
 			tmp = new beam_pattern_map();
-			_instance = tmp ;
+			_instance.reset(tmp) ;
 		}
 	}
 	return tmp;

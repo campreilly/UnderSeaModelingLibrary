@@ -2,117 +2,100 @@
  * @example sensors/test/maps_test.cc
  */
 #include <boost/test/unit_test.hpp>
-#include <boost/progress.hpp>
+// #include <boost/progress.hpp>
 
-#include <iostream>
+// #include <iostream>
 
-#include <usml/sensors/sensor_map.h>
 #include <usml/sensors/beam_pattern_map.h>
 #include <usml/sensors/source_params_map.h>
 #include <usml/sensors/receiver_params_map.h>
-
+#include <usml/sensors/sensor_map.h>
 
 BOOST_AUTO_TEST_SUITE(maps_test)
 
 using namespace boost::unit_test;
-
 using namespace usml::sensors;
+using namespace usml::threads;
 
 /**
-* @ingroup sensors_test
-* Test the ability to instantiate a beam_pattern_map
-* and insert several beam_pattern_models into it.
-* Also test the find method and the destructor.
-* Generate errors if pointer values are not equal.
-* For Destructor testing run with Valgrind memcheck.
-*
-* @author Ted Burns, AEgis Technologies Group, Inc.
-* @version 1.0
-* @updated 6-Mar-2015 3:15:03 PM
-*/
+ * @ingroup sensors_test
+ * Test the ability to instantiate a beam_pattern_map
+ * and insert several beam_pattern_models into it.
+ * Also test the find method and the destructor.
+ * Generate errors if pointer values are not equal.
+ * For Destructor testing run with Valgrind memcheck.
+ *
+ * @author Ted Burns, AEgis Technologies Group, Inc.
+ * @version 1.0
+ * @updated 6-Mar-2015 3:15:03 PM
+ */
 BOOST_AUTO_TEST_CASE(beam_pattern_test) {
 
-    cout << "=== maps_test: beam_pattern_test ===" << endl;
+	cout << "=== maps_test: beam_pattern_test ===" << endl;
 
-    beam_pattern_map* beam_map = beam_pattern_map::instance();
-// no matching function for call to
- // ‘usml::threads::shared_ptr<usml::sensors::beam_pattern_model>::shared_ptr(usml::sensors::beam_pattern_omni*)’
+	beam_pattern_map* beam_map = beam_pattern_map::instance();
 
-    beam_pattern_model::reference beam_heap1( new beam_pattern_omni() ) ;
-    beam_map->insert(1, beam_heap1);
+	beam_pattern_model* beam_patt1 = new beam_pattern_omni();
+	beam_pattern_model::reference beam_heap1(beam_patt1);
+	beam_map->insert(1, beam_heap1);
 
-    beam_pattern_model::reference beam_heap2( new beam_pattern_omni() ) ;
-    beam_map->insert(2, beam_heap2);
+	beam_pattern_model* beam_patt2 = new beam_pattern_omni();
+	beam_pattern_model::reference beam_heap2(beam_patt2);
+	beam_map->insert(2, beam_heap2);
 
-    beam_pattern_model::reference bpm1 = beam_map->find(1);
-    BOOST_CHECK_EQUAL( bpm1, beam_heap1 );
+	beam_pattern_model::reference bpm1 = beam_map->find(1);
+	BOOST_CHECK_EQUAL(bpm1.get(), beam_patt1);
 
-    beam_pattern_model::reference bpm2 = beam_map->find(2);
-//    BOOST_CHECK_EQUAL(bpm2, beam_heap2);
+	beam_pattern_model::reference bpm2 = beam_map->find(2);
+	BOOST_CHECK_EQUAL(bpm2.get(), beam_patt2);
 
-    // Check key not found returns null
-//    beam_pattern_model::reference bpm = beam_map->find(3);
-//    BOOST_CHECK_EQUAL(bpm, (const usml::sensors::beam_pattern_model*)0);
+	// Check key not found returns null
+	beam_pattern_model::reference bpm = beam_map->find(3);
+	BOOST_CHECK_EQUAL(bpm.get(), (beam_pattern_model* ) 0);
 
-    // Run with valgrind memcheck to verify.
+	beam_map->erase(1);
+	beam_map->erase(2);
 }
 
-///**
-//* @ingroup sensors_test
-//* Test the ability to instantiate a source_params_map
-//* and insert several source_params into it.
-//* Also test the find method and the destructor.
-//* Generate errors if pointer values are not equal.
-//* For Destructor testing run with Valgrind memcheck.
-//*/
-//
-//BOOST_AUTO_TEST_CASE(source_params_test) {
-//
-//    cout << "=== maps_test: source_params_test ===" << endl;
-//
-//    std::list<beam_pattern_model::id_type> beamList1;
-//    beamList1.push_back(1);
-//    beamList1.push_back(2);
-//
-//    // Set up ID 1
-//    paramsIDType sourceID = 1;
-//    // Insert array in source
-//    source_params* source_heap1 = new source_params(sourceID, 20, 900, 0.5, 100.0, beamList1);
-//
-//    // Grab source_map
-//    source_params_map* source_map = source_params_map::instance();
-//
-//    // Insert into map
-//    source_map->insert(sourceID, source_heap1);
-//
-//    // Set up ID 2
-//    std::list<beam_pattern_model::id_type> beamList2;
-//    beamList2.push_back(3);
-//    beamList2.push_back(4);
-//
-//    sourceID = 2;
-//    source_params* source_heap2 = new source_params(sourceID, 10, 900, 0.5, 100.0, beamList2);
-//
-//    // Insert into map
-//    source_map->insert(sourceID, source_heap2);
-//
-//    const usml::sensors::source_params* spm1 = source_map->find(1);
-//
-//    BOOST_CHECK_EQUAL(spm1, source_heap1);
-//
-//    const usml::sensors::source_params* spm2 = source_map->find(2);
-//
-//    BOOST_CHECK_EQUAL(spm2, source_heap2);
-//
-//    // Check key not found returns null
-//    const usml::sensors::source_params* spm3 = source_map->find(3);
-//
-//    BOOST_CHECK_EQUAL(spm3, (const usml::sensors::source_params*)0);
-//
-//    // Run with valgrind memcheck to verify.
-//    source_params_map::destroy();
-//}
-//
+/**
+ * @ingroup sensors_test
+ * Test the ability to instantiate a source_params_map
+ * and insert several source_params into it.
+ * Also test the find method and the destructor.
+ * Generate errors if pointer values are not equal.
+ */
+BOOST_AUTO_TEST_CASE(source_params_test) {
+
+	cout << "=== maps_test: source_params_test ===" << endl;
+
+	source_params_map* source_map = source_params_map::instance();
+	seq_linear frequencies(1000.0, 10000.0, 1000.0);
+
+	// setup sensor #1 with omni beam pattern
+
+	source_params::const_reference source1( new source_params(1, 123.0, frequencies, 0) );
+	source_map->insert(source1->sourceID(), source1);
+
+	// setup sensor #2 with bad beam pattern
+
+	source_params::const_reference source2(new source_params(2, 321.0, frequencies, 999));
+	source_map->insert(source2->sourceID(), source2);
+
+	// test retrieval
+
+	source_params::const_reference spm1 = source_map->find(1);
+	source_params::const_reference spm2 = source_map->find(2);
+	BOOST_CHECK_EQUAL(spm1, source1);
+	BOOST_CHECK_EQUAL(spm2, source2);
+
+	// check beam patterns
+
+	beam_pattern_model::reference bpm1 = spm1->beam_pattern() ;
+	beam_pattern_model::reference bpm2 = spm2->beam_pattern() ;
+//	BOOST_CHECK_EQUAL(bpm1->beamID(), 0);
+	BOOST_CHECK_EQUAL(bpm2.get(), (beam_pattern_model*) 0);
+}
+
 ///**
 //* @ingroup sensors_test
 //* Test the ability to instantiate a receiver_params_map

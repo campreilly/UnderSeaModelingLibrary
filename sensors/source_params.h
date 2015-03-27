@@ -38,7 +38,7 @@ public:
 	/**
 	 * Data type used for reference to source_params.
 	 */
-	typedef unique_ptr<const source_params> const_reference;
+	typedef shared_ptr<const source_params> const_reference;
 
 	/**
 	 * Data type used for store beam patterns in this sensor.
@@ -83,29 +83,29 @@ public:
 	}
 
 	/**
-	 * Identification used to find this sensor type in source_params_map.
+	 * Peak intensity of the transmitted pulse (dB//uPa@1m)
 	 */
-	void sourceID(source_params::id_type sensorID) {
-		_sourceID = sensorID;
+	double source_level() const {
+		return _source_level ;
 	}
 
 	/**
-	 * Set a beam pattern for the source using beamID.
-	 * @params beamID to be used for this source.
+	 * Frequencies of transmitted pulse. Multiple frequencies can be
+	 * used to compute multiple results at the same time. These are the
+	 * frequencies at which transmission loss and reverberation are computed.
 	 */
-	void beam_pattern(beam_pattern_model::id_type beamID);
+	const seq_vector* frequencies() const {
+		return _frequencies.get() ;
+	}
+
+	/**
+	 * Shared reference to the beam patterns for this source.
+	 */
+	beam_pattern_model::reference beam_pattern() const {
+		return _beam_pattern ;
+	}
 
 private:
-
-	/**
-	 * Prevent access to default constructor
-	 */
-	source_params();
-
-	/**
-	 * Prevent access to assignment operator
-	 */
-	source_params& operator=(source_params const&);
 
 	/**
 	 * Identification used to find this sensor type in source_params_map.

@@ -26,7 +26,7 @@ receiver_params_map* receiver_params_map::instance() {
 		tmp = _instance.get();
 		if (tmp == NULL) {
 			tmp = new receiver_params_map();
-			_instance = tmp ;
+			_instance.reset(tmp) ;
 		}
 	}
 	return tmp;

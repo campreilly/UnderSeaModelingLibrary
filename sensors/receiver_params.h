@@ -34,7 +34,7 @@ public:
 	/**
 	 * Data type used for reference to receiver_params.
 	 */
-	typedef unique_ptr<const receiver_params> const_reference;
+	typedef shared_ptr<const receiver_params> const_reference;
 
 	/**
 	 * Data type used for store beam patterns in this sensor.

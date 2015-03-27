@@ -33,7 +33,7 @@ thread_pool* thread_controller::instance() {
 		tmp = _instance.get();
 		if (tmp == NULL) {
 			tmp = new thread_pool(_num_threads);
-			_instance = tmp;
+			_instance.reset(tmp) ;
 		}
 	}
 	return tmp;
