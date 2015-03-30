@@ -94,7 +94,8 @@ public:
 
 private:
 
-    sensor_pair() {};
+    sensor_pair()
+       : _source(NULL),_receiver(NULL) {};
 
     /**
      * Pointer to the source sensor.
@@ -107,24 +108,24 @@ private:
     sensor* _receiver;
 
     /**
-     * proploss - contains targets and eigenrays 
+     * eigenray_collection - contains targets and eigenrays 
      */
-    proploss_shared_ptr _proploss;
+    eigenray_collection::reference _proploss;
 
     /**
      * source eigenverbs - contains all source eigenverbs
      */
-    eigenverbs_shared_ptr _src_eigenverbs;
+    eigenverb_collection::reference _src_eigenverbs;
 
     /**
      * receiver eigenverbs - contains all receiver eigenverbs
      */
-    eigenverbs_shared_ptr _rcv_eigenverbs;
+    eigenverb_collection::reference _rcv_eigenverbs;
 
     /**
      * envelopes - contains the Reverb envelopes
      */
-    envelopes_shared_ptr _envelopes;
+    envelope_collection::reference _envelopes;
 
 };
 

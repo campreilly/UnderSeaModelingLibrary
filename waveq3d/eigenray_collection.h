@@ -1,11 +1,11 @@
 /** 
- * @file proploss.h
+ * @file eigenray_collection.h
  * Container for a list of targets and their associated propagation data.
  */
 #pragma once
 
 #include <usml/ocean/ocean.h>
-#include <usml/waveq3d/eigenrayListener.h>
+#include <usml/waveq3d/eigenray_listener.h>
 #include <usml/waveq3d/wave_queue.h>
 
 namespace usml {
@@ -23,7 +23,12 @@ using namespace usml::ocean;
  * complete, the sum_eigenrays() method is used to collect the results
  * into a phasor-summed propagation loss and phase at each target point.
  */
-class USML_DECLSPEC proploss : public eigenrayListener {
+class USML_DECLSPEC eigenray_collection : public eigenray_listener {
+
+public:
+
+    // eigenray_collection shared_ptr
+    typedef boost::shared_ptr<eigenray_collection> reference;
 
 private:
 
@@ -93,7 +98,7 @@ public:
      *
      * @param   targets     Grid of targets to ensonify.
      */
-    proploss(const wposition* targets);
+    eigenray_collection(const wposition* targets);
 
     /**
      * Initialize with references to wave front information.
@@ -105,7 +110,7 @@ public:
      * @param	time_step   Propagation step size (seconds).
      * @param   targets     Grid of targets to ensonify.
      */
-    proploss( const seq_vector& frequencies, const wposition1& source_pos,
+    eigenray_collection( const seq_vector& frequencies, const wposition1& source_pos,
               const seq_vector& source_de, const seq_vector& source_az,
               double time_step, const wposition* targets);
 
@@ -113,7 +118,7 @@ public:
       * Destructor delete all data stored on the heap
       *
       */
-    virtual ~proploss(){
+    virtual ~eigenray_collection(){
 
         delete _frequencies;
         delete _source_de;
@@ -189,15 +194,15 @@ public:
     }
 
 	/**
-	 * addEigenray - Adds an eigenray to the eigenray_list for the target specified.
+	 * add_eigenray - Adds an eigenray to the eigenray_list for the target specified.
 	 * implementation of the pure virtual method of proplossListener.
 	 * @param   targetRow          Row number of the current target.
 	 * @param   targetCol          Column number of the current target.
-	 * @param   pRay               The eigenray to add.
+	 * @param   ray                The eigenray to add.
 	 * @param   run_id             The run_id of WaveQ3D which the eigenray was produced.
 	 * @return                     True on success, false on failure.
 	 */
-	bool addEigenray(size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id );
+	bool add_eigenray(size_t targetRow, size_t targetCol, eigenray ray, size_t run_id );
 
 
     /**
@@ -209,15 +214,15 @@ public:
     void sum_eigenrays(bool coherent = true);
 
     /**
-     * Write proploss scenario data to a netCDF file using a ragged
+     * Write eigenray_collection scenario data to a netCDF file using a ragged
      * array structure. This ragged array concept (see reference) stores
-     * the proploss data in a one dimensional list and uses an externally
+     * the eigenray_collection data in a one dimensional list and uses an externally
      * defined index to lookup the appropriate elements for each target.
      *
      * This ragged array concept is used to define the intensity, phase,
      * source_de, source_az, target_de, target_az, surface, bottom, and
      * caustic variables. The proploss_index variable defines the lookup index
-     * into these arrays for the summed proploss for each target.  The
+     * into these arrays for the summed eigenray_collection for each target.  The
      * eigenray_index variable defines a similar index for the beginning of the
      * eigenray list.  Subsequent eigenrays for this target immediately follow
      * the 1st eigenray.  The eigenray_number variable defines the number of
@@ -334,9 +339,6 @@ public:
             const char* filename, const char* long_name = NULL);
 
 };
-
-// proploss shared_ptr
-typedef boost::shared_ptr<proploss> proploss_shared_ptr;
 
 /// @}
 } // end of namespace waveq3d

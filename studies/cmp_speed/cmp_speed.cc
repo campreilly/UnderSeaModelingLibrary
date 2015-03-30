@@ -97,7 +97,7 @@ int main( int argc, char* argv[] ) {
 
     ocean_model ocean( surface, bottom, profile ) ;
 
-    // initialize proploss targets and wavefront
+    // initialize eigenray_collection targets and wavefront
 
     cout << "initialize " << num_targets << " targets" << endl ;
 
@@ -113,11 +113,11 @@ int main( int argc, char* argv[] ) {
         bearing_inc = bearing_inc + angle;
     }
 
-    proploss loss(freq, src_pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, src_pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, src_pos, de, az, time_step, &target ) ;
 
-    if (!wave.addEigenrayListener(&loss)) {
-    	cout << "Error adding proploss listener! " << endl ;
+    if (!wave.add_eigenray_listener(&loss)) {
+    	cout << "Error adding eigenray listener! " << endl ;
     	exit(1);
     }
 

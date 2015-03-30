@@ -29,18 +29,12 @@ sensor::sensor(const id_type sensorID, const sensor_params::id_type paramsID, co
 		_pitch(pitch),
 		_yaw(yaw),
 		_roll(0.0),
-		_source(NULL),
-		_receiver(NULL),
-		_fathometers(NULL),
-		_eigenverbs(NULL),
         _description(description)
 {
-    // Use _paramsID to lookup source and receiver from map's
-    // Make a copy of what was obtained from the associated map.
-    // call to source() or receiver can replace.
-    // Ownership of _source and/or _receiver starts here.
-
-///@todo
+    _source.reset();
+    _receiver.reset();
+    _fathometers.reset();
+    _eigenverbs.reset();
 
 //    source_params_map* source_map = source_params_map::instance();
 //    receiver_params_map* receiver_map = receiver_params_map::instance();
@@ -49,8 +43,6 @@ sensor::sensor(const id_type sensorID, const sensor_params::id_type paramsID, co
 //    {
 //        default:
 //            assert(false);
-//            _source = NULL;
-//            _receiver = NULL;
 //            break;
 //        case usml::sensors::SOURCE:
 //        {
@@ -95,12 +87,7 @@ sensor::sensor(const id_type sensorID, const sensor_params::id_type paramsID, co
  */
 sensor::~sensor()
 {
-    if (_source != NULL) {
-        delete _source;
-    }
-    if (_receiver != NULL){
-        delete _receiver;
-    }
+    _wavefront_task->abort();
 }
 
 /**

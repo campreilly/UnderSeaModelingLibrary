@@ -20,6 +20,9 @@ class USML_DECLSPEC envelope_collection {
 
     public:
 
+    // shared pointer
+    typedef boost::shared_ptr<envelope_collection> reference;
+
         /**
          * Constructor
          *
@@ -136,9 +139,6 @@ struct USML_DECLSPEC eigenverb_box {
     coord_type width ;
     coord_type height ;
 };
-
-// shared pointer
-typedef boost::shared_ptr<envelope_collection> envelopes_shared_ptr;
 
 }   // end of namespace eigenverb
 }   // end of namespace usml

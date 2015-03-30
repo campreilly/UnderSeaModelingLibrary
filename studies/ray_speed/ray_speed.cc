@@ -91,7 +91,7 @@ int main( int argc, char* argv[] ) {
     boundary_model* surface = new boundary_flat() ;
     ocean_model ocean( surface, bottom, profile ) ;
 
-    // initialize proploss targets and wavefront
+    // initialize eigenray_collection targets and wavefront
 
     cout << "initialize " << num_targets << " targets" << endl ;
     randgen::seed(0) ;  // fix the initial seed
@@ -101,9 +101,9 @@ int main( int argc, char* argv[] ) {
         target.longitude( n, 0, pos.longitude() + randgen::uniform() - 0.5 ) ;
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
 	wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
-	wave.addEigenrayListener(&loss) ;
+	wave.add_eigenray_listener(&loss) ;
 
     // propagate wavefront
 

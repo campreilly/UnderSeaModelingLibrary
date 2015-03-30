@@ -6,7 +6,7 @@
 
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/wave_front.h>
-#include <usml/waveq3d/eigenrayListener.h>
+#include <usml/waveq3d/eigenray_listener.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 #include <netcdfcpp.h>
 
@@ -19,7 +19,7 @@ class reflection_model ;
 class spreading_model ;
 class spreading_ray ;
 class spreading_hybrid_gaussian ;
-class eigenrayListener ;
+class eigenray_listener ;
 
 /// @ingroup waveq3d
 /// @{
@@ -71,6 +71,11 @@ class USML_DECLSPEC wave_queue {
      * Type of spreading model to be used.
      */
     typedef enum { CLASSIC_RAY, HYBRID_GAUSSIAN } spreading_type ;
+
+    /**
+     * Type for eigenray_listener list iterator
+     */
+    typedef std::list<eigenray_listener*>::iterator listener_iter;
 
     //**************************************************
     // methods
@@ -244,42 +249,42 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
-	 * setIntensityThreshold
+	 * Set intensity_threshold
 	 * @param  dThreshold The new value of the intensity threshold in dB.
 	 *
 	 */
-	inline void setIntensityThreshold(double dThreshold) {
+	inline void intensity_threshold(double dThreshold) {
 
 	    // Convert to absolute value for later comparison
 	    // with the positive ray.intensity value.
 		_intensity_threshold = abs(dThreshold);
 	}
 	/**
-	 * getIntensityThreshold
+	 * Get intensity_threshold
 	 * @return  Returns current value of the intensity threshold in dB
 	 */
-	inline double getIntensityThreshold() {
+	inline double intensity_threshold() {
 		return _intensity_threshold;
 	}
 
     /**
-     * Add a eigenrayListener to the _eigenrayListenerVec vector
+     * Add a eigenray_listener to the _eigenray_listeners list
      */
-    bool addEigenrayListener(eigenrayListener* pListener);
+    bool add_eigenray_listener(eigenray_listener* listener);
 
     /**
-	 * Remove a eigenrayListener from the _eigenrayListenerVec vector
+	 * Remove a eigenray_listener from the _eigenray_listeners list
 	 */
-    bool removeEigenrayListener(eigenrayListener* pListener);
+    bool remove_eigenray_listener(eigenray_listener* listener);
 
     /**
-	 * For each eigenrayListener in the _eigenrayListenerVec vector
-	 * call the checkEigenrays method to deliver all eigenrays after
+	 * For each eigenray_listener in the _eigenray_listeners list
+	 * call the check_eigenrays method to deliver all eigenrays after
 	 * a certain amount of time has passed.
 	 *  @param	waveTime Current Time of the WaveFront in msec
 	 *  @return True on success, false on failure.
 	 */
-	bool checkEigenrayListeners(long waveTime);
+	bool check_eigenray_listeners(long waveTime);
 
 	/**
 	 * Adds an eigenverb_collection to the wave_queue to store
@@ -291,7 +296,7 @@ class USML_DECLSPEC wave_queue {
     /**
      * Set the type of wavefront that this is, i.e. a wavefront
      * originating from a source or receiver. This is exclusively
-     * used within the reverbation models.
+     * used within the reverberation models.
      */
     inline void ID( size_t id ) {
         _run_id = id ;
@@ -300,7 +305,7 @@ class USML_DECLSPEC wave_queue {
     /**
      * Get the type of wavefront that this is, i.e. a wavefront
      * originating from a source or receiver. This is exclusively
-     * used within the reverbation models.
+     * used within the reverberation models.
      * @return      Type of wavefront (receiver/source)
      */
     inline const size_t ID() {
@@ -334,7 +339,7 @@ class USML_DECLSPEC wave_queue {
      * the boundaries.  This allows the eigenray calculation to accurately
      * portray targets near the interface.  Reflections are computed at the
      * beginning of the next iteration to ensure that the next wave elements
-     * are alway inside of the water column.
+     * are always inside of the water column.
      */
     void step() ;
 
@@ -438,11 +443,11 @@ class USML_DECLSPEC wave_queue {
 
 
     /**
-	* Vector containing the references of objects that will be used to
-	* update classes that require eigenrays as they are built.
-	* These classes must implement addEigenray method.
+	* List containing the references of objects that will be used
+	* to update classes that require eigenrays as they are built.
+	* These classes must implement add_eigenray method.
 	*/
-    std::vector<eigenrayListener *> _eigenrayListenerVec;
+    std::list<eigenray_listener*> _eigenray_listeners;
 
     /**
      * Create an Azimuthal boundary loop condition upon initialization.
@@ -555,14 +560,14 @@ class USML_DECLSPEC wave_queue {
 
     /**
      * A modified version of the function reflection_model::bottom_reflection used
-     * to determine the infromation needed to produce a volume reverberation calculation
+     * to determine the information needed to produce a volume reverberation calculation
      * from this layer when colliding from above the layer.
      */
     void collide_from_above( size_t de, size_t az, double depth, size_t layer ) ;
 
     /**
      * A modified version of the function reflection_model::surface_reflection used
-     * to determine the infromation needed to produce a volume reverberation calculation
+     * to determine the information needed to produce a volume reverberation calculation
      * from this layer when colliding from below the layer.
      *      @todo need to rectify this code, it mimics the bottom_reflection but signs
      *            should be changed to adjust for approaching from below.
@@ -763,10 +768,10 @@ class USML_DECLSPEC wave_queue {
         wposition1* position, wvector1* ndirection, double* speed ) const ;
 
     /**
-	 * For each eigenrayListener in the _eigenrayListenerVec vector
-	 * call the addEigenray method to provide eigenrays to object that requested them.
+	 * For each eigenray_listener in the _eigenray_listeners list
+	 * call the add_eigenray method to provide eigenrays to object that requested them.
 	 */
-	bool notifyEigenrayListeners(size_t targetRow, size_t targetCol, eigenray pEigenray);
+	bool notify_eigenray_listeners(size_t targetRow, size_t targetCol, eigenray ray);
 
     //**************************************************
     // wavefront_netcdf routines
@@ -852,7 +857,7 @@ class USML_DECLSPEC wave_queue {
 
     /**
      * Write current record to netCDF wavefront log.
-     * Records travel time, latitude, longtiude, altitude for
+     * Records travel time, latitude, longitude, altitude for
      * the current wavefront.
      */
     void save_netcdf() ;

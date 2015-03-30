@@ -92,29 +92,28 @@ private:
 
         // define beam patterns
 
-        beam_pattern_map::instance()->insert( 1, new beam_pattern_omni() ) ;
+        beam_pattern_map::instance()->insert( 1, beam_pattern_omni::reference(new beam_pattern_omni()) ) ;
 
         // define source parameters
 
-        std::list<beamIDType> source_beams ;
-        source_beams.push_back(1);
+        beam_pattern_model::id_type source_beams = 1 ;
 
         source_params* source = new source_params(
-                1,          // sourceID
-                200.0,      // sourceStrength
-                3000.0,     // transmitFrequency
-                0.0,        // initialPingTime
-                0.0,        // repeationInterval
+                1,          // paramID
+                true,
+                200,
+                seq_linear(6500, 1000, 4, false),
                 source_beams ) ;
-        source_params_map::instance()->insert( 1, source ) ;
+
+        source_params_map::instance()->insert( 1, source_params::reference(source) ) ;
 
         // define receiver parameters
 
-        std::list<beamIDType> receiver_beams ;
+        std::list<beam_pattern_model::id_type> receiver_beams ;
         receiver_beams.push_back(1);
 
-        receiver_params* receiver = new receiver_params( receiver_beams ) ;
-        receiver_params_map::instance()->insert( 1, receiver ) ;
+        receiver_params* receiver = new receiver_params(1, true, receiver_beams ) ;
+        receiver_params_map::instance()->insert( 1, receiver_params::reference(receiver) ) ;
     }
 
 //    /**
@@ -130,7 +129,7 @@ private:
 //                position,
 //                0.0,    // pitch
 //                0.0,    // yaw
-//                "omni" ) ;
+//                std::string("omni") ) ;
 //        sensor_manager::instance()->insert(sensor_data->sensorID(), sensor_data);
 //    }
 //
