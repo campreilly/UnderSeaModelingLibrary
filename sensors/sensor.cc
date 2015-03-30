@@ -4,7 +4,8 @@
  *  Created on: 10-Feb-2015 12:49:09 PM
  */
 #include <usml/sensors/sensor.h>
-#include <usml/threads/read_write_lock.h>
+#include <usml/sensors/source_params_map.h>
+#include <usml/sensors/receiver_params_map.h>
 
 using namespace usml::sensors;
 
@@ -13,73 +14,53 @@ using namespace usml::sensors;
  */
 sensor::sensor( sensor::id_type sensorID, sensor_params::id_type paramsID,
 		const std::string& description) :
-		_sensorID(sensorID), _paramsID(paramsID), _description(description)
+		_sensorID(sensorID), _paramsID(paramsID), _description(description),
+		_position(NAN,NAN,NAN), _orientation(NAN,NAN,NAN)
 {
-    // Use _paramsID to lookup source and receiver from map's
-    // Make a copy of what was obtained from the associated map.
-    // call to source() or receiver can replace.
-    // Ownership of _source and/or _receiver starts here.
-
-///@todo
-
-//    source_params_map* source_map = source_params_map::instance();
-//    receiver_params_map* receiver_map = receiver_params_map::instance();
-//
-//    switch (mode)
-//    {
-//        default:
-//            assert(false);
-//            _source = NULL;
-//            _receiver = NULL;
-//            break;
-//        case usml::sensors::SOURCE:
-//        {
-//            source_params::reference sp = source_map->find(_paramsID);
-//            if (sp == NULL) {
-//                _source = new source_params(*sp);
-//            } else {
-//                _source = NULL;
-//            }
-//            break;
-//        }
-//        case usml::sensors::RECEIVER:
-//        {
-//            const receiver_params* rp = receiver_map->find(_paramsID);
-//            if (rp == NULL) {
-//                _receiver = new receiver_params(*rp);
-//            } else {
-//                _receiver = NULL;
-//            }
-//            break;
-//        }
-//        case usml::sensors::BOTH:
-//        {
-//            const source_params* sp = source_map->find(_paramsID);
-//            if (sp == NULL) {
-//                _source = new source_params(*sp);
-//            } else {
-//                _source = NULL;
-//            }
-//            const receiver_params* rp = receiver_map->find(_paramsID);
-//            if (rp == NULL) {
-//                _receiver = new receiver_params(*rp);
-//            } else {
-//                _receiver = NULL;
-//            }
-//        }
-//    }
+	_source = source_params_map::instance()->find(paramsID) ;
+	_receiver = receiver_params_map::instance()->find(paramsID) ;
 }
 
 /**
- * Checks to see if new position, pitch and yaw have changed enough
+ * Queries the sensor's ability to support source and/or receiver behaviors.
+ */
+xmitRcvModeType sensor::mode() const {
+	bool has_source = _source.get() != NULL ;
+	bool has_receiver = _receiver.get() != NULL ;
+	xmitRcvModeType result ;
+		if ( has_source && has_receiver ) {
+			result = BOTH ;
+		} else if ( has_source ) {
+			result = SOURCE ;
+		} else if ( has_receiver ) {
+			result = RECEIVER ;
+		} else {
+			result = NONE ;
+		}
+	return result ;
+}
+
+/**
+ * Checks to see if new position and orientation have changed enough
  * to require a new WaveQ3D run.
  *
  * @todo using dummy values for prototyping
  */
-bool sensor::check_thresholds(wposition1 position, const sensor_orientation& orientation)
-{
-    return true;
+bool sensor::check_thresholds(wposition1 position,
+		const sensor_orientation& orientation) {
 
+	// force update if old values not valid
+
+	if ( isnan(_position.rho()) || isnan(_position.theta())
+  	  || isnan(_position.phi()) || isnan(_orientation.heading())
+	  || isnan(_orientation.pitch()) || isnan(_orientation.roll()))
+	{
+		return true;
+	}
+
+	// check difference between old and new values
+
+	return true;	// using dummy values for prototyping
 }
 
 /**
@@ -108,7 +89,6 @@ void sensor::init_wave_generator()
 
     // Pass in to thread_pool
     thread_controller::instance()->run(_wavefront_task);
-
 }
 
 /**
@@ -120,7 +100,7 @@ void sensor::update_sensor(const wposition1& position,
 	write_lock_guard guard(_update_sensor_mutex) ;
 	if (!force_update) {
 		if (!check_thresholds(position, orientation)) {
-			return;
+			return ;
 		}
 	}
 	_position = position;
@@ -167,7 +147,6 @@ bool sensor::remove_sensor_listener(sensor_listener* listener)
  */
 bool sensor::update_eigenverb_listeners()
 {
-
     for ( std::list<sensor_listener*>::iterator iter = _sensor_listeners.begin();
         iter != _sensor_listeners.end(); ++iter )
     {
@@ -184,7 +163,6 @@ bool sensor::update_eigenverb_listeners()
  */
 bool sensor::update_fathometer_listeners()
 {
-
     for ( std::list<sensor_listener*>::iterator iter = _sensor_listeners.begin();
         iter != _sensor_listeners.end(); ++iter )
     {

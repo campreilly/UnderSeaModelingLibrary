@@ -12,8 +12,6 @@
 #include <usml/sensors/sensor_params.h>
 #include <usml/sensors/xmitRcvModeType.h>
 
-#include <usml/sensors/source_params.h>
-#include <usml/sensors/receiver_params.h>
 #include <usml/sensors/source_params_map.h>
 #include <usml/sensors/receiver_params_map.h>
 #include <usml/sensors/sensor_listener.h>
@@ -47,6 +45,9 @@ public:
 
 	/**
 	 * Construct a new instance of a specific sensor type.
+	 * Sets the position and orientation values to NAN.
+	 * These values are not set until the update_sensor()
+	 * is invoked for the first time.
 	 *
 	 * @param sensorID		Identification used to find this sensor instance
 	 * 						in sensor_manager.
@@ -89,21 +90,7 @@ public:
 	/**
 	 * Queries the sensor's ability to support source and/or receiver behaviors.
 	 */
-	xmitRcvModeType mode() const {
-		bool has_source = _source.get() != NULL ;
-		bool has_receiver = _receiver.get() != NULL ;
-		xmitRcvModeType result ;
-//		if ( has_source && has_receiver ) {
-//			result = xmitRcvModeType::BOTH ;
-//		} else if ( has_source ) {
-//			result = xmitRcvModeType::SOURCE ;
-//		} else if ( has_receiver ) {
-//			result = xmitRcvModeType::RECEIVER ;
-//		} else {
-//			result = xmitRcvModeType::NONE ;
-//		}
-		return result ;
-	}
+	xmitRcvModeType mode() const ;
 
 	/**
 	 * Shared pointer to the the source_params for this sensor.
@@ -142,16 +129,17 @@ public:
 	 *
 	 * @param position  	Updated position data
 	 * @param orientation	Updated orientation value
-	 * @param 				When true, forces update without checking thresholds.
+	 * @param force_update	When true, forces update without checking thresholds.
 	 */
-	void update_sensor(const wposition1& position,const sensor_orientation& orientation,bool force_update = false) ;
+	void update_sensor(const wposition1& position,
+			const sensor_orientation& orientation, bool force_update = false);
 
     /**
      * Last set of fathometers computed for this sensor.
 	 * Blocks during updates from the wavefront task.
      * @todo migrate to shared pointer.
      */
-	proploss* fathometers() {
+	proploss* fathometers() const {
 		read_lock_guard guard(_update_fathometers_mutex) ;
 		return _fathometers;
 	}
@@ -171,7 +159,7 @@ public:
 	 * Blocks during updates from the wavefront task.
      * @todo migrate to shared pointer.
      */
-	eigenverb_collection* eigenverbs() {
+	eigenverb_collection* eigenverbs() const {
 		read_lock_guard guard(_update_eigenverbs_mutex) ;
 		return _eigenverbs;
 	}

@@ -16,7 +16,7 @@ unique_ptr<sensor_manager> sensor_manager::_instance;
 /**
  * The _mutex for the singleton sensor_manager.
  */
-read_write_lock sensor_manager::_mutex;
+read_write_lock sensor_manager::_instance_mutex;
 
 /**
  * Singleton Constructor sensor_manager
@@ -26,7 +26,7 @@ sensor_manager* sensor_manager::instance()
     sensor_manager* tmp = _instance.get();
     if (tmp == NULL)
     {
-        write_lock_guard guard(_mutex);
+        write_lock_guard guard(_instance_mutex);
         tmp = _instance.get();
         if (tmp == NULL)
         {
@@ -49,19 +49,15 @@ bool sensor_manager::erase(const sensor::id_type sensorID)
     return sensor_map_template<const sensor::id_type, sensor*>::erase(sensorID);
 }
 
-bool sensor_manager::update(const sensor::id_type sensorID, sensor* sensor_)
+bool sensor_manager::update(const sensor::id_type sensorID,
+		const wposition1& position, const sensor_orientation& orientation,
+		bool force_update)
 {
-	// Input sensor does not contain "all" sensor data
-	// Get current data
 	sensor* current_sensor = find(sensorID);
-	
-	// Ensure pre-existance
 	if (current_sensor != 0) {
-		
-		current_sensor->update_sensor(sensor_->position(), sensor_->orientation());
+		current_sensor->update_sensor(position,orientation,force_update);
 		return true;
 	}
-
     return false;
 }
 

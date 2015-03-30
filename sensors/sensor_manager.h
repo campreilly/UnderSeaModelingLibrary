@@ -48,12 +48,6 @@ public:
     static sensor_manager* instance();
 
     /**
-     * Singleton Destructor - Deletes source_params_map instance
-     * Accessible everywhere.
-     */
-    static void destroy();
-
-    /**
      * Inserts the supplied sensor pointer into the sensor_manager and the
      * sensor_pair_manager map with the sensorID provided.
      * @param sensorID is the associated key to the sensor pointer.
@@ -77,7 +71,8 @@ public:
      * @param sensor_ is sensor pointer to be inserted.
      * @return false if sensorID was not in the map or the sensor_pair_manager.
      */
-    bool update(const sensor::id_type sensorID, sensor* sensor_);
+    bool update( const sensor::id_type sensorID, const wposition1& position,
+    		const sensor_orientation& orientation, bool force_update = false );
 
 private:
 
@@ -89,7 +84,7 @@ private:
     /**
      * The _mutex for the singleton pointer.
      */
-    static read_write_lock _mutex ;
+    static read_write_lock _instance_mutex ;
 };
 
 /// @}

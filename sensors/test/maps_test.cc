@@ -87,8 +87,9 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 
 	// setup sensor #1 with omni beam pattern
 
+	sensor_params::id_type id1 = 1 ;
 	source_params::reference source1( new source_params(
-		1, 			// paramsID
+		id1, 		// paramsID
 		false,		// multistatic
 		123.0,		// source_level
 		frequencies,
@@ -97,8 +98,9 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 
 	// setup sensor #2 with bad beam pattern
 
+	sensor_params::id_type id2 = 2 ;
 	source_params::reference source2( new source_params(
-		2, 			// paramsID
+		id2, 		// paramsID
 		true,		// multistatic
 		321.0,		// source_level
 		frequencies,
@@ -118,6 +120,11 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 	beam_pattern_model::reference bpm2 = spm2->beam_pattern() ;
 	BOOST_CHECK_EQUAL(bpm1->beamID(), 0);
 	BOOST_CHECK_EQUAL(bpm2.get(), (beam_pattern_model*) 0);
+
+	// cleanup inserted source_params so that other tests start fresh
+
+	source_map->erase(id1);
+	source_map->erase(id2);
 }
 
 /**
@@ -140,16 +147,18 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
 	// setup sensor #1 with omni beam pattern
 
+	sensor_params::id_type id1 = 1 ;
 	receiver_params::reference receiver1( new receiver_params(
-		1, 			// paramsID
+		id1, 		// paramsID
 		false,		// multistatic
 		beamList ));
 	receiver_map->insert(receiver1->paramsID(), receiver1);
 
 	// setup sensor #2 with bad beam pattern
 
+	sensor_params::id_type id2 = 2 ;
 	receiver_params::reference receiver2( new receiver_params(
-		2, 			// paramsID
+		id2, 		// paramsID
 		true,		// multistatic
 		beamList ));
 	receiver_map->insert(receiver2->paramsID(), receiver2);
@@ -167,86 +176,76 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 	beam_pattern_model::reference bpm2 = spm2->beam_pattern(1) ;
 	BOOST_CHECK_EQUAL(bpm1->beamID(), 0);
 	BOOST_CHECK_EQUAL(bpm2.get(), (beam_pattern_model*) 0);
+
+	// cleanup inserted receiver_params so that other tests start fresh
+
+	receiver_map->erase(id1);
+	receiver_map->erase(id2);
 }
 
-///**
-//* @ingroup sensors_test
-//* Test the ability to instantiate a receiver_params_map
-//* and insert several receiver_params into it.
-//* Also test the find method and the destructor.
-//* Generate errors if pointer values are not equal.
-//* For Destructor testing run with Valgrind memcheck.
-//*/
-//BOOST_AUTO_TEST_CASE(sensor_test) {
-//
-//    cout << "=== maps_test: sensor_test ===" << endl;
-//
-//    std::list<beam_pattern_model::id_type> beamList1;
-//    beamList1.push_back(1);
-//    beamList1.push_back(2);
-//
-//    // Grab the source map
-//    source_params_map* source_map = source_params_map::instance();
-//
-//    // Insert array in source
-//    sensor_params::id_type paramID = 1;
-//    source_params* src_params = new source_params(paramID, 20, 900, 0.5, 100.0, beamList1);
-//    // Insert source_param into source map
-//    source_map->insert(paramID, src_params);
-//
-//    // Grab the receiver map
-//    receiver_params_map* receiver_map = receiver_params_map::instance();
-//
-//    std::list<beam_pattern_model::id_type> beamList2;
-//    beamList2.push_back(2);
-//    beamList2.push_back(3);
-//
-//    receiver_params* rcv_params = new receiver_params(paramID, beamList2);
-//    // Insert in receiver map
-//    receiver_map->insert(paramID, rcv_params);
-//
-//
-//    sensor* sensor_data;
-//    //No sensorID
-//    sensor_data = new sensor();
-//
-//    // Test change xmitRcvMode
-//    sensor_data->mode(usml::sensors::SOURCE);
-//    sensor_data->source(*src_params);
-//
-//    // Get sensor_manager
-//    sensor_manager* sensorMap = sensor_manager::instance();
-//
-//    // insert
-//    sensorIDType sensorID = 1;
-//    sensorMap->insert(sensorID, sensor_data);
-//
-//
-//    // Test find(1)
-//    usml::sensors::sensor* m1 = sensorMap->find(sensorID);
-//
-//    // Check find
-//    BOOST_CHECK_EQUAL(m1, sensor_data);
-//
-//    // Modify #1 paramID #1
-//    sensor_data = new sensor(sensorID, paramID, usml::sensors::BOTH,
-//                             wposition1(0.0,0.0,0.0), 0.0, 0.0);
-//
-//    // Test update
-//    sensor_data->source(*src_params);
-//    sensor_data->receiver(*rcv_params);
-//    if (sensorMap->update(sensorID, sensor_data) == false) {
-//        BOOST_FAIL("sensor_test::Failed to update sensor!");
-//    }
-//
-//    // Test erase #1
-//    sensorMap->erase(1, usml::sensors::BOTH);
-//
-//    // Run with valgrind memcheck to verify.
-//    sensor_manager::destroy();
-//    source_params_map::destroy();
-//    receiver_params_map::destroy();
-//    delete sensor_data ;
-//}
+/**
+* @ingroup sensors_test
+* Test the ability to instantiate a receiver_params_map
+* and insert several receiver_params into it.
+* Also test the find method and the destructor.
+* Generate errors if pointer values are not equal.
+* For Destructor testing run with Valgrind memcheck.
+*/
+BOOST_AUTO_TEST_CASE(sensor_test) {
+
+    cout << "=== maps_test: sensor_test ===" << endl;
+
+    sensor_manager* sensor_mgr = sensor_manager::instance();
+
+	seq_linear frequencies(1000.0, 10000.0, 1000.0);	// 1-10 KHz
+
+	std::list<beam_pattern_model::id_type> beamList;
+	beamList.push_back(0);
+	beamList.push_back(1);
+
+	// setup sensor #101 with omni beam pattern
+
+	sensor_params::id_type params1 = 1 ;
+	source_params::reference source1( new source_params(
+		params1,	// paramsID
+		false,		// multistatic
+		123.0,		// source_level
+		frequencies,
+		0 ));		// beamID
+	source_params_map::instance()->insert(source1->paramsID(), source1);
+
+	sensor::id_type id1 = 101 ;
+	sensor* sensor1 = new sensor( id1, params1, "source_101" ) ;
+	sensor_mgr->insert(id1,sensor1) ;
+
+	// setup sensor #212 with bad beam pattern
+
+	sensor_params::id_type params2 = 2 ;
+	receiver_params::reference receiver2( new receiver_params(
+		params2,	// paramsID
+		true,		// multistatic
+		beamList ));
+	receiver_params_map::instance()->insert(receiver2->paramsID(), receiver2);
+
+	sensor::id_type id2 = 212 ;
+	sensor* sensor2 = new sensor( id2, params2, "receiver_212" ) ;
+	sensor_mgr->insert(id2,sensor2) ;
+
+	// update sensor #101 with new data
+
+    usml::sensors::sensor* m1 = sensor_mgr->find(id1);
+	wposition1 pos( 1.0, 2.0, 3.0 ) ;			// arbitrary location
+	sensor_orientation orient( 4.0, 5.0 ) ;		// tilt and direction
+	if ( ! sensor_mgr->update(id1,pos,orient,true) ) {
+		BOOST_FAIL("sensor_test::Failed to update sensor!");
+	}
+
+	// cleanup inserted objects so that other tests start fresh
+
+	source_params_map::instance()->erase(params1);
+	receiver_params_map::instance()->erase(params2);
+	sensor_mgr->erase(id1) ;
+	sensor_mgr->erase(id2) ;
+}
 
 BOOST_AUTO_TEST_SUITE_END()
