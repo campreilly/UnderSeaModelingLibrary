@@ -21,14 +21,14 @@ using namespace usml::sensors;
  * @param description
  */
 sensor::sensor(const id_type sensorID, const paramsIDType paramsID, const xmitRcvModeType mode,
-	const wposition1 position, const double pitch, const double yaw, const std::string description) 
+	const wposition1 position, const double pitch, const double yaw, const double roll, const std::string description)
 	:	_sensorID(sensorID),
 		_paramsID(paramsID),
 		_src_rcv_mode(mode),
 		_position(position),
 		_pitch(pitch),
 		_yaw(yaw),
-		_roll(0.0),
+		_roll(roll),
 		_source(NULL),
 		_receiver(NULL),
 		_fathometers(NULL),

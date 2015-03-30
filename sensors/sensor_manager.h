@@ -10,6 +10,7 @@
 
 #include <usml/threads/threads.h>
 #include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_pair_manager.h>
 #include <usml/sensors/source_params_map.h>
 #include <usml/sensors/receiver_params_map.h>
 #include <usml/sensors/sensor_map_template.h>
@@ -48,19 +49,46 @@ public:
     static sensor_manager* instance();
 
     /**
-     * Singleton Destructor - Deletes source_params_map instance
-     * Accessible everywhere.
+     * Creates and adds the sensor to the sensor manager.
+     * Uses the paramID and mode, looks up source and/or receiver from there associated map.
+     * @param sensorID
+     * @param paramsID
+     * @param mode
+     * @param position
+     * @param pitch
+     * @param yaw
+     * @param roll
+     * @param description
+     * @return false if the sensorID was already in the manager.
      */
-    static void destroy();
+    bool add_sensor(const sensor::id_type sensorID, const paramsIDType paramsID,
+                    const xmitRcvModeType mode, const wposition1 position,
+                    const double pitch, const double yaw, const double roll,
+                               const std::string description = std::string());
+    /**
+     * Removes the sensor in the sensor_manager and the sensor_pair_manager
+     * @return false if sensorID was not in the map or the sensor_pair_manager.
+     */
+    bool remove_sensor(const sensor::id_type sensorID);
+
+
+    /**
+     * Updates a pre-existing the sensor and the associated sensorID
+     * in the the map. Also updates the sensor in the sensor_pair_manager.
+     * @param sensor_ is sensor pointer to be inserted.
+     * @return false if sensorID was not in the map or the sensor_pair_manager.
+     */
+    bool update_sensor(sensor* sensor_);
+
+private:
 
     /**
      * Inserts the supplied sensor pointer into the sensor_manager and the
      * sensor_pair_manager map with the sensorID provided.
-     * @param sensorID is the associated key to the sensor pointer.
      * @param sensor_ is sensor pointer to be inserted.
-     * @return false if sensorID was already in the map.
+     * @return false if sensorID was already in the manager.
      */
-    bool insert(const sensor::id_type sensorID, sensor* sensor_);
+    bool insert(sensor* sensor_);
 
     /**
      * Deletes the sensor pointer from the heap and the associated sensorID
@@ -69,17 +97,6 @@ public:
      * @return false if sensorID was not in the map or the sensor_pair_manager.
      */
     bool erase(const sensor::id_type sensorID);
-
-    /**
-     * Updates a pre-existing the sensor and the associated sensorID
-     * in the the map. Also updates the sensor in the sensor_pair_manager
-     * @param sensorID is the associated key to the map.
-     * @param sensor_ is sensor pointer to be inserted.
-     * @return false if sensorID was not in the map or the sensor_pair_manager.
-     */
-    bool update(const sensor::id_type sensorID, sensor* sensor_);
-
-private:
 
 	/**
      * The singleton access pointer.

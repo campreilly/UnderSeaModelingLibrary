@@ -188,38 +188,28 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
     // Insert in receiver map
     receiver_map->insert(2, receiver_params::const_reference(rcv_params));
 
-    sensor* sensor_data;
+    sensor::id_type sensorID = 1;
     wposition1 pos(0.0,0.0,0.0);
-    //No sensorID
-    sensor_data = new sensor(1,0,usml::sensors::BOTH, pos, 0.0, 0.0);
 
     // Get sensor_manager
     sensor_manager* sensorManager = sensor_manager::instance();
 
-    // insert
-    sensor::id_type sensorID = 1;
-    sensorManager->insert(sensorID, sensor_data);
-
-
-    // Test find(1)
-    usml::sensors::sensor* m1 = sensorManager->find(sensorID);
-
-    // Check find
-// TODO: BOOST_CHECK_EQUAL(m1, sensor_data);
+    // add_sensor
+    sensorManager->add_sensor(sensorID,0,usml::sensors::BOTH, pos, 0.0, 0.0, 0.0);
 
     // Modify #1 paramID #1
-    sensor_data = new sensor(sensorID, 1, usml::sensors::BOTH,
-                             wposition1(0.0,0.0,0.0), 0.0, 0.0);
+    sensor* sensor_data = new sensor(sensorID, 1, usml::sensors::BOTH,
+                             wposition1(0.0,0.0,0.0), 0.0, 0.0, 0.0);
 
     // Test update
     sensor_data->source(*src_params);
     sensor_data->receiver(*rcv_params);
-    if (sensorManager->update(sensorID, sensor_data) == false) {
+    if (sensorManager->update_sensor(sensor_data) == false) {
         BOOST_FAIL("sensor_test::Failed to update sensor!");
     }
 
     // Test erase #1
-    sensorManager->erase(1);
+    sensorManager->remove_sensor(1);
 
     delete sensor_data ;
 }

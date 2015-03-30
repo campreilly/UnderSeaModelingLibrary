@@ -37,23 +37,65 @@ sensor_manager* sensor_manager::instance()
     return tmp;
 }
 
-bool sensor_manager::insert(const sensor::id_type sensorID, sensor* sensor_)
+bool sensor_manager::add_sensor(const sensor::id_type sensorID, const paramsIDType paramsID,
+                const xmitRcvModeType mode, const wposition1 position,
+                const double pitch, const double yaw, const double roll,
+                const std::string description)
 {
-    // Insert in the map
-    return sensor_map_template<const sensor::id_type, sensor*>::insert(sensorID, sensor_);
+    // Ensure sensor does not already exist
+    if ( find(sensorID) != 0) {
+        return false;
+    }
+    // Create the sensor
+    sensor* sensor_ = new sensor( sensorID, paramsID, mode, position,
+                                  pitch, yaw, roll, description);
+    return insert(sensor_);
+}
+
+
+bool sensor_manager::insert(sensor* sensor_)
+{
+    bool result = false;
+    // Insert in sensor_manager map
+    result = sensor_map_template<const sensor::id_type, sensor*>::insert(sensor_->sensorID(), sensor_);
+
+    if (result != false) {
+        //Add to the sensor_pair_manager
+        sensor_pair_manager::instance()->add_sensor(sensor_);
+    }
+    return result;
 }
 
 bool sensor_manager::erase(const sensor::id_type sensorID)
 {
-    // erase from the map
-    return sensor_map_template<const sensor::id_type, sensor*>::erase(sensorID);
+   // Remove from sensor_pair_manager
+    if (sensor_pair_manager::instance()->remove_sensor(find(sensorID)))
+    {
+        // Call destructor to kill any wavefront generator processes
+        delete find (sensorID);
+        // erase from the map
+        return sensor_map_template<const sensor::id_type, sensor*>::erase(sensorID);
+
+    } else {
+        return false;
+    }
 }
 
-bool sensor_manager::update(const sensor::id_type sensorID, sensor* sensor_)
+bool sensor_manager::remove_sensor(const sensor::id_type sensorID)
+{
+    // Ensure sensor already exist
+    if ( find(sensorID) == 0) {
+        return false;
+    }
+
+    return erase(sensorID);
+}
+
+bool sensor_manager::update_sensor(sensor* sensor_)
 {
 	// Input sensor does not contain "all" sensor data
 	// Get current data
-	sensor* current_sensor = find(sensorID);
+	sensor* current_sensor = find(sensor_->sensorID());
 	
 	// Ensure pre-existance
 	if (current_sensor != 0) {

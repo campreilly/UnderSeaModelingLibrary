@@ -62,7 +62,7 @@ public:
 	 * @param description
 	 */
 	sensor(const id_type sensorID, const paramsIDType paramsID, const xmitRcvModeType mode,
-				const wposition1 position, const double pitch, const double yaw, 
+				const wposition1 position, const double pitch, const double yaw, const double roll,
                                                 const std::string description = std::string());
 
     /**

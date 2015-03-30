@@ -107,27 +107,27 @@ class thread_tester : public thread_test_base
             cout << "=== sensor_pair_manager_test: add_sensor sensorID "<< sensors[i] << " Type "<< sensor_type[i]  << endl;
             // Randomly wait from 0.1 seconds to 1.0 seconds
             random_wait();
-            sensor* sensor_ = new sensor(sensors[i], 0, sensor_type[i], pos, 0.0, 0.0);
+            sensor* sensor_ = new sensor(sensors[i], 0, sensor_type[i], pos, 0.0, 0.0, 0.0);
             _sensor_pair_manager->add_sensor(sensor_);
         }
 
         cout << "=== sensor_pair_manager_test: remove_sensor 1 BOTH ===" << endl;
         random_wait();
-        sensor* sensor_one = new sensor(sensors[0], 0, sensor_type[0], pos, 0.0, 0.0);
+        sensor* sensor_one = new sensor(sensors[0], 0, sensor_type[0], pos, 0.0, 0.0, 0.0);
         if (_sensor_pair_manager->remove_sensor(sensor_one) == false) {
              cout << "=== sensor_pair_manager_test: 1 BOTH Previously Removed ===" << endl;
         }
 
         cout << "=== sensor_pair_manager_test: remove_sensor 3 SOURCE ===" << endl;
         random_wait();
-        sensor* sensor_three = new sensor(sensors[1], 0, sensor_type[1], pos, 0.0, 0.0);
+        sensor* sensor_three = new sensor(sensors[1], 0, sensor_type[1], pos, 0.0, 0.0, 0.0);
         if (_sensor_pair_manager->remove_sensor(sensor_three) == false) {
             cout << "=== sensor_pair_manager_test: 3 SOURCE Previously Removed ===" << endl;
         }
 
         cout << "=== sensor_pair_manager_test: remove_sensor 4 RECEIVER ===" << endl;
         random_wait();
-        sensor* sensor_four = new sensor(sensors[2], 0, sensor_type[2], pos, 0.0, 0.0);
+        sensor* sensor_four = new sensor(sensors[2], 0, sensor_type[2], pos, 0.0, 0.0, 0.0);
         if (_sensor_pair_manager->remove_sensor(sensor_four) == false) {
              cout << "=== sensor_pair_manager_test: 4 RECEIVER Previously Removed ===" << endl;
         }
@@ -196,30 +196,30 @@ BOOST_AUTO_TEST_CASE(add_remove_test) {
     for ( unsigned i = 0; i < sizeof(sensors)/sizeof(sensor::id_type); ++i )
     {
         //cout << "=== sensor_pair_manager_test: add_sensor sensorID "<< sensors[i] << " Type "<< sensor_type[i]  << endl;
-        sensor* sensor_ = new sensor(sensors[i], 0, sensor_type[i], pos, 0.0, 0.0);
+        sensor* sensor_ = new sensor(sensors[i], 0, sensor_type[i], pos, 0.0, 0.0, 0.0);
         sp_manager->add_sensor(sensor_);
     }
 
     //cout << "=== sensor_pair_manager_test: remove_sensor non-existent 2 ===" << endl;
-    sensor* sensor_two = new sensor(2, 0, usml::sensors::BOTH, pos, 0.0, 0.0);
+    sensor* sensor_two = new sensor(2, 0, usml::sensors::BOTH, pos, 0.0, 0.0, 0.0);
     if (sp_manager->remove_sensor(sensor_two) != false) {
          BOOST_FAIL("sensor_pair_manager_test:: Removed non-existent sensor");
     }
 
     //cout << "=== sensor_pair_manager_test: remove_sensor 1 BOTH ===" << endl;
-    sensor* sensor_one = new sensor(sensors[0], 0, sensor_type[0], pos, 0.0, 0.0);
+    sensor* sensor_one = new sensor(sensors[0], 0, sensor_type[0], pos, 0.0, 0.0, 0.0);
     if (sp_manager->remove_sensor(sensor_one) == false) {
          BOOST_FAIL("sensor_pair_manager_test:: Failed to remove sensor");
     }
 
     //cout << "=== sensor_pair_manager_test: remove_sensor 3 SOURCE ===" << endl;
-    sensor* sensor_three = new sensor(sensors[1], 0, sensor_type[1], pos, 0.0, 0.0);
+    sensor* sensor_three = new sensor(sensors[1], 0, sensor_type[1], pos, 0.0, 0.0, 0.0);
     if (sp_manager->remove_sensor(sensor_three) == false) {
          BOOST_FAIL("sensor_pair_manager_test:: Failed to remove sensor");
     }
 
     //cout << "=== sensor_pair_manager_test: remove_sensor 4 RECEIVER ===" << endl;
-     sensor* sensor_four = new sensor(sensors[2], 0, sensor_type[2], pos, 0.0, 0.0);
+     sensor* sensor_four = new sensor(sensors[2], 0, sensor_type[2], pos, 0.0, 0.0, 0.0);
     if (sp_manager->remove_sensor(sensor_four) == false) {
          BOOST_FAIL("sensor_pair_manager_test:: Failed to remove sensor");
     }
