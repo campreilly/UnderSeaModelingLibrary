@@ -293,7 +293,7 @@ void analyze_proploss(
         target.latitude( n, 0, LAT_SOURCE + to_degrees(angle) );
     }
 
-    proploss loss(freq, pos, de, az, time_inc, &target);
+    eigenray_collection loss(freq, pos, de, az, time_inc, &target);
 
     wave_queue wave( *ocean, freq, pos, de, az, time_inc, &target ) ;
 

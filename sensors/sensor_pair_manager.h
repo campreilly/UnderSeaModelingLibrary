@@ -80,9 +80,9 @@ public:
     /**
      * Gets the fathometers for the sourceID requested
      * @param sourceID ID for the source
-     * @return proploss pointer
+     * @return eigenray_collection pointer
      */
-    proploss* get_fathometers(sensor::id_type sourceID);
+    eigenray_collection* get_fathometers(sensor::id_type sourceID);
 
     /**
      * Gets the envelopes for the receiverID requested

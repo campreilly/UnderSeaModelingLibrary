@@ -1,8 +1,8 @@
 /**
- * @file proploss.cc
+ * @file eigenray_collection.cc
  * List of targets and their associated propagation data.
  */
-#include <usml/waveq3d/proploss.h>
+#include <usml/waveq3d/eigenray_collection.h>
 #include <netcdfcpp.h>
 
 using namespace usml::waveq3d ;
@@ -12,7 +12,7 @@ using namespace usml::waveq3d ;
  * Initialize the acoustic propagation effects associated with each target.
  * Initialize with references to wave front information.
  */
-proploss::proploss(
+eigenray_collection::eigenray_collection(
     const seq_vector& frequencies,
     const wposition1& source_pos,
     const seq_vector& source_de,
@@ -37,7 +37,7 @@ proploss::proploss(
  * Initialize with references to wave front information.
  */
 
-void proploss::initialize()
+void eigenray_collection::initialize()
 {
     for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
         for ( size_t t2=0 ; t2 < _targets->size2() ; ++t2 ) {
@@ -53,7 +53,7 @@ void proploss::initialize()
 /**
  * Compute propagation loss summed over all eigenrays.
  */
-void proploss::sum_eigenrays( bool coherent ) {
+void eigenray_collection::sum_eigenrays( bool coherent ) {
     if( coherent ) {                                                             /// coherent signal summation
         for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
             for ( size_t t2=0 ; t2 < _targets->size2() ; ++t2 ) {
@@ -204,7 +204,7 @@ void proploss::sum_eigenrays( bool coherent ) {
 /**
  * Add eigenray via eigenray_listener
  */
-bool proploss::add_eigenray( size_t targetRow, size_t targetCol, eigenray ray, size_t run_id ) {
+bool eigenray_collection::add_eigenray( size_t targetRow, size_t targetCol, eigenray ray, size_t run_id ) {
 
 	 _eigenrays(targetRow, targetCol).push_back( ray ) ;
 	 ++_num_eigenrays ;
@@ -212,9 +212,9 @@ bool proploss::add_eigenray( size_t targetRow, size_t targetCol, eigenray ray, s
 }
 
 /**
- * Write proploss data to to netCDF file.
+ * Write eigenray_collection data to to netCDF file.
  */
-void proploss::write_netcdf( const char* filename, const char* long_name )
+void eigenray_collection::write_netcdf( const char* filename, const char* long_name )
 {
     NcFile* nc_file = new NcFile(filename, NcFile::Replace);
     if (long_name) {

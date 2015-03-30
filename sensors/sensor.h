@@ -46,7 +46,7 @@ class USML_DECLSPEC sensor : public wavefront_listener
 public:
 
     /**
-     * Data type used for beamId.
+     * Data type used for sensorID.
      */
     typedef int id_type;
 
@@ -192,50 +192,6 @@ public:
 		return _yaw;
 	}
 	
-	/**
-	 * Sets the source_params of the sensor by
-	 * making a deep copy of the data.
-	 * @param src_params source_params reference
-     */
-    void source(const source_params& src_params)
-    {
-        // Assumes constructor populated
-        if (_source != NULL) {
-            delete _source;
-        }
-		_source = new source_params(src_params);
-	}
-
-	/**
-	 * Gets the source_params of the sensor.
-	 * @return source_params pointer.
-	 */
-	source_params* source()
-	{
-		return _source;
-	}
-
-	/**
-	 * Sets the receiver_params of the sensor by
-     * making a deep copy of the data.
-	 * @param rcv_params receiver_params reference
-	 */
-	void receiver(const receiver_params& rcv_params)
-	{
-	    if (_receiver != NULL ) {
-	        delete _receiver;
-	    }
-		_receiver = new receiver_params(rcv_params);
-	}
-
-	/**
-	 * Gets the receiver_params of the sensor.
-	 * @return receiver_params pointer.
-	 */
-	receiver_params* receiver()
-	{
-		return _receiver;
-	}
 
 	/**
 	 * Initialize the wave_generator thread  to start the waveq3d model.
@@ -266,18 +222,18 @@ public:
 	/**
 	 * Gets the sensor fathometers, overload of the pure virtual method
 	 * fathometers for the sensor_pair_listener.
-	 * @param fathometers
+	 * @param fathometers shared pointer to eigenray_collection object.
 	 */
-	proploss* fathometers() {
-	    return _fathometers;
+	eigenray_collection::reference fathometers() {
+	    return eigenray_collection::reference(_fathometers);
 	}
 
 	/**
      * update_fathometers
      *  Overloaded wavefront_listener method to update the eigenrays for the object that implements it.
-     *  @param  fathometers - Pointer to a proploss object which contains eigenrays
+     *  @param  fathometers - shared pointer to a eigenray_collection object.
      */
-    virtual void update_fathometers(proploss* fathometers) {
+    virtual void update_fathometers(eigenray_collection::reference fathometers) {
         _fathometers = fathometers;
         update_fathometer_listeners();
     }
@@ -285,18 +241,18 @@ public:
     /**
      * Gets the sensor eigenverb_collection, overloads the pure virtual method
      * eigenverbs for the sensor_pair_listener
-     * @param eigenverbs
+     * @return eigenverbs shared pointer to the eigenverb_collection
      */
-    eigenverb_collection* eigenverbs() {
-        return _eigenverbs;
+    eigenverb_collection::reference eigenverbs() {
+        return eigenverb_collection::reference(_eigenverbs);
     }
 
     /**
      * update_eigenverbs
      * Overloaded wavefront_listener method to update the eigenverb_collection for the object that implements it.
-     *  @param  eigenverbs - Pointer to a eigenverb_collection object which contains eigenverbs
+     *  @param  eigenverbs - shared pointer to a eigenverb_collection object which contains eigenverbs.
      */
-    virtual void update_eigenverbs(eigenverb_collection* eigenverbs) {
+    virtual void update_eigenverbs(eigenverb_collection::reference eigenverbs) {
         _eigenverbs = eigenverbs;
         update_eigenverb_listeners();
     }
@@ -327,11 +283,13 @@ sensor( )
         _pitch(0.0),
         _yaw(0.0),
         _roll(0.0),
-        _source(NULL),
-        _receiver(NULL),
-        _fathometers(NULL),
-        _eigenverbs(NULL),
-        _description(NULL) {}
+        _description(NULL)
+{
+     _source.reset();
+     _receiver.reset();
+     _fathometers.reset();
+     _eigenverbs.reset();
+}
 
 private:
 
@@ -348,22 +306,22 @@ private:
     bool update_fathometer_listeners();
 
 
-    id_type         _sensorID;
-    sensor_params::id_type    _paramsID;
-    xmitRcvModeType _src_rcv_mode;
+    id_type                 _sensorID;
+    sensor_params::id_type  _paramsID;
+    xmitRcvModeType         _src_rcv_mode;
 
 	wposition1 _position;
 	double     _pitch;
     double     _yaw;
     double     _roll;
 	
-	source_params*   _source;
-    receiver_params* _receiver;
+	source_params::reference   _source;
+    receiver_params::reference _receiver;
   
-    proploss*              _fathometers;
-	eigenverb_collection*  _eigenverbs;
-	thread_task::reference _wavefront_task;
-	std::string            _description;
+    eigenray_collection::reference  _fathometers;
+	eigenverb_collection::reference _eigenverbs;
+	thread_task::reference          _wavefront_task;
+	std::string                     _description;
 	
     /**
     * List containing the references of objects that will be used to

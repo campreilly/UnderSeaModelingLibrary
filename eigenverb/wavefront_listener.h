@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <usml/waveq3d/proploss.h>
+#include <usml/waveq3d/eigenray_collection.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 
 namespace usml {
@@ -38,16 +38,16 @@ public:
 	/**
 	 * update_fathometers
 	 * Pure virtual method to update the eigenrays for the object that implements it.
-	 *  @param  fathometers - Pointer to a proploss object which contains eigenrays
+	 *  @param  fathometers - shared pointer to a eigenray_collection object which contains eigenrays
 	 */
-    virtual void update_fathometers(proploss* fathometers) = 0;
+    virtual void update_fathometers(eigenray_collection::reference fathometers) = 0;
 
     /**
      * update_eigenverbs
      * Pure virtual method to update the eigenverb_collection for the object that implements it.
-     *  @param  eigenverbs - Pointer to a eigenverb_collection object which contains eigenverbs
+     *  @param  eigenverbs - shared pointer to a eigenverb_collection object which contains eigenverbs
      */
-    virtual void update_eigenverbs(eigenverb_collection* eigenverbs) = 0;
+    virtual void update_eigenverbs(eigenverb_collection::reference eigenverbs) = 0;
 	
 protected:
 

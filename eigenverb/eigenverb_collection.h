@@ -19,6 +19,9 @@ class USML_DECLSPEC eigenverb_collection {
 
     public:
 
+    // Shared pointer
+    typedef boost::shared_ptr<eigenverb_collection> reference;
+
         /**
          * Constructor
          *
@@ -122,8 +125,5 @@ class USML_DECLSPEC eigenverb_collection {
         vector<eigenverb_list> _lower ;
 };
 
-// Shared pointer
-typedef boost::shared_ptr <eigenverb_collection> eigenverbs_shared_ptr;
-
-}   // end of namespace waveq3d
+}   // end of namespace eigenverb
 }   // end of namespace usml

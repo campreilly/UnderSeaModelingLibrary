@@ -3,6 +3,8 @@
  */
 #include <boost/test/unit_test.hpp>
 #include <usml/waveq3d/waveq3d.h>
+#include <usml/waveq3d/eigenray_collection.h>
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -105,7 +107,7 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
 
     wposition target( 1, 1, trg_lat, src_lng, src_alt );
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
     wave.add_eigenray_listener(&loss);
 
@@ -261,7 +263,7 @@ BOOST_AUTO_TEST_CASE( eigenray_concave ) {
 
     wposition target( 1, 1, trg_lat, trg_lng, trg_alt );
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
     wave.add_eigenray_listener(&loss);
 
@@ -394,7 +396,7 @@ BOOST_AUTO_TEST_CASE( eigenray_tl_az ) {
         bearing_inc = bearing_inc + angle;
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
     wave.add_eigenray_listener(&loss);
 
@@ -501,7 +503,7 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
         bearing_inc = bearing_inc + angle;
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
     wave.add_eigenray_listener(&loss);
 

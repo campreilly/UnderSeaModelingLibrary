@@ -171,9 +171,9 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
         }
     }
 
-    proploss loss1(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss1(freq, pos, de, az, time_step, &target);
 
-    proploss loss2(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss2(freq, pos, de, az, time_step, &target);
 
 	wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
 

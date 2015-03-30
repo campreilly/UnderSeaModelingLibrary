@@ -93,7 +93,7 @@ sensor_pair_manager::~sensor_pair_manager()
 /**
  * Get Fathometers
  */
-proploss* sensor_pair_manager::get_fathometers(sensor::id_type sourceID)
+eigenray_collection* sensor_pair_manager::get_fathometers(sensor::id_type sourceID)
 {
     return NULL;
 }

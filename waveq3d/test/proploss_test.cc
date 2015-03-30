@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
         target.latitude(n, 0, src_lat + 0.01 * (n + 2.0));
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target, 0, wave_queue::CLASSIC_RAY ) ;
     wave.add_eigenray_listener(&loss);
 
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE( proploss_freq )
 
     wposition target( 1, 1, trg_lat, src_lng, src_alt );
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
     wave.add_eigenray_listener(&loss) ;
 
@@ -314,7 +314,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
         target.latitude(n, 0, degrees);
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
     wave.add_eigenray_listener(&loss);
 
@@ -515,7 +515,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
         target.latitude(n, 0, degrees);
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
     wave.add_eigenray_listener(&loss);
 
@@ -730,7 +730,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
         target.altitude(n, 0, depth(n));
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
     wave.add_eigenray_listener(&loss);
 
