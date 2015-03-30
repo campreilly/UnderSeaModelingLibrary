@@ -8,7 +8,8 @@
 #pragma once
 
 #include <usml/usml_config.h>
-#include <usml/sensors/sensorIDType.h>
+#include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_listener.h>
 #include <usml/sensors/xmitRcvModeType.h>
 #include <usml/waveq3d/proploss.h>
 #include <usml/eigenverb/envelope_collection.h>
@@ -25,16 +26,19 @@ using namespace eigenverb;
 
 /**
  * Container for one sensor pair instance.
+ * On construction a pointer to the source and receiver sensor are obtained.
+ * Inherits the sensor_listener interface so a sensor instance can get
+ * access to its complement sensor, and updates the eigenverbs and fathometers.
  */
-class USML_DECLSPEC sensor_pair
+class USML_DECLSPEC sensor_pair : public sensor_listener
 {
 public:
 
     /**
      * Constructor
      */
-    sensor_pair(sensorIDType sourceID, sensorIDType receiverID)
-        : _sourceID(sourceID),_receiverID(receiverID) {};
+    sensor_pair(sensor* source, sensor* receiver)
+        : _source(source),_receiver(receiver) {};
 
     /**
      * Destructor
@@ -45,103 +49,62 @@ public:
     }
 
     /**
-     * Get the sourceID value
-     * @return sourceID value
+     * Gets a pointer to the source sensor.
+     * @return  Pointer to the source sensor
      */
-    sensorIDType sourceID() {
-        return _sourceID;
+    sensor* source() const {
+        return _source;
+    }
+
+     /**
+     * Gets a pointer to the receiver sensor.
+     * @return  Pointer to the receiver sensor
+     */
+    sensor* receiver() const {
+        return _receiver;
     }
 
     /**
-     * Get the receiverID value
-     * @return receiverID value
+     * update_fathometers
+     * Overloads the sensor_listener method to update the fathometers in the sensor_pair
+     * @param  Pointer to the sensor object which contains fathometers to update.
      */
-    sensorIDType receiverID() {
-        return _receiverID;
-    }
+    virtual void update_fathometers(sensor* the_sensor);
 
     /**
-     * Set the proploss shared pointer
-     * @param proploss pointer
+     * update_eigenverbs
+     * Overloads the sensor_listener method to update the eigenverb_collection sensor_pair
+     * @param  Pointer to the sensor object which contains eigenverbs to update.
      */
-    void proploss( proploss_shared_ptr proploss) {
-        _proploss = proploss;
-    }
+    virtual void update_eigenverbs(sensor* the_sensor);
+
+   /**
+    * remove_sensor
+    * Overloads the sensor_listener method to remove the sensor object from the sensor_pair.
+    * @param  Pointer to the sensor object which will be removed.
+    */
+    virtual void remove_sensor(sensor* the_sensor);
 
     /**
-     * Get the proploss shared pointer
-     * @return proploss pointer
-     */
-    proploss_shared_ptr proploss() {
-        return _proploss;
-    }
-
-    /**
-     * Set the src_eigenverbs shared pointer
-     * @param src_eigenverbs pointer
-     */
-    void src_eigenverbs( eigenverbs_shared_ptr src_eigenverbs) {
-        _src_eigenverbs = src_eigenverbs;
-    }
-
-    /**
-     * Get the proploss shared pointer
-     * @return proploss pointer
-     */
-    eigenverbs_shared_ptr src_eigenverbs() {
-        return _src_eigenverbs;
-    }
-
-    /**
-     * Set the rcv_eigenverbs shared pointer
-     * @param rcv_eigenverbs pointer
-     */
-    void rcv_eigenverbs( eigenverbs_shared_ptr rcv_eigenverbs) {
-        _rcv_eigenverbs = rcv_eigenverbs;
-    }
-
-    /**
-     * Get the rcv_eigenverbs shared pointer
-     * @return rcv_eigenverbs pointer
-     */
-    eigenverbs_shared_ptr rcv_eigenverbs() {
-        return _rcv_eigenverbs;
-    }
-
-    /**
-     * Set the envelopes shared pointer
-     * @param envelopes pointer
-     */
-    void envelopes( envelopes_shared_ptr envelopes) {
-        _envelopes = envelopes;
-    }
-
-    /**
-     * Get the envelopes shared pointer
-     * @return envelopes pointer
-     */
-    envelopes_shared_ptr envelopes() {
-        return _envelopes;
-    }
-
-    void update_eigenverbs(xmitRcvModeType mode, eigenverbs_shared_ptr eigenverbs)
-    {
-
-    }
+    * sensor_complement
+    * Overloads the sensor_listener to return the complement sensor of the sensor_pair
+    * @return  Pointer to the complement sensor object of the pair.
+    */
+    virtual sensor* sensor_complement (sensor* the_sensor);
 
 private:
 
     sensor_pair() {};
 
     /**
-     * sourceID - key for source.
+     * Pointer to the source sensor.
      */
-    sensorIDType _sourceID;
+    sensor* _source;
 
     /**
-     * receiverID - key for receiver.
+     * Pointer to the receiver sensor.
      */
-    sensorIDType _receiverID;
+    sensor* _receiver;
 
     /**
      * proploss - contains targets and eigenrays 

@@ -51,7 +51,7 @@ public:
     ~thread_pool() ;
 
     /**
-     * Adds a task to the scheduler. Returns a shared reference to this task.
+     * Adds a task to the scheduler.
      * This allows the calling program to invoke the abort() method,
      * on the shared reference, without fear that the scheduler has already
      * disposed of the task object.  The task object is deleted when both the
@@ -59,7 +59,7 @@ public:
      *
      * @param task      Shared pointer to the task to be executed
      */
-    void run( shared_ptr<thread_task> task ) ;
+    void run( thread_task::reference task ) ;
 };
 
 /// @}
