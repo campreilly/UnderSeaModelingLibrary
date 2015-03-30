@@ -25,7 +25,17 @@ beam_pattern_map* beam_pattern_map::instance() {
 		write_lock_guard guard(_instance_mutex);
 		tmp = _instance.get();
 		if (tmp == NULL) {
+			// initialize new map
 			tmp = new beam_pattern_map();
+
+			// insert omni beam pattern as id #0
+			beam_pattern_model* beam_patt = new beam_pattern_omni();
+			beam_pattern_model::id_type id = 0 ;
+			beam_patt->beamID(id) ;
+			beam_pattern_model::reference beam_ref(beam_patt);
+			tmp->insert(id, beam_ref);
+
+			// initialize singleton
 			_instance.reset(tmp) ;
 		}
 	}

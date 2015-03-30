@@ -4,10 +4,10 @@
  */
 #pragma once
 
-//#include <usml/usml_config.h>
+#include <usml/sensors/sensor_params.h>
 #include <usml/sensors/beam_pattern_model.h>
 #include <list>
-#include <map>
+#include <vector>
 
 namespace usml {
 namespace sensors {
@@ -20,26 +20,23 @@ namespace sensors {
  *
  * Initially, the sonar training system passes this information to the
  * reverberation model, and the reverberation model stores this information
- * in the receiver_params_map.  Then, each sensor makes a clone of these
- * parameters for its own use.
+ * in the receiver_params_map.  Then, each sensor gets a share_ptr reference
+ * to these parameters for its own use.
+ *
+ * All of the attributes in this class are immutable.
  */
-class USML_DECLSPEC receiver_params {
+class USML_DECLSPEC receiver_params : public sensor_params {
 public:
-
-	/**
-	 * Data type used for sensorID.
-	 */
-	typedef int id_type;
 
 	/**
 	 * Data type used for reference to receiver_params.
 	 */
-	typedef shared_ptr<const receiver_params> const_reference;
+	typedef shared_ptr<receiver_params> reference;
 
 	/**
 	 * Data type used for store beam patterns in this sensor.
 	 */
-	typedef std::map<beam_pattern_model::id_type, beam_pattern_model::reference> beam_pattern_container ;
+	typedef std::vector<beam_pattern_model::reference> beam_pattern_container ;
 
 	/**
 	 * Construct new class of receiver.
@@ -53,8 +50,8 @@ public:
 	 * 						The actual beams are extracted from beam_pattern_map
 	 * 						using these beamIDs.
 	 */
-	receiver_params(receiver_params::id_type sensorID, bool bistatic,
-			const std::list<beam_pattern_model::id_type>& beamList);
+	receiver_params(sensor_params::id_type sensorID, bool bistatic,
+		const std::list<beam_pattern_model::id_type>& beamList) ;
 
 	/**
 	 * Clone receiver parameters from an existing receiver class.
@@ -68,84 +65,27 @@ public:
 	}
 
 	/**
-	 * Identification used to find this sensor type in receiver_params_map.
+	 * Const reference to the beam pattern container.
 	 */
-	receiver_params::id_type receiverID() const {
-		return _receiverID;
+	size_t num_patterns() const {
+		return _beam_patterns.size() ;
 	}
 
 	/**
-	 * Identification used to find this sensor type in receiver_params_map.
+	 * Shared reference to a single beam in the pattern pattern.
 	 */
-	void receiverID(receiver_params::id_type receiverID) {
-		_receiverID = receiverID;
+	beam_pattern_model::reference beam_pattern( size_t n ) const {
+		return _beam_patterns[n] ;
 	}
-
-	/**
-	 * When true, this receiver will pair up with all other sources
-	 * in the reverberation model.  When false, it will only pair up
-	 * with its own source.
-	 */
-	bool bistatic() const {
-		return _bistatic;
-	}
-
-	/**
-	 * When true, this receiver will pair up with all other sources
-	 * in the reverberation model.  When false, it will only pair up
-	 * with its own source.
-	 */
-	void bistatic(bool bistatic) {
-		_bistatic = bistatic;
-	}
-
-	/**
-	 * Add a beam pattern to the receiver using beamID.
-	 * If the beamID does not exist in the beam_pattern_map
-	 * a NULL beam is added to the list.
-	 *
-	 * @params beamID to be added to the list of receiver beams
-	 */
-	void add_beam_pattern(beam_pattern_model::id_type beamID);
-
-	/**
-	 * Delete a beam pattern to the receiver parameters using beamID.
-	 * If the beamID does not exist in this sensor, this does nothing.
-	 *
-	 * @params beamID to be removed from the list of receiver beams
-	 */
-	void remove_beam_pattern(beam_pattern_model::id_type beamID);
 
 	/**
 	 * Const reference to the beam pattern container.
 	 */
-	const beam_pattern_container& beam_patterns() {
+	const beam_pattern_container& beam_patterns() const {
 		return _beam_patterns ;
 	}
 
 private:
-
-	/**
-	 * Prevent access to default constructor
-	 */
-	receiver_params();
-
-	/**
-	 * Prevent access to assignment operator
-	 */
-	receiver_params& operator=(receiver_params&);
-
-	/**
-	 * Identification used to find this sensor type in receiver_params_map.
-	 */
-	id_type _receiverID;
-
-	/**
-	 * When true, this receiver will pair up with all other sources
-	 * in the reverberation model.  When false, it will only pair up
-	 * with its own source.
-	 */
-	bool _bistatic;
 
 	/**
 	 * Shared reference to the beam patterns for this receiver.
