@@ -20,6 +20,7 @@
 #include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/xmitRcvModeType.h>
 #include <usml/sensors/sensor_pair.h>
+#include <usml/sensors/sensor_map_template.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/eigenverb/envelope_collection.h>
 #include <usml/eigenverb/eigenverb_collection.h>
@@ -30,6 +31,7 @@ namespace sensors {
 using namespace usml::threads ;
 using namespace usml::waveq3d ;
 using namespace usml::eigenverb ;
+using namespace usml::sensors ;
 
 class sensor_pair;
 
@@ -44,25 +46,17 @@ class sensor_pair;
  * uses a key that is a std::string type and consists of the sourceID + "_" + receiverID.
  * The payload of the sensor_pair_map is a pointer to the sensor_pair data.
  */
-
-/**
- * @author Ted Burns, AEgis Technologies Group, Inc.
- * @version 1.0
- * @updated 6-Mar-2015 3:15:03 PM
- */
-
-
-
-class USML_DECLSPEC sensor_pair_manager
+class USML_DECLSPEC sensor_pair_manager: public sensor_map_template<
+	const sensor::id_type, sensor_pair::reference>
 {
 
 public:
 
-    typedef std::list<sensor::id_type> sensor_list_type;
-    typedef std::list<sensor::id_type>::iterator sensor_list_iter;
-
-    typedef std::map <std::string, sensor_pair*> sensor_pair_map_type;
-    typedef std::map <std::string, sensor_pair*>::iterator sensor_pair_map_iter;
+//    typedef std::list<sensor::id_type> sensor_list_type;
+//    typedef std::list<sensor::id_type>::iterator sensor_list_iter;
+//
+//    typedef sensor_map_template<const sensor::id_type, sensor_pair::reference>::container sensor_pair_map_type;
+    // typedef std::map <std::string, sensor_pair::reference>::iterator sensor_pair_map_iter;
 
     /**
      * Singleton Constructor - Creates sensor_pair_manager instance just once.
@@ -75,7 +69,7 @@ public:
      * Destructor - Deletes all pointers its has taken ownership to.
      *   Prevent use of delete, use static destroy above.
      */
-    virtual ~sensor_pair_manager();
+    virtual ~sensor_pair_manager() {}
 
     /**
      * Gets the fathometers for the sourceID requested
@@ -91,28 +85,31 @@ public:
      */
     envelope_collection* get_envelopes(sensor::id_type receiverID);
 
-    /**
-     * Adds the sensor to the sensor_pair_manager
-     * @param sensor_ pointer to the sensor to add.
-     */
-    void add_sensor(sensor* sensor_);
+	/**
+	 * Builds new sensor_pair objects in reaction to notification
+	 * that a sensor is being added.
+	 *
+	 * @param	from	Sensor that is being added.
+	 */
+    void add_sensor(sensor::reference& from);
 
-    /**
-     * Removes a sensor from the sensor_pair_manager
-     * @param sensor_ pointer to the sensor to remove.
-     * @return false if sensorID was not in Source or Receiver list.
-     */
-    bool remove_sensor(sensor* sensor_);
+	/**
+	 * Removes existingsensor_pair objects in reaction to notification
+	 * that a sensor is about to be deleted.
+	 *
+	 * @param	from	Sensor that is being removed.
+	 */
+    void remove_sensor(sensor::reference& from);
 
     /**
      * Gets the sensor pair map.
      * @return const pointer to the _sensor_pair_map
      */
-    const sensor_pair_map_type* sensor_pair_map() const
-    {
-        read_lock_guard guard(_mutex);
-        return &_sensor_pair_map;
-    }
+//    const sensor_pair_map_type* sensor_pair_map() const
+//    {
+//        read_lock_guard guard(_instance_mutex);
+//        return &_sensor_pair_map;
+//    }
 
 private:
 
@@ -120,19 +117,19 @@ private:
      * Inserts the sensor into sensor_pair_map
      * @param sensor_ pointer to the sensor to insert in the sensor_pair_map
      */
-    void map_insert(sensor* sensor_);
+    void map_insert(sensor::reference sensor_);
 
     /**
      * Erases the sensor from the sensor_pair_map
      * @param sensor_ pointer to the sensor to erase from the sensor_pair_map
      */
-    void map_erase(sensor* sensor_);
+    void map_erase(sensor::reference sensor_);
 
 //    /**
 //     * Updates the sensor data in  sensor_pair_map
 //     * @param sensor_ pointer to the sensor to update in the sensor_pair_map
 //     */
-//    void map_update(sensor* sensor_);
+//    void map_update(sensor::reference sensor_);
 
     /**
      * Prints to console the all source and receiver maps
@@ -165,7 +162,7 @@ private:
     /**
      * The _mutex for the singleton pointer.
      */
-    static read_write_lock _mutex;
+    static read_write_lock _instance_mutex;
 
     /**
      * List of all active Source's
@@ -183,7 +180,7 @@ private:
      *  "sourceID" + "_" + receiverID"
      *  Payload is a pointer to sensor_pair object.
      */
-    std::map <std::string, sensor_pair*> _sensor_pair_map;
+    std::map <std::string, sensor_pair::reference> _sensor_pair_map;
 
 };
 

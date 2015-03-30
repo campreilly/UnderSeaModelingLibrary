@@ -40,6 +40,11 @@ template<class key_type, class mapped_type>
 class USML_DLLEXPORT sensor_map_template {
 
 public:
+	/**
+	 * Data type used for store beam patterns in this sensor.
+	 */
+	typedef std::map<key_type, mapped_type> container ;
+
 
 	/**
 	 * Finds the sensor parameters associated with the keyID.
@@ -113,7 +118,7 @@ private:
 	/**
 	 * The std::map that stores the mapped_types by key_type
 	 */
-	std::map<key_type, mapped_type> _map;
+	container _map;
 
 	/**
 	 * The _mutex for multi-threaded access.

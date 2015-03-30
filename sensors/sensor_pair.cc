@@ -9,18 +9,20 @@
 using namespace usml::sensors;
 
 /**
- * Updates the sensors fathometers (eigenrays)
+ * Notification that new fathometer data is ready.
+ *
+ * @param	from	Sensor that issued the notification.
  */
-void sensor_pair::update_fathometers(sensor* sensor_)
+void sensor_pair::update_fathometers(sensor::reference& from)
 {
-    if (sensor_ !=  NULL) {
+    if (from !=  NULL) {
 
  // TODO
-//        if (sensor_ == _source) {
-//            _src_fathometers = sensor_->fathometers();
+//        if (from == _source) {
+//            _src_fathometers = from->fathometers();
 //        }
-//        if (sensor_ == _receiver) {
-//            _rcv_fathometers = sensor_->fathometers();
+//        if (from == _receiver) {
+//            _rcv_fathometers = from->fathometers();
 //        }
     }
 }
@@ -28,16 +30,15 @@ void sensor_pair::update_fathometers(sensor* sensor_)
 /**
  * Updates the sensors eigenverb_collection
  */
-void sensor_pair::update_eigenverbs(sensor* sensor_)
+void sensor_pair::update_eigenverbs(sensor::reference& from)
 {
-    if (sensor_ !=  NULL) {
-
- // TODO
-//        if (sensor_ == _source) {
-//            _src_eigenverbs = sensor_->eigenverbs();
+    if (from !=  NULL) {
+// TODO
+//        if (from == _source) {
+//            _src_eigenverbs = from->eigenverbs();
 //        }
-//        if (sensor_ == _receiver) {
-//            _rcv_eigenverbs = sensor_->eigenverbs();
+//        if (from == _receiver) {
+//            _rcv_eigenverbs = from->eigenverbs();
 //        }
     }
 }
@@ -45,7 +46,7 @@ void sensor_pair::update_eigenverbs(sensor* sensor_)
 /**
  * Sends message to remove the sensor from the sensor_pair_manager
  */
-void sensor_pair::remove_sensor(sensor* sensor_)
+void sensor_pair::remove_sensor(sensor::reference& from)
 {
 
 }
@@ -53,15 +54,15 @@ void sensor_pair::remove_sensor(sensor* sensor_)
 /**
  * Get's the complement sensor's pointer
  */
-sensor* sensor_pair::sensor_complement(sensor* sensor_)
+sensor::reference sensor_pair::sensor_complement(sensor::reference& from)
 {
-    if (sensor_ !=  NULL) {
-        if (sensor_ ==  _source) {
+    if (from.get() !=  NULL) {
+        if (from ==  _source) {
             return _receiver;
         } else  {
             return _source;
         }
     } else {
-        return NULL;
+        return sensor::reference();
     }
 }

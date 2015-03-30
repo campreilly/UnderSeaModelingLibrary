@@ -3,313 +3,222 @@
  *  Implementation of the Class sensor
  *  Created on: 10-Feb-2015 12:49:09 PM
  */
-
-#include "sensor.h"
+#include <usml/sensors/sensor.h>
+#include <usml/sensors/source_params_map.h>
+#include <usml/sensors/receiver_params_map.h>
+#include <boost/foreach.hpp>
 
 using namespace usml::sensors;
 
 /**
- * Constructor Uses the paramID and mode, looks up source and/or receiver from
- * there associated map.
+ * Construct a new instance of a specific sensor type.
  */
-sensor::sensor(const id_type sensorID, const sensor_params::id_type paramsID, const xmitRcvModeType mode,
-	const wposition1 position, const double pitch, const double yaw, const double roll, const std::string description)
-	:	_sensorID(sensorID),
-		_paramsID(paramsID),
-		_src_rcv_mode(mode),
-		_position(position),
-		_pitch(pitch),
-		_yaw(yaw),
-		_roll(roll),
-		_fathometers(NULL),
-		_eigenverbs(NULL),
-        _description(description)
+sensor::sensor(sensor::id_type sensorID, sensor_params::id_type paramsID,
+	const std::string& description)
+	: _sensorID(sensorID), _paramsID(paramsID), _description(description),
+	  _position(NAN, NAN, NAN), _orientation(NAN, NAN, NAN)
 {
-    _source.reset();
-    _receiver.reset();
-    source_params_map* source_map = source_params_map::instance();
-    receiver_params_map* receiver_map = receiver_params_map::instance();
-
-    switch (mode)
-    {
-        default:
-            assert(false);
-            break;
-        case usml::sensors::SOURCE:
-        {
-            source_params::reference sp = source_map->find(_paramsID);
-            if ( sp.get() == NULL) {
-                throw "source_params not found";
-            } else {
-                _source = sp;
-            }
-            break;
-        }
-        case usml::sensors::RECEIVER:
-        {
-            receiver_params::reference rp = receiver_map->find(_paramsID);
-            if (rp.get() == NULL) {
-                throw "receiver_params not found";
-            } else {
-                _receiver = rp;
-            }
-            break;
-        }
-        case usml::sensors::BOTH:
-        {
-            source_params::reference sp = source_map->find(_paramsID);
-            if (sp.get() == NULL) {
-                throw "source_params not found";
-            } else {
-                _source = sp;
-            }
-            receiver_params::reference rp = receiver_map->find(_paramsID);
-            if (rp.get() == NULL) {
-                throw "receiver_params not found";
-            } else {
-                _receiver = rp;
-            }
-        }
-    }
+	_source = source_params_map::instance()->find(paramsID);
+	_receiver = receiver_params_map::instance()->find(paramsID);
 }
 
 /**
- * Destructor
+ * Removes a sensor instance from simulation.
  */
-sensor::~sensor()
-{
-    // Kill operating task
-    _wavefront_task->abort();
+sensor::~sensor() {
+	if ( _wavefront_task.get() != 0 ) {
+		_wavefront_task->abort();
+	}
 }
 
 /**
- * Sets the latitude of the sensor. Expects latitude to be in decimal degrees.
- * @param latitude    latitude
+ * Queries the sensor's ability to support source and/or receiver behaviors.
  */
-void sensor::latitude(double latitude)
-{
-    _position.latitude(latitude);
+xmitRcvModeType sensor::mode() const {
+	bool has_source = _source.get() != NULL;
+	bool has_receiver = _receiver.get() != NULL;
+	xmitRcvModeType result;
+	if (has_source && has_receiver) {
+		result = BOTH;
+	} else if (has_source) {
+		result = SOURCE;
+	} else if (has_receiver) {
+		result = RECEIVER;
+	} else {
+		result = NONE;
+	}
+	return result;
 }
 
 /**
- * Get method for the latitude of the sensor.
- * @return latitude in decimal degrees.
+ * Location of the sensor in world coordinates.
  */
-double sensor::latitude()
-{
-    return _position.latitude();
+wposition1 sensor::position() const {
+	read_lock_guard guard(_update_sensor_mutex);
+	return _position;
 }
 
 /**
- * Sets the longitude of the sensor. Expects longitude to be in decimal degrees.
- * @param longitude    longitude
+ * Orientation of the sensor in world coordinates.
  */
-void sensor::longitude(double longitude)
-{
-    _position.longitude(longitude);
+sensor_orientation sensor::orientation() const {
+	read_lock_guard guard(_update_sensor_mutex);
+	return _orientation;
 }
 
 /**
- * Get method for the longitude of the sensor.
- * @return longitude in decimal degrees.
- */
-double sensor::longitude()
-{
-    return _position.longitude();
-}
-
-/**
- * Sets the depth of the sensor. Expects depth to be in meters.
- * @param depth    depth
- */
-void sensor::depth(double depth)
-{
-    // Set wposition1.altitude
-    _position.altitude(-depth);
-}
-
-/**
- * Get method for the depth of the sensor.
- * @return depth of the sensor in meters.
- */
-double sensor::depth()
-{
-    return -(_position.altitude());
-}
-
-/**
- * Checks to see if new position, pitch and yaw have changed enough
+ * Checks to see if new position and orientation have changed enough
  * to require a new WaveQ3D run.
  */
-bool sensor::check_thresholds(wposition1 position, double pitch, double yaw, double roll)
-{
-    return false;
+void sensor::update_sensor(const wposition1& position,
+		const sensor_orientation& orientation, bool force_update) {
+	write_lock_guard guard(_update_sensor_mutex);
+	if (!force_update) {
+		if (!check_thresholds(position, orientation)) {
+			return;
+		}
+	}
+	_position = position;
+	_orientation = orientation;
+	init_wave_generator();
+}
 
+/**
+ * Last set of fathometers computed for this sensor.
+ * Blocks during updates from the wavefront task.
+ * @todo migrate to shared pointer.
+ */
+proploss_shared_ptr& sensor::fathometers() {
+	read_lock_guard guard(_update_fathometers_mutex);
+	return _fathometers;
+}
+
+/**
+ * Asynchronous update of fathometer data from the wavefront task.
+ * Passes this data onto all sensor listeners.
+ * Blocks until update is complete.
+ */
+void sensor::update_fathometers(shared_ptr<proploss>& fathometers) {
+	write_lock_guard guard(_update_fathometers_mutex);
+	_fathometers = fathometers;
+	sensor::reference from(this) ;
+	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
+		listener->update_fathometers(from);
+	}
+}
+
+/**
+ * Last set of eigenverbs computed for this sensor.
+ * Blocks during updates from the wavefront task.
+ */
+eigenverbs_shared_ptr sensor::eigenverbs() {
+	read_lock_guard guard(_update_eigenverbs_mutex);
+	return _eigenverbs;
+}
+
+/**
+ * Asynchronous update of eigenverbs data from the wavefront task.
+ * Passes this data onto all sensor listeners.
+ * Blocks until update is complete.
+ */
+void sensor::update_eigenverbs( eigenverbs_shared_ptr& eigenverbs ) {
+	write_lock_guard guard(_update_eigenverbs_mutex);
+	_eigenverbs = eigenverbs;
+	sensor::reference from(this) ;
+	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
+		listener->update_eigenverbs(from);
+	}
+}
+
+/**
+ * Add a sensor_listener to the _sensor_listeners list
+ */
+void sensor::add_sensor_listener(sensor_listener::reference listener) {
+	write_lock_guard guard(_sensor_listeners_mutex);
+	_sensor_listeners.push_back(listener);
+}
+
+/**
+ * Remove a sensor_listener from the _sensor_listeners list
+ */
+void sensor::remove_sensor_listener(sensor_listener::reference listener) {
+	write_lock_guard guard(_sensor_listeners_mutex);
+	_sensor_listeners.remove(listener);
+}
+
+/**
+ * Checks to see if new position and orientation have changed enough
+ * to require a new WaveQ3D run.
+ *
+ * @todo using dummy values for prototyping
+ */
+bool sensor::check_thresholds(const wposition1& position,
+		const sensor_orientation& orientation)
+{
+	// force update if old values not valid
+
+	if (isnan(_position.rho()) || isnan(_position.theta())
+			|| isnan(_position.phi()) || isnan(_orientation.heading())
+			|| isnan(_orientation.pitch()) || isnan(_orientation.roll())) {
+		return true;
+	}
+
+	// check difference between old and new values
+
+	return true;// using dummy values for prototyping
+}
+
+/**
+ * Queries the current list of sensor listener for the complements of this sensor.
+ * Assumes that these listeners are sensor_pair objects.
+ */
+wposition sensor::sensor_targets() {
+	read_lock_guard guard(_sensor_listeners_mutex);
+
+	// query the listeners for the complements of this sensor.
+
+	std::list<sensor::reference> complements;
+	sensor::reference from(this) ;
+	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
+		complements.push_back( listener->sensor_complement(from) );
+	}
+
+	// build list of targets from the complements of this sensor.
+
+	wposition target_pos(complements.size(), 1);
+	int row = -1;
+	BOOST_FOREACH( sensor::reference target, complements ){
+		++row;
+		wposition1 pos = target->position();
+		target_pos.latitude( row, 0, pos.latitude());
+		target_pos.longitude(row, 0, pos.longitude());
+		target_pos.altitude( row, 0, pos.altitude());
+	}
+	return target_pos ;
 }
 
 /**
  * Initialize the wave_generator thread to start the waveq3d model.
  */
-void sensor::init_wave_generator()
-{
-
-
-    // Create the wavefront_generator
-    wavefront_generator* generator = new wavefront_generator();
-
-    // Populate waveq3d settings
-    generator->wavefront_listener(this);
-    generator->sensor_position(_position);
-
-    // Get the targets
-    wposition targets = sensor_targets();
-    generator->targets(targets);
-
-    // Get the frequencies
-    generator->frequencies(_source->frequencies());
-    generator->ocean(ocean_shared::current());
-
-    // Make wavefront_generator a wavefront_task, with use of shared_ptr
-    _wavefront_task = thread_task::reference(generator);
-
-    // Pass in to thread_pool
-    thread_controller::instance()->run(_wavefront_task);
-}
-
-/**
- * Updates the sensor data, checks position, pitch, yaw, and roll thresholds to determine
- * if new wave_generator needs to be run, then kicks off the waveq3d model.
- * @param force_run defaults to false, set true to force new run
- * 
- * @param position  updated position data
- * @param pitch     updated pitch value
- * @param yaw       updated yaw value
- * @param roll      updated roll value
- * @param force_update
- */
-void sensor::update_sensor(wposition1 position, double pitch, double yaw, double roll, bool force_run)
-{
-	if ( !force_run )
-	{
-	     if (!check_thresholds(position, pitch, yaw, roll)) {
-            return;
-        }
-	}
-	_position = position;
-	_pitch = pitch;
-	_yaw = yaw;
-	_roll = roll;
-	init_wave_generator();
-
-	return;
-}
-
-/**
- * Add a sensor_listener to the _sensor_listeners list
- * @param listener
- */
-bool sensor::add_sensor_listener(sensor_listener* listener)
-{  
-    std::list<sensor_listener*>::iterator iter = find(_sensor_listeners.begin(), _sensor_listeners.end(), listener);
-    if ( iter != _sensor_listeners.end() )
-    {
-        return false;
-    }   
-    _sensor_listeners.push_back(listener);
-    return true;  
-}
-
-/**
- * Remove a sensor_listener from the _sensor_listeners list
- * @param listener
- */
-bool sensor::remove_sensor_listener(sensor_listener* listener)
-{
-    std::list<sensor_listener*>::iterator iter = find(_sensor_listeners.begin(), _sensor_listeners.end(), listener);
-    if ( iter == _sensor_listeners.end() )
-    {
-        return false;
-    }
-    else
-    {
-        _sensor_listeners.erase(remove(_sensor_listeners.begin(), _sensor_listeners.end(), listener));
-    }
-    return true;
-}
-
-/**
- * For each sensor_listener in the _sensor_listeners list call the
- * update_eigenverbs method of each registered class.
- */
-bool sensor::update_eigenverb_listeners()
-{
-
-    for ( std::list<sensor_listener*>::iterator iter = _sensor_listeners.begin();
-        iter != _sensor_listeners.end(); ++iter )
-    {
-        sensor_listener* sensor_pair_ = *iter;
-        sensor_pair_->update_eigenverbs(this);
-    }
-
-    return ( _sensor_listeners.size() > 0 );
-}
-
-/**
- * For each sensor_listener in the _sensor_listeners list call the
- * update_fathometers method of each registered class.
- */
-bool sensor::update_fathometer_listeners()
-{
-
-    for ( std::list<sensor_listener*>::iterator iter = _sensor_listeners.begin();
-        iter != _sensor_listeners.end(); ++iter )
-    {
-        sensor_listener* listener = *iter;
-        listener->update_fathometers(this);
-    }
-
-    return ( _sensor_listeners.size() > 0 );
-}
-
-/**
- * For each sensor_listener in the _sensor_listeners list call the
- * sensor_complement method to get a list of the complements.
- */
-std::list<sensor*> sensor::sensor_complements()
-{
-    std::list<sensor*> complements;
-
-    for ( std::list<sensor_listener*>::iterator iter = _sensor_listeners.begin();
-        iter != _sensor_listeners.end(); ++iter )
-    {
-        sensor_listener* listener = *iter;
-        sensor* sensor_ = listener->sensor_complement(this);
-        complements.push_back(sensor_);
-    }
-
-    return complements;
-}
-
-wposition sensor::sensor_targets()
-{
-    // Using the sensor_complements call we get all the targets
-    // Here we reach out to all the sensor_pairs via there listeners
-    std::list<sensor*> complements = sensor_complements();
-
-    std::list<sensor*>::iterator iter;
-    sensor* target;
-    wposition1 target_position;
-    wposition targets(complements.size(), 1 , 0.0, 0.0, 0.0);
-
-    int row = -1;
-    for (iter = complements.begin(); iter != complements.end(); ++iter) {
-        ++row;
-        target = *iter;
-        target_position = target->position();
-        targets.latitude(row, 0, target_position.latitude());
-        targets.longitude(row, 0, target_position.longitude());
-        targets.altitude(row, 0, target_position.altitude());
-    }
-
-    return targets;
+void sensor::init_wave_generator() {
+//    // Create the wavefront_generator
+//    wavefront_generator* generator = new wavefront_generator();
+//
+//    // Populate waveq3d settings
+//    generator->wavefront_listener(this);
+//    generator->sensor_position(_position);
+//
+//    // Get the targets
+//    wposition targets = sensor_targets();
+//    generator->targets(targets);
+//
+//    // Get the frequencies
+//    generator->frequencies(_source->frequencies());
+//    generator->ocean(ocean_shared::current());
+//
+//    // Make wavefront_generator a wavefront_task, with use of shared_ptr
+//    _wavefront_task = thread_task::reference(generator);
+//
+//    // Pass in to thread_pool
+//    thread_controller::instance()->run(_wavefront_task);
 }

@@ -41,7 +41,7 @@ public:
 	/**
 	 * Construct new class of receiver.
 	 *
-	 * @param	sensorID	Identification used to find this sensor type
+	 * @param	paramsID	Identification used to find this sensor type
 	 * 						in receiver_params_map.
 	 * @param   bistatic	When true, this receiver will pair up with
 	 * 						all other sources in the reverberation model.
@@ -50,7 +50,7 @@ public:
 	 * 						The actual beams are extracted from beam_pattern_map
 	 * 						using these beamIDs.
 	 */
-	receiver_params(sensor_params::id_type sensorID, bool bistatic,
+	receiver_params(sensor_params::id_type paramsID, bool bistatic,
 		const std::list<beam_pattern_model::id_type>& beamList) ;
 
 	/**

@@ -1,402 +1,283 @@
 /**
- *  @file sensor.h
- *  Definition of the Class sensor
- *  Created on: 10-Feb-2015 12:49:09 PM
+ * @file sensor.h
+ * Instance of an active sensor in the simulation.
  */
-
 #pragma once
 
-#include <list>
-
-#include <usml/threads/thread_controller.h>
-#include <usml/waveq3d/wave_queue.h>
-#include <usml/sensors/sensor_params.h>
-#include <usml/sensors/xmitRcvModeType.h>
-
-#include <usml/sensors/source_params.h>
-#include <usml/sensors/receiver_params.h>
-#include <usml/sensors/source_params_map.h>
-#include <usml/sensors/receiver_params_map.h>
-#include <usml/sensors/sensor_listener.h>
 #include <usml/eigenverb/eigenverb_collection.h>
-#include <usml/eigenverb/wavefront_generator.h>
 #include <usml/eigenverb/wavefront_listener.h>
-
+#include <usml/sensors/receiver_params.h>
+#include <usml/sensors/sensor_listener.h>
+#include <usml/sensors/sensor_orientation.h>
+#include <usml/sensors/source_params.h>
+#include <usml/sensors/xmitRcvModeType.h>
+#include <usml/threads/read_write_lock.h>
+#include <usml/threads/thread_task.h>
+#include <usml/waveq3d/proploss.h>
+#include <usml/eigenverb/eigenverb_collection.h>
 
 namespace usml {
 namespace sensors {
 
-using namespace usml::waveq3d ;
-using namespace usml::eigenverb ;
+using namespace usml::waveq3d;
+using namespace usml::eigenverb;
+using namespace usml::threads;
 
 /// @ingroup sensors
 /// @{
 
 /**
- * All active sensors in a simulation are represented by an instance of this class.
+ * Instance of an active sensor in the simulation.
  * As the sensor moves all required attributes are updated. If the attributes
  * change beyond established thresholds a new reverb generation is started.
- *
- * @author Ted Burns, AEgis Technologies Group, Inc.
- * @version 1.0
- * @updated 18-Mar-2015 12:18:44 PM
  */
-class USML_DECLSPEC sensor : public wavefront_listener
-{
+class USML_DECLSPEC sensor: public wavefront_listener {
 public:
 
-    /**
-     * Data type used for beamId.
-     */
-    typedef int id_type;
+	/**
+	 * Data type used for beamId.
+	 */
+	typedef int id_type;
 
 	/**
-	 * Constructor
-	 * Uses the paramID and mode, looks up source and/or receiver from there associated map.
-	 * throws when source or receiver paramsID is not found in the associated map.
-	 * @param sensorID
-	 * @param paramsID
-	 * @param mode
-	 * @param position
-	 * @param pitch
-	 * @param yaw
-	 * @param roll
-	 * @param description
+	 * Data type used for reference to receiver_params.
 	 */
-	sensor(const id_type sensorID, const sensor_params::id_type paramsID, const xmitRcvModeType mode,
-				const wposition1 position, const double pitch, const double yaw, const double roll,
-                                                const std::string description = std::string());
-    /**
-	 * Destructor
-	 */
-	virtual ~sensor();
+	typedef shared_ptr<sensor> reference;
 
 	/**
-	 * Get method for the sensorID attribute.
-	 * @return sensorID of the id_type
+	 * Construct a new instance of a specific sensor type.
+	 * Sets the position and orientation values to NAN.
+	 * These values are not set until the update_sensor()
+	 * is invoked for the first time.
+	 *
+	 * @param sensorID		Identification used to find this sensor instance
+	 * 						in sensor_manager.
+	 * @param paramsID		Identification used to lookup sensor type data
+	 * 						in source_params_map and receiver_params_map.
+	 * @param description	Human readable name for this sensor instance.
 	 */
-	id_type sensorID()
-	{
+	sensor( sensor::id_type sensorID, sensor_params::id_type paramsID,
+			const std::string& description = std::string());
+
+	/**
+	 * Removes a sensor instance from simulation.
+	 * Automatically aborts wavefront task if one exists.
+	 */
+	virtual ~sensor() ;
+
+	//**************************
+	// const properties
+
+	/**
+	 * Identification used to find this sensor instance in sensor_manager.
+	 */
+	id_type sensorID() const {
 		return _sensorID;
 	}
 
 	/**
-	 * Get method for the paramsID attribute.
-	 * @return paramsID of the sensor_params::id_type
+	 * Identification used to lookup sensor type data in source_params_map and receiver_params_map.
 	 */
-	sensor_params::id_type paramsID()
-	{
+	sensor_params::id_type paramsID() const {
 		return _paramsID;
 	}
 
 	/**
-	 * Get method for the _src_rcv_mode attribute.
-	 * @return _src_rcv_mode of the xmitRcvModeType
+	 * Human readable name for this sensor instance.
 	 */
-	xmitRcvModeType mode()
-	{
-		return _src_rcv_mode;
+	const std::string& description() const {
+		return _description;
 	}
 
 	/**
-	 * Sets the position of the sensor. 
-	 * Expects a wposition1 type.
-	 * @param position of wposition1 type.
+	 * Queries the sensor's ability to support source and/or receiver behaviors.
 	 */
-	void position(wposition1 position)
-	{
-		_position = position;
-	}
+	xmitRcvModeType mode() const ;
 
 	/**
-	 * Gets the position of the sensor
-	 * @return position of type wposition1
+	 * Shared pointer to the the source_params for this sensor.
 	 */
-	wposition1 position()
-	{
-		return _position;
-	}
-	
-	/**
-	 * Sets the latitude of the sensor. 
-	 * Expects latitude to be in decimal degrees.
-	 * @param latitude
-	 */
-	void latitude(double latitude);
-	
-	/**
-	 * Get method for the latitude of the sensor.
-	 * @return latitude in decimal degrees.
-	 */
-	double latitude();
-
-	
-	/**
-	 * Sets the longitude of the sensor. 
-	 * Expects longitude to be in decimal degrees.
-	 * @param longitude
-	 */
-	void longitude(double longitude);
-	
-	/**
-	 * Get method for the longitude of the sensor.
-	 * @return longitude in decimal degrees.
-	 */
-	double longitude();
-	
-	/**
-	 * Sets the depth of the sensor.
-     * Expects depth to be in meters.	 
-	 * @param depth
-	 */
-	void depth(double depth);
-	
-	/**
-	 * Get method for the depth of the sensor.
-	 * @return depth of the sensor in meters.
-	 */
-	double depth();
-	/**
-	 * Sets the pitch of the sensor. 
-	 * Expects pitch to be in radians.
-	 * @param pitch
-	 */
-	void pitch(double pitch)
-	{
-		_pitch = pitch;
-	}
-	/**
-	 * Gets the pitch of the sensor.
-	 * @return pitch in radians.
-	 */
-	double pitch()
-	{
-		return _pitch;
-	}
-
-	/**
-	 * Sets the yaw of the sensor. 
-	 * Expects yaw to be in radians.
-	 * @param yaw
-	 */
-	void yaw(double yaw)
-	{
-		_yaw = yaw;
-	}
-
-	/**
-	 * Gets the yaw of the sensor.
-	 * @return yaw in radians.
-	 */
-	double yaw()
-	{
-		return _yaw;
-	}
-	
-	/**
-     * Sets the roll of the sensor.
-     * Expects roll to be in radians.
-     * @param roll
-     */
-    void roll(double roll)
-    {
-        _roll = roll;
-    }
-
-    /**
-     * Gets the roll of the sensor.
-     * @return roll in radians.
-     */
-    double roll()
-    {
-        return _roll;
-    }
-
-	/**
-	 * Sets the source_params of the sensor
-	 * @param src_params source_params reference
-     */
-    void source(source_params::reference src_params)
-    {
-		_source = src_params;
-	}
-
-	/**
-	 * Gets the source_params of the sensor.
-	 * @return source_params pointer.
-	 */
-	source_params::reference source()
-	{
+	source_params::reference source() const {
 		return _source;
 	}
 
 	/**
-	 * Sets the receiver_params of the sensor
-	 * @param rcv_params receiver_params reference
+	 * Shared pointer to the the receiver_params for this sensor.
 	 */
-	void receiver(receiver_params::reference rcv_params)
-	{
-		_receiver = rcv_params;
+	receiver_params::reference receiver() const {
+		return _receiver;
 	}
 
 	/**
-	 * Gets the receiver_params of the sensor.
-	 * @return receiver_params pointer.
+	 * Location of the sensor in world coordinates.
 	 */
-	receiver_params::reference receiver()
-	{
-		return _receiver;
-	}
+	wposition1 position() const ;
+
+	/**
+	 * Orientation of the sensor in world coordinates.
+	 */
+	sensor_orientation orientation() const ;
+
+	/**
+	 * Updates the position and orientation of sensor.
+	 * If the object has changed by more than the threshold amount,
+	 * this update kicks off a new set of propagation calculations.
+	 * At the end of those calculations, the fathometers and eigen
+     * Passes this data onto all sensor listeners.
+	 * Blocks until update is complete.
+	 *
+	 * @param position  	Updated position data
+	 * @param orientation	Updated orientation value
+	 * @param force_update	When true, forces update without checking thresholds.
+	 */
+	void update_sensor(const wposition1& position,
+			const sensor_orientation& orientation, bool force_update = false);
+
+    /**
+     * Last set of fathometers computed for this sensor.
+	 * Blocks during updates from the wavefront task.
+     * @todo migrate to shared pointer.
+     */
+	proploss_shared_ptr& fathometers() ;
+
+	/**
+	 * Asynchronous update of fathometer data from the wavefront task.
+     * Passes this data onto all sensor listeners.
+	 * Blocks until update is complete.
+	 */
+	virtual void update_fathometers( proploss_shared_ptr& fathometers ) ;
+
+    /**
+     * Last set of eigenverbs computed for this sensor.
+	 * Blocks during updates from the wavefront task.
+     * @todo migrate to shared pointer.
+     */
+	eigenverbs_shared_ptr eigenverbs() ;
+
+	/**
+	 * Asynchronous update of eigenverbs data from the wavefront task.
+	 * Passes this data onto all sensor listeners.
+	 * Blocks until update is complete.
+	 */
+	virtual void update_eigenverbs( eigenverbs_shared_ptr& eigenverbs) ;
+
+	/**
+	 * Add a sensor_listener to the _sensor_listeners list
+	 */
+	void add_sensor_listener(sensor_listener::reference listener);
+
+	/**
+	 * Remove a sensor_listener from the _sensor_listeners list
+	 */
+	void remove_sensor_listener(sensor_listener::reference listener);
+
+private:
+
+	/**
+	 * Checks to see if new position and orientation have changed enough
+	 * to require a new WaveQ3D run.
+	 *
+	 * @param position  	Updated position data
+	 * @param orientation	Updated orientation value
+	 * @return 				True when thresholds exceeded, requiring a
+	 * 						rerun of the model for this sensor.
+	 */
+	bool check_thresholds( const wposition1& position,
+			const sensor_orientation& orientation );
+
+	/**
+	 * Queries the current list of sensor listener for the complements
+	 * of this sensor. Assumes that these listeners are sensor_pair objects.
+	 */
+	wposition sensor_targets() ;
 
 	/**
 	 * Initialize the wave_generator thread  to start the waveq3d model.
 	 */
 	void init_wave_generator();
-	
-	/**
-     * Checks to see if new position, pitch and yaw have changed enough
-     * to require a new WaveQ3D run.
-     * @param position  updated position data
-     * @param pitch     updated pitch value
-     * @param yaw       updated yaw value
-     * @param roll      updated roll value
-     * @return true when thresholds exceeded, requiring a rerun of the model for this sensor.
-     */
-    bool check_thresholds(wposition1 position, double pitch, double yaw, double roll);
 
 	/**
-	 * Updates the sensor data, checks position, pitch, yaw, thresholds
-	 * to determine if new wave_generator needs to be run, then kicks 
-	 * off the waveq3d model.
-	 * @param position  updated position data
-	 * @param pitch     updated pitch value
-	 * @param yaw       updated yaw value
-	 * @param roll      updated roll value
-	 * @param force_run defaults to false, set true to force new run
+	 * Identification used to find this sensor instance in sensor_manager.
 	 */
-	void update_sensor(wposition1 position, double pitch, double yaw, double roll, bool force_update=false);
-	
+	const id_type _sensorID;
+
 	/**
-	 * Gets the sensor fathometers, overload of the pure virtual method
-	 * fathometers for the sensor_pair_listener.
-	 * @param fathometers
+	 * Identification used to lookup sensor type data in source_params_map and receiver_params_map.
 	 */
-	proploss* fathometers() {
-	    return _fathometers;
-	}
+	const sensor_params::id_type _paramsID;
 
 	/**
-     * update_fathometers
-     *  Overloaded wavefront_listener method to update the eigenrays for the object that implements it.
-     *  @param  fathometers - Pointer to a proploss object which contains eigenrays
-     */
-    virtual void update_fathometers(proploss* fathometers) {
-        _fathometers = fathometers;
-        update_fathometer_listeners();
-    }
-
-    /**
-     * Gets the sensor eigenverb_collection, overloads the pure virtual method
-     * eigenverbs for the sensor_pair_listener
-     * @param eigenverbs
-     */
-    eigenverb_collection* eigenverbs() {
-        return _eigenverbs;
-    }
-
-    /**
-     * update_eigenverbs
-     * Overloaded wavefront_listener method to update the eigenverb_collection for the object that implements it.
-     *  @param  eigenverbs - Pointer to a eigenverb_collection object which contains eigenverbs
-     */
-    virtual void update_eigenverbs(eigenverb_collection* eigenverbs) {
-        _eigenverbs = eigenverbs;
-        update_eigenverb_listeners();
-    }
-
-	/**
-     * Add a sensor_listener to the _sensor_listeners list
-	 * @param listener
+	 * Human readable name for this sensor instance.
 	 */
-	bool add_sensor_listener(sensor_listener* listener);
+	const std::string _description;
 
 	/**
-	 * Remove a sensor_listener to the _sensor_listeners list
-	 * @param listener
+	 * Shared pointer to the the source_params for this sensor.
 	 */
-	bool remove_sensor_listener(sensor_listener* listener);
-		
+	source_params::reference _source;
 
-protected:
+	/**
+	 * Shared pointer to the the receiver_params for this sensor.
+	 */
+	receiver_params::reference _receiver;
 
-/**
- * Default Constructor - protected access
- */
-sensor( )
-    :   _sensorID(-1),
-        _paramsID(-1),
-        _src_rcv_mode(usml::sensors::SOURCE),
-        _position(0.0,0.0,0.0),
-        _pitch(0.0),
-        _yaw(0.0),
-        _roll(0.0),
-        _fathometers(NULL),
-        _eigenverbs(NULL),
-        _description(NULL) {}
+	/**
+	 * Location of the sensor in world coordinates.
+	 */
+	wposition1 _position;
 
-private:
+	/**
+	 * Orientation of the sensor in world coordinates.
+	 */
+	sensor_orientation _orientation ;
+
+	/**
+	 * Mutex to that locks sensor during update_sensor.
+	 */
+    mutable read_write_lock _update_sensor_mutex ;
 
     /**
      * For each sensor_listener in the _sensor_listeners list call the
      * update_eigenverbs method of each registered class, ie sensor_pair
+     * Last set of fathometers computed for this sensor.
+     * @todo migrate to shared pointer.
      */
-    bool update_eigenverb_listeners();
+    proploss_shared_ptr _fathometers;
+
+	/**
+	 * Mutex to that locks sensor during update_fathometers.
+	 */
+	mutable read_write_lock _update_fathometers_mutex ;
 
     /**
-     * For each sensor_listener in the _sensor_listeners list call the
-     * update_fathometers method of each registered class ie sensor_pair
+     * Last set of eigenverbs computed for this sensor.
+     * @todo migrate to shared pointer.
      */
-    bool update_fathometer_listeners();
+	shared_ptr<eigenverb_collection> _eigenverbs;
+
+	/**
+	 * Mutex to that locks sensor during update_eigenverbs.
+	 */
+	mutable read_write_lock _update_eigenverbs_mutex ;
 
     /**
-     * For each sensor_listener in the _sensor_listeners list call the
-     * sensor_complement method to get a list of the complements.
-     * @return List of sensor pointers that are the complement of this sensor.
+     * reference to the task that is computing fathometers and eigenverbs.
      */
-    std::list<sensor*> sensor_complements();
-
-    /**
-     * Get the list of targets via of this sensors sensor_pairs complement's.
-     */
-     wposition sensor_targets();
-
-    // Attributes
-
-    id_type                 _sensorID;
-    sensor_params::id_type  _paramsID;
-    xmitRcvModeType         _src_rcv_mode;
-
-	wposition1 _position;
-	double     _pitch;
-    double     _yaw;
-    double     _roll;
-	
-	source_params::reference   _source;
-    receiver_params::reference _receiver;
-  
-    proploss*              _fathometers;
-	eigenverb_collection*  _eigenverbs;
 	thread_task::reference _wavefront_task;
-	std::string            _description;
-	
-    /**
-    * List containing the references of objects that will be used to
-    * update classes that require sensor data.
-    * These classes must implement sensor_changed method.
-    */
-    std::list<sensor_listener*> _sensor_listeners; 		
+
+	/**
+	 * List containing the references of objects that will be used to
+	 * update classes that require sensor data.
+	 * These classes must implement sensor_changed method.
+	 */
+	std::list<sensor_listener::reference> _sensor_listeners;
+
+	/**
+	 * Mutex to that locks sensor during add/remove sensor_listeners.
+	 */
+	mutable read_write_lock _sensor_listeners_mutex ;
 };
 
 /// @}
-}  // end of namespace sensors
+}// end of namespace sensors
 }  // end of namespace usml

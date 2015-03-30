@@ -16,6 +16,7 @@ namespace sensors {
  */
 enum xmitRcvMode
 {
+	NONE = 0,
     RECEIVER = 1,
 	SOURCE = 2,
 	BOTH = 3

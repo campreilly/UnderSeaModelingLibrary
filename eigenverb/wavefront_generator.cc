@@ -101,7 +101,8 @@ void wavefront_generator::run()
         fathometers->write_netcdf(ncname_proploss);
     }
 
-    _wavefront_listener->update_fathometers(fathometers);
+    proploss_shared_ptr result(fathometers) ;
+    _wavefront_listener->update_fathometers(result);
 
     // mark task as complete
     _done = true ;

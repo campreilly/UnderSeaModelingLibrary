@@ -34,10 +34,15 @@ class USML_DECLSPEC sensor_pair : public sensor_listener
 {
 public:
 
+	/**
+	 * Data type used for reference to receiver_params.
+	 */
+	typedef shared_ptr<sensor> reference;
+
     /**
      * Constructor
      */
-    sensor_pair(sensor* source, sensor* receiver)
+    sensor_pair(sensor::reference source, sensor::reference receiver)
         : _source(source),_receiver(receiver) {};
 
     /**
@@ -52,7 +57,7 @@ public:
      * Gets a pointer to the source sensor.
      * @return  Pointer to the source sensor
      */
-    sensor* source() const {
+    sensor::reference source() const {
         return _source;
     }
 
@@ -60,37 +65,39 @@ public:
      * Gets a pointer to the receiver sensor.
      * @return  Pointer to the receiver sensor
      */
-    sensor* receiver() const {
+    sensor::reference receiver() const {
         return _receiver;
     }
 
-    /**
-     * update_fathometers
-     * Overloads the sensor_listener method to update the fathometers in the sensor_pair
-     * @param  Pointer to the sensor object which contains fathometers to update.
-     */
-    virtual void update_fathometers(sensor* sensor_);
+	/**
+	 * Notification that new fathometer data is ready.
+	 *
+	 * @param	from	Sensor that issued the notification.
+	 */
+	virtual void update_fathometers(sensor::reference& from) ;
 
-    /**
-     * update_eigenverbs
-     * Overloads the sensor_listener method to update the eigenverb_collection sensor_pair
-     * @param  Pointer to the sensor object which contains eigenverbs to update.
-     */
-    virtual void update_eigenverbs(sensor* sensor_);
+	/**
+	 * Notification that new eigenverb data is ready.
+	 *
+	 * @param	from	Sensor that issued the notification.
+	 */
+	virtual void update_eigenverbs(sensor::reference& from) ;
 
-   /**
-    * remove_sensor
-    * Overloads the sensor_listener method to remove the sensor object from the sensor_pair.
-    * @param  Pointer to the sensor object which will be removed.
-    */
-    virtual void remove_sensor(sensor* sensor_);
 
-    /**
-    * sensor_complement
-    * Overloads the sensor_listener to return the complement sensor of the sensor_pair
-    * @return  Pointer to the complement sensor object of the pair.
-    */
-    virtual sensor* sensor_complement (sensor* sensor_);
+	/**
+	 * Notification that a sensor is about to be deleted.
+	 *
+	 * @param	from	Sensor that issued the notification.
+	 */
+	virtual void remove_sensor(sensor::reference& from) ;
+
+
+	/**
+	 * Queries the sensor listener for the complements of this sensor.
+	 *
+	 * @param	from	Sensor that issued the notification.
+	 */
+	virtual sensor::reference sensor_complement(sensor::reference& from) ;
 
 private:
 
@@ -99,12 +106,12 @@ private:
     /**
      * Pointer to the source sensor.
      */
-    sensor* _source;
+    sensor::reference _source;
 
     /**
      * Pointer to the receiver sensor.
      */
-    sensor* _receiver;
+    sensor::reference _receiver;
 
     /**
      * src proploss - contains targets and eigenrays
