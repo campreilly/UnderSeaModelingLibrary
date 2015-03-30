@@ -115,7 +115,7 @@ class USML_DECLSPEC wavefront_generator : public thread_task
      * Sets the frequencies for the WaveQ3D run.
      * @param frequencies pointer to a seq_data type
      */
-    void frequencies(seq_vector* frequencies) {
+    void frequencies(const seq_vector* frequencies) {
         _frequencies = frequencies;
     }
 
@@ -198,8 +198,8 @@ private:
     /** Targets container */
     wposition _targets;
 
-    /** Frequencies object */
-    seq_vector* _frequencies;
+    /** Frequencies container */
+    const seq_vector* _frequencies;
 
     /** Shared Pointer to the OceanModel. */
     shared_ptr<ocean_model> _ocean;

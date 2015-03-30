@@ -58,38 +58,6 @@ sensor_pair_manager::~sensor_pair_manager()
     _sensor_pair_map.clear();
 }
 
-//wposition sensor_pair_manager::get_targets(xmitRcvModeType mode)
-//{
-//    std::list<sensor::id_type> targetIDs;
-//
-//    // Get Targets
-//    if (mode == usml::sensors::RECEIVER) {
-//        // Get Sources
-//        //targetIDs = _src_map;
-//    } else { // SOURCE, Treat "BOTH" also source
-//        // Get Receivers
-//        //targetIDs = _rcv_map;
-//    }
-//
-//    std::list<sensor::id_type>::iterator iter;
-//    sensor* target;
-//    wposition1 target_position;
-//    wposition targets(targetIDs.size(), 1 , 0.0, 0.0, 0.0);
-//
-//    int row = -1;
-//    for (iter = targetIDs.begin(); iter != targetIDs.end(); ++iter) {
-//        ++row;
-//        //target = sensor_manager::instance()->find(*iter);
-//        target_position = target->position();
-//        targets.latitude(row, 0, target_position.latitude());
-//        targets.longitude(row, 0, target_position.longitude());
-//        targets.altitude(row, 0, target_position.altitude());
-//    }
-//
-//    return targets;
-//
-//}
-
 /**
  * Get Fathometers
  */

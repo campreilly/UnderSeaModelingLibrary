@@ -37,7 +37,8 @@ sensor_manager* sensor_manager::instance()
     return tmp;
 }
 
-bool sensor_manager::add_sensor(const sensor::id_type sensorID, const paramsIDType paramsID,
+bool sensor_manager::add_sensor(const sensor::id_type sensorID,
+                const sensor_params::id_type paramsID,
                 const xmitRcvModeType mode, const wposition1 position,
                 const double pitch, const double yaw, const double roll,
                 const std::string description)
@@ -100,43 +101,9 @@ bool sensor_manager::update_sensor(sensor* sensor_)
 	// Ensure pre-existance
 	if (current_sensor != 0) {
 		
-		current_sensor->update_sensor(sensor_->position(), sensor_->pitch(), sensor_->yaw());
+		current_sensor->update_sensor(sensor_->position(), sensor_->pitch(), sensor_->yaw(), sensor_->roll());
 		return true;
 	}
 
     return false;
 }
-
-//wposition sensor_manager::get_targets(sensorIDType sensorID, xmitRcvModeType mode)
-//{
-//    std::list<sensorIDType> targetIDs;
-//    wposition1 sensor_position = find(sensorID)->position();
-//
-//    // Get Targets
-//    if (mode == usml::sensors::RECEIVER) {
-//        // Get Sources
-//        targetIDs = _sensor_pair_manager->source_list();
-//    } else { // SOURCE, Treat "BOTH" also source
-//        // Get Receivers
-//        targetIDs = _sensor_pair_manager->receiver_list();
-//    }
-//
-//    std::list<sensorIDType>::iterator iter;
-//    sensor* target;
-//    wposition1 target_position;
-//    wposition targets(targetIDs.size(), 1 ,
-//        sensor_position.latitude(),
-//        sensor_position.longitude(),
-//        sensor_position.altitude());
-//    int row = -1;
-//    for (iter = targetIDs.begin(); iter != targetIDs.end(); ++iter) {
-//        ++row;
-//        target = find(*iter);
-//        target_position = target->position();
-//        targets.latitude(row, 0, target_position.latitude());
-//        targets.longitude(row, 0, target_position.longitude());
-//        targets.altitude(row, 0, target_position.altitude());
-//    }
-//
-//    return targets;
-//}

@@ -69,28 +69,28 @@ public:
      * Overloads the sensor_listener method to update the fathometers in the sensor_pair
      * @param  Pointer to the sensor object which contains fathometers to update.
      */
-    virtual void update_fathometers(sensor* the_sensor);
+    virtual void update_fathometers(sensor* sensor_);
 
     /**
      * update_eigenverbs
      * Overloads the sensor_listener method to update the eigenverb_collection sensor_pair
      * @param  Pointer to the sensor object which contains eigenverbs to update.
      */
-    virtual void update_eigenverbs(sensor* the_sensor);
+    virtual void update_eigenverbs(sensor* sensor_);
 
    /**
     * remove_sensor
     * Overloads the sensor_listener method to remove the sensor object from the sensor_pair.
     * @param  Pointer to the sensor object which will be removed.
     */
-    virtual void remove_sensor(sensor* the_sensor);
+    virtual void remove_sensor(sensor* sensor_);
 
     /**
     * sensor_complement
     * Overloads the sensor_listener to return the complement sensor of the sensor_pair
     * @return  Pointer to the complement sensor object of the pair.
     */
-    virtual sensor* sensor_complement (sensor* the_sensor);
+    virtual sensor* sensor_complement (sensor* sensor_);
 
 private:
 
@@ -107,9 +107,14 @@ private:
     sensor* _receiver;
 
     /**
-     * proploss - contains targets and eigenrays 
+     * src proploss - contains targets and eigenrays
      */
-    proploss_shared_ptr _proploss;
+    proploss_shared_ptr _src_fathometers;
+
+    /**
+     * rvc proploss - contains targets and eigenrays
+     */
+    proploss_shared_ptr _rcv_fathometers;
 
     /**
      * source eigenverbs - contains all source eigenverbs

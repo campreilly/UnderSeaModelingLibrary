@@ -10,6 +10,7 @@
 
 #include <usml/threads/threads.h>
 #include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_params.h>
 #include <usml/sensors/sensor_pair_manager.h>
 #include <usml/sensors/source_params_map.h>
 #include <usml/sensors/receiver_params_map.h>
@@ -61,7 +62,7 @@ public:
      * @param description
      * @return false if the sensorID was already in the manager.
      */
-    bool add_sensor(const sensor::id_type sensorID, const paramsIDType paramsID,
+    bool add_sensor(const sensor::id_type sensorID, const sensor_params::id_type paramsID,
                     const xmitRcvModeType mode, const wposition1 position,
                     const double pitch, const double yaw, const double roll,
                                const std::string description = std::string());

@@ -53,18 +53,19 @@ public:
 	/**
 	 * Constructor
 	 * Uses the paramID and mode, looks up source and/or receiver from there associated map.
+	 * throws when source or receiver paramsID is not found in the associated map.
 	 * @param sensorID
 	 * @param paramsID
 	 * @param mode
 	 * @param position
 	 * @param pitch
 	 * @param yaw
+	 * @param roll
 	 * @param description
 	 */
 	sensor(const id_type sensorID, const sensor_params::id_type paramsID, const xmitRcvModeType mode,
 				const wposition1 position, const double pitch, const double yaw, const double roll,
                                                 const std::string description = std::string());
-
     /**
 	 * Destructor
 	 */
@@ -193,46 +194,56 @@ public:
 	}
 	
 	/**
-	 * Sets the source_params of the sensor by
-	 * making a deep copy of the data.
+     * Sets the roll of the sensor.
+     * Expects roll to be in radians.
+     * @param roll
+     */
+    void roll(double roll)
+    {
+        _roll = roll;
+    }
+
+    /**
+     * Gets the roll of the sensor.
+     * @return roll in radians.
+     */
+    double roll()
+    {
+        return _roll;
+    }
+
+	/**
+	 * Sets the source_params of the sensor
 	 * @param src_params source_params reference
      */
-    void source(const source_params& src_params)
+    void source(source_params::reference src_params)
     {
-        // Assumes constructor populated
-        if (_source != NULL) {
-            delete _source;
-        }
-		_source = new source_params(src_params);
+		_source = src_params;
 	}
 
 	/**
 	 * Gets the source_params of the sensor.
 	 * @return source_params pointer.
 	 */
-	source_params* source()
+	source_params::reference source()
 	{
 		return _source;
 	}
 
 	/**
-	 * Sets the receiver_params of the sensor by
-     * making a deep copy of the data.
+	 * Sets the receiver_params of the sensor
 	 * @param rcv_params receiver_params reference
 	 */
-	void receiver(const receiver_params& rcv_params)
+	void receiver(receiver_params::reference rcv_params)
 	{
-	    if (_receiver != NULL ) {
-	        delete _receiver;
-	    }
-		_receiver = new receiver_params(rcv_params);
+		_receiver = rcv_params;
 	}
 
 	/**
 	 * Gets the receiver_params of the sensor.
 	 * @return receiver_params pointer.
 	 */
-	receiver_params* receiver()
+	receiver_params::reference receiver()
 	{
 		return _receiver;
 	}
@@ -248,9 +259,10 @@ public:
      * @param position  updated position data
      * @param pitch     updated pitch value
      * @param yaw       updated yaw value
+     * @param roll      updated roll value
      * @return true when thresholds exceeded, requiring a rerun of the model for this sensor.
      */
-    bool check_thresholds(wposition1 position, double pitch, double yaw);
+    bool check_thresholds(wposition1 position, double pitch, double yaw, double roll);
 
 	/**
 	 * Updates the sensor data, checks position, pitch, yaw, thresholds
@@ -259,9 +271,10 @@ public:
 	 * @param position  updated position data
 	 * @param pitch     updated pitch value
 	 * @param yaw       updated yaw value
+	 * @param roll      updated roll value
 	 * @param force_run defaults to false, set true to force new run
 	 */
-	void update_sensor(wposition1 position, double pitch, double yaw, bool force_update=false);
+	void update_sensor(wposition1 position, double pitch, double yaw, double roll, bool force_update=false);
 	
 	/**
 	 * Gets the sensor fathometers, overload of the pure virtual method
@@ -327,8 +340,6 @@ sensor( )
         _pitch(0.0),
         _yaw(0.0),
         _roll(0.0),
-        _source(NULL),
-        _receiver(NULL),
         _fathometers(NULL),
         _eigenverbs(NULL),
         _description(NULL) {}
@@ -337,28 +348,41 @@ private:
 
     /**
      * For each sensor_listener in the _sensor_listeners list call the
-     * update_eigenverbs method of each registered class.
+     * update_eigenverbs method of each registered class, ie sensor_pair
      */
     bool update_eigenverb_listeners();
 
     /**
      * For each sensor_listener in the _sensor_listeners list call the
-     * update_fathometers method of each registered class.
+     * update_fathometers method of each registered class ie sensor_pair
      */
     bool update_fathometer_listeners();
 
+    /**
+     * For each sensor_listener in the _sensor_listeners list call the
+     * sensor_complement method to get a list of the complements.
+     * @return List of sensor pointers that are the complement of this sensor.
+     */
+    std::list<sensor*> sensor_complements();
 
-    id_type         _sensorID;
-    sensor_params::id_type    _paramsID;
-    xmitRcvModeType _src_rcv_mode;
+    /**
+     * Get the list of targets via of this sensors sensor_pairs complement's.
+     */
+     wposition sensor_targets();
+
+    // Attributes
+
+    id_type                 _sensorID;
+    sensor_params::id_type  _paramsID;
+    xmitRcvModeType         _src_rcv_mode;
 
 	wposition1 _position;
 	double     _pitch;
     double     _yaw;
     double     _roll;
 	
-	source_params*   _source;
-    receiver_params* _receiver;
+	source_params::reference   _source;
+    receiver_params::reference _receiver;
   
     proploss*              _fathometers;
 	eigenverb_collection*  _eigenverbs;
