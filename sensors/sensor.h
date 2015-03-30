@@ -12,7 +12,7 @@
 #include <usml/waveq3d/proploss.h>
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/sensors/sensorIDType.h>
-#include <usml/sensors/paramsIDType.h>
+#include <usml/sensors/sensor_params.h>
 #include <usml/sensors/xmitRcvModeType.h>
 
 #include <usml/sensors/source_params.h>
@@ -76,7 +76,7 @@ public:
 	 * @param yaw
 	 * @param description
 	 */
-	sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType mode,
+	sensor(const sensorIDType sensorID, const sensor_params::id_type paramsID, const xmitRcvModeType mode,
 				const wposition1 position, const double pitch, const double yaw, 
                                                 const std::string description = std::string());
 
@@ -109,18 +109,18 @@ public:
 	 * Set method for the paramsID attribute. The paramsID attribute is used as the
 	 * key to lookup the source or receiver parameters in the source_params_map and
 	 * receiver_params_map.
-	 * @param paramsID of the paramsIDType.
+	 * @param paramsID of the sensor_params::id_type.
 	 */
-	void paramsID(paramsIDType paramsID)
+	void paramsID(sensor_params::id_type paramsID)
 	{
 		_paramsID = paramsID;
 	}
 
 	/**
 	 * Get method for the paramsID attribute.
-	 * @return paramsID of the paramsIDType
+	 * @return paramsID of the sensor_params::id_type
 	 */
-	paramsIDType paramsID()
+	sensor_params::id_type paramsID()
 	{
 		return _paramsID;
 	}
@@ -333,7 +333,7 @@ public:
 private:
 
     sensorIDType _sensorID;
-    paramsIDType _paramsID;
+    sensor_params::id_type _paramsID;
     xmitRcvModeType _src_rcv_mode;
 
 	wposition1 _position;
