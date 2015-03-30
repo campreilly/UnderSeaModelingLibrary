@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target, 0, wave_queue::CLASSIC_RAY ) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays & record to log file
 
@@ -175,7 +175,7 @@ BOOST_AUTO_TEST_CASE( proploss_freq )
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss) ;
+    wave.add_eigenray_listener(&loss) ;
 
     // propagate rays & record to log file
 
@@ -316,7 +316,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays & record to log file
 
@@ -517,7 +517,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays & record to log file
 
@@ -732,7 +732,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
 
     proploss loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays & record to log file
 

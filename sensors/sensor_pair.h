@@ -94,7 +94,8 @@ public:
 
 private:
 
-    sensor_pair() {};
+    sensor_pair()
+       : _source(NULL),_receiver(NULL) {};
 
     /**
      * Pointer to the source sensor.
@@ -109,7 +110,7 @@ private:
     /**
      * proploss - contains targets and eigenrays 
      */
-    proploss_shared_ptr _proploss;
+    proploss::reference _proploss;
 
     /**
      * source eigenverbs - contains all source eigenverbs

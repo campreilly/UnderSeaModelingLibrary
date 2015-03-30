@@ -70,9 +70,9 @@ void wavefront_generator::run()
     wave_queue wqWave(*(_ocean.get()), *(_frequencies), _sensor_position, de, az, time_step, &_targets, _runID,
                                                                 usml::waveq3d::wave_queue::HYBRID_GAUSSIAN);
 
-    wqWave.addEigenrayListener(fathometers);
+    wqWave.add_eigenray_listener(fathometers);
 
-    //wqWave.intensity_threshold(_intensity_threshold);
+    wqWave.intensity_threshold(_intensity_threshold);
 
     if (print_out)
     {

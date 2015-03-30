@@ -116,8 +116,8 @@ int main( int argc, char* argv[] ) {
     proploss loss(freq, src_pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, src_pos, de, az, time_step, &target ) ;
 
-    if (!wave.addEigenrayListener(&loss)) {
-    	cout << "Error adding proploss listener! " << endl ;
+    if (!wave.add_eigenray_listener(&loss)) {
+    	cout << "Error adding eigenray listener! " << endl ;
     	exit(1);
     }
 

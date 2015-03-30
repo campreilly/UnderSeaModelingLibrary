@@ -17,8 +17,8 @@ namespace waveq3d {
 
 /**
  * @class eigenray_listener
- * This class is part of a Observer/Subject pattern for the wave_queue class
- * and allows for multiple eigenray listeners to be added to wave_queue.
+ * @brief This class is part of a Observer/Subject pattern for the wave_queue
+ * class and allows for multiple eigenray listeners to be added to wave_queue.
  * The addEigenray call must be defined in each class which inherits it.
  */
 
@@ -36,10 +36,10 @@ public:
 	 * Pure virtual method to add eigenray to an object.
 	 *  @param   targetRow Index of the target row to add to list of eigenrays
      *  @param   targetCol Index of the target row to add to list of eigenrays
-     *  @param   pRay      Pointer to eigenray data to add to list of eigenrays
+     *  @param   ray       Eigenray data to add to list of eigenrays
      *  @param   run_id    Run Identification number.
 	 */
-	virtual bool add_eigenray(size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id) = 0;
+	virtual bool add_eigenray(size_t targetRow, size_t targetCol, eigenray ray, size_t run_id) = 0;
 	
 	/**
 	 * check_eigenrays
