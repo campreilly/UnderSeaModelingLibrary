@@ -8,10 +8,8 @@
 
 #include <list>
 
-#include <usml/types/wposition1.h>
-#include <usml/waveq3d/proploss.h>
+#include <usml/threads/thread_controller.h>
 #include <usml/waveq3d/wave_queue.h>
-#include <usml/sensors/sensorIDType.h>
 #include <usml/sensors/paramsIDType.h>
 #include <usml/sensors/xmitRcvModeType.h>
 
@@ -20,17 +18,16 @@
 #include <usml/sensors/source_params_map.h>
 #include <usml/sensors/receiver_params_map.h>
 #include <usml/sensors/sensor_listener.h>
-#include <usml/eigenverb/envelope_collection.h>
 #include <usml/eigenverb/eigenverb_collection.h>
+#include <usml/eigenverb/wavefront_generator.h>
+#include <usml/eigenverb/wavefront_listener.h>
 
 
 namespace usml {
 namespace sensors {
 
-using namespace usml::eigenverb ;
 using namespace usml::waveq3d ;
-
-class sensor_listener;
+using namespace usml::eigenverb ;
 
 /// @ingroup sensors
 /// @{
@@ -44,24 +41,14 @@ class sensor_listener;
  * @version 1.0
  * @updated 18-Mar-2015 12:18:44 PM
  */
-class USML_DECLSPEC sensor
+class USML_DECLSPEC sensor : public wavefront_listener
 {
 public:
 
-	/**
-	 * Default Constructor
-	 */
-	sensor() :
-	    _sensorID(-1),
-        _paramsID(-1),
-        _src_rcv_mode(usml::sensors::SOURCE),
-        _position(wposition1(0.0, 0.0, 0.0)),
-        _pitch(0.0),
-        _yaw(0.0),
-        _source(NULL),
-        _receiver(NULL),
-        _fathometers(NULL),
-        _eigenverbs(NULL){}
+    /**
+     * Data type used for beamId.
+     */
+    typedef int id_type;
 
 	/**
 	 * Constructor
@@ -70,13 +57,11 @@ public:
 	 * @param paramsID
 	 * @param mode
 	 * @param position
-	 * @param tilt_angle
-	 * @param tilt_direction
 	 * @param pitch
 	 * @param yaw
 	 * @param description
 	 */
-	sensor(const sensorIDType sensorID, const paramsIDType paramsID, const xmitRcvModeType mode,
+	sensor(const id_type sensorID, const paramsIDType paramsID, const xmitRcvModeType mode,
 				const wposition1 position, const double pitch, const double yaw, 
                                                 const std::string description = std::string());
 
@@ -86,34 +71,12 @@ public:
 	virtual ~sensor();
 
 	/**
-	 * Set method for the sensorID attribute. The sensorID attribute is used as the
-	 * key to lookup sensors in the sensor_map.
-	 * 
-	 * @param sensorID of the sensorIDType
-	 */
-	void sensorID(sensorIDType sensorID)
-	{
-		_sensorID = sensorID;
-	}
-
-	/**
 	 * Get method for the sensorID attribute.
-	 * @return sensorID of the sensorIDType
+	 * @return sensorID of the id_type
 	 */
-	sensorIDType sensorID()
+	id_type sensorID()
 	{
 		return _sensorID;
-	}
-
-	/**
-	 * Set method for the paramsID attribute. The paramsID attribute is used as the
-	 * key to lookup the source or receiver parameters in the source_params_map and
-	 * receiver_params_map.
-	 * @param paramsID of the paramsIDType.
-	 */
-	void paramsID(paramsIDType paramsID)
-	{
-		_paramsID = paramsID;
 	}
 
 	/**
@@ -123,16 +86,6 @@ public:
 	paramsIDType paramsID()
 	{
 		return _paramsID;
-	}
-
-	/**
-	 * Set method for the _src_rcv_mode attribute.
-	 * The mode defines if the sensor is a source, or receive or both.
-	 * @param mode of the xmitRcvModeType.
-	 */
-	void mode(xmitRcvModeType mode)
-	{
-		_src_rcv_mode = mode;
 	}
 
 	/**
@@ -290,6 +243,16 @@ public:
 	void init_wave_generator();
 	
 	/**
+     * Checks to see if new position, pitch and yaw have changed enough
+     * to require a new WaveQ3D run.
+     * @param position  updated position data
+     * @param pitch     updated pitch value
+     * @param yaw       updated yaw value
+     * @return true when thresholds exceeded, requiring a rerun of the model for this sensor.
+     */
+    bool check_thresholds(wposition1 position, double pitch, double yaw);
+
+	/**
 	 * Updates the sensor data, checks position, pitch, yaw, thresholds
 	 * to determine if new wave_generator needs to be run, then kicks 
 	 * off the waveq3d model.
@@ -301,58 +264,113 @@ public:
 	void update_sensor(wposition1 position, double pitch, double yaw, bool force_update=false);
 	
 	/**
-	 * Updates the sensors fathometers
+	 * Gets the sensor fathometers, overload of the pure virtual method
+	 * fathometers for the sensor_pair_listener.
 	 * @param fathometers
 	 */
-	void update_fathometers(proploss* fathometers);
-
-    /**
-     * Updates the sensors eigenverb_collection
-     * @param eigenverbs
-     */
-    void update_eigenverbs(eigenverb_collection* eigenverbs);
+	proploss* fathometers() {
+	    return _fathometers;
+	}
 
 	/**
-     * Add a sensor_listener to the _sensor_listener_vec vector
+     * update_fathometers
+     *  Overloaded wavefront_listener method to update the eigenrays for the object that implements it.
+     *  @param  fathometers - Pointer to a proploss object which contains eigenrays
+     */
+    virtual void update_fathometers(proploss* fathometers) {
+        _fathometers = fathometers;
+        update_fathometer_listeners();
+    }
+
+    /**
+     * Gets the sensor eigenverb_collection, overloads the pure virtual method
+     * eigenverbs for the sensor_pair_listener
+     * @param eigenverbs
+     */
+    eigenverb_collection* eigenverbs() {
+        return _eigenverbs;
+    }
+
+    /**
+     * update_eigenverbs
+     * Overloaded wavefront_listener method to update the eigenverb_collection for the object that implements it.
+     *  @param  eigenverbs - Pointer to a eigenverb_collection object which contains eigenverbs
+     */
+    virtual void update_eigenverbs(eigenverb_collection* eigenverbs) {
+        _eigenverbs = eigenverbs;
+        update_eigenverb_listeners();
+    }
+
+	/**
+     * Add a sensor_listener to the _sensor_listeners list
 	 * @param listener
 	 */
 	bool add_sensor_listener(sensor_listener* listener);
 
 	/**
-	 * Remove a sensor_listener to the _sensor_listener_vec vector
+	 * Remove a sensor_listener to the _sensor_listeners list
 	 * @param listener
 	 */
 	bool remove_sensor_listener(sensor_listener* listener);
 		
-    /**
-    * For each sensor_listener in the _sensor_listener_vec vector
-    * call the sensor_changed method of each registered class.
-    */
-    bool notify_sensor_listeners(sensorIDType sensorID);
+
+protected:
+
+/**
+ * Default Constructor - protected access
+ */
+sensor( )
+    :   _sensorID(-1),
+        _paramsID(-1),
+        _src_rcv_mode(usml::sensors::SOURCE),
+        _position(0.0,0.0,0.0),
+        _pitch(0.0),
+        _yaw(0.0),
+        _roll(0.0),
+        _source(NULL),
+        _receiver(NULL),
+        _fathometers(NULL),
+        _eigenverbs(NULL),
+        _description(NULL) {}
 
 private:
 
-    sensorIDType _sensorID;
-    paramsIDType _paramsID;
+    /**
+     * For each sensor_listener in the _sensor_listeners list call the
+     * update_eigenverbs method of each registered class.
+     */
+    bool update_eigenverb_listeners();
+
+    /**
+     * For each sensor_listener in the _sensor_listeners list call the
+     * update_fathometers method of each registered class.
+     */
+    bool update_fathometer_listeners();
+
+
+    id_type         _sensorID;
+    paramsIDType    _paramsID;
     xmitRcvModeType _src_rcv_mode;
 
 	wposition1 _position;
-	double _pitch;
-    double _yaw;
+	double     _pitch;
+    double     _yaw;
+    double     _roll;
 	
-	source_params* _source;
+	source_params*   _source;
     receiver_params* _receiver;
   
-    proploss* _fathometers;
-	eigenverb_collection* _eigenverbs;
-	std::string    _description;	
-
+    proploss*              _fathometers;
+	eigenverb_collection*  _eigenverbs;
+	thread_task::reference _wavefront_task;
+	std::string            _description;
+	
     /**
-    * Vector containing the references of objects that will be used to
-    * update classes that require sensor be informed as they are changed.
+    * List containing the references of objects that will be used to
+    * update classes that require sensor data.
     * These classes must implement sensor_changed method.
     */
-    std::vector<sensor_listener*> _sensor_listener_vec; 		
+    std::list<sensor_listener*> _sensor_listeners; 		
 };
 
 /// @}
