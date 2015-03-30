@@ -3,37 +3,17 @@
  *  Implementation of the Class sensor
  *  Created on: 10-Feb-2015 12:49:09 PM
  */
-
-#include "sensor.h"
+#include <usml/sensors/sensor.h>
+#include <usml/threads/read_write_lock.h>
 
 using namespace usml::sensors;
 
 /**
- * Constructor Uses the paramID and mode, looks up source and/or receiver from
- * there associated map.
- * 
- * @param sensorID
- * @param paramsID
- * @param mode
- * @param position
- * @param pitch
- * @param yaw
- * @param description
+ * Construct a new instance of a specific sensor type.
  */
-sensor::sensor(const id_type sensorID, const sensor_params::id_type paramsID, const xmitRcvModeType mode,
-	const wposition1 position, const double pitch, const double yaw, const std::string description) 
-	:	_sensorID(sensorID),
-		_paramsID(paramsID),
-		_src_rcv_mode(mode),
-		_position(position),
-		_pitch(pitch),
-		_yaw(yaw),
-		_roll(0.0),
-		_source(NULL),
-		_receiver(NULL),
-		_fathometers(NULL),
-		_eigenverbs(NULL),
-        _description(description)
+sensor::sensor( sensor::id_type sensorID, sensor_params::id_type paramsID,
+		const std::string& description) :
+		_sensorID(sensorID), _paramsID(paramsID), _description(description)
 {
     // Use _paramsID to lookup source and receiver from map's
     // Make a copy of what was obtained from the associated map.
@@ -91,80 +71,14 @@ sensor::sensor(const id_type sensorID, const sensor_params::id_type paramsID, co
 }
 
 /**
- * Destructor
- */
-sensor::~sensor()
-{
-    if (_source != NULL) {
-        delete _source;
-    }
-    if (_receiver != NULL){
-        delete _receiver;
-    }
-}
-
-/**
- * Sets the latitude of the sensor. Expects latitude to be in decimal degrees.
- * @param latitude    latitude
- */
-void sensor::latitude(double latitude)
-{
-    _position.latitude(latitude);
-}
-
-/**
- * Get method for the latitude of the sensor.
- * @return latitude in decimal degrees.
- */
-double sensor::latitude()
-{
-    return _position.latitude();
-}
-
-/**
- * Sets the longitude of the sensor. Expects longitude to be in decimal degrees.
- * @param longitude    longitude
- */
-void sensor::longitude(double longitude)
-{
-    _position.longitude(longitude);
-}
-
-/**
- * Get method for the longitude of the sensor.
- * @return longitude in decimal degrees.
- */
-double sensor::longitude()
-{
-    return _position.longitude();
-}
-
-/**
- * Sets the depth of the sensor. Expects depth to be in meters.
- * @param depth    depth
- */
-void sensor::depth(double depth)
-{
-    // Set wposition1.altitude
-    _position.altitude(-depth);
-}
-
-/**
- * Get method for the depth of the sensor.
- * @return depth of the sensor in meters.
- */
-double sensor::depth()
-{
-    return -(_position.altitude());
-}
-
-/**
  * Checks to see if new position, pitch and yaw have changed enough
  * to require a new WaveQ3D run.
+ *
+ * @todo using dummy values for prototyping
  */
-bool sensor::check_thresholds(wposition1 position, double pitch, double yaw)
+bool sensor::check_thresholds(wposition1 position, const sensor_orientation& orientation)
 {
-    return false;
+    return true;
 
 }
 
@@ -198,29 +112,20 @@ void sensor::init_wave_generator()
 }
 
 /**
- * Updates the sensor data, checks position, pitch, yaw, thresholds to determine
- * if new wave_generator needs to be run, then kicks off the waveq3d model.
- * @param force_run defaults to false, set true to force new run
- * 
- * @param position    updated position data
- * @param pitch    updated pitch value
- * @param yaw    updated yaw value
- * @param force_update
+ * Checks to see if new position and orientation have changed enough
+ * to require a new WaveQ3D run.
  */
-void sensor::update_sensor(wposition1 position, double pitch, double yaw, bool force_run)
-{
-	if ( !force_run )
-	{
-	     if (!check_thresholds(position, pitch, yaw)) {
-            return;
-        }
+void sensor::update_sensor(const wposition1& position,
+		const sensor_orientation& orientation, bool force_update) {
+	write_lock_guard guard(_update_sensor_mutex) ;
+	if (!force_update) {
+		if (!check_thresholds(position, orientation)) {
+			return;
+		}
 	}
 	_position = position;
-	_pitch = pitch;
-	_yaw = yaw;
+	_orientation = orientation;
 	init_wave_generator();
-
-	return;
 }
 
 /**

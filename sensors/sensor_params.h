@@ -62,7 +62,7 @@ private:
 	 * Identification used to find this sensor type in
 	 * source_params_map and/or receiver_params_map.
 	 */
-	const sensor_params::id_type _paramsID;
+	sensor_params::id_type _paramsID;
 
 	/**
 	 * Bistatic sensor_pair objects are only created for sources and receivers

@@ -58,7 +58,7 @@ bool sensor_manager::update(const sensor::id_type sensorID, sensor* sensor_)
 	// Ensure pre-existance
 	if (current_sensor != 0) {
 		
-		current_sensor->update_sensor(sensor_->position(), sensor_->pitch(), sensor_->yaw());
+		current_sensor->update_sensor(sensor_->position(), sensor_->orientation());
 		return true;
 	}
 

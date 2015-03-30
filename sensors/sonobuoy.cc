@@ -8,13 +8,11 @@
 
 using namespace usml::sensors;
 
-sonobuoy::sonobuoy()
+sonobuoy::sonobuoy(sensor::id_type sensorID, sensor_params::id_type paramsID,
+    const std::string& description)
+    : sensor(sensorID, paramsID, description),
+	  _radio_channel(-1),
+	  _frequency_band(-1),
+	  _uplink_enabled(false)
 {
-
-}
-
-
-sonobuoy::~sonobuoy()
-{
-
 }

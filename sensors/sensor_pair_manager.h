@@ -110,7 +110,7 @@ public:
      */
     const sensor_pair_map_type* sensor_pair_map() const
     {
-        read_lock_guard guard(_mutex);
+        read_lock_guard guard(_instance_mutex);
         return &_sensor_pair_map;
     }
 
@@ -165,7 +165,7 @@ private:
     /**
      * The _mutex for the singleton pointer.
      */
-    static read_write_lock _mutex;
+    static read_write_lock _instance_mutex;
 
     /**
      * List of all active Source's

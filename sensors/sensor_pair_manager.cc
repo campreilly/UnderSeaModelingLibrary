@@ -21,7 +21,7 @@ unique_ptr<sensor_pair_manager> sensor_pair_manager::_instance;
 /**
  * The _mutex for the singleton pointer.
  */
-read_write_lock sensor_pair_manager::_mutex;
+read_write_lock sensor_pair_manager::_instance_mutex;
 
 /**
  * Singleton Constructor - Double Check Locking Pattern DCLP
@@ -31,7 +31,7 @@ sensor_pair_manager* sensor_pair_manager::instance()
     sensor_pair_manager* tmp = _instance.get();
     if (tmp == NULL)
     {
-        write_lock_guard guard(_mutex);
+        write_lock_guard guard(_instance_mutex);
         tmp = _instance.get();
         if (tmp == NULL)
         {
@@ -113,7 +113,7 @@ void sensor_pair_manager::add_sensor(sensor* sensor_)
 {
     sensor_list_iter findIter;
 
-    write_lock_guard guard(_mutex);
+    write_lock_guard guard(_instance_mutex);
     switch (sensor_->mode())
     {
         default:
@@ -176,7 +176,7 @@ bool sensor_pair_manager::remove_sensor(sensor* sensor_)
     sensor_list_iter findIter; // For lookup in list(s)
     sensor_list_iter rcvfindIter; // For lookup in list(s)
 
-    write_lock_guard guard(_mutex);
+    write_lock_guard guard(_instance_mutex);
     switch (sensor_->mode())
     {
         default:
