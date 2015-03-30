@@ -20,7 +20,7 @@ using namespace usml::sensors;
  * @param yaw
  * @param description
  */
-sensor::sensor(const id_type sensorID, const paramsIDType paramsID, const xmitRcvModeType mode,
+sensor::sensor(const id_type sensorID, const sensor_params::id_type paramsID, const xmitRcvModeType mode,
 	const wposition1 position, const double pitch, const double yaw, const std::string description) 
 	:	_sensorID(sensorID),
 		_paramsID(paramsID),
