@@ -30,7 +30,7 @@ void sensor_pair::update_eigenverbs(sensor* the_sensor)
 //    // Get all sensor_pairs containing sensorID and update eigenverb collections
 //    sensor::id_type sourceID;
 //    sensor::id_type receiverID;
-//    sensor_map_iter iter;
+//    sensor_manager_iter iter;
 //
 //    write_lock_guard guard(_mutex);
 //    switch (mode)

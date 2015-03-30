@@ -28,8 +28,8 @@ using namespace usml::threads;
  *   - Unwrapping std:map calls will all be internal, allowing for cleaner map_template calls.
  *
  * Assumes that the map is the storage container for sensor parameters.
- * Instead of storing pointers, developers must wrap them in scoped_ptr<>
- * or shared_ptr<>. This causes them to be automatically cleaned up when the entry
+ * Instead of storing pointers, developers must wrap them in a shared_ptr<>.
+ * This causes them to be automatically cleaned up when the entry
  * is destroyed.  Use scoped_ptr<> for parameters that you intend to clone,
  * and shared_ptr<> if a single copy of the parameters are shared.
  *

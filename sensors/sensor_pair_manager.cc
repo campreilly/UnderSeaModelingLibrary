@@ -79,7 +79,7 @@ sensor_pair_manager::~sensor_pair_manager()
 //    int row = -1;
 //    for (iter = targetIDs.begin(); iter != targetIDs.end(); ++iter) {
 //        ++row;
-//        //target = sensor_map::instance()->find(*iter);
+//        //target = sensor_manager::instance()->find(*iter);
 //        target_position = target->position();
 //        targets.latitude(row, 0, target_position.latitude());
 //        targets.longitude(row, 0, target_position.longitude());
@@ -338,7 +338,7 @@ void sensor_pair_manager::map_erase(sensor* sensor_)
 //*/
 //bool sensor_pair_manager::sensor_changed(sensor::id_type sensorID, xmitRcvModeType mode)
 //{
-//    sensor_map_iter findIter; // For lookup in list(s)
+//    sensor_manager_iter findIter; // For lookup in list(s)
 //    bool result = false;  // EVAR needs to return ErrorCode = 0x36000004
 //                          // AssetID Not Found
 //

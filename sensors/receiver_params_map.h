@@ -22,7 +22,7 @@ using namespace usml::threads;
  * parameters for its own use.
  */
 class USML_DECLSPEC receiver_params_map: public sensor_map_template<
-	receiver_params::id_type, receiver_params::const_reference >
+	sensor_params::id_type, receiver_params::reference >
 {
 
 public:

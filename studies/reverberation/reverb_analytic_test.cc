@@ -131,7 +131,7 @@ private:
 //                0.0,    // pitch
 //                0.0,    // yaw
 //                "omni" ) ;
-//        sensor_map::instance()->insert(sensor_data->sensorID(), sensor_data);
+//        sensor_manager::instance()->insert(sensor_data->sensorID(), sensor_data);
 //    }
 //
 //    /**

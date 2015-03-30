@@ -33,7 +33,7 @@
 #include <usml/sensors/beam_pattern_map.h>
 #include <usml/sensors/beam_pattern_model.h>
 
-#include <usml/sensors/paramsIDType.h>
+#include <usml/sensors/sensor_params::id_type.h>
 #include <usml/sensors/receiver_params.h>
 #include <usml/sensors/receiver_params_map.h>
 #include <usml/sensors/source_params.h>
