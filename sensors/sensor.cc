@@ -6,6 +6,8 @@
 #include <usml/sensors/sensor.h>
 #include <usml/sensors/source_params_map.h>
 #include <usml/sensors/receiver_params_map.h>
+#include <usml/eigenverb/wavefront_generator.h>
+#include <usml/ocean/ocean_shared.h>
 #include <boost/foreach.hpp>
 
 using namespace usml::sensors;
@@ -78,28 +80,31 @@ void sensor::update_sensor(const wposition1& position,
 			return;
 		}
 	}
+	#ifdef USML_DEBUG
+		cout << "sensor: update_sensor(" << sensorID() << ")" << endl ;
+	#endif
 	_position = position;
 	_orientation = orientation;
-	init_wave_generator();
+	run_wave_generator();
 }
 
 /**
  * Last set of fathometers computed for this sensor.
  * Blocks during updates from the wavefront task.
- * @todo migrate to shared pointer.
  */
-proploss_shared_ptr& sensor::fathometers() {
+proploss_shared_ptr sensor::fathometers() const {
 	read_lock_guard guard(_update_fathometers_mutex);
 	return _fathometers;
 }
 
 /**
  * Asynchronous update of fathometer data from the wavefront task.
- * Passes this data onto all sensor listeners.
- * Blocks until update is complete.
  */
 void sensor::update_fathometers(shared_ptr<proploss>& fathometers) {
 	write_lock_guard guard(_update_fathometers_mutex);
+	#ifdef USML_DEBUG
+		cout << "sensor: update_fathometers(" << sensorID() << ")" << endl ;
+	#endif
 	_fathometers = fathometers;
 	sensor::reference from(this) ;
 	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
@@ -109,9 +114,8 @@ void sensor::update_fathometers(shared_ptr<proploss>& fathometers) {
 
 /**
  * Last set of eigenverbs computed for this sensor.
- * Blocks during updates from the wavefront task.
  */
-eigenverbs_shared_ptr sensor::eigenverbs() {
+eigenverbs_shared_ptr sensor::eigenverbs() const {
 	read_lock_guard guard(_update_eigenverbs_mutex);
 	return _eigenverbs;
 }
@@ -123,6 +127,9 @@ eigenverbs_shared_ptr sensor::eigenverbs() {
  */
 void sensor::update_eigenverbs( eigenverbs_shared_ptr& eigenverbs ) {
 	write_lock_guard guard(_update_eigenverbs_mutex);
+	#ifdef USML_DEBUG
+		cout << "sensor: update_eigenverbs(" << sensorID() << ")" << endl ;
+	#endif
 	_eigenverbs = eigenverbs;
 	sensor::reference from(this) ;
 	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
@@ -170,7 +177,6 @@ bool sensor::check_thresholds(const wposition1& position,
 
 /**
  * Queries the current list of sensor listener for the complements of this sensor.
- * Assumes that these listeners are sensor_pair objects.
  */
 wposition sensor::sensor_targets() {
 	read_lock_guard guard(_sensor_listeners_mutex);
@@ -198,16 +204,22 @@ wposition sensor::sensor_targets() {
 }
 
 /**
- * Initialize the wave_generator thread to start the waveq3d model.
+ * Run the wave_generator thread task to start the waveq3d model.
+ *
+ * @todo wave_generator stubbed out until after sensor_pairs tested
  */
-void sensor::init_wave_generator() {
-//    // Create the wavefront_generator
-//    wavefront_generator* generator = new wavefront_generator();
-//
-//    // Populate waveq3d settings
-//    generator->wavefront_listener(this);
-//    generator->sensor_position(_position);
-//
+void sensor::run_wave_generator() {
+	#ifdef USML_DEBUG
+		cout << "sensor: run_wave_generator(" << sensorID() << ")" << endl ;
+	#endif
+
+    // Create the wavefront_generator
+    wavefront_generator* generator = new wavefront_generator();
+
+    // Populate waveq3d settings
+    generator->wavefront_listener(this);
+    generator->sensor_position(_position);
+
 //    // Get the targets
 //    wposition targets = sensor_targets();
 //    generator->targets(targets);

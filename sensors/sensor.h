@@ -14,7 +14,6 @@
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/thread_task.h>
 #include <usml/waveq3d/proploss.h>
-#include <usml/eigenverb/eigenverb_collection.h>
 
 namespace usml {
 namespace sensors {
@@ -35,12 +34,12 @@ class USML_DECLSPEC sensor: public wavefront_listener {
 public:
 
 	/**
-	 * Data type used for beamId.
+	 * Data type used for sensorID.
 	 */
 	typedef int id_type;
 
 	/**
-	 * Data type used for reference to receiver_params.
+	 * Data type used for reference to sensor.
 	 */
 	typedef shared_ptr<sensor> reference;
 
@@ -64,9 +63,6 @@ public:
 	 * Automatically aborts wavefront task if one exists.
 	 */
 	virtual ~sensor() ;
-
-	//**************************
-	// const properties
 
 	/**
 	 * Identification used to find this sensor instance in sensor_manager.
@@ -138,7 +134,7 @@ public:
 	 * Blocks during updates from the wavefront task.
      * @todo migrate to shared pointer.
      */
-	proploss_shared_ptr& fathometers() ;
+	proploss_shared_ptr fathometers() const ;
 
 	/**
 	 * Asynchronous update of fathometer data from the wavefront task.
@@ -152,7 +148,7 @@ public:
 	 * Blocks during updates from the wavefront task.
      * @todo migrate to shared pointer.
      */
-	eigenverbs_shared_ptr eigenverbs() ;
+	eigenverbs_shared_ptr eigenverbs() const ;
 
 	/**
 	 * Asynchronous update of eigenverbs data from the wavefront task.
@@ -186,15 +182,16 @@ private:
 			const sensor_orientation& orientation );
 
 	/**
-	 * Queries the current list of sensor listener for the complements
-	 * of this sensor. Assumes that these listeners are sensor_pair objects.
+	 * Queries the current list of sensor listeners for the complements
+	 * of this sensor. Assumes that these listeners act like
+	 * sensor_pair objects.
 	 */
 	wposition sensor_targets() ;
 
 	/**
-	 * Initialize the wave_generator thread  to start the waveq3d model.
+	 * Run the wave_generator thread task to start the waveq3d model.
 	 */
-	void init_wave_generator();
+	void run_wave_generator();
 
 	/**
 	 * Identification used to find this sensor instance in sensor_manager.

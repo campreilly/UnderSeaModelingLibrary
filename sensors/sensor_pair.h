@@ -1,13 +1,9 @@
-///////////////////////////////////////////////////////////
-//  @file sensor_pair.h
-//  Definition of the sensor_pair structure.
-//  Created on:      27-Feb-2015 5:46:40 PM
-//  Original author: Ted Burns, AEgis Technologies
-///////////////////////////////////////////////////////////
-
+/**
+ * @file sensor_pair.h
+ * Container for one sensor pair instance.
+ */
 #pragma once
 
-#include <usml/usml_config.h>
 #include <usml/sensors/sensor.h>
 #include <usml/sensors/sensor_listener.h>
 #include <usml/sensors/xmitRcvModeType.h>
@@ -37,10 +33,14 @@ public:
 	/**
 	 * Data type used for reference to receiver_params.
 	 */
-	typedef shared_ptr<sensor> reference;
+	typedef shared_ptr<sensor_pair> reference;
 
     /**
-     * Constructor
+     * Construct from references to source and receiver.
+     * The source and receiver will be equal for monostatic sensors.
+     *
+     * @param	source		Shared pointer to the source for this pair.
+     * @param	receiver	Shared pointer to the receiver for this pair.
      */
     sensor_pair(sensor::reference source, sensor::reference receiver)
         : _source(source),_receiver(receiver) {};
@@ -48,9 +48,7 @@ public:
     /**
      * Destructor
      */
-    ~sensor_pair()
-    {
-
+    ~sensor_pair() {
     }
 
     /**
@@ -68,6 +66,14 @@ public:
     sensor::reference receiver() const {
         return _receiver;
     }
+
+	/**
+	 * Bistatic sensor_pairs are those for which the source and receiver
+	 * are different.  Set to false for monostatic sensors.
+	 */
+	bool multistatic() const {
+		return _source != _receiver ;
+	}
 
 	/**
 	 * Notification that new fathometer data is ready.
@@ -93,50 +99,67 @@ public:
 
 
 	/**
-	 * Queries the sensor listener for the complements of this sensor.
+	 * Queries for the sensor pair complements of this sensor.
 	 *
 	 * @param	from	Sensor that issued the notification.
 	 */
-	virtual sensor::reference sensor_complement(sensor::reference& from) ;
+	virtual sensor::reference sensor_complement(sensor::reference& from) const ;
 
 private:
 
     sensor_pair() {};
 
     /**
-     * Pointer to the source sensor.
+     * Shared pointer to the source sensor.
+     * The source and receiver will be equal for monostatic sensors.
      */
-    sensor::reference _source;
+    const sensor::reference _source;
 
     /**
-     * Pointer to the receiver sensor.
+     * Share pointer to the receiver sensor.
+     * The source and receiver will be equal for monostatic sensors.
      */
-    sensor::reference _receiver;
+    const sensor::reference _receiver;
 
     /**
-     * src proploss - contains targets and eigenrays
+     * Eigenrays that connect source and receiver locations.
      */
-    proploss_shared_ptr _src_fathometers;
+    proploss_shared_ptr _fathometers;
+
+	/**
+	 * Mutex to that locks sensor_pair during fathometer updates.
+	 */
+	mutable read_write_lock _fathometers_mutex ;
 
     /**
-     * rvc proploss - contains targets and eigenrays
-     */
-    proploss_shared_ptr _rcv_fathometers;
-
-    /**
-     * source eigenverbs - contains all source eigenverbs
+     * Interface collisions for wavefront emanating from the source.
      */
     eigenverbs_shared_ptr _src_eigenverbs;
 
+	/**
+	 * Mutex to that locks sensor_pair during source eigenverb updates.
+	 */
+	mutable read_write_lock _src_eigenverbs_mutex ;
+
     /**
-     * receiver eigenverbs - contains all receiver eigenverbs
+     * Interface collisions for wavefront emanating from the receiver.
      */
     eigenverbs_shared_ptr _rcv_eigenverbs;
+
+	/**
+	 * Mutex to that locks sensor_pair during receiver eigenverb updates.
+	 */
+	mutable read_write_lock _rcv_eigenverbs_mutex ;
 
     /**
      * envelopes - contains the Reverb envelopes
      */
     envelopes_shared_ptr _envelopes;
+
+	/**
+	 * Mutex to that locks sensor_pair during _envelope updates.
+	 */
+	mutable read_write_lock _envelopes_mutex ;
 
 };
 

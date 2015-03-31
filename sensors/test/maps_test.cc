@@ -184,13 +184,12 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 }
 
 /**
-* @ingroup sensors_test
-* Test the ability to instantiate a receiver_params_map
-* and insert several receiver_params into it.
-* Also test the find method and the destructor.
-* Generate errors if pointer values are not equal.
-* For Destructor testing run with Valgrind memcheck.
-*/
+ * @ingroup sensors_test
+ * Test the ability to instantiate a sensor_map
+ * and insert several sensor into it.
+ * Also test the find method and the destructor.
+ * Generate errors if pointer values are not equal.
+ */
 BOOST_AUTO_TEST_CASE(sensor_test) {
 
     cout << "=== maps_test: sensor_test ===" << endl;
@@ -205,31 +204,27 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
 	// setup sensor #101 with omni beam pattern
 
-	sensor_params::id_type params1 = 1 ;
+	sensor_params::id_type params1 = 12 ;
 	source_params::reference source1( new source_params(
 		params1,	// paramsID
-		false,		// multistatic
+		true,		// multistatic
 		123.0,		// source_level
 		frequencies,
 		0 ));		// beamID
 	source_params_map::instance()->insert(source1->paramsID(), source1);
-
 	sensor::id_type id1 = 101 ;
-	sensor::reference sensor1( new sensor( id1, params1, "source_101" ) ) ;
-	sensor_mgr->insert(id1,sensor1) ;
+	sensor_mgr->add_sensor(id1, params1, "source_101");
 
 	// setup sensor #212 with bad beam pattern
 
-	sensor_params::id_type params2 = 2 ;
+	sensor_params::id_type params2 = 21 ;
 	receiver_params::reference receiver2( new receiver_params(
 		params2,	// paramsID
 		true,		// multistatic
 		beamList ));
 	receiver_params_map::instance()->insert(receiver2->paramsID(), receiver2);
-
 	sensor::id_type id2 = 212 ;
-	sensor::reference sensor2( new sensor( id2, params2, "receiver_212" ) );
-	sensor_mgr->insert(id2,sensor2) ;
+	sensor_mgr->add_sensor(id2, params2, "receiver_212");
 
 	// update sensor #101 with new data
 
@@ -244,8 +239,8 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
 	source_params_map::instance()->erase(params1);
 	receiver_params_map::instance()->erase(params2);
-	sensor_mgr->erase(id1) ;
-	sensor_mgr->erase(id2) ;
+	sensor_mgr->remove_sensor(id1) ;
+	sensor_mgr->remove_sensor(id2) ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

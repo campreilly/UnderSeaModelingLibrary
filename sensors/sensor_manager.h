@@ -1,9 +1,7 @@
 /**
- *  @file sensor_manager.h
- *  Definition of the Class sensor_manager
- *  Created on: 12-Feb-2015 3:41:30 PM
+ * @file sensor_manager.h
+ * Container for all the sensor's in use by the USML.
  */
-
 #pragma once
 
 #include <usml/usml_config.h>
@@ -37,8 +35,7 @@ class sensor;
  * @version 1.0
  * @updated 27-Feb-2015 3:15:03 PM
  */
-class USML_DECLSPEC sensor_manager: public sensor_map_template<
-		const sensor::id_type, sensor::reference> {
+class USML_DECLSPEC sensor_manager {
 public:
 
 	/**
@@ -50,9 +47,9 @@ public:
 
 	/**
 	 * Construct a new instance of a specific sensor type.
-	 * Sets the position and orientation values to NAN.
-	 * These values are not set until the update_sensor()
-	 * is invoked for the first time.
+	 * Automatically invokes the sensor_pair_manager::add_sensor() on the
+	 * newly created sensor. Note that the position and orientation are not
+	 * valid until the update_sensor() is invoked for the first time.
 	 *
 	 * @param sensorID		Identification used to find this sensor instance
 	 * 						in sensor_manager.
@@ -72,7 +69,7 @@ public:
 	 * 						in sensor_manager.
 	 * @return 				False if sensorID was not found.
 	 */
-	bool remove_sensor(const sensor::id_type sensorID);
+	bool remove_sensor(sensor::id_type sensorID);
 
 	/**
 	 * Updates an existing sensor instance by sensorID.
@@ -85,8 +82,19 @@ public:
 	 * @param force_update	When true, forces update without checking thresholds.
 	 * @return 				False if sensorID was not found.
 	 */
-	bool update_sensor(const sensor::id_type sensorID, const wposition1& position,
+	bool update_sensor(sensor::id_type sensorID, const wposition1& position,
 			const sensor_orientation& orientation, bool force_update = false);
+
+	/**
+	 * Finds the sensor parameters associated with the keyID.
+	 *
+	 * @param 	keyID 	Key used to lookup the sensor type parameters.
+	 * @return			Sensor parameters if found, blank entry if not.
+	 */
+	sensor::reference find(sensor::id_type keyID) const {
+		return _map.find(keyID) ;
+	}
+
 
 private:
 
@@ -96,9 +104,19 @@ private:
 	static unique_ptr<sensor_manager> _instance;
 
 	/**
-	 * The _mutex for the singleton pointer.
+	 * The mutex for the singleton pointer.
 	 */
 	static read_write_lock _instance_mutex;
+
+	/**
+	 * The mutex for adding and removing sensors in manager.
+	 */
+	mutable read_write_lock _manager_mutex;
+
+	/**
+	 * Container used to store sensors.
+	 */
+	sensor_map_template<sensor::id_type, sensor::reference> _map ;
 };
 
 /// @}

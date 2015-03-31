@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <usml/usml_config.h>
+#include <usml/ublas/ublas.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/smart_ptr.h>
 #include <map>
@@ -12,6 +12,7 @@
 namespace usml {
 namespace sensors {
 
+using namespace usml::ublas;
 using namespace usml::threads;
 
 /// @ingroup sensors
@@ -45,7 +46,6 @@ public:
 	 */
 	typedef std::map<key_type, mapped_type> container ;
 
-
 	/**
 	 * Finds the sensor parameters associated with the keyID.
 	 *
@@ -54,8 +54,7 @@ public:
 	 */
 	mapped_type find(key_type keyID) const {
 		read_lock_guard guard(_map_mutex);
-		if (_map.count(keyID) == 0)
-			return mapped_type();
+		if (_map.count(keyID) == 0) return mapped_type();
 		return _map.find(keyID)->second;
 	}
 
@@ -69,8 +68,7 @@ public:
 	 */
 	bool insert(key_type keyID, mapped_type mapped) {
 		write_lock_guard guard(_map_mutex);
-		if (_map.count(keyID) != 0)
-			return false;
+		if (_map.count(keyID) != 0) return false;
 		_map[keyID] = mapped;
 		return true;
 	}
@@ -83,22 +81,19 @@ public:
 	 */
 	bool erase(key_type keyID) {
 		write_lock_guard guard(_map_mutex);
-		if (_map.count(keyID) == 0)
-			return false;
+		if (_map.count(keyID) == 0) return false;
 		_map.erase(keyID);
 		return true;
 	}
 
-protected:
-
 	/**
-	 * Limit access to default constructor.
+	 * Default constructor.
 	 */
 	sensor_map_template() {
 	}
 
 	/**
-	 * Limit access to virtual destructor.
+	 * Virtual destructor.
 	 */
 	virtual ~sensor_map_template() {
 	}

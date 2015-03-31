@@ -1,9 +1,7 @@
 /**
- *  @file sensor_manager.cc
- *  Implementation of the sensor_manager
- *  Created on: 12-Feb-2015 3:41:31 PM
+ * @file sensor_manager.cc
+ * Container for all the sensor's in use by the USML.
  */
-
 #include <usml/sensors/sensor_manager.h>
 
 using namespace usml::sensors;
@@ -36,23 +34,40 @@ sensor_manager* sensor_manager::instance() {
 
 /**
  * Construct a new instance of a specific sensor type.
+ * @todo re-connect to sensor_pair_manager
  */
 bool sensor_manager::add_sensor(sensor::id_type sensorID,
 		sensor_params::id_type paramsID, const std::string& description )
 {
-	if (find(sensorID) != 0) {
+	write_lock_guard guard(_manager_mutex);
+	if (find(sensorID) != NULL ) {
 		return false;
 	}
-	sensor::reference created( new sensor(sensorID, paramsID, description));
-	return insert(sensorID,created);
+	#ifdef USML_DEBUG
+	    cout << "******" << endl ;
+		cout << "sensor_manager: add sensor(" << sensorID << ")" << endl ;
+	#endif
+
+	sensor::reference created(new sensor(sensorID, paramsID, description));
+	_map.insert(sensorID, created);
+	sensor_pair_manager::instance()->add_sensor(created) ;
+	return true ;
 }
 
 /**
  * Removes an existing sensor instance by sensorID.
+ * @todo re-connect to sensor_pair_manager
  */
-bool sensor_manager::remove_sensor(const sensor::id_type sensorID) {
-	// sensor_pair_manager::instance()->remove_sensor(find(sensorID));
-	return erase(sensorID);
+bool sensor_manager::remove_sensor(sensor::id_type sensorID) {
+	write_lock_guard guard(_manager_mutex);
+	#ifdef USML_DEBUG
+    	cout << "******" << endl ;
+		cout << "sensor_manager: remove sensor(" << sensorID << ")" << endl ;
+	#endif
+	sensor::reference removed = _map.find(sensorID) ;
+	if ( removed.get() == NULL ) return false ;
+	sensor_pair_manager::instance()->remove_sensor(removed) ;
+	return _map.erase(sensorID);
 }
 
 /**
@@ -62,6 +77,11 @@ bool sensor_manager::update_sensor(const sensor::id_type sensorID,
 		const wposition1& position, const sensor_orientation& orientation,
 		bool force_update)
 {
+	write_lock_guard guard(_manager_mutex);
+	#ifdef USML_DEBUG
+		cout << "******" << endl ;
+		cout << "sensor_manager: update sensor(" << sensorID << ")" << endl ;
+	#endif
 	sensor::reference current_sensor = find(sensorID);
 	if (current_sensor.get() != NULL ) {
 		current_sensor->update_sensor(position, orientation, force_update);

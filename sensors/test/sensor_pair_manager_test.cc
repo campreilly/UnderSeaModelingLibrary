@@ -1,17 +1,14 @@
 /**
  * @example sensors/test/sensor_pair_manager_test.cc
  */
+#include <usml/sensors/sensor_pair_manager.h>
 #include <boost/test/unit_test.hpp>
 #include <boost/progress.hpp>
-
 #include <iostream>
-
-#include <usml/sensors/sensor_pair_manager.h>
 
 BOOST_AUTO_TEST_SUITE(sensor_pair_manager_test)
 
 using namespace boost::unit_test;
-
 using namespace usml::sensors;
 
 /**
@@ -91,17 +88,17 @@ class thread_tester : public thread_test_base
     // add_sensor, remove_sensor, and update_sensor methods from multiple threads.
     virtual void test()
     {
-        sensor::id_type sensors[] = {1, 3, 4, 6, 7, 9};
-
-        xmitRcvModeType sensor_type[] = {usml::sensors::BOTH,     // 1
-                                     usml::sensors::SOURCE,   // 3
-                                     usml::sensors::RECEIVER, // 4
-                                     usml::sensors::SOURCE,   // 6
-                                     usml::sensors::SOURCE,   // 7
-                                     usml::sensors::BOTH };   // 9
-
-        wposition1 pos(0.0, 0.0, 0.0);
-
+//        sensor::id_type sensors[] = {1, 3, 4, 6, 7, 9};
+//
+//        xmitRcvModeType sensor_type[] = {usml::sensors::BOTH,     // 1
+//                                     usml::sensors::SOURCE,   // 3
+//                                     usml::sensors::RECEIVER, // 4
+//                                     usml::sensors::SOURCE,   // 6
+//                                     usml::sensors::SOURCE,   // 7
+//                                     usml::sensors::BOTH };   // 9
+//
+//        wposition1 pos(0.0, 0.0, 0.0);
+//
 //        for ( unsigned i = 0; i < sizeof(sensors)/sizeof(sensor::id_type); ++i )
 //        {
 //            cout << "=== sensor_pair_manager_test: add_sensor sensorID "<< sensors[i] << " Type "<< sensor_type[i]  << endl;

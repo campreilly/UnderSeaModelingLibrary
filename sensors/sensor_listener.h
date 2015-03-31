@@ -62,11 +62,11 @@ public:
 
 
 	/**
-	 * Queries the sensor listener for the complements of this sensor.
+	 * Queries for the sensor pair complements of this sensor.
 	 *
 	 * @param	from	Sensor that issued the notification.
 	 */
-	virtual shared_ptr<sensor> sensor_complement(shared_ptr<sensor>& from) = 0;
+	virtual shared_ptr<sensor> sensor_complement(shared_ptr<sensor>& from) const = 0;
 
 protected:
 
