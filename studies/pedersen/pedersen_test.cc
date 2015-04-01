@@ -260,7 +260,7 @@ BOOST_AUTO_TEST_CASE( pedersen_deep_raytrace ) {
 }
 
 /**
- * Tests the accuracy of the proploss model against the analytic
+ * Tests the accuracy of the eigenray_collection model against the analytic
  * solution for N^2 linear test case developed by Pedersen/Gordon.
  *
  * @param   time_step       Size of the time step to used in model (sec)
@@ -293,16 +293,16 @@ void analyze_proploss(
         target.latitude( n, 0, LAT_SOURCE + to_degrees(angle) );
     }
 
-    proploss loss(freq, pos, de, az, time_inc, &target);
+    eigenray_collection loss(freq, pos, de, az, time_inc, &target);
 
     wave_queue wave( *ocean, freq, pos, de, az, time_inc, &target ) ;
 
-    if (!wave.addEigenrayListener(&loss)) {
-    	cout << "Error adding proploss listener! " << endl ;
+    if (!wave.add_eigenray_listener(&loss)) {
+    	cout << "Error adding eigenray_collection listener! " << endl ;
     	exit(1);
     }
 
-    // compute the proploss and store eigenrays to disk
+    // compute the eigenray_collection and store eigenrays to disk
 
     cout << "propagate wavefronts" << endl;
     while ( wave.time() < time_max ) {
@@ -339,7 +339,7 @@ void analyze_proploss(
 }
 
 /**
- * Tests the accuracy of the proploss model against the analytic solution for
+ * Tests the accuracy of the eigenray_collection model against the analytic solution for
  * the shallow source, N^2 linear test case developed by Pedersen and Gordon.
  * The source is located at a depth of 75 meters. Receivers have a depth of
  * 75 meters and ranges from 500 to 1000 yds. Uses rays from 0 to 30 degrees at
@@ -362,7 +362,7 @@ BOOST_AUTO_TEST_CASE( pedersen_shallow_proploss ) {
 }
 
 /**
- * Tests the accuracy of the proploss model against the analytic solution for
+ * Tests the accuracy of the eigenray_collection model against the analytic solution for
  * the deep source, N^2 linear test case developed by Pedersen and Gordon.
  * The source is located at a depth of 1000 meters. Receivers have a depth of
  * 800 meters and ranges from 3000 to 3120 meters. Uses rays from 20
@@ -391,7 +391,7 @@ BOOST_AUTO_TEST_CASE( pedersen_deep_proploss ) {
 }
 
 /**
- * Tests the sensitivity of the proploss model the D/E angular resolution
+ * Tests the sensitivity of the eigenray_collection model the D/E angular resolution
  * near the caustic. The source is located at a depth of 1000 yds. Receivers
  * have a depth of 800 yds and ranges from 3100 to 3180 yds. Uses a ray fan
  * from +40 to +51 degrees with increments of 0.025, 0.05, 0.10, and 0.20

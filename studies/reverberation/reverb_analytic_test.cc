@@ -139,7 +139,7 @@ private:
 //     */
 //    void wait_for_results() {
 //        sensor_pair_manager* manager = sensor_pair_manager::instance() ;
-//        proploss* fathometers = NULL ;
+//        eigenray_collection* fathometers = NULL ;
 //        envelope_collection* envelopes = NULL ;
 //
 //        // wait for results

@@ -7,7 +7,7 @@
 #include <usml/sensors/sensor.h>
 #include <usml/sensors/sensor_listener.h>
 #include <usml/sensors/xmitRcvModeType.h>
-#include <usml/waveq3d/proploss.h>
+#include <usml/waveq3d/eigenray_collection.h>
 #include <usml/eigenverb/envelope_collection.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 
@@ -124,7 +124,7 @@ private:
     /**
      * Eigenrays that connect source and receiver locations.
      */
-    proploss_shared_ptr _fathometers;
+    eigenray_collection::reference _fathometers;
 
 	/**
 	 * Mutex to that locks sensor_pair during fathometer updates.
@@ -134,7 +134,7 @@ private:
     /**
      * Interface collisions for wavefront emanating from the source.
      */
-    eigenverbs_shared_ptr _src_eigenverbs;
+    eigenverb_collection::reference _src_eigenverbs;
 
 	/**
 	 * Mutex to that locks sensor_pair during source eigenverb updates.
@@ -144,7 +144,7 @@ private:
     /**
      * Interface collisions for wavefront emanating from the receiver.
      */
-    eigenverbs_shared_ptr _rcv_eigenverbs;
+    eigenverb_collection::reference _rcv_eigenverbs;
 
 	/**
 	 * Mutex to that locks sensor_pair during receiver eigenverb updates.
@@ -154,7 +154,7 @@ private:
     /**
      * envelopes - contains the Reverb envelopes
      */
-    envelopes_shared_ptr _envelopes;
+    envelope_collection::reference _envelopes;
 
 	/**
 	 * Mutex to that locks sensor_pair during _envelope updates.

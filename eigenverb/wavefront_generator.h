@@ -12,7 +12,7 @@
 #include <usml/types/seq_data.h>
 #include <usml/threads/thread_task.h>
 #include <usml/ocean/ocean_shared.h>
-#include <usml/waveq3d/proploss.h>
+#include <usml/waveq3d/eigenray_collection.h>
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/eigenray_listener.h>
 #include <usml/eigenverb/wavefront_listener.h>

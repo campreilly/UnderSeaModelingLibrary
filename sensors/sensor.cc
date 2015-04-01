@@ -92,7 +92,7 @@ void sensor::update_sensor(const wposition1& position,
  * Last set of fathometers computed for this sensor.
  * Blocks during updates from the wavefront task.
  */
-proploss_shared_ptr sensor::fathometers() const {
+eigenray_collection::reference sensor::fathometers() const {
 	read_lock_guard guard(_update_fathometers_mutex);
 	return _fathometers;
 }
@@ -100,7 +100,7 @@ proploss_shared_ptr sensor::fathometers() const {
 /**
  * Asynchronous update of fathometer data from the wavefront task.
  */
-void sensor::update_fathometers(shared_ptr<proploss>& fathometers) {
+void sensor::update_fathometers(shared_ptr<eigenray_collection>& fathometers) {
 	write_lock_guard guard(_update_fathometers_mutex);
 	#ifdef USML_DEBUG
 		cout << "sensor: update_fathometers(" << sensorID() << ")" << endl ;
@@ -115,7 +115,7 @@ void sensor::update_fathometers(shared_ptr<proploss>& fathometers) {
 /**
  * Last set of eigenverbs computed for this sensor.
  */
-eigenverbs_shared_ptr sensor::eigenverbs() const {
+eigenverb_collection::reference sensor::eigenverbs() const {
 	read_lock_guard guard(_update_eigenverbs_mutex);
 	return _eigenverbs;
 }
@@ -125,7 +125,7 @@ eigenverbs_shared_ptr sensor::eigenverbs() const {
  * Passes this data onto all sensor listeners.
  * Blocks until update is complete.
  */
-void sensor::update_eigenverbs( eigenverbs_shared_ptr& eigenverbs ) {
+void sensor::update_eigenverbs( eigenverb_collection::reference& eigenverbs ) {
 	write_lock_guard guard(_update_eigenverbs_mutex);
 	#ifdef USML_DEBUG
 		cout << "sensor: update_eigenverbs(" << sensorID() << ")" << endl ;

@@ -248,7 +248,6 @@ class USML_DECLSPEC wave_front {
 
         /**
          * Position of each eigenray target.
-         * Reference to data managed by proploss class.
          * Eigenrays are not computed if this reference is NULL.
          */
         const wposition* targets ;
@@ -295,7 +294,6 @@ class USML_DECLSPEC wave_front {
 
         /**
          * Sin of colatitude for targets (cached intermediate term).
-         * Reference to data managed by proploss class.
          * Not used if eigenrays are not being computed.
          */
         const matrix<double>* _target_sin_theta ;

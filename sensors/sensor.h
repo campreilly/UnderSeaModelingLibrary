@@ -13,7 +13,7 @@
 #include <usml/sensors/xmitRcvModeType.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/thread_task.h>
-#include <usml/waveq3d/proploss.h>
+#include <usml/waveq3d/eigenray_collection.h>
 
 namespace usml {
 namespace sensors {
@@ -134,28 +134,28 @@ public:
 	 * Blocks during updates from the wavefront task.
      * @todo migrate to shared pointer.
      */
-	proploss_shared_ptr fathometers() const ;
+	eigenray_collection::reference fathometers() const ;
 
 	/**
 	 * Asynchronous update of fathometer data from the wavefront task.
      * Passes this data onto all sensor listeners.
 	 * Blocks until update is complete.
 	 */
-	virtual void update_fathometers( proploss_shared_ptr& fathometers ) ;
+	virtual void update_fathometers( eigenray_collection::reference& fathometers ) ;
 
     /**
      * Last set of eigenverbs computed for this sensor.
 	 * Blocks during updates from the wavefront task.
      * @todo migrate to shared pointer.
      */
-	eigenverbs_shared_ptr eigenverbs() const ;
+	eigenverb_collection::reference eigenverbs() const ;
 
 	/**
 	 * Asynchronous update of eigenverbs data from the wavefront task.
 	 * Passes this data onto all sensor listeners.
 	 * Blocks until update is complete.
 	 */
-	virtual void update_eigenverbs( eigenverbs_shared_ptr& eigenverbs) ;
+	virtual void update_eigenverbs( eigenverb_collection::reference& eigenverbs) ;
 
 	/**
 	 * Add a sensor_listener to the _sensor_listeners list
@@ -239,7 +239,7 @@ private:
      * Last set of fathometers computed for this sensor.
      * @todo migrate to shared pointer.
      */
-    proploss_shared_ptr _fathometers;
+    eigenray_collection::reference _fathometers;
 
 	/**
 	 * Mutex to that locks sensor during update_fathometers.

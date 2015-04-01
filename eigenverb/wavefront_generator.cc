@@ -5,7 +5,7 @@
  *      Author: Ted Burns, AEgis Technologies Group, Inc.
  */
 
-#include <usml/waveq3d/proploss.h>
+#include <usml/waveq3d/eigenray_collection.h>
 #include <usml/eigenverb/wavefront_generator.h>
 
 using namespace usml::eigenverb ;
@@ -41,7 +41,7 @@ void wavefront_generator::run()
     bool print_out = true;
 
     /** Pointer to Proploss object */
-    proploss* fathometers;
+    eigenray_collection* fathometers;
 
     // check to see if WaveQ3D propagation model task has already been aborted
 
@@ -65,12 +65,12 @@ void wavefront_generator::run()
     seq_linear az(0.0, 180.0, number_az, true);
 
 
-    fathometers = new proploss(*(_frequencies), _sensor_position, de, az, time_step, &_targets);
+    fathometers = new eigenray_collection(*(_frequencies), _sensor_position, de, az, time_step, &_targets);
 
     wave_queue wqWave(*(_ocean.get()), *(_frequencies), _sensor_position, de, az, time_step, &_targets, _runID,
                                                                 usml::waveq3d::wave_queue::HYBRID_GAUSSIAN);
 
-    wqWave.addEigenrayListener(fathometers);
+    wqWave.add_eigenray_listener(fathometers);
 
     //wqWave.intensity_threshold(_intensity_threshold);
 
@@ -101,7 +101,7 @@ void wavefront_generator::run()
         fathometers->write_netcdf(ncname_proploss);
     }
 
-    proploss_shared_ptr result(fathometers) ;
+    eigenray_collection::reference result(fathometers) ;
     _wavefront_listener->update_fathometers(result);
 
     // mark task as complete
