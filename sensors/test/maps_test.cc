@@ -212,7 +212,7 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 		frequencies,
 		0 ));		// beamID
 	source_params_map::instance()->insert(source1->paramsID(), source1);
-	sensor::id_type id1 = 101 ;
+	sensor_model::id_type id1 = 101 ;
 	sensor_mgr->add_sensor(id1, params1, "source_101");
 
 	// setup sensor #212 with bad beam pattern
@@ -223,12 +223,12 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 		true,		// multistatic
 		beamList ));
 	receiver_params_map::instance()->insert(receiver2->paramsID(), receiver2);
-	sensor::id_type id2 = 212 ;
+	sensor_model::id_type id2 = 212 ;
 	sensor_mgr->add_sensor(id2, params2, "receiver_212");
 
 	// update sensor #101 with new data
 
-    sensor::reference m1 = sensor_mgr->find(id1);
+    sensor_model::reference m1 = sensor_mgr->find(id1);
 	wposition1 pos( 1.0, 2.0, 3.0 ) ;			// arbitrary location
 	sensor_orientation orient( 4.0, 5.0 ) ;		// tilt and direction
 	if ( ! sensor_mgr->update_sensor(id1,pos,orient,true) ) {

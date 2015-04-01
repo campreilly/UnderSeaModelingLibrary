@@ -88,7 +88,7 @@ class thread_tester : public thread_test_base
     // add_sensor, remove_sensor, and update_sensor methods from multiple threads.
     virtual void test()
     {
-//        sensor::id_type sensors[] = {1, 3, 4, 6, 7, 9};
+//        sensor_model::id_type sensors[] = {1, 3, 4, 6, 7, 9};
 //
 //        xmitRcvModeType sensor_type[] = {usml::sensors::BOTH,     // 1
 //                                     usml::sensors::SOURCE,   // 3
@@ -99,7 +99,7 @@ class thread_tester : public thread_test_base
 //
 //        wposition1 pos(0.0, 0.0, 0.0);
 //
-//        for ( unsigned i = 0; i < sizeof(sensors)/sizeof(sensor::id_type); ++i )
+//        for ( unsigned i = 0; i < sizeof(sensors)/sizeof(sensor_model::id_type); ++i )
 //        {
 //            cout << "=== sensor_pair_manager_test: add_sensor sensorID "<< sensors[i] << " Type "<< sensor_type[i]  << endl;
 //            // Randomly wait from 0.1 seconds to 1.0 seconds
@@ -179,7 +179,7 @@ BOOST_AUTO_TEST_CASE(add_remove_test) {
 
     sensor_pair_manager* sp_manager = sensor_pair_manager::instance();
 
-    sensor::id_type sensors[] = {1, 3, 4, 6, 7, 9};
+    sensor_model::id_type sensors[] = {1, 3, 4, 6, 7, 9};
 
     xmitRcvModeType sensor_type[] = {usml::sensors::BOTH,     // 1
                                      usml::sensors::SOURCE,   // 3
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(add_remove_test) {
 
      wposition1 pos(0.0, 0.0, 0.0);
 
-//    for ( unsigned i = 0; i < sizeof(sensors)/sizeof(sensor::id_type); ++i )
+//    for ( unsigned i = 0; i < sizeof(sensors)/sizeof(sensor_model::id_type); ++i )
 //    {
 //        //cout << "=== sensor_pair_manager_test: add_sensor sensorID "<< sensors[i] << " Type "<< sensor_type[i]  << endl;
 //        sensor* sensor_ = new sensor(sensors[i], 0, sensor_type[i], pos, 0.0, 0.0);
@@ -222,12 +222,12 @@ BOOST_AUTO_TEST_CASE(add_remove_test) {
 //    }
 //
 //     // Expected map contents
-//     sensor::id_type srcID_remaining[] = {6, 7, 9};
-//     sensor::id_type rcvID_remaining = 9;
+//     sensor_model::id_type srcID_remaining[] = {6, 7, 9};
+//     sensor_model::id_type rcvID_remaining = 9;
 //
 //     sensor_pair_manager::sensor_pair_map_type::iterator  sp_map_iter;
 //     const sensor_pair_manager::sensor_pair_map_type* sp_map = sp_manager->sensor_pair_map();
-//     if (sp_map->size() != sizeof(srcID_remaining)/sizeof(sensor::id_type)) {
+//     if (sp_map->size() != sizeof(srcID_remaining)/sizeof(sensor_model::id_type)) {
 //
 //         BOOST_FAIL("sensor_pair_manager_test:: sensor_pair_map size not correct");
 //     }
@@ -235,9 +235,9 @@ BOOST_AUTO_TEST_CASE(add_remove_test) {
 //     {
 //         cout << "Remaining sensor_pairs in map as expected : " << endl;
 //         // loop through each sensor_pair to verify expected map contents.
-//         for (unsigned i  = 0; i < sizeof(srcID_remaining)/sizeof(sensor::id_type); ++i)
+//         for (unsigned i  = 0; i < sizeof(srcID_remaining)/sizeof(sensor_model::id_type); ++i)
 //         {
-//             sensor::id_type sourceID = srcID_remaining[i];
+//             sensor_model::id_type sourceID = srcID_remaining[i];
 //             std::stringstream hash_key;
 //             hash_key<< sourceID << "_" <<  rcvID_remaining;
 //             sensor_pair* the_sensor_pair = sp_map->find(hash_key.str())->second;

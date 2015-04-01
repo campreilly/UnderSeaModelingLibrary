@@ -4,12 +4,12 @@
  */
 #pragma once
 
-#include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_model.h>
 
 namespace usml {
 namespace sensors {
 
-class sensor;
+class sensor_model;
 
 using namespace usml::sensors ;
 
@@ -41,32 +41,32 @@ public:
 	/**
 	 * Notification that new fathometer data is ready.
 	 *
-	 * @param	from	Sensor that issued the notification.
+	 * @param	sensor	Sensor that issued the notification.
 	 */
-	virtual void update_fathometers(shared_ptr<sensor>& from) = 0;
+	virtual void update_fathometers(shared_ptr<sensor_model>& sensor) = 0;
 
 	/**
 	 * Notification that new eigenverb data is ready.
 	 *
-	 * @param	from	Sensor that issued the notification.
+	 * @param	sensor	Sensor that issued the notification.
 	 */
-	virtual void update_eigenverbs(shared_ptr<sensor>& from) = 0;
+	virtual void update_eigenverbs(shared_ptr<sensor_model>& sensor) = 0;
 
 
 	/**
 	 * Notification that a sensor is about to be deleted.
 	 *
-	 * @param	from	Sensor that issued the notification.
+	 * @param	sensor	Sensor that issued the notification.
 	 */
-	virtual void remove_sensor(shared_ptr<sensor>& from) = 0;
+	virtual void remove_sensor(shared_ptr<sensor_model>& sensor) = 0;
 
 
 	/**
 	 * Queries for the sensor pair complements of this sensor.
 	 *
-	 * @param	from	Sensor that issued the notification.
+	 * @param	sensor	Sensor that issued the notification.
 	 */
-	virtual shared_ptr<sensor> sensor_complement(shared_ptr<sensor>& from) const = 0;
+	virtual shared_ptr<sensor_model> sensor_complement(shared_ptr<sensor_model>& sensor) const = 0;
 
 protected:
 

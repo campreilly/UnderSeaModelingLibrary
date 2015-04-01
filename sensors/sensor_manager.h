@@ -7,7 +7,7 @@
 #include <usml/usml_config.h>
 
 #include <usml/threads/threads.h>
-#include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_params.h>
 #include <usml/sensors/sensor_pair_manager.h>
 #include <usml/sensors/source_params_map.h>
@@ -28,7 +28,7 @@ class sensor;
  * Container for all the sensor's in use by the USML. This class inherits from
  * the map_template class. This class implements the singleton GOF pattern.
  * The map stores pointers to sensor's and take's ownership of the pointers.
- * See usml/sensors/map_template.h A typedef of sensor::id_type has been defined
+ * See usml/sensors/map_template.h A typedef of sensor_model::id_type has been defined
  * to allow for modification of the key of the map at a later time if needed.
  *
  * @author Ted Burns, AEgis Technologies Group, Inc.
@@ -58,7 +58,7 @@ public:
 	 * @param description	Human readable name for this sensor instance.
 	 * @return 				False if sensorID already exists.
 	 */
-	bool add_sensor(sensor::id_type sensorID, sensor_params::id_type paramsID,
+	bool add_sensor(sensor_model::id_type sensorID, sensor_params::id_type paramsID,
 			const std::string& description = std::string());
 
 	/**
@@ -69,7 +69,7 @@ public:
 	 * 						in sensor_manager.
 	 * @return 				False if sensorID was not found.
 	 */
-	bool remove_sensor(sensor::id_type sensorID);
+	bool remove_sensor(sensor_model::id_type sensorID);
 
 	/**
 	 * Updates an existing sensor instance by sensorID.
@@ -82,7 +82,7 @@ public:
 	 * @param force_update	When true, forces update without checking thresholds.
 	 * @return 				False if sensorID was not found.
 	 */
-	bool update_sensor(sensor::id_type sensorID, const wposition1& position,
+	bool update_sensor(sensor_model::id_type sensorID, const wposition1& position,
 			const sensor_orientation& orientation, bool force_update = false);
 
 	/**
@@ -91,7 +91,7 @@ public:
 	 * @param 	keyID 	Key used to lookup the sensor type parameters.
 	 * @return			Sensor parameters if found, blank entry if not.
 	 */
-	sensor::reference find(sensor::id_type keyID) const {
+	sensor_model::reference find(sensor_model::id_type keyID) const {
 		return _map.find(keyID) ;
 	}
 
@@ -116,7 +116,7 @@ private:
 	/**
 	 * Container used to store sensors.
 	 */
-	sensor_map_template<sensor::id_type, sensor::reference> _map ;
+	sensor_map_template<sensor_model::id_type, sensor_model::reference> _map ;
 };
 
 /// @}

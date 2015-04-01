@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_pair.h>
 #include <usml/sensors/sensor_map_template.h>
 #include <usml/threads/read_write_lock.h>
@@ -48,14 +48,14 @@ public:
 	 * @param sourceID ID for the source
 	 * @return eigenray_collection pointer
 	 */
-//	eigenray_collection* get_fathometers(sensor::id_type sourceID);
+//	eigenray_collection* get_fathometers(sensor_model::id_type sourceID);
 
 	/**
 	 * Gets the envelopes for the receiverID requested
 	 * @param receiverID ID for the receiver
 	 * @return envelopes in the envelope_collection pointer
 	 */
-//	envelope_collection* get_envelopes(sensor::id_type receiverID);
+//	envelope_collection* get_envelopes(sensor_model::id_type receiverID);
 
 	/**
 	 * Builds new sensor_pair objects in reaction to notification
@@ -72,7 +72,7 @@ public:
 	 *
 	 * @param	from	Sensor that is being added.
 	 */
-	void add_sensor(sensor::reference& from);
+	void add_sensor(sensor_model::reference& sensor);
 
 	/**
 	 * Removes existing sensor_pair objects in reaction to notification
@@ -80,7 +80,7 @@ public:
 	 *
 	 * @param	from	Sensor that is being removed.
 	 */
-	void remove_sensor(sensor::reference& from);
+	void remove_sensor(sensor_model::reference& sensor);
 
 private:
 
@@ -89,7 +89,7 @@ private:
 	 *
 	 * @param	sensor		Source/receiver combo for this pair
 	 */
-	void add_monostatic_pair(sensor::reference& sensor);
+	void add_monostatic_pair(sensor_model::reference& sensor);
 
 	/**
 	 * Utility to build a multistatic pair from the source.
@@ -98,7 +98,7 @@ private:
 	 *
 	 * @param	source		Sensor that needs to be paired with receivers.
 	 */
-	void add_multistatic_source(sensor::reference& source);
+	void add_multistatic_source(sensor_model::reference& source);
 
 	/**
 	 * Utility to delete a multistatic pair from the receiver.
@@ -108,14 +108,14 @@ private:
 	 *
 	 * @param	sensor		Sensor that needs to be paired with sources.
 	 */
-	void add_multistatic_receiver(sensor::reference& receiver);
+	void add_multistatic_receiver(sensor_model::reference& receiver);
 
 	/**
 	 * Utility to build a monostatic pair
 	 *
 	 * @param	sensor		Source/receiver combo for this pair
 	 */
-	void remove_monostatic_pair(sensor::reference& sensor);
+	void remove_monostatic_pair(sensor_model::reference& sensor);
 
 	/**
 	 * Utility to delete a multistatic pair from the source.
@@ -124,7 +124,7 @@ private:
 	 *
 	 * @param	source		Sensor that needs to be paired with receivers.
 	 */
-	void remove_multistatic_source(sensor::reference& source);
+	void remove_multistatic_source(sensor_model::reference& source);
 
 	/**
 	 * Utility to delete a multistatic pair from the receiver.
@@ -134,7 +134,7 @@ private:
 	 *
 	 * @param	sensor		Sensor that needs to be paired with sources.
 	 */
-	void remove_multistatic_receiver(sensor::reference& receiver);
+	void remove_multistatic_receiver(sensor_model::reference& receiver);
 
 	/**
 	 * Hide access to default constructor.
@@ -171,13 +171,13 @@ private:
      * List of all active source sensor IDs.  Used by add_sensor() to find
      * find the receivers that may need to be paired with each incoming source.
      */
-    std::set <sensor::id_type> _src_list;
+    std::set <sensor_model::id_type> _src_list;
 
     /**
      * List of all active receiver sensor IDs.  Used by add_sensor() to find
      * find the sources that may need to be paired with each incoming receiver.
      */
-    std::set <sensor::id_type> _rcv_list;
+    std::set <sensor_model::id_type> _rcv_list;
 
 	/**
 	 * Container for storing the sensor pair objects.

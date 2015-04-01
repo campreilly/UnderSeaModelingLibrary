@@ -2,7 +2,7 @@
  * @file source_params_map.cc
  * Singleton map of source parameters.
  */
-#include "source_params_map.h"
+#include <usml/sensors/source_params_map.h>
 
 using namespace usml::sensors;
 

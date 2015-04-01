@@ -38,25 +38,25 @@ sensor_pair_manager* sensor_pair_manager::instance() {
  * Builds new sensor_pair objects in reaction to notification
  * that a sensor is being added.
  */
-void sensor_pair_manager::add_sensor(sensor::reference& from) {
+void sensor_pair_manager::add_sensor(sensor_model::reference& sensor) {
 	write_lock_guard guard(_manager_mutex);
 	#ifdef USML_DEBUG
 		cout << "sensor_pair_manager: add sensor("
-		<< from->sensorID() << ")" << endl;
+		<< sensor->sensorID() << ")" << endl;
 	#endif
 
 	// add sensorID to the lists of active sources and receivers
 
-	switch (from->mode()) {
+	switch (sensor->mode()) {
 	case usml::sensors::SOURCE:
-		_src_list.insert(from->sensorID());
+		_src_list.insert(sensor->sensorID());
 		break;
 	case usml::sensors::RECEIVER:
-		_rcv_list.insert(from->sensorID());
+		_rcv_list.insert(sensor->sensorID());
 		break;
 	case usml::sensors::BOTH:
-		_src_list.insert(from->sensorID());
-		_rcv_list.insert(from->sensorID());
+		_src_list.insert(sensor->sensorID());
+		_rcv_list.insert(sensor->sensorID());
 		break;
 	default:
 		break;
@@ -64,19 +64,19 @@ void sensor_pair_manager::add_sensor(sensor::reference& from) {
 
 	// add monostatic pair for sensors when mode=BOTH
 
-	if (from->mode() == usml::sensors::BOTH) {
-		add_monostatic_pair(from);
+	if (sensor->mode() == usml::sensors::BOTH) {
+		add_monostatic_pair(sensor);
 
 	// add multistatic pairs when multistatic is true
 
 	} else {
-		if (from->mode() == usml::sensors::SOURCE) {
-			if (from->source()->multistatic()) {
-				add_multistatic_source(from);
+		if (sensor->mode() == usml::sensors::SOURCE) {
+			if (sensor->source()->multistatic()) {
+				add_multistatic_source(sensor);
 			}
 		} else {
-			if (from->receiver()->multistatic()) {
-				add_multistatic_receiver(from);
+			if (sensor->receiver()->multistatic()) {
+				add_multistatic_receiver(sensor);
 			}
 		}
 	}
@@ -86,25 +86,25 @@ void sensor_pair_manager::add_sensor(sensor::reference& from) {
  * Removes existing sensor_pair objects in reaction to notification
  * that a sensor is about to be deleted.
  */
-void sensor_pair_manager::remove_sensor(sensor::reference& from) {
+void sensor_pair_manager::remove_sensor(sensor_model::reference& sensor) {
 	write_lock_guard guard(_manager_mutex);
 	#ifdef USML_DEBUG
 		cout << "sensor_pair_manager: remove sensor("
-		<< from->sensorID() << ")" << endl;
+		<< sensor->sensorID() << ")" << endl;
 	#endif
 
 	// remove sensorID to the lists of active sources and receivers
 
-	switch (from->mode()) {
+	switch (sensor->mode()) {
 	case usml::sensors::SOURCE:
-		_src_list.erase(from->sensorID());
+		_src_list.erase(sensor->sensorID());
 		break;
 	case usml::sensors::RECEIVER:
-		_rcv_list.erase(from->sensorID());
+		_rcv_list.erase(sensor->sensorID());
 		break;
 	case usml::sensors::BOTH:
-		_src_list.erase(from->sensorID());
-		_rcv_list.erase(from->sensorID());
+		_src_list.erase(sensor->sensorID());
+		_rcv_list.erase(sensor->sensorID());
 		break;
 	default:
 		break;
@@ -112,19 +112,19 @@ void sensor_pair_manager::remove_sensor(sensor::reference& from) {
 
 	// remove monostatic pair for sensors when mode=BOTH
 
-	if (from->mode() == usml::sensors::BOTH) {
-		remove_monostatic_pair(from);
+	if (sensor->mode() == usml::sensors::BOTH) {
+		remove_monostatic_pair(sensor);
 
 		// remove multistatic pairs when multistatic is true
 
 	} else {
-		if (from->mode() == usml::sensors::SOURCE) {
-			if (from->source()->multistatic()) {
-				remove_multistatic_source(from);
+		if (sensor->mode() == usml::sensors::SOURCE) {
+			if (sensor->source()->multistatic()) {
+				remove_multistatic_source(sensor);
 			}
 		} else {
-			if (from->receiver()->multistatic()) {
-				remove_multistatic_receiver(from);
+			if (sensor->receiver()->multistatic()) {
+				remove_multistatic_receiver(sensor);
 			}
 		}
 	}
@@ -133,8 +133,8 @@ void sensor_pair_manager::remove_sensor(sensor::reference& from) {
 /**
  * Utility to build a monostatic pair
  */
-void sensor_pair_manager::add_monostatic_pair(sensor::reference& sensor) {
-	sensor::id_type sourceID = sensor->sensorID();
+void sensor_pair_manager::add_monostatic_pair(sensor_model::reference& sensor) {
+	sensor_model::id_type sourceID = sensor->sensorID();
 	std::stringstream hash_key;
 	hash_key << sourceID << "_" << sourceID;
 	sensor_pair::reference pair(new sensor_pair(sensor, sensor));
@@ -149,11 +149,11 @@ void sensor_pair_manager::add_monostatic_pair(sensor::reference& sensor) {
 /**
  * Utility to build a multistatic pair from the source.
  */
-void sensor_pair_manager::add_multistatic_source(sensor::reference& source) {
-	sensor::id_type sourceID = source->sensorID();
-	BOOST_FOREACH( sensor::id_type receiverID, _rcv_list ) {
+void sensor_pair_manager::add_multistatic_source(sensor_model::reference& source) {
+	sensor_model::id_type sourceID = source->sensorID();
+	BOOST_FOREACH( sensor_model::id_type receiverID, _rcv_list ) {
 		if ( sourceID != receiverID ) {
-			sensor::reference receiver =
+			sensor_model::reference receiver =
 			sensor_manager::instance()->find(receiverID);
 			if ( receiver.get() != NULL &&
 					receiver->receiver()->multistatic() )
@@ -178,11 +178,11 @@ void sensor_pair_manager::add_multistatic_source(sensor::reference& source) {
  * Utility to build a multistatic pair from the receiver.
  */
 void sensor_pair_manager::add_multistatic_receiver(
-		sensor::reference& receiver) {
-	sensor::id_type receiverID = receiver->sensorID();
-	BOOST_FOREACH( sensor::id_type sourceID, _src_list ) {
+		sensor_model::reference& receiver) {
+	sensor_model::id_type receiverID = receiver->sensorID();
+	BOOST_FOREACH( sensor_model::id_type sourceID, _src_list ) {
 		if ( sourceID != receiverID ) { // exclude monostatic case
-			sensor::reference source =
+			sensor_model::reference source =
 			sensor_manager::instance()->find(sourceID);
 			if ( source.get() != NULL &&
 					source->source()->multistatic() )
@@ -206,8 +206,8 @@ void sensor_pair_manager::add_multistatic_receiver(
 /**
  * Utility to build a monostatic pair
  */
-void sensor_pair_manager::remove_monostatic_pair(sensor::reference& sensor) {
-	sensor::id_type sourceID = sensor->sensorID();
+void sensor_pair_manager::remove_monostatic_pair(sensor_model::reference& sensor) {
+	sensor_model::id_type sourceID = sensor->sensorID();
 	std::stringstream hash_key;
 	hash_key << sourceID << "_" << sourceID;
 	sensor_pair::reference pair = _map.find(hash_key.str());
@@ -224,11 +224,11 @@ void sensor_pair_manager::remove_monostatic_pair(sensor::reference& sensor) {
 /**
  * Utility to build a multistatic pair from the source.
  */
-void sensor_pair_manager::remove_multistatic_source(sensor::reference& source) {
-	sensor::id_type sourceID = source->sensorID();
-	BOOST_FOREACH( sensor::id_type receiverID, _rcv_list ) {
+void sensor_pair_manager::remove_multistatic_source(sensor_model::reference& source) {
+	sensor_model::id_type sourceID = source->sensorID();
+	BOOST_FOREACH( sensor_model::id_type receiverID, _rcv_list ) {
 		if ( sourceID != receiverID ) {
-			sensor::reference receiver =
+			sensor_model::reference receiver =
 			sensor_manager::instance()->find(receiverID);
 			if ( receiver.get() != NULL &&
 					receiver->receiver()->multistatic() )
@@ -254,11 +254,11 @@ void sensor_pair_manager::remove_multistatic_source(sensor::reference& source) {
  * Utility to build a multistatic pair from the receiver.
  */
 void sensor_pair_manager::remove_multistatic_receiver(
-		sensor::reference& receiver) {
-	sensor::id_type receiverID = receiver->sensorID();
-	BOOST_FOREACH( sensor::id_type sourceID, _src_list ) {
+		sensor_model::reference& receiver) {
+	sensor_model::id_type receiverID = receiver->sensorID();
+	BOOST_FOREACH( sensor_model::id_type sourceID, _src_list ) {
 		if ( sourceID != receiverID ) { // exclude monostatic case
-			sensor::reference source =
+			sensor_model::reference source =
 			sensor_manager::instance()->find(sourceID);
 			if ( source.get() != NULL &&
 					source->source()->multistatic() )

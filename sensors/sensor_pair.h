@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_listener.h>
 #include <usml/sensors/xmitRcvModeType.h>
 #include <usml/waveq3d/eigenray_collection.h>
@@ -42,7 +42,7 @@ public:
      * @param	source		Shared pointer to the source for this pair.
      * @param	receiver	Shared pointer to the receiver for this pair.
      */
-    sensor_pair(sensor::reference source, sensor::reference receiver)
+    sensor_pair(sensor_model::reference source, sensor_model::reference receiver)
         : _source(source),_receiver(receiver) {};
 
     /**
@@ -55,7 +55,7 @@ public:
      * Gets a pointer to the source sensor.
      * @return  Pointer to the source sensor
      */
-    sensor::reference source() const {
+    sensor_model::reference source() const {
         return _source;
     }
 
@@ -63,7 +63,7 @@ public:
      * Gets a pointer to the receiver sensor.
      * @return  Pointer to the receiver sensor
      */
-    sensor::reference receiver() const {
+    sensor_model::reference receiver() const {
         return _receiver;
     }
 
@@ -80,14 +80,14 @@ public:
 	 *
 	 * @param	from	Sensor that issued the notification.
 	 */
-	virtual void update_fathometers(sensor::reference& from) ;
+	virtual void update_fathometers(sensor_model::reference& sensor) ;
 
 	/**
 	 * Notification that new eigenverb data is ready.
 	 *
 	 * @param	from	Sensor that issued the notification.
 	 */
-	virtual void update_eigenverbs(sensor::reference& from) ;
+	virtual void update_eigenverbs(sensor_model::reference& sensor) ;
 
 
 	/**
@@ -95,7 +95,7 @@ public:
 	 *
 	 * @param	from	Sensor that issued the notification.
 	 */
-	virtual void remove_sensor(sensor::reference& from) ;
+	virtual void remove_sensor(sensor_model::reference& sensor) ;
 
 
 	/**
@@ -103,7 +103,7 @@ public:
 	 *
 	 * @param	from	Sensor that issued the notification.
 	 */
-	virtual sensor::reference sensor_complement(sensor::reference& from) const ;
+	virtual sensor_model::reference sensor_complement(sensor_model::reference& sensor) const ;
 
 private:
 
@@ -113,13 +113,13 @@ private:
      * Shared pointer to the source sensor.
      * The source and receiver will be equal for monostatic sensors.
      */
-    const sensor::reference _source;
+    const sensor_model::reference _source;
 
     /**
      * Share pointer to the receiver sensor.
      * The source and receiver will be equal for monostatic sensors.
      */
-    const sensor::reference _receiver;
+    const sensor_model::reference _receiver;
 
     /**
      * Eigenrays that connect source and receiver locations.

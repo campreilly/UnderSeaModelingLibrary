@@ -36,7 +36,7 @@ sensor_manager* sensor_manager::instance() {
  * Construct a new instance of a specific sensor type.
  * @todo re-connect to sensor_pair_manager
  */
-bool sensor_manager::add_sensor(sensor::id_type sensorID,
+bool sensor_manager::add_sensor(sensor_model::id_type sensorID,
 		sensor_params::id_type paramsID, const std::string& description )
 {
 	write_lock_guard guard(_manager_mutex);
@@ -48,7 +48,7 @@ bool sensor_manager::add_sensor(sensor::id_type sensorID,
 		cout << "sensor_manager: add sensor(" << sensorID << ")" << endl ;
 	#endif
 
-	sensor::reference created(new sensor(sensorID, paramsID, description));
+	sensor_model::reference created(new sensor_model(sensorID, paramsID, description));
 	_map.insert(sensorID, created);
 	sensor_pair_manager::instance()->add_sensor(created) ;
 	return true ;
@@ -58,13 +58,13 @@ bool sensor_manager::add_sensor(sensor::id_type sensorID,
  * Removes an existing sensor instance by sensorID.
  * @todo re-connect to sensor_pair_manager
  */
-bool sensor_manager::remove_sensor(sensor::id_type sensorID) {
+bool sensor_manager::remove_sensor(sensor_model::id_type sensorID) {
 	write_lock_guard guard(_manager_mutex);
 	#ifdef USML_DEBUG
     	cout << "******" << endl ;
 		cout << "sensor_manager: remove sensor(" << sensorID << ")" << endl ;
 	#endif
-	sensor::reference removed = _map.find(sensorID) ;
+	sensor_model::reference removed = _map.find(sensorID) ;
 	if ( removed.get() == NULL ) return false ;
 	sensor_pair_manager::instance()->remove_sensor(removed) ;
 	return _map.erase(sensorID);
@@ -73,7 +73,7 @@ bool sensor_manager::remove_sensor(sensor::id_type sensorID) {
 /**
  * Updates an existing sensor instance by sensorID.
  */
-bool sensor_manager::update_sensor(const sensor::id_type sensorID,
+bool sensor_manager::update_sensor(const sensor_model::id_type sensorID,
 		const wposition1& position, const sensor_orientation& orientation,
 		bool force_update)
 {
@@ -82,7 +82,7 @@ bool sensor_manager::update_sensor(const sensor::id_type sensorID,
 		cout << "******" << endl ;
 		cout << "sensor_manager: update sensor(" << sensorID << ")" << endl ;
 	#endif
-	sensor::reference current_sensor = find(sensorID);
+	sensor_model::reference current_sensor = find(sensorID);
 	if (current_sensor.get() != NULL ) {
 		current_sensor->update_sensor(position, orientation, force_update);
 		return true;

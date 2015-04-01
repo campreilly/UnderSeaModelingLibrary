@@ -39,6 +39,6 @@
 #include <usml/sensors/source_params_map.h>
 
 #include <usml/sensors/xmitRcvModeType.h>
-#include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/sonobuoy.h>

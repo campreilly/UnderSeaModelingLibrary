@@ -3,7 +3,7 @@
  *  Implementation of the Class sensor
  *  Created on: 10-Feb-2015 12:49:09 PM
  */
-#include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/sensors/source_params_map.h>
 #include <usml/sensors/receiver_params_map.h>
 #include <usml/eigenverb/wavefront_generator.h>
@@ -15,7 +15,7 @@ using namespace usml::sensors;
 /**
  * Construct a new instance of a specific sensor type.
  */
-sensor::sensor(sensor::id_type sensorID, sensor_params::id_type paramsID,
+sensor_model::sensor_model(sensor_model::id_type sensorID, sensor_params::id_type paramsID,
 	const std::string& description)
 	: _sensorID(sensorID), _paramsID(paramsID), _description(description),
 	  _position(NAN, NAN, NAN), _orientation(NAN, NAN, NAN)
@@ -27,7 +27,7 @@ sensor::sensor(sensor::id_type sensorID, sensor_params::id_type paramsID,
 /**
  * Removes a sensor instance from simulation.
  */
-sensor::~sensor() {
+sensor_model::~sensor_model() {
 	if ( _wavefront_task.get() != 0 ) {
 		_wavefront_task->abort();
 	}
@@ -36,7 +36,7 @@ sensor::~sensor() {
 /**
  * Queries the sensor's ability to support source and/or receiver behaviors.
  */
-xmitRcvModeType sensor::mode() const {
+xmitRcvModeType sensor_model::mode() const {
 	bool has_source = _source.get() != NULL;
 	bool has_receiver = _receiver.get() != NULL;
 	xmitRcvModeType result;
@@ -55,7 +55,7 @@ xmitRcvModeType sensor::mode() const {
 /**
  * Location of the sensor in world coordinates.
  */
-wposition1 sensor::position() const {
+wposition1 sensor_model::position() const {
 	read_lock_guard guard(_update_sensor_mutex);
 	return _position;
 }
@@ -63,7 +63,7 @@ wposition1 sensor::position() const {
 /**
  * Orientation of the sensor in world coordinates.
  */
-sensor_orientation sensor::orientation() const {
+sensor_orientation sensor_model::orientation() const {
 	read_lock_guard guard(_update_sensor_mutex);
 	return _orientation;
 }
@@ -72,7 +72,7 @@ sensor_orientation sensor::orientation() const {
  * Checks to see if new position and orientation have changed enough
  * to require a new WaveQ3D run.
  */
-void sensor::update_sensor(const wposition1& position,
+void sensor_model::update_sensor(const wposition1& position,
 		const sensor_orientation& orientation, bool force_update) {
 	write_lock_guard guard(_update_sensor_mutex);
 	if (!force_update) {
@@ -92,7 +92,7 @@ void sensor::update_sensor(const wposition1& position,
  * Last set of fathometers computed for this sensor.
  * Blocks during updates from the wavefront task.
  */
-eigenray_collection::reference sensor::fathometers() const {
+eigenray_collection::reference sensor_model::fathometers() const {
 	read_lock_guard guard(_update_fathometers_mutex);
 	return _fathometers;
 }
@@ -100,22 +100,22 @@ eigenray_collection::reference sensor::fathometers() const {
 /**
  * Asynchronous update of fathometer data from the wavefront task.
  */
-void sensor::update_fathometers(shared_ptr<eigenray_collection>& fathometers) {
+void sensor_model::update_fathometers(shared_ptr<eigenray_collection>& fathometers) {
 	write_lock_guard guard(_update_fathometers_mutex);
 	#ifdef USML_DEBUG
 		cout << "sensor: update_fathometers(" << sensorID() << ")" << endl ;
 	#endif
 	_fathometers = fathometers;
-	sensor::reference from(this) ;
+	sensor_model::reference sensor(this) ;
 	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
-		listener->update_fathometers(from);
+		listener->update_fathometers(sensor);
 	}
 }
 
 /**
  * Last set of eigenverbs computed for this sensor.
  */
-eigenverb_collection::reference sensor::eigenverbs() const {
+eigenverb_collection::reference sensor_model::eigenverbs() const {
 	read_lock_guard guard(_update_eigenverbs_mutex);
 	return _eigenverbs;
 }
@@ -125,22 +125,22 @@ eigenverb_collection::reference sensor::eigenverbs() const {
  * Passes this data onto all sensor listeners.
  * Blocks until update is complete.
  */
-void sensor::update_eigenverbs( eigenverb_collection::reference& eigenverbs ) {
+void sensor_model::update_eigenverbs( eigenverb_collection::reference& eigenverbs ) {
 	write_lock_guard guard(_update_eigenverbs_mutex);
 	#ifdef USML_DEBUG
 		cout << "sensor: update_eigenverbs(" << sensorID() << ")" << endl ;
 	#endif
 	_eigenverbs = eigenverbs;
-	sensor::reference from(this) ;
+	sensor_model::reference sensor(this) ;
 	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
-		listener->update_eigenverbs(from);
+		listener->update_eigenverbs(sensor);
 	}
 }
 
 /**
  * Add a sensor_listener to the _sensor_listeners list
  */
-void sensor::add_sensor_listener(sensor_listener::reference listener) {
+void sensor_model::add_sensor_listener(sensor_listener::reference listener) {
 	write_lock_guard guard(_sensor_listeners_mutex);
 	_sensor_listeners.push_back(listener);
 }
@@ -148,7 +148,7 @@ void sensor::add_sensor_listener(sensor_listener::reference listener) {
 /**
  * Remove a sensor_listener from the _sensor_listeners list
  */
-void sensor::remove_sensor_listener(sensor_listener::reference listener) {
+void sensor_model::remove_sensor_listener(sensor_listener::reference listener) {
 	write_lock_guard guard(_sensor_listeners_mutex);
 	_sensor_listeners.remove(listener);
 }
@@ -159,7 +159,7 @@ void sensor::remove_sensor_listener(sensor_listener::reference listener) {
  *
  * @todo using dummy values for prototyping
  */
-bool sensor::check_thresholds(const wposition1& position,
+bool sensor_model::check_thresholds(const wposition1& position,
 		const sensor_orientation& orientation)
 {
 	// force update if old values not valid
@@ -178,22 +178,22 @@ bool sensor::check_thresholds(const wposition1& position,
 /**
  * Queries the current list of sensor listener for the complements of this sensor.
  */
-wposition sensor::sensor_targets() {
+wposition sensor_model::sensor_targets() {
 	read_lock_guard guard(_sensor_listeners_mutex);
 
 	// query the listeners for the complements of this sensor.
 
-	std::list<sensor::reference> complements;
-	sensor::reference from(this) ;
+	std::list<sensor_model::reference> complements;
+	sensor_model::reference sensor(this) ;
 	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
-		complements.push_back( listener->sensor_complement(from) );
+		complements.push_back( listener->sensor_complement(sensor) );
 	}
 
 	// build list of targets from the complements of this sensor.
 
 	wposition target_pos(complements.size(), 1);
 	int row = -1;
-	BOOST_FOREACH( sensor::reference target, complements ){
+	BOOST_FOREACH( sensor_model::reference target, complements ){
 		++row;
 		wposition1 pos = target->position();
 		target_pos.latitude( row, 0, pos.latitude());
@@ -208,7 +208,7 @@ wposition sensor::sensor_targets() {
  *
  * @todo wave_generator stubbed out until after sensor_pairs tested
  */
-void sensor::run_wave_generator() {
+void sensor_model::run_wave_generator() {
 	#ifdef USML_DEBUG
 		cout << "sensor: run_wave_generator(" << sensorID() << ")" << endl ;
 	#endif

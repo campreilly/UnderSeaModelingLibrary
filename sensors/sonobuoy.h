@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_model.h>
 
 namespace usml {
 namespace sensors {
@@ -16,13 +16,13 @@ namespace sensors {
  * @version 1.0
  * @created 10-Feb-2015 12:49:09 PM
  */
-class USML_DECLSPEC sonobuoy : public sensor
+class USML_DECLSPEC sonobuoy : public sensor_model
 {
 
 public:
 
 	/** Construct a new instance of a specific sonobuoy type. */
-	sonobuoy( sensor::id_type sensorID, sensor_params::id_type paramsID,
+	sonobuoy( sensor_model::id_type sensorID, sensor_params::id_type paramsID,
 			const std::string& description = std::string() ) ;
 
 	/** Virtual destructor. */

@@ -1,5 +1,5 @@
 /**
- * @file sensor.h
+ * @file sensor_model.h
  * Instance of an active sensor in the simulation.
  */
 #pragma once
@@ -30,7 +30,7 @@ using namespace usml::threads;
  * As the sensor moves all required attributes are updated. If the attributes
  * change beyond established thresholds a new reverb generation is started.
  */
-class USML_DECLSPEC sensor: public wavefront_listener {
+class USML_DECLSPEC sensor_model: public wavefront_listener {
 public:
 
 	/**
@@ -41,7 +41,7 @@ public:
 	/**
 	 * Data type used for reference to sensor.
 	 */
-	typedef shared_ptr<sensor> reference;
+	typedef shared_ptr<sensor_model> reference;
 
 	/**
 	 * Construct a new instance of a specific sensor type.
@@ -55,14 +55,14 @@ public:
 	 * 						in source_params_map and receiver_params_map.
 	 * @param description	Human readable name for this sensor instance.
 	 */
-	sensor( sensor::id_type sensorID, sensor_params::id_type paramsID,
+	sensor_model( sensor_model::id_type sensorID, sensor_params::id_type paramsID,
 			const std::string& description = std::string());
 
 	/**
 	 * Removes a sensor instance from simulation.
 	 * Automatically aborts wavefront task if one exists.
 	 */
-	virtual ~sensor() ;
+	virtual ~sensor_model() ;
 
 	/**
 	 * Identification used to find this sensor instance in sensor_manager.
