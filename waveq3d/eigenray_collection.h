@@ -194,7 +194,7 @@ public:
     }
 
 	/**
-	 * addEigenray - Adds an eigenray to the eigenray_list for the target specified.
+	 * add_eigenray - Adds an eigenray to the eigenray_list for the target specified.
 	 * implementation of the pure virtual method of proplossListener.
 	 * @param   targetRow          Row number of the current target.
 	 * @param   targetCol          Column number of the current target.
@@ -202,7 +202,7 @@ public:
 	 * @param   run_id             The run_id of WaveQ3D which the eigenray was produced.
 	 * @return                     True on success, false on failure.
 	 */
-	bool addEigenray(size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id );
+	bool add_eigenray(size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id );
 
 
     /**

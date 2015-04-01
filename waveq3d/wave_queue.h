@@ -274,7 +274,7 @@ class USML_DECLSPEC wave_queue {
 
     /**
 	 * For each eigenray_listener in the eigenray_listeners vector
-	 * call the checkEigenrays method to deliver all eigenrays after
+	 * call the check_eigenrays method to deliver all eigenrays after
 	 * a certain amount of time has passed.
 	 *  @param	waveTime Current Time of the WaveFront in msec
 	 *  @return True on success, false on failure.
@@ -440,7 +440,7 @@ class USML_DECLSPEC wave_queue {
     /**
 	* Vector containing the references of objects that will be used to
 	* update classes that require eigenrays as they are built.
-	* These classes must implement addEigenray method.
+	* These classes must implement add_eigenray method.
 	*/
     std::vector<eigenray_listener *> eigenray_listeners;
 
@@ -764,7 +764,7 @@ class USML_DECLSPEC wave_queue {
 
     /**
 	 * For each eigenray_listener in the eigenray_listeners vector
-	 * call the addEigenray method to provide eigenrays to object that requested them.
+	 * call the add_eigenray method to provide eigenrays to object that requested them.
 	 */
 	bool notify_eigenray_listeners(size_t targetRow, size_t targetCol, eigenray pEigenray);
 

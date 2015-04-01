@@ -1155,14 +1155,14 @@ bool wave_queue::remove_eigenray_listener(eigenray_listener* pListener){
 
 /**
  * For each eigenray_listener in the eigenray_listeners vector
- * call the addEigenray method to provide eigenrays.
+ * call the add_eigenray method to provide eigenrays.
  */
 bool wave_queue::notify_eigenray_listeners(size_t targetRow, size_t targetCol, eigenray pEigenray){
 
     for (std::vector<eigenray_listener*>::iterator iter = eigenray_listeners.begin();
                                                 iter != eigenray_listeners.end(); ++iter){
         eigenray_listener* pListener = *iter;
-        pListener->addEigenray(targetRow, targetCol, pEigenray, _run_id);
+        pListener->add_eigenray(targetRow, targetCol, pEigenray, _run_id);
     }
 
     return (eigenray_listeners.size() > 0);
@@ -1170,7 +1170,7 @@ bool wave_queue::notify_eigenray_listeners(size_t targetRow, size_t targetCol, e
 
 /**
  * For each eigenray_listener in the eigenray_listeners vector
- * call the checkEigenrays method to deliver all eigenrays after
+ * call the check_eigenrays method to deliver all eigenrays after
  * a certain amount of time has passed.
  */
 bool wave_queue::check_eigenray_listeners(long waveTime){
@@ -1178,7 +1178,7 @@ bool wave_queue::check_eigenray_listeners(long waveTime){
     for (std::vector<eigenray_listener*>::iterator iter = eigenray_listeners.begin();
                                                 iter != eigenray_listeners.end(); ++iter){
         eigenray_listener* pListener = *iter;
-        pListener->checkEigenrays((unsigned long)_run_id, waveTime);
+        pListener->check_eigenrays((unsigned long)_run_id, waveTime);
     }
 
     return (eigenray_listeners.size() > 0);
