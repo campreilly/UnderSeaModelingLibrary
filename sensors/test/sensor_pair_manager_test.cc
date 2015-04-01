@@ -177,19 +177,19 @@ BOOST_AUTO_TEST_CASE(add_remove_test) {
 
     cout << "=== sensor_pair_manager_test: add_remove_test ===" << endl;
 
-    sensor_pair_manager* sp_manager = sensor_pair_manager::instance();
-
-    sensor_model::id_type sensors[] = {1, 3, 4, 6, 7, 9};
-
-    xmitRcvModeType sensor_type[] = {usml::sensors::BOTH,     // 1
-                                     usml::sensors::SOURCE,   // 3
-                                     usml::sensors::RECEIVER, // 4
-                                     usml::sensors::SOURCE,   // 6
-                                     usml::sensors::SOURCE,   // 7
-                                     usml::sensors::BOTH };   // 9
-
-     wposition1 pos(0.0, 0.0, 0.0);
-
+//    sensor_pair_manager* sp_manager = sensor_pair_manager::instance();
+//
+//    sensor_model::id_type sensors[] = {1, 3, 4, 6, 7, 9};
+//
+//    xmitRcvModeType sensor_type[] = {usml::sensors::BOTH,     // 1
+//                                     usml::sensors::SOURCE,   // 3
+//                                     usml::sensors::RECEIVER, // 4
+//                                     usml::sensors::SOURCE,   // 6
+//                                     usml::sensors::SOURCE,   // 7
+//                                     usml::sensors::BOTH };   // 9
+//
+//     wposition1 pos(0.0, 0.0, 0.0);
+//
 //    for ( unsigned i = 0; i < sizeof(sensors)/sizeof(sensor_model::id_type); ++i )
 //    {
 //        //cout << "=== sensor_pair_manager_test: add_sensor sensorID "<< sensors[i] << " Type "<< sensor_type[i]  << endl;

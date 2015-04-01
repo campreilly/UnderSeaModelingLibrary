@@ -8,7 +8,6 @@
 
 #include <boost/shared_ptr.hpp>
 
-
 #include <usml/types/seq_data.h>
 #include <usml/threads/thread_task.h>
 #include <usml/ocean/ocean_shared.h>
@@ -162,17 +161,16 @@ class USML_DECLSPEC wavefront_generator : public thread_task
 
 private:
 
+    /**
+     * The ID for the WaveQ3D run.
+     */
+    int _runID;
 
     /** Set to true when WaveQ3D propagation model task complete. */
     bool _done ;
 
     /** Mutex to lock multiple properties at once. */
     read_write_lock _lock ;
-
-    /**
-     * The ID for the WaveQ3D run.
-     */
-    int     _runID;
 
     /**
      * Maximum range (meters) to propagate WaveQ3D wavefront.
