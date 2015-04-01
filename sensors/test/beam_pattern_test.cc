@@ -4,6 +4,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include <usml/sensors/beams.h>
+#include <usml/sensors/spatial_orientation.h>
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
@@ -68,9 +69,19 @@ BOOST_AUTO_TEST_CASE( sine_pattern_test ) {
     vector<double> freq( 1, 900.0 ) ;
     beam_pattern_sine sine ;
 
-    int pitch = 62 ;
-    int yaw = 31 ;
+    int pitch = 45 ;
+    int yaw = 0 ;
+    int roll = 0 ;
+//    int pitch = 62 ;
+//    int yaw = 31 ;
+//    int roll = 57 ;
     double d2r = M_PI / 180.0 ;
+    spatial_orientation o( pitch*d2r, yaw*d2r, roll*d2r ) ;
+    double theta = 0.0 ;
+    double phi = 0.0 ;
+    vector<double> raxis(3,0) ;
+    raxis(0) = 1.0 ;
+    o.apply_rotation( raxis, theta, phi ) ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -80,12 +91,14 @@ BOOST_AUTO_TEST_CASE( sine_pattern_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * d2r ;
             double az_rad = az * d2r ;
-            sine.beam_level( de_rad, az_rad, pitch*d2r, yaw*d2r, freq, &level ) ;
+            sine.beam_level( de_rad, az_rad, theta, phi, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += abs(level(0))*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
-            if( (az==yaw && de==pitch) || (az==(180+yaw) && de==-pitch) )
+            if( (az==yaw && de==-pitch) || (az==(180+yaw) && de==pitch) ) {
+//                cout << "de: " << de << " az: " << az << endl ;
                 BOOST_CHECK_CLOSE( abs(level(0)), 1.0, 0.2 ) ;
+            }
         }
         of << endl ;
     }
@@ -114,9 +127,22 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
     vector<double> freq( 1, 900.0 ) ;
     beam_pattern_cosine cosine ;
 
-    int pitch = 21 ;
-    int yaw = 57 ;
+    int pitch = 0 ;
+    int yaw = 0 ;
+    int roll = 45 ;
+//    int pitch = 21 ;
+//    int yaw = 57 ;
+//    int roll = 33 ;
     double d2r = M_PI / 180.0 ;
+    spatial_orientation o( pitch*d2r, yaw*d2r, roll*d2r ) ;
+    double theta = 0.0 ;
+    double phi = 0.0 ;
+    vector<double> raxis(3,0) ;
+    raxis(1) = 1.0 ;
+    o.apply_rotation( raxis, theta, phi ) ;
+//    int pitch = 21 ;
+//    int yaw = 57 ;
+//    double d2r = M_PI / 180.0 ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -126,12 +152,14 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * d2r ;
             double az_rad = az * d2r ;
-            cosine.beam_level( de_rad, az_rad, pitch*d2r, yaw*d2r, freq, &level ) ;
+            cosine.beam_level( de_rad, az_rad, theta, phi, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += abs(level(0))*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
-            if( (az==(270-yaw) && de==-pitch) || (az==(90-yaw) && de==pitch) )
+            if( (az==(90+yaw) && de==-roll) || (az==(270+yaw) && de==roll) ) {
+//                cout << "de: " << de << " az: " << az << endl ;
                 BOOST_CHECK_CLOSE( abs(level(0)), 1.0, 0.2 ) ;
+            }
         }
         of << endl ;
     }

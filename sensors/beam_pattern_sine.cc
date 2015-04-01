@@ -14,9 +14,9 @@ void beam_pattern_sine::beam_level(
         vector<double>* level )
 {
 	write_lock_guard(_mutex);
-    double _pitch = pitch + M_PI_2 ;
-    double theta = de + M_PI_2 ;
-    double phi = -az ;
+    double _pitch = pitch;// + M_PI_2 ;
+    double theta = -(de - M_PI_2) ;
+    double phi = az ;
     double sint = sin( 0.5 * (theta - _pitch) + 1e-10 ) ;
     double sinp = sin( 0.5 * (phi + yaw) + 1e-10 ) ;
     double dotnorm = 1.0 - 2.0 * ( sint * sint
