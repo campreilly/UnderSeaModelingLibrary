@@ -38,25 +38,25 @@ sensor_pair_manager* sensor_pair_manager::instance() {
  * Builds new sensor_pair objects in reaction to notification
  * that a sensor is being added.
  */
-void sensor_pair_manager::add_sensor(sensor::reference& sensor) {
+void sensor_pair_manager::add_sensor(sensor::reference& from) {
 	write_lock_guard guard(_manager_mutex);
 	#ifdef USML_DEBUG
 		cout << "sensor_pair_manager: add sensor("
-		<< sensor->sensorID() << ")" << endl;
+		<< from->sensorID() << ")" << endl;
 	#endif
 
 	// add sensorID to the lists of active sources and receivers
 
-	switch (sensor->mode()) {
+	switch (from->mode()) {
 	case usml::sensors::SOURCE:
-		_src_list.insert(sensor->sensorID());
+		_src_list.insert(from->sensorID());
 		break;
 	case usml::sensors::RECEIVER:
-		_rcv_list.insert(sensor->sensorID());
+		_rcv_list.insert(from->sensorID());
 		break;
 	case usml::sensors::BOTH:
-		_src_list.insert(sensor->sensorID());
-		_rcv_list.insert(sensor->sensorID());
+		_src_list.insert(from->sensorID());
+		_rcv_list.insert(from->sensorID());
 		break;
 	default:
 		break;
@@ -64,19 +64,19 @@ void sensor_pair_manager::add_sensor(sensor::reference& sensor) {
 
 	// add monostatic pair for sensors when mode=BOTH
 
-	if (sensor->mode() == usml::sensors::BOTH) {
-		add_monostatic_pair(sensor);
+	if (from->mode() == usml::sensors::BOTH) {
+		add_monostatic_pair(from);
 
 	// add multistatic pairs when multistatic is true
 
 	} else {
-		if (sensor->mode() == usml::sensors::SOURCE) {
-			if (sensor->source()->multistatic()) {
-				add_multistatic_source(sensor);
+		if (from->mode() == usml::sensors::SOURCE) {
+			if (from->source()->multistatic()) {
+				add_multistatic_source(from);
 			}
 		} else {
-			if (sensor->receiver()->multistatic()) {
-				add_multistatic_receiver(sensor);
+			if (from->receiver()->multistatic()) {
+				add_multistatic_receiver(from);
 			}
 		}
 	}
@@ -86,25 +86,25 @@ void sensor_pair_manager::add_sensor(sensor::reference& sensor) {
  * Removes existing sensor_pair objects in reaction to notification
  * that a sensor is about to be deleted.
  */
-bool sensor_pair_manager::remove_sensor(sensor::reference& sensor) {
+void sensor_pair_manager::remove_sensor(sensor::reference& from) {
 	write_lock_guard guard(_manager_mutex);
 	#ifdef USML_DEBUG
 		cout << "sensor_pair_manager: remove sensor("
-		<< sensor->sensorID() << ")" << endl;
+		<< from->sensorID() << ")" << endl;
 	#endif
 
 	// remove sensorID to the lists of active sources and receivers
 
-	switch (sensor->mode()) {
+	switch (from->mode()) {
 	case usml::sensors::SOURCE:
-		_src_list.erase(sensor->sensorID());
+		_src_list.erase(from->sensorID());
 		break;
 	case usml::sensors::RECEIVER:
-		_rcv_list.erase(sensor->sensorID());
+		_rcv_list.erase(from->sensorID());
 		break;
 	case usml::sensors::BOTH:
-		_src_list.erase(sensor->sensorID());
-		_rcv_list.erase(sensor->sensorID());
+		_src_list.erase(from->sensorID());
+		_rcv_list.erase(from->sensorID());
 		break;
 	default:
 		break;
@@ -112,19 +112,19 @@ bool sensor_pair_manager::remove_sensor(sensor::reference& sensor) {
 
 	// remove monostatic pair for sensors when mode=BOTH
 
-	if (sensor->mode() == usml::sensors::BOTH) {
-		remove_monostatic_pair(sensor);
+	if (from->mode() == usml::sensors::BOTH) {
+		remove_monostatic_pair(from);
 
 		// remove multistatic pairs when multistatic is true
 
 	} else {
-		if (sensor->mode() == usml::sensors::SOURCE) {
-			if (sensor->source()->multistatic()) {
-				remove_multistatic_source(sensor);
+		if (from->mode() == usml::sensors::SOURCE) {
+			if (from->source()->multistatic()) {
+				remove_multistatic_source(from);
 			}
 		} else {
-			if (sensor->receiver()->multistatic()) {
-				remove_multistatic_receiver(sensor);
+			if (from->receiver()->multistatic()) {
+				remove_multistatic_receiver(from);
 			}
 		}
 	}

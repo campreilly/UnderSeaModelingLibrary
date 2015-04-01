@@ -72,7 +72,7 @@ public:
 	 *
 	 * @param	from	Sensor that is being added.
 	 */
-	void add_sensor(sensor::reference& sensor);
+	void add_sensor(sensor::reference& from);
 
 	/**
 	 * Removes existing sensor_pair objects in reaction to notification
@@ -80,7 +80,7 @@ public:
 	 *
 	 * @param	from	Sensor that is being removed.
 	 */
-	bool remove_sensor(sensor::reference& sensor);
+	void remove_sensor(sensor::reference& from);
 
 private:
 
