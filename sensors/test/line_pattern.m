@@ -3,7 +3,6 @@
 %     sound_speed   : speed of sound in water at array
 %     N             : number of elements
 %     spacing       : spacing between elements
-%     roll          : amount of roll on the array
 %     pitch         : amount of pitch in the theta direction (up positive)
 %     yaw           : amount of yaw in the phi direction (clockwise
 %                     positive)
@@ -11,10 +10,10 @@
 %     freq          : signal frequency
 % Produces 3-D plot as function of solid angle.
 %
-function line_pattern( sound_speed, spacing, N, pitch, yaw, steering, freq )
+function line_pattern( sound_speed, spacing, N, pitch, heading, roll, steering, freq, ax )
 
     theta_tilt = pitch ;  % pitch relative to straight up
-    phi_tilt = yaw ;
+    phi_tilt = heading ;
 %     theta = (0:180)*pi/180 ;    % D/E angles where to evaluate
 %     phi = (-180:180)*pi/180 ;   % AZ angles where to evaluate
 %     [theta_grid,phi_grid] = meshgrid(theta,phi) ;
@@ -26,11 +25,30 @@ function line_pattern( sound_speed, spacing, N, pitch, yaw, steering, freq )
     de = (-90:90)*pi/180 ;
     az = (0:360)*pi/180 ;
     [de_grid, az_grid] = meshgrid(de,az) ;
-
+    dt = de(2) - de(1) ;
+    dp = az(2) - az(1) ;
+    
     theta_grid = de_grid + pi/2 ;
-    phi_grid = -az_grid ;
+    phi_grid = az_grid ;
+    r_ = roll * pi/180 ;
+    p_ = pitch * pi/180 ;
+    y_ = heading * pi/180 ;
+    Rx = [ 1 0 0;
+           0 cos(r_) -sin(r_);
+           0 sin(r_) cos(r_) ] ;
+    Ry = [ cos(p_) 0 sin(p_);
+           0 1 0;
+           -sin(p_) 0 cos(p_) ] ;
+    Rz = [ cos(y_) -sin(y_) 0;
+           sin(y_) cos(y_) 0;
+           0 0 1 ] ;
+    R = Rz * Ry * Rx ;
+    vec = R * ax' ;
+    vec = cart_2_sphere(vec) ;
+    theta_tilt = vec(2) ;
+    phi_tilt = vec(3) ;
     sint = sin( (theta_grid - theta_tilt) / 2 ) ;
-    sinp = sin( (phi_grid + phi_tilt) / 2 ) ;
+    sinp = sin( (phi_grid - phi_tilt) / 2 ) ;
     dotnorm = 1 - 2 * ( sint.*sint ...
         + sin(theta_grid) .* sin(theta_tilt) .* sinp .* sinp ) ;
 
@@ -42,6 +60,15 @@ function line_pattern( sound_speed, spacing, N, pitch, yaw, steering, freq )
 
     pattern = sin( N*(psi-psi_steer+eps)/2 ) ...
            ./ (N*sin((psi-psi_steer+eps)/2)) ;
+       
+    % compute directivity index
+    DI = 0 ;
+    for i=1:length(az)
+        for j=1:length(de)
+            DI = DI + abs(pattern(i,j))*cos(theta_grid(i,j))*dt*dp ;
+        end
+    end
+    DI = 10.0 * log10( (4*pi) / DI ) ;
 
     % cpnvert beam pattern into a 3-d surface plot
 
@@ -57,9 +84,9 @@ function line_pattern( sound_speed, spacing, N, pitch, yaw, steering, freq )
     set(gca,'Xlim',[-30 30])
     set(gca,'Ylim',[-30 30])
     set(gca,'Zlim',[-30 30])
-    xlabel('x');
-    ylabel('y');
-    zlabel('z');
-    title('Matlab Implementation') ;
+    xlabel('x') ;
+    ylabel('y') ;
+    zlabel('z') ;
+    title(sprintf('Matlab Implementation, Directivity Index: %f',DI)) ;
 
 end

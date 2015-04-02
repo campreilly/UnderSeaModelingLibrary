@@ -6,37 +6,45 @@
 
 using namespace usml::sensors ;
 
+/**
+ * Constructor
+ */
+beam_pattern_line::beam_pattern_line(
+    double sound_speed, double spacing,
+    size_t elements, double steering_angle,
+    reference_axis axis )
+    : _axis(axis)
+{
+    switch( _axis ) {
+        case HORIZONTAL :
+            _n = elements ;
+            initialize_beams( sound_speed, spacing, (M_PI_2 + steering_angle) ) ;
+            break ;
+        default :
+            _n = elements ;
+            initialize_beams( sound_speed, spacing, steering_angle ) ;
+            break ;
+    }
+}
+
 /** Calculates the beam level in de, az, and frequency **/
 void beam_pattern_line::beam_level(
         double de, double az,
-        double pitch, double yaw,
+        double theta, double phi,
         const vector<double>& frequencies,
         vector<double>* level )
 {
 	write_lock_guard(_mutex);
-    double _pitch ;
-    double _yaw ;
-    switch( _axis ) {
-        case HORIZONTAL :
-            _pitch = -(pitch + M_PI_2) ;
-            _yaw = -yaw ;
-            break ;
-        default :
-            _pitch = -pitch ;
-            _yaw = -yaw ;
-            break ;
-    }
-    double theta = de + M_PI_2 ;
-    double phi = -az ;
-    double sint = sin( 0.5 * (theta - _pitch) + 1e-10 ) ;
-    double sinp = sin( 0.5 * (phi + _yaw) + 1e-10 ) ;
+    double theta_prime = M_PI_2 + de ;
+    double sint = sin( 0.5 * (theta - theta_prime) ) ;
+    double sinp = sin( 0.5 * (az - phi) ) ;
     double dotnorm = 1.0 - 2.0 * ( sint * sint
-                     + sin(theta) * sin(_pitch) * sinp * sinp ) ;
+                     + sin(theta_prime) * sin(theta) * sinp * sinp ) ;
     noalias(*level) = element_prod(
-                element_div( sin(frequencies*_omega_n*dotnorm - frequencies*_steering_n),
-                    _n*sin(frequencies*_omega*dotnorm - frequencies*_steering) ),
-                element_div( sin(frequencies*_omega_n*dotnorm - frequencies*_steering_n),
-                    _n*sin(frequencies*_omega*dotnorm - frequencies*_steering) )
+                element_div( sin(_n*(frequencies*_omega*dotnorm - frequencies*_steering + 1e-10)),
+                    _n*sin(frequencies*_omega*dotnorm - frequencies*_steering + 1e-10) ),
+                element_div( sin(_n*(frequencies*_omega*dotnorm - frequencies*_steering + 1e-10)),
+                    _n*sin(frequencies*_omega*dotnorm - frequencies*_steering + 1e-10) )
             ) ;
 }
 
@@ -49,10 +57,8 @@ void beam_pattern_line::initialize_beams(
 {
         // compute omega/2 and omega/2 * n
     _omega = (M_PI * spacing / sound_speed) ;
-    _omega_n = _omega * _n ;
-        // compute sine of the steering angles and multiply by omega and n
+        // compute sine of the steering angles and multiply by omega
     _steering = _omega * sin(steering_angle) ;
-    _steering_n = _n * _steering ;
 }
 
 /**

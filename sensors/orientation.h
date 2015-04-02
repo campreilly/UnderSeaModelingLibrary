@@ -1,5 +1,5 @@
 /**
- * @file spatial_orientation.h
+ * @file orientation.h
  */
 #pragma once
 
@@ -21,16 +21,14 @@ namespace sensors {
  * Heading - the amount of rotation about the local y-axis
  * Roll - the amount of rotation about the local x-axis
  */
-class USML_DECLSPEC spatial_orientation {
+class USML_DECLSPEC orientation {
 
 public:
-
-    typedef enum { VERTICAL, HORIZONTAL } reference_axis ;
 
     /**
      * Default constructor
      */
-    spatial_orientation() ;
+    orientation() ;
 
     /**
      * Constructor using a given pitch, heading, and roll
@@ -39,12 +37,12 @@ public:
      * @param heading   rotation about the y-axis (radians)
      * @param roll      rotation about the x-axis (radians)
      */
-    spatial_orientation( double pitch, double heading, double roll, reference_axis axis=VERTICAL ) ;
+    orientation( double pitch, double heading, double roll ) ;
 
     /**
      * Constructor using a tile angle/direction????
      */
-    spatial_orientation( double angle, double direction, reference_axis axis ) ;
+    orientation( double angle, double direction ) ;
 
     /**
      * Rotates the incoming coordinates into the current rotated
@@ -70,7 +68,7 @@ public:
      */
     void pitch( double p ) {
         _pitch = p ;
-        compute_inverse_matrix() ;
+        compute_rotation_matrix() ;
     }
 
     /**
@@ -87,7 +85,7 @@ public:
      */
     void heading( double h ) {
         _heading = h ;
-        compute_inverse_matrix() ;
+        compute_rotation_matrix() ;
     }
 
     /**
@@ -104,7 +102,7 @@ public:
      */
     void roll( double r ) {
         _roll = r ;
-        compute_inverse_matrix() ;
+        compute_rotation_matrix() ;
     }
 
     /**
@@ -118,7 +116,7 @@ public:
         _pitch = p ;
         _heading = h ;
         _roll = r ;
-        compute_inverse_matrix() ;
+        compute_rotation_matrix() ;
     }
 
 private:
@@ -129,7 +127,6 @@ private:
     double _pitch ;
     double _heading ;
     double _roll ;
-    reference_axis _axis ;
 
     /**
      * Inverse Rotation Matrices
@@ -148,7 +145,7 @@ private:
     /**
      * Computes the inverse rotation matrices
      */
-    void compute_inverse_matrix() ;
+    void compute_rotation_matrix() ;
 
     /**
      * Initializes the matrices rotation invariant components
@@ -160,6 +157,9 @@ private:
     /**
      * Convert from Spherical coordinates to Cartesian coordinates
      * This is done prior to applying the inverse rotation matrix
+     * DEPRICATED: keeping this in the event that we wish to pass
+     * the reference axis vector in as a spherical vector rather
+     * than a Cartesian vector.
      */
     void convert_to_cartesian() ;
 

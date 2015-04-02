@@ -1,7 +1,7 @@
 /**
- * @file spatial_orientation.cc
+ * @file orientation.cc
  */
-#include <usml/sensors/spatial_orientation.h>
+#include <usml/sensors/orientation.h>
 #include <boost/numeric/ublas/io.hpp>
 
 using namespace usml::sensors ;
@@ -9,9 +9,8 @@ using namespace usml::sensors ;
 /**
  * Default constructor
  */
-spatial_orientation::spatial_orientation()
+orientation::orientation()
     : _pitch(0.0), _heading(0.0), _roll(0.0),
-      _axis(spatial_orientation::VERTICAL),
       _rx(3,3), _ry(3,3), _rz(3,3), _rotation(3,3)
 {
     initialize_matrices() ;
@@ -20,14 +19,11 @@ spatial_orientation::spatial_orientation()
 /**
  * Pitch, heading, roll constructor
  */
-spatial_orientation::spatial_orientation(
-    double pitch, double heading, double roll, reference_axis axis )
-    : _pitch(pitch), _heading(heading), _roll(roll), _axis(axis),
+orientation::orientation(
+    double pitch, double heading, double roll )
+    : _pitch(pitch), _heading(heading), _roll(roll),
       _rx(3,3), _ry(3,3), _rz(3,3), _rotation(3,3)
 {
-//    if( _axis == HORIZONTAL ) {
-//        _heading = heading - M_PI_2 ;
-//    }
     initialize_matrices() ;
 }
 
@@ -35,9 +31,9 @@ spatial_orientation::spatial_orientation(
  * Tilt angle/direction constructor
  * NOTE: This is a dummy constructor at this time
  */
-spatial_orientation::spatial_orientation(
-    double angle, double direction, reference_axis axis )
-    : _pitch(0.0), _heading(0.0), _roll(0.0), _axis(axis),
+orientation::orientation(
+    double angle, double direction )
+    : _pitch(0.0), _heading(0.0), _roll(0.0),
       _rx(3,3), _ry(3,3), _rz(3,3), _rotation(3,3)
 {
     initialize_matrices() ;
@@ -47,31 +43,24 @@ spatial_orientation::spatial_orientation(
  * Applies a rotation from one coordinate system to the
  * current rotated coordinates.
  */
-void spatial_orientation::apply_rotation(
+void orientation::apply_rotation(
     const vector<double> ref_axis,
     double& theta, double& phi  )
 {
-//    std::cout << "_rotation: " << _rotation << std::endl ;
-//    _v = ref_axis ;
-//    std::cout << "_v: " << _v << std::endl ;
-//    convert_to_cartesian() ;
-//    std::cout << "_v_cart: " << _v_cart << std::endl ;
-//    _v_cart = prod( _rotation, _v_cart ) ;
     _v_cart = prod( _rotation, ref_axis ) ;
-//    std::cout << "_v_cart: " << _v_cart << std::endl ;
     convert_to_spherical() ;
-//    std::cout << "_v: " << _v << std::endl ;
-    theta = _v(1) ;
-//    theta_prime = std::fmod(_v(1) + M_PI_2, M_PI) ;
-    phi = _v(2) ;
+    theta = std::fmod( _v(1), M_PI ) ;
+    phi = std::fmod( _v(2), 2.0*M_PI ) ;
 }
 
 /**
  * Sets the rotational invariant components of the rotation
  * matrices and then constructs the full rotation matrix.
  */
-void spatial_orientation::initialize_matrices()
+void orientation::initialize_matrices()
 {
+    _v.clear() ;
+    _v_cart.clear() ;
     _v(0) = 1.0 ;
     // set the rotation invariant components of the matrices
     _rx.clear() ;
@@ -81,14 +70,14 @@ void spatial_orientation::initialize_matrices()
     _rz.clear() ;
     _rz(2,2) = 1.0 ;
     _rotation.clear() ;
-    compute_inverse_matrix() ;
+    compute_rotation_matrix() ;
 }
 
 /**
  * Computes the inverse rotation matrix needed to transform
  * incoming angles to the newly rotated coordinate system.
  */
-void spatial_orientation::compute_inverse_matrix()
+void orientation::compute_rotation_matrix()
 {
     // x-axis rotation
     _rx(1,1) = _rx(2,2) = cos(_roll) ;
@@ -111,7 +100,7 @@ void spatial_orientation::compute_inverse_matrix()
  * Converts the store vector in spherical coordinates to
  * cartesian coordinates.
  */
-void spatial_orientation::convert_to_cartesian()
+void orientation::convert_to_cartesian()
 {
     _v_cart(0) = _v(0) * sin(_v(1)) * cos(_v(2)) ;
     _v_cart(1) = _v(0) * sin(_v(1)) * sin(_v(2)) ;
@@ -122,7 +111,7 @@ void spatial_orientation::convert_to_cartesian()
  * Converts the stored vector in cartesian coordinates to
  * spherical coordinates.
  */
-void spatial_orientation::convert_to_spherical()
+void orientation::convert_to_spherical()
 {
     _v(0) = std::sqrt( _v_cart(0)*_v_cart(0)
                      + _v_cart(1)*_v_cart(1)

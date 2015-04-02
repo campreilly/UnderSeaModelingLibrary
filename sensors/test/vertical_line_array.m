@@ -1,26 +1,29 @@
 %% Vertical line array's beam pattern as via C++ implementation
 
-close all ; clear all ;
+close all ; %clear all ;
 
 [param, desc] = xlsread('vertical_array_parameters.csv') ;
-c0 = param(1) ;
-d = param(2) ;
+sound_speed = param(1) ;
+spacing = param(2) ;
 N = param(3) ;
 pitch = param(4) ;
-yaw = param(5) ;
-steering = param(6) ;
-freq = param(7:end) ;
-line_pattern( c0, d, N, pitch, yaw, steering, freq ) ;
+heading = param(5) ;
+roll = param(6) ;
+steering = param(7) ;
+freq = param(8:end) ;
+ax = [0,0,1] ;
+line_pattern( sound_speed, spacing, N, pitch, heading, roll, steering, freq, ax ) ;
 
 data = xlsread('vertical_array_beam_pattern.csv') ;
 
 db = 10.0 * log10( abs(data) ) ;
+% db = flip(db,2) ;
 db = db + 30 ;
-m = find( db < 0 ) ;
+m = find( db < 0 | isnan(db) ) ;
 db(m) = 0 ;
 
-theta = (0:180)*pi/180 ;    % D/E angles where to evaluate
-phi = (-180:180)*pi/180 ;   % AZ angles where to evaluate
+theta = (0:1:180)*pi/180 ;    % D/E angles where to evaluate
+phi = (0:360)*pi/180 ;   % AZ angles where to evaluate
 [theta_grid,phi_grid] = meshgrid(theta,phi) ;
 
 xx = db .* cos(phi_grid) .* sin(theta_grid) ;
@@ -33,7 +36,7 @@ view([0 0]) ;
 set(gca,'Xlim',[-30 30]) ;
 set(gca,'Ylim',[-30 30]) ;
 set(gca,'Zlim',[-30 30]) ;
-xlabel('x') ;
-ylabel('y') ;
-zlabel('z') ;
+xlabel('East(+)/West(-)') ;
+ylabel('North(+)/South(-)') ;
+zlabel('Up') ;
 title('C++ Implementation') ;

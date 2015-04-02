@@ -48,19 +48,7 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          */
         beam_pattern_line( double sound_speed, double spacing,
                            size_t elements, double steering_angle,
-                           reference_axis axis=VERTICAL ) : _axis(axis)
-        {
-            switch( _axis ) {
-                case HORIZONTAL :
-                    _n = elements ;
-                    initialize_beams( sound_speed, spacing, (steering_angle + M_PI_2) ) ;
-                    break ;
-                default :
-                    _n = elements ;
-                    initialize_beams( sound_speed, spacing, steering_angle ) ;
-                    break ;
-            }
-        }
+                           reference_axis axis=VERTICAL ) ;
 
         /**
          * Computes the response level in a specific DE/AZ pair and
@@ -69,13 +57,13 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
-         * @param pitch         pitch in the DE dimension (rad)
-         * @param yaw           yaw in the AZ dimension (rad)
+         * @param theta         spherical offset in theta from reference axis (rad)
+         * @param phi           spherical offset in phi from reference axis (rad)
          * @param frequencies   frequencies to compute beam level for
          * @param level         beam level for each frequency
          */
         virtual void beam_level( double de, double az,
-                                 double pitch, double yaw,
+                                 double theta, double phi,
                                  const vector<double>& frequencies,
                                  vector<double>* level ) ;
 
@@ -100,14 +88,12 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          * for frequency computations.
          */
         double _omega ;
-        double _omega_n ;
 
         /**
          * Local cache of commonly computed
          * using the steering angles
          */
         double _steering ;
-        double _steering_n ;
 
         /**
          * Defines the reference axis for this linear array's beam

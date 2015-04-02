@@ -83,12 +83,12 @@ public:
 	 *
 	 * @param de            Depression/Elevation angle (rad)
 	 * @param az            Azimuthal angle (rad)
-	 * @param pitch         Pitch in the DE dimension (rad)
-	 * @param yaw           Yaw in the AZ dimension (rad)
+     * @param theta         spherical offset in theta from reference axis (rad)
+     * @param phi           spherical offset in phi from reference axis (rad)
 	 * @param frequencies   List of frequencies to compute beam level for
 	 * @param level         Beam level for each frequency (linear units)
 	 */
-	virtual void beam_level(double de, double az, double pitch, double yaw,
+	virtual void beam_level(double de, double az, double theta, double phi,
 			const vector<double>& frequencies, vector<double>* level) = 0;
 
 	/**

@@ -72,13 +72,13 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
-         * @param pitch         pitch in the DE dimension (rad)
-         * @param yaw           yaw in the AZ dimension (rad)
+         * @param theta         spherical offset in theta from reference axis (rad)
+         * @param phi           spherical offset in phi from reference axis (rad)
          * @param frequencies   frequencies to compute beam level for
          * @param level         beam level for each frequency
          */
         virtual void beam_level( double de, double az,
-                                 double pitch, double yaw,
+                                 double theta, double phi,
                                  const vector<double>& frequencies,
                                  vector<double>* level )
         {
@@ -103,7 +103,7 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
 				case 2:
 					{
 						value_type location[2];
-						location[1] = de - pitch;
+						location[1] = de - theta;
 						for (size_type i = 0; i < num_freq; ++i) {
 							location[0] = frequencies[i];
 							tmp[i] = this->interpolate(location);
@@ -118,8 +118,8 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
 				case 3:
 					{
 						value_type location[3];
-						location[1] = de - pitch;
-						location[2] = az - yaw;
+						location[1] = de - theta;
+						location[2] = az - phi;
 						for (size_type i = 0; i < num_freq; ++i) {
 							location[0] = frequencies[i];
 							tmp[i] = this->interpolate(location);
