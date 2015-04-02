@@ -30,6 +30,8 @@ class USML_DECLSPEC sensor_pair_manager {
 
 public:
 
+    typedef std::map<sensor_model::id_type,xmitRcvModeType> sensor_query_map;
+
 	/**
 	 * Singleton Constructor - Creates sensor_pair_manager instance just once.
 	 * Accessible everywhere.
@@ -44,11 +46,11 @@ public:
 	}
 
 	/**
-	 * Gets the fathometers for the sourceID requested
-	 * @param sourceID ID for the source
+	 * Gets the fathometers for the list of sensors provided
+	 * @param sensors contains sensor_query_map sensorID, and sensor xmitRcvModeType
 	 * @return eigenray_collection pointer
 	 */
-//	eigenray_collection* get_fathometers(sensor_model::id_type sourceID);
+	eigenray_collection* get_fathometers(const sensor_query_map sensors);
 
 	/**
 	 * Gets the envelopes for the receiverID requested

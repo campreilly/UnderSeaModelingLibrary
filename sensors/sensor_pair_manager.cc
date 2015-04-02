@@ -34,6 +34,39 @@ sensor_pair_manager* sensor_pair_manager::instance() {
 	return tmp;
 }
 
+///**
+// * Gets the fathometers for the map of sensors provided
+// */
+//eigenray_collection* sensor_pair_manager::find_pairs(sensor_query_map sensors)
+//{
+//
+//    sensor_query_map::iterator iter;
+//
+//    for ( iter = sensors.begin(); iter != sensors.end(); ++iter)
+//    {
+//
+//
+//    }
+//    return NULL;
+//}
+
+/**
+ * Gets the fathometers for the map of sensors provided
+ */
+eigenray_collection* sensor_pair_manager::get_fathometers(sensor_query_map sensors)
+{
+
+    sensor_query_map::iterator iter;
+
+    for ( iter = sensors.begin(); iter != sensors.end(); ++iter)
+    {
+       sensor_model::id_type sensorID = iter->first;
+       xmitRcvModeType mode = iter->second;
+
+    }
+    return NULL;
+}
+
 /**
  * Builds new sensor_pair objects in reaction to notification
  * that a sensor is being added.
