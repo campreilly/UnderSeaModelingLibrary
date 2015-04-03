@@ -171,18 +171,18 @@ BOOST_AUTO_TEST_CASE( eigenray_lloyds ) {
         }
     }
 
-    proploss loss1(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss1(freq, pos, de, az, time_step, &target);
 
-    proploss loss2(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss2(freq, pos, de, az, time_step, &target);
 
 	wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
 
-	if (!wave.addEigenrayListener(&loss1)) {
-		cout << "Error adding proploss listener 1 ! " << endl ;
+	if (!wave.add_eigenray_listener(&loss1)) {
+		cout << "Error adding eigenray_collection listener 1 ! " << endl ;
 		exit(1);
 	}
-	if (!wave.addEigenrayListener(&loss2)) {
-		cout << "Error adding proploss listener 2! " << endl ;
+	if (!wave.add_eigenray_listener(&loss2)) {
+		cout << "Error adding eigenray_collection listener 2! " << endl ;
 		exit(1);
 	}
 

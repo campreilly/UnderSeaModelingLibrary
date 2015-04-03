@@ -6,7 +6,7 @@
 
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/wave_front.h>
-#include <usml/waveq3d/eigenrayListener.h>
+#include <usml/waveq3d/eigenray_listener.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 #include <netcdfcpp.h>
 
@@ -19,7 +19,7 @@ class reflection_model ;
 class spreading_model ;
 class spreading_ray ;
 class spreading_hybrid_gaussian ;
-class eigenrayListener ;
+class eigenray_listener ;
 
 /// @ingroup waveq3d
 /// @{
@@ -244,42 +244,42 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
-	 * setIntensityThreshold
+	 * intensity_threshold
 	 * @param  dThreshold The new value of the intensity threshold in dB.
 	 *
 	 */
-	inline void setIntensityThreshold(double dThreshold) {
+	inline void intensity_threshold(double dThreshold) {
 
 	    // Convert to absolute value for later comparison
 	    // with the positive ray.intensity value.
 		_intensity_threshold = abs(dThreshold);
 	}
 	/**
-	 * getIntensityThreshold
+	 * intensity_threshold
 	 * @return  Returns current value of the intensity threshold in dB
 	 */
-	inline double getIntensityThreshold() {
+	inline double intensity_threshold() {
 		return _intensity_threshold;
 	}
 
     /**
-     * Add a eigenrayListener to the _eigenrayListenerVec vector
+     * Add a eigenray_listener to the eigenray_listeners vector
      */
-    bool addEigenrayListener(eigenrayListener* pListener);
+    bool add_eigenray_listener(eigenray_listener* pListener);
 
     /**
-	 * Remove a eigenrayListener from the _eigenrayListenerVec vector
+	 * Remove a eigenray_listener from the eigenray_listeners vector
 	 */
-    bool removeEigenrayListener(eigenrayListener* pListener);
+    bool remove_eigenray_listener(eigenray_listener* pListener);
 
     /**
-	 * For each eigenrayListener in the _eigenrayListenerVec vector
-	 * call the checkEigenrays method to deliver all eigenrays after
+	 * For each eigenray_listener in the eigenray_listeners vector
+	 * call the check_eigenrays method to deliver all eigenrays after
 	 * a certain amount of time has passed.
 	 *  @param	waveTime Current Time of the WaveFront in msec
 	 *  @return True on success, false on failure.
 	 */
-	bool checkEigenrayListeners(long waveTime);
+	bool check_eigenray_listeners(long waveTime);
 
 	/**
 	 * Adds an eigenverb_collection to the wave_queue to store
@@ -440,9 +440,9 @@ class USML_DECLSPEC wave_queue {
     /**
 	* Vector containing the references of objects that will be used to
 	* update classes that require eigenrays as they are built.
-	* These classes must implement addEigenray method.
+	* These classes must implement add_eigenray method.
 	*/
-    std::vector<eigenrayListener *> _eigenrayListenerVec;
+    std::vector<eigenray_listener *> eigenray_listeners;
 
     /**
      * Create an Azimuthal boundary loop condition upon initialization.
@@ -763,10 +763,10 @@ class USML_DECLSPEC wave_queue {
         wposition1* position, wvector1* ndirection, double* speed ) const ;
 
     /**
-	 * For each eigenrayListener in the _eigenrayListenerVec vector
-	 * call the addEigenray method to provide eigenrays to object that requested them.
+	 * For each eigenray_listener in the eigenray_listeners vector
+	 * call the add_eigenray method to provide eigenrays to object that requested them.
 	 */
-	bool notifyEigenrayListeners(size_t targetRow, size_t targetCol, eigenray pEigenray);
+	bool notify_eigenray_listeners(size_t targetRow, size_t targetCol, eigenray pEigenray);
 
     //**************************************************
     // wavefront_netcdf routines

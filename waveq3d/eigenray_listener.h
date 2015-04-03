@@ -17,9 +17,9 @@ namespace waveq3d {
 
 /**
  * @class eigenray_listener
- * This class is part of a Observer/Subject pattern for the wave_queue class
+ * @brief This class is part of a Observer/Subject pattern for the wave_queue class
  * and allows for multiple eigenray listeners to be added to wave_queue.
- * The addEigenray call must be defined in each class which inherits it.
+ * The add_eigenray call must be defined in each class which inherits it.
  */
 
 class USML_DECLSPEC eigenray_listener
@@ -29,10 +29,9 @@ public:
 	/**
 	 * Destructor.
 	 */
-    virtual ~eigenray_listener() {}
+	virtual ~eigenray_listener() {}
 
 	/**
-	 * add_eigenray
 	 * Pure virtual method to add eigenray to an object.
 	 *  @param   targetRow Index of the target row to add to list of eigenrays
      *  @param   targetCol Index of the target row to add to list of eigenrays
@@ -42,7 +41,6 @@ public:
 	virtual bool add_eigenray(size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id) = 0;
 	
 	/**
-	 * check_eigenrays
 	 * Virtual method to check if all eigenrays are available within a time frame.
 	 *  @param 	runID Run number of waveQ3D
 	 *  @param  waveTime Current Time of the wavefront used to check elapsed time.
@@ -53,12 +51,15 @@ public:
 		return false;
 	}
 
+
 protected:
 
 	/**
 	 * Constructor - protected
 	 */
-    eigenray_listener() {}
+	eigenray_listener() {}
+
+
 
 private:
 
@@ -66,8 +67,8 @@ private:
 	// Disabling default copy constructor and default
 	// assignment operator.
 	// -------------------------
-    eigenray_listener(const eigenray_listener& yRef);
-    eigenray_listener& operator=( const eigenray_listener& yRef );
+	eigenray_listener(const eigenray_listener& yRef);
+	eigenray_listener& operator=(const eigenray_listener& yRef);
 
 };
 

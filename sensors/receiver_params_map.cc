@@ -2,7 +2,7 @@
  * @file receiver_params_map.cc
  * Singleton map of receiver parameters.
  */
-#include "receiver_params_map.h"
+#include <usml/sensors/receiver_params_map.h>
 
 using namespace usml::sensors;
 

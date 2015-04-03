@@ -1,12 +1,10 @@
 /**
- *  @file sensor_manager.cc
- *  Implementation of the sensor_manager
- *  Created on: 12-Feb-2015 3:41:31 PM
+ * @file sensor_manager.cc
+ * Container for all the sensor's in use by the USML.
  */
+#include <usml/sensors/sensor_manager.h>
 
-#include "sensor_manager.h"
-
-using namespace usml::sensors ;
+using namespace usml::sensors;
 
 /**
  * Initialization of private static member _instance
@@ -16,85 +14,78 @@ unique_ptr<sensor_manager> sensor_manager::_instance;
 /**
  * The _mutex for the singleton sensor_manager.
  */
-read_write_lock sensor_manager::_mutex;
+read_write_lock sensor_manager::_instance_mutex;
 
 /**
  * Singleton Constructor sensor_manager
  */
-sensor_manager* sensor_manager::instance()
-{
-    sensor_manager* tmp = _instance.get();
-    if (tmp == NULL)
-    {
-        write_lock_guard guard(_mutex);
-        tmp = _instance.get();
-        if (tmp == NULL)
-        {
-            tmp = new sensor_manager();
-            _instance.reset(tmp);
-        }
-    }
-    return tmp;
+sensor_manager* sensor_manager::instance() {
+	sensor_manager* tmp = _instance.get();
+	if (tmp == NULL) {
+		write_lock_guard guard(_instance_mutex);
+		tmp = _instance.get();
+		if (tmp == NULL) {
+			tmp = new sensor_manager();
+			_instance.reset(tmp);
+		}
+	}
+	return tmp;
 }
 
-bool sensor_manager::insert(const sensor::id_type sensorID, sensor* sensor_)
+/**
+ * Construct a new instance of a specific sensor type.
+ * @todo re-connect to sensor_pair_manager
+ */
+bool sensor_manager::add_sensor(sensor_model::id_type sensorID,
+		sensor_params::id_type paramsID, const std::string& description )
 {
-    // Insert in the map
-    return sensor_map_template<const sensor::id_type, sensor*>::insert(sensorID, sensor_);
+	write_lock_guard guard(_manager_mutex);
+	if (find(sensorID) != NULL ) {
+		return false;
+	}
+	#ifdef USML_DEBUG
+	    cout << "******" << endl ;
+		cout << "sensor_manager: add sensor(" << sensorID << ")" << endl ;
+	#endif
+
+	sensor_model::reference created(new sensor_model(sensorID, paramsID, description));
+	_map.insert(sensorID, created);
+	sensor_pair_manager::instance()->add_sensor(created) ;
+	return true ;
 }
 
-bool sensor_manager::erase(const sensor::id_type sensorID)
-{
-    // erase from the map
-    return sensor_map_template<const sensor::id_type, sensor*>::erase(sensorID);
+/**
+ * Removes an existing sensor instance by sensorID.
+ * @todo re-connect to sensor_pair_manager
+ */
+bool sensor_manager::remove_sensor(sensor_model::id_type sensorID) {
+	write_lock_guard guard(_manager_mutex);
+	#ifdef USML_DEBUG
+    	cout << "******" << endl ;
+		cout << "sensor_manager: remove sensor(" << sensorID << ")" << endl ;
+	#endif
+	sensor_model::reference removed = _map.find(sensorID) ;
+	if ( removed.get() == NULL ) return false ;
+	sensor_pair_manager::instance()->remove_sensor(removed) ;
+	return _map.erase(sensorID);
 }
 
-bool sensor_manager::update(const sensor::id_type sensorID, sensor* sensor_)
+/**
+ * Updates an existing sensor instance by sensorID.
+ */
+bool sensor_manager::update_sensor(const sensor_model::id_type sensorID,
+		const wposition1& position, const sensor_orientation& orientation,
+		bool force_update)
 {
-	// Input sensor does not contain "all" sensor data
-	// Get current data
-	sensor* current_sensor = find(sensorID);
-	
-	// Ensure pre-existance
-	if (current_sensor != 0) {
-		
-		current_sensor->update_sensor(sensor_->position(), sensor_->pitch(), sensor_->yaw());
+	write_lock_guard guard(_manager_mutex);
+	#ifdef USML_DEBUG
+		cout << "******" << endl ;
+		cout << "sensor_manager: update sensor(" << sensorID << ")" << endl ;
+	#endif
+	sensor_model::reference current_sensor = find(sensorID);
+	if (current_sensor.get() != NULL ) {
+		current_sensor->update_sensor(position, orientation, force_update);
 		return true;
 	}
-
-    return false;
+	return false;
 }
-
-//wposition sensor_manager::get_targets(sensorIDType sensorID, xmitRcvModeType mode)
-//{
-//    std::list<sensorIDType> targetIDs;
-//    wposition1 sensor_position = find(sensorID)->position();
-//
-//    // Get Targets
-//    if (mode == usml::sensors::RECEIVER) {
-//        // Get Sources
-//        targetIDs = _sensor_pair_manager->source_list();
-//    } else { // SOURCE, Treat "BOTH" also source
-//        // Get Receivers
-//        targetIDs = _sensor_pair_manager->receiver_list();
-//    }
-//
-//    std::list<sensorIDType>::iterator iter;
-//    sensor* target;
-//    wposition1 target_position;
-//    wposition targets(targetIDs.size(), 1 ,
-//        sensor_position.latitude(),
-//        sensor_position.longitude(),
-//        sensor_position.altitude());
-//    int row = -1;
-//    for (iter = targetIDs.begin(); iter != targetIDs.end(); ++iter) {
-//        ++row;
-//        target = find(*iter);
-//        target_position = target->position();
-//        targets.latitude(row, 0, target_position.latitude());
-//        targets.longitude(row, 0, target_position.longitude());
-//        targets.altitude(row, 0, target_position.altitude());
-//    }
-//
-//    return targets;
-//}

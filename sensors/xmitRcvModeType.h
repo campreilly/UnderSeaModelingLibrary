@@ -9,13 +9,9 @@
 namespace usml {
 namespace sensors {
 
-/**
- * @author tedburns
- * @version 1.0
- * @created 10-Feb-2015 12:49:09 PM
- */
 enum xmitRcvMode
 {
+	NONE = 0,
     RECEIVER = 1,
 	SOURCE = 2,
 	BOTH = 3

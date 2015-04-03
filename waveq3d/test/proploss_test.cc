@@ -76,9 +76,9 @@ BOOST_AUTO_TEST_CASE(proploss_basic)
         target.latitude(n, 0, src_lat + 0.01 * (n + 2.0));
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target, 0, wave_queue::CLASSIC_RAY ) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays & record to log file
 
@@ -173,9 +173,9 @@ BOOST_AUTO_TEST_CASE( proploss_freq )
 
     wposition target( 1, 1, trg_lat, src_lng, src_alt );
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss) ;
+    wave.add_eigenray_listener(&loss) ;
 
     // propagate rays & record to log file
 
@@ -192,7 +192,7 @@ BOOST_AUTO_TEST_CASE( proploss_freq )
     wave.close_netcdf() ;
 
     loss.sum_eigenrays() ;
-    cout << "writing proploss to " << ncproploss << endl ;
+    cout << "writing eigenray_collection to " << ncproploss << endl ;
     loss.write_netcdf(ncproploss,"proploss_freq test") ;
 
     // save results to spreadsheet and compare to analytic results
@@ -314,9 +314,9 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range)
         target.latitude(n, 0, degrees);
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays & record to log file
 
@@ -515,9 +515,9 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range_freq)
         target.latitude(n, 0, degrees);
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays & record to log file
 
@@ -730,9 +730,9 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
         target.altitude(n, 0, depth(n));
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays & record to log file
 

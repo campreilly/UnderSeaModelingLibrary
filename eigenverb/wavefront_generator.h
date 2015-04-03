@@ -8,11 +8,10 @@
 
 #include <boost/shared_ptr.hpp>
 
-
 #include <usml/types/seq_data.h>
 #include <usml/threads/thread_task.h>
 #include <usml/ocean/ocean_shared.h>
-#include <usml/waveq3d/proploss.h>
+#include <usml/waveq3d/eigenray_collection.h>
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/eigenray_listener.h>
 #include <usml/eigenverb/wavefront_listener.h>
@@ -23,6 +22,7 @@ namespace eigenverb {
 using namespace usml::ocean ;
 using namespace usml::threads ;
 using namespace usml::waveq3d ;
+
 
 /// @ingroup eigenverb
 /// @{
@@ -115,7 +115,7 @@ class USML_DECLSPEC wavefront_generator : public thread_task
      * Sets the frequencies for the WaveQ3D run.
      * @param frequencies pointer to a seq_data type
      */
-    void frequencies(seq_vector* frequencies) {
+    void frequencies(const seq_vector* frequencies) {
         _frequencies = frequencies;
     }
 
@@ -162,17 +162,16 @@ class USML_DECLSPEC wavefront_generator : public thread_task
 
 private:
 
+    /**
+     * The ID for the WaveQ3D run.
+     */
+    int _runID;
 
     /** Set to true when WaveQ3D propagation model task complete. */
     bool _done ;
 
     /** Mutex to lock multiple properties at once. */
     read_write_lock _lock ;
-
-    /**
-     * The ID for the WaveQ3D run.
-     */
-    int     _runID;
 
     /**
      * Maximum range (meters) to propagate WaveQ3D wavefront.
@@ -198,8 +197,8 @@ private:
     /** Targets container */
     wposition _targets;
 
-    /** Frequencies object */
-    seq_vector* _frequencies;
+    /** Frequencies container */
+    const seq_vector* _frequencies;
 
     /** Shared Pointer to the OceanModel. */
     shared_ptr<ocean_model> _ocean;

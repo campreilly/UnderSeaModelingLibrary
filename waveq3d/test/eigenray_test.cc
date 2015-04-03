@@ -105,9 +105,9 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
 
     wposition target( 1, 1, trg_lat, src_lng, src_alt );
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays and record wavefronts to disk.
 
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
    // compute coherent propagation loss and write eigenrays to disk
 
     loss.sum_eigenrays();
-    cout << "writing proploss to " << ncname << endl;
+    cout << "writing eigenray_collection to " << ncname << endl;
     loss.write_netcdf(ncname,"eigenray_basic test");
 
     // save results to spreadsheet and compare to analytic results
@@ -261,9 +261,9 @@ BOOST_AUTO_TEST_CASE( eigenray_concave ) {
 
     wposition target( 1, 1, trg_lat, trg_lng, trg_alt );
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays & record to log file
 
@@ -394,9 +394,9 @@ BOOST_AUTO_TEST_CASE( eigenray_tl_az ) {
         bearing_inc = bearing_inc + angle;
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays and record wavefronts to disk.
 
@@ -414,7 +414,7 @@ BOOST_AUTO_TEST_CASE( eigenray_tl_az ) {
    // compute coherent propagation loss and write eigenrays to disk
 
     loss.sum_eigenrays();
-    cout << "writing proploss to " << ncname << endl;
+    cout << "writing eigenray_collection to " << ncname << endl;
     loss.write_netcdf(ncname,"eigenray_tl_az test");
 
     // save results to spreadsheet and compare to analytic results
@@ -501,9 +501,9 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
         bearing_inc = bearing_inc + angle;
     }
 
-    proploss loss(freq, pos, de, az, time_step, &target);
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-    wave.addEigenrayListener(&loss);
+    wave.add_eigenray_listener(&loss);
 
     // propagate rays and record wavefronts to disk.
 
@@ -521,7 +521,7 @@ BOOST_AUTO_TEST_CASE( eigenray_branch_pt ) {
    // compute coherent propagation loss and write eigenrays to disk
 
     loss.sum_eigenrays();
-    cout << "writing proploss to " << ncname << endl;
+    cout << "writing eigenray_collection to " << ncname << endl;
     loss.write_netcdf(ncname,"eigenray_az_branch_pt test");
 
     // save results to spreadsheet and compare to analytic results
