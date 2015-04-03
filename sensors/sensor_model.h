@@ -14,6 +14,7 @@
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/thread_task.h>
 #include <usml/waveq3d/eigenray_collection.h>
+#include <set>
 
 namespace usml {
 namespace sensors {
