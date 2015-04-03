@@ -105,6 +105,15 @@ public:
 	}
 
 	/**
+     * Gets the list of target sensorID's that was used to run the
+     * the wavefront_generator
+     * @return list of the target sensorID's
+     */
+    const std::set<sensor_model::id_type>& target_ids() {
+        return _target_id_list;
+    }
+
+	/**
 	 * Location of the sensor in world coordinates.
 	 */
 	wposition1 position() const ;
@@ -132,7 +141,7 @@ public:
     /**
      * Last set of fathometers computed for this sensor.
 	 * Blocks during updates from the wavefront task.
-     * @todo migrate to shared pointer.
+     * @param shared_pointer to and eigenray_collection
      */
 	eigenray_collection::reference fathometers() const ;
 
@@ -146,7 +155,7 @@ public:
     /**
      * Last set of eigenverbs computed for this sensor.
 	 * Blocks during updates from the wavefront task.
-     * @todo migrate to shared pointer.
+     * @param shared_pointer to and eigenverb_collection
      */
 	eigenverb_collection::reference eigenverbs() const ;
 
@@ -183,10 +192,23 @@ private:
 
 	/**
 	 * Queries the current list of sensor listeners for the complements
-	 * of this sensor. Assumes that these listeners act like
-	 * sensor_pair objects.
+	 * of this sensor. Assumes that these listeners act like sensor_pair objects.
+	 * @return list of sensor_model references that are the complements of the this sensor.
 	 */
-	wposition sensor_targets() ;
+	std::list<sensor_model::reference> sensor_targets();
+
+	/**
+	 * Sets the list of target sensorID's from the list of sensors provided.
+	 * @params list of sensor_model references
+	 */
+	void target_ids(std::list<sensor_model::reference>& list);
+
+	/**
+	 * Builds a list of target positions from the input list of sensors provided.
+	 * @params list of sensor_model references
+	 * @return wposition container of positions of the list of sensors provided.
+	 */
+	wposition target_positions(std::list<sensor_model::reference>& list);
 
 	/**
 	 * Run the wave_generator thread task to start the waveq3d model.
@@ -234,10 +256,13 @@ private:
     mutable read_write_lock _update_sensor_mutex ;
 
     /**
-     * For each sensor_listener in the _sensor_listeners list call the
-     * update_eigenverbs method of each registered class, ie sensor_pair
+     * List containing the target sensorID prior to
+     * the staring the wavefront generator.
+     */
+    std::set<sensor_model::id_type> _target_id_list;
+
+    /**
      * Last set of fathometers computed for this sensor.
-     * @todo migrate to shared pointer.
      */
     eigenray_collection::reference _fathometers;
 
@@ -250,7 +275,7 @@ private:
      * Last set of eigenverbs computed for this sensor.
      * @todo migrate to shared pointer.
      */
-	shared_ptr<eigenverb_collection> _eigenverbs;
+	eigenverb_collection::reference _eigenverbs;
 
 	/**
 	 * Mutex to that locks sensor during update_eigenverbs.
@@ -265,7 +290,7 @@ private:
 	/**
 	 * List containing the references of objects that will be used to
 	 * update classes that require sensor data.
-	 * These classes must implement sensor_changed method.
+	 * These classes must implement update_eigenrays and update_fathometers methods.
 	 */
 	std::list<sensor_listener::reference> _sensor_listeners;
 

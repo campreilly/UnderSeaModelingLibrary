@@ -185,9 +185,9 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
 /**
  * @ingroup sensors_test
- * Test the ability to instantiate a sensor_map
- * and insert several sensor into it.
- * Also test the find method and the destructor.
+ * Test the ability to instantiate a sensor_manager
+ * and insert several sensors into it.
+ * Also test the find method.
  * Generate errors if pointer values are not equal.
  */
 BOOST_AUTO_TEST_CASE(sensor_test) {

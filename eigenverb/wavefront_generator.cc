@@ -72,7 +72,7 @@ void wavefront_generator::run()
 
     wqWave.add_eigenray_listener(fathometers);
 
-    //wqWave.intensity_threshold(_intensity_threshold);
+    wqWave.intensity_threshold(_intensity_threshold);
 
     if (print_out)
     {

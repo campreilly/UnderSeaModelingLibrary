@@ -30,6 +30,8 @@ public:
 	// eigenray_collection shared_ptr
 	typedef boost::shared_ptr<eigenray_collection> reference;
 
+	//typedef boost::shared_ptr<eigenray_list>  reference ;
+
 private:
 
     /**

@@ -52,15 +52,6 @@ public:
 	 */
 	virtual void update_eigenverbs(shared_ptr<sensor_model>& sensor) = 0;
 
-
-	/**
-	 * Notification that a sensor is about to be deleted.
-	 *
-	 * @param	sensor	Sensor that issued the notification.
-	 */
-	virtual void remove_sensor(shared_ptr<sensor_model>& sensor) = 0;
-
-
 	/**
 	 * Queries for the sensor pair complements of this sensor.
 	 *

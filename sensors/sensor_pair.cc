@@ -9,22 +9,46 @@ using namespace usml::sensors;
 /**
  * Notification that new fathometer data is ready.
  *
- * @param	from	Sensor that issued the notification.
+ * @param	sensor	Sensor that issued the notification.
  */
 void sensor_pair::update_fathometers(sensor_model::reference& sensor) {
+
 	if (sensor != NULL) {
 		#ifdef USML_DEBUG
 			cout << "sensor_pair::update_fathometers("
 				 << sensor->sensorID() << ")" << endl ;
 		#endif
 
-		// TODO
-//        if (sensor == _source) {
-//            _src_fathometers = from->fathometers();
-//        }
-//        if (sensor == _receiver) {
-//            _rcv_fathometers = from->fathometers();
-//        }
+		sensor_model::id_type sensorID;
+
+		// Only Keep eigenrays for this sensor_pair
+		// Get complement's sensorID
+        if (sensor == _source) {
+            sensorID = _receiver->sensorID();
+        } else { // receiver
+            sensorID = _source->sensorID();
+        }
+        // Find complement's sensorID's index in eigenray_collection
+        const std::set<sensor_model::id_type> target_ids = sensor->target_ids();
+        std::set<sensor_model::id_type>::const_iterator iter = target_ids.find(sensorID);
+        if (iter != target_ids.end()) {
+
+            // Get receiverID row's eigenray_list
+            size_t row = std::distance(target_ids.begin(), iter);
+            eigenray_collection::reference fathometers = sensor->fathometers();
+            eigenray_collection* proploss = fathometers.get();
+            eigenray_list* list = proploss->eigenrays(row, 0);
+
+            if (sensor == _receiver) {
+                // Swap de's , and az's on incoming sensor being a RECEIVER
+                BOOST_FOREACH( eigenray ray, *list) {
+                    std::swap(ray.source_de, ray.target_de);
+                    std::swap(ray.source_az, ray.target_az);
+                }
+            }
+            // Insert eigenray_list shared_ptr with lock;
+            eigenrays(list);
+        }
 	}
 }
 
@@ -46,16 +70,6 @@ void sensor_pair::update_eigenverbs(sensor_model::reference& sensor) {
 //            _rcv_eigenverbs = from->eigenverbs();
 //        }
 	}
-}
-
-/**
- * Sends message to remove the sensor from the sensor_pair_manager
- */
-void sensor_pair::remove_sensor(sensor_model::reference& sensor) {
-	#ifdef USML_DEBUG
-		cout << "sensor_pair::remove_sensor("
-			 << sensor->sensorID() << ")" << endl ;
-	#endif
 }
 
 /**

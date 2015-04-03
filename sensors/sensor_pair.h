@@ -78,36 +78,45 @@ public:
 	/**
 	 * Notification that new fathometer data is ready.
 	 *
-	 * @param	from	Sensor that issued the notification.
+	 * @param  sensor	Sensor that issued the notification.
 	 */
 	virtual void update_fathometers(sensor_model::reference& sensor) ;
 
 	/**
 	 * Notification that new eigenverb data is ready.
 	 *
-	 * @param	from	Sensor that issued the notification.
+	 * @param	sensor	Sensor that issued the notification.
 	 */
 	virtual void update_eigenverbs(sensor_model::reference& sensor) ;
-
-
-	/**
-	 * Notification that a sensor is about to be deleted.
-	 *
-	 * @param	from	Sensor that issued the notification.
-	 */
-	virtual void remove_sensor(sensor_model::reference& sensor) ;
-
 
 	/**
 	 * Queries for the sensor pair complements of this sensor.
 	 *
-	 * @param	from	Sensor that issued the notification.
+	 * @param	sensor	Sensor that issued the notification.
 	 */
 	virtual sensor_model::reference sensor_complement(sensor_model::reference& sensor) const ;
+
+	/**
+     * Gets the shared_ptr to last eigenray_list update for this sensor_pair.
+     * @return  eigenray_list shared_ptr
+     */
+     boost::shared_ptr<eigenray_list> eigenrays() {
+         read_lock_guard guard(_eigenrays_mutex);
+         return _eigenrays;
+     }
 
 private:
 
     sensor_pair() {};
+
+    /**
+     * Sets the shared_ptr to eigenray_list for this sensor_pair.
+     * @return  eigenray_list shared_ptr to the eigenray_list
+     */
+    void eigenrays(eigenray_list* list) {
+        write_lock_guard guard(_eigenrays_mutex);
+        _eigenrays = boost::shared_ptr<eigenray_list>(list);
+    }
 
     /**
      * Shared pointer to the source sensor.
@@ -124,12 +133,12 @@ private:
     /**
      * Eigenrays that connect source and receiver locations.
      */
-    eigenray_collection::reference _fathometers;
+    boost::shared_ptr<eigenray_list> _eigenrays;
 
 	/**
-	 * Mutex to that locks sensor_pair during fathometer updates.
+	 * Mutex that locks sensor_pair during eigenray updates.
 	 */
-	mutable read_write_lock _fathometers_mutex ;
+	mutable read_write_lock _eigenrays_mutex ;
 
     /**
      * Interface collisions for wavefront emanating from the source.
