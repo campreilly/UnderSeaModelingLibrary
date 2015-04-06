@@ -39,13 +39,13 @@ class USML_DECLSPEC beam_pattern_sine : public beam_pattern_model {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
-         * @param pitch         pitch in the DE dimension (rad)
-         * @param yaw           yaw in the AZ dimension (rad)
+         * @param theta         spherical offset in theta from reference axis (rad)
+         * @param phi           spherical offset in phi from reference axis (rad)
          * @param frequencies   list of frequencies to compute beam level for
          * @param level         beam level for each frequency
          */
         virtual void beam_level( double de, double az,
-                                 double pitch, double yaw,
+                                 double theta, double phi,
                                  const vector<double>& frequencies,
                                  vector<double>* level ) ;
 
