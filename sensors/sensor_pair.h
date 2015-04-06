@@ -31,7 +31,7 @@ class USML_DECLSPEC sensor_pair : public sensor_listener
 public:
 
 	/**
-	 * Data type used for reference to receiver_params.
+	 * Data type used for reference to a sensor_pair.
 	 */
 	typedef shared_ptr<sensor_pair> reference;
 

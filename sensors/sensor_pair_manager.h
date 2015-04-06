@@ -4,12 +4,15 @@
  */
 #pragma once
 
+#include <set>
+
 #include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_pair.h>
 #include <usml/sensors/sensor_map_template.h>
+#include <usml/sensors/fathometer_model.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/smart_ptr.h>
-#include <set>
+
 
 namespace usml {
 namespace sensors {
@@ -19,19 +22,21 @@ namespace sensors {
 
 /**
  * Stores and manages the active sensor pairs in use by the simulation.
- * The sensor
  * A sensor pair contains a source, receiver acoustic pair and it's
  * associated data. The each sensor_pair uses boost::shared_ptrs to the data
- * required. The sensor_pair_manager has a std::map, sensor_pair_map, that
- * uses a key that is a std::string type and consists of the sourceID + "_" + receiverID.
- * The payload of the sensor_pair_map is a pointer to the sensor_pair data.
+ * required. The sensor_pair_manager has a sensor_pair_map, that uses a 
+ * std::string type hash key which created using the generate_hash_key call.
+ * The payload of the sensor_pair_map is a shared pointer to the sensor_pair data.
  */
 class USML_DECLSPEC sensor_pair_manager {
 
 public:
 
+    // Data type used to query the a random group of sensorID's and mode's
     typedef std::map<sensor_model::id_type,xmitRcvModeType> sensor_query_map;
 
+    // Data type used to return fathometer_record's
+    //typedef std::vector<fathometer_record> fathometer_package;
 	/**
 	 * Singleton Constructor - Creates sensor_pair_manager instance just once.
 	 * Accessible everywhere.
@@ -48,9 +53,9 @@ public:
 	/**
 	 * Gets the fathometers for the list of sensors provided
 	 * @param sensors contains sensor_query_map sensorID, and sensor xmitRcvModeType
-	 * @return eigenray_collection pointer
+	 * @return fathometer_model::fathometer_package contains a collection of fathometer_model pointers
 	 */
-	eigenray_collection* get_fathometers(const sensor_query_map sensors);
+    fathometer_model::fathometer_package get_fathometers(const sensor_query_map sensors);
 
 	/**
 	 * Gets the envelopes for the receiverID requested
@@ -72,7 +77,7 @@ public:
 	 * if both the source and receiver have set their multistatic()
 	 * property to true, and the source is not the same as the receiver.
 	 *
-	 * @param	from	Sensor that is being added.
+	 * @param	sensor	Sensor that is being added.
 	 */
 	void add_sensor(sensor_model::reference& sensor);
 
@@ -80,9 +85,10 @@ public:
 	 * Removes existing sensor_pair objects in reaction to notification
 	 * that a sensor is about to be deleted.
 	 *
-	 * @param	from	Sensor that is being removed.
+	 * @param	sensor	Sensor that is being removed.
+     * @return  false if Sensor was not in the manager.
 	 */
-	void remove_sensor(sensor_model::reference& sensor);
+	bool remove_sensor(sensor_model::reference& sensor);
 
 private:
 
@@ -138,6 +144,27 @@ private:
 	 */
 	void remove_multistatic_receiver(sensor_model::reference& receiver);
 
+   /**
+    * Utility to generate a hash key for the sensor_pair _map
+    * @param	src_id   The source id used to generate the hash_key
+    * @param	rcv_id   The receiver id used to generate the hash_key
+    * @return   string   containing the generated hash_key.
+    */
+    std::string generate_hash_key(const sensor_model::id_type src_id,
+                                    const sensor_model::id_type rcv_id)
+    {
+        std::stringstream key;
+        key << src_id << '_' << rcv_id;
+        return key.str();
+    }
+    /**
+    * Utility to find the sensor_pair keys that are provided in the 
+    * sensor_query_map parameter.
+    * @param	sensors Map of sensorID and modes that needs to be found
+    * @return   list of hash keys in the _map of found sensor_query
+    */
+    std::set<std::string> find_pairs(sensor_query_map& sensors);
+
 	/**
 	 * Hide access to default constructor.
 	 */
@@ -184,6 +211,7 @@ private:
 	/**
 	 * Container for storing the sensor pair objects.
 	 * Key is a string concatenation of "sourceID" + "_" + receiverID"
+     * See generate_hash_key method.
 	 * Payload is a shared pointer to sensor_pair object.
 	 */
 	sensor_map_template<std::string, sensor_pair::reference> _map ;
