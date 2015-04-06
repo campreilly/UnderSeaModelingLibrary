@@ -16,6 +16,6 @@ source_params::source_params( sensor_params::id_type paramsID, bool multistatic,
 	beam_pattern_model::id_type beamID)
 : sensor_params( paramsID, multistatic ),
   _source_level( source_level),
-  _frequencies( _frequencies.get() ),
+  _frequencies( frequencies.clone() ),
   _beam_pattern( beam_pattern_map::instance()->find(beamID) )
   {}

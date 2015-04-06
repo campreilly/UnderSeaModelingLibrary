@@ -2,7 +2,7 @@
  * @file beam_pattern_map.cc
  * Singleton map of beam pattern parameters.
  */
-#include "beam_pattern_map.h"
+#include <usml/sensors/beam_pattern_map.h>
 
 using namespace usml::sensors;
 

@@ -1,17 +1,13 @@
-///////////////////////////////////////////////////////////
-//  @file sensor_pair.h
-//  Definition of the sensor_pair structure.
-//  Created on:      27-Feb-2015 5:46:40 PM
-//  Original author: Ted Burns, AEgis Technologies
-///////////////////////////////////////////////////////////
-
+/**
+ * @file sensor_pair.h
+ * Container for one sensor pair instance.
+ */
 #pragma once
 
-#include <usml/usml_config.h>
-#include <usml/sensors/sensor.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_listener.h>
 #include <usml/sensors/xmitRcvModeType.h>
-#include <usml/waveq3d/proploss.h>
+#include <usml/waveq3d/eigenray_collection.h>
 #include <usml/eigenverb/envelope_collection.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 
@@ -34,25 +30,32 @@ class USML_DECLSPEC sensor_pair : public sensor_listener
 {
 public:
 
+	/**
+	 * Data type used for reference to receiver_params.
+	 */
+	typedef shared_ptr<sensor_pair> reference;
+
     /**
-     * Constructor
+     * Construct from references to source and receiver.
+     * The source and receiver will be equal for monostatic sensors.
+     *
+     * @param	source		Shared pointer to the source for this pair.
+     * @param	receiver	Shared pointer to the receiver for this pair.
      */
-    sensor_pair(sensor* source, sensor* receiver)
+    sensor_pair(sensor_model::reference source, sensor_model::reference receiver)
         : _source(source),_receiver(receiver) {};
 
     /**
      * Destructor
      */
-    ~sensor_pair()
-    {
-
+    ~sensor_pair() {
     }
 
     /**
      * Gets a pointer to the source sensor.
      * @return  Pointer to the source sensor
      */
-    sensor* source() const {
+    sensor_model::reference source() const {
         return _source;
     }
 
@@ -60,71 +63,112 @@ public:
      * Gets a pointer to the receiver sensor.
      * @return  Pointer to the receiver sensor
      */
-    sensor* receiver() const {
+    sensor_model::reference receiver() const {
         return _receiver;
     }
 
-    /**
-     * update_fathometers
-     * Overloads the sensor_listener method to update the fathometers in the sensor_pair
-     * @param  Pointer to the sensor object which contains fathometers to update.
+	/**
+	 * Bistatic sensor_pairs are those for which the source and receiver
+	 * are different.  Set to false for monostatic sensors.
+	 */
+	bool multistatic() const {
+		return _source != _receiver ;
+	}
+
+	/**
+	 * Notification that new fathometer data is ready.
+	 *
+	 * @param  sensor	Sensor that issued the notification.
+	 */
+	virtual void update_fathometers(sensor_model::reference& sensor) ;
+
+	/**
+	 * Notification that new eigenverb data is ready.
+	 *
+	 * @param	sensor	Sensor that issued the notification.
+	 */
+	virtual void update_eigenverbs(sensor_model::reference& sensor) ;
+
+	/**
+	 * Queries for the sensor pair complements of this sensor.
+	 *
+	 * @param	sensor	Sensor that issued the notification.
+	 */
+	virtual sensor_model::reference sensor_complement(sensor_model::reference& sensor) const ;
+
+	/**
+     * Gets the shared_ptr to last eigenray_list update for this sensor_pair.
+     * @return  eigenray_list shared_ptr
      */
-    virtual void update_fathometers(sensor* the_sensor);
-
-    /**
-     * update_eigenverbs
-     * Overloads the sensor_listener method to update the eigenverb_collection sensor_pair
-     * @param  Pointer to the sensor object which contains eigenverbs to update.
-     */
-    virtual void update_eigenverbs(sensor* the_sensor);
-
-   /**
-    * remove_sensor
-    * Overloads the sensor_listener method to remove the sensor object from the sensor_pair.
-    * @param  Pointer to the sensor object which will be removed.
-    */
-    virtual void remove_sensor(sensor* the_sensor);
-
-    /**
-    * sensor_complement
-    * Overloads the sensor_listener to return the complement sensor of the sensor_pair
-    * @return  Pointer to the complement sensor object of the pair.
-    */
-    virtual sensor* sensor_complement (sensor* the_sensor);
+     boost::shared_ptr<eigenray_list> eigenrays() {
+         read_lock_guard guard(_eigenrays_mutex);
+         return _eigenrays;
+     }
 
 private:
 
     sensor_pair() {};
 
     /**
-     * Pointer to the source sensor.
+     * Sets the shared_ptr to eigenray_list for this sensor_pair.
+     * @return  eigenray_list shared_ptr to the eigenray_list
      */
-    sensor* _source;
+    void eigenrays(eigenray_list* list) {
+        write_lock_guard guard(_eigenrays_mutex);
+        _eigenrays = boost::shared_ptr<eigenray_list>(list);
+    }
 
     /**
-     * Pointer to the receiver sensor.
+     * Shared pointer to the source sensor.
+     * The source and receiver will be equal for monostatic sensors.
      */
-    sensor* _receiver;
+    const sensor_model::reference _source;
 
     /**
-     * proploss - contains targets and eigenrays 
+     * Share pointer to the receiver sensor.
+     * The source and receiver will be equal for monostatic sensors.
      */
-    proploss_shared_ptr _proploss;
+    const sensor_model::reference _receiver;
 
     /**
-     * source eigenverbs - contains all source eigenverbs
+     * Eigenrays that connect source and receiver locations.
      */
-    eigenverbs_shared_ptr _src_eigenverbs;
+    boost::shared_ptr<eigenray_list> _eigenrays;
+
+	/**
+	 * Mutex that locks sensor_pair during eigenray updates.
+	 */
+	mutable read_write_lock _eigenrays_mutex ;
 
     /**
-     * receiver eigenverbs - contains all receiver eigenverbs
+     * Interface collisions for wavefront emanating from the source.
      */
-    eigenverbs_shared_ptr _rcv_eigenverbs;
+    eigenverb_collection::reference _src_eigenverbs;
+
+	/**
+	 * Mutex to that locks sensor_pair during source eigenverb updates.
+	 */
+	mutable read_write_lock _src_eigenverbs_mutex ;
+
+    /**
+     * Interface collisions for wavefront emanating from the receiver.
+     */
+    eigenverb_collection::reference _rcv_eigenverbs;
+
+	/**
+	 * Mutex to that locks sensor_pair during receiver eigenverb updates.
+	 */
+	mutable read_write_lock _rcv_eigenverbs_mutex ;
 
     /**
      * envelopes - contains the Reverb envelopes
      */
-    envelopes_shared_ptr _envelopes;
+    envelope_collection::reference _envelopes;
+
+	/**
+	 * Mutex to that locks sensor_pair during _envelope updates.
+	 */
+	mutable read_write_lock _envelopes_mutex ;
 
 };
 
