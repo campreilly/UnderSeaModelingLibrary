@@ -222,7 +222,8 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                     value_ptr data_copy = new value_type[N] ;
                     memcpy( data_copy, data, N*sizeof(value_type) ) ;
                     for(size_type i=0; i<N; ++i) {
-                        *(data_copy++) = std::pow( 10.0, (-(*data_copy)/10.0) ) ;
+                        *data_copy = std::pow( 10.0, (-(*data_copy)/10.0) ) ;
+                        ++data_copy ;
                     }
                     memcpy( this->_data, data_copy, N*sizeof(value_type) ) ;
                     delete data_copy ;

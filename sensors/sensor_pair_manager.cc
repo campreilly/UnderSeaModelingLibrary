@@ -60,8 +60,8 @@ eigenray_collection* sensor_pair_manager::get_fathometers(sensor_query_map senso
 
     for ( iter = sensors.begin(); iter != sensors.end(); ++iter)
     {
-       sensor_model::id_type sensorID = iter->first;
-       xmitRcvModeType mode = iter->second;
+//       sensor_model::id_type sensorID = iter->first;
+//       xmitRcvModeType mode = iter->second;
 
     }
     return NULL;
