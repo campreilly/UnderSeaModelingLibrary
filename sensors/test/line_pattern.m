@@ -43,8 +43,10 @@ function line_pattern( sound_speed, spacing, N, pitch, heading, roll, steering, 
            sin(y_) cos(y_) 0;
            0 0 1 ] ;
     R = Rz * Ry * Rx ;
-    vec = R * ax' ;
-    vec = cart_2_sphere(vec) ;
+    cart_vec = R * ax' ;
+    vec(1) = sqrt( cart_vec(1)*cart_vec(1) + cart_vec(2)*cart_vec(2) + cart_vec(3)*cart_vec(3) ) ;
+    vec(2) = acos( cart_vec(3) / vec(1) ) ;
+    vec(3) = atan2( cart_vec(2), cart_vec(1) ) ;
     theta_tilt = vec(2) ;
     phi_tilt = vec(3) ;
     sint = sin( (theta_grid - theta_tilt) / 2 ) ;
