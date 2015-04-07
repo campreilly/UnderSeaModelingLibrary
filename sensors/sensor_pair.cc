@@ -14,6 +14,7 @@ using namespace usml::sensors;
 void sensor_pair::update_fathometers(sensor_model::reference& sensor) {
 
 	if (sensor != NULL) {
+	    write_lock_guard guard(_eigenrays_mutex);
 		#ifdef USML_DEBUG
 			cout << "sensor_pair::update_fathometers("
 				 << sensor->sensorID() << ")" << endl ;
@@ -55,8 +56,10 @@ void sensor_pair::update_fathometers(sensor_model::reference& sensor) {
 /**
  * Updates the sensors eigenverb_collection
  */
-void sensor_pair::update_eigenverbs(sensor_model::reference& sensor) {
+void sensor_pair::update_eigenverbs(sensor_model::reference& sensor)
+{
 	if (sensor != NULL) {
+
 		#ifdef USML_DEBUG
 			cout << "sensor_pair::update_eigenverbs("
 				 << sensor->sensorID() << ")" << endl ;
@@ -64,9 +67,11 @@ void sensor_pair::update_eigenverbs(sensor_model::reference& sensor) {
 
 // TODO
 //        if (sensor == _source) {
+//			    write_lock_guard guard(_src_eigenverbs_mutex);
 //            _src_eigenverbs = from->eigenverbs();
 //        }
 //        if (sensor == _receiver) {
+//			    write_lock_guard guard(_rcv_eigenverbs_mutex);
 //            _rcv_eigenverbs = from->eigenverbs();
 //        }
 	}
@@ -75,7 +80,9 @@ void sensor_pair::update_eigenverbs(sensor_model::reference& sensor) {
 /**
  * Queries for the sensor pair complements of this sensor.
  */
-sensor_model::reference sensor_pair::sensor_complement(sensor_model::reference& sensor) const {
+sensor_model::reference sensor_pair::sensor_complement(sensor_model::reference& sensor) const
+{
+    read_lock_guard guard(_complements_mutex);
 	if (sensor.get() != NULL) {
 		if (sensor == _source) {
 			return _receiver;

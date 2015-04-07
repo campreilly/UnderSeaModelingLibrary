@@ -35,8 +35,6 @@ public:
     // Data type used to query the a random group of sensorID's and mode's
     typedef std::map<sensor_model::id_type,xmitRcvModeType> sensor_query_map;
 
-    // Data type used to return fathometer_record's
-    //typedef std::vector<fathometer_record> fathometer_package;
 	/**
 	 * Singleton Constructor - Creates sensor_pair_manager instance just once.
 	 * Accessible everywhere.

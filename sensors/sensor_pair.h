@@ -131,6 +131,11 @@ private:
     const sensor_model::reference _receiver;
 
     /**
+     * Mutex that locks sensor_pair during complement lookups.
+     */
+    mutable read_write_lock _complements_mutex ;
+
+    /**
      * Eigenrays that connect source and receiver locations.
      */
     boost::shared_ptr<eigenray_list> _eigenrays;

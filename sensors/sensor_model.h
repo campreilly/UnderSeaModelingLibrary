@@ -252,7 +252,7 @@ private:
 	sensor_orientation _orientation ;
 
 	/**
-	 * Mutex to that locks sensor during update_sensor.
+	 * Mutex that locks sensor during update_sensor.
 	 */
     mutable read_write_lock _update_sensor_mutex ;
 
@@ -296,7 +296,7 @@ private:
 	std::list<sensor_listener::reference> _sensor_listeners;
 
 	/**
-	 * Mutex to that locks sensor during add/remove sensor_listeners.
+	 * Mutex that locks sensor during add/remove sensor_listeners.
 	 */
 	mutable read_write_lock _sensor_listeners_mutex ;
 };

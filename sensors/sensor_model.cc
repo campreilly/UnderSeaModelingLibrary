@@ -74,17 +74,19 @@ sensor_orientation sensor_model::orientation() const {
  */
 void sensor_model::update_sensor(const wposition1& position,
 		const sensor_orientation& orientation, bool force_update) {
-	write_lock_guard guard(_update_sensor_mutex);
-	if (!force_update) {
-		if (!check_thresholds(position, orientation)) {
-			return;
-		}
-	}
-	#ifdef USML_DEBUG
-		cout << "sensor: update_sensor(" << sensorID() << ")" << endl ;
-	#endif
-	_position = position;
-	_orientation = orientation;
+    {
+        write_lock_guard guard(_update_sensor_mutex);
+        if (!force_update) {
+            if (!check_thresholds(position, orientation)) {
+                return;
+            }
+        }
+        #ifdef USML_DEBUG
+            cout << "sensor: update_sensor(" << sensorID() << ")" << endl ;
+        #endif
+        _position = position;
+        _orientation = orientation;
+    }
 	run_wave_generator();
 }
 
@@ -181,19 +183,22 @@ bool sensor_model::check_thresholds(const wposition1& position,
  * sensors of this sensor.
  */
 std::list<sensor_model::reference> sensor_model::sensor_targets() {
-    read_lock_guard guard(_sensor_listeners_mutex);
-
-    // query the listeners for the complements of this sensor.
 
     std::list<sensor_model::reference> complements;
-    sensor_model::reference sensor(this) ;
-    BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
-        complements.push_back(listener->sensor_complement(sensor));
+    {
+        //bool status = _sensor_listeners_mutex.try_lock();
+        write_lock_guard guard(_sensor_listeners_mutex);
+       // _sensor_listeners_mutex.lock();
+
+        // query the listeners for the complements of this sensor.
+        sensor_model::reference sensor(this) ;
+        BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
+            complements.push_back(listener->sensor_complement(sensor));
+        }
+        // _sensor_listeners_mutex.unlock();
     }
-
-    return complements ;
+    return complements;
 }
-
 
 /**
  * Builds a list of sensorID's from the list of sensors provided.
