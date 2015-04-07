@@ -107,9 +107,11 @@ std::set<std::string> sensor_pair_manager::find_pairs(sensor_query_map& sensors)
 fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(sensor_query_map sensors)
 {
     sensor_pair::reference pair;
+    read_lock_guard guard(_manager_mutex);
+
     std::set<std::string> keys = find_pairs(sensors);
 
-#ifdef USML_DEBUG
+#ifdef NOOP
     cout << "sensor_pair_manager: get_fathometers pairs found: " << endl;
     BOOST_FOREACH(std::string s, keys)
     {
@@ -119,20 +121,28 @@ fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(sensor
 
     sensor_model::id_type src_id, rcv_id;
     fathometer_model::fathometer_package fathometers;
-    fathometers.resize(keys.size());
+    fathometers.reserve(keys.size());
     fathometer_model* fathometer; 
     BOOST_FOREACH(std::string s, keys)
     {
-        pair =  _map.find(s);
+        pair = _map.find(s);
         sensor_pair* pair_data = pair.get();
         if ( pair_data != NULL ) {
-            src_id = pair_data->source().get()->sensorID();
-            rcv_id = pair_data->receiver().get()->sensorID();
-            wposition1 src_pos = pair_data->source().get()->position();
-            wposition1 rcv_pos = pair_data->receiver().get()->position();
             shared_ptr<eigenray_list> eigenrays = pair_data->eigenrays();
-            fathometer = new fathometer_model(src_id, rcv_id, src_pos, rcv_pos, eigenrays);
-            fathometers.push_back(fathometer);
+            #ifdef NOOP
+                    cout << "sensor_pair_manager: eigenrays.get() " << eigenrays.get() << endl;
+            #endif
+            if (eigenrays.get() != NULL){
+                src_id = pair_data->source().get()->sensorID();
+                rcv_id = pair_data->receiver().get()->sensorID();
+                wposition1 src_pos = pair_data->source().get()->position();
+                wposition1 rcv_pos = pair_data->receiver().get()->position();
+                #ifdef USML_DEBUG
+                    cout << "sensor_pair_manager: added sensor pair: sourceID " << src_id << " receiverID " << rcv_id << endl;
+                #endif
+                fathometer = new fathometer_model(src_id, rcv_id, src_pos, rcv_pos, eigenrays);
+                fathometers.push_back(fathometer);
+            }
         }
     }
     return fathometers;

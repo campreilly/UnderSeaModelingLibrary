@@ -110,7 +110,7 @@ public:
      * the wavefront_generator
      * @return list of the target sensorID's
      */
-    const std::set<sensor_model::id_type>& target_ids() {
+    const std::set<sensor_model::id_type> target_ids() {
         return _target_id_list;
     }
 
@@ -128,8 +128,8 @@ public:
 	 * Updates the position and orientation of sensor.
 	 * If the object has changed by more than the threshold amount,
 	 * this update kicks off a new set of propagation calculations.
-	 * At the end of those calculations, the fathometers and eigen
-     * Passes this data onto all sensor listeners.
+	 * At the end of those calculations, the eigenverbs and eigenrays
+     * are passed onto all sensor listeners.
 	 * Blocks until update is complete.
 	 *
 	 * @param position  	Updated position data
@@ -140,18 +140,18 @@ public:
 			const sensor_orientation& orientation, bool force_update = false);
 
     /**
-     * Last set of fathometers computed for this sensor.
+     * Last set of eigenrays computed for this sensor.
 	 * Blocks during updates from the wavefront task.
      * @param shared_pointer to and eigenray_collection
      */
-	eigenray_collection::reference fathometers() const ;
+	eigenray_collection::reference eigenrays() const ;
 
 	/**
-	 * Asynchronous update of fathometer data from the wavefront task.
+	 * Asynchronous update of eigenray data from the wavefront task.
      * Passes this data onto all sensor listeners.
 	 * Blocks until update is complete.
 	 */
-	virtual void update_fathometers( eigenray_collection::reference& fathometers ) ;
+	virtual void update_eigenrays( eigenray_collection::reference& eigenrays ) ;
 
     /**
      * Last set of eigenverbs computed for this sensor.
@@ -263,14 +263,14 @@ private:
     std::set<sensor_model::id_type> _target_id_list;
 
     /**
-     * Last set of fathometers computed for this sensor.
+     * Last set of eigenray data computed for this sensor.
      */
-    eigenray_collection::reference _fathometers;
+    eigenray_collection::reference _eigenray_collection;
 
 	/**
-	 * Mutex to that locks sensor during update_fathometers.
+	 * Mutex to that locks sensor during update_eigenrays.
 	 */
-	mutable read_write_lock _update_fathometers_mutex ;
+	mutable read_write_lock _update_eigenrays_mutex ;
 
     /**
      * Last set of eigenverbs computed for this sensor.
@@ -284,14 +284,14 @@ private:
 	mutable read_write_lock _update_eigenverbs_mutex ;
 
     /**
-     * reference to the task that is computing fathometers and eigenverbs.
+     * reference to the task that is computing eigenrays and eigenverbs.
      */
 	thread_task::reference _wavefront_task;
 
 	/**
 	 * List containing the references of objects that will be used to
 	 * update classes that require sensor data.
-	 * These classes must implement update_eigenrays and update_fathometers methods.
+	 * These classes must implement update_eigenrays and update_eigenverbs methods.
 	 */
 	std::list<sensor_listener::reference> _sensor_listeners;
 

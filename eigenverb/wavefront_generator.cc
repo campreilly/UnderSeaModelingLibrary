@@ -38,10 +38,10 @@ void wavefront_generator::run()
     const char* ncname_wave = USML_TEST_DIR "/generator_wave.nc";
     const char* ncname_proploss = USML_TEST_DIR "/generator_proploss.nc";
 
-    bool print_out = true;
+    bool print_out = false;
 
     /** Pointer to Proploss object */
-    eigenray_collection* fathometers;
+    eigenray_collection* proploss;
 
     // check to see if WaveQ3D propagation model task has already been aborted
 
@@ -65,12 +65,12 @@ void wavefront_generator::run()
     seq_linear az(0.0, 180.0, number_az, true);
 
 
-    fathometers = new eigenray_collection(*(_frequencies), _sensor_position, de, az, time_step, &_targets);
+    proploss = new eigenray_collection(*(_frequencies), _sensor_position, de, az, time_step, &_targets);
 
     wave_queue wqWave(*(_ocean.get()), *(_frequencies), _sensor_position, de, az, time_step, &_targets, _runID,
                                                                 usml::waveq3d::wave_queue::HYBRID_GAUSSIAN);
 
-    wqWave.add_eigenray_listener(fathometers);
+    wqWave.add_eigenray_listener(proploss);
 
     wqWave.intensity_threshold(_intensity_threshold);
 
@@ -95,14 +95,14 @@ void wavefront_generator::run()
         wqWave.close_netcdf();
     }
 
-    fathometers->sum_eigenrays();
+    proploss->sum_eigenrays();
 
     if (print_out) {
-        fathometers->write_netcdf(ncname_proploss);
+        proploss->write_netcdf(ncname_proploss);
     }
 
-    eigenray_collection::reference result(fathometers) ;
-    _wavefront_listener->update_fathometers(result);
+    eigenray_collection::reference rays(proploss);
+    _wavefront_listener->update_eigenrays(rays);
 
     // mark task as complete
     _done = true ;

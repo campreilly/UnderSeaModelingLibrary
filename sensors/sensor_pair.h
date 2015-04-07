@@ -24,7 +24,7 @@ using namespace eigenverb;
  * Container for one sensor pair instance.
  * On construction a pointer to the source and receiver sensor are obtained.
  * Inherits the sensor_listener interface so a sensor instance can get
- * access to its complement sensor, and updates the eigenverbs and fathometers.
+ * access to its complement sensor, and updates the eigenverbs and eigenrays.
  */
 class USML_DECLSPEC sensor_pair : public sensor_listener
 {
@@ -76,25 +76,25 @@ public:
 	}
 
 	/**
-	 * Notification that new fathometer data is ready.
+	 * Notification that new eigenray data is ready.
 	 *
-	 * @param  sensor	Sensor that issued the notification.
+	 * @param  sensor	Pointer to sensor that issued the notification.
 	 */
-	virtual void update_fathometers(sensor_model::reference& sensor) ;
+	virtual void update_eigenrays(sensor_model* sensor) ;
 
 	/**
 	 * Notification that new eigenverb data is ready.
 	 *
-	 * @param	sensor	Sensor that issued the notification.
+	 * @param	sensor	Pointer to sensor that issued the notification.
 	 */
-	virtual void update_eigenverbs(sensor_model::reference& sensor) ;
+	virtual void update_eigenverbs(sensor_model* sensor) ;
 
 	/**
 	 * Queries for the sensor pair complements of this sensor.
 	 *
-	 * @param	sensor	Sensor that issued the notification.
+	 * @param	sensor	Const sensor_model pointer Sensor that requested the complement.
 	 */
-	virtual sensor_model::reference sensor_complement(sensor_model::reference& sensor) const ;
+	virtual sensor_model::reference sensor_complement(const sensor_model* sensor) const ;
 
 	/**
      * Gets the shared_ptr to last eigenray_list update for this sensor_pair.

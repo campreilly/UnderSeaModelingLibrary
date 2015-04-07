@@ -1,6 +1,6 @@
 /**
- *  @file sensor.cc
- *  Implementation of the Class sensor
+ *  @file sensor_model.cc
+ *  Implementation of the Class sensor_model
  *  Created on: 10-Feb-2015 12:49:09 PM
  */
 #include <usml/sensors/sensor_model.h>
@@ -25,7 +25,7 @@ sensor_model::sensor_model(sensor_model::id_type sensorID, sensor_params::id_typ
 }
 
 /**
- * Removes a sensor instance from simulation.
+ * Removes a sensor_model instance from simulation.
  */
 sensor_model::~sensor_model() {
 	if ( _wavefront_task.get() != 0 ) {
@@ -82,7 +82,7 @@ void sensor_model::update_sensor(const wposition1& position,
             }
         }
         #ifdef USML_DEBUG
-            cout << "sensor: update_sensor(" << sensorID() << ")" << endl ;
+            cout << "sensor_model: update_sensor(" << sensorID() << ")" << endl ;
         #endif
         _position = position;
         _orientation = orientation;
@@ -91,26 +91,25 @@ void sensor_model::update_sensor(const wposition1& position,
 }
 
 /**
- * Last set of fathometers computed for this sensor.
+ * Last set of eigenrays computed for this sensor.
  * Blocks during updates from the wavefront task.
  */
-eigenray_collection::reference sensor_model::fathometers() const {
-	read_lock_guard guard(_update_fathometers_mutex);
-	return _fathometers;
+eigenray_collection::reference sensor_model::eigenrays() const {
+	read_lock_guard guard(_update_eigenrays_mutex);
+	return _eigenray_collection;
 }
 
 /**
- * Asynchronous update of fathometer data from the wavefront task.
+ * Asynchronous update of eigenrays data from the wavefront task.
  */
-void sensor_model::update_fathometers(eigenray_collection::reference& fathometers) {
-	write_lock_guard guard(_update_fathometers_mutex);
+void sensor_model::update_eigenrays(eigenray_collection::reference& eigenrays) {
+	write_lock_guard guard(_update_eigenrays_mutex);
 	#ifdef USML_DEBUG
-		cout << "sensor: update_fathometers(" << sensorID() << ")" << endl ;
+		cout << "sensor_model: update_eigenrays(" << sensorID() << ")" << endl ;
 	#endif
-	_fathometers = fathometers;
-	sensor_model::reference sensor(this) ;
+	_eigenray_collection = eigenrays;
 	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
-		listener->update_fathometers(sensor);
+		listener->update_eigenrays(this);
 	}
 }
 
@@ -130,12 +129,11 @@ eigenverb_collection::reference sensor_model::eigenverbs() const {
 void sensor_model::update_eigenverbs( eigenverb_collection::reference& eigenverbs ) {
 	write_lock_guard guard(_update_eigenverbs_mutex);
 	#ifdef USML_DEBUG
-		cout << "sensor: update_eigenverbs(" << sensorID() << ")" << endl ;
+		cout << "sensor_model: update_eigenverbs(" << sensorID() << ")" << endl ;
 	#endif
 	_eigenverbs = eigenverbs;
-	sensor_model::reference sensor(this) ;
 	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
-		listener->update_eigenverbs(sensor);
+		listener->update_eigenverbs(this);
 	}
 }
 
@@ -184,18 +182,12 @@ bool sensor_model::check_thresholds(const wposition1& position,
  */
 std::list<sensor_model::reference> sensor_model::sensor_targets() {
 
-    std::list<sensor_model::reference> complements;
-    {
-        //bool status = _sensor_listeners_mutex.try_lock();
-        write_lock_guard guard(_sensor_listeners_mutex);
-       // _sensor_listeners_mutex.lock();
+    read_lock_guard guard(_sensor_listeners_mutex);
 
-        // query the listeners for the complements of this sensor.
-        sensor_model::reference sensor(this) ;
-        BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
-            complements.push_back(listener->sensor_complement(sensor));
-        }
-        // _sensor_listeners_mutex.unlock();
+    std::list<sensor_model::reference> complements;
+
+    BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
+        complements.push_back(listener->sensor_complement(this));
     }
     return complements;
 }
@@ -239,7 +231,7 @@ void sensor_model::run_wave_generator() {
     if (ocean_shared::current().get() != NULL ) {
 
         #ifdef USML_DEBUG
-            cout << "sensor: run_wave_generator(" << sensorID() << ")" << endl ;
+            cout << "sensor_model: run_wave_generator(" << sensorID() << ")" << endl ;
         #endif
         // Create the wavefront_generator
         wavefront_generator* generator = new wavefront_generator();
@@ -273,7 +265,7 @@ void sensor_model::run_wave_generator() {
 
     #ifdef USML_DEBUG
         if (ocean_shared::current().get() == NULL ) {
-             cout << "sensor: run_wave_generator no ocean provided !!! (" << sensorID() << ")" << endl ;
+             cout << "sensor_model: run_wave_generator no ocean provided !!! (" << sensorID() << ")" << endl ;
         }
     #endif
 }

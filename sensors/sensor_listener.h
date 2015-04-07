@@ -20,7 +20,7 @@ using namespace usml::sensors ;
  * Abstract interface for callbacks from sensor objects.
  * This class is part of a Observer/Subject pattern for the sensor class.
  * and allows other classes to call methods in the class that implemented it.
- * The update_fathometers and update_eigenverbs methods must be defined in
+ * The update_eigenrays and update_eigenverbs methods must be defined in
  * each class which inherits it. The primary purpose for this class was to access
  * sensor_pair data.
  */
@@ -39,25 +39,26 @@ public:
 	}
 
 	/**
-	 * Notification that new fathometer data is ready.
+	 * Notification that new eigenray data is ready.
 	 *
-	 * @param	sensor	Sensor that issued the notification.
+	 * @param	sensor	Pointer to sensor that issued the notification.
 	 */
-	virtual void update_fathometers(shared_ptr<sensor_model>& sensor) = 0;
+	virtual void update_eigenrays(sensor_model* sensor) = 0;
 
 	/**
 	 * Notification that new eigenverb data is ready.
 	 *
-	 * @param	sensor	Sensor that issued the notification.
+	 * @param	sensor	Pointer to sensor that issued the notification.
 	 */
-	virtual void update_eigenverbs(shared_ptr<sensor_model>& sensor) = 0;
+	virtual void update_eigenverbs(sensor_model* sensor) = 0;
 
 	/**
 	 * Queries for the sensor pair complements of this sensor.
 	 *
 	 * @param	sensor	Sensor that issued the notification.
 	 */
-	virtual shared_ptr<sensor_model> sensor_complement(shared_ptr<sensor_model>& sensor) const = 0;
+
+	virtual shared_ptr<sensor_model> sensor_complement(const sensor_model* sensor) const = 0;
 
 protected:
 
