@@ -32,7 +32,7 @@ zz = db .* cos(theta_grid) ;
 figure ;
 surf( xx, yy, zz, db, 'EdgeColor','none','FaceColor','interp') ;
 colormap(jet) ;
-view([0 0]) ;
+view([0 90]) ;
 set(gca,'Xlim',[-30 30]) ;
 set(gca,'Ylim',[-30 30]) ;
 set(gca,'Zlim',[-30 30]) ;
