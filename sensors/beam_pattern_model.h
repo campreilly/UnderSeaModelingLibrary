@@ -72,6 +72,22 @@ public:
 	}
 
 	/**
+	 * Returns the reference axis for the beam pattern
+	 * @return      reference axis (Cartesian coordinates)
+	 */
+	vector<double> reference_axis() const {
+	    return _reference_axis ;
+	}
+
+	/**
+	 * Updates the reference axis with a new reference axis
+	 * @param r     new reference axis (Cartesian coordinates)
+	 */
+	void reference_axis( const vector<double> r ) {
+	    _reference_axis = r ;
+	}
+
+	/**
 	 * Computes the beam level gain along a specific DE and AZ direction
 	 * for a specific beam steering angle. The DE and AZ are passed in as
 	 * Eta/VarPhi values and then transformed to a theta/phi equivalent
@@ -112,6 +128,11 @@ protected:
 	 * Reader-write lock for multi-thread access.
 	 */
 	read_write_lock _mutex;
+
+	/**
+	 * Reference axis of the beam pattern
+	 */
+	c_vector<double,3> _reference_axis ;
 
 private:
 

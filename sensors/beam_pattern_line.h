@@ -34,7 +34,7 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          * spatially and horizontal being in the xy-planar
          * direction.
          */
-        typedef enum { VERTICAL, HORIZONTAL } reference_axis ;
+        typedef enum { VERTICAL, HORIZONTAL } orientation_axis ;
 
         /**
          * Constructs a beam pattern for a linear array.
@@ -48,7 +48,7 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          */
         beam_pattern_line( double sound_speed, double spacing,
                            size_t elements, double steering_angle,
-                           reference_axis axis=VERTICAL ) ;
+                           orientation_axis axis=VERTICAL ) ;
 
         /**
          * Computes the response level in a specific DE/AZ pair and
@@ -99,7 +99,7 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          * Defines the reference axis for this linear array's beam
          * pattern.
          */
-        reference_axis _axis ;
+        orientation_axis _axis ;
 
         /**
          * Initializes the beam pattern. To save execution time, common computations

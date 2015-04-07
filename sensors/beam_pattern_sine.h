@@ -30,7 +30,7 @@ class USML_DECLSPEC beam_pattern_sine : public beam_pattern_model {
         /**
          * Constructs a sine-directional beam pattern.
          */
-        beam_pattern_sine() {}
+        beam_pattern_sine() ;
 
         /**
          * Computes the response level in a specific DE/AZ pair and

@@ -10,21 +10,21 @@ using namespace usml::sensors ;
  * Default constructor
  */
 orientation::orientation()
-    : _pitch(0.0), _heading(0.0), _roll(0.0),
-      _rx(3,3), _ry(3,3), _rz(3,3), _rotation(3,3)
+    : _heading(0.0), _pitch(0.0), _roll(0.0)
 {
-    initialize_matrices() ;
+
 }
 
 /**
  * Pitch, heading, roll constructor
  */
 orientation::orientation(
-    double pitch, double heading, double roll )
-    : _pitch(pitch), _heading(heading), _roll(roll),
-      _rx(3,3), _ry(3,3), _rz(3,3), _rotation(3,3)
+    double heading, double pitch, double roll )
+    : _heading(-pitch*M_PI/180.0),
+      _pitch(-heading*M_PI/180.0),
+      _roll(roll*M_PI/180.0)
 {
-    initialize_matrices() ;
+
 }
 
 /**
@@ -33,10 +33,9 @@ orientation::orientation(
  */
 orientation::orientation(
     double angle, double direction )
-    : _pitch(0.0), _heading(0.0), _roll(0.0),
-      _rx(3,3), _ry(3,3), _rz(3,3), _rotation(3,3)
+    : _heading(0.0), _pitch(0.0), _roll(0.0)
 {
-    initialize_matrices() ;
+
 }
 
 /**
@@ -47,53 +46,18 @@ void orientation::apply_rotation(
     const vector<double> ref_axis,
     double& theta, double& phi  )
 {
-    _v_cart = prod( _rotation, ref_axis ) ;
+    _v_cart(0) = ref_axis(0)*cos(_heading)*cos(_roll) +
+                 ref_axis(2)*( sin(_heading)*sin(_pitch) + cos(_heading)*cos(_pitch)*sin(_roll) ) +
+                 ref_axis(1)*( -cos(_pitch)*sin(_heading) + cos(_heading)*sin(_pitch)*sin(_roll) ) ;
+    _v_cart(1) = ref_axis(0)*cos(_roll)*sin(_heading) +
+                 ref_axis(2)*( -cos(_heading)*sin(_pitch) + cos(_pitch)*sin(_heading)*sin(_roll) ) +
+                 ref_axis(1)*( cos(_heading)*cos(_pitch) + sin(_heading)*sin(_pitch)*sin(_roll) ) ;
+    _v_cart(2) = ref_axis(2)*cos(_pitch)*cos(_roll) +
+                 ref_axis(1)*cos(_roll)*sin(_pitch) -
+                 ref_axis(0)*sin(_roll) ;
     convert_to_spherical() ;
     theta = std::fmod( _v(1), M_PI ) ;
     phi = std::fmod( _v(2), 2.0*M_PI ) ;
-}
-
-/**
- * Sets the rotational invariant components of the rotation
- * matrices and then constructs the full rotation matrix.
- */
-void orientation::initialize_matrices()
-{
-    _v.clear() ;
-    _v_cart.clear() ;
-    _v(0) = 1.0 ;
-    // set the rotation invariant components of the matrices
-    _rx.clear() ;
-    _rx(0,0) = 1.0 ;
-    _ry.clear() ;
-    _ry(1,1) = 1.0 ;
-    _rz.clear() ;
-    _rz(2,2) = 1.0 ;
-    _rotation.clear() ;
-    compute_rotation_matrix() ;
-}
-
-/**
- * Computes the inverse rotation matrix needed to transform
- * incoming angles to the newly rotated coordinate system.
- */
-void orientation::compute_rotation_matrix()
-{
-    // x-axis rotation
-    _rx(1,1) = _rx(2,2) = cos(_roll) ;
-    _rx(1,2) = -sin(_roll) ;
-    _rx(2,1) = -_rx(1,2) ;
-    // y-axis rotation
-    _ry(0,0) = _ry(2,2) = cos(_pitch) ;
-    _ry(0,2) = sin(_pitch) ;
-    _ry(2,0) = -_ry(0,2) ;
-    // z-axis rotation
-    _rz(0,0) = _rz(1,1) = cos(_heading) ;
-    _rz(0,1) = -sin(_heading) ;
-    _rz(1,0) = -_rz(0,1) ;
-    // Full inverse rotation matrix
-    matrix<double> tmp = prod( _ry, _rx ) ;
-    noalias(_rotation) = prod( _rz, tmp ) ;
 }
 
 /**

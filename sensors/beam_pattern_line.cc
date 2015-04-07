@@ -12,17 +12,23 @@ using namespace usml::sensors ;
 beam_pattern_line::beam_pattern_line(
     double sound_speed, double spacing,
     size_t elements, double steering_angle,
-    reference_axis axis )
+    orientation_axis axis )
     : _axis(axis)
 {
     switch( _axis ) {
         case HORIZONTAL :
             _n = elements ;
+            _reference_axis(0) = 0.0 ;
+            _reference_axis(1) = 1.0 ;
+            _reference_axis(2) = 0.0 ;
             initialize_beams( sound_speed, spacing, (M_PI_2 + steering_angle) ) ;
             break ;
         default :
             _n = elements ;
-            initialize_beams( sound_speed, spacing, steering_angle ) ;
+            _reference_axis(0) = 0.0 ;
+            _reference_axis(1) = 0.0 ;
+            _reference_axis(2) = 1.0 ;
+           initialize_beams( sound_speed, spacing, steering_angle ) ;
             break ;
     }
 }

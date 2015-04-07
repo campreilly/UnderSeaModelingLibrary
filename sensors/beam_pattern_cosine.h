@@ -30,7 +30,7 @@ class USML_DECLSPEC beam_pattern_cosine : public beam_pattern_model {
         /**
          * Constructs a cosine-directional beam pattern.
          */
-        beam_pattern_cosine() {}
+        beam_pattern_cosine() ;
 
         /**
          * Computes the response level in a specific DE/AZ pair and

@@ -70,15 +70,15 @@ BOOST_AUTO_TEST_CASE( sine_pattern_test ) {
     beam_pattern_sine sine ;
 
     int pitch = 62 ;
-    int yaw = 31 ;
+    int heading = 31 ;
     int roll = 57 ;
     double dr = M_PI / 180.0 ;
-    orientation o( pitch*dr, yaw*dr, roll*dr ) ;
+    orientation o( pitch, heading, roll ) ;
     double theta = 0.0 ;
     double phi = 0.0 ;
-    vector<double> raxis(3,0) ;
-    raxis(0) = 1.0 ;
-    o.apply_rotation( raxis, theta, phi ) ;
+//    vector<double> raxis(3,0) ;
+//    raxis(0) = 1.0 ;
+    o.apply_rotation( sine.reference_axis(), theta, phi ) ;
 
     int _t = theta/dr ;
     int _p = phi/dr ;
@@ -125,15 +125,15 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
     beam_pattern_cosine cosine ;
 
     int pitch = 21 ;
-    int yaw = 57 ;
+    int heading = 57 ;
     int roll = 33 ;
     double dr = M_PI / 180.0 ;
-    orientation o( pitch*dr, yaw*dr, roll*dr ) ;
+    orientation o( pitch, heading, roll ) ;
     double theta = 0.0 ;
     double phi = 0.0 ;
-    vector<double> raxis(3,0) ;
-    raxis(1) = 1.0 ;
-    o.apply_rotation( raxis, theta, phi ) ;
+//    vector<double> raxis(3,0) ;
+//    raxis(1) = 1.0 ;
+    o.apply_rotation( cosine.reference_axis(), theta, phi ) ;
 
     int _t = theta/dr ;
     int _p = phi/dr ;
@@ -193,15 +193,15 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     beam_pattern_line array( c0, d, n, steering ) ;
 
     int pitch = 73 ;
-    int yaw = 37 ;
+    int heading = 37 ;
     int roll = 55 ;
     double dr = M_PI / 180.0 ;
-    orientation o( pitch*dr, yaw*dr, roll*dr ) ;
+    orientation o( pitch, heading, roll ) ;
     double theta = 0.0 ;
     double phi = 0.0 ;
-    vector<double> raxis(3,0) ;
-    raxis(2) = 1.0 ;
-    o.apply_rotation( raxis, theta, phi ) ;
+//    vector<double> raxis(3,0) ;
+//    raxis(2) = 1.0 ;
+    o.apply_rotation( array.reference_axis(), theta, phi ) ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -225,12 +225,12 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
 
     std::ofstream ef( envname ) ;
     cout << "Saving environmental and array parameters to " << envname << endl ;
-    ef << "c0,d,n,pitch,yaw,roll,steering,freq" << endl ;
+    ef << "c0,d,n,pitch,heading,roll,steering,freq" << endl ;
     ef << c0 << ","
        << d << ","
        << n << ","
        << pitch << ","
-       << yaw << ","
+       << heading << ","
        << roll << ","
        << steering << "," ;
     for(int i=0; i<freq.size(); ++i) {
@@ -277,15 +277,16 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     beam_pattern_line array( c0, d, n, steering, beam_pattern_line::HORIZONTAL ) ;
 
     int pitch = 61 ;
-    int yaw = 57 ;
+    int heading = 57 ;
     int roll = 23 ;
     double dr = M_PI / 180.0 ;
-    orientation o( pitch*dr, yaw*dr, roll*dr ) ;
+    orientation o( pitch, heading, roll ) ;
     double theta = 0.0 ;
     double phi = 0.0 ;
-    vector<double> raxis(3,0) ;
-    raxis(2) = 1.0 ;
-    o.apply_rotation( raxis, theta, phi ) ;
+//    vector<double> raxis(3,0) ;
+//    raxis(1) = 1.0 ;
+    o.apply_rotation( array.reference_axis(), theta, phi ) ;
+    cout << "theta: " << theta/dr << " phi: " << phi/dr << endl ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -309,12 +310,12 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
 
     std::ofstream ef( envname ) ;
     cout << "Saving environmental and array parameters to " << envname << endl ;
-    ef << "c0,d,n,pitch,yaw,roll,steering,freq" << endl ;
+    ef << "c0,d,n,pitch,heading,roll,steering,freq" << endl ;
     ef << c0 << ","
        << d << ","
        << n << ","
        << pitch << ","
-       << yaw << ","
+       << heading << ","
        << roll << ","
        << steering << "," ;
     for(int i=0; i<freq.size(); ++i) {
@@ -360,15 +361,16 @@ BOOST_AUTO_TEST_CASE( solid_pattern_test ) {
 //    double pitch = 17.0 ;
 //    double yaw = 41.0 ;
     int pitch = 0 ;
-    int yaw = 0 ;
+    int heading = 0 ;
     int roll = 0 ;
     double dr = M_PI / 180.0 ;
-    orientation o( pitch*dr, yaw*dr, roll*dr ) ;
+    orientation o( pitch, heading, roll ) ;
     double theta = 0.0 ;
     double phi = 0.0 ;
     vector<double> raxis(3,0) ;
     raxis(2) = 1.0 ;
-    o.apply_rotation( raxis, theta, phi ) ;
+    solid.reference_axis( raxis ) ;
+    o.apply_rotation( solid.reference_axis(), theta, phi ) ;
     cout << "theta: " << theta/dr << " phi: " << phi/dr << endl ;
 
     std::ofstream of( csvname ) ;
@@ -385,7 +387,7 @@ BOOST_AUTO_TEST_CASE( solid_pattern_test ) {
             total += level(0)*cos(de_rad)*dr*dr ;
             double result = 0.0 ;
             if( (de<(max_de-pitch)) && (de>=(min_de-pitch)) ) {
-                if( (az<=(max_az+yaw)) && (az>=(min_az+yaw)) ) {
+                if( (az<=(max_az+heading)) && (az>=(min_az+heading)) ) {
                     result = 1.0 ;
                 }
             }

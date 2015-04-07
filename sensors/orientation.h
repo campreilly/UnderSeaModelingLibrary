@@ -3,7 +3,6 @@
  */
 #pragma once
 
-#include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <usml/usml_config.h>
 
@@ -17,9 +16,9 @@ namespace sensors {
  * sensor and provides a conversion from incident ray
  * coordinates to the spherical array coordinates.
  *
- * Pitch - the amount of rotation about the local z-axis
- * Heading - the amount of rotation about the local y-axis
- * Roll - the amount of rotation about the local x-axis
+ * Heading - the amount of rotation about the z-axis
+ * Pitch   - the amount of rotation about the x-axis
+ * Roll    - the amount of rotation about the y-axis
  */
 class USML_DECLSPEC orientation {
 
@@ -31,13 +30,13 @@ public:
     orientation() ;
 
     /**
-     * Constructor using a given pitch, heading, and roll
+     * Constructor using a given heading, pitch, and roll
      *
-     * @param pitch     rotation about the z-axis (radians)
-     * @param heading   rotation about the y-axis (radians)
-     * @param roll      rotation about the x-axis (radians)
+     * @param heading  rotation about the z-axis (deg)
+     * @param pitch    rotation about the x-axis (deg)
+     * @param roll     rotation about the y-axis (deg)
      */
-    orientation( double pitch, double heading, double roll ) ;
+    orientation( double heading, double pitch, double roll ) ;
 
     /**
      * Constructor using a tile angle/direction????
@@ -56,67 +55,63 @@ public:
 
     /**
      * Current pitch of the rotated system.
-     * @return  current value stored in _pitch
+     * @return  current value stored in _pitch (deg)
      */
     double pitch() const {
-        return _pitch ;
+        return -(_pitch*M_PI/180.0) ;
     }
 
     /**
      * Updates the pitch for the rotated system.
-     * @param p     new pitch of the rotated system
+     * @param p     new pitch of the rotated system (deg)
      */
     void pitch( double p ) {
-        _pitch = p ;
-        compute_rotation_matrix() ;
+        _pitch = -p*M_PI/180.0 ;
     }
 
     /**
      * Current heading of the rotated system.
-     * @return  current value stored in _heading
+     * @return  current value stored in _heading (deg)
      */
     double heading() {
-        return _heading ;
+        return -(_heading*M_PI/180.0) ;
     }
 
     /**
      * Updates the heading for the rotated system.
-     * @param h     new heading of the rotated system
+     * @param h     new heading of the rotated system (deg)
      */
     void heading( double h ) {
-        _heading = h ;
-        compute_rotation_matrix() ;
+        _heading = -h*M_PI/180.0 ;
     }
 
     /**
      * Current roll of the rotated system.
-     * @return  current value stored in _roll
+     * @return  current value stored in _roll (deg)
      */
     double roll() const {
-        return _roll ;
+        return (_roll*M_PI/180.0) ;
     }
 
     /**
      * Updates the roll for the rotated system.
-     * @param r     new roll of the rotated system
+     * @param r     new roll of the rotated system (deg)
      */
     void roll( double r ) {
-        _roll = r ;
-        compute_rotation_matrix() ;
+        _roll = r*M_PI/180.0 ;
     }
 
     /**
      * Update all three rotation angles
      *
-     * @param p     new pitch of the rotated system
-     * @param h     new heading of the rotated system
-     * @param r     new roll of the rotated system
+     * @param h     new heading of the rotated system (deg)
+     * @param p     new pitch of the rotated system (deg)
+     * @param r     new roll of the rotated system (deg)
      */
-    void update_orientation( double p, double h, double r ) {
-        _pitch = p ;
-        _heading = h ;
-        _roll = r ;
-        compute_rotation_matrix() ;
+    void update_orientation( double h, double p, double r ) {
+        _heading = -h*M_PI/180.0 ;
+        _pitch = -p*M_PI/180.0 ;
+        _roll = r*M_PI/180.0 ;
     }
 
 private:
@@ -124,35 +119,15 @@ private:
     /**
      * Member variables
      */
-    double _pitch ;
     double _heading ;
+    double _pitch ;
     double _roll ;
-
-    /**
-     * Inverse Rotation Matrices
-     */
-    matrix<double> _rx ;
-    matrix<double> _ry ;
-    matrix<double> _rz ;
-    matrix<double> _rotation ;
 
     /**
      * Rotation vector
      */
     c_vector<double,3> _v ;
     c_vector<double,3> _v_cart ;
-
-    /**
-     * Computes the inverse rotation matrices
-     */
-    void compute_rotation_matrix() ;
-
-    /**
-     * Initializes the matrices rotation invariant components
-     * and then calls the compute_inverse_matrix component to complete
-     * the full computation of the inverse rotation matrix
-     */
-    void initialize_matrices() ;
 
     /**
      * Convert from Spherical coordinates to Cartesian coordinates
