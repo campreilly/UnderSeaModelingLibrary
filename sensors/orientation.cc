@@ -34,11 +34,14 @@ orientation::orientation(
  * Tilt angle/direction constructor
  * NOTE: This is a dummy constructor at this time
  */
-orientation::orientation(
-    double angle, double direction, vector<double> ref_axis )
-    : _heading(0.0), _pitch(0.0), _roll(0.0), _axis(ref_axis)
+orientation::orientation( double angle, double direction )
+    : _heading(0.0)
 {
-
+    double sin_theta2 = sin(angle)*sin(angle) ;
+    double sin_phi2 = sin(direction)*sin(direction) ;
+    double sqrt_theta_phi = std::sqrt(1 - sin_theta2*sin_phi2)) ;
+    _roll = std::atan2( (cos(angle) / sqrt_theta_phi) , (cos(direction)*sin(angle) / sqrt_theta_phi) ) ;
+    _pitch = std::atan2( sqrt_theta_phi, (-sin(angle)*sin(direction)) ) ;
 }
 
 /**

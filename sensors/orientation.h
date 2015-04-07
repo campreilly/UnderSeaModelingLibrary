@@ -42,9 +42,15 @@ public:
                  vector<double> ref_axis ) ;
 
     /**
-     * Constructor using a tile angle/direction????
+     * Constructor using a tile angle/direction. Using these values and holding
+     * _heading to zero, we can compute a unique value of _pitch and _roll.
+     *
+     * @param angle     tilt from the nominal vertical axis,
+     *                  equivalent to theta in spherical coordinates.
+     * @param direction direction of the tilt from the nominal vertical axis,
+     *                  equivalent to phi in spherical coordinates.
      */
-    orientation( double angle, double direction, vector<double> ref_axis ) ;
+    orientation( double angle, double direction ) ;
 
     /**
      * Transforms a DE and AZ into a rotated equivalent in the rotated system.
