@@ -7,28 +7,28 @@ t = -pi:pi/36:pi ;
 dt = theta(2) - theta(1) ;
 dp = phi(2) - phi(1) ;
 pitch = (90+21)*pi/180 ;
-yaw = (90+57)*pi/180 ;
+heading = (90+57)*pi/180 ;
 
 [theta_grid, phi_grid] = meshgrid(theta,phi) ;
 
 %% Cosine Beam Pattern
 pitch = 21 ; 
-yaw = 57 ;
+heading = 57 ;
 roll = 33 ;
-% pitch = 0 ; 
-% yaw = -20 ;
-% roll = 45 ;
+% pitch = 45 ; 
+% yaw = 45 ;
+% roll = 0 ;
 r_ = roll * pi/180 ;
 p_ = pitch * pi/180 ;
-y_ = yaw * pi/180 ;
+y_ = heading * pi/180 ;
 Rx = [ 1 0 0;
-       0 cos(r_) -sin(r_);
-       0 sin(r_) cos(r_) ] ;
-Ry = [ cos(p_) 0 sin(p_);
+       0 cos(p_) sin(p_);
+       0 -sin(p_) cos(p_) ] ;
+Ry = [ cos(r_) 0 sin(r_);
        0 1 0;
-       -sin(p_) 0 cos(p_) ] ;
-Rz = [ cos(y_) -sin(y_) 0;
-       sin(y_) cos(y_) 0;
+       -sin(r_) 0 cos(r_) ] ;
+Rz = [ cos(y_) sin(y_) 0;
+       -sin(y_) cos(y_) 0;
        0 0 1 ] ;
 R = Rz * Ry * Rx ;
 cart_vec = R*[0,1,0]' ;
@@ -36,9 +36,9 @@ vec(1) = sqrt( cart_vec(1)*cart_vec(1) + cart_vec(2)*cart_vec(2) + cart_vec(3)*c
 vec(2) = acos( cart_vec(3) / vec(1) ) ;
 vec(3) = atan2( cart_vec(2), cart_vec(1) ) ;
 pitch = vec(2) ;
-yaw = vec(3) ;
+heading = vec(3) ;
 sint = sin( (theta_grid - pitch) / 2 ) ;
-sinp = sin( (phi_grid + yaw) / 2 ) ;
+sinp = sin( (phi_grid + heading) / 2 ) ;
 level = 1 - 2 * ( sint.*sint ...
     + sin(theta_grid) .* sin(pitch) .* sinp .* sinp ) ;
 % level = sin(phi_grid+yaw) .* sin(theta_grid) ;
@@ -92,22 +92,22 @@ title('Cosine C++ Implementation') ;
 
 %% Sine Beam Pattern
 pitch = 62 ; 
-yaw = 31 ;
+heading = 31 ;
 roll = 57 ;
 % pitch = 45 ; 
 % yaw = 15 ;
 % roll = 0 ;
 r_ = roll * pi/180 ;
 p_ = pitch * pi/180 ;
-y_ = yaw * pi/180 ;
+y_ = heading * pi/180 ;
 Rx = [ 1 0 0;
-       0 cos(r_) -sin(r_);
-       0 sin(r_) cos(r_) ] ;
-Ry = [ cos(p_) 0 sin(p_);
+       0 cos(p_) sin(p_);
+       0 -sin(p_) cos(p_) ] ;
+Ry = [ cos(r_) 0 sin(r_);
        0 1 0;
-       -sin(p_) 0 cos(p_) ] ;
-Rz = [ cos(y_) -sin(y_) 0;
-       sin(y_) cos(y_) 0;
+       -sin(r_) 0 cos(r_) ] ;
+Rz = [ cos(y_) sin(y_) 0;
+       -sin(y_) cos(y_) 0;
        0 0 1 ] ;
 R = Rz * Ry * Rx ;
 cart_vec = R*[1,0,0]' ;
@@ -115,9 +115,9 @@ vec(1) = sqrt( cart_vec(1)*cart_vec(1) + cart_vec(2)*cart_vec(2) + cart_vec(3)*c
 vec(2) = acos( cart_vec(3) / vec(1) ) ;
 vec(3) = atan2( cart_vec(2), cart_vec(1) ) ;
 pitch = vec(2) ;
-yaw = vec(3) ;
+heading = vec(3) ;
 sint = sin( (theta_grid - pitch) / 2 ) ;
-sinp = sin( (phi_grid + yaw) / 2 ) ;
+sinp = sin( (phi_grid + heading) / 2 ) ;
 level = 1 - 2 * ( sint.*sint ...
     + sin(theta_grid) .* sin(pitch) .* sinp .* sinp ) ;
 % level = cos(phi_grid+yaw) .* sin(theta_grid) ;
@@ -172,3 +172,4 @@ xlabel('x') ;
 ylabel('y') ;
 zlabel('z') ;
 title('Sine C++ Implementation') ;
+

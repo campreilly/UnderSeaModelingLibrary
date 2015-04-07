@@ -12,7 +12,7 @@ heading = param(5) ;
 roll = param(6) ;
 steering = param(7) ;
 freq = param(8:end) ;
-ax = [0,0,1] ;
+ax = [0,1,0] ;
 line_pattern( sound_speed, spacing, N, pitch, heading, roll, steering+pi/2, freq, ax ) ;
 
 data = xlsread('horizontal_array_beam_pattern.csv') ;
@@ -33,7 +33,7 @@ zz = db .* cos(theta_grid) ;
 figure ;
 surf( xx, yy, zz, db, 'EdgeColor','none','FaceColor','interp') ;
 colormap(jet) ;
-view([0 0]) ;
+view([0 90]) ;
 set(gca,'Xlim',[-30 30]) ;
 set(gca,'Ylim',[-30 30]) ;
 set(gca,'Zlim',[-30 30]) ;
@@ -41,3 +41,4 @@ xlabel('x') ;
 ylabel('y') ;
 zlabel('z') ;
 title('C++ Implementation') ;
+
