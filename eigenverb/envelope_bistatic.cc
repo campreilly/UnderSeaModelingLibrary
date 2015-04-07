@@ -36,14 +36,15 @@ void envelope_bistatic::compute_bottom_energy(
     const eigenverb_collection& receiver,
     envelope_collection* levels )
 {
-    #ifdef EIGENVERB_MODEL_DEBUG
-        cout << "**** Entering eigenverb_bistatic::compute_bottom_energy()"
-             << endl ;
-//        cout << "Number of source bottom verbs: " << source.bottom().size() << endl ;
-//        cout << "Number of receiver bottom verbs: " << receiver.bottom().size() << endl ;
-    #endif
-    _current_boundary = _bottom_boundary ;
-    convolve_eigenverbs( source.bottom(), receiver.bottom(), levels ) ;
+	//	TODO stub out while we update eigenverb_collection
+//    #ifdef EIGENVERB_MODEL_DEBUG
+//        cout << "**** Entering eigenverb_bistatic::compute_bottom_energy()"
+//             << endl ;
+////        cout << "Number of source bottom verbs: " << source.bottom().size() << endl ;
+////        cout << "Number of receiver bottom verbs: " << receiver.bottom().size() << endl ;
+//    #endif
+//    _current_boundary = _bottom_boundary ;
+//    convolve_eigenverbs( source.bottom(), receiver.bottom(), levels ) ;
 }
 
 /**
@@ -55,14 +56,15 @@ void envelope_bistatic::compute_surface_energy(
     const eigenverb_collection& receiver,
     envelope_collection* levels )
 {
-    #ifdef EIGENVERB_MODEL_DEBUG
-        cout << "**** Entering eigenverb_bistatic::compute_surface_energy()"
-             << endl ;
-//        cout << "Number of source surface verbs: " << source.surface().size() << endl ;
-//        cout << "Number of receiver surface verbs: " << receiver.surface().size() << endl ;
-    #endif
-    _current_boundary = _surface_boundary ;
-    convolve_eigenverbs( source.surface(), receiver.surface(), levels ) ;
+	//	TODO stub out while we update eigenverb_collection
+//    #ifdef EIGENVERB_MODEL_DEBUG
+//        cout << "**** Entering eigenverb_bistatic::compute_surface_energy()"
+//             << endl ;
+////        cout << "Number of source surface verbs: " << source.surface().size() << endl ;
+////        cout << "Number of receiver surface verbs: " << receiver.surface().size() << endl ;
+//    #endif
+//    _current_boundary = _surface_boundary ;
+//    convolve_eigenverbs( source.surface(), receiver.surface(), levels ) ;
 }
 
 /**

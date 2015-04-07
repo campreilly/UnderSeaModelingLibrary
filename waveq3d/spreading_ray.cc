@@ -10,8 +10,7 @@ using namespace usml::waveq3d;
  * Estimate initial ensonfied area between rays at radius of 1 meter.
  */
 spreading_ray::spreading_ray(wave_queue& wave) :
-    spreading_model( wave, wave._frequencies->size() ),
-    _init_area(wave.num_de(), wave.num_az())
+    spreading_model( wave, wave._frequencies->size() )
 {
     for (size_t d = 0; d < wave.num_de() - 1; ++d) {
         for (size_t a = 0; a < wave.num_az() - 1; ++a) {
@@ -26,7 +25,7 @@ spreading_ray::spreading_ray(wave_queue& wave) :
     for (size_t a = 0; a < wave._source_az->size() - 1; ++a) {
         _init_area(wave.num_de() - 1, a) = _init_area(wave.num_de() - 2, a);
     }
-    _init_area /= _wave._curr->sound_speed(0, 0);
+    _init_sound_speed = _wave._curr->sound_speed(0, 0);
 }
 
 /**
@@ -95,7 +94,8 @@ const vector<double>& spreading_ray::intensity(
     const double area = (1.0 - u) * area1 + u * area2;
 //    cout << " area1=" << area1 << " area2=" << area2
 //         << " u=" << u << " area=" << area << endl ;
-    const double loss = _init_area(de, az) * sound_speed(0, 0) / area;
+    const double loss = _init_area(de, az) * sound_speed(0, 0) /
+    		( area * _init_sound_speed ) ;
     for (size_t f = 0; f < _wave._frequencies->size(); ++f) {
         _spread(f) = loss ;
     }

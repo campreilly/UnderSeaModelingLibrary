@@ -10,283 +10,163 @@ using namespace usml::eigenverb ;
 using namespace boost ;
 
 /**
- * Cosntructor
- */
-eigenverb_collection::eigenverb_collection( size_t layers )
-    : _upper( layers ), _lower( layers )
-{
-
-}
-//eigenverb_collection::eigenverb_collection(
-//    double lon, double lat,
-//    double lon_range, double lat_range,
-//    size_t layers )
-//{
-//    _bottom = new eigenverb_tree( lon, lat, lon_range, lat_range ) ;
-//    _surface = new eigenverb_tree( lon, lat, lon_range, lat_range ) ;
-//    if( layers > 0 ) {
-//        _upper.resize( layers ) ;
-//        _lower.resize( layers ) ;
-//        for(size_t i=0; i<layers; ++i) {
-//            _upper(i) = new eigenverb_tree( lon, lat, lon_range, lat_range ) ;
-//            _lower(i) = new eigenverb_tree( lon, lat, lon_range, lat_range ) ;
-//        }
-//    }
-//}
-
-/**
- * Destructor
- */
-eigenverb_collection::~eigenverb_collection()
-{
-//    if( _bottom )
-//        delete _bottom ;
-//    if( _surface )
-//        delete _surface ;
-//    for(size_t i=0; i<_upper.size(); ++i) {
-//        if( _upper(i) )
-//            delete _upper(i) ;
-//        if( _lower(i) )
-//            delete _lower(i) ;
-//    }
-}
-
-/**
- * Adds an eigenverb to the collection
- */
-void eigenverb_collection::add_eigenverb(
-    eigenverb e, interface_type i )
-{
-    switch(i) {
-        case BOTTOM:
-            _bottom.push_back( e ) ;
-            break;
-        case SURFACE:
-            _surface.push_back( e ) ;
-            break;
-        case VOLUME_UPPER:
-        {
-            size_t something = 0 ;
-            _upper(something).push_back( e ) ;
-        }
-            break;
-        case VOLUME_LOWER:
-        {
-            size_t something = 0 ;
-            _lower(something).push_back( e ) ;
-        }
-            break;
-        default:
-            throw std::invalid_argument(
-                    "Invalid interface type. Must be one defined in eigenverb.h") ;
-            break;
-    }
-}
-
-/**
- * Returns the list of eigenverbs for the bottom
- * interface
- */
-eigenverb_list eigenverb_collection::bottom() const
-{
-    return _bottom ;
-}
-
-/**
- * Returns the list of eigenverbs for the surface
- * interface
- */
-eigenverb_list eigenverb_collection::surface() const
-{
-    return _surface ;
-}
-
-/**
- * Returns the list of eigenverbs for the volume
- * upper interface
- */
-vector<eigenverb_list> eigenverb_collection::upper() const
-{
-    return _upper ;
-}
-
-/**
- * Returns the list of eigenverbs for the l'th volume
- * upper interface
- */
-eigenverb_list eigenverb_collection::upper( size_t l ) const
-{
-    return _upper(l) ;
-}
-
-
-/**
- * Returns the list of eigenverbs for the volume
- * lower interface
- */
-vector<eigenverb_list> eigenverb_collection::lower() const
-{
-    return _lower ;
-}
-
-/**
- * Returns the list of eigenverbs for the l'th volume
- * lower interface
- */
-eigenverb_list eigenverb_collection::lower( size_t l ) const
-{
-    return _lower(l) ;
-}
-
-/**
- * Determines if there are volumes layers
- */
-bool eigenverb_collection::volume() const {
-    if( _upper.size() != 0 )
-        return true ;
-    return false ;
-}
-
-/**
- * Writes eigenverbs to disk
+ * Writes the eigenverbs for an individual interface to a netcdf file.
  */
 void eigenverb_collection::write_netcdf(
-    const char* filename, interface_type i )
+	const char* filename, size_t interface) const
 {
-    NcFile* nc_file = new NcFile(filename, NcFile::Replace);
-    eigenverb_list curr ;
-    switch(i) {
-        case BOTTOM:
-        {
-            curr = _bottom ;
-            nc_file->add_att("long_name", "Bottom eigenverbs") ;
-            break ;
-        }
-        case SURFACE:
-        {
-            curr = _surface ;
-            nc_file->add_att("long_name", "Surface eigenverbs") ;
-            break ;
-        }
-//        case UPPER:
-//        {
-//            nc_file->add_att("long_name", "Upper Volume eigenverbs") ;
-//            break ;
-//        }
-//        case LOWER:
-//        {
-//            nc_file->add_att("long_name", "Lower Volume eigenverbs") ;
-//            break ;
-//        }
-        default:
-            throw std::invalid_argument("Invalid interface type.") ;
-            break ;
-    }
+	NcFile* nc_file = new NcFile(filename, NcFile::Replace);
+	const eigenverb_list& curr = _collection[interface];
 
-    // dimensions
-    NcDim* freq_dim = nc_file->add_dim("frequency", (long) curr.begin()->frequencies->size()) ;
-    NcDim* eigenverb_dim = nc_file->add_dim("eigenverbs", (long) curr.size()) ;
+	switch ( interface ) {
+	case eigenverb::BOTTOM:
+		nc_file->add_att("long_name", "bottom eigenverbs");
+		break;
+	case eigenverb::SURFACE:
+		nc_file->add_att("long_name", "surface eigenverbs");
+		break;
+	case eigenverb::VOLUME_UPPER:
+		nc_file->add_att("long_name", "upper volume eigenverbs");
+		nc_file->add_att("layer", 1);
+		break;
+	case eigenverb::VOLUME_LOWER:
+		nc_file->add_att("long_name", "lower volume eigenverbs");
+		nc_file->add_att("layer", 1);
+		break;
+	default:
+		{
+			int layer = interface - eigenverb::VOLUME_UPPER ;
+			int side = layer % 2 ;
+			layer = ( layer / 2 ) + 1 ;
+			std::ostringstream oss;
+			oss << ((side)?"lower":"upper") << " volume "  << layer << " eigenverbs" ;
+			nc_file->add_att("long_name", oss.str().c_str());
+			nc_file->add_att("layer", layer);
+		}
+		break;
+	}
 
-    // variables
-    NcVar* freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
-    NcVar* time_var = nc_file->add_var("travel_time", ncDouble, eigenverb_dim);
-    NcVar* intensity_var = nc_file->add_var("intensity", ncDouble, eigenverb_dim, freq_dim);
-    NcVar* grazing_var = nc_file->add_var("grazing_angle", ncDouble, eigenverb_dim);
-    NcVar* distance_var = nc_file->add_var("distance", ncDouble, eigenverb_dim);
-    NcVar* lat_var = nc_file->add_var("latitude", ncDouble, eigenverb_dim);
-    NcVar* lng_var = nc_file->add_var("longitude", ncDouble, eigenverb_dim);
-    NcVar* alt_var = nc_file->add_var("altitude", ncDouble, eigenverb_dim) ;
-    NcVar* nrho_var = nc_file->add_var("ndir_rho", ncDouble, eigenverb_dim);
-    NcVar* ntheta_var = nc_file->add_var("ndir_theta", ncDouble, eigenverb_dim);
-    NcVar* nphi_var = nc_file->add_var("ndir_phi", ncDouble, eigenverb_dim);
-    NcVar* de_index_var = nc_file->add_var("de_index", ncShort, eigenverb_dim);
-    NcVar* az_index_var = nc_file->add_var("az_index", ncShort, eigenverb_dim);
-    NcVar* launch_de_var = nc_file->add_var("launch_de", ncDouble, eigenverb_dim);
-    NcVar* launch_az_var = nc_file->add_var("launch_az", ncDouble, eigenverb_dim);
-    NcVar* sigma_de_var = nc_file->add_var("sigma_de", ncDouble, eigenverb_dim);
-    NcVar* sigma_az_var = nc_file->add_var("sigma_az", ncDouble, eigenverb_dim);
-//    NcVar* sigma_de_var = nc_file->add_var("sigma_de", ncDouble, eigenverb_dim, freq_dim);
-//    NcVar* sigma_az_var = nc_file->add_var("sigma_az", ncDouble, eigenverb_dim, freq_dim);
-    NcVar* speed_var = nc_file->add_var("sound_speed", ncDouble, eigenverb_dim);
-    NcVar* surface_var = nc_file->add_var("surface", ncShort, eigenverb_dim);
-    NcVar* bottom_var = nc_file->add_var("bottom", ncShort, eigenverb_dim);
+	if ( curr.size() > 0 ) {
 
-    // units
-    time_var->add_att("units", "seconds");
-    intensity_var->add_att("units", "linear");
-    grazing_var->add_att("units", "radians");
-    distance_var->add_att("units", "meters");
-    lat_var->add_att("units", "degrees_north");
-    lng_var->add_att("units", "degrees_east");
-    alt_var->add_att("units", "meters");
-    alt_var->add_att("positive", "up");
-    freq_var->add_att("units", "hertz");
-    nrho_var->add_att("units", "m/s");
-    ntheta_var->add_att("units", "rad/s");
-    nphi_var->add_att("units", "rad/s");
-    de_index_var->add_att("units", "index");
-    az_index_var->add_att("units", "index");
-    launch_de_var->add_att("units", "degrees");
-    launch_de_var->add_att("positive", "up");
-    launch_az_var->add_att("units", "degrees_true");
-    launch_az_var->add_att("positive", "clockwise");
-    sigma_de_var->add_att("units", "meters");
-    sigma_az_var->add_att("units", "meters");
-    speed_var->add_att("units", "m/s");
-    surface_var->add_att("units", "count");
-    bottom_var->add_att("units", "count");
+		// dimensions
 
-    freq_var->put(curr.begin()->frequencies->data().begin(),
-            (long) curr.begin()->frequencies->size());
-    int record = 0 ;    // current record
-    BOOST_FOREACH( eigenverb e, curr )
-    {
-        // sets current index
-        time_var->set_cur(record);
-        intensity_var->set_cur(record);
-        grazing_var->set_cur(record);
-        distance_var->set_cur(record);
-        lat_var->set_cur(record);
-        lng_var->set_cur(record);
-        alt_var->set_cur(record);
-        nrho_var->set_cur(record);
-        ntheta_var->set_cur(record);
-        nphi_var->set_cur(record);
-        de_index_var->set_cur(record);
-        az_index_var->set_cur(record);
-        launch_de_var->set_cur(record);
-        launch_az_var->set_cur(record);
-        sigma_de_var->set_cur(record);
-        sigma_az_var->set_cur(record);
-        speed_var->set_cur(record);
-        surface_var->set_cur(record);
-        bottom_var->set_cur(record);
-        ++record ;
+		NcDim* eigenverb_dim = nc_file->add_dim("eigenverbs", (long) curr.size()) ;
+		NcDim* freq_dim = nc_file->add_dim("frequency", (long) curr.begin()->frequencies->size()) ;
 
-        // inserts data
-        time_var->put(&e.travel_time, 1);
-        intensity_var->put(e.intensity.data().begin(),
-                1, (long) e.frequencies->size());
-        grazing_var->put(&e.grazing, 1);
-        distance_var->put(&e.distance, 1);
-        double v = e.position.latitude(); lat_var->put(&v, 1);
-        v = e.position.longitude(); lng_var->put(&v, 1);
-        v = e.position.altitude(); alt_var->put(&v, 1);
-        v = e.direction.rho(); nrho_var->put(&v, 1);
-        v = e.direction.theta(); ntheta_var->put(&v, 1);
-        v = e.direction.phi(); nphi_var->put(&v, 1);
-        long i = (long) e.de_index; de_index_var->put(&i, 1);
-		i = (long) e.az_index; az_index_var->put(&i, 1);
-        launch_de_var->put(&e.launch_de, 1);
-        launch_az_var->put(&e.launch_az, 1);
-        sigma_de_var->put(&e.sigma_de, 1);
-        sigma_az_var->put(&e.sigma_az, 1);
-//        sigma_de_var->put(e.sigma_de.data().begin(), 1, freq_dim);
-//        sigma_az_var->put(e.sigma_az.data().begin(), 1, freq_dim);
-        speed_var->put(&e.sound_speed, 1);
-		i = (long) e.surface; surface_var->put(&i, 1);
-		i = (long) e.bottom; bottom_var->put(&i, 1);
-    }
+		// variables
+
+		NcVar* time_var = nc_file->add_var("travel_time", ncDouble, eigenverb_dim);
+		NcVar* freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
+		NcVar* energy_var = nc_file->add_var("energy", ncDouble, eigenverb_dim, freq_dim);
+		NcVar* length_var = nc_file->add_var("length", ncDouble, eigenverb_dim, freq_dim);
+		NcVar* width_var = nc_file->add_var("width", ncDouble, eigenverb_dim, freq_dim);
+		NcVar* lat_var = nc_file->add_var("latitude", ncDouble, eigenverb_dim);
+		NcVar* lng_var = nc_file->add_var("longitude", ncDouble, eigenverb_dim);
+		NcVar* alt_var = nc_file->add_var("altitude", ncDouble, eigenverb_dim) ;
+		NcVar* direction_var = nc_file->add_var("direction", ncDouble, eigenverb_dim);
+		NcVar* grazing_var = nc_file->add_var("grazing_angle", ncDouble, eigenverb_dim);
+		NcVar* de_index_var = nc_file->add_var("de_index", ncShort, eigenverb_dim);
+		NcVar* az_index_var = nc_file->add_var("az_index", ncShort, eigenverb_dim);
+		NcVar* source_de_var = nc_file->add_var("source_de", ncDouble, eigenverb_dim);
+		NcVar* source_az_var = nc_file->add_var("source_az", ncDouble, eigenverb_dim);
+		NcVar* surface_var = nc_file->add_var("surface", ncShort, eigenverb_dim);
+		NcVar* bottom_var = nc_file->add_var("bottom", ncShort, eigenverb_dim);
+		NcVar* caustic_var = nc_file->add_var("caustic", ncShort, eigenverb_dim);
+		NcVar* upper_var = nc_file->add_var("upper", ncShort, eigenverb_dim);
+		NcVar* lower_var = nc_file->add_var("lower", ncShort, eigenverb_dim);
+
+		// units
+
+		time_var->add_att("units", "seconds");
+		freq_var->add_att("units", "hertz");
+		energy_var->add_att("units", "dB");
+		length_var->add_att("units", "meters");
+		width_var->add_att("units", "meters");
+		lat_var->add_att("units", "degrees_north");
+		lng_var->add_att("units", "degrees_east");
+		alt_var->add_att("units", "meters");
+		direction_var->add_att("units", "degrees_true");
+		direction_var->add_att("positive", "clockwise");
+		grazing_var->add_att("units", "degrees");
+		grazing_var->add_att("positive", "up");
+		de_index_var->add_att("units", "count");
+		az_index_var->add_att("units", "count");
+		source_de_var->add_att("units", "degrees");
+		source_de_var->add_att("positive", "up");
+		source_az_var->add_att("units", "degrees_true");
+		source_az_var->add_att("positive", "clockwise");
+		surface_var->add_att("units", "count");
+		bottom_var->add_att("units", "count");
+		caustic_var->add_att("units", "count");
+		upper_var->add_att("units", "count");
+		lower_var->add_att("units", "count");
+
+		// data
+
+		freq_var->put( curr.begin()->frequencies->data().begin(),
+				(long) curr.begin()->frequencies->size());
+		int record = 0 ;    // current record
+		BOOST_FOREACH( eigenverb verb, curr )
+		{
+			// sets current index
+
+			time_var->set_cur(record);
+			energy_var->set_cur(record);
+			length_var->set_cur(record);
+			width_var->set_cur(record);
+			lat_var->set_cur(record);
+			lng_var->set_cur(record);
+			alt_var->set_cur(record);
+			direction_var->set_cur(record);
+			grazing_var->set_cur(record);
+			de_index_var->set_cur(record);
+			az_index_var->set_cur(record);
+			source_de_var->set_cur(record);
+			source_az_var->set_cur(record);
+			surface_var->set_cur(record);
+			bottom_var->set_cur(record);
+			caustic_var->set_cur(record);
+			upper_var->set_cur(record);
+			lower_var->set_cur(record);
+			++record ;
+
+			// translate units
+
+			double* energy = new double[verb.frequencies->size()] ;
+			double* length = new double[verb.frequencies->size()] ;
+			double* width = new double[verb.frequencies->size()] ;
+			for ( int f=0; f < verb.frequencies->size(); ++f ) {
+				energy[f] = 10.0*log10(max(1e-30,verb.energy(f))) ;
+				length[f] = sqrt(verb.length2(f)) ;
+				width[f] = sqrt(verb.width2(f)) ;
+			}
+
+			// inserts data
+
+			double v ;
+			long i ;
+			time_var->put(&verb.time, 1);
+
+			energy_var->put(energy, 1, (long) verb.frequencies->size());
+			length_var->put(length, 1, (long) verb.frequencies->size());
+			width_var->put(width, 1, (long) verb.frequencies->size());
+			delete[] energy, length, width ;
+			v = verb.position.latitude(); lat_var->put(&v, 1);
+			v = verb.position.longitude(); lng_var->put(&v, 1);
+			v = verb.position.altitude(); alt_var->put(&v, 1);
+			v = to_degrees(verb.direction) ; direction_var->put(&v, 1);
+			v = to_degrees(verb.grazing) ; grazing_var->put(&v, 1);
+			i = (long) verb.de_index; de_index_var->put(&i, 1);
+			i = (long) verb.az_index; az_index_var->put(&i, 1);
+			v = to_degrees(verb.source_de) ; source_de_var->put(&v, 1);
+			v = to_degrees(verb.source_az) ; source_az_var->put(&v, 1);
+			i = (long) verb.surface; surface_var->put(&i, 1);
+			i = (long) verb.bottom; bottom_var->put(&i, 1);
+			i = (long) verb.caustic; caustic_var->put(&i, 1);
+			i = (long) verb.upper; upper_var->put(&i, 1);
+			i = (long) verb.lower; lower_var->put(&i, 1);
+		}
+	}
 
     // close file
 

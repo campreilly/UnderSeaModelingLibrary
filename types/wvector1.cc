@@ -129,7 +129,7 @@ void wvector1::direction(const wvector1& pos, const wvector1& dir)
  * Extract spherical earth geocentric direction from acoustic
  * ray direction in the local tangent plane.
  */
-void wvector1::direction(const wvector1& pos, wvector1* dir)
+void wvector1::direction(const wvector1& pos, wvector1* dir) const
 {
     const double st = sin(pos.theta());
     const double ct = cos(pos.theta());

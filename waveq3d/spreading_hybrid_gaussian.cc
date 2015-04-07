@@ -31,14 +31,18 @@ spreading_hybrid_gaussian::spreading_hybrid_gaussian(wave_queue& wave) :
         for (size_t a = 0; a < wave.num_az() - 1; ++a) {
             double az1 = to_radians(wave.source_az(a));
             double az2 = to_radians(wave.source_az(a + 1));
-            _norm_az(d, a) = (sin(de2) - sin(de1)) * (az2 - az1) / _norm_de(d);
+            _init_area(d,a) = (sin(de2) - sin(de1)) * (az2 - az1) ;
+            _norm_az(d,a) =  _init_area(d,a) / _norm_de(d);
         }
         _norm_az(d, wave.num_az() - 1) = _norm_az(d, wave.num_az() - 2);
     }
 
     _norm_de(wave.num_de() - 1) = _norm_de(wave.num_de() - 2);
+    size_t n = wave.num_de() - 1 ;
+    size_t m = wave.num_de() - 2 ;
     for (size_t a = 0; a < wave._source_az->size() - 1; ++a) {
-        _norm_az(wave.num_de() - 1, a) = _norm_az(wave.num_de() - 2, a);
+    	_init_area(n,a) = _init_area(m,a) ;
+        _norm_az(n,a) = _norm_az(m,a);
     }
 
     _norm_de /= sqrt(TWO_PI);

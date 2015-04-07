@@ -1,6 +1,7 @@
 /**
  * @file eigenverb.h
- * A single acoustic path between a source or receiver and a boundary.
+ * Gaussian beam projection of an acoustic ray onto a reverberation
+ * interface at the point of collision.
  */
 #pragma once
 
@@ -21,118 +22,143 @@ using boost::numeric::ublas::vector ;
 /// @{
 
 /**
- * Types of interface interactions that eigenverbs need to
- * keep track of.
- */
-typedef enum
-{
-    BOTTOM,
-    SURFACE,
-    VOLUME_UPPER,
-    VOLUME_LOWER
-}   interface_type ;
-
-/**
- * A single acoustic path between a source or receiver and a boundary.
+ * Gaussian beam projection of an acoustic ray onto a reverberation
+ * interface at the point of collision.  The name is taken from the fact
+ * that eigenverbs provide discreet components of the total reverberation
+ * in the same way that eigenrays provide discreet components of the
+ * total transmission loss.
+ *
+ * To avoid conversions during the reverberation envelope generation process,
+ * the attributes for direction, grazing, source_de, and source_az are
+ * all expressed in radians.  Similar fields in the eigenray structure are
+ * represented in degrees.
  */
 struct eigenverb {
 
+	/**
+	 * Types of interface interactions that eigenverbs need to
+	 * keep track of.
+	 */
+	typedef enum
+	{
+	    BOTTOM=0,
+	    SURFACE=1,
+	    VOLUME_UPPER=2,
+	    VOLUME_LOWER=3
+	}  interface_type ;
+
+	/** Data type used for coordinates. */
     typedef double coord_type ;
 
     /**
      * One way travel time for this path (sec).
      */
-    double travel_time ;
+    double time ;
 
     /**
-     * One way transmission loss for this path (linear units).
-     */
-    vector<double> intensity ;
-
-    /**
-     * The grazing angle of this path at impact of the
-     * boundary. (radians)
-     */
-    double grazing ;
-
-    /**
-     * Path length from to the boundary interaction
-     */
-    double distance ;
-
-    /**
-     * Location of impact with the boundary.
-     */
-    wposition1 position ;
-
-    /**
-     * Normalized derivative of the location at the impact.
-     * This is used to compute the azimuthal angle between
-     * two eigenverbs.
-     */
-    wvector1 direction ;
-
-    /**
-     * Frequeinces of the wavefront (Hz)
+     * Frequencies of the wavefront (Hz)
      */
     const seq_vector* frequencies ;
 
     /**
-     * The index of the lanuch DE.
+     * Fraction of total source level that reaches the ensonfied patch
+     * (linear units).  Computed as fraction of solid angle for this ray
+     * at launch, times the boundary and attenuation losses along this path.
+     * This is a function of frequency because the boundary and attenuation
+     * losses are functions of frequency.
+     */
+    vector<double> energy ;
+
+    /**
+     * Squared length of the eigenverb as a function of frequency (meter^2).
+     * This defines the D/E projection of the Gaussian beam onto
+     * the interface.  It includes the spreading model's estimates
+     * of beam width, overlap, and frequency dependent spreading.
+     *
+     * This value is stored as a square because it only appears in the
+     * reverberation equation as a square.
+     */
+    vector<double> length2 ;
+
+    /**
+     * Squared width of the eigenverb as a function of frequency (meter^2).
+     * This defines the AZ projection of the Gaussian beam onto
+     * the interface.  It includes the spreading model's estimates
+     * of beam width, overlap, and frequency dependent spreading.
+     *
+     * This value is stored as a square because it only appears in the
+     * reverberation equation as a square.
+     */
+    vector<double> width2 ;
+
+    /**
+     * Location of impact with the interface.
+     */
+    wposition1 position ;
+
+    /**
+     * Compass heading for the "length" axis (radians, clockwise from true north).
+     */
+    double direction ;
+
+    /**
+     * The grazing angle of this path at impact of the boundary
+     * (radians, positive is up).
+     */
+    double grazing ;
+
+    /**
+     * Index number of the of the launch DE.
+     * Allows reverberation model to easily group eigenverbs by launch D/E.
      */
     size_t de_index ;
 
     /**
-     * The index of the lanuch AZ.
+     * The index of the launch AZ.
+     * Allows reverberation model to easily group eigenverbs by launch AZ.
      */
     size_t az_index ;
 
     /**
-     * The DE of the path from launch.
+     * The depression/elevation (DE) angle of this path at the time of launch
+     * (radians, positive is up).
      */
-    double launch_de ;
+    double source_de ;
 
     /**
-     * The AZ of the path from launch.
+     * The azimuthal (AZ) angle of this path at the time of launch
+     * (radians, clockwise from true north).
      */
-    double launch_az ;
+    double source_az ;
 
     /**
-     * Sigma in the DE dimension
+     * Number of interactions with the surface boundary.
      */
-    double sigma_de ;
+    int surface ;
 
     /**
-     * Sigma in the AZ dimension
+     * Number of interactions with the bottom boundary.
      */
-    double sigma_az ;
+    int bottom ;
 
     /**
-     * The speed of sound at the point of impact
-     * with the boundary.
+     * Number of caustics encountered along this path.
      */
-    double sound_speed ;
+    int caustic ;
 
     /**
-     * Number of interactions with the surface boundary
+     * Number of upper vertices encountered along this path.
      */
-    size_t surface ;
+    int upper ;
 
     /**
-     * Number of interactions with the bottom boundary
+     * Number of lower vertices encountered along this path.
      */
-    size_t bottom ;
-
-    /**
-     * Both used for eigenverb boxes
-     */
-    double x ;
-    double y ;
-
+    int lower ;
 };
 
 /*
- * List of gaussian projections used for reverebration.
+ * List of gaussian projections used for reverberation.
  */
 typedef std::list<eigenverb> eigenverb_list ;
 

@@ -14,7 +14,10 @@
 
 #include <iomanip>
 
+//#define DEBUG_EIGENRAYS_DETAIL
 //#define DEBUG_EIGENRAYS
+//#define DEBUG_EIGENVERBS
+
 using namespace usml::waveq3d ;
 
 /**
@@ -42,6 +45,7 @@ wave_queue::wave_queue(
     _time( 0.0 ),
     _targets( targets ),
     _run_id(run_id),
+	_collection( NULL ),
     _nc_file( NULL )
 {
     const double az_first = abs((*_source_az)(0)) ;
@@ -79,15 +83,15 @@ wave_queue::wave_queue(
     init_wavefronts() ;
     _reflection_model = new reflection_model( *this ) ;
     _spreading_model = NULL ;
-    if ( _targets ) {
-        switch( type ) {
-            case HYBRID_GAUSSIAN :
-                _spreading_model = new spreading_hybrid_gaussian( *this ) ;
-                break ;
-            default :
-                _spreading_model = new spreading_ray( *this ) ;
-                break ;
-        }
+    if ( _source_de->size() >= 3 && _source_az->size() >= 3 ) {
+		switch( type ) {
+			case HYBRID_GAUSSIAN :
+				_spreading_model = new spreading_hybrid_gaussian( *this ) ;
+				break ;
+			default :
+				_spreading_model = new spreading_ray( *this ) ;
+				break ;
+		}
     }
 }
 
@@ -110,21 +114,8 @@ wave_queue::~wave_queue() {
 void wave_queue::add_eigenverb_listener(
     eigenverb_collection* collection )
 {
-    if( _reflection_model->_collection ) delete _reflection_model->_collection ;
-    _reflection_model->_collection = collection ;
-}
-
-/**
- * Determines if the ray is a valid candidate to produce an eigenverb
- */
-bool wave_queue::is_ray_valid( size_t de, size_t az ) {
-    if( _reflection_model->_collection ) {
-        if( de != _max_de )
-            if( az != _max_az )
-                if( _time > 0 )
-                    return true ;
-    }
-    return false ;
+    if( _collection ) delete _collection ;
+    _collection = collection ;
 }
 
 /**
@@ -219,6 +210,7 @@ void wave_queue::detect_reflections() {
 
     for (size_t de = 0; de < num_de(); ++de) {
         for (size_t az = 0; az < num_az(); ++az) {
+            detect_volume_scattering(de,az) ;
             if ( !detect_reflections_surface(de,az) ) {
                 if( !detect_reflections_bottom(de,az) ) {
                     detect_vertices(de,az) ;
@@ -228,13 +220,8 @@ void wave_queue::detect_reflections() {
         }
     }
 
-    // Check for volume interactions if we need to and there are
-    // volume layers in the ocean model.
-    if ( _reflection_model->_collection && _ocean.num_volume() ) {
-        detect_volume_reflections() ;
-    }
-
     // search for other changes in wavefront
+
     _next->find_edges() ;
 }
 
@@ -247,6 +234,7 @@ bool wave_queue::detect_reflections_surface( size_t de, size_t az ) {
             _next->surface(de,az) += 1;
             _curr->surface(de,az) = _prev->surface(de,az)
                     = _past->surface(de,az) = _next->surface(de,az) ;
+            detect_volume_scattering(de,az);
             detect_reflections_bottom(de,az);
             return true; // indicate a surface reflection
         }
@@ -267,6 +255,7 @@ bool wave_queue::detect_reflections_bottom( size_t de, size_t az ) {
             _next->bottom(de,az) += 1 ;
             _curr->bottom(de,az) = _prev->bottom(de,az)
                     = _past->bottom(de,az) = _next->bottom(de,az) ;
+            detect_volume_scattering(de,az);
             detect_reflections_surface( de, az ) ;
             return true ;    // indicate a surface reflection
         }
@@ -308,141 +297,138 @@ void wave_queue::detect_caustics( size_t de, size_t az ) {
 /**
  * Detect volume boundary reflections for reverberation contributions
  */
-void wave_queue::detect_volume_reflections() {
-    std::size_t n = _ocean.num_volume() ;
-    for(std::size_t i=0; i<n; ++i) {
-        volume_model& layer = _ocean.volume(i) ;
-        for (size_t de = 0; de < num_de(); ++de) {
-            for (size_t az = 0; az < num_az(); ++az) {
-                if( _curr->on_edge(de,az) ) continue ;
-                double height ;
-                wposition1 pos_curr( _curr->position, de, az ) ;
-                wposition1 pos_next( _next->position, de, az ) ;
-                layer.depth( pos_next, &height, NULL ) ;
-                double d1 = height - pos_next.rho() ;
-                double d2 = height - pos_curr.rho() ;
-                if ( d1 > 0 && d2 < 0 ) { collide_from_above(de,az, d1, i) ; }
-                else if ( d1 < 0 && d2 > 0 ) { collide_from_below(de,az, d2, i) ; }
-            }
-        }
-    }
+void wave_queue::detect_volume_scattering(size_t de, size_t az) {
+	if ( _collection == NULL ) return;
+	std::size_t n = _ocean.num_volume();
+	for (std::size_t i = 0; i < n; ++i) {
+		volume_model& layer = _ocean.volume(i);
+		wposition1 pos_curr(_curr->position, de, az);
+		wposition1 pos_next(_next->position, de, az);
+		double height;
+		layer.depth(pos_next, &height, NULL);
+		double d1 = height - pos_next.rho(); // positive when next below layer
+		double d2 = height - pos_curr.rho(); // positive when curr below layer
+		if (d1 > 0 && d2 < 0) {
+			collide_from_above(de, az, d1, i);
+		} else if (d1 < 0 && d2 > 0) {
+			collide_from_below(de, az, d2, i);
+		}
+	}
 }
 
 void wave_queue::collide_from_above(
         size_t de, size_t az, double depth, size_t layer )
 {
-    if( is_ray_valid(de,az) ) {
-        double MIN_REFLECT = 6.0 ;
-        wposition1 position( _curr->position, de, az ) ;
-        wvector1 ndirection( _curr->ndirection, de, az ) ;
-        double c = _curr->sound_speed( de, az ) ;
-        double c2 = c*c ;
+	double MIN_REFLECT = 6.0 ;
+	wposition1 position( _curr->position, de, az ) ;
+	wvector1 ndirection( _curr->ndirection, de, az ) ;
+	double c = _curr->sound_speed( de, az ) ;
+	double c2 = c*c ;
 
-        double layer_rho ;
-        wvector1 layer_normal( 1.0, 0.0, 0.0 ) ;
-        volume_model& volume = _ocean.volume(layer) ;
-        volume.depth( position, &layer_rho ) ;
-        double height_water = position.rho() - layer_rho ;
+	double layer_rho ;
+	wvector1 layer_normal( 1.0, 0.0, 0.0 ) ;
+	volume_model& volume = _ocean.volume(layer) ;
+	volume.depth( position, &layer_rho ) ;
+	double height_water = position.rho() - layer_rho ;
 
-        ndirection.rho(   c2 * ndirection.rho() ) ;
-        ndirection.theta( c2 * ndirection.theta() ) ;
-        ndirection.phi(   c2 * ndirection.phi() ) ;
-        double dot_full = layer_normal.rho() * ndirection.rho()
-                        + layer_normal.theta() * ndirection.theta()
-                        + layer_normal.phi() * ndirection.phi() ;
+	ndirection.rho(   c2 * ndirection.rho() ) ;
+	ndirection.theta( c2 * ndirection.theta() ) ;
+	ndirection.phi(   c2 * ndirection.phi() ) ;
+	double dot_full = layer_normal.rho() * ndirection.rho()
+					+ layer_normal.theta() * ndirection.theta()
+					+ layer_normal.phi() * ndirection.phi() ;
 
-        double max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
-        if ( dot_full >= max_dot ) dot_full = max_dot ;
+	double max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+	if ( dot_full >= max_dot ) dot_full = max_dot ;
 
-        const double dot_water = -height_water * layer_normal.rho() ;
-        double time_water = max( 0.0, dot_water / dot_full ) ;
+	const double dot_water = -height_water * layer_normal.rho() ;
+	double time_water = max( 0.0, dot_water / dot_full ) ;
 
-        collision_location( de, az, time_water, &position, &ndirection, &c ) ;
-        volume.depth( position, &layer_rho ) ;
-        c2 = c*c ;
-        height_water = position.rho() - layer_rho ;
+	collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+	volume.depth( position, &layer_rho ) ;
+	c2 = c*c ;
+	height_water = position.rho() - layer_rho ;
 
-        ndirection.rho(   c2 * ndirection.rho() ) ;
-        ndirection.theta( c2 * ndirection.theta() ) ;
-        ndirection.phi(   c2 * ndirection.phi() ) ;
-        dot_full = layer_normal.rho() * ndirection.rho()
-            + layer_normal.theta() * ndirection.theta()
-            + layer_normal.phi() * ndirection.phi() ;  // negative #
-        max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
-        if( dot_full >= max_dot )
-            dot_full = max_dot ;
+	ndirection.rho(   c2 * ndirection.rho() ) ;
+	ndirection.theta( c2 * ndirection.theta() ) ;
+	ndirection.phi(   c2 * ndirection.phi() ) ;
+	dot_full = layer_normal.rho() * ndirection.rho()
+		+ layer_normal.theta() * ndirection.theta()
+		+ layer_normal.phi() * ndirection.phi() ;  // negative #
+	max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+	if( dot_full >= max_dot )
+		dot_full = max_dot ;
 
-        double grazing = 0.0 ;
-        if( dot_full / c >= 1.0 )
-            grazing = -M_PI_2 ;
-        else if( dot_full / c <= -1.0 )
-            grazing = M_PI_2 ;
-        else
-            grazing = asin( -dot_full / c ) ;
+	double grazing = 0.0 ;
+	if( dot_full / c >= 1.0 )
+		grazing = -M_PI_2 ;
+	else if( dot_full / c <= -1.0 )
+		grazing = M_PI_2 ;
+	else
+		grazing = asin( -dot_full / c ) ;
 
-        // build the eigenverb
-        _reflection_model->build_eigenverb( de, az, time_water,
-            grazing, c, position, ndirection, VOLUME_LOWER ) ;
-    }
+	// build the eigenverb
+	build_eigenverb( de, az, time_water, grazing, c, position, ndirection,
+		usml::eigenverb::eigenverb::VOLUME_LOWER + layer * 2 ) ;
 }
 
-/** @todo correct logic/signs for collisions from below the boundary **/
+/**
+ * @todo correct logic/signs for collisions from below the boundary
+ */
 void wave_queue::collide_from_below(
         size_t de, size_t az, double depth, size_t layer )
 {
-    if( is_ray_valid(de,az) ) {
-        double MIN_REFLECT = 6.0 ;
-        wposition1 position( _curr->position, de, az ) ;
-        wvector1 ndirection( _curr->ndirection, de, az ) ;
-        double c = _curr->sound_speed( de, az ) ;
-        double c2 = c*c ;
-        double layer_rho ;
-        wvector1 layer_normal( -1.0, 0.0, 0.0 ) ;
-        volume_model& volume = _ocean.volume(layer) ;
-        volume.depth( position, &layer_rho ) ;
-        double height_water = position.rho() - layer_rho ;
+	double MIN_REFLECT = 6.0 ;
+	wposition1 position( _curr->position, de, az ) ;
+	wvector1 ndirection( _curr->ndirection, de, az ) ;
+	double c = _curr->sound_speed( de, az ) ;
+	double c2 = c*c ;
+	double layer_rho ;
+	wvector1 layer_normal( -1.0, 0.0, 0.0 ) ;
+	volume_model& volume = _ocean.volume(layer) ;
+	volume.depth( position, &layer_rho ) ;
+	double height_water = position.rho() - layer_rho ;
 
-        ndirection.rho(   c2 * ndirection.rho() ) ;
-        ndirection.theta( c2 * ndirection.theta() ) ;
-        ndirection.phi(   c2 * ndirection.phi() ) ;
-        double dot_full = layer_normal.rho() * ndirection.rho()
-                        + layer_normal.theta() * ndirection.theta()
-                        + layer_normal.phi() * ndirection.phi() ;
+	ndirection.rho(   c2 * ndirection.rho() ) ;
+	ndirection.theta( c2 * ndirection.theta() ) ;
+	ndirection.phi(   c2 * ndirection.phi() ) ;
+	double dot_full = layer_normal.rho() * ndirection.rho()
+					+ layer_normal.theta() * ndirection.theta()
+					+ layer_normal.phi() * ndirection.phi() ;
 
-        double max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
-        if( dot_full >= max_dot )
-            dot_full = max_dot ;
+	double max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+	if( dot_full >= max_dot )
+		dot_full = max_dot ;
 
-        const double dot_water = -height_water * layer_normal.rho() ;
-        double time_water = max( 0.0, dot_water / dot_full ) ;
+	const double dot_water = -height_water * layer_normal.rho() ;
+	double time_water = max( 0.0, dot_water / dot_full ) ;
 
-        collision_location( de, az, time_water, &position, &ndirection, &c ) ;
-        volume.depth( position, &layer_rho ) ;
-        c2 = c*c ;
-        height_water = position.rho() - layer_rho ;
+	collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+	volume.depth( position, &layer_rho ) ;
+	c2 = c*c ;
+	height_water = position.rho() - layer_rho ;
 
-        ndirection.rho(   c2 * ndirection.rho() ) ;
-        ndirection.theta( c2 * ndirection.theta() ) ;
-        ndirection.phi(   c2 * ndirection.phi() ) ;
-        dot_full = layer_normal.rho() * ndirection.rho()
-            + layer_normal.theta() * ndirection.theta()
-            + layer_normal.phi() * ndirection.phi() ;  // negative #
-        max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
-        if( dot_full >= max_dot )
-            dot_full = max_dot ;
+	ndirection.rho(   c2 * ndirection.rho() ) ;
+	ndirection.theta( c2 * ndirection.theta() ) ;
+	ndirection.phi(   c2 * ndirection.phi() ) ;
+	dot_full = layer_normal.rho() * ndirection.rho()
+		+ layer_normal.theta() * ndirection.theta()
+		+ layer_normal.phi() * ndirection.phi() ;  // negative #
+	max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
+	if( dot_full >= max_dot )
+		dot_full = max_dot ;
 
-        double grazing = 0.0 ;
-        if( dot_full / c >= 1.0 )
-            grazing = -M_PI_2 ;
-        else if( dot_full / c <= -1.0 )
-            grazing = M_PI_2 ;
-        else
-            grazing = asin( -dot_full / c ) ;
+	double grazing = 0.0 ;
+	if( dot_full / c >= 1.0 )
+		grazing = -M_PI_2 ;
+	else if( dot_full / c <= -1.0 )
+		grazing = M_PI_2 ;
+	else
+		grazing = asin( -dot_full / c ) ;
 
-        // build the eigenverb
-        _reflection_model->build_eigenverb( de, az, time_water,
-            grazing, c, position, ndirection, VOLUME_UPPER ) ;
-    }
+	// build the eigenverb
+	build_eigenverb( de, az, time_water, grazing, c, position, ndirection,
+		usml::eigenverb::eigenverb::VOLUME_UPPER + layer * 2 ) ;
 }
 
 /**
@@ -572,7 +558,7 @@ void wave_queue::build_eigenray(
    size_t de, size_t az,
    double distance2[3][3][3] )
 {
-    #ifdef DEBUG_EIGENRAYS
+    #ifdef DEBUG_EIGENRAYS_DETAIL
         //cout << "*** wave_queue::step: time=" << time() << endl ;
         wposition1 tgt( *(_curr->targets), t1, t2 ) ;
         cout << "*** wave_queue::build_eigenray:" << endl
@@ -649,6 +635,8 @@ void wave_queue::build_eigenray(
     ray.surface     = _curr->surface(de,az) ;
     ray.bottom      = _curr->bottom(de,az) ;
     ray.caustic     = _curr->caustic(de,az) ;
+    ray.upper     	= _curr->upper(de,az) ;
+    ray.lower     	= _curr->lower(de,az) ;
     ray.phase       = _curr->phase(de,az) ;
 
     // compute spreading components of intensity
@@ -772,7 +760,7 @@ void wave_queue::build_eigenray(
     ray.target_az = center + inner_prod( gradient, offset )
                   + 0.5 * inner_prod( offset, prod( hessian, offset ) ) ;
 
-    #ifdef DEBUG_OUTPUT_EIGENRAYS
+    #ifdef DEBUG_EIGENRAYS
     cout << "wave_queue::build_eigenray() " << endl
     		 << "\ttarget(" << t1 << "," << t2 << "):" << endl
              << "\tt=" << ray.time << " inten=" << ray.intensity << " de=" << ray.source_de << " az=" << ray.source_az << endl
@@ -843,7 +831,7 @@ void wave_queue::compute_offsets(
           + hessian(0,2) * ( hessian(1,0) * hessian(2,1) - hessian(2,1) * hessian(2,0) ) );
     unstable = unstable || determinant < norm_2(gradient) ;
 
-    #ifdef DEBUG_EIGENRAYS
+    #ifdef DEBUG_EIGENRAYS_DETAIL
         //cout << "*** wave_queue::compute_offsets ***" << endl;
         cout << "\tgradient: " << gradient << " center: " << center << endl;
         cout << "\thessian: " << hessian << endl;
@@ -866,7 +854,7 @@ void wave_queue::compute_offsets(
     // if stable, compute full 3x3 inverse in time, DE, AZ
 
     if ( !unstable ) {
-        #ifdef DEBUG_EIGENRAYS
+        #ifdef DEBUG_EIGENRAYS_DETAIL
             cout << "\tcompute full 3x3 inverse in (time,DE,AZ), det=" << determinant << endl ;
         #endif
         inverse(0,0) = hessian(1,1) * hessian(2,2) - hessian(1,2) * hessian(2,1);
@@ -890,7 +878,7 @@ void wave_queue::compute_offsets(
         gradient(1) = 0.0 ;
         determinant = hessian(0,0) * hessian(2,2) - hessian(0,2) * hessian(2,0) ;
         if ( determinant >= norm_2(gradient) ) {
-            #ifdef DEBUG_EIGENRAYS
+            #ifdef DEBUG_EIGENRAYS_DETAIL
                 cout << "\tcompute 2x2 matrix in (time,AZ), det=" << determinant << endl ;
             #endif
             inverse = zero_matrix<double>(3,3) ;
@@ -913,7 +901,7 @@ void wave_queue::compute_offsets(
         distance(n) = sqrt(max(0.0, distance(n)));
         if (offset(n) < 0.0) distance(n) *= -1.0;
     }
-    #ifdef DEBUG_EIGENRAYS
+    #ifdef DEBUG_EIGENRAYS_DETAIL
         cout << "\toffset: " << offset << " distance: " << distance << endl;
     #endif
 
@@ -972,11 +960,11 @@ void wave_queue::compute_offsets(
                 distance(1) *= -1.0 ;
                 offset(1) *= -1.0 ;
             }
-            #ifdef DEBUG_EIGENRAYS
+            #ifdef DEBUG_EIGENRAYS_DETAIL
                 cout << "\tnxt_dir: " << nxt_dir << " tgt_dir: " << tgt_dir << " dot: " << dot << endl ;
             #endif
         }
-        #ifdef DEBUG_EIGENRAYS
+        #ifdef DEBUG_EIGENRAYS_DETAIL
             cout << "\trecompute offset(1): " << offset(1) << " distance(1): " << distance(1) << endl;
         #endif
     }
@@ -1123,6 +1111,102 @@ void wave_queue::collision_location(
         + dtheta * time_water + 0.5 * d2theta * dtime2 ) ;
     ndirection->phi( _curr->ndirection.phi(de,az)
         + dphi * time_water + 0.5 * d2phi * dtime2 ) ;
+}
+
+/**
+ * Builds the eigenverb used in reverberation calculations
+ */
+void wave_queue::build_eigenverb(
+    size_t de, size_t az, double dt, double grazing,
+    double speed, const wposition1& position,
+    const wvector1& ndirection, size_t type )
+{
+	if ( _collection == NULL ) return ;
+	grazing = abs(grazing) ;
+	if ( _time <= 0.0 || grazing < 1e-6 ) return ;
+	if ( this->_az_boundary && az == this->_max_az ) return;
+    if ( abs(source_de(de)) > 89.9 ) return;
+	#ifdef DEBUG_EIGENVERBS
+    	cout << "wave_queue::build_eigenverb() " << endl ;
+	#endif
+
+	// initialize eigenverb
+
+    usml::eigenverb::eigenverb verb ;
+    verb.frequencies = this->frequencies() ;
+    const size_t num_freq = verb.frequencies->size() ;
+
+	verb.time = time() + dt ;
+    verb.energy = vector<double>(num_freq) ;
+    verb.length2 = vector<double>(num_freq) ;
+    verb.width2 = vector<double>(num_freq) ;
+	verb.grazing = grazing ;
+	verb.position = position ;
+	verb.de_index = de ;
+	verb.az_index = az ;
+	verb.source_de = to_radians(source_de(de)) ;
+	verb.source_az = to_radians(source_az(az)) ;
+	verb.frequencies = frequencies() ;
+	verb.surface = curr()->surface(de,az) ;
+	verb.bottom = curr()->bottom(de,az) ;
+	verb.caustic = curr()->caustic(de,az) ;
+	verb.upper = curr()->upper(de,az) ;
+	verb.lower = curr()->lower(de,az) ;
+
+    // compute total energy in this eigenverb
+    // using reflection/absorption loss along the path
+    // and fraction of total energy at source
+
+    verb.energy = pow( 10.0, -0.1 * curr()->attenuation(de,az) )
+		* _spreading_model->init_area(de,az) / (4*M_PI) ;
+    if ( verb.energy(0) <= 1e-10 ) return ;
+
+    // compute the frequency dependent beam widths in DE and AZ
+    //    - multiplies the width by the spreading model's overlap factor
+    //    - sum squared distance with square of spreading factor
+    //    - projects beam onto interface using grazing angle
+
+	vector<double> spreading( verb.frequencies->size() ) ;
+	for ( int f=0 ; f < spreading.size() ; ++f ) {
+		spreading(f) = TWO_PI * speed / (*verb.frequencies)(f) ;
+	}
+	const double sg = sin(grazing);
+	const double overlap = 2.0 ;
+	const double path_length = curr()->path_length(de,az)
+			+ curr()->sound_speed(de,az) * dt ;
+
+	const double de_width = overlap * path_length
+			* to_radians( _source_de->increment(de) ) ;
+	noalias(verb.length2) = (spreading*spreading + de_width * de_width)
+			/ (sg * sg);
+
+	const double az_width = overlap * path_length
+			* to_radians( _source_az->increment(az) )
+			* cos( to_radians((*_source_de)(de)) ) ;
+	noalias(verb.width2) = spreading*spreading + az_width * az_width;
+
+	// compute the eigenverb direction
+
+	double d,a=0.0;
+	ndirection.direction(&d,&a) ;			// direction in local tangent plane
+	verb.direction = to_radians(a) ;
+
+	// add the eigenverb to the collection
+
+	#ifdef DEBUG_EIGENVERBS
+		cout << "\ttype " << type << " t=" << verb.time
+			<< " de=" << to_degrees(verb.source_de)
+			<< " az=" << to_degrees(verb.source_az)
+			<< " direction=" << to_degrees(verb.direction)
+			<< " grazing=" << to_degrees(verb.grazing) << endl
+			<< "\tenergy="	<< 10.0 * log10(verb.energy)
+			<< " length=" << sqrt(verb.length2)
+			<< " width=" << sqrt(verb.width2) << endl
+			<< "\tsurface="	<< verb.surface << " bottom=" << verb.bottom
+			<< " caustic=" << verb.caustic << endl;
+	#endif
+	_collection->add_eigenverb( verb, type ) ;
+//	cout << "wave_queue::build_eigenverb() - done " << endl ;
 }
 
 /**

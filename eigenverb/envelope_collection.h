@@ -108,10 +108,13 @@ struct USML_DECLSPEC eigenverb_box {
     : x( e.position.longitude() ),
       y( e.position.latitude() )
     {
-        width = std::abs(e.sigma_az * cos( e.launch_az )
-                        - e.sigma_de * sin( e.launch_az ) ) ;
-        height = std::abs(e.sigma_de * cos( e.launch_az )
-                        + e.sigma_az * sin( e.launch_az ) ) ;
+    	width = 1.0 ;
+    	height = 1.0 ;
+//    	TODO stubbed out
+//        width = std::abs(e.width2 * cos( e.launch_az )
+//                        - e.length2 * sin( e.launch_az ) ) ;
+//        height = std::abs(e.length2 * cos( e.launch_az )
+//                        + e.width2 * sin( e.launch_az ) ) ;
     }
 
     /**

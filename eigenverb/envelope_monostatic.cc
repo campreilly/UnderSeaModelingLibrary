@@ -48,13 +48,14 @@ void envelope_monostatic::compute_bottom_energy(
         const eigenverb_collection& receiver,
         envelope_collection* levels )
 {
-    #ifndef EIGENVERB_MODEL_DEBUG
-        cout << "**** Entering eigenverb_monostatic::compute_bottom_energy()"
-             << endl ;
-        cout << "Number of bottom eigenverbs: " << source.bottom().size() << endl ;
-    #endif
-    _current_boundary = _bottom_boundary ;
-    convolve_eigenverbs( source.bottom(), levels ) ;
+//	TODO stub out while we update eigenverb_collection
+//    #ifndef EIGENVERB_MODEL_DEBUG
+//        cout << "**** Entering eigenverb_monostatic::compute_bottom_energy()"
+//             << endl ;
+//        cout << "Number of bottom eigenverbs: " << source.bottom().size() << endl ;
+//    #endif
+//    _current_boundary = _bottom_boundary ;
+//    convolve_eigenverbs( source.bottom(), levels ) ;
 }
 
 /**
@@ -66,13 +67,14 @@ void envelope_monostatic::compute_surface_energy(
     const eigenverb_collection& receiver,
     envelope_collection* levels )
 {
-    #ifndef EIGENVERB_MODEL_DEBUG
-        cout << "**** Entering eigenverb_monostatic::compute_surface_energy()"
-             << endl ;
-        cout << "Number of surface eigenverbs: " << source.surface().size() << endl ;
-    #endif
-    _current_boundary = _surface_boundary ;
-    convolve_eigenverbs( source.surface(), levels ) ;
+	//	TODO stub out while we update eigenverb_collection
+//    #ifndef EIGENVERB_MODEL_DEBUG
+//        cout << "**** Entering eigenverb_monostatic::compute_surface_energy()"
+//             << endl ;
+//        cout << "Number of surface eigenverbs: " << source.surface().size() << endl ;
+//    #endif
+//    _current_boundary = _surface_boundary ;
+//    convolve_eigenverbs( source.surface(), levels ) ;
 }
 
 /**

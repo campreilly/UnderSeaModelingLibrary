@@ -210,7 +210,7 @@ public:
      * @param  dir          Direction in terms of a spherical earth vector
      *                      (output).
      */
-    void direction(const wvector1& pos, wvector1* dir);
+    void direction(const wvector1& pos, wvector1* dir) const;
 
     /**
      * Compute the surface area between three points in space.  The distances
