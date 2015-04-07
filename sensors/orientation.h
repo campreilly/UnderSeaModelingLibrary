@@ -36,22 +36,46 @@ public:
      * @param pitch    rotation about the x-axis (deg)
      * @param roll     rotation about the y-axis (deg)
      */
-    orientation( double heading, double pitch, double roll ) ;
+    orientation( double heading,
+                 double pitch,
+                 double roll,
+                 vector<double> ref_axis ) ;
 
     /**
      * Constructor using a tile angle/direction????
      */
-    orientation( double angle, double direction ) ;
+    orientation( double angle, double direction, vector<double> ref_axis ) ;
 
     /**
-     * Rotates the incoming coordinates into the current rotated
-     * coordinate system.
+     * Transforms a DE and AZ into a rotated equivalent in the rotated system.
+     * This is used when a system is asymmetric and needs to be called everytime
+     * a DE/AZ pair needs to be rotated.
      *
-     * @param theta         rotated theta coordinate (radians)
-     * @param phi           rotated phi coordinate (radians)
+     * @param de        incident DE angle (rad)
+     * @param az        incident AZ angle (rad)
+     * @param de_prime  rotated DE angle (rad)
+     * @param az_prime  rotated AZ angle (rad)
      */
-    void apply_rotation( const vector<double> ref_axis,
-                         double& theta, double& phi ) ;
+    void apply_rotation( double& de,
+                         double& az,
+                         double* de_prime,
+                         double* az_prime ) ;
+
+    /**
+     * Returns the current theta offset for the rotated reference axis
+     * @return  theta for the rotated reference axis
+     */
+    inline double theta() const {
+        return _theta ;
+    }
+
+    /**
+     * Returns the current phi offset for the rotated reference axis
+     * @return  phi for the rotated reference axis
+     */
+    inline double phi() const {
+        return _phi ;
+    }
 
     /**
      * Current pitch of the rotated system.
@@ -67,6 +91,7 @@ public:
      */
     void pitch( double p ) {
         _pitch = -p*M_PI/180.0 ;
+        apply_rotation() ;
     }
 
     /**
@@ -83,6 +108,7 @@ public:
      */
     void heading( double h ) {
         _heading = -h*M_PI/180.0 ;
+        apply_rotation() ;
     }
 
     /**
@@ -99,6 +125,7 @@ public:
      */
     void roll( double r ) {
         _roll = r*M_PI/180.0 ;
+        apply_rotation() ;
     }
 
     /**
@@ -112,6 +139,7 @@ public:
         _heading = -h*M_PI/180.0 ;
         _pitch = -p*M_PI/180.0 ;
         _roll = r*M_PI/180.0 ;
+        apply_rotation() ;
     }
 
 private:
@@ -122,12 +150,25 @@ private:
     double _heading ;
     double _pitch ;
     double _roll ;
+    double _theta ;
+    double _phi ;
 
     /**
-     * Rotation vector
+     * Reference axis and local computation variables
      */
-    c_vector<double,3> _v ;
-    c_vector<double,3> _v_cart ;
+    vector<double> _axis ;
+    double _x ;
+    double _y ;
+    double _z ;
+
+    /**
+     * Rotates the reference axis and computes the necessary theta and
+     * phi offset in spherical coordinates. This computation is only valid
+     * for spatial objects that are symmetric about the reference axis. In the
+     * event that the object is asymmetric, the theta and phi do not appropriately
+     * account for the local coordinate roll of the object.
+     */
+    void apply_rotation() ;
 
     /**
      * Convert from Spherical coordinates to Cartesian coordinates

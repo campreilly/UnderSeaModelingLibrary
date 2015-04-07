@@ -7,6 +7,7 @@
 #include <usml/types/types.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/smart_ptr.h>
+#include <usml/sensors/orientation.h>
 #include <boost/numeric/ublas/vector_expression.hpp>
 
 namespace usml {
@@ -99,13 +100,14 @@ public:
 	 *
 	 * @param de            Depression/Elevation angle (rad)
 	 * @param az            Azimuthal angle (rad)
-     * @param theta         spherical offset in theta from reference axis (rad)
-     * @param phi           spherical offset in phi from reference axis (rad)
+     * @param orient        Orientation of the array
 	 * @param frequencies   List of frequencies to compute beam level for
 	 * @param level         Beam level for each frequency (linear units)
 	 */
-	virtual void beam_level(double de, double az, double theta, double phi,
-			const vector<double>& frequencies, vector<double>* level) = 0;
+	virtual void beam_level( double de, double az,
+	                         orientation& orient,
+	                         const vector<double>& frequencies,
+	                         vector<double>* level) = 0;
 
 	/**
 	 * Accesor to the directivity index

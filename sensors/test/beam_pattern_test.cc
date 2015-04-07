@@ -4,7 +4,6 @@
 
 #include <boost/test/unit_test.hpp>
 #include <usml/sensors/beams.h>
-#include <usml/sensors/orientation.h>
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
@@ -32,6 +31,8 @@ BOOST_AUTO_TEST_CASE( omni_pattern_test ) {
     cout << "=== beam_pattern_test/omni_pattern_test ===" << endl ;
     vector<double> freq( 1, 900.0 ) ;
     beam_pattern_omni omni ;
+    vector<double> r(3,0) ;
+    orientation orient( 0, 0, 0, r ) ;
 
     vector<double> level( freq.size(), 0.0 ) ;
     double total = 0 ;
@@ -39,7 +40,7 @@ BOOST_AUTO_TEST_CASE( omni_pattern_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * M_PI/180.0 ;
             double az_rad = az * M_PI/180.0 ;
-            omni.beam_level( de_rad, az_rad, 0, 0, freq, &level ) ;
+            omni.beam_level( de_rad, az_rad, orient, freq, &level ) ;
             total += level(0)*cos(de_rad)*(M_PI/180.0)*(M_PI/180.0) ;
             BOOST_CHECK_EQUAL( level(0), 1.0 ) ;
         }
@@ -73,15 +74,15 @@ BOOST_AUTO_TEST_CASE( sine_pattern_test ) {
     int heading = 31 ;
     int roll = 57 ;
     double dr = M_PI / 180.0 ;
-    orientation o( pitch, heading, roll ) ;
-    double theta = 0.0 ;
-    double phi = 0.0 ;
+    orientation orient( pitch, heading, roll, sine.reference_axis() ) ;
+//    double theta = 0.0 ;
+//    double phi = 0.0 ;
 //    vector<double> raxis(3,0) ;
 //    raxis(0) = 1.0 ;
-    o.apply_rotation( sine.reference_axis(), theta, phi ) ;
+//    o.apply_rotation( sine.reference_axis(), theta, phi ) ;
 
-    int _t = theta/dr ;
-    int _p = phi/dr ;
+    int _t = orient.theta()/dr ;
+    int _p = orient.phi()/dr ;
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
     vector<double> level( freq.size(), 0.0 ) ;
@@ -90,7 +91,7 @@ BOOST_AUTO_TEST_CASE( sine_pattern_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * dr ;
             double az_rad = az * dr ;
-            sine.beam_level( de_rad, az_rad, theta, phi, freq, &level ) ;
+            sine.beam_level( de_rad, az_rad, orient, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += abs(level(0))*cos(de_rad)*dr*dr ;
@@ -128,15 +129,15 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
     int heading = 57 ;
     int roll = 33 ;
     double dr = M_PI / 180.0 ;
-    orientation o( pitch, heading, roll ) ;
-    double theta = 0.0 ;
-    double phi = 0.0 ;
+    orientation orient( pitch, heading, roll, cosine.reference_axis() ) ;
+//    double theta = 0.0 ;
+//    double phi = 0.0 ;
 //    vector<double> raxis(3,0) ;
 //    raxis(1) = 1.0 ;
-    o.apply_rotation( cosine.reference_axis(), theta, phi ) ;
+//    o.apply_rotation( cosine.reference_axis(), theta, phi ) ;
 
-    int _t = theta/dr ;
-    int _p = phi/dr ;
+    int _t = orient.theta()/dr ;
+    int _p = orient.phi()/dr ;
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
     vector<double> level( freq.size(), 0.0 ) ;
@@ -145,7 +146,7 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * dr ;
             double az_rad = az * dr ;
-            cosine.beam_level( de_rad, az_rad, theta, phi, freq, &level ) ;
+            cosine.beam_level( de_rad, az_rad, orient, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += abs(level(0))*cos(de_rad)*dr*dr ;
@@ -196,12 +197,12 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     int heading = 37 ;
     int roll = 55 ;
     double dr = M_PI / 180.0 ;
-    orientation o( pitch, heading, roll ) ;
-    double theta = 0.0 ;
-    double phi = 0.0 ;
+    orientation orient( pitch, heading, roll, array.reference_axis() ) ;
+//    double theta = 0.0 ;
+//    double phi = 0.0 ;
 //    vector<double> raxis(3,0) ;
 //    raxis(2) = 1.0 ;
-    o.apply_rotation( array.reference_axis(), theta, phi ) ;
+//    o.apply_rotation( array.reference_axis(), theta, phi ) ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -211,7 +212,7 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * dr ;
             double az_rad = az * dr ;
-            array.beam_level( de_rad, az_rad, theta, phi, freq, &level ) ;
+            array.beam_level( de_rad, az_rad, orient, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += level(0)*cos(de_rad)*dr*dr ;
@@ -280,13 +281,13 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     int heading = 57 ;
     int roll = 23 ;
     double dr = M_PI / 180.0 ;
-    orientation o( pitch, heading, roll ) ;
-    double theta = 0.0 ;
-    double phi = 0.0 ;
+    orientation orient( pitch, heading, roll, array.reference_axis() ) ;
+//    double theta = 0.0 ;
+//    double phi = 0.0 ;
 //    vector<double> raxis(3,0) ;
 //    raxis(1) = 1.0 ;
-    o.apply_rotation( array.reference_axis(), theta, phi ) ;
-    cout << "theta: " << theta/dr << " phi: " << phi/dr << endl ;
+//    o.apply_rotation( array.reference_axis(), theta, phi ) ;
+    cout << "theta: " << orient.theta()/dr << " phi: " << orient.phi()/dr << endl ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -296,7 +297,7 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * dr ;
             double az_rad = az * dr ;
-            array.beam_level( de_rad, az_rad, theta, phi, freq, &level ) ;
+            array.beam_level( de_rad, az_rad, orient, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += level(0)*cos(de_rad)*dr*dr ;
@@ -348,6 +349,7 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
  */
 BOOST_AUTO_TEST_CASE( solid_pattern_test ) {
     cout << "===== beam_pattern_test/solid_pattern_test =====" << endl ;
+    const char* envname = USML_TEST_DIR "/sensors/test/solid_pattern_parameters.csv" ;
     const char* csvname = USML_TEST_DIR "/sensors/test/beam_pattern_solid.csv" ;
 
     // Physical and Environmental parameters concerning the array
@@ -357,21 +359,15 @@ BOOST_AUTO_TEST_CASE( solid_pattern_test ) {
     double min_az = 45.0 ;
     vector<double> freq( 1, 900.0 ) ;
     beam_pattern_solid solid( max_de, min_de, max_az, min_az ) ;
-
-//    double pitch = 17.0 ;
-//    double yaw = 41.0 ;
-    int pitch = 0 ;
-    int heading = 0 ;
-    int roll = 0 ;
-    double dr = M_PI / 180.0 ;
-    orientation o( pitch, heading, roll ) ;
-    double theta = 0.0 ;
-    double phi = 0.0 ;
     vector<double> raxis(3,0) ;
     raxis(2) = 1.0 ;
     solid.reference_axis( raxis ) ;
-    o.apply_rotation( solid.reference_axis(), theta, phi ) ;
-    cout << "theta: " << theta/dr << " phi: " << phi/dr << endl ;
+
+    int pitch = 41 ;
+    int heading = 17 ;
+    int roll = 31 ;
+    double dr = M_PI / 180.0 ;
+    orientation orient( pitch, heading, roll, solid.reference_axis() ) ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -381,24 +377,36 @@ BOOST_AUTO_TEST_CASE( solid_pattern_test ) {
         for(int de=-90; de<=90; ++de) {
             double de_rad = de * dr ;
             double az_rad = az * dr ;
-            solid.beam_level( de_rad, az_rad, theta, phi, freq, &level ) ;
+            solid.beam_level( de_rad, az_rad, orient, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
             total += level(0)*cos(de_rad)*dr*dr ;
-            double result = 0.0 ;
-            if( (de<(max_de-pitch)) && (de>=(min_de-pitch)) ) {
-                if( (az<=(max_az+heading)) && (az>=(min_az+heading)) ) {
-                    result = 1.0 ;
-                }
-            }
+//            double result = 0.0 ;
+//            if( (de<(max_de-pitch)) && (de>=(min_de-pitch)) ) {
+//                if( (az<=(max_az+heading)) && (az>=(min_az+heading)) ) {
+//                    result = 1.0 ;
+//                }
+//            }
 //            BOOST_CHECK_EQUAL( level(0), result ) ;
         }
         of << endl ;
     }
 
+    std::ofstream ef( envname ) ;
+    cout << "Saving environmental and array parameters to " << envname << endl ;
+    ef << "pitch,heading,roll,freq" << endl ;
+    ef << pitch << ","
+       << heading << ","
+       << roll << "," ;
+    for(int i=0; i<freq.size(); ++i) {
+        ef << freq(i) ;
+        if( i != freq.size()-1 ) ef << "," ;
+    }
+    ef << endl ;
+
+    cout << "Directivity index" << endl ;
     total = 10.0*log10( (4*M_PI)/total ) ;
     solid.directivity_index( freq, &level ) ;
-    cout << "Directivity index" << endl ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
     BOOST_CHECK_CLOSE( level(0), total, 1.5 ) ;
 }
@@ -429,6 +437,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_1d_test ) {
     }
 
     grid_type test_grid( axes, data, grid_type::LINEAR_UNITS ) ;
+    orientation orient ;
     cout << "frequencies: " << freq << endl ;
 
     const char* grid_file = "beam_pattern_grid1_test.nc" ;
@@ -436,7 +445,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_1d_test ) {
     test_grid.write_netcdf( grid_file ) ;
 
     vector<double> level( N, 0.0 ) ;
-    test_grid.beam_level( 0.0, 0.0, 0.0, 0.0, freq, &level ) ;
+    test_grid.beam_level( 0.0, 0.0, orient, freq, &level ) ;
     for(int i=0; i<level.size(); ++i) {
         BOOST_CHECK_CLOSE( tmp_data[i], level(i), 1e-8 ) ;
     }
@@ -486,6 +495,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
     }
 
     grid_type test_grid( axes, data, grid_type::LINEAR_UNITS ) ;
+    orientation orient ;
     cout << "frequencies: " << freq << endl ;
 
     const char* grid_file = "beam_pattern_grid2_test.nc" ;
@@ -494,9 +504,9 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
 
     vector<double> level( freq.size(), 0.0 ) ;
     for(int i=0; i<de->size(); ++i) {
-        test_grid.beam_level( (*de)[i], 0.0, 0.0, 0.0, freq, &level ) ;
+        test_grid.beam_level( (*de)[i], 0.0, orient, freq, &level ) ;
         for(int j=0; j<level.size(); ++j) {
-            BOOST_CHECK_CLOSE( tmp_data[j*n+i], level(j), 1e-8 ) ;
+            BOOST_CHECK_CLOSE( tmp_data[j*n+i], level(j), 1e-5 ) ;
         }
     }
     cout << "beam level: " << level << endl ;
@@ -554,6 +564,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_3d_test ) {
     }
 
     grid_type test_grid( axes, data, grid_type::LINEAR_UNITS ) ;
+    orientation orient ;
     cout << "frequencies: " << freq << endl ;
 
     const char* grid_file = "beam_pattern_grid3_test.nc" ;
@@ -566,10 +577,10 @@ BOOST_AUTO_TEST_CASE( grid_pattern_3d_test ) {
     vector<double> level( num_freq, 0.0 ) ;
     for(size_type i=0; i<num_de; ++i) {
         for(size_type j=0; j<num_az; ++j) {
-            test_grid.beam_level( de[i], az[j], 0.0, 0.0, freq, &level ) ;
+            test_grid.beam_level( de[i], az[j], orient, freq, &level ) ;
             for(int k=0; k<num_freq; ++k) {
                 size_type index = j + num_az*(i + num_de*k) ;
-                BOOST_CHECK_CLOSE( data[index], level(k), 1e-8 ) ;
+                BOOST_CHECK_CLOSE( data[index], level(k), 1e-3 ) ;
             }
         }
     }
