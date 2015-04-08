@@ -27,7 +27,7 @@ void sensor_pair::update_eigenrays(sensor_model::id_type sensorID, shared_ptr<ei
             std::swap(ray.source_az, ray.target_az);
         }
     }
-    #ifdef USML_DEBUG
+    #ifdef NOOP
     cout << "sensor_pair: update_eigenrays inserting eigenray_list" << endl ;
     #endif
     _eigenrays = list;

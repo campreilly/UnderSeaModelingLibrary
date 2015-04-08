@@ -129,18 +129,16 @@ fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(sensor
         sensor_pair* pair_data = pair.get();
         if ( pair_data != NULL ) {
             shared_ptr<eigenray_list> eigenrays = pair_data->eigenrays();
-            #ifdef NOOP
-                    cout << "sensor_pair_manager: eigenrays.get() " << eigenrays.get() << endl;
-            #endif
             if (eigenrays.get() != NULL){
                 src_id = pair_data->source().get()->sensorID();
                 rcv_id = pair_data->receiver().get()->sensorID();
                 wposition1 src_pos = pair_data->source().get()->position();
                 wposition1 rcv_pos = pair_data->receiver().get()->position();
-                #ifdef USML_DEBUG
-                    cout << "sensor_pair_manager: added sensor pair: sourceID " << src_id << " receiverID " << rcv_id << endl;
-                #endif
                 fathometer = new fathometer_model(src_id, rcv_id, src_pos, rcv_pos, eigenrays);
+                #ifdef USML_DEBUG
+                    cout << "sensor_pair_manager: get_fathometers - added fathometer for pair "
+                        << "src " << src_id << " rcv " << rcv_id << endl;
+                #endif
                 fathometers.push_back(fathometer);
             }
         }
