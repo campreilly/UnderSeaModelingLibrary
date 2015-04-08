@@ -35,10 +35,13 @@ wavefront_generator::wavefront_generator()
 void wavefront_generator::run()
 {
     // For Matlab output
-    const char* ncname_wave = USML_TEST_DIR "/generator_wave.nc";
-    const char* ncname_proploss = USML_TEST_DIR "/generator_proploss.nc";
-
+    const char* ncname_wave = "./generator_wave.nc";
+    const char* ncname_proploss = "./generator_proploss.nc";
+#ifdef USML_DEBUG
+    bool print_out = true;
+#else
     bool print_out = false;
+#endif
 
     /** Pointer to Proploss object */
     eigenray_collection* proploss;
