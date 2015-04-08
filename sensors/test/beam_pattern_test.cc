@@ -75,11 +75,6 @@ BOOST_AUTO_TEST_CASE( sine_pattern_test ) {
     int roll = 57 ;
     double dr = M_PI / 180.0 ;
     orientation orient( pitch, heading, roll, sine.reference_axis() ) ;
-//    double theta = 0.0 ;
-//    double phi = 0.0 ;
-//    vector<double> raxis(3,0) ;
-//    raxis(0) = 1.0 ;
-//    o.apply_rotation( sine.reference_axis(), theta, phi ) ;
 
     int _t = orient.theta()/dr ;
     int _p = orient.phi()/dr ;
@@ -130,11 +125,6 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
     int roll = 33 ;
     double dr = M_PI / 180.0 ;
     orientation orient( pitch, heading, roll, cosine.reference_axis() ) ;
-//    double theta = 0.0 ;
-//    double phi = 0.0 ;
-//    vector<double> raxis(3,0) ;
-//    raxis(1) = 1.0 ;
-//    o.apply_rotation( cosine.reference_axis(), theta, phi ) ;
 
     int _t = orient.theta()/dr ;
     int _p = orient.phi()/dr ;
@@ -191,18 +181,13 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     double n = 5 ;
     double steering = M_PI/8.0 ;
     vector<double> freq( 1, 900.0 ) ;
-    beam_pattern_line array( c0, d, n, steering ) ;
+    beam_pattern_VLA array( c0, d, n, steering ) ;
 
-    int pitch = 73 ;
+    int pitch = -10 ;
     int heading = 37 ;
     int roll = 55 ;
     double dr = M_PI / 180.0 ;
     orientation orient( pitch, heading, roll, array.reference_axis() ) ;
-//    double theta = 0.0 ;
-//    double phi = 0.0 ;
-//    vector<double> raxis(3,0) ;
-//    raxis(2) = 1.0 ;
-//    o.apply_rotation( array.reference_axis(), theta, phi ) ;
 
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
@@ -275,18 +260,13 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     double n = 6 ;
     double steering = -M_PI/4.0 ;
     vector<double> freq( 1, 900.0 ) ;
-    beam_pattern_line array( c0, d, n, steering, beam_pattern_line::HORIZONTAL ) ;
+    beam_pattern_HLA array( c0, d, n, steering ) ;
 
-    int pitch = 61 ;
+    int pitch = -61 ;
     int heading = 57 ;
     int roll = 23 ;
     double dr = M_PI / 180.0 ;
     orientation orient( pitch, heading, roll, array.reference_axis() ) ;
-//    double theta = 0.0 ;
-//    double phi = 0.0 ;
-//    vector<double> raxis(3,0) ;
-//    raxis(1) = 1.0 ;
-//    o.apply_rotation( array.reference_axis(), theta, phi ) ;
     cout << "theta: " << orient.theta()/dr << " phi: " << orient.phi()/dr << endl ;
 
     std::ofstream of( csvname ) ;

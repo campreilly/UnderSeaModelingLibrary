@@ -31,7 +31,7 @@ function line_pattern( sound_speed, spacing, N, pitch, heading, roll, steering, 
     theta_grid = de_grid + pi/2 ;
     phi_grid = az_grid ;
     r_ = roll * pi/180 ;
-    p_ = pitch * pi/180 ;
+    p_ = -pitch * pi/180 ;
     y_ = heading * pi/180 ;
     Rx = [ 1 0 0;
            0 cos(p_) sin(p_);

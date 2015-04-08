@@ -39,9 +39,17 @@ orientation::orientation( double angle, double direction )
 {
     double sin_theta2 = sin(angle)*sin(angle) ;
     double sin_phi2 = sin(direction)*sin(direction) ;
-    double sqrt_theta_phi = std::sqrt(1 - sin_theta2*sin_phi2)) ;
+    double sqrt_theta_phi = std::sqrt(1 - sin_theta2*sin_phi2) ;
     _roll = std::atan2( (cos(angle) / sqrt_theta_phi) , (cos(direction)*sin(angle) / sqrt_theta_phi) ) ;
     _pitch = std::atan2( sqrt_theta_phi, (-sin(angle)*sin(direction)) ) ;
+}
+
+/**
+ * Destructor
+ */
+orientation::~orientation()
+{
+
 }
 
 /**
@@ -60,6 +68,18 @@ void orientation::apply_rotation(
     apply_rotation() ;
     *de_prime = M_PI_2 - _theta ;
     *az_prime = _phi ;
+}
+
+
+/**
+ * Updates the heading, pitch, and roll
+ */
+void orientation::update_orientation( double h, double p, double r )
+{
+   _heading = -h*M_PI/180.0 ;
+   _pitch = -p*M_PI/180.0 ;
+   _roll = r*M_PI/180.0 ;
+   apply_rotation() ;
 }
 
 /**

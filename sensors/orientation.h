@@ -53,6 +53,11 @@ public:
     orientation( double angle, double direction ) ;
 
     /**
+     * Destructor
+     */
+    virtual ~orientation() ;
+
+    /**
      * Transforms a DE and AZ into a rotated equivalent in the rotated system.
      * This is used when a system is asymmetric and needs to be called everytime
      * a DE/AZ pair needs to be rotated.
@@ -88,7 +93,7 @@ public:
      * @return  current value stored in _pitch (deg)
      */
     double pitch() const {
-        return -(_pitch*M_PI/180.0) ;
+        return -_pitch*180.0/M_PI ;
     }
 
     /**
@@ -105,7 +110,7 @@ public:
      * @return  current value stored in _heading (deg)
      */
     double heading() {
-        return -(_heading*M_PI/180.0) ;
+        return -(_heading*180.0/M_PI) ;
     }
 
     /**
@@ -122,7 +127,7 @@ public:
      * @return  current value stored in _roll (deg)
      */
     double roll() const {
-        return (_roll*M_PI/180.0) ;
+        return (_roll*180.0/M_PI) ;
     }
 
     /**
@@ -141,14 +146,9 @@ public:
      * @param p     new pitch of the rotated system (deg)
      * @param r     new roll of the rotated system (deg)
      */
-    void update_orientation( double h, double p, double r ) {
-        _heading = -h*M_PI/180.0 ;
-        _pitch = -p*M_PI/180.0 ;
-        _roll = r*M_PI/180.0 ;
-        apply_rotation() ;
-    }
+    void update_orientation( double h, double p, double r ) ;
 
-private:
+protected:
 
     /**
      * Member variables
@@ -174,7 +174,7 @@ private:
      * event that the object is asymmetric, the theta and phi do not appropriately
      * account for the local coordinate roll of the object.
      */
-    void apply_rotation() ;
+    virtual void apply_rotation() ;
 
     /**
      * Convert from Spherical coordinates to Cartesian coordinates
