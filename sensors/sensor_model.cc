@@ -11,6 +11,7 @@
 #include <boost/foreach.hpp>
 
 using namespace usml::sensors;
+using namespace usml::waveq3d;
 
 /**
  * Construct a new instance of a specific sensor type.
@@ -82,7 +83,7 @@ void sensor_model::update_sensor(const wposition1& position,
             }
         }
         #ifdef USML_DEBUG
-            cout << "sensor_model: update_sensor(" << sensorID() << ")" << endl ;
+            cout << "sensor_model: update_sensor(" << _sensorID << ")" << endl ;
         #endif
         _position = position;
         _orientation = orientation;
@@ -91,25 +92,36 @@ void sensor_model::update_sensor(const wposition1& position,
 }
 
 /**
- * Last set of eigenrays computed for this sensor.
- * Blocks during updates from the wavefront task.
- */
-eigenray_collection::reference sensor_model::eigenrays() const {
-	read_lock_guard guard(_update_eigenrays_mutex);
-	return _eigenray_collection;
-}
-
-/**
  * Asynchronous update of eigenrays data from the wavefront task.
  */
-void sensor_model::update_eigenrays(eigenray_collection::reference& eigenrays) {
-	write_lock_guard guard(_update_eigenrays_mutex);
+void sensor_model::update_eigenrays(eigenray_collection::reference& eigenrays)
+{
+    // Don't allow updates to _sensor_listeners
+	write_lock_guard guard(_sensor_listeners_mutex);
 	#ifdef USML_DEBUG
-		cout << "sensor_model: update_eigenrays(" << sensorID() << ")" << endl ;
+		cout << "sensor_model: update_eigenrays(" << _sensorID << ")" << endl ;
 	#endif
-	_eigenray_collection = eigenrays;
+	{   // Scope for lock on _eigenray_collection
+        write_lock_guard guard(_eigenrays_mutex);
+	    _eigenray_collection = eigenrays;
+	}
 	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
-		listener->update_eigenrays(this);
+	    // Get complement sensor
+	    sensor_model::reference complement = listener->sensor_complement(this);
+        // Find complement's sensorID's index in target_id_map
+        std::map<sensor_model::id_type,int>::const_iterator iter =
+                            _target_id_map.find(complement->sensorID());
+        // Make sure it found the complement's sensorID
+        if (iter != _target_id_map.end()) {
+            read_lock_guard guard(_eigenrays_mutex);
+            int row = iter->second;
+            // Get eigenray_list for listener, ie sensor_pair
+            // Get complement's row's eigenray_list
+            eigenray_list* list = _eigenray_collection->eigenrays(row, 0);
+            shared_ptr<eigenray_list> rays_sptr(list);
+             // Send out shared_ptr of eigenray_list to listener
+            listener->update_eigenrays(_sensorID, rays_sptr);
+        }
 	}
 }
 
@@ -129,7 +141,7 @@ eigenverb_collection::reference sensor_model::eigenverbs() const {
 void sensor_model::update_eigenverbs( eigenverb_collection::reference& eigenverbs ) {
 	write_lock_guard guard(_update_eigenverbs_mutex);
 	#ifdef USML_DEBUG
-		cout << "sensor_model: update_eigenverbs(" << sensorID() << ")" << endl ;
+		cout << "sensor_model: update_eigenverbs(" << _sensorID << ")" << endl ;
 	#endif
 	_eigenverbs = eigenverbs;
 	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
@@ -197,9 +209,11 @@ std::list<sensor_model::reference> sensor_model::sensor_targets() {
  */
 void sensor_model::target_ids(std::list<sensor_model::reference>& list) {
 
-    _target_id_list.clear();
+    _target_id_map.clear();
+    int row = -1;
     BOOST_FOREACH( sensor_model::reference target, list ) {
-        _target_id_list.insert(target->sensorID());
+        ++row;
+        _target_id_map.insert(std::pair<sensor_model::id_type, int>(target->sensorID(), row));
     }
 }
 
@@ -231,7 +245,7 @@ void sensor_model::run_wave_generator() {
     if (ocean_shared::current().get() != NULL ) {
 
         #ifdef USML_DEBUG
-            cout << "sensor_model: run_wave_generator(" << sensorID() << ")" << endl ;
+            cout << "sensor_model: run_wave_generator(" << _sensorID << ")" << endl ;
         #endif
         // Create the wavefront_generator
         wavefront_generator* generator = new wavefront_generator();
@@ -265,7 +279,7 @@ void sensor_model::run_wave_generator() {
 
     #ifdef USML_DEBUG
         if (ocean_shared::current().get() == NULL ) {
-             cout << "sensor_model: run_wave_generator no ocean provided !!! (" << sensorID() << ")" << endl ;
+             cout << "sensor_model: run_wave_generator no ocean provided !!! (" << _sensorID << ")" << endl ;
         }
     #endif
 }

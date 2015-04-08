@@ -11,7 +11,9 @@ namespace sensors {
 
 class sensor_model;
 
+
 using namespace usml::sensors ;
+using namespace usml::waveq3d ;
 
 /// @ingroup sensors
 /// @{
@@ -41,9 +43,10 @@ public:
 	/**
 	 * Notification that new eigenray data is ready.
 	 *
-	 * @param	sensor	Pointer to sensor that issued the notification.
+	 * @param	sensorID The ID of the sensor that issued the notification.
+	 * @param   eigenray_list Shared pointer to the list of eigenrays
 	 */
-	virtual void update_eigenrays(sensor_model* sensor) = 0;
+	virtual void update_eigenrays(int sensorID, shared_ptr<eigenray_list> list) = 0;
 
 	/**
 	 * Notification that new eigenverb data is ready.
@@ -79,6 +82,6 @@ private:
 };
 
 /// @}
-}// end of namespace sensors
+} // end of namespace sensors
 } // end of namespace usml
 

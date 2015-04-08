@@ -171,7 +171,7 @@ private:
             //envelopes = manager->get_envelopes(sensorID);
             if ( fathometers.size() > 0 ) break ;
             //if ( fathometers.size() > 0 && envelopes.get() != NULL ) break ;
-            boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+            boost::this_thread::sleep(boost::posix_time::milliseconds(250));
         }
         cout << "waited for " << timer.elapsed() << " secs" << endl ;
 

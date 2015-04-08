@@ -106,15 +106,6 @@ public:
 	}
 
 	/**
-     * Gets the list of target sensorID's that was used to run the
-     * the wavefront_generator
-     * @return list of the target sensorID's
-     */
-    const std::set<sensor_model::id_type> target_ids() {
-        return _target_id_list;
-    }
-
-	/**
 	 * Location of the sensor in world coordinates.
 	 */
 	wposition1 position() const ;
@@ -138,13 +129,6 @@ public:
 	 */
 	void update_sensor(const wposition1& position,
 			const sensor_orientation& orientation, bool force_update = false);
-
-    /**
-     * Last set of eigenrays computed for this sensor.
-	 * Blocks during updates from the wavefront task.
-     * @param shared_pointer to and eigenray_collection
-     */
-	eigenray_collection::reference eigenrays() const ;
 
 	/**
 	 * Asynchronous update of eigenray data from the wavefront task.
@@ -257,10 +241,10 @@ private:
     mutable read_write_lock _update_sensor_mutex ;
 
     /**
-     * List containing the target sensorID prior to
-     * the staring the wavefront generator.
+     * Map containing the target sensorID's and the row offset
+     * in _eigenray_collection prior to the staring the wavefront generator.
      */
-    std::set<sensor_model::id_type> _target_id_list;
+    std::map<sensor_model::id_type, int> _target_id_map;
 
     /**
      * Last set of eigenray data computed for this sensor.
@@ -268,9 +252,9 @@ private:
     eigenray_collection::reference _eigenray_collection;
 
 	/**
-	 * Mutex to that locks sensor during update_eigenrays.
+	 * Mutex to that locks sensor _eigenray_collection access/write
 	 */
-	mutable read_write_lock _update_eigenrays_mutex ;
+	mutable read_write_lock _eigenrays_mutex ;
 
     /**
      * Last set of eigenverbs computed for this sensor.

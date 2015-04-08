@@ -9,46 +9,28 @@ using namespace usml::sensors;
 /**
  * Notification that new eigenray data is ready.
  */
-void sensor_pair::update_eigenrays(sensor_model* sensor)
+void sensor_pair::update_eigenrays(sensor_model::id_type sensorID, shared_ptr<eigenray_list> list)
 {
-	if (sensor != NULL) {
-	    // write_lock_guard guard(_eigenrays_mutex);
-		#ifdef USML_DEBUG
-			cout << "sensor_pair: update_eigenrays("
-				 << sensor->sensorID() << ")" << endl ;
-		#endif
+    write_lock_guard guard(_eigenrays_mutex);
+    #ifdef USML_DEBUG
+        cout << "sensor_pair: update_eigenrays("
+             << sensorID << ")" << endl ;
+    #endif
 
-		sensor_model::id_type sensorID;
+    // If sensor that made this call is the _receiver of this pair
+    //    then Swap de's, and az's
+    if (sensorID == _receiver->sensorID()) {
 
-		// Only Keep eigenrays for this sensor_pair
-		// Get complement's sensorID
-        if (sensor == _source.get()) {
-            sensorID = _receiver->sensorID();
-        } else { // receiver
-            sensorID = _source->sensorID();
+        eigenray_list* eigenrays = list.get();
+        BOOST_FOREACH( eigenray ray, *eigenrays) {
+            std::swap(ray.source_de, ray.target_de);
+            std::swap(ray.source_az, ray.target_az);
         }
-        // Find complement's sensorID's index in eigenray_collection
-        const std::set<sensor_model::id_type> target_ids = sensor->target_ids();
-        std::set<sensor_model::id_type>::const_iterator iter = target_ids.find(sensorID);
-        if (iter != target_ids.end()) {
-
-            // Get receiverID row's eigenray_list
-            size_t row = std::distance(target_ids.begin(), iter);
-            eigenray_collection::reference ray_collection = sensor->eigenrays();
-            eigenray_collection* proploss = ray_collection.get();
-            eigenray_list* list = proploss->eigenrays(row, 0);
-
-            if (sensor == _receiver.get()) {
-                // Swap de's , and az's on incoming sensor being a RECEIVER
-                BOOST_FOREACH( eigenray ray, *list) {
-                    std::swap(ray.source_de, ray.target_de);
-                    std::swap(ray.source_az, ray.target_az);
-                }
-            }
-            // Insert eigenray_list shared_ptr with lock;
-            eigenrays(list);
-        }
-	}
+    }
+    #ifdef USML_DEBUG
+    cout << "sensor_pair: update_eigenrays inserting eigenray_list" << endl ;
+    #endif
+    _eigenrays = list;
 }
 
 /**
@@ -59,7 +41,7 @@ void sensor_pair::update_eigenverbs(sensor_model* sensor)
 	if (sensor != NULL) {
 
 		#ifdef USML_DEBUG
-			cout << "sensor_pair::update_eigenverbs("
+			cout << "sensor_pair: update_eigenverbs("
 				 << sensor->sensorID() << ")" << endl ;
 		#endif
 
