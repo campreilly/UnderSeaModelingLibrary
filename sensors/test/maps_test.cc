@@ -230,7 +230,7 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
     sensor_model::reference m1 = sensor_mgr->find(id1);
 	wposition1 pos( 1.0, 2.0, 3.0 ) ;			// arbitrary location
-	sensor_orientation orient( 4.0, 5.0 ) ;		// tilt and direction
+	orientation orient( 4.0, 5.0 ) ;		// tilt and direction
 	if ( ! sensor_mgr->update_sensor(id1,pos,orient,true) ) {
 		BOOST_FAIL("sensor_test::Failed to update sensor!");
 	}

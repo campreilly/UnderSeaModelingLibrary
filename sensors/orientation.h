@@ -16,9 +16,22 @@ namespace sensors {
  * sensor and provides a conversion from incident ray
  * coordinates to the spherical array coordinates.
  *
- * Heading - the amount of rotation about the z-axis
- * Pitch   - the amount of rotation about the x-axis
- * Roll    - the amount of rotation about the y-axis
+ * Uses definitions of heading, pitch, and roll based on 
+ * aircraft principal axes:
+ *
+ * - Heading moves the front of the sensor from side to side. 
+ *   A positive yaw angle moves the nose to the right.
+ *   A heading value of zero points the sensor north.
+ * - Pitch moves the front of the sensor up and down. 
+ *   A positive pitch angle raises the front and lowers the back.
+ *   A heading value of zero leaves the sensor parallel to
+ *   the surface of the earth.
+ * - Pitch rotates the sensor around the longitudinal axis, 
+ *   the axis from back to front.  A positive roll angle lifts 
+ *   the left side and lowers the right side of the sensor.
+ *
+ * @xref Wikipedia, Aircraft principal axes, 
+ *       http://en.wikipedia.org/wiki/Aircraft_principal_axes
  */
 class USML_DECLSPEC orientation {
 
@@ -147,6 +160,17 @@ public:
      * @param r     new roll of the rotated system (deg)
      */
     void update_orientation( double h, double p, double r ) ;
+
+	/**
+	* Updates the tilt angle and direction.
+	*
+	* @param angle     tilt from the nominal vertical axis,
+	*                  equivalent to theta in spherical coordinates.
+	* @param direction direction of the tilt from the nominal vertical axis,
+	*                  equivalent to phi in spherical coordinates.
+	*/
+	void update_orientation(double angle, double direction);
+
 
 protected:
 

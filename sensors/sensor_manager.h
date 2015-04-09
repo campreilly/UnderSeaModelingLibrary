@@ -83,7 +83,7 @@ public:
 	 * @return 				False if sensorID was not found.
 	 */
 	bool update_sensor(sensor_model::id_type sensorID, const wposition1& position,
-			const sensor_orientation& orientation, bool force_update = false);
+			const orientation& orientation, bool force_update = false);
 
 	/**
 	 * Finds the sensor parameters associated with the keyID.

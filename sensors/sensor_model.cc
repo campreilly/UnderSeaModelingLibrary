@@ -18,7 +18,7 @@ using namespace usml::sensors;
 sensor_model::sensor_model(sensor_model::id_type sensorID, sensor_params::id_type paramsID,
 	const std::string& description)
 	: _sensorID(sensorID), _paramsID(paramsID), _description(description),
-	  _position(NAN, NAN, NAN), _orientation(NAN, NAN, NAN)
+	  _position(NAN, NAN, NAN), _orient()
 {
 	_source = source_params_map::instance()->find(paramsID);
 	_receiver = receiver_params_map::instance()->find(paramsID);
@@ -63,9 +63,9 @@ wposition1 sensor_model::position() const {
 /**
  * Orientation of the sensor in world coordinates.
  */
-sensor_orientation sensor_model::orientation() const {
+orientation sensor_model::orient() const {
 	read_lock_guard guard(_update_sensor_mutex);
-	return _orientation;
+	return _orient;
 }
 
 /**
@@ -73,7 +73,7 @@ sensor_orientation sensor_model::orientation() const {
  * to require a new WaveQ3D run.
  */
 void sensor_model::update_sensor(const wposition1& position,
-		const sensor_orientation& orientation, bool force_update) {
+		const orientation& orientation, bool force_update) {
 	write_lock_guard guard(_update_sensor_mutex);
 	if (!force_update) {
 		if (!check_thresholds(position, orientation)) {
@@ -84,7 +84,7 @@ void sensor_model::update_sensor(const wposition1& position,
 		cout << "sensor: update_sensor(" << sensorID() << ")" << endl ;
 	#endif
 	_position = position;
-	_orientation = orientation;
+	_orient = orientation;
 	run_wave_generator();
 }
 
@@ -160,13 +160,13 @@ void sensor_model::remove_sensor_listener(sensor_listener::reference listener) {
  * @todo using dummy values for prototyping
  */
 bool sensor_model::check_thresholds(const wposition1& position,
-		const sensor_orientation& orientation)
+		const orientation& orientation)
 {
 	// force update if old values not valid
 
 	if (isnan(_position.rho()) || isnan(_position.theta())
-			|| isnan(_position.phi()) || isnan(_orientation.heading())
-			|| isnan(_orientation.pitch()) || isnan(_orientation.roll())) {
+			|| isnan(_position.phi()) || isnan(_orient.heading())
+			|| isnan(_orient.pitch()) || isnan(_orient.roll())) {
 		return true;
 	}
 

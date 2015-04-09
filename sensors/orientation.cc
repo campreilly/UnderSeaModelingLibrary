@@ -32,7 +32,6 @@ orientation::orientation(
 
 /**
  * Tilt angle/direction constructor
- * NOTE: This is a dummy constructor at this time
  */
 orientation::orientation( double angle, double direction )
     : _heading(0.0)
@@ -82,6 +81,17 @@ void orientation::update_orientation( double h, double p, double r )
    apply_rotation() ;
 }
 
+/**
+* Updates the tilt angle and direction.
+*/
+void orientation::update_orientation(double angle, double direction)
+{
+	double sin_theta2 = sin(angle)*sin(angle);
+	double sin_phi2 = sin(direction)*sin(direction);
+	double sqrt_theta_phi = std::sqrt(1 - sin_theta2*sin_phi2);
+	_roll = std::atan2((cos(angle) / sqrt_theta_phi), (cos(direction)*sin(angle) / sqrt_theta_phi));
+	_pitch = std::atan2(sqrt_theta_phi, (-sin(angle)*sin(direction)));
+}
 /**
  * Applies a rotation from one coordinate system to the
  * current rotated coordinates for symmetric systems.
