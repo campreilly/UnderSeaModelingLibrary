@@ -34,7 +34,7 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          * spatially and horizontal being in the xy-planar
          * direction.
          */
-        typedef enum { VERTICAL, HORIZONTAL } reference_axis ;
+        typedef enum { VERTICAL, HORIZONTAL } orientation_axis ;
 
         /**
          * Constructs a beam pattern for a linear array.
@@ -48,7 +48,7 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          */
         beam_pattern_line( double sound_speed, double spacing,
                            size_t elements, double steering_angle,
-                           reference_axis axis=VERTICAL ) ;
+                           orientation_axis axis=VERTICAL ) ;
 
         /**
          * Computes the response level in a specific DE/AZ pair and
@@ -57,15 +57,14 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
-         * @param theta         spherical offset in theta from reference axis (rad)
-         * @param phi           spherical offset in phi from reference axis (rad)
-         * @param frequencies   frequencies to compute beam level for
-         * @param level         beam level for each frequency
+         * @param orient        Orientation of the array
+         * @param frequencies   List of frequencies to compute beam level for
+         * @param level         Beam level for each frequency (linear units)
          */
         virtual void beam_level( double de, double az,
-                                 double theta, double phi,
+                                 orientation& orient,
                                  const vector<double>& frequencies,
-                                 vector<double>* level ) ;
+                                 vector<double>* level) ;
 
         /**
          * Computes the directivity index for a list of frequencies
@@ -99,7 +98,7 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          * Defines the reference axis for this linear array's beam
          * pattern.
          */
-        reference_axis _axis ;
+        orientation_axis _axis ;
 
         /**
          * Initializes the beam pattern. To save execution time, common computations

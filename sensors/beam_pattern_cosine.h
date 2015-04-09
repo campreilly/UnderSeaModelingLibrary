@@ -30,7 +30,7 @@ class USML_DECLSPEC beam_pattern_cosine : public beam_pattern_model {
         /**
          * Constructs a cosine-directional beam pattern.
          */
-        beam_pattern_cosine() {}
+        beam_pattern_cosine() ;
 
         /**
          * Computes the response level in a specific DE/AZ pair and
@@ -39,15 +39,14 @@ class USML_DECLSPEC beam_pattern_cosine : public beam_pattern_model {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
-         * @param theta         spherical offset in theta from reference axis (rad)
-         * @param phi           spherical offset in phi from reference axis (rad)
-         * @param frequencies   list of frequencies to compute beam level for
-         * @param level         beam level for each frequency
+         * @param orient        Orientation of the array
+         * @param frequencies   List of frequencies to compute beam level for
+         * @param level         Beam level for each frequency (linear units)
          */
         virtual void beam_level( double de, double az,
-                                 double theta, double phi,
+                                 orientation& orient,
                                  const vector<double>& frequencies,
-                                 vector<double>* level ) ;
+                                 vector<double>* level) ;
 
         /**
          * Directivity index for an cosine-directional beam pattern

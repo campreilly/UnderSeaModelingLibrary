@@ -3,7 +3,6 @@
  */
 #pragma once
 
-#include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <usml/usml_config.h>
 
@@ -17,9 +16,22 @@ namespace sensors {
  * sensor and provides a conversion from incident ray
  * coordinates to the spherical array coordinates.
  *
- * Pitch - the amount of rotation about the local z-axis
- * Heading - the amount of rotation about the local y-axis
- * Roll - the amount of rotation about the local x-axis
+ * Uses definitions of heading, pitch, and roll based on 
+ * aircraft principal axes:
+ *
+ * - Heading moves the front of the sensor from side to side. 
+ *   A positive yaw angle moves the nose to the right.
+ *   A heading value of zero points the sensor north.
+ * - Pitch moves the front of the sensor up and down. 
+ *   A positive pitch angle raises the front and lowers the back.
+ *   A heading value of zero leaves the sensor parallel to
+ *   the surface of the earth.
+ * - Pitch rotates the sensor around the longitudinal axis, 
+ *   the axis from back to front.  A positive roll angle lifts 
+ *   the left side and lowers the right side of the sensor.
+ *
+ * @xref Wikipedia, Aircraft principal axes, 
+ *       http://en.wikipedia.org/wiki/Aircraft_principal_axes
  */
 class USML_DECLSPEC orientation {
 
@@ -31,128 +43,162 @@ public:
     orientation() ;
 
     /**
-     * Constructor using a given pitch, heading, and roll
+     * Constructor using a given heading, pitch, and roll
      *
-     * @param pitch     rotation about the z-axis (radians)
-     * @param heading   rotation about the y-axis (radians)
-     * @param roll      rotation about the x-axis (radians)
+     * @param heading  rotation about the z-axis (deg)
+     * @param pitch    rotation about the x-axis (deg)
+     * @param roll     rotation about the y-axis (deg)
      */
-    orientation( double pitch, double heading, double roll ) ;
+    orientation( double heading,
+                 double pitch,
+                 double roll,
+                 vector<double> ref_axis ) ;
 
     /**
-     * Constructor using a tile angle/direction????
+     * Constructor using a tile angle/direction. Using these values and holding
+     * _heading to zero, we can compute a unique value of _pitch and _roll.
+     *
+     * @param angle     tilt from the nominal vertical axis,
+     *                  equivalent to theta in spherical coordinates.
+     * @param direction direction of the tilt from the nominal vertical axis,
+     *                  equivalent to phi in spherical coordinates.
      */
     orientation( double angle, double direction ) ;
 
     /**
-     * Rotates the incoming coordinates into the current rotated
-     * coordinate system.
-     *
-     * @param theta         rotated theta coordinate (radians)
-     * @param phi           rotated phi coordinate (radians)
+     * Destructor
      */
-    void apply_rotation( const vector<double> ref_axis,
-                         double& theta, double& phi ) ;
+    virtual ~orientation() ;
+
+    /**
+     * Transforms a DE and AZ into a rotated equivalent in the rotated system.
+     * This is used when a system is asymmetric and needs to be called everytime
+     * a DE/AZ pair needs to be rotated.
+     *
+     * @param de        incident DE angle (rad)
+     * @param az        incident AZ angle (rad)
+     * @param de_prime  rotated DE angle (rad)
+     * @param az_prime  rotated AZ angle (rad)
+     */
+    void apply_rotation( double& de,
+                         double& az,
+                         double* de_prime,
+                         double* az_prime ) ;
+
+    /**
+     * Returns the current theta offset for the rotated reference axis
+     * @return  theta for the rotated reference axis
+     */
+    inline double theta() const {
+        return _theta ;
+    }
+
+    /**
+     * Returns the current phi offset for the rotated reference axis
+     * @return  phi for the rotated reference axis
+     */
+    inline double phi() const {
+        return _phi ;
+    }
 
     /**
      * Current pitch of the rotated system.
-     * @return  current value stored in _pitch
+     * @return  current value stored in _pitch (deg)
      */
     double pitch() const {
-        return _pitch ;
+        return -_pitch*180.0/M_PI ;
     }
 
     /**
      * Updates the pitch for the rotated system.
-     * @param p     new pitch of the rotated system
+     * @param p     new pitch of the rotated system (deg)
      */
     void pitch( double p ) {
-        _pitch = p ;
-        compute_rotation_matrix() ;
+        _pitch = -p*M_PI/180.0 ;
+        apply_rotation() ;
     }
 
     /**
      * Current heading of the rotated system.
-     * @return  current value stored in _heading
+     * @return  current value stored in _heading (deg)
      */
     double heading() {
-        return _heading ;
+        return -(_heading*180.0/M_PI) ;
     }
 
     /**
      * Updates the heading for the rotated system.
-     * @param h     new heading of the rotated system
+     * @param h     new heading of the rotated system (deg)
      */
     void heading( double h ) {
-        _heading = h ;
-        compute_rotation_matrix() ;
+        _heading = -h*M_PI/180.0 ;
+        apply_rotation() ;
     }
 
     /**
      * Current roll of the rotated system.
-     * @return  current value stored in _roll
+     * @return  current value stored in _roll (deg)
      */
     double roll() const {
-        return _roll ;
+        return (_roll*180.0/M_PI) ;
     }
 
     /**
      * Updates the roll for the rotated system.
-     * @param r     new roll of the rotated system
+     * @param r     new roll of the rotated system (deg)
      */
     void roll( double r ) {
-        _roll = r ;
-        compute_rotation_matrix() ;
+        _roll = r*M_PI/180.0 ;
+        apply_rotation() ;
     }
 
     /**
      * Update all three rotation angles
      *
-     * @param p     new pitch of the rotated system
-     * @param h     new heading of the rotated system
-     * @param r     new roll of the rotated system
+     * @param h     new heading of the rotated system (deg)
+     * @param p     new pitch of the rotated system (deg)
+     * @param r     new roll of the rotated system (deg)
      */
-    void update_orientation( double p, double h, double r ) {
-        _pitch = p ;
-        _heading = h ;
-        _roll = r ;
-        compute_rotation_matrix() ;
-    }
+    void update_orientation( double h, double p, double r ) ;
 
-private:
+	/**
+	* Updates the tilt angle and direction.
+	*
+	* @param angle     tilt from the nominal vertical axis,
+	*                  equivalent to theta in spherical coordinates.
+	* @param direction direction of the tilt from the nominal vertical axis,
+	*                  equivalent to phi in spherical coordinates.
+	*/
+	void update_orientation(double angle, double direction);
+
+
+protected:
 
     /**
      * Member variables
      */
-    double _pitch ;
     double _heading ;
+    double _pitch ;
     double _roll ;
+    double _theta ;
+    double _phi ;
 
     /**
-     * Inverse Rotation Matrices
+     * Reference axis and local computation variables
      */
-    matrix<double> _rx ;
-    matrix<double> _ry ;
-    matrix<double> _rz ;
-    matrix<double> _rotation ;
+    vector<double> _axis ;
+    double _x ;
+    double _y ;
+    double _z ;
 
     /**
-     * Rotation vector
+     * Rotates the reference axis and computes the necessary theta and
+     * phi offset in spherical coordinates. This computation is only valid
+     * for spatial objects that are symmetric about the reference axis. In the
+     * event that the object is asymmetric, the theta and phi do not appropriately
+     * account for the local coordinate roll of the object.
      */
-    c_vector<double,3> _v ;
-    c_vector<double,3> _v_cart ;
-
-    /**
-     * Computes the inverse rotation matrices
-     */
-    void compute_rotation_matrix() ;
-
-    /**
-     * Initializes the matrices rotation invariant components
-     * and then calls the compute_inverse_matrix component to complete
-     * the full computation of the inverse rotation matrix
-     */
-    void initialize_matrices() ;
+    virtual void apply_rotation() ;
 
     /**
      * Convert from Spherical coordinates to Cartesian coordinates

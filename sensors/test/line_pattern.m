@@ -31,16 +31,16 @@ function line_pattern( sound_speed, spacing, N, pitch, heading, roll, steering, 
     theta_grid = de_grid + pi/2 ;
     phi_grid = az_grid ;
     r_ = roll * pi/180 ;
-    p_ = pitch * pi/180 ;
+    p_ = -pitch * pi/180 ;
     y_ = heading * pi/180 ;
     Rx = [ 1 0 0;
-           0 cos(r_) -sin(r_);
-           0 sin(r_) cos(r_) ] ;
-    Ry = [ cos(p_) 0 sin(p_);
+           0 cos(p_) sin(p_);
+           0 -sin(p_) cos(p_) ] ;
+    Ry = [ cos(r_) 0 sin(r_);
            0 1 0;
-           -sin(p_) 0 cos(p_) ] ;
-    Rz = [ cos(y_) -sin(y_) 0;
-           sin(y_) cos(y_) 0;
+           -sin(r_) 0 cos(r_) ] ;
+    Rz = [ cos(y_) sin(y_) 0;
+           -sin(y_) cos(y_) 0;
            0 0 1 ] ;
     R = Rz * Ry * Rx ;
     cart_vec = R * ax' ;
@@ -82,13 +82,14 @@ function line_pattern( sound_speed, spacing, N, pitch, heading, roll, steering, 
     figure ;
     h = surf(X,Y,Z,dB,'EdgeColor','none','FaceColor','interp') ;
     colormap(jet)
-    view([0 0])
+    view([0 90])
     set(gca,'Xlim',[-30 30])
     set(gca,'Ylim',[-30 30])
     set(gca,'Zlim',[-30 30])
     xlabel('x') ;
     ylabel('y') ;
     zlabel('z') ;
-    title(sprintf('Matlab Implementation, Directivity Index: %f',DI)) ;
+    title({sprintf('Matlab Implementation'),...
+           sprintf('Pitch = %0.f Heading = %0.f Roll = %0.f',pitch,heading,roll)}) ;
 
 end

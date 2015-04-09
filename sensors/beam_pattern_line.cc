@@ -12,17 +12,23 @@ using namespace usml::sensors ;
 beam_pattern_line::beam_pattern_line(
     double sound_speed, double spacing,
     size_t elements, double steering_angle,
-    reference_axis axis )
+    orientation_axis axis )
     : _axis(axis)
 {
     switch( _axis ) {
         case HORIZONTAL :
             _n = elements ;
+            _reference_axis(0) = 0.0 ;
+            _reference_axis(1) = 1.0 ;
+            _reference_axis(2) = 0.0 ;
             initialize_beams( sound_speed, spacing, (M_PI_2 + steering_angle) ) ;
             break ;
         default :
             _n = elements ;
-            initialize_beams( sound_speed, spacing, steering_angle ) ;
+            _reference_axis(0) = 0.0 ;
+            _reference_axis(1) = 0.0 ;
+            _reference_axis(2) = 1.0 ;
+           initialize_beams( sound_speed, spacing, steering_angle ) ;
             break ;
     }
 }
@@ -30,16 +36,16 @@ beam_pattern_line::beam_pattern_line(
 /** Calculates the beam level in de, az, and frequency **/
 void beam_pattern_line::beam_level(
         double de, double az,
-        double theta, double phi,
+        orientation& orient,
         const vector<double>& frequencies,
         vector<double>* level )
 {
 	write_lock_guard(_mutex);
     double theta_prime = M_PI_2 + de ;
-    double sint = sin( 0.5 * (theta - theta_prime) ) ;
-    double sinp = sin( 0.5 * (az - phi) ) ;
+    double sint = sin( 0.5 * (orient.theta() - theta_prime) ) ;
+    double sinp = sin( 0.5 * (az - orient.phi()) ) ;
     double dotnorm = 1.0 - 2.0 * ( sint * sint
-                     + sin(theta_prime) * sin(theta) * sinp * sinp ) ;
+                     + sin(theta_prime) * sin(orient.theta()) * sinp * sinp ) ;
     noalias(*level) = element_prod(
                 element_div( sin(_n*(frequencies*_omega*dotnorm - frequencies*_steering + 1e-10)),
                     _n*sin(frequencies*_omega*dotnorm - frequencies*_steering + 1e-10) ),

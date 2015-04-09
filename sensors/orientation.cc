@@ -10,90 +10,104 @@ using namespace usml::sensors ;
  * Default constructor
  */
 orientation::orientation()
-    : _pitch(0.0), _heading(0.0), _roll(0.0),
-      _rx(3,3), _ry(3,3), _rz(3,3), _rotation(3,3)
+    : _heading(0.0), _pitch(0.0), _roll(0.0),
+      _axis(3,0)
 {
-    initialize_matrices() ;
+
 }
 
 /**
  * Pitch, heading, roll constructor
  */
 orientation::orientation(
-    double pitch, double heading, double roll )
-    : _pitch(pitch), _heading(heading), _roll(roll),
-      _rx(3,3), _ry(3,3), _rz(3,3), _rotation(3,3)
+    double heading, double pitch, double roll,
+    vector<double> ref_axis )
+    : _heading(-pitch*M_PI/180.0),
+      _pitch(-heading*M_PI/180.0),
+      _roll(roll*M_PI/180.0),
+      _axis(ref_axis)
 {
-    initialize_matrices() ;
+    apply_rotation() ;
 }
 
 /**
  * Tilt angle/direction constructor
- * NOTE: This is a dummy constructor at this time
  */
-orientation::orientation(
-    double angle, double direction )
-    : _pitch(0.0), _heading(0.0), _roll(0.0),
-      _rx(3,3), _ry(3,3), _rz(3,3), _rotation(3,3)
+orientation::orientation( double angle, double direction )
+    : _heading(0.0)
 {
-    initialize_matrices() ;
+    double sin_theta2 = sin(angle)*sin(angle) ;
+    double sin_phi2 = sin(direction)*sin(direction) ;
+    double sqrt_theta_phi = std::sqrt(1 - sin_theta2*sin_phi2) ;
+    _roll = std::atan2( (cos(angle) / sqrt_theta_phi) , (cos(direction)*sin(angle) / sqrt_theta_phi) ) ;
+    _pitch = std::atan2( sqrt_theta_phi, (-sin(angle)*sin(direction)) ) ;
+}
+
+/**
+ * Destructor
+ */
+orientation::~orientation()
+{
+
 }
 
 /**
  * Applies a rotation from one coordinate system to the
- * current rotated coordinates.
+ * current rotated coordinates for asymmetric systems.
  */
 void orientation::apply_rotation(
-    const vector<double> ref_axis,
-    double& theta, double& phi  )
+    double& de, double& az,
+    double* de_prime, double* az_prime )
 {
-    _v_cart = prod( _rotation, ref_axis ) ;
+    _theta = M_PI_2 - de ;
+    _phi = az ;
+    _axis(0) = sin(_theta) * cos(_phi) ;
+    _axis(1) = sin(_theta) * sin(_phi) ;
+    _axis(2) = cos(_theta) ;
+    apply_rotation() ;
+    *de_prime = M_PI_2 - _theta ;
+    *az_prime = _phi ;
+}
+
+
+/**
+ * Updates the heading, pitch, and roll
+ */
+void orientation::update_orientation( double h, double p, double r )
+{
+   _heading = -h*M_PI/180.0 ;
+   _pitch = -p*M_PI/180.0 ;
+   _roll = r*M_PI/180.0 ;
+   apply_rotation() ;
+}
+
+/**
+* Updates the tilt angle and direction.
+*/
+void orientation::update_orientation(double angle, double direction)
+{
+	double sin_theta2 = sin(angle)*sin(angle);
+	double sin_phi2 = sin(direction)*sin(direction);
+	double sqrt_theta_phi = std::sqrt(1 - sin_theta2*sin_phi2);
+	_roll = std::atan2((cos(angle) / sqrt_theta_phi), (cos(direction)*sin(angle) / sqrt_theta_phi));
+	_pitch = std::atan2(sqrt_theta_phi, (-sin(angle)*sin(direction)));
+}
+/**
+ * Applies a rotation from one coordinate system to the
+ * current rotated coordinates for symmetric systems.
+ */
+void orientation::apply_rotation()
+{
+    _x = _axis(0)*cos(_heading)*cos(_roll) +
+         _axis(2)*( sin(_heading)*sin(_pitch) + cos(_heading)*cos(_pitch)*sin(_roll) ) +
+         _axis(1)*( -cos(_pitch)*sin(_heading) + cos(_heading)*sin(_pitch)*sin(_roll) ) ;
+    _y = _axis(0)*cos(_roll)*sin(_heading) +
+         _axis(2)*( -cos(_heading)*sin(_pitch) + cos(_pitch)*sin(_heading)*sin(_roll) ) +
+         _axis(1)*( cos(_heading)*cos(_pitch) + sin(_heading)*sin(_pitch)*sin(_roll) ) ;
+    _z = _axis(2)*cos(_pitch)*cos(_roll) +
+         _axis(1)*cos(_roll)*sin(_pitch) -
+         _axis(0)*sin(_roll) ;
     convert_to_spherical() ;
-    theta = std::fmod( _v(1), M_PI ) ;
-    phi = std::fmod( _v(2), 2.0*M_PI ) ;
-}
-
-/**
- * Sets the rotational invariant components of the rotation
- * matrices and then constructs the full rotation matrix.
- */
-void orientation::initialize_matrices()
-{
-    _v.clear() ;
-    _v_cart.clear() ;
-    _v(0) = 1.0 ;
-    // set the rotation invariant components of the matrices
-    _rx.clear() ;
-    _rx(0,0) = 1.0 ;
-    _ry.clear() ;
-    _ry(1,1) = 1.0 ;
-    _rz.clear() ;
-    _rz(2,2) = 1.0 ;
-    _rotation.clear() ;
-    compute_rotation_matrix() ;
-}
-
-/**
- * Computes the inverse rotation matrix needed to transform
- * incoming angles to the newly rotated coordinate system.
- */
-void orientation::compute_rotation_matrix()
-{
-    // x-axis rotation
-    _rx(1,1) = _rx(2,2) = cos(_roll) ;
-    _rx(1,2) = -sin(_roll) ;
-    _rx(2,1) = -_rx(1,2) ;
-    // y-axis rotation
-    _ry(0,0) = _ry(2,2) = cos(_pitch) ;
-    _ry(0,2) = sin(_pitch) ;
-    _ry(2,0) = -_ry(0,2) ;
-    // z-axis rotation
-    _rz(0,0) = _rz(1,1) = cos(_heading) ;
-    _rz(0,1) = -sin(_heading) ;
-    _rz(1,0) = -_rz(0,1) ;
-    // Full inverse rotation matrix
-    matrix<double> tmp = prod( _ry, _rx ) ;
-    noalias(_rotation) = prod( _rz, tmp ) ;
 }
 
 /**
@@ -102,9 +116,9 @@ void orientation::compute_rotation_matrix()
  */
 void orientation::convert_to_cartesian()
 {
-    _v_cart(0) = _v(0) * sin(_v(1)) * cos(_v(2)) ;
-    _v_cart(1) = _v(0) * sin(_v(1)) * sin(_v(2)) ;
-    _v_cart(2) = _v(0) * cos(_v(1)) ;
+    _x = sin(_theta) * cos(_phi) ;
+    _y = sin(_theta) * sin(_phi) ;
+    _z = cos(_theta) ;
 }
 
 /**
@@ -113,9 +127,9 @@ void orientation::convert_to_cartesian()
  */
 void orientation::convert_to_spherical()
 {
-    _v(0) = std::sqrt( _v_cart(0)*_v_cart(0)
-                     + _v_cart(1)*_v_cart(1)
-                     + _v_cart(2)*_v_cart(2) ) ;
-    _v(1) = std::acos( _v_cart(2) / _v(0) ) ;
-    _v(2) = std::atan2( _v_cart(1), _v_cart(0) ) ;
+//    double rho = std::sqrt( _x*_x + _y*_y + _z*_z ) ;
+    _theta = std::acos( _z - 1e-10 ) ;
+    _theta = std::fmod( _theta, M_PI ) ;
+    _phi = std::atan2( _y, _x ) ;
+    _phi = std::fmod( _phi, 2.0*M_PI ) ;
 }

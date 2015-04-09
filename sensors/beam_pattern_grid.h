@@ -72,15 +72,14 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
-         * @param theta         spherical offset in theta from reference axis (rad)
-         * @param phi           spherical offset in phi from reference axis (rad)
-         * @param frequencies   frequencies to compute beam level for
-         * @param level         beam level for each frequency
+         * @param orient        Orientation of the array
+         * @param frequencies   List of frequencies to compute beam level for
+         * @param level         Beam level for each frequency (linear units)
          */
         virtual void beam_level( double de, double az,
-                                 double theta, double phi,
+                                 orientation& orient,
                                  const vector<double>& frequencies,
-                                 vector<double>* level )
+                                 vector<double>* level)
         {
             size_type num_freq( frequencies.size() ) ;
             vector<double> tmp( num_freq, 0.0 ) ;
@@ -102,13 +101,16 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                  */
 				case 2:
 					{
-						value_type location[2];
-						location[1] = de - theta;
+						value_type location[2] ;
+						double de_prime = 0 ;
+						double dummy = 0 ;
+						orient.apply_rotation( de, az, &de_prime, &dummy ) ;
+						location[1] = de_prime ;
 						for (size_type i = 0; i < num_freq; ++i) {
-							location[0] = frequencies[i];
-							tmp[i] = this->interpolate(location);
+							location[0] = frequencies[i] ;
+							tmp[i] = this->interpolate(location) ;
 						}
-						noalias(*level) = tmp;
+						noalias(*level) = tmp ;
 					}
                     break ;
 
@@ -117,14 +119,17 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                  */
 				case 3:
 					{
-						value_type location[3];
-						location[1] = de - theta;
-						location[2] = az - phi;
+						value_type location[3] ;
+                        double de_prime = 0 ;
+                        double az_prime = 0 ;
+                        orient.apply_rotation( de, az, &de_prime, &az_prime ) ;
+						location[1] = de_prime ;
+						location[2] = az_prime ;
 						for (size_type i = 0; i < num_freq; ++i) {
-							location[0] = frequencies[i];
-							tmp[i] = this->interpolate(location);
+							location[0] = frequencies[i] ;
+							tmp[i] = this->interpolate(location) ;
 						}
-						noalias(*level) = tmp;
+						noalias(*level) = tmp ;
 					}
                     break ;
 

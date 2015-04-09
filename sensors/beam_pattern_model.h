@@ -7,6 +7,7 @@
 #include <usml/types/types.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/smart_ptr.h>
+#include <usml/sensors/orientation.h>
 #include <boost/numeric/ublas/vector_expression.hpp>
 
 namespace usml {
@@ -72,6 +73,22 @@ public:
 	}
 
 	/**
+	 * Returns the reference axis for the beam pattern
+	 * @return      reference axis (Cartesian coordinates)
+	 */
+	vector<double> reference_axis() const {
+	    return _reference_axis ;
+	}
+
+	/**
+	 * Updates the reference axis with a new reference axis
+	 * @param r     new reference axis (Cartesian coordinates)
+	 */
+	void reference_axis( const vector<double> r ) {
+	    _reference_axis = r ;
+	}
+
+	/**
 	 * Computes the beam level gain along a specific DE and AZ direction
 	 * for a specific beam steering angle. The DE and AZ are passed in as
 	 * Eta/VarPhi values and then transformed to a theta/phi equivalent
@@ -83,13 +100,14 @@ public:
 	 *
 	 * @param de            Depression/Elevation angle (rad)
 	 * @param az            Azimuthal angle (rad)
-     * @param theta         spherical offset in theta from reference axis (rad)
-     * @param phi           spherical offset in phi from reference axis (rad)
+     * @param orient        Orientation of the array
 	 * @param frequencies   List of frequencies to compute beam level for
 	 * @param level         Beam level for each frequency (linear units)
 	 */
-	virtual void beam_level(double de, double az, double theta, double phi,
-			const vector<double>& frequencies, vector<double>* level) = 0;
+	virtual void beam_level( double de, double az,
+	                         orientation& orient,
+	                         const vector<double>& frequencies,
+	                         vector<double>* level) = 0;
 
 	/**
 	 * Accesor to the directivity index
@@ -112,6 +130,11 @@ protected:
 	 * Reader-write lock for multi-thread access.
 	 */
 	read_write_lock _mutex;
+
+	/**
+	 * Reference axis of the beam pattern
+	 */
+	c_vector<double,3> _reference_axis ;
 
 private:
 
