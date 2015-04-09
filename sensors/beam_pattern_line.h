@@ -34,7 +34,7 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          * spatially and horizontal being in the xy-planar
          * direction.
          */
-        typedef enum { VERTICAL, HORIZONTAL } reference_axis ;
+        typedef enum { VERTICAL, HORIZONTAL } orientation_axis ;
 
         /**
          * Constructs a beam pattern for a linear array.
@@ -48,19 +48,7 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          */
         beam_pattern_line( double sound_speed, double spacing,
                            size_t elements, double steering_angle,
-                           reference_axis axis=VERTICAL ) : _axis(axis)
-        {
-            switch( _axis ) {
-                case HORIZONTAL :
-                    _n = elements ;
-                    initialize_beams( sound_speed, spacing, (steering_angle + M_PI_2) ) ;
-                    break ;
-                default :
-                    _n = elements ;
-                    initialize_beams( sound_speed, spacing, steering_angle ) ;
-                    break ;
-            }
-        }
+                           orientation_axis axis=VERTICAL ) ;
 
         /**
          * Computes the response level in a specific DE/AZ pair and
@@ -69,15 +57,14 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          *
          * @param de            Depression/Elevation angle (rad)
          * @param az            Azimuthal angle (rad)
-         * @param pitch         pitch in the DE dimension (rad)
-         * @param yaw           yaw in the AZ dimension (rad)
-         * @param frequencies   frequencies to compute beam level for
-         * @param level         beam level for each frequency
+         * @param orient        Orientation of the array
+         * @param frequencies   List of frequencies to compute beam level for
+         * @param level         Beam level for each frequency (linear units)
          */
         virtual void beam_level( double de, double az,
-                                 double pitch, double yaw,
+                                 orientation& orient,
                                  const vector<double>& frequencies,
-                                 vector<double>* level ) ;
+                                 vector<double>* level) ;
 
         /**
          * Computes the directivity index for a list of frequencies
@@ -100,20 +87,18 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
          * for frequency computations.
          */
         double _omega ;
-        double _omega_n ;
 
         /**
          * Local cache of commonly computed
          * using the steering angles
          */
         double _steering ;
-        double _steering_n ;
 
         /**
          * Defines the reference axis for this linear array's beam
          * pattern.
          */
-        reference_axis _axis ;
+        orientation_axis _axis ;
 
         /**
          * Initializes the beam pattern. To save execution time, common computations

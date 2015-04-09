@@ -74,7 +74,7 @@ bool sensor_manager::remove_sensor(sensor_model::id_type sensorID) {
  * Updates an existing sensor instance by sensorID.
  */
 bool sensor_manager::update_sensor(const sensor_model::id_type sensorID,
-		const wposition1& position, const sensor_orientation& orientation,
+		const wposition1& position, const orientation& orientation,
 		bool force_update)
 {
 	write_lock_guard guard(_manager_mutex);

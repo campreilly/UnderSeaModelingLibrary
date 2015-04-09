@@ -2,25 +2,29 @@
 
 close all ; clear all ;
 
+dr = pi/180 ;
 [param, desc] = xlsread('horizontal_array_parameters.csv') ;
-c0 = param(1) ;
-d = param(2) ;
+sound_speed = param(1) ;
+spacing = param(2) ;
 N = param(3) ;
-pitch = param(4) + pi/2 ;
-yaw = param(5) ;
-steering = param(6) ;
-freq = param(7:end) ;
-line_pattern( c0, d, N, pitch, yaw, steering, freq ) ;
+pitch = param(4) ;
+heading = param(5) ;
+roll = param(6) ;
+steering = param(7) ;
+freq = param(8:end) ;
+ax = [0,1,0] ;
+line_pattern( sound_speed, spacing, N, pitch, heading, roll, steering+pi/2, freq, ax ) ;
 
 data = xlsread('horizontal_array_beam_pattern.csv') ;
-
+m = find( data > 1 | isnan(data) ) ;
+data(m) = 0 ;
 db = 10.0 * log10( abs(data) ) ;
 db = db + 30 ;
 m = find( db < 0 ) ;
 db(m) = 0 ;
 
-theta = (0:180)*pi/180 ;    % D/E angles where to evaluate
-phi = (-180:180)*pi/180 ;   % AZ angles where to evaluate
+theta = (0:1:180)*pi/180 ;    % D/E angles where to evaluate
+phi = (0:360)*pi/180 ;   % AZ angles where to evaluate
 [theta_grid,phi_grid] = meshgrid(theta,phi) ;
 
 xx = db .* cos(phi_grid) .* sin(theta_grid) ;
@@ -29,7 +33,7 @@ zz = db .* cos(theta_grid) ;
 figure ;
 surf( xx, yy, zz, db, 'EdgeColor','none','FaceColor','interp') ;
 colormap(jet) ;
-view([0 0]) ;
+view([0 90]) ;
 set(gca,'Xlim',[-30 30]) ;
 set(gca,'Ylim',[-30 30]) ;
 set(gca,'Zlim',[-30 30]) ;
@@ -37,3 +41,4 @@ xlabel('x') ;
 ylabel('y') ;
 zlabel('z') ;
 title('C++ Implementation') ;
+

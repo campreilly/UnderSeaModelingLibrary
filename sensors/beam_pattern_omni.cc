@@ -9,7 +9,7 @@ using namespace usml::sensors ;
 /** Calculates the beam level in de, az, and frequency **/
 void beam_pattern_omni::beam_level(
         double de, double az,
-        double pitch, double yaw,
+        orientation& orient,
         const vector<double>& frequencies,
         vector<double>* level )
 {

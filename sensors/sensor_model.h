@@ -8,7 +8,7 @@
 #include <usml/eigenverb/wavefront_listener.h>
 #include <usml/sensors/receiver_params.h>
 #include <usml/sensors/sensor_listener.h>
-#include <usml/sensors/sensor_orientation.h>
+#include <usml/sensors/orientation.h>
 #include <usml/sensors/source_params.h>
 #include <usml/sensors/xmitRcvModeType.h>
 #include <usml/threads/read_write_lock.h>
@@ -113,7 +113,7 @@ public:
 	/**
 	 * Orientation of the sensor in world coordinates.
 	 */
-	sensor_orientation orientation() const ;
+	orientation orient() const ;
 
 	/**
 	 * Updates the position and orientation of sensor.
@@ -128,7 +128,7 @@ public:
 	 * @param force_update	When true, forces update without checking thresholds.
 	 */
 	void update_sensor(const wposition1& position,
-			const sensor_orientation& orientation, bool force_update = false);
+			const orientation& orient, bool force_update = false);
 
 	/**
 	 * Asynchronous update of eigenray data from the wavefront task.
@@ -173,7 +173,7 @@ private:
 	 * 						rerun of the model for this sensor.
 	 */
 	bool check_thresholds( const wposition1& position,
-			const sensor_orientation& orientation );
+			const orientation& orientation );
 
 	/**
 	 * Queries the current list of sensor listeners for the complements
@@ -233,7 +233,7 @@ private:
 	/**
 	 * Orientation of the sensor in world coordinates.
 	 */
-	sensor_orientation _orientation ;
+	orientation _orient;
 
 	/**
 	 * Mutex that locks sensor during update_sensor.

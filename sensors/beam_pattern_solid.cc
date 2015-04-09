@@ -9,18 +9,17 @@ using namespace usml::sensors ;
 /** Calculates the beam level in de, az, and frequency **/
 void beam_pattern_solid::beam_level(
         double de, double az,
-        double pitch, double yaw,
+        orientation& orient,
         const vector<double>& frequencies,
         vector<double>* level )
 {
 	write_lock_guard(_mutex);
-    double up = _max_de - pitch ;
-    double down = _min_de - pitch ;
-    double left = _min_az + yaw ;
-    double right = _max_az + yaw ;
+	double de_prime = 0 ;
+	double az_prime = 0 ;
+	orient.apply_rotation( de, az, &de_prime, &az_prime ) ;
     vector<double> result = scalar_vector<double>( frequencies.size(), 0.0 ) ;
-    if( (de <= up) && (de >= down) ) {
-        if( (az <= right) && (az >= left) ) {
+    if( (de_prime <= _max_de) && (de_prime >= _min_de) ) {
+        if( (az_prime <= _max_az) && (az_prime >= _min_az) ) {
             result = scalar_vector<double>( frequencies.size(), 1.0 ) ;
         }
     }
