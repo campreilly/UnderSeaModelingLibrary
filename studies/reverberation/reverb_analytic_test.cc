@@ -6,6 +6,7 @@
 #include <usml/sensors/sensors.h>
 #include <list>
 #include <boost/progress.hpp>
+#include <boost/foreach.hpp>
 
 using namespace usml::sensors;
 
@@ -144,7 +145,7 @@ private:
 
     	cout << "== wait for results ==" << endl ;
 
-    	sensor_pair_manager* manager = sensor_pair_manager::instance() ;
+    	sensor_pair_manager* sp_manager = sensor_pair_manager::instance() ;
         fathometer_model::fathometer_package fathometers;
         envelope_collection::reference envelopes ;
 
@@ -167,7 +168,7 @@ private:
         // wait for results
         boost::timer timer ;
         while ( true ) {
-            fathometers = manager->get_fathometers(query);
+            fathometers = sp_manager->get_fathometers(query);
             //envelopes = manager->get_envelopes(sensorID);
             if ( fathometers.size() > 0 ) break ;
             //if ( fathometers.size() > 0 && envelopes.get() != NULL ) break ;
@@ -175,9 +176,13 @@ private:
         }
         cout << "waited for " << timer.elapsed() << " secs" << endl ;
 
-		// record results of this test
+		// TODO record results of this test
 
-		// TBD
+		// Delete all for valgrind memcheck testing
+        BOOST_FOREACH(fathometer_model* fathometer, fathometers) {
+            delete fathometer;
+        }
+        // delete sensor_manager::instance();
 	}
 };
 
