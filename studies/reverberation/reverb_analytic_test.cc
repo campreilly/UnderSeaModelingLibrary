@@ -6,6 +6,7 @@
 #include <usml/sensors/sensors.h>
 #include <list>
 #include <boost/progress.hpp>
+#include <boost/foreach.hpp>
 
 using namespace usml::sensors;
 
@@ -137,30 +138,51 @@ private:
 	/**
 	 * Wait for the reverberation model to compute results.
 	 *
-	 * TODO Retrieve fathometers and envelopes from sensor_pair_manager.
+	 * TODO Retrieve envelopes from sensor_pair_manager.
 	 * TODO Record results of this test.
 	 */
 	void wait_for_results() {
-//    	cout << "== wait for results ==" << endl ;
-//    	sensor_pair_manager* manager = sensor_pair_manager::instance() ;
-//        eigenray_collection::reference fathometers ;
-//        envelope_collection::reference envelopes ;
-//    	sensor_model::id_type sensorID = 1;
-//
-//        // wait for results
-//
-//        boost::timer timer ;
-//        while ( true ) {
-//            fathometers = manager->get_fathometers(sensorID);
-//            envelopes = manager->get_envelopes(sensorID);
-//            if ( fathometers.get() != NULL && envelopes.get() != NULL ) break ;
-//            boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-//        }
-//        cout << "waited for " << timer.elapsed() << " secs" << endl ;
 
-		// record results of this test
+    	cout << "== wait for results ==" << endl ;
 
-		// TBD
+    	sensor_pair_manager* sp_manager = sensor_pair_manager::instance() ;
+        fathometer_model::fathometer_package fathometers;
+        envelope_collection::reference envelopes ;
+
+    	// Build query for fathometers
+    	sensor_model::id_type sensor_ids[] = {1};
+
+    	// For modes use one of the following
+    	// usml::sensors::SOURCE
+        // usml::sensors::RECEIVER
+        // usml::sensors::BOTH
+    	xmitRcvModeType sensor_modes[] = {usml::sensors::BOTH};
+
+
+        // Build a query
+        sensor_pair_manager::sensor_query_map query;
+        for ( int i = 0; i < sizeof(sensor_ids) / sizeof(sensor_model::id_type); ++i ) {
+            query.insert(std::pair<sensor_model::id_type, xmitRcvModeType>(sensor_ids[i], sensor_modes[i]));
+        }
+
+        // wait for results
+        boost::timer timer ;
+        while ( true ) {
+            fathometers = sp_manager->get_fathometers(query);
+            //envelopes = manager->get_envelopes(sensorID);
+            if ( fathometers.size() > 0 ) break ;
+            //if ( fathometers.size() > 0 && envelopes.get() != NULL ) break ;
+            boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+        }
+        cout << "waited for " << timer.elapsed() << " secs" << endl ;
+
+		// TODO record results of this test
+
+		// Delete all for valgrind memcheck testing
+        BOOST_FOREACH(fathometer_model* fathometer, fathometers) {
+            delete fathometer;
+        }
+        //delete sensor_manager::instance();
 	}
 };
 

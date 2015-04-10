@@ -106,15 +106,6 @@ public:
 	}
 
 	/**
-     * Gets the list of target sensorID's that was used to run the
-     * the wavefront_generator
-     * @return list of the target sensorID's
-     */
-    const std::set<sensor_model::id_type>& target_ids() {
-        return _target_id_list;
-    }
-
-	/**
 	 * Location of the sensor in world coordinates.
 	 */
 	wposition1 position() const ;
@@ -128,8 +119,8 @@ public:
 	 * Updates the position and orientation of sensor.
 	 * If the object has changed by more than the threshold amount,
 	 * this update kicks off a new set of propagation calculations.
-	 * At the end of those calculations, the fathometers and eigen
-     * Passes this data onto all sensor listeners.
+	 * At the end of those calculations, the eigenverbs and eigenrays
+     * are passed onto all sensor listeners.
 	 * Blocks until update is complete.
 	 *
 	 * @param position  	Updated position data
@@ -139,19 +130,12 @@ public:
 	void update_sensor(const wposition1& position,
 			const orientation& orient, bool force_update = false);
 
-    /**
-     * Last set of fathometers computed for this sensor.
-	 * Blocks during updates from the wavefront task.
-     * @param shared_pointer to and eigenray_collection
-     */
-	eigenray_collection::reference fathometers() const ;
-
 	/**
-	 * Asynchronous update of fathometer data from the wavefront task.
+	 * Asynchronous update of eigenray data from the wavefront task.
      * Passes this data onto all sensor listeners.
 	 * Blocks until update is complete.
 	 */
-	virtual void update_fathometers( eigenray_collection::reference& fathometers ) ;
+	virtual void update_eigenrays( eigenray_collection::reference& eigenrays ) ;
 
     /**
      * Last set of eigenverbs computed for this sensor.
@@ -252,25 +236,25 @@ private:
 	orientation _orient;
 
 	/**
-	 * Mutex to that locks sensor during update_sensor.
+	 * Mutex that locks sensor during update_sensor.
 	 */
     mutable read_write_lock _update_sensor_mutex ;
 
     /**
-     * List containing the target sensorID prior to
-     * the staring the wavefront generator.
+     * Map containing the target sensorID's and the row offset
+     * in _eigenray_collection prior to the staring the wavefront generator.
      */
-    std::set<sensor_model::id_type> _target_id_list;
+    std::map<sensor_model::id_type, int> _target_id_map;
 
     /**
-     * Last set of fathometers computed for this sensor.
+     * Last set of eigenray data computed for this sensor.
      */
-    eigenray_collection::reference _fathometers;
+    eigenray_collection::reference _eigenray_collection;
 
 	/**
-	 * Mutex to that locks sensor during update_fathometers.
+	 * Mutex to that locks sensor _eigenray_collection access/write
 	 */
-	mutable read_write_lock _update_fathometers_mutex ;
+	mutable read_write_lock _eigenrays_mutex ;
 
     /**
      * Last set of eigenverbs computed for this sensor.
@@ -284,19 +268,19 @@ private:
 	mutable read_write_lock _update_eigenverbs_mutex ;
 
     /**
-     * reference to the task that is computing fathometers and eigenverbs.
+     * reference to the task that is computing eigenrays and eigenverbs.
      */
 	thread_task::reference _wavefront_task;
 
 	/**
 	 * List containing the references of objects that will be used to
 	 * update classes that require sensor data.
-	 * These classes must implement update_eigenrays and update_fathometers methods.
+	 * These classes must implement update_eigenrays and update_eigenverbs methods.
 	 */
 	std::list<sensor_listener::reference> _sensor_listeners;
 
 	/**
-	 * Mutex to that locks sensor during add/remove sensor_listeners.
+	 * Mutex that locks sensor during add/remove sensor_listeners.
 	 */
 	mutable read_write_lock _sensor_listeners_mutex ;
 };

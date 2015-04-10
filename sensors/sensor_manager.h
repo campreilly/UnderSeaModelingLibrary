@@ -46,6 +46,15 @@ public:
 	static sensor_manager* instance();
 
 	/**
+     * Default destructor.
+     */
+    virtual ~sensor_manager() {
+        #ifdef USML_DEBUG
+            cout << " ~sensor_manager destructor " << endl;
+        #endif
+    }
+
+	/**
 	 * Construct a new instance of a specific sensor type.
 	 * Automatically invokes the sensor_pair_manager::add_sensor() on the
 	 * newly created sensor. Note that the position and orientation are not
@@ -97,6 +106,22 @@ public:
 
 
 private:
+
+	/**
+     * Hide access to default constructor.
+     */
+    sensor_manager() {
+    }
+
+    /**
+     * Hide access to copy constructor
+     */
+    sensor_manager(sensor_manager const&);
+
+    /**
+     * Hide access to assignment operator
+     */
+    sensor_manager& operator=(sensor_manager const&);
 
 	/**
 	 * The singleton access pointer.

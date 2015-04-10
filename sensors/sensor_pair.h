@@ -15,7 +15,7 @@ namespace usml {
 namespace sensors{
 
 using namespace waveq3d ;
-using namespace eigenverb;
+using namespace eigenverb ;
 
 /// @ingroup sensors
 /// @{
@@ -24,14 +24,14 @@ using namespace eigenverb;
  * Container for one sensor pair instance.
  * On construction a pointer to the source and receiver sensor are obtained.
  * Inherits the sensor_listener interface so a sensor instance can get
- * access to its complement sensor, and updates the eigenverbs and fathometers.
+ * access to its complement sensor, and updates the eigenverbs and eigenrays.
  */
 class USML_DECLSPEC sensor_pair : public sensor_listener
 {
 public:
 
 	/**
-	 * Data type used for reference to receiver_params.
+	 * Data type used for reference to a sensor_pair.
 	 */
 	typedef shared_ptr<sensor_pair> reference;
 
@@ -76,25 +76,26 @@ public:
 	}
 
 	/**
-	 * Notification that new fathometer data is ready.
+	 * Notification that new eigenray data is ready.
 	 *
-	 * @param  sensor	Sensor that issued the notification.
+	 * @param  sensorID The ID of the sensor that issued the notification.
+     * @param  eigenray_list Shared pointer to the list of eigenrays
 	 */
-	virtual void update_fathometers(sensor_model::reference& sensor) ;
+	virtual void update_eigenrays(sensor_model::id_type sensorID, shared_ptr<eigenray_list> list) ;
 
 	/**
 	 * Notification that new eigenverb data is ready.
 	 *
-	 * @param	sensor	Sensor that issued the notification.
+	 * @param	sensor	Pointer to sensor that issued the notification.
 	 */
-	virtual void update_eigenverbs(sensor_model::reference& sensor) ;
+	virtual void update_eigenverbs(sensor_model* sensor) ;
 
 	/**
 	 * Queries for the sensor pair complements of this sensor.
 	 *
-	 * @param	sensor	Sensor that issued the notification.
+	 * @param	sensor	Const sensor_model pointer Sensor that requested the complement.
 	 */
-	virtual sensor_model::reference sensor_complement(sensor_model::reference& sensor) const ;
+	virtual sensor_model::reference sensor_complement(const sensor_model* sensor) const ;
 
 	/**
      * Gets the shared_ptr to last eigenray_list update for this sensor_pair.
@@ -110,15 +111,6 @@ private:
     sensor_pair() {};
 
     /**
-     * Sets the shared_ptr to eigenray_list for this sensor_pair.
-     * @return  eigenray_list shared_ptr to the eigenray_list
-     */
-    void eigenrays(eigenray_list* list) {
-        write_lock_guard guard(_eigenrays_mutex);
-        _eigenrays = boost::shared_ptr<eigenray_list>(list);
-    }
-
-    /**
      * Shared pointer to the source sensor.
      * The source and receiver will be equal for monostatic sensors.
      */
@@ -131,9 +123,14 @@ private:
     const sensor_model::reference _receiver;
 
     /**
+     * Mutex that locks sensor_pair during complement lookups.
+     */
+    mutable read_write_lock _complements_mutex ;
+
+    /**
      * Eigenrays that connect source and receiver locations.
      */
-    boost::shared_ptr<eigenray_list> _eigenrays;
+    shared_ptr<eigenray_list> _eigenrays;
 
 	/**
 	 * Mutex that locks sensor_pair during eigenray updates.
