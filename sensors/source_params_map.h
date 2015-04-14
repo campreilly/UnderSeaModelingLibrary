@@ -40,6 +40,11 @@ public:
 	 */
 	static source_params_map* instance();
 
+    /**
+     * Reset the source_params_map singleton unique pointer to empty.
+     */
+    static void reset();
+
 private:
 
 	/**

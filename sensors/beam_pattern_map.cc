@@ -41,3 +41,11 @@ beam_pattern_map* beam_pattern_map::instance() {
 	}
 	return tmp;
 }
+
+/**
+* Reset the unique beam_pattern_map pointer to empty.
+*/
+void beam_pattern_map::reset() {
+    write_lock_guard(_instance_mutex);
+    _instance.reset();
+}

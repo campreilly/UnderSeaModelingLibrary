@@ -31,3 +31,12 @@ receiver_params_map* receiver_params_map::instance() {
 	}
 	return tmp;
 }
+
+/**
+* Reset the receiver_params_map  to empty.
+*/
+void receiver_params_map::reset()
+{
+    write_lock_guard(_instance_mutex);
+    _instance.reset();
+}

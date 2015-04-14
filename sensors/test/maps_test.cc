@@ -69,6 +69,7 @@ BOOST_AUTO_TEST_CASE(beam_pattern_test) {
 
 	beam_map->erase(id1);
 	beam_map->erase(id2);
+    beam_pattern_map::reset();
 }
 
 /**
@@ -125,6 +126,7 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 
 	source_map->erase(id1);
 	source_map->erase(id2);
+    source_params_map::reset();
 }
 
 /**
@@ -181,6 +183,7 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
 	receiver_map->erase(id1);
 	receiver_map->erase(id2);
+    receiver_params_map::reset();
 }
 
 /**
@@ -241,6 +244,12 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 	receiver_params_map::instance()->erase(params2);
 	sensor_mgr->remove_sensor(id1) ;
 	sensor_mgr->remove_sensor(id2) ;
+
+    // Reset all singletons to empty, NULL
+
+    source_params_map::reset();
+    receiver_params_map::reset();
+    sensor_manager::reset();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

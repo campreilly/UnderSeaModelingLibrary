@@ -48,6 +48,11 @@ public:
 	virtual ~sensor_pair_manager() {
 	}
 
+    /**
+     * Reset the sensor_pair_manager unique pointer to empty.
+     */
+    static void reset();
+
 	/**
 	 * Gets the fathometers for the list of sensors provided
 	 * @param sensors contains sensor_query_map sensorID, and sensor xmitRcvModeType

@@ -49,10 +49,12 @@ public:
      * Default destructor.
      */
     virtual ~sensor_manager() {
-        #ifdef USML_DEBUG
-            cout << " ~sensor_manager destructor " << endl;
-        #endif
     }
+
+    /**
+     * Reset the sensor_manager singleton unique pointer to empty.
+     */
+    static void reset();
 
 	/**
 	 * Construct a new instance of a specific sensor type.

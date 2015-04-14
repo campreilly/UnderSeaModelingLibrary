@@ -118,6 +118,8 @@ public:
      * Waits a random amount of time before starting next task.
      */
     void run() {
+
+        
         for ( size_t n=0 ; n < _num_tasks ; ++n ) {
 
             // create a prodcuder
@@ -206,6 +208,13 @@ BOOST_AUTO_TEST_CASE( random_producer ) {
     cout << "=== ocean_shared_test: random_producer ===" << endl;
     randgen::seed(0); // create same results each time
     ocean_shared_tester(10,0.5,0.25).run() ;
+    // Wait here until all tasks complete
+    while ( thread_task::num_active() != 0 )
+    {
+        boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+    }
+    // ocean_shared to NULL so tests run after this cant use it!
+    ocean_shared::reset();
 }
 
 /// @}

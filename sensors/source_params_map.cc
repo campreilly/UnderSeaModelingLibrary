@@ -31,3 +31,13 @@ source_params_map* source_params_map::instance() {
 	}
 	return tmp;
 }
+
+/**
+ * Reset the source_params_map instance to empty.
+ */
+void source_params_map::reset()
+{
+    write_lock_guard(_instance_mutex);
+    _instance.reset();
+}
+

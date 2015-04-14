@@ -13,12 +13,16 @@ using namespace std;
 /** Next identification number to be assigned to a task. */
 size_t thread_task::_id_next = 0 ;
 
+/** Number of active tasks in the thread pool */
+size_t thread_task::_num_active = 0;
+
 /**
  * Initiates a task in the thread pool.
  */
 thread_task::thread_task() {
     _abort = false ;
     _id = _id_next ;
+    ++_num_active;
     if ( _id_next == std::numeric_limits<std::size_t>::max() ) {
         _id_next = 0 ;
     } else {
@@ -37,4 +41,6 @@ void thread_task::start() {
     } catch( ... ) {
         // suppress all exceptions
     }
+    // After run is completed decrement number of active tasks counter.
+    --_num_active;
 }

@@ -33,6 +33,14 @@ sensor_manager* sensor_manager::instance() {
 }
 
 /**
+ * Reset the sensor_manager to empty.
+ */
+void sensor_manager::reset() {
+    write_lock_guard(_instance_mutex);
+    _instance.reset();
+}
+
+/**
  * Construct a new instance of a specific sensor type.
  * @todo re-connect to sensor_pair_manager
  */
