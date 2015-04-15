@@ -60,16 +60,16 @@ void sensor_pair::update_eigenverbs(sensor_model* sensor)
 /**
  * Queries for the sensor pair complements of this sensor.
  */
-sensor_model::reference sensor_pair::sensor_complement(const sensor_model* sensor) const
+const sensor_model* sensor_pair::sensor_complement(const sensor_model* sensor) const
 {
     read_lock_guard guard(_complements_mutex);
 	if (sensor != NULL) {
-		if (sensor == _source.get()) {
+		if (sensor == _source) {
 			return _receiver;
 		} else {
 			return _source;
 		}
 	} else {
-		return sensor_model::reference();
+		return NULL;
 	}
 }

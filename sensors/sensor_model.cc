@@ -106,9 +106,9 @@ void sensor_model::update_eigenrays(eigenray_collection::reference& eigenrays)
         write_lock_guard guard(_eigenrays_mutex);
 	    _eigenray_collection = eigenrays;
 	}
-	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
+	BOOST_FOREACH( sensor_listener* listener, _sensor_listeners ) {
 	    // Get complement sensor
-	    sensor_model::reference complement = listener->sensor_complement(this);
+	    const sensor_model* complement = listener->sensor_complement(this);
         // Find complement's sensorID's index in target_id_map
         std::map<sensor_model::id_type,int>::const_iterator iter =
                             _target_id_map.find(complement->sensorID());
@@ -145,7 +145,7 @@ void sensor_model::update_eigenverbs( eigenverb_collection::reference& eigenverb
 		cout << "sensor_model: update_eigenverbs(" << _sensorID << ")" << endl ;
 	#endif
 	_eigenverbs = eigenverbs;
-	BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
+	BOOST_FOREACH( sensor_listener* listener, _sensor_listeners ) {
 		listener->update_eigenverbs(this);
 	}
 }
@@ -153,7 +153,7 @@ void sensor_model::update_eigenverbs( eigenverb_collection::reference& eigenverb
 /**
  * Add a sensor_listener to the _sensor_listeners list
  */
-void sensor_model::add_sensor_listener(sensor_listener::reference listener) {
+void sensor_model::add_sensor_listener(sensor_listener* listener) {
 	write_lock_guard guard(_sensor_listeners_mutex);
 	_sensor_listeners.push_back(listener);
 }
@@ -161,7 +161,7 @@ void sensor_model::add_sensor_listener(sensor_listener::reference listener) {
 /**
  * Remove a sensor_listener from the _sensor_listeners list
  */
-void sensor_model::remove_sensor_listener(sensor_listener::reference listener) {
+void sensor_model::remove_sensor_listener(sensor_listener* listener) {
 	write_lock_guard guard(_sensor_listeners_mutex);
 	_sensor_listeners.remove(listener);
 }
@@ -193,13 +193,13 @@ bool sensor_model::check_thresholds(const wposition1& position,
  * Queries the current list of sensor listeners for the complement
  * sensors of this sensor.
  */
-std::list<sensor_model::reference> sensor_model::sensor_targets() {
+std::list<const sensor_model*> sensor_model::sensor_targets() {
 
     read_lock_guard guard(_sensor_listeners_mutex);
 
-    std::list<sensor_model::reference> complements;
+    std::list<const sensor_model*> complements;
 
-    BOOST_FOREACH( sensor_listener::reference listener, _sensor_listeners ) {
+    BOOST_FOREACH( sensor_listener* listener, _sensor_listeners ) {
         complements.push_back(listener->sensor_complement(this));
     }
     return complements;
@@ -208,11 +208,11 @@ std::list<sensor_model::reference> sensor_model::sensor_targets() {
 /**
  * Builds a list of sensorID's from the list of sensors provided.
  */
-void sensor_model::target_ids(std::list<sensor_model::reference>& list) {
+void sensor_model::target_ids(std::list<const sensor_model*>& list) {
 
     _target_id_map.clear();
     int row = -1;
-    BOOST_FOREACH( sensor_model::reference target, list ) {
+    BOOST_FOREACH( const sensor_model* target, list ) {
         ++row;
         _target_id_map.insert(std::pair<sensor_model::id_type, int>(target->sensorID(), row));
     }
@@ -221,13 +221,13 @@ void sensor_model::target_ids(std::list<sensor_model::reference>& list) {
 /**
  * Builds a list of target positions from the input list of sensors provided.
  */
-wposition sensor_model::target_positions(std::list<sensor_model::reference>& list) {
+wposition sensor_model::target_positions(std::list<const sensor_model*>& list) {
 
 	// builds wposition container of target positions from the list provided.
 
 	wposition target_pos(list.size(), 1);
 	int row = -1;
-	BOOST_FOREACH( sensor_model::reference target, list ){
+	BOOST_FOREACH( const sensor_model* target, list ){
 		++row;
 		wposition1 pos = target->position();
 		target_pos.latitude( row, 0, pos.latitude());
@@ -256,7 +256,7 @@ void sensor_model::run_wave_generator() {
         generator->sensor_position(_position);
 
         // Get the targets sensor references
-        std::list<sensor_model::reference> targets = sensor_targets();
+        std::list<const sensor_model*> targets = sensor_targets();
 
         // Get the target positions
         wposition target_pos = target_positions(targets);

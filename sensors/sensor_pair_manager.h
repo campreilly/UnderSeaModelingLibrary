@@ -30,6 +30,8 @@ namespace sensors {
  */
 class USML_DECLSPEC sensor_pair_manager {
 
+    friend class sensor_manager;
+
 public:
 
     // Data type used to query the a random group of sensorID's and mode's
@@ -45,8 +47,7 @@ public:
 	/**
 	 * Default destructor.
 	 */
-	virtual ~sensor_pair_manager() {
-	}
+	virtual ~sensor_pair_manager();
 
     /**
      * Reset the sensor_pair_manager unique pointer to empty.
@@ -67,6 +68,8 @@ public:
 	 */
 //	envelope_collection* get_envelopes(sensor_model::id_type receiverID);
 
+protected:
+
 	/**
 	 * Builds new sensor_pair objects in reaction to notification
 	 * that a sensor is being added.  First, this routine adds the sensorID
@@ -80,36 +83,36 @@ public:
 	 * if both the source and receiver have set their multistatic()
 	 * property to true, and the source is not the same as the receiver.
 	 *
-	 * @param	sensor	Sensor that is being added.
+	 * @param	sensor	Pointer to sensor_model that is being added.
 	 */
-	void add_sensor(sensor_model::reference& sensor);
+	void add_sensor(sensor_model* sensor);
 
 	/**
 	 * Removes existing sensor_pair objects in reaction to notification
 	 * that a sensor is about to be deleted.
 	 *
-	 * @param	sensor	Sensor that is being removed.
-     * @return  false if Sensor was not in the manager.
+	 * @param	sensor	Pointer to sensor_model that is being removed.
+     * @return  false if sensor_model was not in the manager.
 	 */
-	bool remove_sensor(sensor_model::reference& sensor);
+	bool remove_sensor(sensor_model* sensor);
 
 private:
 
 	/**
-	 * Utility to build a monostatic pair
+	 * Utility to build a monostatic pair.
 	 *
-	 * @param	sensor		Source/receiver combo for this pair
+	 * @param	sensor  Pointer to source/receiver combo for this pair
 	 */
-	void add_monostatic_pair(sensor_model::reference& sensor);
+	void add_monostatic_pair(sensor_model* sensor);
 
 	/**
 	 * Utility to build a multistatic pair from the source.
 	 * Excludes monostatic case where sourceID == receiverID.
 	 * Excludes sensors that don't support multi-static behaviors.
 	 *
-	 * @param	source		Sensor that needs to be paired with receivers.
+	 * @param	source  Pointer to the sensor_model that needs to be paired with receivers.
 	 */
-	void add_multistatic_source(sensor_model::reference& source);
+	void add_multistatic_source(sensor_model* source);
 
 	/**
 	 * Utility to delete a multistatic pair from the receiver.
@@ -117,25 +120,25 @@ private:
 	 * Excludes sensors that don't support multi-static behaviors.
 	 * Also used to support multistatic sensors where mode() is BOTH.
 	 *
-	 * @param	sensor		Sensor that needs to be paired with sources.
+	 * @param	sensor	Pointer to the sensor_model that needs to be paired with sources.
 	 */
-	void add_multistatic_receiver(sensor_model::reference& receiver);
+	void add_multistatic_receiver(sensor_model* receiver);
 
 	/**
 	 * Utility to build a monostatic pair
 	 *
-	 * @param	sensor		Source/receiver combo for this pair
+	 * @param	sensor  Pointer to the source/receiver combo for this pair
 	 */
-	void remove_monostatic_pair(sensor_model::reference& sensor);
+	void remove_monostatic_pair(sensor_model* sensor);
 
 	/**
 	 * Utility to delete a multistatic pair from the source.
 	 * Excludes monostatic case where sourceID == receiverID.
 	 * Excludes sensors that don't support multi-static behaviors.
 	 *
-	 * @param	source		Sensor that needs to be paired with receivers.
+	 * @param	source  Pointer to the sensor_model that needs to be paired with receivers.
 	 */
-	void remove_multistatic_source(sensor_model::reference& source);
+	void remove_multistatic_source(sensor_model* source);
 
 	/**
 	 * Utility to delete a multistatic pair from the receiver.
@@ -143,9 +146,9 @@ private:
 	 * Excludes sensors that don't support multi-static behaviors.
 	 * Also used to support multistatic sensors where mode() is BOTH.
 	 *
-	 * @param	sensor		Sensor that needs to be paired with sources.
+	 * @param	sensor  Pointer to the sensor_model that needs to be paired with sources.
 	 */
-	void remove_multistatic_receiver(sensor_model::reference& receiver);
+	void remove_multistatic_receiver(sensor_model* receiver);
 
    /**
     * Utility to generate a hash key for the sensor_pair _map
@@ -215,11 +218,11 @@ private:
 	 * Container for storing the sensor pair objects.
 	 * Key is a string concatenation of "sourceID" + "_" + receiverID"
      * See generate_hash_key method.
-	 * Payload is a shared pointer to sensor_pair object.
+	 * Payload is a pointer to sensor_pair object.
 	 */
-	sensor_map_template<std::string, sensor_pair::reference> _map ;
+	sensor_map_template<std::string,sensor_pair*> _map ;
 };
 
 /// @}
-}// end of namespace sensors
-}  // end of namespace usml
+} // end of namespace sensors
+} // end of namespace usml

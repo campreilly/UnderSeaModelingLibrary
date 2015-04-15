@@ -48,8 +48,7 @@ public:
 	/**
      * Default destructor.
      */
-    virtual ~sensor_manager() {
-    }
+    virtual ~sensor_manager();
 
     /**
      * Reset the sensor_manager singleton unique pointer to empty.
@@ -97,12 +96,12 @@ public:
 			const orientation& orientation, bool force_update = false);
 
 	/**
-	 * Finds the sensor parameters associated with the keyID.
+	 * Finds the sensor_model associated with the keyID.
 	 *
-	 * @param 	keyID 	Key used to lookup the sensor type parameters.
-	 * @return			Sensor parameters if found, blank entry if not.
+	 * @param 	keyID 	Key used to lookup the sensor_model.
+	 * @return			Pointer to the sensor_model, NULL if not found.
 	 */
-	sensor_model::reference find(sensor_model::id_type keyID) const {
+	sensor_model* find(sensor_model::id_type keyID) const {
 		return _map.find(keyID) ;
 	}
 
@@ -141,11 +140,11 @@ private:
 	mutable read_write_lock _manager_mutex;
 
 	/**
-	 * Container used to store sensors.
+	 * Container used to store sensor_models and sensorID keys.
 	 */
-	sensor_map_template<sensor_model::id_type, sensor_model::reference> _map ;
+	sensor_map_template<sensor_model::id_type, sensor_model*> _map ;
 };
 
 /// @}
-}// end of namespace sensors
+} // end of namespace sensors
 } // end of namespace usml

@@ -1,30 +1,42 @@
 /**
- * @example sensors/test/sensor_pair_manager_test.cc
+ * @example sensors/test/sensor_manager_test.cc
  */
+#include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/sensor_pair_manager.h>
+#include <usml/sensors/beam_pattern_map.h>
 #include <usml/sensors/source_params_map.h>
 #include <usml/sensors/receiver_params_map.h>
 #include <boost/test/unit_test.hpp>
-#include <boost/progress.hpp>
 #include <iostream>
 
-BOOST_AUTO_TEST_SUITE(sensor_pair_manager_test)
 
 using namespace boost::unit_test;
 using namespace usml::sensors;
+
+BOOST_AUTO_TEST_SUITE(sensor_manager_test)
 
 /**
 * @ingroup sensors_test
 * @{
 */
 
-BOOST_AUTO_TEST_CASE(find_pairs_test) {
+BOOST_AUTO_TEST_CASE(fathometers_test)
+{
 
-    cout << "=== sensor_pair_manager_test: find_pairs_test ===" << endl;
-
-    sensor_pair_manager* sp_manager = sensor_pair_manager::instance();
+    cout << "=== sensor_manager_test: fathometers_test ===" << endl;
 
     seq_linear frequencies(1000.0, 10000.0, 1000.0);	// 1-10 KHz
+
+    beam_pattern_map* beam_map = beam_pattern_map::instance();
+    beam_pattern_model::id_type id0 = 0; // default beam
+
+    // insert beam patterns into map
+
+    beam_pattern_model* beam_patt1 = new beam_pattern_omni();
+    beam_pattern_model::id_type id1 = 1;
+    beam_patt1->beamID(id1);
+    beam_pattern_model::reference beam_heap1(beam_patt1);
+    beam_map->insert(id1, beam_heap1);
 
     std::list<beam_pattern_model::id_type> beamList;
     beamList.push_back(0);
@@ -59,7 +71,7 @@ BOOST_AUTO_TEST_CASE(find_pairs_test) {
     source_params_map::instance()->insert(source2->paramsID(), source2);
 
 
-    // setup receiver side of sensor #33 with bad beam pattern
+    // setup receiver side of sensor #33 with beam pattern's 0 and 1
     receiver_params::reference receiver2(new receiver_params(
         params3,	// paramsID
         false,		// monostatic
@@ -73,49 +85,47 @@ BOOST_AUTO_TEST_CASE(find_pairs_test) {
                                              12,   // usml::sensors::SOURCE,   // 3
                                              21,   // usml::sensors::RECEIVER, // 4
                                              12,   // usml::sensors::SOURCE,   // 6
-                                             21,   // usml::sensors::RECEIVER,   // 7
+                                             21,   // usml::sensors::RECEIVER, // 7
                                              33 }; // usml::sensors::BOTH      // 9
 
-    for ( unsigned i = 0; i < sizeof(sensors)/sizeof(sensor_model::id_type); ++i )
-    {
-        //cout << "=== sensor_pair_manager_test: add_sensor sensorID "<< sensors[i] << " Type "<< sensor_type[i]  << endl;
-        sensor_model::reference sensor = sensor_model::reference(new sensor_model(sensors[i], sensor_type[i]));
-        sp_manager->add_sensor(sensor);
+    sensor_manager* manager = sensor_manager::instance();
+    for ( unsigned i = 0; i < sizeof(sensors)/sizeof(sensor_model::id_type); ++i ) {
+        manager->add_sensor(sensors[i], sensor_type[i]);
     }
 
-    //cout << "=== sensor_pair_manager_test: remove_sensor non-existent 2 ===" << endl;
-    sensor_model::reference sensor_two = sensor_model::reference(new sensor_model(2, usml::sensors::BOTH));
-    if (sp_manager->remove_sensor(sensor_two) != false) {
+    // Attempt to remove a non-existant sensor
+    if ( manager->remove_sensor(2) != false ) {
          BOOST_FAIL("sensor_pair_manager_test:: Removed non-existent sensor_model");
     }
 
-    //cout << "=== sensor_pair_manager_test: remove_sensor 1 BOTH ===" << endl;
-    sensor_model::reference sensor_one = sensor_model::reference(new sensor_model(sensors[0], sensor_type[0]));
-    if (sp_manager->remove_sensor(sensor_one) == false) {
+    //cout << "=== sensor_manager_test: remove_sensor 1 BOTH ===" << endl;
+    if ( manager->remove_sensor(sensors[0]) == false )
+    {
          BOOST_FAIL("sensor_pair_manager_test:: Failed to remove sensor_model");
     }
 
-    //cout << "=== sensor_pair_manager_test: remove_sensor 3 SOURCE ===" << endl;
-    sensor_model::reference sensor_three = sensor_model::reference(new sensor_model(sensors[1], sensor_type[1]));
-    if (sp_manager->remove_sensor(sensor_three) == false) {
+    //cout << "=== sensor_manager_test: remove_sensor 3 SOURCE ===" << endl;
+    if ( manager->remove_sensor(sensors[1]) == false )
+    {
          BOOST_FAIL("sensor_pair_manager_test:: Failed to remove sensor_model");
     }
 
-    //cout << "=== sensor_pair_manager_test: remove_sensor 4 RECEIVER ===" << endl;
-    sensor_model::reference sensor_four = sensor_model::reference(new sensor_model(sensors[2], sensor_type[2]));
-    if (sp_manager->remove_sensor(sensor_four) == false) {
+    //cout << "=== sensor_manager_test: remove_sensor 4 RECEIVER ===" << endl;
+    if ( manager->remove_sensor(sensors[2]) == false )
+    {
          BOOST_FAIL("sensor_pair_manager_test:: Failed to remove sensor_model");
     }
 
-     // Expected map contents
+    // Expected map contents
      sensor_model::id_type sensors_remaining[] = {6, 7, 9};
-     // From
-     //xmitRcvModeType sensor_mode[] = { usml::sensors::BOTH,     // 1
-     //                                  usml::sensors::SOURCE,   // 3
-     //                                  usml::sensors::RECEIVER, // 4
-     //                                  usml::sensors::SOURCE,   // 6
-     //                                  usml::sensors::RECEIVER, // 7
-     //                                  usml::sensors::BOTH }    // 9
+
+    // From
+    // xmitRcvModeType sensor_mode[] = { usml::sensors::BOTH,     // 1
+    //                                   usml::sensors::SOURCE,   // 3
+    //                                   usml::sensors::RECEIVER, // 4
+    //                                   usml::sensors::SOURCE,   // 6
+    //                                   usml::sensors::RECEIVER, // 7
+    //                                   usml::sensors::BOTH }    // 9
 
      xmitRcvModeType sensor_mode[] = { usml::sensors::SOURCE,   // 6
                                        usml::sensors::RECEIVER, // 7
@@ -126,12 +136,30 @@ BOOST_AUTO_TEST_CASE(find_pairs_test) {
         query.insert(std::pair<sensor_model::id_type, xmitRcvModeType>(sensors_remaining[i], sensor_mode[i]));
     }
 
-    // test find_pair through get_fathometers
-    sp_manager->get_fathometers(query);
+    // Test find_pair through get_fathometers
+    fathometer_model::fathometer_package fathometers = 
+        sensor_pair_manager::instance()->get_fathometers(query);
 
+    cout << "=== fathometers_test: fathometers return size " << fathometers.size() << endl;
+    
+    int index = 0;
+    std::string ncname = USML_TEST_DIR "/sensors/test/fathometers_";
+    std::stringstream fatho_filename;
+    fathometer_model::fathometer_package::iterator iter;
+    for ( iter = fathometers.begin(); iter != fathometers.end(); ++iter ) 
+    {
+        fathometer_model* model = (*iter);
+        fatho_filename.clear();
+        fatho_filename << ncname << index++ << ".nc";
+        model->write_netcdf(fatho_filename.str().c_str(), "");
+    }
+
+    // Clean up all singleton to prevent use by other tests!
     source_params_map::reset();
     receiver_params_map::reset();
+    beam_pattern_map::reset();
     sensor_pair_manager::reset();
+    sensor_manager::reset();
     
 } // end find_pairs_test
 

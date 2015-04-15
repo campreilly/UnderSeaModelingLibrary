@@ -2,7 +2,7 @@
  * @file eigenray_listener.h
  *
  *  Created on: Sep 9, 2013
- *      Author: Ted Burns (EGB) AEgis Technologies Group, Inc.
+ *      Author: Ted Burns, AEgis Technologies Group, Inc.
  */
 
 #pragma once

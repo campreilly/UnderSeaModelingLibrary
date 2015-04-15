@@ -2,9 +2,6 @@
  * @example sensors/test/maps_test.cc
  */
 #include <boost/test/unit_test.hpp>
-// #include <boost/progress.hpp>
-
-// #include <iostream>
 
 #include <usml/sensors/beam_pattern_map.h>
 #include <usml/sensors/source_params_map.h>
@@ -231,7 +228,7 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
 	// update sensor #101 with new data
 
-    sensor_model::reference m1 = sensor_mgr->find(id1);
+    sensor_model* m1 = sensor_mgr->find(id1);
 	wposition1 pos( 1.0, 2.0, 3.0 ) ;			// arbitrary location
 	orientation orient( 4.0, 5.0 ) ;		// tilt and direction
 	if ( ! sensor_mgr->update_sensor(id1,pos,orient,true) ) {
@@ -249,6 +246,7 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
     source_params_map::reset();
     receiver_params_map::reset();
+    sensor_pair_manager::reset();
     sensor_manager::reset();
 }
 

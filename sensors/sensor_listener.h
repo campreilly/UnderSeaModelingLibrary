@@ -32,7 +32,7 @@ public:
 	/**
 	 * Data type used for reference to sensor_listener.
 	 */
-	typedef shared_ptr<sensor_listener> reference;
+	//typedef shared_ptr<sensor_listener> reference;
 
 	/**
 	 * Destructor.
@@ -57,11 +57,12 @@ public:
 
 	/**
 	 * Queries for the sensor pair complements of this sensor.
-	 *
+     *
 	 * @param	sensor	Sensor that issued the notification.
+     * @return  Pointer to the sensor complement of this pair.
 	 */
 
-	virtual shared_ptr<sensor_model> sensor_complement(const sensor_model* sensor) const = 0;
+    virtual const sensor_model* sensor_complement(const sensor_model* sensor) const = 0;
 
 protected:
 

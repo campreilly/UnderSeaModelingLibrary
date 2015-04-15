@@ -30,32 +30,26 @@ class USML_DECLSPEC sensor_pair : public sensor_listener
 {
 public:
 
-	/**
-	 * Data type used for reference to a sensor_pair.
-	 */
-	typedef shared_ptr<sensor_pair> reference;
-
     /**
      * Construct from references to source and receiver.
      * The source and receiver will be equal for monostatic sensors.
      *
-     * @param	source		Shared pointer to the source for this pair.
-     * @param	receiver	Shared pointer to the receiver for this pair.
+     * @param	source		Pointer to the source for this pair.
+     * @param	receiver	Pointer to the receiver for this pair.
      */
-    sensor_pair(sensor_model::reference source, sensor_model::reference receiver)
+    sensor_pair(sensor_model* source, sensor_model* receiver)
         : _source(source),_receiver(receiver) {};
 
     /**
-     * Destructor
+     * Default Destructor
      */
-    ~sensor_pair() {
-    }
+    virtual ~sensor_pair() {}
 
     /**
      * Gets a pointer to the source sensor.
      * @return  Pointer to the source sensor
      */
-    sensor_model::reference source() const {
+    const sensor_model* source() const {
         return _source;
     }
 
@@ -63,7 +57,7 @@ public:
      * Gets a pointer to the receiver sensor.
      * @return  Pointer to the receiver sensor
      */
-    sensor_model::reference receiver() const {
+    const sensor_model* receiver() const {
         return _receiver;
     }
 
@@ -92,10 +86,10 @@ public:
 
 	/**
 	 * Queries for the sensor pair complements of this sensor.
-	 *
 	 * @param	sensor	Const sensor_model pointer Sensor that requested the complement.
+     * @return  Pointer to the complement sensor of the pair.
 	 */
-	virtual sensor_model::reference sensor_complement(const sensor_model* sensor) const ;
+	virtual const sensor_model* sensor_complement(const sensor_model* sensor) const ;
 
 	/**
      * Gets the shared_ptr to last eigenray_list update for this sensor_pair.
@@ -111,16 +105,16 @@ private:
     sensor_pair() {};
 
     /**
-     * Shared pointer to the source sensor.
+     * Pointer to the source sensor.
      * The source and receiver will be equal for monostatic sensors.
      */
-    const sensor_model::reference _source;
+    const sensor_model* _source;
 
     /**
-     * Share pointer to the receiver sensor.
+     * Pointer to the receiver sensor.
      * The source and receiver will be equal for monostatic sensors.
      */
-    const sensor_model::reference _receiver;
+    const sensor_model* _receiver;
 
     /**
      * Mutex that locks sensor_pair during complement lookups.
