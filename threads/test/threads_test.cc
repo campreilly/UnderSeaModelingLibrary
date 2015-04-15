@@ -284,8 +284,10 @@ BOOST_AUTO_TEST_CASE( thread_controller_test ) {
     randgen::seed(0); // create same results each time
 	#ifdef DEBUG_THREAD_TASK
     	sqrt_task_tester(30,1000,0.25,0.25).run() ;
+        thread_controller::reset();
 	#else
 		sqrt_task_tester(10,100,0.25,0.25).run() ;
+        thread_controller::reset();
 	#endif
 }
 
