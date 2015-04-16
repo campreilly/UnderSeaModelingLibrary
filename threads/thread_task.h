@@ -76,6 +76,14 @@ public:
      */
     virtual void run() = 0 ;
 
+   /**
+    * Gets the current number of active tasks in the
+    * @return number of active tasks
+    */
+    static size_t num_active() {
+        return _num_active;
+    }
+   
     /**
      * Indicate that task needs to abort itself.  Sets a protected member
      * variable called #_abort.  Tasks should terminate the execution of their
@@ -100,6 +108,9 @@ public:
 
     /** Next identification number to be assigned to a task. */
     static size_t _id_next ;
+
+    /** Keep track of the total number of active task */
+    static size_t _num_active;
 
      /** Automatically assigned identification number for this task. */
     size_t _id ;

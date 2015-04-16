@@ -102,6 +102,7 @@ public:
 				#ifdef DEBUG_THREAD_TASK
                 	cout << id() << " task:   ### aborted during execution ###" << endl ;
 				#endif
+                _done = true;
                 return ;
             }
             for ( size_t m=0; m < 1000000 ; ++m ) {
@@ -112,7 +113,6 @@ public:
 			 << " in " << timer.elapsed() << " sec" << endl ;
 
         // mark result as complete
-
         _done = true ;
     }
 
@@ -126,12 +126,21 @@ public:
     }
 
     /** 
-     * Set to true when task complete. 
-     * Tests the ability of the creator to monitor a locked operation.
+     * Gets the status of the task
+     * Returns true when task completed.
      */
     bool done() {
         read_lock_guard guard(_lock);
         return _done ; 
+    }
+
+    /**
+    * Sets the task completed flag
+    * @param bool value to set the done attribute.
+    */
+    void done(bool done) {
+        write_lock_guard guard(_lock);
+        _done = done;
     }
 } ;
 
@@ -201,6 +210,7 @@ public:
                     	cout << task->id() << " tester: %%% abort task %%%" << endl ;
 					#endif
                     task->abort() ;
+                    task->done(true);
                 }
             }
         }
@@ -223,6 +233,14 @@ public:
         // a bit redundant with prior uses of pointer, but nice example
 
         cout << task->id() << " tester: completed with result=" << task->result() << endl ;
+
+        // Wait here until all tasks complete
+        while ( thread_task::num_active() != 0 )
+        {
+            boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+        }
+        cout << " tester: finished all tasks " << endl;
+
     } ;
 
 private:
@@ -266,8 +284,10 @@ BOOST_AUTO_TEST_CASE( thread_controller_test ) {
     randgen::seed(0); // create same results each time
 	#ifdef DEBUG_THREAD_TASK
     	sqrt_task_tester(30,1000,0.25,0.25).run() ;
+        thread_controller::reset();
 	#else
 		sqrt_task_tester(10,100,0.25,0.25).run() ;
+        thread_controller::reset();
 	#endif
 }
 

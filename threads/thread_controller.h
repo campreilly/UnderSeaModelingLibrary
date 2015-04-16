@@ -35,6 +35,11 @@ public:
      */
     static thread_pool* instance();
 
+    /**
+     * Reset the thread_controller singleton unique pointer to empty.
+     */
+    static void reset();
+
 private:
 
     /**

@@ -47,6 +47,11 @@ public:
      */
     static beam_pattern_map* instance() ;
 
+    /**
+     * Reset the unique beam_pattern_map pointer to empty.
+     */
+    static void reset();
+
 private:
 
     /**

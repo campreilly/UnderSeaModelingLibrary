@@ -38,9 +38,6 @@ public:
 	 *
 	 * @param	paramsID		Identification used to find this sensor type in
 	 * 							source_params_map and/or receiver_params_map.
-	 * @param	multistatic		Bistatic sensor_pair objects are only created
-	 * 							for sources and receivers that have this flag
-	 * 							set to true.  Set to false for monostatic sensors.
 	 * @param   source_level	Peak intensity of the transmitted pulse
 	 * 							(dB//uPa@1m)
 	 * @param	frequencies		Frequencies of transmitted pulse.
@@ -52,11 +49,14 @@ public:
 	 * @param   beamID			Reference to the beam pattern used during
 	 * 							transmission.  Will be NULL if beamID is not
 	 * 							found in beam_pattern_map.
+     * @param	multistatic		Optional, defaults to true. 
+     *                          Bistatic sensor_pair objects are only created
+	 * 							for sources and receivers that have this flag
+	 * 							set to true.  Set to false for monostatic sensors.
 	 */
-	source_params( sensor_params::id_type paramsID, bool multistatic,
-		double source_level, const seq_vector& frequencies,
-		beam_pattern_model::id_type beamID) ;
-
+	source_params( sensor_params::id_type paramsID, double source_level, 
+            const seq_vector& frequencies, beam_pattern_model::id_type beamID, 
+            bool multistatic = true);
 	/**
 	 * Clone source parameters from an existing source class.
 	 */
@@ -76,15 +76,6 @@ public:
 	}
 
 	/**
-	 * Frequencies of transmitted pulse. Multiple frequencies can be
-	 * used to compute multiple results at the same time. These are the
-	 * frequencies at which transmission loss and reverberation are computed.
-	 */
-	const seq_vector* frequencies() const {
-		return _frequencies.get() ;
-	}
-
-	/**
 	 * Shared reference to the beam patterns for this source.
 	 */
 	beam_pattern_model::reference beam_pattern() const {
@@ -97,13 +88,6 @@ private:
 	 * Peak intensity of the transmitted pulse (dB//uPa@1m)
 	 */
 	const double _source_level;
-
-	/**
-	 * Frequencies of transmitted pulse. Multiple frequencies can be
-	 * used to compute multiple results at the same time. These are the
-	 * frequencies at which transmission loss and reverberation are computed.
-	 */
-	const unique_ptr<seq_vector> _frequencies ;
 
 	/**
 	 * Shared reference to the beam patterns for this source.

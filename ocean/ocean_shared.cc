@@ -24,3 +24,11 @@ void ocean_shared::update( ocean_shared::reference& ocean ) {
     write_lock_guard(_lock) ;
     _current = ocean ;
 }
+
+/**
+* Reset the shared ocean to empty.
+*/
+void ocean_shared::reset() {
+    write_lock_guard(_lock);
+    _current.reset();
+}

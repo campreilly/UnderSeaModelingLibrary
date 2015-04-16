@@ -38,3 +38,11 @@ thread_pool* thread_controller::instance() {
 	}
 	return tmp;
 }
+
+/**
+ * Reset the thread_controller to empty.
+ */
+void thread_controller::reset() {
+    write_lock_guard(_instance_mutex);
+    _instance.reset();
+}

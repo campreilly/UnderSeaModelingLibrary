@@ -2,9 +2,6 @@
  * @example sensors/test/maps_test.cc
  */
 #include <boost/test/unit_test.hpp>
-// #include <boost/progress.hpp>
-
-// #include <iostream>
 
 #include <usml/sensors/beam_pattern_map.h>
 #include <usml/sensors/source_params_map.h>
@@ -69,6 +66,7 @@ BOOST_AUTO_TEST_CASE(beam_pattern_test) {
 
 	beam_map->erase(id1);
 	beam_map->erase(id2);
+    beam_pattern_map::reset();
 }
 
 /**
@@ -83,28 +81,28 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 	cout << "=== maps_test: source_params_test ===" << endl;
 
 	source_params_map* source_map = source_params_map::instance();
-	seq_linear frequencies(1000.0, 10000.0, 1000.0);	// 1-10 KHz
+
+    // Source frequencies 6.5K, 7.5K, 8.5K, 9.5K
+    seq_linear source_frequencies(6500.0, 1000.0, 4);
 
 	// setup sensor #1 with omni beam pattern
-
 	sensor_params::id_type id1 = 1 ;
 	source_params::reference source1( new source_params(
 		id1, 		// paramsID
-		false,		// multistatic
 		123.0,		// source_level
-		frequencies,
-		0 ));		// beamID
+        source_frequencies,
+		0,          // beamID
+        false));	// multistatic	
 	source_map->insert(source1->paramsID(), source1);
 
 	// setup sensor #2 with bad beam pattern
 
 	sensor_params::id_type id2 = 2 ;
 	source_params::reference source2( new source_params(
-		id2, 		// paramsID
-		true,		// multistatic
+		id2, 		// paramsID		
 		321.0,		// source_level
-		frequencies,
-		999 ));		// beamID
+        source_frequencies,
+		999)); 		// beamID   // multistatic defaults true
 	source_map->insert(source2->paramsID(), source2);
 
 	// test retrieval
@@ -125,6 +123,7 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 
 	source_map->erase(id1);
 	source_map->erase(id2);
+    source_params_map::reset();
 }
 
 /**
@@ -138,8 +137,10 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
 	cout << "=== maps_test: receiver_params_test ===" << endl;
 
-	receiver_params_map* receiver_map = receiver_params_map::instance();
-	seq_linear frequencies(1000.0, 10000.0, 1000.0);	// 1-10 KHz
+    receiver_params_map* receiver_map = receiver_params_map::instance();
+	
+    // Receiver frequencies 3.0K, 10.0K
+    seq_linear receiver_frequencies(3000.0, 7000.0, 2);
 
 	std::list<beam_pattern_model::id_type> beamList;
 	beamList.push_back(0);
@@ -150,8 +151,9 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 	sensor_params::id_type id1 = 1 ;
 	receiver_params::reference receiver1( new receiver_params(
 		id1, 		// paramsID
-		false,		// multistatic
-		beamList ));
+        receiver_frequencies,
+        beamList,
+        false));   // multistatic
 	receiver_map->insert(receiver1->paramsID(), receiver1);
 
 	// setup sensor #2 with bad beam pattern
@@ -159,8 +161,8 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 	sensor_params::id_type id2 = 2 ;
 	receiver_params::reference receiver2( new receiver_params(
 		id2, 		// paramsID
-		true,		// multistatic
-		beamList ));
+        receiver_frequencies,
+		beamList)); // multistatic defaults true
 	receiver_map->insert(receiver2->paramsID(), receiver2);
 
 	// test retrieval
@@ -181,6 +183,7 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
 	receiver_map->erase(id1);
 	receiver_map->erase(id2);
+    receiver_params_map::reset();
 }
 
 /**
@@ -196,7 +199,10 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
     sensor_manager* sensor_mgr = sensor_manager::instance();
 
-	seq_linear frequencies(1000.0, 10000.0, 1000.0);	// 1-10 KHz
+    // Source frequencies 6.5K, 7.5K, 8.5K, 9.5K
+    seq_linear source_frequencies(6500.0, 1000.0, 4);
+    // Receiver frequencies 3.0K, 10.0K
+    seq_linear receiver_frequencies(3000.0, 7000.0, 2);
 
 	std::list<beam_pattern_model::id_type> beamList;
 	beamList.push_back(0);
@@ -207,10 +213,9 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 	sensor_params::id_type params1 = 12 ;
 	source_params::reference source1( new source_params(
 		params1,	// paramsID
-		true,		// multistatic
 		123.0,		// source_level
-		frequencies,
-		0 ));		// beamID
+        source_frequencies,
+        0));  		// beamID
 	source_params_map::instance()->insert(source1->paramsID(), source1);
 	sensor_model::id_type id1 = 101 ;
 	sensor_mgr->add_sensor(id1, params1, "source_101");
@@ -220,20 +225,22 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 	sensor_params::id_type params2 = 21 ;
 	receiver_params::reference receiver2( new receiver_params(
 		params2,	// paramsID
-		true,		// multistatic
-		beamList ));
+        receiver_frequencies,
+		beamList));
 	receiver_params_map::instance()->insert(receiver2->paramsID(), receiver2);
 	sensor_model::id_type id2 = 212 ;
 	sensor_mgr->add_sensor(id2, params2, "receiver_212");
 
 	// update sensor #101 with new data
 
-    sensor_model::reference m1 = sensor_mgr->find(id1);
-	wposition1 pos( 1.0, 2.0, 3.0 ) ;			// arbitrary location
-	orientation orient( 4.0, 5.0 ) ;		// tilt and direction
-	if ( ! sensor_mgr->update_sensor(id1,pos,orient,true) ) {
-		BOOST_FAIL("sensor_test::Failed to update sensor!");
-	}
+    sensor_model* m1 = sensor_mgr->find(id1);
+    if( m1 != 0 ) {
+        wposition1 pos( 1.0, 2.0, 3.0 ) ;			// arbitrary location
+        orientation orient( 4.0, 5.0 ) ;		// tilt and direction
+        if ( ! sensor_mgr->update_sensor(id1,pos,orient,true) ) {
+            BOOST_FAIL("sensor_test::Failed to update sensor!");
+        }
+    }
 
 	// cleanup inserted objects so that other tests start fresh
 
@@ -241,6 +248,13 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 	receiver_params_map::instance()->erase(params2);
 	sensor_mgr->remove_sensor(id1) ;
 	sensor_mgr->remove_sensor(id2) ;
+
+    // Reset all singletons to empty, NULL
+
+    source_params_map::reset();
+    receiver_params_map::reset();
+    sensor_pair_manager::reset();
+    sensor_manager::reset();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

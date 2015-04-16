@@ -40,6 +40,11 @@ public:
 	 */
 	static receiver_params_map* instance();
 
+    /**
+     * Reset the receiver_params_map singleton unique pointer to empty.
+     */
+    static void reset();
+
 private:
 
 	/**

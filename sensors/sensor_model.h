@@ -40,11 +40,6 @@ public:
 	typedef int id_type;
 
 	/**
-	 * Data type used for reference to sensor.
-	 */
-	typedef shared_ptr<sensor_model> reference;
-
-	/**
 	 * Construct a new instance of a specific sensor type.
 	 * Sets the position and orientation values to NAN.
 	 * These values are not set until the update_sensor()
@@ -154,12 +149,12 @@ public:
 	/**
 	 * Add a sensor_listener to the _sensor_listeners list
 	 */
-	void add_sensor_listener(sensor_listener::reference listener);
+	void add_sensor_listener(sensor_listener* listener);
 
 	/**
 	 * Remove a sensor_listener from the _sensor_listeners list
 	 */
-	void remove_sensor_listener(sensor_listener::reference listener);
+	void remove_sensor_listener(sensor_listener* listener);
 
 private:
 
@@ -178,22 +173,22 @@ private:
 	/**
 	 * Queries the current list of sensor listeners for the complements
 	 * of this sensor. Assumes that these listeners act like sensor_pair objects.
-	 * @return list of sensor_model references that are the complements of the this sensor.
+	 * @return list of sensor_model pointers that are the complements of the this sensor.
 	 */
-	std::list<sensor_model::reference> sensor_targets();
+	std::list<const sensor_model*> sensor_targets();
 
 	/**
 	 * Sets the list of target sensorID's from the list of sensors provided.
-	 * @params list of sensor_model references
+	 * @params list of sensor_model pointers.
 	 */
-	void target_ids(std::list<sensor_model::reference>& list);
+	void target_ids(std::list<const sensor_model*>& list);
 
 	/**
 	 * Builds a list of target positions from the input list of sensors provided.
-	 * @params list of sensor_model references
+	 * @params list of sensor_model pointers.
 	 * @return wposition container of positions of the list of sensors provided.
 	 */
-	wposition target_positions(std::list<sensor_model::reference>& list);
+	wposition target_positions(std::list<const sensor_model*>& list);
 
 	/**
 	 * Run the wave_generator thread task to start the waveq3d model.
@@ -209,6 +204,11 @@ private:
 	 * Identification used to lookup sensor type data in source_params_map and receiver_params_map.
 	 */
 	const sensor_params::id_type _paramsID;
+
+    /**
+     * Enumerated type for the sensor transmit/receiver mode.
+     */
+    xmitRcvModeType _mode;
 
 	/**
 	 * Human readable name for this sensor instance.
@@ -277,7 +277,7 @@ private:
 	 * update classes that require sensor data.
 	 * These classes must implement update_eigenrays and update_eigenverbs methods.
 	 */
-	std::list<sensor_listener::reference> _sensor_listeners;
+	std::list<sensor_listener*> _sensor_listeners;
 
 	/**
 	 * Mutex that locks sensor during add/remove sensor_listeners.

@@ -99,14 +99,17 @@ private:
 		sensor_params::id_type paramsID = 1;
 		bool multistatic = false;
 		double source_level = 200.0;
-		seq_linear frequencies(3000.0, 1.0, 1);
+        // Source frequencies 6.5K, 7.5K, 8.5K, 9.5K
+		seq_linear source_frequencies(6500.0, 1000.0, 4);
+        // Receiver frequencies 3.0K, 10.0K
+        seq_linear receiver_frequencies(3000.0, 7000.0, 2);
 		beam_pattern_model::id_type omni = 0;
 
 		// define source parameters
 
 		source_params::reference source(
-				new source_params(paramsID, multistatic, source_level,
-						frequencies, omni));
+				new source_params(paramsID, source_level,
+                source_frequencies, omni, multistatic));
 		source_params_map::instance()->insert(source->paramsID(), source);
 
 		// define receiver parameters
@@ -115,7 +118,7 @@ private:
 		receiver_beams.push_back(omni);
 
 		receiver_params::reference receiver(
-				new receiver_params(paramsID, multistatic, receiver_beams));
+            new receiver_params(paramsID, receiver_frequencies, receiver_beams, multistatic));
 		receiver_params_map::instance()->insert(receiver->paramsID(), receiver);
 	}
 

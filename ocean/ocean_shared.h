@@ -58,6 +58,11 @@ public:
      */
     static void update( ocean_shared::reference& ocean ) ;
 
+    /**
+     * Reset the shared ocean pointer to empty.
+     */
+    static void reset();
+
 private:
 
     /** 

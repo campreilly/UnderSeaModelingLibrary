@@ -12,9 +12,10 @@ using namespace usml::sensors;
 /**
  * Construct new class of receiver.
  */
-receiver_params::receiver_params( sensor_params::id_type paramsID,
-    bool multistatic, const std::list<beam_pattern_model::id_type>& beamList)
-: sensor_params( paramsID, multistatic )
+receiver_params::receiver_params(sensor_params::id_type paramsID, 
+    const seq_vector& frequencies, 
+    const std::list<beam_pattern_model::id_type>& beamList, bool multistatic)
+    : sensor_params(paramsID, frequencies, multistatic)
 {
 	_beam_patterns.resize( beamList.size() ) ;
 	BOOST_FOREACH( beam_pattern_model::id_type beamID, beamList ) {
