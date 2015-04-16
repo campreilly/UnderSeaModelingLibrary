@@ -39,8 +39,8 @@ BOOST_AUTO_TEST_CASE(fathometers_test)
     beam_map->insert(id1, beam_heap1);
 
     std::list<beam_pattern_model::id_type> beamList;
-    beamList.push_back(0);
-    beamList.push_back(1);
+    beamList.push_back(id0);
+    beamList.push_back(id1);
 
     // setup sensor #101 with omni beam pattern
     sensor_params::id_type params1 = 12;
