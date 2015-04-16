@@ -41,17 +41,20 @@ public:
 	/**
 	 * Construct new class of receiver.
 	 *
-	 * @param	paramsID	Identification used to find this sensor type
-	 * 						in receiver_params_map.
-	 * @param   bistatic	When true, this receiver will pair up with
-	 * 						all other sources in the reverberation model.
-	 * 						When false, it will only pair up with its own source.
-	 * @param   beamList	List of beamIds associated with this receiver class.
-	 * 						The actual beams are extracted from beam_pattern_map
-	 * 						using these beamIDs.
+	 * @param	paramsID	    Identification used to find this sensor type
+	 * 						    in receiver_params_map.
+     * @param	frequencies		Operating frequencies that this sensor will listen.
+     * 							This is cloned during construction.
+	 * @param   beamList	    List of beamIds associated with this receiver class.
+	 * 						    The actual beams are extracted from beam_pattern_map
+	 * 						    using these beamIDs.
+     * @param   multistatic	    Optional. Defaults to true. 
+     *                          When true, this receiver will pair up with
+	 * 						    all other sources in the reverberation model.
+	 * 						    When false, it will only pair up with its own source.
 	 */
-	receiver_params(sensor_params::id_type paramsID, bool bistatic,
-		const std::list<beam_pattern_model::id_type>& beamList) ;
+    receiver_params(sensor_params::id_type paramsID, const seq_vector& frequencies,
+        const std::list<beam_pattern_model::id_type>& beamList, bool multistatic = true);
 
 	/**
 	 * Clone receiver parameters from an existing receiver class.

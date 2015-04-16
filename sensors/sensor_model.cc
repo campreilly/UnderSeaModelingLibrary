@@ -23,6 +23,25 @@ sensor_model::sensor_model(sensor_model::id_type sensorID, sensor_params::id_typ
 {
 	_source = source_params_map::instance()->find(paramsID);
 	_receiver = receiver_params_map::instance()->find(paramsID);
+    bool has_source = _source.get() != NULL;
+    bool has_receiver = _receiver.get() != NULL;
+    
+    if ( has_source && has_receiver )
+    {
+        _mode = BOTH;
+    }
+    else if ( has_source )
+    {
+        _mode = SOURCE;
+    }
+    else if ( has_receiver )
+    {
+        _mode = RECEIVER;
+    }
+    else
+    {
+        _mode = NONE;
+    }
 }
 
 /**
@@ -38,19 +57,7 @@ sensor_model::~sensor_model() {
  * Queries the sensor's ability to support source and/or receiver behaviors.
  */
 xmitRcvModeType sensor_model::mode() const {
-	bool has_source = _source.get() != NULL;
-	bool has_receiver = _receiver.get() != NULL;
-	xmitRcvModeType result;
-	if (has_source && has_receiver) {
-		result = BOTH;
-	} else if (has_source) {
-		result = SOURCE;
-	} else if (has_receiver) {
-		result = RECEIVER;
-	} else {
-		result = NONE;
-	}
-	return result;
+	return _mode;
 }
 
 /**

@@ -205,6 +205,11 @@ private:
 	 */
 	const sensor_params::id_type _paramsID;
 
+    /**
+     * Enumerated type for the sensor transmit/receiver mode.
+     */
+    xmitRcvModeType _mode;
+
 	/**
 	 * Human readable name for this sensor instance.
 	 */

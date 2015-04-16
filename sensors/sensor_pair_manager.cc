@@ -190,25 +190,42 @@ void sensor_pair_manager::add_sensor(sensor_model* sensor) {
 	default:
 		break;
 	}
+    
+    // Add pair as required
 
-	// add monostatic pair for sensors when mode=BOTH
+    switch ( sensor->mode() )
+    {
+        case usml::sensors::SOURCE:
+            add_multistatic_source(sensor);
+            break;
+        case usml::sensors::RECEIVER:
+            add_multistatic_receiver(sensor);
+            break;
+        case usml::sensors::BOTH:
+            // Check frequency band overlap
+            add_monostatic_pair(sensor);
 
-	if (sensor->mode() == usml::sensors::BOTH) {
-		add_monostatic_pair(sensor);
-
-	// add multistatic pairs when multistatic is true
-
-	} else {
-		if (sensor->mode() == usml::sensors::SOURCE) {
-			if (sensor->source()->multistatic()) {
-				add_multistatic_source(sensor);
-			}
-		} else {
-			if (sensor->receiver()->multistatic()) {
-				add_multistatic_receiver(sensor);
-			}
-		}
-	}
+            // add multistatic pairs when multistatic is true 
+            if ( sensor->source()->multistatic() ) {
+                add_multistatic_source(sensor);    
+            }              
+            if ( sensor->receiver()->multistatic() ) {
+                add_multistatic_receiver(sensor);
+            }
+            break;
+        default:
+            break;
+    }
+    #ifdef USML_DEBUG
+        // Print out all pairs
+        cout << "sensor_pair_manager:  current pairs" << endl;
+        sensor_map_template<std::string, sensor_pair*>::iterator iter;
+        for ( iter = _map.begin(); iter != _map.end(); ++iter )
+        {
+            std::string key  = iter->first;
+            cout << "     pair  src_rcv " << key << endl;      
+         } 
+    #endif
 }
 
 /**
@@ -242,24 +259,33 @@ bool sensor_pair_manager::remove_sensor(sensor_model* sensor) {
     // Exit if the sensorID/mode was not found
     if ((int) result == 0 ) return false;
 
-	// remove monostatic pair for sensors when mode=BOTH
+	// Remove pair as required
 
-	if (sensor->mode() == usml::sensors::BOTH) {
-		remove_monostatic_pair(sensor);
+    switch ( sensor->mode() )
+    {
+        case usml::sensors::SOURCE:
+            remove_multistatic_source(sensor);
+            break;
+        case usml::sensors::RECEIVER:
+            remove_multistatic_receiver(sensor);
+            break;
+        case usml::sensors::BOTH:
+            // Check frequency band overlap
+            remove_monostatic_pair(sensor);
 
-		// remove multistatic pairs when multistatic is true
-
-	} else {
-		if (sensor->mode() == usml::sensors::SOURCE) {
-			if (sensor->source()->multistatic()) {
-				remove_multistatic_source(sensor);
-			}
-		} else {
-			if (sensor->receiver()->multistatic()) {
-				remove_multistatic_receiver(sensor);
-			}
-		}
-	}
+            // add multistatic pairs when multistatic is true 
+            if ( sensor->source()->multistatic() )
+            {
+                remove_multistatic_source(sensor);
+            }
+            if ( sensor->receiver()->multistatic() )
+            {
+                remove_multistatic_receiver(sensor);
+            }
+            break;
+        default:
+            break;
+    }
     return true;
 }
 
@@ -273,7 +299,7 @@ void sensor_pair_manager::add_monostatic_pair(sensor_model* sensor) {
 	_map.insert(hash_key, pair);
 	sensor->add_sensor_listener(pair);
 	#ifdef USML_DEBUG
-		cout << "sensor_pair_manager: add sensor_pair("
+		cout << "   add_monostatic_pair: sensor_pair("
 		<< sourceID << "," << sourceID << ")" << endl;
 	#endif
 }
@@ -285,17 +311,17 @@ void sensor_pair_manager::add_multistatic_source(sensor_model* source) {
 	sensor_model::id_type sourceID = source->sensorID();
 	BOOST_FOREACH( sensor_model::id_type receiverID, _rcv_list ) {
 		if ( sourceID != receiverID ) {
-			sensor_model* receiver = sensor_manager::instance()->find(receiverID);
-			if ( receiver != NULL &&
-					receiver->receiver()->multistatic() )
+            sensor_model* receiver_sensor = sensor_manager::instance()->find(receiverID);
+            if ( receiver_sensor != NULL &&
+                    receiver_sensor->receiver()->multistatic() )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
-				sensor_pair* pair = new sensor_pair(source,receiver);
+                sensor_pair* pair = new sensor_pair(source, receiver_sensor);
                 _map.insert(hash_key, pair);
 				source->add_sensor_listener(pair);
-				receiver->add_sensor_listener(pair);
+                receiver_sensor->add_sensor_listener(pair);
 				#ifdef USML_DEBUG
-					cout << "sensor_pair_manager: add sensor_pair("
+					cout << "   add_multistatic_source: sensor_pair("
 					<< sourceID << "," << receiverID << ")" << endl;
 				#endif
 			}
@@ -310,17 +336,17 @@ void sensor_pair_manager::add_multistatic_receiver(sensor_model* receiver) {
 	sensor_model::id_type receiverID = receiver->sensorID();
 	BOOST_FOREACH( sensor_model::id_type sourceID, _src_list ) {
 		if ( sourceID != receiverID ) { // exclude monostatic case
-			sensor_model* source = sensor_manager::instance()->find(sourceID);
-			if ( source != NULL &&
-					source->source()->multistatic() )
+			sensor_model* source_sensor = sensor_manager::instance()->find(sourceID);
+            if ( source_sensor != NULL && 
+                    source_sensor->source()->multistatic() )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
-				sensor_pair* pair = new sensor_pair(source,receiver);
+                sensor_pair* pair = new sensor_pair(source_sensor, receiver);
                 _map.insert(hash_key, pair);
-				source->add_sensor_listener(pair);
+                source_sensor->add_sensor_listener(pair);
 				receiver->add_sensor_listener(pair);
 				#ifdef USML_DEBUG
-					cout << "sensor_pair_manager: add sensor_pair("
+					cout << "   add_multistatic_receiver: sensor_pair("
 					<< sourceID << "," << receiverID << ")" << endl;
 				#endif
 			}
@@ -340,7 +366,7 @@ void sensor_pair_manager::remove_monostatic_pair(sensor_model* sensor) {
         delete pair;
 		_map.erase(hash_key);
 		#ifdef USML_DEBUG
-			cout << "sensor_pair_manager: remove sensor_pair("
+			cout << "   remove_monostatic_pair: sensor_pair("
 				 << sourceID << "," << sourceID << ")" << endl;
 		#endif
 	}
@@ -353,19 +379,19 @@ void sensor_pair_manager::remove_multistatic_source(sensor_model* source) {
 	sensor_model::id_type sourceID = source->sensorID();
 	BOOST_FOREACH( sensor_model::id_type receiverID, _rcv_list ) {
 		if ( sourceID != receiverID ) {
-			sensor_model* receiver = sensor_manager::instance()->find(receiverID);
-			if ( receiver != NULL &&
-					receiver->receiver()->multistatic() )
+            sensor_model* receiver_sensor = sensor_manager::instance()->find(receiverID);
+            if ( receiver_sensor != NULL &&
+                    receiver_sensor->receiver()->multistatic() )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
 				sensor_pair* pair = _map.find(hash_key);
 				if ( pair != NULL ) {
 					source->remove_sensor_listener(pair);
-					receiver->remove_sensor_listener(pair);
+                    receiver_sensor->remove_sensor_listener(pair);
                     delete pair;
 					_map.erase( hash_key );
 					#ifdef USML_DEBUG
-						cout << "sensor_pair_manager: remove sensor_pair("
+						cout << "   remove_multistatic_source: sensor_pair("
 							 << sourceID << "," << receiverID << ")" << endl;
 					#endif
 				}
@@ -381,19 +407,19 @@ void sensor_pair_manager::remove_multistatic_receiver(sensor_model* receiver) {
 	sensor_model::id_type receiverID = receiver->sensorID();
 	BOOST_FOREACH( sensor_model::id_type sourceID, _src_list ) {
 		if ( sourceID != receiverID ) { // exclude monostatic case
-			sensor_model* source = sensor_manager::instance()->find(sourceID);
-			if ( source != NULL &&
-					source->source()->multistatic() )
+			sensor_model* source_sensor = sensor_manager::instance()->find(sourceID);
+            if ( source_sensor != NULL && 
+                source_sensor->source()->multistatic() )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
 				sensor_pair* pair = _map.find(hash_key);
 				if ( pair != NULL ) {
-					source->remove_sensor_listener(pair);
+                    source_sensor->remove_sensor_listener(pair);
 					receiver->remove_sensor_listener(pair);
                     delete pair;
 					_map.erase( hash_key );
 					#ifdef USML_DEBUG
-						cout << "sensor_pair_manager: remove sensor_pair("
+						cout << "   remove_multistatic_receiver: sensor_pair("
 							 << sourceID << "," << receiverID << ")" << endl;
 					#endif
 				}
