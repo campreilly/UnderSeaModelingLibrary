@@ -29,6 +29,7 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     beam_pattern_map* beam_map = beam_pattern_map::instance();
 
     beam_pattern_model* beam_patt1 = new beam_pattern_omni();
+    beam_pattern_model::id_type id0 = 0;
     beam_pattern_model::id_type id1 = 1;
     beam_patt1->beamID(id1);
     beam_pattern_model::reference beam_heap1(beam_patt1);
@@ -181,6 +182,6 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     sensor_pair_manager::reset();
     sensor_manager::reset();
     
-} // end find_pairs_test
+} // end pairs_test
 
 BOOST_AUTO_TEST_SUITE_END()
