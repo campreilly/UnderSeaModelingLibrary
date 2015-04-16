@@ -35,8 +35,8 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     beam_map->insert(id1, beam_heap1);
 
     std::list<beam_pattern_model::id_type> beamList;
-    beamList.push_back(0);
-    beamList.push_back(1);
+    beamList.push_back(id0);
+    beamList.push_back(id1);
 
     // Source frequencies 6.5K, 7.5K, 8.5K, 9.5K
     seq_linear source_frequencies(6500.0, 1000.0, 4);
