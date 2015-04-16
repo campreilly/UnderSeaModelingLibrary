@@ -163,13 +163,23 @@ private:
         key << src_id << '_' << rcv_id;
         return key.str();
     }
+
     /**
-    * Utility to find the sensor_pair keys that are provided in the 
-    * sensor_query_map parameter.
-    * @param	sensors Map of sensorID and modes that needs to be found
-    * @return   list of hash keys in the _map of found sensor_query
-    */
+     * Utility to find the sensor_pair keys that are provided in the 
+     * sensor_query_map parameter.
+     * @param	sensors Map of sensorID and modes that needs to be found
+     * @return   list of hash keys in the _map of found sensor_query
+     */
     std::set<std::string> find_pairs(sensor_query_map& sensors);
+
+    /**
+     * Utility to determine if two frequency ranges overlap
+     * Used to determine of a sensor_pair needs to be created.
+     * @param	src_freq  frequency range for source
+     * @param	rcv_freq  frequenc range for receiver
+     * @return  true when frequency ranges overlap
+     */
+    bool frequencies_overlap(const seq_vector* src_freq, const seq_vector* rcv_freq);
 
 	/**
 	 * Hide access to default constructor.

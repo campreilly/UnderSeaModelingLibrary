@@ -313,7 +313,9 @@ void sensor_pair_manager::add_multistatic_source(sensor_model* source) {
 		if ( sourceID != receiverID ) {
             sensor_model* receiver_sensor = sensor_manager::instance()->find(receiverID);
             if ( receiver_sensor != NULL &&
-                    receiver_sensor->receiver()->multistatic() )
+                    receiver_sensor->receiver()->multistatic() &&
+                    frequencies_overlap(source->source()->frequencies(), 
+                                        receiver_sensor->receiver()->frequencies()) )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
                 sensor_pair* pair = new sensor_pair(source, receiver_sensor);
@@ -338,7 +340,9 @@ void sensor_pair_manager::add_multistatic_receiver(sensor_model* receiver) {
 		if ( sourceID != receiverID ) { // exclude monostatic case
 			sensor_model* source_sensor = sensor_manager::instance()->find(sourceID);
             if ( source_sensor != NULL && 
-                    source_sensor->source()->multistatic() )
+                    source_sensor->source()->multistatic() &&
+                    frequencies_overlap(source_sensor->source()->frequencies(), 
+                                        receiver->receiver()->frequencies() ) )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
                 sensor_pair* pair = new sensor_pair(source_sensor, receiver);
@@ -381,7 +385,9 @@ void sensor_pair_manager::remove_multistatic_source(sensor_model* source) {
 		if ( sourceID != receiverID ) {
             sensor_model* receiver_sensor = sensor_manager::instance()->find(receiverID);
             if ( receiver_sensor != NULL &&
-                    receiver_sensor->receiver()->multistatic() )
+                    receiver_sensor->receiver()->multistatic() &&
+                    frequencies_overlap(source->source()->frequencies(), 
+                                        receiver_sensor->receiver()->frequencies()) )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
 				sensor_pair* pair = _map.find(hash_key);
@@ -409,7 +415,9 @@ void sensor_pair_manager::remove_multistatic_receiver(sensor_model* receiver) {
 		if ( sourceID != receiverID ) { // exclude monostatic case
 			sensor_model* source_sensor = sensor_manager::instance()->find(sourceID);
             if ( source_sensor != NULL && 
-                source_sensor->source()->multistatic() )
+                source_sensor->source()->multistatic() && 
+                frequencies_overlap(source_sensor->source()->frequencies(), 
+                                    receiver->receiver()->frequencies()) )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
 				sensor_pair* pair = _map.find(hash_key);
@@ -427,3 +435,37 @@ void sensor_pair_manager::remove_multistatic_receiver(sensor_model* receiver) {
 		}
 	}
 }
+
+/**
+* Utility to determine if two frequency ranges overlap
+* Used to determine of a sensor_pair needs to be created.
+*/
+bool sensor_pair_manager::frequencies_overlap(const seq_vector* src_freq, const seq_vector* rcv_freq) {
+
+    seq_vector::iterator iter;
+
+    // Get source min and max
+    iter = src_freq->begin();
+    double src_min = *iter;
+    iter = src_freq->end()-1;
+    double src_max = *iter;
+
+    // Get receiver min and max
+    iter = rcv_freq->begin();
+    double rcv_min = *iter;
+    iter = rcv_freq->end()-1;
+    double rcv_max = *iter;
+
+    bool overlap = src_min <= rcv_max &&  rcv_min <= src_max;
+    
+    #ifdef NOOP
+        cout << "   frequencies_overlap: src_min( "
+            << src_min << " ) - src_max( " << src_max  << ")" << endl;
+        cout << "                        rcv_min( "
+            << rcv_min << " ) - rcv_max( " << rcv_max << ")" << endl;
+        cout << "               overlap: " << ( ( overlap ) ? "yes":"no" ) << endl;
+    #endif
+
+    return overlap;
+}
+
