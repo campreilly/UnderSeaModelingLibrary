@@ -48,6 +48,22 @@ class USML_DECLSPEC beam_pattern_model {
 
 public:
 
+    /**
+     * @enum beam_pattern_type
+     * NOTE: List of enumerations for common beam patterns
+     */
+    enum beam_pattern_type
+    {
+        OMNI   = 0,
+        COSINE = 1,
+        SINE   = 2,
+        SOLID  = 3,
+        VLA    = 4,
+        HLA    = 5,
+        LINE   = 6,
+        GRID   = 7
+    };
+
 	/**
 	 * Data type used for beamId.
 	 */
@@ -135,8 +151,6 @@ protected:
 	 * Reference axis of the beam pattern
 	 */
 	c_vector<double,3> _reference_axis ;
-
-private:
 
 	/**
 	 * Identification used to find this beam pattern in beam_pattern_map.

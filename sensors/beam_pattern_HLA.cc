@@ -18,6 +18,14 @@ beam_pattern_HLA::beam_pattern_HLA(
                          elements, steering_angle,
                          beam_pattern_line::HORIZONTAL )
 {
+    _beamID = beam_pattern_model::HLA ;
+}
+
+/**
+ * Destructor
+ */
+beam_pattern_HLA::~beam_pattern_HLA()
+{
 
 }
 

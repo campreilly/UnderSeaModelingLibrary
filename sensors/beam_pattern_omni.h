@@ -24,7 +24,12 @@ class USML_DECLSPEC beam_pattern_omni : public beam_pattern_model {
         /**
          * Constructors an omni-directional beam pattern.
          */
-        beam_pattern_omni() {}
+        beam_pattern_omni() ;
+
+        /**
+         * Destructor
+         */
+        virtual ~beam_pattern_omni() ;
 
         /**
          * Computes the response level in a specific DE/AZ pair and

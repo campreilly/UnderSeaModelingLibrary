@@ -55,12 +55,13 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
         {
             construct_pattern( data, data_unit ) ;
             construct_directivity_grid() ;
+            _beamID = beam_pattern_model::GRID ;
         }
 
         /**
          * Destructor
          */
-        ~beam_pattern_grid() {
+        virtual ~beam_pattern_grid() {
             if( _directivity_index ) {
                 delete _directivity_index ;
                 _directivity_index = NULL ;

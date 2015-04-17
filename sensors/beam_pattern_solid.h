@@ -36,12 +36,12 @@ class USML_DECLSPEC beam_pattern_solid : public beam_pattern_model {
          * @param min_az        minimum AZ of the solid angle (deg)
          */
         beam_pattern_solid( double max_de, double min_de,
-                            double max_az, double min_az )
-            : _max_de(max_de), _min_de(min_de),
-              _max_az(max_az), _min_az(min_az)
-        {
-            initialize_beam() ;
-        }
+                            double max_az, double min_az ) ;
+
+        /**
+         * Destructor
+         */
+        virtual ~beam_pattern_solid() ;
 
         /**
          * Computes the response level in a specific DE/AZ pair and

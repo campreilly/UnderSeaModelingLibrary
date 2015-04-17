@@ -30,31 +30,21 @@ BOOST_AUTO_TEST_CASE(beam_pattern_test) {
 
 	cout << "=== maps_test: beam_pattern_test ===" << endl;
 
-	beam_pattern_map* beam_map = beam_pattern_map::instance();
-	beam_pattern_model::id_type id0 = 0 ; // default beam
-
-	// insert beam patterns into map
-
-	beam_pattern_model* beam_patt1 = new beam_pattern_omni();
-	beam_pattern_model::id_type id1 = 1 ;
-	beam_patt1->beamID(id1) ;
-	beam_pattern_model::reference beam_heap1(beam_patt1);
-	beam_map->insert(id1, beam_heap1);
-
-	beam_pattern_model* beam_patt2 = new beam_pattern_omni();
-	beam_pattern_model::id_type id2 = 2 ;
-	beam_patt1->beamID(id2) ;
-	beam_pattern_model::reference beam_heap2(beam_patt2);
-	beam_map->insert(2, beam_heap2);
+    // insert beam patterns into map
+	beam_pattern_map* beam_map = beam_pattern_map::instance() ;
+	beam_pattern_model::id_type id0 = 100 ;
+	beam_pattern_model::reference beam_ref =
+	        beam_pattern_model::reference( new beam_pattern_sine() ) ;
+	beam_ref->beamID( id0 ) ;
+	beam_map->insert( id0, beam_ref ) ;
 
 	// test retrieval
-
-	beam_pattern_model::reference bpm0 = beam_map->find(id0);
-	beam_pattern_model::reference bpm1 = beam_map->find(id1);
-	beam_pattern_model::reference bpm2 = beam_map->find(id2);
-	BOOST_CHECK_EQUAL(bpm0->beamID(), 0);
-	BOOST_CHECK_EQUAL(bpm1.get(), beam_patt1);
-	BOOST_CHECK_EQUAL(bpm2.get(), beam_patt2);
+	beam_pattern_model::reference bpm0 = beam_map->find(0);
+	beam_pattern_model::reference bpm1 = beam_map->find(1);
+	beam_pattern_model::reference bpm2 = beam_map->find(id0);
+	BOOST_CHECK_EQUAL(bpm0->beamID(), beam_pattern_model::OMNI);
+	BOOST_CHECK_EQUAL(bpm1->beamID(), beam_pattern_model::COSINE);
+	BOOST_CHECK_EQUAL(bpm2->beamID(), id0);
 
 	// check key not found returns null
 
@@ -64,8 +54,7 @@ BOOST_AUTO_TEST_CASE(beam_pattern_test) {
 
 	// cleanup inserted beam patterns so that other tests start fresh
 
-	beam_map->erase(id1);
-	beam_map->erase(id2);
+	beam_map->erase(id0);
     beam_pattern_map::reset();
 }
 
@@ -89,7 +78,7 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 	sensor_params::id_type id1 = 1 ;
 	source_params::reference source1( new source_params(
 		id1, 		// paramsID
-		123.0,		// source_level
+		vector<double> (1, 123.0),		// source_level
         source_frequencies,
 		0,          // beamID
         false));	// multistatic	
@@ -100,7 +89,7 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 	sensor_params::id_type id2 = 2 ;
 	source_params::reference source2( new source_params(
 		id2, 		// paramsID		
-		321.0,		// source_level
+		vector<double> (1, 321.0),		// source_level
         source_frequencies,
 		999)); 		// beamID   // multistatic defaults true
 	source_map->insert(source2->paramsID(), source2);
@@ -143,8 +132,8 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
     seq_linear receiver_frequencies(3000.0, 7000.0, 2);
 
 	std::list<beam_pattern_model::id_type> beamList;
-	beamList.push_back(0);
-	beamList.push_back(1);
+	beamList.push_back(beam_pattern_model::OMNI);
+	beamList.push_back(beam_pattern_model::COSINE);
 
 	// setup sensor #1 with omni beam pattern
 
@@ -176,8 +165,8 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
 	beam_pattern_model::reference bpm1 = spm1->beam_pattern(0) ;
 	beam_pattern_model::reference bpm2 = spm2->beam_pattern(1) ;
-	BOOST_CHECK_EQUAL(bpm1->beamID(), 0);
-	BOOST_CHECK_EQUAL(bpm2.get(), (beam_pattern_model*) 0);
+	BOOST_CHECK_EQUAL(bpm1->beamID(), beam_pattern_model::OMNI );
+	BOOST_CHECK_EQUAL(bpm2.get()->beamID(), beam_pattern_model::COSINE );
 
 	// cleanup inserted receiver_params so that other tests start fresh
 
@@ -213,7 +202,7 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 	sensor_params::id_type params1 = 12 ;
 	source_params::reference source1( new source_params(
 		params1,	// paramsID
-		123.0,		// source_level
+		vector<double> (1, 123.0),		// source_level
         source_frequencies,
         0));  		// beamID
 	source_params_map::instance()->insert(source1->paramsID(), source1);

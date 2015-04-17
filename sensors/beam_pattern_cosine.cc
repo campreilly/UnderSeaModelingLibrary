@@ -14,6 +14,15 @@ beam_pattern_cosine::beam_pattern_cosine()
     _reference_axis(0) = 0.0 ;
     _reference_axis(1) = 1.0 ;
     _reference_axis(2) = 0.0 ;
+    _beamID = beam_pattern_model::COSINE ;
+}
+
+/**
+ * Destructor
+ */
+beam_pattern_cosine::~beam_pattern_cosine()
+{
+
 }
 
 /** Calculates the beam level in de, az, and frequency **/

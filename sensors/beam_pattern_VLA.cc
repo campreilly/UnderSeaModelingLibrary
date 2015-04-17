@@ -18,6 +18,14 @@ beam_pattern_VLA::beam_pattern_VLA(
                          elements, steering_angle,
                          beam_pattern_line::VERTICAL )
 {
+    _beamID = beam_pattern_model::VLA ;
+}
+
+/**
+ * Destructor
+ */
+beam_pattern_VLA::~beam_pattern_VLA()
+{
 
 }
 

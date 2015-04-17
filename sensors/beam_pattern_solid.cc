@@ -6,6 +6,26 @@
 
 using namespace usml::sensors ;
 
+/**
+ * Cosntructor
+ */
+beam_pattern_solid::beam_pattern_solid(
+    double max_de, double min_de,
+    double max_az, double min_az )
+    : _max_de(max_de), _min_de(min_de),
+      _max_az(max_az), _min_az(min_az)
+{
+    initialize_beam() ;
+    _beamID = beam_pattern_model::SOLID ;
+}
+
+/**
+ * Destructor
+ */
+beam_pattern_solid::~beam_pattern_solid()
+{
+
+}
 /** Calculates the beam level in de, az, and frequency **/
 void beam_pattern_solid::beam_level(
         double de, double az,

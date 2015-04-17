@@ -98,7 +98,7 @@ private:
 		cout << "== define sensor characteristics ==" << endl;
 		sensor_params::id_type paramsID = 1;
 		bool multistatic = false;
-		double source_level = 200.0;
+		vector<double> source_level(1, 200.0);
         // Source frequencies 6.5K, 7.5K, 8.5K, 9.5K
 		seq_linear source_frequencies(6500.0, 1000.0, 4);
         // Receiver frequencies 3.0K, 10.0K

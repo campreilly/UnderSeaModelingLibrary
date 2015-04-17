@@ -6,6 +6,23 @@
 
 using namespace usml::sensors ;
 
+/**
+ * Default constructor sets the beamID to OMNI
+ */
+beam_pattern_omni::beam_pattern_omni()
+{
+    _beamID = beam_pattern_model::OMNI ;
+}
+
+/**
+ * Destructor
+ */
+beam_pattern_omni::~beam_pattern_omni()
+{
+
+}
+
+
 /** Calculates the beam level in de, az, and frequency **/
 void beam_pattern_omni::beam_level(
         double de, double az,

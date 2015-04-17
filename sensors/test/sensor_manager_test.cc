@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     sensor_params::id_type params1 = 12;
     source_params::reference source1(new source_params(
         params1,	// paramsID
-        123.0,		// source_level
+        vector<double> (1, 123.0),		// source_level
         source_frequencies,
         0));		// beamID
     source_params_map::instance()->insert(source1->paramsID(), source1);
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     sensor_params::id_type params3 = 33;
     source_params::reference source3(new source_params(
         params3,	// paramsID
-        130.0,		// source_level
+        vector<double> (1, 130.0),		// source_level
         source_frequencies,
         0,   		// beamID
         false));	// not multistatic
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     sensor_params::id_type params4 = 44;
     source_params::reference source4(new source_params(
         params4,	// paramsID	
-        130.0,		// source_level
+        vector<double> (1, 130.0),		// source_level
         source_frequencies,
         0,  		// beamID
         true));     // multistatic flag - vary to test different combo's

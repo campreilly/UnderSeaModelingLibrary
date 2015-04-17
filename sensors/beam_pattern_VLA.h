@@ -38,6 +38,11 @@ class USML_DECLSPEC beam_pattern_VLA : public beam_pattern_line {
                            size_t elements, double steering_angle ) ;
 
         /**
+         * Destructor
+         */
+        virtual ~beam_pattern_VLA() ;
+
+        /**
          * Computes the response level in a specific DE/AZ pair and
          * beam steering angle. The return, level, is passed
          * back in linear units.
