@@ -35,6 +35,13 @@ beam_pattern_map* beam_pattern_map::instance() {
 			beam_pattern_model::reference beam_ref(beam_patt);
 			tmp->insert(id, beam_ref);
 
+			// insert cosine beam pattern as id #1
+            beam_patt = new beam_pattern_cosine() ;
+            id = 1 ;
+            beam_patt->beamID(id) ;
+            beam_ref = beam_patt;
+            tmp->insert(id, beam_ref);
+
 			// initialize singleton
 			_instance.reset(tmp) ;
 		}
