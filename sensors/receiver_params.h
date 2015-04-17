@@ -5,9 +5,9 @@
 #pragma once
 
 #include <usml/sensors/sensor_params.h>
-#include <usml/sensors/beam_pattern_model.h>
+#include <usml/sensors/beam_pattern_map.h>
+#include <algorithm>
 #include <list>
-#include <vector>
 
 namespace usml {
 namespace sensors {
@@ -36,7 +36,7 @@ public:
 	/**
 	 * Data type used for store beam patterns in this sensor.
 	 */
-	typedef std::vector<beam_pattern_model::reference> beam_pattern_container ;
+	typedef std::list<beam_pattern_model::id_type> beam_pattern_list ;
 
 	/**
 	 * Construct new class of receiver.
@@ -54,7 +54,7 @@ public:
 	 * 						    When false, it will only pair up with its own source.
 	 */
     receiver_params(sensor_params::id_type paramsID, const seq_vector& frequencies,
-        const std::list<beam_pattern_model::id_type>& beamList, bool multistatic = true);
+        const beam_pattern_list& beamList, bool multistatic = true);
 
 	/**
 	 * Clone receiver parameters from an existing receiver class.
@@ -71,29 +71,28 @@ public:
 	 * Const reference to the beam pattern container.
 	 */
 	size_t num_patterns() const {
-		return _beam_patterns.size() ;
+		return _beam_list.size() ;
 	}
 
 	/**
 	 * Shared reference to a single beam in the pattern pattern.
 	 */
-	beam_pattern_model::reference beam_pattern( size_t n ) const {
-		return _beam_patterns[n] ;
-	}
+	beam_pattern_model::reference beam_pattern( beam_pattern_model::id_type beamID ) const ;
 
 	/**
 	 * Const reference to the beam pattern container.
 	 */
-	const beam_pattern_container& beam_patterns() const {
-		return _beam_patterns ;
+	const beam_pattern_list& beam_list() const {
+		return _beam_list ;
 	}
 
 private:
 
 	/**
-	 * Shared reference to the beam patterns for this receiver.
+	 * List of all beam pattern IDs associated with this receiver
+	 * parameter.
 	 */
-	beam_pattern_container _beam_patterns;
+	beam_pattern_list _beam_list ;
 };
 
 /// @}

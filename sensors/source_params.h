@@ -7,6 +7,8 @@
 #include <usml/sensors/sensor_params.h>
 #include <usml/sensors/beam_pattern_model.h>
 
+using namespace boost::numeric::ublas ;
+
 namespace usml {
 namespace sensors {
 
@@ -54,7 +56,7 @@ public:
 	 * 							for sources and receivers that have this flag
 	 * 							set to true.  Set to false for monostatic sensors.
 	 */
-	source_params( sensor_params::id_type paramsID, double source_level, 
+	source_params( sensor_params::id_type paramsID, vector<double> source_level,
             const seq_vector& frequencies, beam_pattern_model::id_type beamID, 
             bool multistatic = true);
 	/**
@@ -71,7 +73,7 @@ public:
 	/**
 	 * Peak intensity of the transmitted pulse (dB//uPa@1m)
 	 */
-	double source_level() const {
+	vector<double> source_level() const {
 		return _source_level ;
 	}
 
@@ -87,7 +89,7 @@ private:
 	/**
 	 * Peak intensity of the transmitted pulse (dB//uPa@1m)
 	 */
-	const double _source_level;
+	const vector<double> _source_level;
 
 	/**
 	 * Shared reference to the beam patterns for this source.

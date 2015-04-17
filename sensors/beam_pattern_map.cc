@@ -28,19 +28,13 @@ beam_pattern_map* beam_pattern_map::instance() {
 			// initialize new map
 			tmp = new beam_pattern_map();
 
-			// insert omni beam pattern as id #0
-			beam_pattern_model* beam_patt = new beam_pattern_omni();
-			beam_pattern_model::id_type id = 0 ;
-			beam_patt->beamID(id) ;
-			beam_pattern_model::reference beam_ref(beam_patt);
-			tmp->insert(id, beam_ref);
+			// insert omni beam pattern as OMNI, id #0
+			beam_pattern_model::reference beam_ref(new beam_pattern_omni());
+			tmp->insert(beam_ref.get()->beamID(), beam_ref);
 
-			// insert cosine beam pattern as id #1
-            beam_patt = new beam_pattern_cosine() ;
-            id = 1 ;
-            beam_patt->beamID(id) ;
-            beam_ref = beam_patt;
-            tmp->insert(id, beam_ref);
+			// insert cosine beam pattern as COSINE, id #1
+            beam_ref = beam_pattern_model::reference(new beam_pattern_cosine()) ;
+            tmp->insert(beam_ref.get()->beamID(), beam_ref);
 
 			// initialize singleton
 			_instance.reset(tmp) ;

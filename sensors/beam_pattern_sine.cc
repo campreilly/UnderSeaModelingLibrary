@@ -14,6 +14,15 @@ beam_pattern_sine::beam_pattern_sine()
     _reference_axis(0) = 1.0 ;
     _reference_axis(1) = 0.0 ;
     _reference_axis(2) = 0.0 ;
+    _beamID = beam_pattern_model::SINE ;
+}
+
+/**
+ * Destructor
+ */
+beam_pattern_sine::~beam_pattern_sine()
+{
+
 }
 
 /** Calculates the beam level in de, az, and frequency **/

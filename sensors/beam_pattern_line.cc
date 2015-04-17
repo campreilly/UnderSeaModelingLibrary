@@ -31,6 +31,15 @@ beam_pattern_line::beam_pattern_line(
            initialize_beams( sound_speed, spacing, steering_angle ) ;
             break ;
     }
+    _beamID = beam_pattern_model::LINE ;
+}
+
+/**
+ * Destructor
+ */
+beam_pattern_line::~beam_pattern_line()
+{
+
 }
 
 /** Calculates the beam level in de, az, and frequency **/

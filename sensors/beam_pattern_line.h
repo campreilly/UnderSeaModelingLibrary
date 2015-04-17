@@ -51,6 +51,11 @@ class USML_DECLSPEC beam_pattern_line : public beam_pattern_model {
                            orientation_axis axis=VERTICAL ) ;
 
         /**
+         * Destructor
+         */
+        virtual ~beam_pattern_line() ;
+
+        /**
          * Computes the response level in a specific DE/AZ pair and
          * beam steering angle. The return, level, is passed
          * back in linear units.

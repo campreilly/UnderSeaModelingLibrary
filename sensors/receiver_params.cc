@@ -3,9 +3,6 @@
  * Sensor characteristics for the receiver behaviors of a sensor.
  */
 #include <usml/sensors/receiver_params.h>
-#include <usml/sensors/beam_pattern_map.h>
-#include <boost/foreach.hpp>
-#include <algorithm>
 
 using namespace usml::sensors;
 
@@ -15,10 +12,22 @@ using namespace usml::sensors;
 receiver_params::receiver_params(sensor_params::id_type paramsID, 
     const seq_vector& frequencies, 
     const std::list<beam_pattern_model::id_type>& beamList, bool multistatic)
-    : sensor_params(paramsID, frequencies, multistatic)
+    : sensor_params(paramsID, frequencies, multistatic), _beam_list(beamList)
 {
-	_beam_patterns.resize( beamList.size() ) ;
-	BOOST_FOREACH( beam_pattern_model::id_type beamID, beamList ) {
-		_beam_patterns[beamID] = beam_pattern_map::instance()->find(beamID) ;
-	}
+
+}
+
+/**
+ * Searchs the beam pattern list for a specific beam pattern
+ * with the requested ID
+ */
+beam_pattern_model::reference receiver_params::beam_pattern(
+        beam_pattern_model::id_type beamID ) const
+{
+    if( std::find(_beam_list.begin(), _beam_list.end(), beamID)
+        == _beam_list.end() )
+    {
+        return beam_pattern_model::reference() ;
+    }
+    return beam_pattern_map::instance()->find(beamID) ;
 }
