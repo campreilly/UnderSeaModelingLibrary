@@ -645,7 +645,7 @@ void wave_queue::build_eigenray(
     ray.time        = _time + offset(0) ;
     ray.source_de   = (*_source_de)(de) + offset(1) ;
     ray.source_az   = (*_source_az)(az) + offset(2) ;
-    ray.frequencies = _frequencies ;
+    ray.frequencies = _frequencies->clone() ;
     ray.surface     = _curr->surface(de,az) ;
     ray.bottom      = _curr->bottom(de,az) ;
     ray.caustic     = _curr->caustic(de,az) ;

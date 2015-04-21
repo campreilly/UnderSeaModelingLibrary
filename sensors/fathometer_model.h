@@ -5,6 +5,7 @@
 #pragma once
 
 #include <usml/sensors/sensor_model.h>
+#include <usml/waveq3d/eigenray.h>
 
 namespace usml {
 namespace sensors{
@@ -44,9 +45,10 @@ public:
      */
     fathometer_model(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
                      wposition1 src_pos, wposition1 rcv_pos, shared_ptr<eigenray_list> list )
-        : _source_id(source_id), _receiver_id(receiver_id),
-          _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
-     {};
+        : _source_id(source_id), _receiver_id(receiver_id), _slant_range(0.0), 
+        _distance_from_sensor(0.0), _depth_offset_from_sensor(0.0),
+        _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
+     {}
 
     /**
      * Destructor
@@ -85,6 +87,54 @@ public:
      */
     void receiver_id(sensor_model::id_type receiver_id) {
         _receiver_id = receiver_id;
+    }
+
+    /**
+     * Sets the slant_range.
+     * @param  The slant_range.
+     */
+    void slant_range(double slant_range) {
+        _slant_range = slant_range;
+    }
+
+    /**
+     * Gets the slant_range.
+     * @return  The slant_range. 
+     */
+    double slant_range() {
+        return _slant_range;
+    }
+
+    /**
+     * Sets the distance_from_sensor.
+     * @param  The distance_from_sensor.
+     */
+    void distance_from_sensor(double distance_from_sensor) {
+        _distance_from_sensor = distance_from_sensor;
+    }
+
+    /**
+     * Gets the distance_from_sensor.
+     * @return  The distance_from_sensor.
+     */
+    double distance_from_sensor() {
+        return _distance_from_sensor;
+    }
+
+    /**
+     * Sets the depth_offset_from_sensor.
+     * @param  The depth_offset_from_sensor.
+     */
+    void depth_offset(double depth_offset) {
+        _depth_offset_from_sensor = depth_offset;
+    }
+
+    /**
+     * Gets the depth_offset_from_sensor.
+     * @return  The depth_offset_from_sensor.
+     */
+    double depth_offset() {
+        return _depth_offset_from_sensor;
     }
 
     /**
@@ -256,7 +306,7 @@ public:
      * and Format for Self-Describing, Portable Data NetCDF", Version 3.6.3,
      * Section 3.4, 7 June 2008.
      */
-    void write_netcdf( const char* filename, const char* long_name );
+    void write_netcdf( const char* filename, const char* long_name = NULL );
 
 private:
 
