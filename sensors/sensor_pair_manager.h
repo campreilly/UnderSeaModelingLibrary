@@ -61,6 +61,13 @@ public:
 	 */
     fathometer_model::fathometer_package get_fathometers(const sensor_query_map sensors);
 
+    /**
+     * Writes the fathometers provided to a NetCDF file.
+     * @param fathometrs fathometer_model::fathometer_package contains a collection of fathometer_model pointers
+     * @params filename The name of the file to write the fathometers.
+     */
+    void write_fathometers(fathometer_model::fathometer_package fathometers, const char* filename);
+
 	/**
 	 * Gets the envelopes for the receiverID requested
 	 * @param receiverID ID for the receiver

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <usml/sensors/sensor_model.h>
+#include <usml/waveq3d/eigenray.h>
 
 namespace usml {
 namespace sensors{
@@ -44,9 +45,10 @@ public:
      */
     fathometer_model(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
                      wposition1 src_pos, wposition1 rcv_pos, shared_ptr<eigenray_list> list )
-        : _source_id(source_id), _receiver_id(receiver_id),
-          _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
-     {};
+        : _source_id(source_id), _receiver_id(receiver_id), _slant_range(0.0), 
+        _distance_from_sensor(0.0), _depth_offset_from_sensor(0.0),
+        _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
+     {}
 
     /**
      * Destructor
@@ -85,6 +87,54 @@ public:
      */
     void receiver_id(sensor_model::id_type receiver_id) {
         _receiver_id = receiver_id;
+    }
+
+    /**
+     * Sets the slant_range.
+     * @param  The slant_range.
+     */
+    void slant_range(double slant_range) {
+        _slant_range = slant_range;
+    }
+
+    /**
+     * Gets the slant_range.
+     * @return  The slant_range. 
+     */
+    double slant_range() {
+        return _slant_range;
+    }
+
+    /**
+     * Sets the distance_from_sensor.
+     * @param  The distance_from_sensor.
+     */
+    void distance_from_sensor(double distance_from_sensor) {
+        _distance_from_sensor = distance_from_sensor;
+    }
+
+    /**
+     * Gets the distance_from_sensor.
+     * @return  The distance_from_sensor.
+     */
+    double distance_from_sensor() {
+        return _distance_from_sensor;
+    }
+
+    /**
+     * Sets the depth_offset_from_sensor.
+     * @param  The depth_offset_from_sensor.
+     */
+    void depth_offset(double depth_offset) {
+        _depth_offset_from_sensor = depth_offset;
+    }
+
+    /**
+     * Gets the depth_offset_from_sensor.
+     * @return  The depth_offset_from_sensor.
+     */
+    double depth_offset() {
+        return _depth_offset_from_sensor;
     }
 
     /**
@@ -140,114 +190,120 @@ public:
     /**
      * Write fathometer_model data to a netCDF file using a ragged
      * array structure. This ragged array concept (see reference) stores
-     * the fathometer_model data in a one dimensional list and uses an externally
-     * defined index to lookup the appropriate elements for each target.
+     * the fathometer_model data in a one dimensional list.
      *
      * This ragged array concept is used to define the intensity, phase,
      * source_de, source_az, target_de, target_az, surface, bottom, and
-     * caustic variables. The proploss_index variable defines the lookup index
-     * into these arrays for the summed fathometer_model for each target.  The
-     * eigenray_index variable defines a similar index for the beginning of the
-     * eigenray list.  Subsequent eigenrays for this target immediately follow
-     * the 1st eigenray.  The eigenray_number variable defines the number of
-     * eigenrays for each target.
+     * caustic variables.
      *
      * This file structure is illustrated (for a single target with
      * direct path, surface, and bottom eigenrays) in the netCDF sample below:
      * <pre>
-     *     netcdf eigenray_basic {
-     *     dimensions:
-     *      frequency = 1 ;
-     *      rows = 1 ;
-     *      cols = 1 ;
-     *      eigenrays = 4 ;
-     *      launch_de = 25 ;
-     *      launch_az = 5 ;
-     *     variables:
-     *      double source_latitude ;
-     *          source_latitude:units = "degrees_north" ;
-     *      double source_longitude ;
-     *          source_longitude:units = "degrees_east" ;
-     *      double source_altitude ;
-     *          source_altitude:units = "meters" ;
-     *          source_altitude:positive = "up" ;
-     *      double launch_de(launch_de) ;
-     *          launch_de:units = "degrees" ;
-     *          launch_de:positive = "up" ;
-     *      double launch_az(launch_az) ;
-     *          launch_az:units = "degrees_true" ;
-     *          launch_az:positive = "clockwise" ;
-     *      double time_step ;
-     *          time_step:units = "seconds" ;
+     *     netcdf fathometers_0 {
+     *  dimensions:
+     *      frequency = 4 ;
+     *      eigenrays = 3 ;
+     *  variables:
      *      double frequency(frequency) ;
-     *          frequency:units = "hertz" ;
-     *      double latitude(rows, cols) ;
-     *          latitude:units = "degrees_north" ;
-     *      double longitude(rows, cols) ;
-     *          longitude:units = "degrees_east" ;
-     *      double altitude(rows, cols) ;
-     *          altitude:units = "meters" ;
-     *          altitude:positive = "up" ;
-     *      short proploss_index(rows, cols) ;
-     *          proploss_index:units = "count" ;
-     *      short eigenray_index(rows, cols) ;
-     *          eigenray_index:units = "count" ;
-     *      short eigenray_num(rows, cols) ;
-     *          eigenray_num:units = "count" ;
-     *      double intensity(eigenrays, frequency) ;
-     *          intensity:units = "dB" ;
+     *              frequency:units = "Hertz" ;
+     *      short source_id ;
+     *      short receiver_id ;
+     *      double slant_range ;
+     *      double distance_from_sensor ;
+     *      double depth_offset ;
+     *      double source_latitude ;
+     *              source_latitude:units = "degrees_north" ;
+     *      double source_longitude ;
+     *              source_longitude:units = "degrees_east" ;
+     *      double source_altitude ;
+     *              source_altitude:units = "meters" ;
+     *              source_altitude:positive = "up" ;
+     *      double receiver_latitude ;
+     *              receiver_latitude:units = "degrees_north" ;
+     *      double receiver_longitude ;
+     *              receiver_longitude:units = "degrees_east" ;
+     *      double receiver_altitude ;
+     *              receiver_altitude:units = "meters" ;
+     *              receiver_altitude:positive = "up" ;
+     *       double intensity(eigenrays, frequency) ;
+     *              intensity:units = "dB" ;
      *      double phase(eigenrays, frequency) ;
-     *          phase:units = "radians" ;
+     *             phase:units = "radians" ;
      *      double travel_time(eigenrays) ;
-     *          travel_time:units = "seconds" ;
+     *             travel_time:units = "seconds" ;
      *      double source_de(eigenrays) ;
-     *          source_de:units = "degrees" ;
-     *          source_de:positive = "up" ;
+     *              source_de:units = "degrees" ;
+     *              source_de:positive = "up" ;
      *      double source_az(eigenrays) ;
-     *          source_az:units = "degrees_true" ;
-     *          source_az:positive = "clockwise" ;
+     *              source_az:units = "degrees_true" ;
+     *              source_az:positive = "clockwise" ;
      *      double target_de(eigenrays) ;
-     *          target_de:units = "degrees" ;
-     *          target_de:positive = "up" ;
-     *      double target_az(eigenrays) ;
-     *          target_az:units = "degrees_true" ;
-     *          target_az:positive = "clockwise" ;
-     *      short surface(eigenrays) ;
-     *          surface:units = "count" ;
-     *      short bottom(eigenrays) ;
-     *          bottom:units = "count" ;
-     *      short caustic(eigenrays) ;
-     *          caustic:units = "count" ;
+     *              target_de:units = "degrees" ;
+     *              target_de:positive = "up" ;
+     *       double target_az(eigenrays) ;
+     *              target_az:units = "degrees_true" ;
+     *              target_az:positive = "clockwise" ;
+     *       short surface(eigenrays) ;
+     *              surface:units = "count" ;
+     *       short bottom(eigenrays) ;
+     *              bottom:units = "count" ;
+     *       short caustic(eigenrays) ;
+     *              caustic:units = "count" ;
      *
-     *     // global attributes:
-     *          :long_name = "eigenray_basic test" ;
-     *          :Conventions = "COARDS" ;
-     *     data:
-     *      source_latitude = 45 ;
-     *      source_longitude = -45 ;
-     *      source_altitude = -1000 ;
-     *      launch_de = -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5,
-     *         10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60 ;
-     *      launch_az = -2, -1, 0, 1, 2 ;
-     *      time_step = 0.1 ;
-     *      frequency = 100000 ;
-     *      latitude = 45.02 ;
-     *      longitude = -45 ;
-     *      altitude = -1000 ;
-     *      proploss_index = 0 ;
-     *      eigenray_index = 1 ;
-     *      eigenray_num = 3 ;
-     *      intensity = 64.1427331557955, 66.9694875322853, 69.5617366839523, 77.9679676720843 ;
-     *      phase = 0.082693193293971, 0, -3.14159265358979, 0 ;
-     *      travel_time = 1.88788322659623, 1.48401881064351, 1.99622641373789, 3.03542140949814 ;
-     *      source_de = 6.86829906648868, -0.00988717967364023, 41.9270555318522, -61.0113452826929 ;
-     *      source_az = 0, 0, 0, 0 ;
-     *      target_de = -6.86819212315001, 0.0101128206074365, -41.9270291816411, 61.0112432784064 ;
-     *      target_az = 0, 0, 0, 0 ;
-     *      surface = 0, 0, 1, 0 ;
-     *      bottom = 0, 0, 0, 1 ;
-     *      caustic = 0, 0, 0, 0 ;
-     *     }
+     *   // global attributes:
+     *               :Conventions = "COARDS" ;
+     *   data:
+     *
+     *      frequency = 6500, 7500, 8500, 9500 ;
+     *
+     *      source_id = 1 ;
+     *
+     *      receiver_id = 1 ;
+     *
+     *      slant_range = 0 ;  
+     *
+     *      distance_from_sensor = 0 ;
+     *
+     *      depth_offset = 0 ;
+     *
+     *      source_latitude = 0 ;
+     *
+     *      source_longitude = 0 ;
+     *
+     *      source_altitude = 0 ;
+     *
+     *      receiver_latitude = 0 ;
+     *
+     *      receiver_longitude = 0 ;
+     *
+     *      receiver_altitude = 0 ;
+     *   
+     *      intensity =
+     *          63.3717061178703, 63.371726555249, 63.3717402233806, 63.3717498117019,
+     *          79.4460538046972, 79.4460621977365, 79.4460678071192, 79.4460717403834,
+     *          78.2782169632696, 78.2782251811778, 78.2782306738789, 78.2782345255009 ;
+     *
+     *      phase =
+     *          -0.0202283729735675, -0.0202283729735675, -0.0202283729735675, -0.0202283729735675,
+     *          3.10113590764266, 3.10113590764266, 3.10113590764266, 3.10113590764266,
+     *          -0.0404567459471346, -0.0404567459471346, -0.0404567459471346, -0.0404567459471346 ;
+     *
+     *      travel_time = 0.253437554251589, 0.506873828206375, 0.506873828206375 ;
+     *
+     *      source_de = 80.9389514923578, -77.9155534787501, 80.9389514923578 ;
+     *
+     *      source_az = 160, 160, 160 ;
+     *
+     *      target_de = 80.1830639793879, 80.1830239583339, 80.1830239583341 ;
+     *
+     *      target_az = 159.999999998664, 159.999999994619, 159.999999994619 ;
+     *
+     *      surface = 1, 1, 2 ;
+     *
+     *      bottom = 1, 2, 2 ;
+     *
+     *      caustic = 0, 0, 0 ;
+     * }
      * </pre>
      * @param   filename    Name of the file to write to disk.
      * @param   long_name   Optional global attribute for identifying data-set.
@@ -256,7 +312,7 @@ public:
      * and Format for Self-Describing, Portable Data NetCDF", Version 3.6.3,
      * Section 3.4, 7 June 2008.
      */
-    void write_netcdf( const char* filename, const char* long_name );
+    void write_netcdf( const char* filename, const char* long_name = NULL );
 
 private:
 

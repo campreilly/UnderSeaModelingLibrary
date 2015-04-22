@@ -170,6 +170,7 @@ private:
 
         // wait for results
         boost::timer timer ;
+
         while ( true ) {
             fathometers = sp_manager->get_fathometers(query);
             //envelopes = manager->get_envelopes(sensorID);
@@ -179,13 +180,23 @@ private:
         }
         cout << "waited for " << timer.elapsed() << " secs" << endl ;
 
-		// TODO record results of this test
+        int index = 0;
+        std::string ncname = USML_STUDIES_DIR "/reverberation/fathometers_";
+        fathometer_model::fathometer_package::iterator iter;
+        for ( iter = fathometers.begin(); iter != fathometers.end(); ++iter )
+        {
+            fathometer_model* model = ( *iter );
+            std::stringstream ss ;
+            ss << index ;
+            ncname += ss.str();
+            ncname += ".nc";
+            model->write_netcdf(ncname.c_str());
+        }
 
 		// Delete all for valgrind memcheck testing
         BOOST_FOREACH(fathometer_model* fathometer, fathometers) {
             delete fathometer;
         }
-        //delete sensor_manager::instance();
 	}
 };
 
