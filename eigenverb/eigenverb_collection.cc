@@ -35,13 +35,13 @@ void eigenverb_collection::write_netcdf(
 		break;
 	default:
 		{
-			int layer = interface - eigenverb::VOLUME_UPPER ;
-			int side = layer % 2 ;
+			size_t layer = interface - eigenverb::VOLUME_UPPER ;
+			size_t side = layer % 2 ;
 			layer = ( layer / 2 ) + 1 ;
 			std::ostringstream oss;
 			oss << ((side)?"lower":"upper") << " volume "  << layer << " eigenverbs" ;
 			nc_file->add_att("long_name", oss.str().c_str());
-			nc_file->add_att("layer", layer);
+			nc_file->add_att("layer", (long)layer);
 		}
 		break;
 	}
@@ -132,14 +132,9 @@ void eigenverb_collection::write_netcdf(
 
 			// translate units
 
-			double* energy = new double[verb.frequencies->size()] ;
-			double* length = new double[verb.frequencies->size()] ;
-			double* width = new double[verb.frequencies->size()] ;
-			for ( int f=0; f < verb.frequencies->size(); ++f ) {
-				energy[f] = 10.0*log10(max(1e-30,verb.energy(f))) ;
-				length[f] = sqrt(verb.length2(f)) ;
-				width[f] = sqrt(verb.width2(f)) ;
-			}
+			vector<double> energy = 10.0*log10(max(verb.energy, 1e-30));
+			vector<double> length = sqrt(verb.length2);
+			vector<double> width = sqrt(verb.width2);
 
 			// inserts data
 
@@ -147,10 +142,9 @@ void eigenverb_collection::write_netcdf(
 			long i ;
 			time_var->put(&verb.time, 1);
 
-			energy_var->put(energy, 1, (long) verb.frequencies->size());
-			length_var->put(length, 1, (long) verb.frequencies->size());
-			width_var->put(width, 1, (long) verb.frequencies->size());
-			delete[] energy, length, width ;
+			energy_var->put(energy.data().begin(), 1, (long) verb.frequencies->size());
+			length_var->put(length.data().begin(), 1, (long) verb.frequencies->size());
+			width_var->put(width.data().begin(), 1, (long) verb.frequencies->size());
 			v = verb.position.latitude(); lat_var->put(&v, 1);
 			v = verb.position.longitude(); lng_var->put(&v, 1);
 			v = verb.position.altitude(); alt_var->put(&v, 1);

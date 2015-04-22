@@ -1133,7 +1133,7 @@ void wave_queue::build_eigenverb(
 	// initialize eigenverb
 
     usml::eigenverb::eigenverb verb ;
-    verb.frequencies = this->frequencies() ;
+    verb.frequencies = _frequencies ;
     const size_t num_freq = verb.frequencies->size() ;
 
 	verb.time = time() + dt ;
@@ -1166,10 +1166,7 @@ void wave_queue::build_eigenverb(
     //    - sum squared distance with square of spreading factor
     //    - projects beam onto interface using grazing angle
 
-	vector<double> spreading( verb.frequencies->size() ) ;
-	for ( int f=0 ; f < spreading.size() ; ++f ) {
-		spreading(f) = TWO_PI * speed / (*verb.frequencies)(f) ;
-	}
+	vector<double> spreading = TWO_PI * speed / (*verb.frequencies);
 	const double sg = sin(grazing);
 	const double overlap = 2.0 ;
 	const double path_length = curr()->path_length(de,az)
