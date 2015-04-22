@@ -32,7 +32,7 @@ wave_queue::wave_queue(
     spreading_type type
 ) :
     _ocean( ocean ),
-    _frequencies( freq.clone() ),
+    _frequencies( &freq ),
     _source_pos( pos ),
     _source_de( de.clone() ),
     _max_de( de.size()-1 ),
@@ -93,7 +93,7 @@ wave_queue::wave_queue(
 
 /** Destroy all temporary memory. */
 wave_queue::~wave_queue() {
-    delete _frequencies ;
+    //delete _frequencies ;
     if ( _spreading_model ) delete _spreading_model ;
     delete _reflection_model ;
     delete _source_de ;
@@ -645,7 +645,7 @@ void wave_queue::build_eigenray(
     ray.time        = _time + offset(0) ;
     ray.source_de   = (*_source_de)(de) + offset(1) ;
     ray.source_az   = (*_source_az)(az) + offset(2) ;
-    ray.frequencies = _frequencies->clone() ;
+    ray.frequencies = _frequencies;
     ray.surface     = _curr->surface(de,az) ;
     ray.bottom      = _curr->bottom(de,az) ;
     ray.caustic     = _curr->caustic(de,az) ;

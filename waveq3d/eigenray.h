@@ -22,11 +22,6 @@ using boost::numeric::ublas::vector;
  */
 struct eigenray {
 
-    ~eigenray() {
-		// TODO
-        //delete frequencies;
-    }
-
     /** 
      * Time of arrival for this acoustic path (sec).
      */
