@@ -63,8 +63,139 @@ public:
 
     /**
      * Writes the fathometers provided to a NetCDF file.
-     * @param fathometrs fathometer_model::fathometer_package contains a collection of fathometer_model pointers
+     * @param fathometrs fathometer_model::fathometer_package contains
+     *                    a collection of fathometer_model pointers
      * @params filename The name of the file to write the fathometers.
+     *
+     * Write fathometers data to a netCDF file using a ragged
+     * array structure. This ragged array concept (see reference) stores
+     * the fathometer_model data in a one dimensional list.
+     *
+     * This ragged array concept is used to define the intensity, phase,
+     * source_de, source_az, target_de, target_az, surface, bottom, and
+     * caustic variables.
+     *
+     * This file structure is illustrated (for a single target with
+     * direct path, surface, and bottom eigenrays) in the netCDF sample below:
+     * <pre>
+     * netcdf fathometers {
+     * 	dimensions:
+     *         fathometers = 1 ;
+     *         eigenrays = 3 ;
+     *         frequency = 4 ;
+     * 	variables:
+     *         int fathometer_index(fathometers) ;
+     *                 fathometer_index:units = "count" ;
+     *         int source_id ;
+     *         int receiver_id ;
+     *         double slant_range ;
+     *         double distance_from_sensor ;
+     *         double depth_offset ;
+     *         double source_latitude ;
+     *                 source_latitude:units = "degrees_north" ;
+     *         double source_longitude ;
+     *                 source_longitude:units = "degrees_east" ;
+     *         double source_altitude ;
+     *                 source_altitude:units = "meters" ;
+     *                 source_altitude:positive = "up" ;
+     *         double receiver_latitude ;
+     *                 receiver_latitude:units = "degrees_north" ;
+     *         double receiver_longitude ;
+     *                 receiver_longitude:units = "degrees_east" ;
+     *         double receiver_altitude ;
+     *                 receiver_altitude:units = "meters" ;
+     *                 receiver_altitude:positive = "up" ;
+     *         int eigenray_num(eigenrays) ; 
+     *                 eigenray_num:units = "count" ;
+     *         double frequency(frequency) ;
+     *         double intensity(eigenrays, frequency) ;
+     *                 intensity:units = "dB" ;       
+     *         double phase(eigenrays, frequency) ;
+     *                 phase:units = "radians" ;
+     *         double travel_time(eigenrays) ;
+     *                 travel_time:units = "seconds" ;
+     *         double source_de(eigenrays) ;
+     *                 source_de:units = "degrees" ;
+     *                 source_de:positive = "up" ;
+     *         double source_az(eigenrays) ;
+     *                 source_az:units = "degrees_true" ;
+     *                 source_az:positive = "clockwise" ;
+     *         double target_de(eigenrays) ;
+     *                 target_de:units = "degrees" ;
+     *                 target_de:positive = "up" ;
+     *         double target_az(eigenrays) ;
+     *                 target_az:units = "degrees_true" ;
+     *                 target_az:positive = "clockwise" ;
+     *         short surface(eigenrays) ;
+     *                 surface:units = "count" ;
+     *         short bottom(eigenrays) ; 
+     *                 bottom:units = "count" ;
+     *         short caustic(eigenrays) ;
+     *                 caustic:units = "count" ;
+     * 
+     * 	// global attributes:
+     *                 :Conventions = "COARDS" ;
+     * 	data:
+     * 
+     *      fathometer_index = 0 ;
+     * 
+     *      source_id = 1 ;
+     * 
+     *      receiver_id = 1 ;
+     * 
+     *      slant_range = 0 ;
+     * 
+     *      distance_from_sensor = 0 ;
+     * 
+     * 		depth_offset = 0 ;
+     * 
+     * 		source_latitude = 0 ;
+     * 
+     * 		source_longitude = 0 ;
+     * 
+     *  	source_altitude = 0 ;
+     * 
+     *  	receiver_latitude = 0 ;
+     * 
+     *  	receiver_longitude = 0 ; 
+     * 
+     *  	receiver_altitude = 0 ;
+     * 
+     * 		eigenray_num = 0, 1, 2 ;
+     * 
+     *  	frequency = 6500, 7500, 8500, 9500 ;
+     * 
+     *      intensity =
+     *   		63.3717061178703, 63.371726555249, 63.3717402233806, 63.3717498117019,
+     *   		79.4460538046972, 79.4460621977365, 79.4460678071192, 79.4460717403834,
+     *   		78.2782169632696, 78.2782251811778, 78.2782306738789, 78.2782345255009 ;
+     * 
+     *  	phase =
+     *   		-0.0202283729735675, -0.0202283729735675, -0.0202283729735675, -0.0202283729735675,
+     *   		3.10113590764266, 3.10113590764266, 3.10113590764266, 3.10113590764266,
+     *   		-0.0404567459471346, -0.0404567459471346, -0.0404567459471346, -0.0404567459471346 ;
+     * 
+     *  	travel_time = 0.253437554251589, 0.506873828206375, 0.506873828206375 ;
+     * 
+     *  	source_de = 80.9389514923578, -77.9155534787501, 80.9389514923578 ;
+     * 
+     *  	source_az = 160, 160, 160 ;
+     * 
+     * 		target_de = 80.1830639793879, 80.1830239583339, 80.1830239583341 ;
+     * 
+     * 		target_az = 159.999999998664, 159.999999994619, 159.999999994619 ;
+     * 
+     * 		surface = 1, 1, 2 ;
+     * 
+     *  	bottom = 1, 2, 2 ;
+     * 
+     *  	caustic = 0, 0, 0 ;
+     * }
+     * </pre>
+     *
+     * @xref "The NetCDF Users Guide - Data Model, Programming Interfaces,
+     * and Format for Self-Describing, Portable Data NetCDF", Version 3.6.3,
+     * Section 3.4, 7 June 2008.
      */
     void write_fathometers(fathometer_model::fathometer_package fathometers, const char* filename);
 

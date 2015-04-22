@@ -79,7 +79,7 @@ class USML_DECLSPEC wave_queue {
      * Initialize a propagation scenario.
      *
      * @param  ocean        Reference to the environmental parameters.
-     * @param  freq         Frequencies over which to compute propagation (Hz).
+     * @param  freq         Frequencies over which to compute propagation (Hz). *See note below.
      * @param  pos          Location of the wavefront source in spherical
      *                      earth coordinates.
      * @param  de           Initial depression/elevation angles at the
@@ -97,6 +97,11 @@ class USML_DECLSPEC wave_queue {
      * @param  run_id		Run Identification number.
      * @param  type         Type of spreading model to use: CLASSIC_RAY
      *                      or HYBRID_GAUSSIAN.
+     *   NOTE: The freq paramater above, is a seq_vector pointer and is owned 
+     *         by caller of the wave_queue constructor. It is the responsibilty 
+     *         of the caller to ensure the pointer is not freed from memory while 
+     *         the wave_queue propagates and to delete the pointer when it is no
+     *         longer required.
      */
     wave_queue(
         ocean_model& ocean,

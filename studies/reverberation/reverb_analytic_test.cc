@@ -181,17 +181,24 @@ private:
         cout << "waited for " << timer.elapsed() << " secs" << endl ;
 
         int index = 0;
-        std::string ncname = USML_STUDIES_DIR "/reverberation/fathometers_";
+        std::string ncname = USML_STUDIES_DIR "/reverberation/fathometer_";
         fathometer_model::fathometer_package::iterator iter;
         for ( iter = fathometers.begin(); iter != fathometers.end(); ++iter )
         {
             fathometer_model* model = ( *iter );
+            sensor_model::id_type src_id = model->source_id();
+            sensor_model::id_type rcv_id = model->receiver_id();
             std::stringstream ss ;
-            ss << index ;
+            ss << "src_" << src_id << "_rcv_" << rcv_id;
             ncname += ss.str();
             ncname += ".nc";
             model->write_netcdf(ncname.c_str());
         }
+
+        sensor_pair_manager* sp_man = sensor_pair_manager::instance();
+    
+        std::string ncname_all = USML_STUDIES_DIR "/reverberation/fathometers.nc";
+        sp_man->write_fathometers(fathometers, ncname_all.c_str());
 
 		// Delete all for valgrind memcheck testing
         BOOST_FOREACH(fathometer_model* fathometer, fathometers) {
