@@ -30,13 +30,21 @@ class USML_DECLSPEC spreading_model {
         vector<double> _spread ;
 
         /**
+         * Initial ensonified area for each ray span. Assign the area for each
+         * span to the index of the ray that precedes it in D/E and azimuth.
+         * Copy the last element in each direction from  the one before it.
+         */
+        matrix<double> _init_area ;
+
+        /**
          * Initializes the spreading model.
          *
          * @param wave          Wavefront object associated with this model.
          * @param num_freqs     Number of different frequencies.
          */
         spreading_model( wave_queue& wave, size_t num_freqs ) :
-            _wave(wave), _spread(num_freqs)
+            _wave(wave), _spread(num_freqs),
+			_init_area(wave.num_de(), wave.num_az())
         {}
 
         /**
@@ -79,6 +87,17 @@ class USML_DECLSPEC spreading_model {
          */
         virtual double width_az(
             size_t de, size_t az, const vector<double>& offset ) = 0 ;
+
+        /**
+         * Initial ensonified area for each ray span. Assign the area for each
+         * span to the index of the ray that precedes it in D/E and azimuth.
+         *
+         * @param   de          DE index of contributing cell.
+         * @param   az          AZ index of contributing cell.
+         */
+        double init_area( size_t de, size_t az ) {
+        	return _init_area(de,az) ;
+        }
 } ;
 
 }  // end of namespace waveq3d

@@ -444,6 +444,9 @@ class USML_DECLSPEC wave_queue {
 	*/
     std::vector<eigenray_listener *> eigenray_listeners;
 
+    /** Associated eigenverb collection **/
+    eigenverb_collection* _collection ;
+
     /**
      * Create an Azimuthal boundary loop condition upon initialization.
      * This condition will prevent the production of multiple eigenrays
@@ -541,17 +544,15 @@ class USML_DECLSPEC wave_queue {
 
     void detect_caustics( size_t de, size_t az ) ;
 
-    /**
-     * Specialized call within wave_queue reverberation calculations. This call
-     * searches the volume layers of the ocean for layer collisions and sends the
-     * appropriate data to the reverberation model to be used in volume reverberation
-     * contributions.
-     *
-     * The function checks every point along the wavefront if the current altitude
-     * and the next time step altitude of the point cross a layer. If a point crosses
-     * a boundary in a time step, collide_from_above or collide_from_below are called.
-     */
-    void detect_volume_reflections() ;
+	/**
+	 * Searches the volume layers collisions and sends data to the
+	 * reverberation model. Compares the rho coordinate of the curr
+	 * and next wavefronts to the height of each layer at the curr and next
+	 * locations.  Calls collide_from_above() if the curr point is above
+	 * but the next point is below the layer.  Calls collide_from_below()
+	 * if the curr point is below but the next point is above.
+	 */
+    void detect_volume_scattering( size_t de, size_t az ) ;
 
     /**
      * A modified version of the function reflection_model::bottom_reflection used
@@ -767,6 +768,36 @@ class USML_DECLSPEC wave_queue {
 	 * call the add_eigenray method to provide eigenrays to object that requested them.
 	 */
 	bool notify_eigenray_listeners(size_t targetRow, size_t targetCol, eigenray pEigenray);
+
+    /**
+     * Constructs an eigenverb from the data provided. If the eigenverb meets
+     * the intensity threshold, the eigenverb is passed to the collision
+     * listener who then calls its collector to save the eigenverb.
+     *
+     * Exits immediately if:
+     * - An eigenverb listener has not yet been defined.
+     * - The wave has not started to propagate.
+     * - The grazing angle is less than 1e-6 radians.
+     * - The last azimuth of the fan overlaps the first azimuth.
+     * - The launch D/E angle is greater +/- 89.9 degrees.
+     *
+     * @param de            D/E angle index number.
+     * @param az            AZ angle index number.
+     * @param dt            Offset in time to collision with the boundary
+     * @param grazing       The grazing angle at point of impact (rads)
+     * @param speed         Speed of sound at the point of collision.
+     * @param position      Location at which the collision occurs
+     * @param ndirection    Normalized direction at the point of collision.
+     * @param type          Interface number for the interface that generated
+     * 					    for this eigenverb.  See the eigenverb_collection
+     * 					    class header for documentation on interpreting
+	 * 						this number. For some layers, you can also use the
+	 * 						eigenverb::interface_type.
+     */
+    void build_eigenverb(
+        size_t de, size_t az, double dt, double grazing,
+        double speed, const wposition1& position,
+        const wvector1& ndirection, size_t type ) ;
 
     //**************************************************
     // wavefront_netcdf routines

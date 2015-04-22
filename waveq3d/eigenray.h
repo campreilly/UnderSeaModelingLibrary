@@ -80,6 +80,16 @@ struct eigenray {
      * Number of caustics encountered along this path.
      */
     int caustic ;
+
+    /**
+     * Number of upper vertices encountered along this path.
+     */
+    int upper ;
+
+    /**
+     * Number of lower vertices encountered along this path.
+     */
+    int lower ;
 };
 
 /**

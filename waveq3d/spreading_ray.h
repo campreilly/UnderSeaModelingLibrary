@@ -37,13 +37,9 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
   private:
 
     /**
-     * Initial ensonified area for each ray span. Assign the area for each
-     * span to the index of the ray that precedes it in D/E and azimuth.
-     * Copy the last element in each direction from  the one before it.
-     * Divide the initial area by the initial speed of sound so that we
-     * don't have to do this each time intensity is calculated.
+     * Initial speed of sound.
      */
-    matrix<double> _init_area ;
+    double _init_sound_speed ;
 
   protected:
 
