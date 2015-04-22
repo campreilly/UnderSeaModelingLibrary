@@ -93,7 +93,6 @@ wave_queue::wave_queue(
 
 /** Destroy all temporary memory. */
 wave_queue::~wave_queue() {
-    //delete _frequencies ;
     if ( _spreading_model ) delete _spreading_model ;
     delete _reflection_model ;
     delete _source_de ;
