@@ -14,10 +14,22 @@
       At this time, most of the other modules provide support to WaveQ3D.
     </p>
 
+    <h2>Before you get started</h2>
     <p>USML depends on the NetCDF package, for access to test data, 
        and the Boost package, for fast computations (uBLAS) and unit test utilities.
        Correctly configuring these packages is the #1 problem reported by USML users.
-       Before you attempt to build and test USML, please read these instructions carefully.
+
+    <p> The USML build process assumes that the software will be installed into a directory called <b>usml</b>
+    and it won't build properly if that is not the case.  These instructions refer to <b>usml</b>
+    as the <i>home directory</i>.  The directory that contains <b>usml</b> is refered to as 
+    the <i>parent directory</i>.  The header files, *.cc source, and tests for each module are found
+    in the subdirectories off <b>usml</b>. The <i>#include</i> statements in the code explicitly 
+    rely on this directory structure.  For example, if sreilly decides to install USML under 
+    <b>~/Projects</b> on a Linux machine, the <i>home directory</i> would be 
+    <b>/home/sreilly/Projects/usml</b> and the <i>parent directory</i> would be 
+    <b>/home/sreilly/Projects</b>. Confusion over this scheme is the #2 problem reported by USML users.
+
+    <p> Before you attempt to build and test USML, please read these instructions carefully.  Good luck.
 
     <h2>Linux using GNU C++ and Unix Makefiles</h2>
 
@@ -41,12 +53,12 @@
 	</pre>
 	     where #.#.# is the version number to be installed.  
 	     In this example, we'll extract them to <code>~/Projects</code>, and this
-	     creates a directory called <code>~/Projects/usml</code>
-	<li> The USML build process absolutely requires the top-level USML directory 
+	     creates a home directory called <code>~/Projects/usml</code>
+	<li> The USML build process absolutely requires the home directory 
 	     to be named <code>usml</code>.  If you are extracting the code from another
-	     source, such as GitHub, make sure to rename the base directory <code>usml</code>.
+	     source, such as GitHub, make sure to rename the home directory <code>usml</code>.
 	</ul>
-    <li> Install CMake 2.8 and NetCDF 4.1 RPMs from the CentOS yum servers
+    <li> Install CMake GUI 2.8 and NetCDF Development 4.1 RPMs from the CentOS yum servers
 	<pre>
 	sudo yum install cmake-gui netcdf-devel
 	</pre>
@@ -107,7 +119,7 @@
 	</ul>
     <li> Use cmake-gui to generate Unix Makefiles project
 	<ul>
-	<li> In the <code>cmake-gui</code> tool (example below), set the source directory to the place where you
+	<li> In the <code>cmake-gui</code> tool (example below), set the source directory to the home directory where you
              installed the USML source code.  As suggested above source code could go in <code>~/Projects/usml</code>.
 	<li> Setup for an "out of source" build by setting the binaries directory to
              something like the <code>~/Projects/usml-build</code> directory.  Using a binary
@@ -192,9 +204,9 @@
 	     where #.#.# is the version number to be installed.  
 	     In this example, we extracted them to <code>C:\Projects</code>, and this
 	     created a directory called <code>C:\Projects\usml</code>
-	<li> The USML build process absolutely requires the top level USML directory 
-	     to be named <code>usml</code>.  If you are extracting the code from another
-	     source, such as GitHub, make sure to rename the base directory <code>usml</code>.
+	 <li> The USML build process absolutely requires the home directory          
+              to be named <code>usml</code>.  If you are extracting the code from another
+              source, such as GitHub, make sure to rename the home directory <code>usml</code>.
 	</ul>
     <li> Download the binary distribution for CMake 3.1.0
 	<ul>
