@@ -20,14 +20,14 @@
        Correctly configuring these packages is the #1 problem reported by USML users.
 
     <p> The USML build process assumes that the software will be installed into a directory called <b>usml</b>
-    and it won't build properly if that is not the case.  These instructions refer to <b>usml</b>
-    as the <i>home directory</i>.  The directory that contains <b>usml</b> is refered to as 
+    and it won't build properly if that is not the case.  These instructions refer to <code>usml</code>
+    as the <i>home directory</i>.  The directory that contains <code>usml</code> is refered to as 
     the <i>parent directory</i>.  The header files, *.cc source, and tests for each module are found
-    in the subdirectories off <b>usml</b>. The <i>#include</i> statements in the code explicitly 
+    in the subdirectories off <code>usml</code>. The <i>#include</i> statements in the code explicitly 
     rely on this directory structure.  For example, if sreilly decides to install USML under 
-    <b>~/Projects</b> on a Linux machine, the <i>home directory</i> would be 
-    <b>/home/sreilly/Projects/usml</b> and the <i>parent directory</i> would be 
-    <b>/home/sreilly/Projects</b>. Confusion over this scheme is the #2 problem reported by USML users.
+    <code>~/Projects</code> on a Linux machine, the <i>home directory</i> would be 
+    <code>/home/sreilly/Projects/usml</code> and the <i>parent directory</i> would be 
+    <code>/home/sreilly/Projects</code>. Confusion over this scheme is the #2 problem reported by USML users.
 
     <p> Before you attempt to build and test USML, please read these instructions carefully.  Good luck.
 
@@ -58,13 +58,25 @@
 	     to be named <code>usml</code>.  If you are extracting the code from another
 	     source, such as GitHub, make sure to rename the home directory <code>usml</code>.
 	</ul>
-    <li> Install CMake GUI 2.8 and NetCDF Development 4.1 RPMs from the CentOS yum servers
+	<p>
+     <li> Install CMake GUI 2.8 and NetCDF Development 4.1 RPMs from the CentOS yum servers
 	<pre>
 	sudo yum install cmake-gui netcdf-devel
 	</pre>
-    <li> Download and install the source code distribution for NCO 3.9.9
+     <li>If you do not have access to the CentOS yum servers, should be able the needed RPMs from the following sites.
 	<ul>
-        <li> This library provides the NCKS utility that we use in many of our NetCDF regression tests.
+	<li> <code>cmake-2.8.8-4.el6.x86_64.rpm</code> and <code>cmake-gui-2.8.8-4-el6.x86_64.rpm</code>
+		from <a href="http://packages.atrpms.net/dist/el6/cmake">http://packages.atrpms.net/dist/el6/cmake</a>
+<li> <code>netcdf-4.1.2-1.el6.rf.i686.rpm</code> and <code>netcdf-devel-4.1.2-1.el6.rf.i686.rpm</code>
+		from <a href="http://pkgs.repoforge.org/netcdf">http://pkgs.repoforge.org/netcdf</a>
+	<li> <code>libssh2-1.4.2-1.el6.i686.rpm</code>, <code>libidn-1.18-2.el6.i686.rpm</code>, and 
+	     <code>libcurl-7.19.7-37.el6_5.3.i686.rpm</code>
+		from <a href="http://mirror.centos.org/centos-6/6.6/os/i386/Packages/">http://mirror.centos.org/centos-6/6.6/os/i386/Packages</a>
+	</ul>
+	<p>
+     <li> Download and install the source code distribution for NCO 3.9.9
+	<ul>
+      <li> This library provides the NCKS utility that we use in many of our NetCDF regression tests.
 	<li> We used the source code distribution called <code>nco-3.9.9.tar.gz</code> from 
 	     <a href="http://nco.sourceforge.net/src/">http://nco.sourceforge.net/src/</a> 
 	<li> To install this software in <code>/usr/local</code>
@@ -117,6 +129,7 @@
 	     equal to the first operation.  For this reason, we recommend using -O1 as the
 	     minimum optimization level.
 	</ul>
+	<p>
     <li> Use cmake-gui to generate Unix Makefiles project
 	<ul>
 	<li> In the <code>cmake-gui</code> tool (example below), set the source directory to the home directory where you
@@ -132,12 +145,15 @@
 	     options.  Hit the <code>Generate</code> button to create makefiles for your system.
 	     At this point, you can close the cmake-gui tool.
 	</ul>
+	<p>
     <li>Run the <code>make</code> utility from <code>~/Projects/usml-build</code> directory to compile both
+	<p>
     <li> The <code>usml_test</code> regression test in this directory should run without errors if the
          compilation and install were successful.  
          <ul>
          <li>Prints <code>*** No errors detected</code> if fully successful.
          </ul>
+	<p>
     <li> If this test is successful, install the USML libraries
         <ul>
         <li> Run <code>sudo make install</code> to deploy into the directory defined by the 
@@ -148,6 +164,7 @@
         <li> CMake configuration files are written to <code>&ltprefix&gt/lib/cmake/USML</code>
         <li> Run <code>sudo make uninstall</code> will remove these files.
         </ul>
+	<p>
     <li> The install process can be re-run with different selections for Release/Debug
          and Static/Dynamic libraries to populate libraries with these variants.
 	<ul> 
