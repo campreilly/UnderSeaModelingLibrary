@@ -127,8 +127,8 @@ BOOST_AUTO_TEST_CASE( eigenverb_basic ) {
     }
 
     // compute the sound speed at the bottom for rofile->flat_earth(true) ;
-    const double c_bottom = c0 * (wposition::earth_radius-depth)
-    		/ wposition::earth_radius ;
+//    const double c_bottom = c0 * (wposition::earth_radius-depth)
+//    		/ wposition::earth_radius ;
 
     // test the accuracy of the eigenverb contributions
     // just tests downward facing rays to the bottom, along az=0
@@ -154,7 +154,6 @@ BOOST_AUTO_TEST_CASE( eigenverb_basic ) {
 			double L = 2.0 * path_length * to_radians(de_spacing) ;
 			double W = 2.0 * path_length * to_radians(az_spacing) * cos(verb.source_de);
 			vector<double> spread = abs2( TWO_PI * c0 / (*verb.frequencies) ) ;
-//			vector<double> spread = zero_vector<double>(verb.frequencies->size()) ;
 			vector<double> verb_length = sqrt( spread + L*L ) / sin(grazing) ;
 			vector<double> verb_width = sqrt( spread + W*W ) ;
 
