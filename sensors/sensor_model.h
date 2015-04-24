@@ -11,7 +11,6 @@
 #include <usml/sensors/orientation.h>
 #include <usml/sensors/source_params.h>
 #include <usml/sensors/xmitRcvModeType.h>
-#include <usml/threads/read_write_lock.h>
 #include <usml/threads/thread_task.h>
 #include <usml/waveq3d/eigenray_collection.h>
 #include <set>

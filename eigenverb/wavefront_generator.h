@@ -22,7 +22,7 @@ namespace eigenverb {
 using namespace usml::ocean ;
 using namespace usml::threads ;
 using namespace usml::waveq3d ;
-
+using namespace usml::types ;
 
 /// @ingroup eigenverb
 /// @{
@@ -32,9 +32,12 @@ class USML_DECLSPEC wavefront_generator : public thread_task
     public:
 
     /**
-     * Default Constructor
+     * Constructor
+     *  * @param listener pointer to a sensor_listener.
      */
-    wavefront_generator();
+    wavefront_generator(shared_ptr<ocean_model> ocean, wposition1 source_position,
+        wposition target_positions, const seq_vector* frequencies, wavefront_listener* listener,
+        double vertical_beamwidth = 0.0, double depression_elevation_angle = 0.0, int run_id = 0);
 
     /**
      * Virtual destructor
@@ -56,146 +59,88 @@ class USML_DECLSPEC wavefront_generator : public thread_task
     }
 
     /**
-     * Sets runID for the WaveQ3D run.
-     * @param runID
-     */
-    void runID(int runID) {
-        _runID = runID;
-    }
-
-    /**
-     * Sets the maximum range for the WaveQ3D run.
-     * @param range_maximum in meters
-     */
-    void range_maximum(double range_maximum) {
-        _range_maximum = range_maximum;
-    }
-
-    /**
-     * Sets the intensity_threshold for the WaveQ3D run.
-     * @param intensity_threshold in dB
-     */
-    void intensity_threshold(double intensity_threshold) {
-        _intensity_threshold = intensity_threshold;
-    }
-
-    /**
-     * Sets the _depression_elevation_angle for the WaveQ3D run.
-     * @param _depression_elevation_angle in radians
-     */
-    void depression_elevation_angle(double depression_elevation_angle) {
-        _depression_elevation_angle = depression_elevation_angle;
-    }
-
-    /**
-     * Sets the _vertical_beamwidth for the WaveQ3D run.
-     * @param _vertical_beamwidth in radians
-     */
-    void vertical_beamwidth(double vertical_beamwidth) {
-        _vertical_beamwidth = vertical_beamwidth;
-    }
-
-    /**
-     * Sets the _sensor_position for the WaveQ3D run.
-     * @param sensor_position wposition1 type
-     */
-    void sensor_position(wposition1 sensor_position) {
-        _sensor_position = sensor_position;
-    }
-
-    /**
-     * Sets the _targets for the WaveQ3D run.
-     * @param targets wposition container type.
-     */
-    void targets(wposition targets) {
-        _targets = targets;
-    }
-
-    /**
-     * Sets the frequencies for the WaveQ3D run.
-     * @param frequencies pointer to a seq_data type
-     */
-    void frequencies(const seq_vector* frequencies) {
-        _frequencies = frequencies;
-    }
-
-    /**
-     * Sets the ocean for the WaveQ3D run.
-     * @param ocean shared_pointer to an ocean_model
-     */
-    void ocean(shared_ptr<ocean_model> ocean) {
-        _ocean = ocean;
-    }
-
-    /**
-     * Sets the sensor_listener object
-     * @param listener pointer to a sensor_listener.
-     */
-    void wavefront_listener(wavefront_listener* listener) {
-        _wavefront_listener = listener;
-    }
-
-    /**
-     * Pulse length of the signal (sec)
-     */
-    static double pulse_length;
-
-    /**
-     * Maximum time (sec) to propagate WaveQ3D wavefront.
-     */
-    static double time_maximum;
-
-    /**
-     * Maximum time (sec) to propagate WaveQ3D wavefront.
-     */
-    static double time_step;
-
-    /**
-     * Number of depression/elevation angles to use in WaveQ3D wavefront.
+     * Default Number of depression/elevation angles to use in WaveQ3D wavefront.
      */
     static int number_de;
 
     /**
-     * Number of AZ angles to use in WaveQ3D wavefront
+     * Default Number of AZ angles to use in WaveQ3D wavefront
      */
     static int number_az;
+
+     /**
+     * Default Maximum time (sec) to propagate WaveQ3D wavefront.
+     */
+    static double time_maximum;
+
+    /**
+     * Default Maximum time (sec) to propagate WaveQ3D wavefront.
+     */
+    static double time_step;
+
+     /**
+     * The value of the intensity threshold in dB
+     * Any eigenray intensity values that are weaker than this
+     * threshold are stored for later retrieval.
+     */
+    static double intensity_threshold;
 
 private:
 
     /**
-     * The ID for the WaveQ3D run.
+     * Default Constructor - Prevent Access
      */
-    int _runID;
+    wavefront_generator();
+
+     /** Mutex to lock multiple properties at once. */
+    read_write_lock _lock ;
 
     /** Set to true when WaveQ3D propagation model task complete. */
     bool _done ;
 
-    /** Mutex to lock multiple properties at once. */
-    read_write_lock _lock ;
+    /**
+     * The ID for the WaveQ3D run.
+     */
+    const int _run_id;
+
+     /**
+      * Number of depression/elevation angles to use in WaveQ3D wavefront.
+      */
+    const int _number_de;
 
     /**
-     * Maximum range (meters) to propagate WaveQ3D wavefront.
+     * Number of AZ angles to use in WaveQ3D wavefront
      */
-    double  _range_maximum;
+    const int _number_az;
+
+    /**
+     * Maximum time (sec) to propagate WaveQ3D wavefront.
+     */
+    const double _time_maximum;
+
+    /**
+     * Time each step (sec) of WaveQ3D wavefront increases.
+     */
+    const double _time_step;
 
     /**
      * The value of the intensity threshold in dB
      * Any eigenray intensity values that are weaker than this
      * threshold are not sent the eigenray_listner(s);
      */
-    double  _intensity_threshold; //In dB
+    const double _intensity_threshold; //In dB
 
     /** Depression elevation angle in degrees */
-    double  _depression_elevation_angle;
+    const double  _depression_elevation_angle;
 
     /** Vertical beam width in degrees*/
-    double  _vertical_beamwidth;
+    const double  _vertical_beamwidth;
 
-    /** Sensor position */
-    wposition1 _sensor_position;
+    /** Source position */
+    const wposition1 _source_position;
 
     /** Targets container */
-    wposition _targets;
+    const wposition _target_positions;
 
     /** Frequencies container */
     const seq_vector* _frequencies;
@@ -204,7 +149,7 @@ private:
     shared_ptr<ocean_model> _ocean;
 
     /** Pointer to the sensor_listener. */
-    usml::eigenverb::wavefront_listener* _wavefront_listener;
+    wavefront_listener* _wavefront_listener;
 };
 
 /// @}

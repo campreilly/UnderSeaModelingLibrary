@@ -161,7 +161,6 @@ private:
         // usml::sensors::BOTH
     	xmitRcvModeType sensor_modes[] = {usml::sensors::BOTH};
 
-
         // Build a query
         sensor_pair_manager::sensor_query_map query;
         for ( int i = 0; i < sizeof(sensor_ids) / sizeof(sensor_model::id_type); ++i ) {

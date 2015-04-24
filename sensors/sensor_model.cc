@@ -255,28 +255,19 @@ void sensor_model::run_wave_generator() {
         #ifdef USML_DEBUG
             cout << "sensor_model: run_wave_generator(" << _sensorID << ")" << endl ;
         #endif
-        // Create the wavefront_generator
-        wavefront_generator* generator = new wavefront_generator();
-
-        // Populate waveq3d settings
-        generator->wavefront_listener(this);
-        generator->sensor_position(_position);
 
         // Get the targets sensor references
         std::list<const sensor_model*> targets = sensor_targets();
 
-        // Get the target positions
-        wposition target_pos = target_positions(targets);
-        generator->targets(target_pos);
-
-        // Set the targetID's for later use in sending on to sensor_pair
+        // Store the targetID's for later use in sending on to sensor_pairs
         target_ids(targets);
 
-        // Get the frequencies
-        generator->frequencies(_source->frequencies());
+        // Get the target positions for wavefront_generator
+        wposition target_pos = target_positions(targets);
 
-        // Set the ocean_model
-        generator->ocean(ocean_shared::current());
+        // Create the wavefront_generator
+        wavefront_generator* generator = new wavefront_generator(
+            ocean_shared::current(), _position, target_pos, _source->frequencies(), this);
 
         // Make wavefront_generator a wavefront_task, with use of shared_ptr
         _wavefront_task = thread_task::reference(generator);
