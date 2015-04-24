@@ -27,6 +27,13 @@ using namespace usml::waveq3d ;
 /// @ingroup eigenverb
 /// @{
 
+/**
+ * Propagates a wavefront to generate reverberation eigenverbs and fathometers.
+ * Invoked as a background thread_task whenever the sensor_model has a
+ * significant update. If an existing wavefront_generator is running for
+ * this sensor_model, that task is aborted before the new wavefront_generator
+ * is created.
+ */
 class USML_DECLSPEC wavefront_generator : public thread_task
 {
     public:

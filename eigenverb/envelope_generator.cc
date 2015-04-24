@@ -3,31 +3,90 @@
  */
 
 #include <usml/eigenverb/envelope_generator.h>
+#include <usml/eigenverb/eigenverb.h>
 
 //#define DEBUG_CONVOLUTION
 using namespace usml::eigenverb ;
 
-void envelope_generator::generate_envelopes(
-    const eigenverb_collection& source,
-    const eigenverb_collection& receiver,
-    envelope_collection* levels )
+/**
+ * Default pulse length of the signal (sec).
+ */
+double envelope_generator::pulse_length = 1.0 ;
+
+/**
+ * Default duration of the reverberation envelope (sec).
+ */
+double envelope_generator::time_maximum = 40.0 ;
+
+/**
+ * Default sampling period for the reverberation envelope (sec).
+ */
+double envelope_generator::time_step = 1.0 ;
+
+/**
+ * Copies envelope computation parameters from static memory into
+ * this specific task.
+ */
+envelope_generator::envelope_generator( size_t num_azimuths ) :
+	_done(false),
+	_ocean( ocean_shared::current() ),
+	_pulse_length( pulse_length ),
+	_time_maximum( time_maximum ),
+	_time_step( time_step )
+//	_envelopes( num_azimuths, num_src_beams,
+//				num_rcv_beams, num_freqs, num_times, time_step) ;
 {
-	//	TODO stub out while we update eigenverb_collection
+}
+
+/**
+ * Computes the broadband scattering strength for a specific interface.
+ */
+void envelope_generator::scattering( size_t interface, const wposition1& location,
+		const seq_vector& frequencies, double de_incident,
+		double de_scattered, double az_incident, double az_scattered,
+		vector<double>* amplitude)
+{
+	switch ( interface ) {
+	case eigenverb::BOTTOM:
+		_ocean->bottom().scattering(location,frequencies,
+				de_incident,de_scattered,az_incident,az_scattered,
+				amplitude) ;
+		break;
+	case eigenverb::SURFACE:
+		_ocean->surface().scattering(location,frequencies,
+				de_incident,de_scattered,az_incident,az_scattered,
+				amplitude) ;
+		break;
+	default:
+		size_t layer = (size_t) floor( (interface-2.0)/2.0 ) ;
+		_ocean->volume( layer ).scattering(location,frequencies,
+				de_incident,de_scattered,az_incident,az_scattered,
+				amplitude) ;
+		break;
+	}
+}
+
+//void envelope_generator::generate_envelopes(
+//    const eigenverb_collection& source,
+//    const eigenverb_collection& receiver,
+//    envelope_collection* levels )
+//{
+//	//	TODO stub out while we update eigenverb_collection
 //    compute_bottom_energy( source, receiver, levels ) ;
 //    compute_surface_energy( source, receiver, levels ) ;
 //    if( source.volume() ) {
 //        compute_upper_volume_energy( source, receiver, levels ) ;
 //        compute_lower_volume_energy( source, receiver, levels ) ;
 //    }
-}
+//}
 
 /**
  * Computes the contribution value
  */
-void envelope_generator::compute_contribution(
-    const eigenverb* u, const eigenverb* v,
-    envelope_collection* levels )
-{
+//void envelope_generator::compute_contribution(
+//    const eigenverb* u, const eigenverb* v,
+//    envelope_collection* levels )
+//{
 //	TODO stubbed out
 //        // determine the relative angle and distance between the projected gaussians
 //    double alpha, chi, beta, dummy ;
@@ -96,4 +155,4 @@ void envelope_generator::compute_contribution(
 //        double time = u->travel_time + v->travel_time + Tsr ;
 //        levels->add_gaussian( energy, time, Tsr, v->az_index ) ;
 //    }
-}
+//}

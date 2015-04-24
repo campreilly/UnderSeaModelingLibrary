@@ -3,106 +3,68 @@
  */
 #include <usml/eigenverb/envelope_collection.h>
 
-using namespace usml::eigenverb ;
-using namespace boost ;
+using namespace usml::eigenverb;
 
 /**
- * Constructor
+ * Reserve memory in which to store results as a series of
+ * nested dynamic arrays.
  */
 envelope_collection::envelope_collection(
-    double resolution,
-    size_t num_bins,
-    size_t num_az )
-    : _envelopes( num_az )
+	shared_ptr<seq_vector> source_freq,
+	shared_ptr<seq_vector> envelope_freq,
+	double threshold,
+	size_t num_azimuths,
+	size_t num_src_beams,
+	size_t num_rcv_beams
+) :
+	_source_freq(source_freq),
+	_envelope_freq(envelope_freq),
+	_threshold( threshold ),
+	_num_azimuths(num_azimuths),
+	_num_src_beams(num_src_beams),
+	_num_rcv_beams(num_rcv_beams)
 {
-    initialize( num_bins, resolution ) ;
-}
-
-envelope_collection::~envelope_collection()
-{
-    BOOST_FOREACH( vector<double>* i, _envelopes )
-            if( i ) delete i ;
-}
-
-void envelope_collection::initialize(
-    size_t size, double resolution )
-{
-    // Initialize the envelope vectors to 1e-20
-	BOOST_FOREACH(vector<double>*& i, _envelopes)
-		i = new vector<double>( size, 1e-20 ) ;
-
-    // Initialize the two way travel time vector
-    // based on the resolution or number of bins
-    // of the envelopes.
-    _two_way_time.resize( size ) ;
-    _two_way_time.clear() ;
-    size_t count = 0 ;
-    BOOST_FOREACH( double& i, _two_way_time )
-        i = resolution * count++;
-}
-
-/**
- * Adds a small time spread gaussian contribution
- * to the envelope in the azimuthal direction.
- */
-void envelope_collection::add_gaussian(
-    double peak, double travel_time,
-    double duration_time, size_t az )
-{
-    vector<double> time_exp =
-            ( _two_way_time - travel_time ) * ( 1.0 / duration_time ) ;
-    time_exp = element_prod( time_exp, time_exp ) ;
-    vector<double> _time_spread =
-            ( peak / ( duration_time * sqrt(TWO_PI) ) ) * exp( -0.5 * time_exp ) ;
-    (*_envelopes(az)) += _time_spread ;
+	_envelopes = new envelope_model***[_num_azimuths];
+	envelope_model**** pa = _envelopes;
+	for (size_t a = 0; a < _num_azimuths; ++a, ++pa) {
+		*pa = new envelope_model**[_num_src_beams];
+		envelope_model*** ps = *pa;
+		for (size_t s = 0; s < _num_src_beams; ++s, ++ps) {
+			*ps = new envelope_model*[_num_rcv_beams];
+			envelope_model** pr = *ps;
+			for (size_t r = 0; r < _num_rcv_beams; ++r, ++pr) {
+				*pr = new envelope_model(
+						_source_freq, _envelope_freq, _threshold ) ;
+			}
+		}
+	}
 }
 
 /**
- * Returns the envelope at the azimuthal index of az
+ * Delete dynamic memory in each of the nested dynamic arrays.
  */
-vector<double> envelope_collection::envelopes( size_t az ) const
-{
-   return (*_envelopes(az)) ;
+envelope_collection::~envelope_collection() {
+	envelope_model**** pa = _envelopes;
+	for (size_t a = 0; a < _num_azimuths; ++a, ++pa) {
+		envelope_model*** ps = *pa;
+		for (size_t s = 0; s < _num_src_beams; ++s, ++ps) {
+			envelope_model** pr = *ps;
+			for (size_t r = 0; r < _num_rcv_beams; ++r, ++pr) {
+				delete *pr ;
+			}
+			delete[] *ps ;
+		}
+		delete[] *pa ;
+	}
+	delete[] _envelopes ;
 }
 
 /**
- * Returns the entire reveberation envelope collection
+ * Writes the envelope data to disk
+ *
+ * TODO Write envelope_collection data to netCDF files.
  */
-vector<vector<double>*> envelope_collection::envelopes() const
-{
-    return _envelopes ;
+void envelope_collection::write_netcdf(const char* filename) {
+
 }
 
-/**
- * Saves envelope data to disk
- */
-void envelope_collection::write_netcdf( const char* filename )
-{
-    NcFile* nc_file = new NcFile(filename, NcFile::Replace);
-    NcDim* az_dim = nc_file->add_dim("number_envelopes", (long) _envelopes.size() ) ;
-    NcDim* time_dim = nc_file->add_dim("time_resolution", (long) _two_way_time.size() ) ;
-
-    // variables
-    NcVar* time_var = nc_file->add_var("two_way_time", ncDouble, time_dim);
-    NcVar* az_var = nc_file->add_var("azimuth", ncShort, az_dim);
-    NcVar* intensity_var = nc_file->add_var("intensity", ncDouble, az_dim, time_dim);
-    az_var->add_att("units", "count");
-    time_var->add_att("units", "seconds");
-    intensity_var->add_att("units", "linear");
-
-    time_var->put(_two_way_time.data().begin(), (long) _two_way_time.size());
-    long record = 0 ;
-    int count = 0 ;
-    BOOST_FOREACH( vector<double>* i, _envelopes )
-    {
-        az_var->set_cur(record);
-        intensity_var->set_cur(record);
-        ++record ;
-        az_var->put(&count, 1);
-        ++count ;
-        intensity_var->put(i->data().begin(), 1, (long) _two_way_time.size()) ;
-    }
-    // close file
-
-    delete nc_file; // destructor frees all netCDF temp variables
-}
