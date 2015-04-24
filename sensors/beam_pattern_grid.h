@@ -49,7 +49,7 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
          * @param data_unit     units that the data are in upon
          *                      being passed in.
          */
-        beam_pattern_grid( seq_vector* axes[], const value_ptr data,
+        beam_pattern_grid( const seq_vector* axes[], const value_ptr data,
                            const data_units& data_unit )
             : data_grid<T,Dim>( axes )
         {
@@ -255,7 +255,7 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
         */
        void construct_directivity_grid() {
            size_type num_freq( this->_axis[0]->size() ) ;
-           seq_vector* axes[] = { this->axis(0) } ;
+           const seq_vector* axes[] = { this->axis(0) } ;
            _directivity_index = new data_grid<double,1>( axes ) ;
            value_ptr p_data = _directivity_index->data() ;
            for(size_type i=0; i<num_freq; ++i) {

@@ -3,6 +3,7 @@
  * Container for one sensor pair instance.
  */
 #include <usml/sensors/sensor_pair.h>
+#include <boost/foreach.hpp>
 
 using namespace usml::sensors;
 

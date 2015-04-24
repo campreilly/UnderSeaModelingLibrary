@@ -408,7 +408,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_1d_test ) {
     vector<double> freq(N) ;
     double axis_data[] = { 10.1, 57.0, 79.0, 81.5, 100.7, 152.7 } ;
 //    seq_vector* axes = new seq_log( 10.0, 10.0, N ) ;
-    seq_vector* axes[1] ;
+    const seq_vector* axes[1] ;
     axes[0] = new seq_data( axis_data, N ) ;
     double* data = new double[N] ;
     for(int i=0; i<N; ++i) {
@@ -466,7 +466,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
     seq_linear* frequencies = new seq_linear( 100.0, 100.0, n ) ;
     vector<double> freq = *frequencies ;
     seq_vector* de = new seq_linear( to_radians(-2.0), to_radians(1.0), n ) ;
-    seq_vector* axes[2] ;
+    const seq_vector* axes[2] ;
     axes[0] = frequencies ;
     axes[1] = de ;
     double* data = new double[N] ;
@@ -532,7 +532,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_3d_test ) {
     vector<double> freq = frequencies ;
     seq_linear de( to_radians(-2.0), to_radians(1.0), n ) ;
     seq_linear az( to_radians(0.0), to_radians(5.0), n ) ;
-    seq_vector* axes[3] ;
+    const seq_vector* axes[3] ;
     axes[0] = &frequencies ;
     axes[1] = &de ;
     axes[2] = &az ;
