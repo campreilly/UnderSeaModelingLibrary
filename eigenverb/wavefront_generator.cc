@@ -11,7 +11,7 @@ using namespace usml::eigenverb ;
 
 int wavefront_generator::number_de = 181;
 int wavefront_generator::number_az = 18;
-double wavefront_generator::time_maximum = 1.0;          // sec
+double wavefront_generator::time_maximum = 90.0;          // sec
 double wavefront_generator::time_step = 0.01;            // sec
 double wavefront_generator::intensity_threshold = 300.0; // dB
 

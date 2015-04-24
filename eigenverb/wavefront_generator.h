@@ -27,13 +27,46 @@ using namespace usml::types ;
 /// @ingroup eigenverb
 /// @{
 
+/**
+ * This class inherits the thread_task interface and is used to assemble
+ * the all data required by the wave_queue and then run the wave_queue.
+ * Once instantiated the class run method is called by passing its pointer
+ * into the thread_controller's run method.
+ *
+ * Several of the static attributes that can be set prior to constructing
+ * this class are as follows with there default values:
+ *
+ *  wavefront_generator::number_de = 181;              // Number of depression/elevation indices
+ *  wavefront_generator::number_az = 18;               // Number of azimuthal indices
+ *  wavefront_generator::time_maximum = 90.0;          // Max run time seconds
+ *  wavefront_generator::time_step = 0.01;             // Step time i seconds
+ *  wavefront_generator::intensity_threshold = -300.0; // dB  Eigenray with intensity values below this are discarded.
+ */
+
 class USML_DECLSPEC wavefront_generator : public thread_task
 {
     public:
 
     /**
      * Constructor
-     *  * @param listener pointer to a sensor_listener.
+     *
+     *  @param ocean shared pointer to the ocean_model required by the wave_queue
+     *  @param source_position wposition1 type that contains the lat, lon, alt
+     *         of the source sensor.
+     *  @param target_positions wposition type that contains the lat, lon, alt
+     *         of each of the targets.
+     *  @param frequencies pointer to a seq_vector type that contains all the
+     *         freq for wave_queue.
+     *  @param listener pointer to a sensor_listener class that will receive the
+     *         eigenrays and eigenverbs.
+     *  @param vertical_beamwidth in decimal degrees of the sensors beam above and
+     *         below depression_elevation_angle.
+     *         Optional, not used when not provided.
+     *  @param depression_elevation_angle decimal degrees offset from the
+     *         horizontal plane.
+     *         Optional, Defaults to 0 (zero).
+     *  @param run_id ID for this propagation run of wave_queue.
+     *         Optional. Defaults to 0 (zero).
      */
     wavefront_generator(shared_ptr<ocean_model> ocean, wposition1 source_position,
         wposition target_positions, const seq_vector* frequencies, wavefront_listener* listener,

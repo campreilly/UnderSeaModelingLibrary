@@ -126,9 +126,8 @@ void sensor_model::update_eigenrays(eigenray_collection::reference& eigenrays)
             // Get eigenray_list for listener, ie sensor_pair
             // Get complement's row's eigenray_list
             eigenray_list* list = _eigenray_collection->eigenrays(row, 0);
-            shared_ptr<eigenray_list> rays_sptr(list);
              // Send out shared_ptr of eigenray_list to listener
-            listener->update_eigenrays(_sensorID, rays_sptr);
+            listener->update_eigenrays(_sensorID, list);
         }
 	}
 }

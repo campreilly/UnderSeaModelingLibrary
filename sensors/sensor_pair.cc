@@ -9,28 +9,24 @@ using namespace usml::sensors;
 /**
  * Notification that new eigenray data is ready.
  */
-void sensor_pair::update_eigenrays(sensor_model::id_type sensorID, shared_ptr<eigenray_list> list)
+void sensor_pair::update_eigenrays(sensor_model::id_type sensorID, eigenray_list* list)
 {
     write_lock_guard guard(_eigenrays_mutex);
     #ifdef USML_DEBUG
         cout << "sensor_pair: update_eigenrays("
              << sensorID << ")" << endl ;
     #endif
-
+    // Must create a new memory location for eigenrays
+    eigenray_list* new_list = new eigenray_list(*list);
     // If sensor that made this call is the _receiver of this pair
     //    then Swap de's, and az's
     if (sensorID == _receiver->sensorID()) {
-
-        eigenray_list* eigenrays = list.get();
-        BOOST_FOREACH( eigenray ray, *eigenrays) {
+        BOOST_FOREACH( eigenray ray, *new_list) {
             std::swap(ray.source_de, ray.target_de);
             std::swap(ray.source_az, ray.target_az);
         }
     }
-    #ifdef NOOP
-    cout << "sensor_pair: update_eigenrays inserting eigenray_list" << endl ;
-    #endif
-    _eigenrays = list;
+    _eigenrays = shared_ptr<eigenray_list> (new_list);
 }
 
 /**
