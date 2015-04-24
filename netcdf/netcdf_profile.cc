@@ -198,7 +198,7 @@ void netcdf_profile::fill_missing() {
 					size_type indx[] = { d, j, k } ;
 					value_type curr = this->data( indx ) ;
 					if( ! isnan(curr) ) {
-	                    max_depth = max( max_depth, d ) ;
+                        max_depth = max( max_depth, d ) ;
 						size_type indx2[] = { d-1, j, k } ;
 						value_type prev = this->data( indx2 ) ;
 						profile_grad(d)(j,k) = ( curr - prev ) / depth->increment(d-1) ;
