@@ -210,7 +210,7 @@ void netcdf_profile::fill_missing() {
 
 	int Q = 4 ;
 	for(size_type d=0; d<max_depth+1; ++d) {
-        for(size_type j=0; j<nlat; ++j) {
+	    for(size_type j=0; j<nlat; ++j) {
 			for(size_type k=0; k<nlon; ++k) {
 				size_type index[] = { d, j, k } ;
 				value_type r = this->data( index );
