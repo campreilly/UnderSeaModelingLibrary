@@ -4,11 +4,13 @@
 #include <usml/ocean/ocean_shared.h>
 #include <usml/sensors/beams.h>
 #include <usml/sensors/sensors.h>
+#include <usml/eigenverb/wavefront_generator.h>
 #include <list>
 #include <boost/progress.hpp>
 #include <boost/foreach.hpp>
 
-using namespace usml::sensors;
+using namespace usml::sensors ;
+using namespace usml::eigenverb ;
 
 /**
  * This scenario compute reverberation for a scenario that has a simple
@@ -135,6 +137,12 @@ private:
 		orientation orient(0.0, 0.0);	// default orientation
 
 		sensor_manager::instance()->add_sensor(sensorID, paramsID, "sensor1");
+
+		// Set wave_queue attributes
+		wavefront_generator::time_maximum = 1.0; // sec
+		wavefront_generator::intensity_threshold = 150.0; //dB
+
+		// Update sensor data and run wave_queue.
 		sensor_manager::instance()->update_sensor(sensorID, pos, orient, true);
 	}
 
@@ -142,7 +150,6 @@ private:
 	 * Wait for the reverberation model to compute results.
 	 *
 	 * TODO Retrieve envelopes from sensor_pair_manager.
-	 * TODO Record results of this test.
 	 */
 	void wait_for_results() {
 
@@ -160,7 +167,6 @@ private:
         // usml::sensors::RECEIVER
         // usml::sensors::BOTH
     	xmitRcvModeType sensor_modes[] = {usml::sensors::BOTH};
-
 
         // Build a query
         sensor_pair_manager::sensor_query_map query;

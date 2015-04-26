@@ -42,9 +42,6 @@ sensor_manager::~sensor_manager()
     for ( iter = _map.begin(); iter != _map.end(); ++iter )
     {
         sensor_model* sensor = iter->second;
-        #ifdef USML_DEBUG
-            cout << " ~sensor_manager: deleting sensor " << sensor << endl;
-        #endif
         delete sensor;
     }
 }

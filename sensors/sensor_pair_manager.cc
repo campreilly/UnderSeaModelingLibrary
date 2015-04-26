@@ -44,9 +44,6 @@ sensor_pair_manager::~sensor_pair_manager() {
     for ( iter = _map.begin(); iter != _map.end(); ++iter )
     {
         sensor_pair* pair_data = iter->second;
-        #ifdef USML_DEBUG
-            cout << "  ~sensor_pair_manager: deleting sensor_pair " << pair_data << endl;
-        #endif
         delete pair_data;
     }
 }
@@ -152,10 +149,6 @@ fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(sensor
                 wposition1 src_pos = pair_data->source()->position();
                 wposition1 rcv_pos = pair_data->receiver()->position();
                 fathometer = new fathometer_model(src_id, rcv_id, src_pos, rcv_pos, eigenrays);
-                #ifdef USML_DEBUG
-                    cout << "sensor_pair_manager: get_fathometers - added fathometer for pair "
-                        << "src " << src_id << " rcv " << rcv_id << endl;
-                #endif
                 fathometers.push_back(fathometer);
             }
         }
