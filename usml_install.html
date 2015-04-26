@@ -23,7 +23,7 @@
     and it won't build properly if that is not the case.  These instructions refer to <code>usml</code>
     as the <i>home directory</i>.  The directory that contains <code>usml</code> is refered to as 
     the <i>parent directory</i>.  The header files, *.cc source, and tests for each module are found
-    in the subdirectories off <code>usml</code>. The <i>#include</i> statements in the code explicitly 
+    in the subdirectories of <code>usml</code>. The <i>#include</i> statements in the code explicitly 
     rely on this directory structure.  For example, if sreilly decides to install USML under 
     <code>~/Projects</code> on a Linux machine, the <i>home directory</i> would be 
     <code>/home/sreilly/Projects/usml</code> and the <i>parent directory</i> would be 
@@ -63,7 +63,7 @@
 	<pre>
 	sudo yum install cmake-gui netcdf-devel
 	</pre>
-     <li>If you do not have access to the CentOS yum servers, should be able the needed RPMs from the following sites.
+     <li>If you do not have access to the CentOS yum servers, you can find the needed RPMs from the following sites:
 	<ul>
 	<li> <code>cmake-2.8.8-4.el6.x86_64.rpm</code> and <code>cmake-gui-2.8.8-4-el6.x86_64.rpm</code>
 		from <a href="http://packages.atrpms.net/dist/el6/cmake">http://packages.atrpms.net/dist/el6/cmake</a>
@@ -114,7 +114,7 @@
 	     and <code>matrix_expression.hpp</code> files in the <code>usml/config</code> directory.
 	<li> In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
 	     just above it. 
-	<li> Those using Boost 1.41 trhough 1.56 can just replace the original files with the
+	<li> Those using Boost 1.41 through 1.56 can just replace the original files with the
 	     ones from the <code>usml/config</code> directory.  
 	<li> Boost 1.57 fixed the problem in 
 	     <code>vector_expression.hpp</code>, but requires replacing <code>matrix_expression.hpp</code>
@@ -148,8 +148,7 @@
 	<p>
     <li>Run the <code>make</code> utility from <code>~/Projects/usml-build</code> directory to compile both
 	<p>
-    <li> The <code>usml_test</code> regression test in this directory should run without errors if the
-         compilation and install were successful.  
+    <li> The <code>usml_test</code> regression test in this directory should run without errors.  
          <ul>
          <li>Prints <code>*** No errors detected</code> if fully successful.
          </ul>
@@ -190,7 +189,7 @@
 	<ul>
 	<li> Select </code>Import...</code> from the </code>File</code> menu.
 	<li> Select </code>Existing Projects into Workspace</code> under </code>General</code> folder.
-	<li> Select the parent of the </code>usml</code>, such as </code>~/Projects</code>
+	<li> Select the parent of the </code>usml</code>, such as <code>~/Projects</code>
 	<li> Check the </code>usml-Release</code> and </code>usml-Source</code> 
              projects and select </code>Finish</code>.
 	</ul>
@@ -201,10 +200,8 @@
 
     We've tested this process using Windows 7 with:
     <ul>
-	<li> 32-bit Visual Studio 2010 Express, which we downloaded for free from 
-             <a href="http://www.visualstudio.com/downloads/download-visual-studio-vs#DownloadFamilies_4">
-             http://www.visualstudio.com/downloads/download-visual-studio-vs#DownloadFamilies_4</a>
-	<li> 32-bit and 64-bit Visual Studio 2013 Professional (msvc 12.0)
+	<li> 32-bit Visual Studio 2010 Express
+	<li> 32-bit and 64-bit Visual Studio 2013 Professional and Community versions (msvc 12.0)
 
     </ul>
     The steps that follow are the process we used to setup USML for a 32-bit Visual Studio 2010 development environment.
@@ -223,15 +220,12 @@
 	     created a directory called <code>C:\Projects\usml</code>
 	 <li> The USML build process absolutely requires the home directory          
               to be named <code>usml</code>.  If you are extracting the code from another
-              source, such as GitHub, make sure to rename the home directory <code>usml</code>.
+              source, such as GitHub, make sure to rename the home directory to <code>usml</code>.
 	</ul>
     <li> Download the binary distribution for CMake 3.1.0
 	<ul>
 	<li> We used the Win32 installer called <code>cmake-3.1.0-win32-x86.exe</code>, 
 	     from <a href="http://www.cmake.org/download">http://www.cmake.org/download</a>.
-		<ul>
-		<li>Note the ’10.0’ refers to Visual Studio 10, select appropriately. 
-		</ul>
 	<li> Running this installer deposits the software
 	     in the <code>C:\Program Files (x86)\CMake</code> directory by default.
 	</ul>
@@ -240,6 +234,9 @@
 	<li> We used the Win32 installer called <code>boost_1_57_0-msvc-10.0-32.exe</code> from 
 	     <a href="http://sourceforge.net/projects/boost/files/boost-binaries">
 	     http://sourceforge.net/projects/boost/files/boost-binaries</a>.
+		<ul>
+		<li>Note the ’10.0’ refers to Visual Studio 10, select appropriately. 
+		</ul>
 	<li> Running this installer deposits the software in the 
 	     <code>C:\local\boost_1_57_0</code> directory by default.
         <li> There is a bug in the Boost uBLAS library that vector and matrix 
@@ -250,7 +247,7 @@
 	     and <code>matrix_expression.hpp</code> files in the <code>usml/config</code> directory.
 	    <li> In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
 	     just above it. 
-	    <li> Those using Boost 1.41 trhough 1.56 can just replace the original files with the
+	    <li> Those using Boost 1.41 through 1.56 can just replace the original files with the
 	     ones from the <code>usml/config</code> directory.  
 	    <li> Boost 1.57 fixed the problem in 
 	     <code>vector_expression.hpp</code>, but requires replacing <code>matrix_expression.hpp</code>
@@ -267,15 +264,15 @@
 	</ul>
     <li> Add Boost, NetCDF, and USML environment variables
 	<ul>
-	<li> Right click on Computer, select Properties -> Advanced system settings -> Environment Variables.
+	<li> Right click on Computer, select Properties <code>-></code> Advanced system settings <code>-></code> Environment Variables.
 	<li> Create new user variable <code>BOOST_ROOT = C:\local\boost_1_57_0</code>.
-	<li> Create new user variable <code>BOOST_LIBRARYDIR = %BOOST_ROOT%\lib32-msvc-10.0</code>.
+	<li> Create new user variable <code>BOOST_LIBRARY_DIR = %BOOST_ROOT%\lib32-msvc-10.0</code>.
 	<li> Create new user variable <code>NETCDF_DIR = C:\Program Files (x86)\netCDF 4.3.2</code>.
 	<li> Create new user variable <code>NETCDF_PATH = %NETCDF_DIR%\bin;%NETCDF_DIR%\deps\w32\bin</code>.
 	<li> Create new user variable <code>USML_DIR</code> for the USML installation directory.
 	     We used <code>C:\local\usml</code> to avoid permission problems installing libraries
              into <code>Program Files</code>,
-	<li> Add <code>%BOOST_LIBRARY_DIR%;%NETCDF_PATH%;%USML_DIR%\lib</code> to <code>path</code> variable.
+	<li> Finally, add <code>%BOOST_LIBRARY_DIR%;%NETCDF_PATH%;%USML_DIR%\lib</code> to the <code>Path</code> variable.
 	</ul>
     <li> Use cmake-gui to generate Visual Studio project
 	<ul>
