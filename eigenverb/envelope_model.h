@@ -1,30 +1,28 @@
 /**
- * @file envelope_spectrum.h
- * Reverberation envelope spectrum for a single combination of
+ * @file envelope_model.h
+ * Computes the reverberation envelope time series for a single combination of
  * receiver azimuth, source beam number, receiver beam number.
  */
 #pragma once
 
-#include <usml/types/seq_linear.h>
-#include <usml/threads/smart_ptr.h>
+#include <usml/types/seq_vector.h>
 #include <usml/eigenverb/eigenverb.h>
-#include <usml/eigenverb/envelope_model.h>
 
 namespace usml {
 namespace eigenverb {
 
 using namespace usml::types;
-using namespace usml::threads;
+
+class envelope_collection ; // forward declaration
 
 /**
- * Reverberation envelope spectrum for a single combination of
- * receiver azimuth, source beam number, receiver beam number.
- * Computes the spectrum as a function of source frequency
- * and envelope frequency.  The envelope frequencies are assumed
- * to be a complex basebanded domain (-fs/2,fs/2] where fs is the
- * sampling rate of the receiver.  Forming the envelope contributions
- * in the frequency domain simplifies the application of Doppler shift.
+ * Computes the reverberation envelope time series for a single combination of
+ * receiver azimuth, source beam number, receiver beam number. The envelope is
+ * stored as a matrix that represents the results a function of the
+ * sensor_pair's transmit frequency (rows) and two-way travel time (columns).
  *
+ * There are no public methods in this class.  It just acts as a set of service
+ * routines for the envelope_collection class.
  *
  * @xref S. Reilly, D. Thibaudeau, T. Burns, "Fast computation of
  * reverberation using Gaussian beam reflections," Report to NAWCTSD,
@@ -32,29 +30,27 @@ using namespace usml::threads;
  */
 class USML_DECLSPEC envelope_model {
 
-public:
+friend class envelope_collection ;
+
+private:
 
 	/**
 	 * Reserve the memory used to store the results of this calculation.
 	 *
-	 * @param source_freq	Frequencies at which the source and receiver
+	 * @param transmit_freq	Frequencies at which the source and receiver
 	 * 						eigenverbs are computed (Hz).
-	 * @param envelope_freq	Frequencies at which the sensor_pair's
+	 * @param travel_time	Times at which the sensor_pair's
 	 * 						reverberation envelopes are computed (Hz).
-	 * @param threshold		Minimum energy level for valid reverberation
+	 * @param pulse_length	Duration of the transmitted pulse (sec).
+	 * 						Defines the temporal resolution of the envelope.
+	 * @param threshold		Minimum intensity level for valid reverberation
 	 * 						contributions (linear units).
 	 */
 	envelope_model(
-		shared_ptr<seq_vector> source_freq,
-		shared_ptr<seq_vector> envelope_freq,
-		double threshold
-	) :
-		_source_freq(source_freq),
-		_envelope_freq(envelope_freq),
-		_threshold( threshold ),
-		_pressure(source_freq->size(), envelope_freq->size())
-	{
-	}
+		const seq_vector* transmit_freq,
+		const seq_vector* travel_time,
+		double pulse_length, double threshold
+	) ;
 
 	/**
 	 * Default constructor.
@@ -62,22 +58,31 @@ public:
 	~envelope_model() {}
 
 	/**
-	 * Adds a single combination of source and receiver eigenverbs
-	 * to this spectrum.  Assumes that the source and receiver eigenverbs
-	 * have already been interpolated onto the sensor_pair's
-	 * frequency domain.  Having calling routine compute the scattering
-	 * coefficient for this combination of eigenverbs, save this class
-	 * from having to know anything about the ocean.
+	 * Computes the intensity for a single combination of source and receiver
+	 * eigenverbs.  Assumes that the source and receiver eigenverbs
+	 * have been interpolated onto the sensor_pair's frequency domain before
+	 * this routine is called. It also assumes that the calling routine
+	 * has computed the scattering coefficient; which saves this
+	 * class from having to know anything about the ocean.
 	 *
 	 * @param src_verb		Eigenverb contribution from the source.
 	 * @param rcv_verb		Eigenverb contribution from the receiver.
 	 * @param scatter		Scattering strength coefficient for this
 	 * 						combination of eigenverbs (ratio).
 	 * @param pulse_length	Duration of the transmit pulse (sec).
+	 * @return				False if reverbereation energy below threshold.
 	 */
-	void add_contribution(
-			const eigenverb& src_verb, const eigenverb& rcv_verb,
-			const vector<double>& scatter, double pulse_length ) ;
+	bool conpute_intensity( const vector<double>& scatter,
+			const eigenverb& src_verb, const eigenverb& rcv_verb ) ;
+
+	/**
+	 * Reverberation intensity at each point the time series.
+	 * Each row represents a specific transmit frequency.
+	 * Each column represents a specific travel time.
+	 */
+	matrix< double >& intensity() {
+		return _intensity ;
+	}
 
 private:
 
@@ -87,60 +92,71 @@ private:
 	 * the bistatic reverberation contribution from eqn. (28) ans (29)
 	 * in the paper.  Computes the duration from eqn. (45) and (33).
 	 *
+	 * @param scatter		Scattering strength coefficient for this
+	 * 						combination of eigenverbs,
+	 * 						as a function of transmit frequency (ratio).
 	 * @param src_verb		Eigenverb contribution from the source.
 	 * @param rcv_verb		Eigenverb contribution from the receiver.
-	 * @param scatter		Scattering strength coefficient for this
-	 * 						combination of eigenverbs (ratio).
-	 * @param pulse_length	Duration of the transmit pulse (sec).
-	 * @param energy		Total energy of the overlap (linear units, output).
-	 * @param duration		Duration of the overlap (sec, output).
 	 * @return				False if energy below threshold.
 	 */
-	bool compute_overlap(
-			const eigenverb& src_verb, const eigenverb& rcv_verb,
-			const vector<double>& scatter, double pulse_length,
-			vector<double>* energy, vector<double>* duration ) ;
+	bool compute_overlap( const vector<double>& scatter,
+			const eigenverb& src_verb, const eigenverb& rcv_verb ) ;
 
 	/**
-	 * Adds this contribution to the reverberation envelope spectrum.
-	 * Each contribution has a Gaussian shape with a bandwidth
-	 * defined by the inverse of the duration. Time delay is applied
-	 * as a phase change in the complex spectrum.
-	 * Loops over the source and envelope frequencies.
+	 * Computes Gaussian time series contribution given delay, duration, and
+	 * total energy.  Implements equation (6) from the paper.  Replaces the
+	 * values previously held by the _intensity member variable.
 	 *
 	 * @param src_verb		Eigenverb contribution from the source.
 	 * @param rcv_verb		Eigenverb contribution from the receiver.
-	 * @param energy		Total energy of the overlap (linear units).
-	 * @param duration		Duration of the overlap (sec).
 	 */
-	void compute_spectrum(
-			const eigenverb& src_verb, const eigenverb& rcv_verb,
-			const vector<double>& energy, const vector<double>& duration ) ;
+	void compute_time_series(
+			const eigenverb& src_verb, const eigenverb& rcv_verb ) ;
 
 	/**
 	 * Frequencies at which the source and receiver eigenverbs are computed (Hz).
 	 */
-	shared_ptr<seq_vector> _source_freq ;
+	const seq_vector* _transmit_freq ;
 
 	/**
-	 * Frequencies at which the sensor_pair's reverberation envelopes
-	 * are computed (Hz). Assumed to be a complex basebanded
-	 * domain (-fs/2,fs/2] where fs is the sampling rate of the receiver.
+	 * Times at which the sensor_pair's reverberation envelopes
+	 * are computed (sec).
 	 */
-	shared_ptr<seq_vector> _envelope_freq ;
+	vector<double> _travel_time ;
+
+	/**
+	 * Duration of the transmitted pulse (sec).
+	 * Defines the temporaal resolution of the envelope.
+	 */
+	double _pulse_length ;
 
 	/**
 	 * Minimum energy level for valid reverberation contributions
-	 * (linear units).
+	 * (linear units).  Note that this is converted from intensity units
+	 * in the constructor.
 	 */
 	double _threshold ;
 
 	/**
-	 * Complex pressure at each point in reverberation spectrum.
-	 * Each row represents a specific source frequency.
-	 * Each column represents a specific envelope frequency.
+	 * Workspace for storing total energy of eigenverb overlap (linear units).
+	 * Making is a member variable prevents us from having to
+	 * rebuilt it for each calculation.
 	 */
-	matrix< complex<double> > _pressure;
+	vector<double> _energy ;
+
+	/**
+	 * Workspace for storing duration result of eigenverb overlap (sec).
+	 * Making is a member variable prevents us from having to
+	 * rebuilt it for each calculation.
+	 */
+	vector<double> _duration ;
+
+	/**
+	 * Reverberation intensity at each point the time series.
+	 * Each row represents a specific transmit frequency.
+	 * Each column represents a specific travel time.
+	 */
+	matrix< double > _intensity;
 };
 
 }   // end of namespace eigenverb

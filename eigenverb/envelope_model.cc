@@ -1,40 +1,54 @@
 /**
- * @file envelope_spectrum.cc
- * Reverberation envelope spectrum for a single combination of
+ * @file envelope_model.cc
+ * Reverberation envelope time series for a single combination of
  * receiver azimuth, source beam number, receiver beam number.
  */
 #include <boost/foreach.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <usml/eigenverb/envelope_model.h>
 
 using namespace usml::eigenverb;
 
+// #define DEBUG_CONVOLUTION
+
+/**
+ * Reserve the memory used to store the results of this calculation.
+ */
+envelope_model::envelope_model(
+	const seq_vector* transmit_freq,
+	const seq_vector* travel_time,
+	double pulse_length, double threshold
+) :
+	_transmit_freq(transmit_freq),
+	_travel_time(travel_time->data()),
+	_pulse_length( pulse_length ),
+	_threshold( threshold * pulse_length ),
+	_intensity(transmit_freq->size(), travel_time->size())
+{
+}
+
 /**
  * Adds a single combination of source and receiver eigenverbs
- * to this spectrum.
+ * to this time series.
  */
-void envelope_model::add_contribution(
-		const eigenverb& src_verb, const eigenverb& rcv_verb,
-		const vector<double>& scatter, double pulse_length )
+bool envelope_model::conpute_intensity( const vector<double>& scatter,
+		const eigenverb& src_verb, const eigenverb& rcv_verb )
 {
-	vector<double> energy, duration ;
-	bool ok = compute_overlap(
-			src_verb, rcv_verb, scatter, pulse_length,
-			&energy, &duration ) ;
-	if ( ok ) {
-		compute_spectrum(src_verb, rcv_verb, energy, duration ) ;
-	}
+	bool ok = compute_overlap( scatter, src_verb, rcv_verb  );
+	if ( !ok ) return false ;
+
+	compute_time_series( src_verb, rcv_verb ) ;
+	return true ;
 }
 
 /**
  * Compute the total energy of the overlap between two eigenverbs.
  */
-bool envelope_model::compute_overlap(
-		const eigenverb& src_verb, const eigenverb& rcv_verb,
-		const vector<double>& scatter, double pulse_length,
-		vector<double>* energy, vector<double>* duration )
+bool envelope_model::compute_overlap( const vector<double>& scatter,
+		const eigenverb& src_verb, const eigenverb& rcv_verb )
 {
 	#ifdef DEBUG_CONVOLUTION
-		cout << "*****envelope_spectrum::compute_overlap*****" << endl;
+		cout << "*****envelope_time series::compute_overlap*****" << endl;
 		cout << "    Travel time:     " << src_verb.travel_time + rcv_verb.travel_time << endl;
 		cout << "        DE:          " << src_verb.launch_de << endl;
 		cout << "     Path length:    " << src_verb.distance << endl;
@@ -82,14 +96,14 @@ bool envelope_model::compute_overlap(
 
     vector<double> det_sr = 0.5 * ( 2.0 * ( src_prod + rcv_prod )
     		+ ( src_sum * rcv_sum ) - ( src_diff * rcv_diff ) * cos2alpha ) ;
-    *energy = element_div(
+    noalias(_energy) = element_div(
     		TWO_PI * src_verb.energy * rcv_verb.energy * scatter,
 			sqrt( det_sr ) ) ;
 
     // check threshold to avoid calculations for weak signals
 
     bool ok = false ;
-    BOOST_FOREACH( double level, *energy ) {
+    BOOST_FOREACH( double level, _energy ) {
     	if ( level > _threshold ) {
     		ok = true ;
     		break ;
@@ -97,7 +111,7 @@ bool envelope_model::compute_overlap(
     }
     if ( !ok ) {
 		#ifdef DEBUG_CONVOLUTION
-			cout << "      Energy:        " << 10.0*log10(*energy) << endl
+			cout << "      Energy:        " << 10.0*log10(_energy) << endl
 				 << "*** threshold not met ***" << endl ;
 		#endif
 		return false ;
@@ -111,12 +125,12 @@ bool envelope_model::compute_overlap(
   		  xs*xs * ( src_sum + src_prod * 2.0 * rcv_verb.length2 )
 		+ ys*ys * ( src_sum - src_prod + 2.0 * rcv_verb.width2 )
 		- 2.0 * xs * ys * src_diff * sin2alpha ;
-    *energy = element_prod( *energy, exp( -0.25*element_div(kappa,det_sr) ) ) ;
+    _energy = element_prod( _energy, exp( -0.25*element_div(kappa,det_sr) ) ) ;
 
     // check threshold again to avoid calculations for weak signals
 
     ok = false ;
-    BOOST_FOREACH( double level, *energy ) {
+    BOOST_FOREACH( double level, _energy ) {
     	if ( level > _threshold ) {
     		ok = true ;
     		break ;
@@ -124,7 +138,7 @@ bool envelope_model::compute_overlap(
     }
     if ( !ok ) {
 		#ifdef DEBUG_CONVOLUTION
-			cout << "      Energy:        " << 10.0*log10(*energy) << endl
+			cout << "      Energy:        " << 10.0*log10(_energy) << endl
 				 << "*** threshold not met ***" << endl ;
 		#endif
 		return false ;
@@ -135,46 +149,36 @@ bool envelope_model::compute_overlap(
     det_sr = element_div( det_sr, src_prod * rcv_prod ) ;
 	src_sum = 1.0 / src_verb.width2 + 1.0 / src_verb.length2 ;
 	src_diff = 1.0 / src_verb.width2 - 1.0 / src_verb.length2 ;
-	*duration = 0.5 * element_div(
+	noalias(_duration) = 0.5 * element_div(
 			( 1.0 / src_verb.width2 + 1.0 / src_verb.length2 )
 			+ ( 1.0 / src_verb.width2 - 1.0 / src_verb.length2 ) * cos2alpha
 			+ 2.0 / rcv_verb.width2,
 			det_sr ) ;
 
 	double factor = cos( rcv_verb.grazing ) / rcv_verb.sound_speed ;
-	*duration = 0.5 * sqrt( pulse_length*pulse_length
-			+ factor * factor * (*duration) ) ;
+	_duration = 0.5 * sqrt( _pulse_length * _pulse_length
+			+ factor * factor * (_duration) ) ;
 	#ifdef DEBUG_CONVOLUTION
-		cout << "      Energy:        " << 10.0*log10(*energy) << endl;
-		cout << "      Duration:        " << *duration << endl;
+		cout << "      Energy:        " << 10.0*log10(_energy) << endl;
+		cout << "      Duration:        " << _duration << endl;
 	#endif
 
     return true ;
 }
 
 /**
- * Adds this contribution to the reverberation envelope spectrum.
- *
- * TODO add Doppler shift to kappa
- * TODO check the sign on the phase delay
+ * Computes Gaussian time series contribution given delay, duration, and
+ * total energy.
  */
-void envelope_model::compute_spectrum(
-		const eigenverb& src_verb, const eigenverb& rcv_verb,
-		const vector<double>& energy, const vector<double>& duration )
+void envelope_model::compute_time_series(
+	const eigenverb& src_verb, const eigenverb& rcv_verb )
 {
 	const double coeff = 1.0 / ( 4.0 * M_PI * sqrt(TWO_PI) ) ;
-	vector<double> delay = src_verb.time + rcv_verb.time + duration ;
-	vector<double> bandwidth = 1.0  / duration ;
-
-	for ( size_t s=0 ; s < _source_freq->size() ; ++s ) {
-		for ( size_t e=0 ; e < _envelope_freq->size() ; ++e ) {
-			const double freq = (*_envelope_freq)[e] ;
-			const double kappa = freq / bandwidth[s] ;
-			complex<double> value(
-				-0.5 * kappa * kappa,
-				-TWO_PI * freq * delay[s] );
-			_pressure(s,e) += value * energy[s] / bandwidth[s] * coeff ;
-		}
+	for ( size_t f=0 ; f < _transmit_freq->size() ; ++f ) {
+		double delay = src_verb.time + rcv_verb.time + _duration[f] ;
+		double scale = _energy[f] * coeff / _duration[f] ;
+		matrix_row< matrix<double> > row ( _intensity, f);
+		row = scale * exp(-0.5 * abs2((_travel_time-delay)/ _duration[f]));
 	}
 }
 

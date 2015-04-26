@@ -108,6 +108,11 @@ struct eigenverb {
     double grazing ;
 
     /**
+     * The sound speed at the point of impact (m/s).
+     */
+    double sound_speed ;
+
+    /**
      * Index number of the of the launch DE.
      * Allows reverberation model to easily group eigenverbs by launch D/E.
      */
