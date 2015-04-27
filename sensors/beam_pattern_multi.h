@@ -19,6 +19,9 @@ public:
      * Constructor
      * Takes a list of beam patterns and stores them locally to be used
      * when requesting a beam level.
+     * @param beam_list list of pointers to beam_pattern_model's. This class 
+     *                  takes ownership of the beam_pattern_model pointers,
+     *                  and deletes them on destruction.
      */
     beam_pattern_multi( std::list<beam_pattern_model*> beam_list ) ;
 
