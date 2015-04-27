@@ -48,9 +48,12 @@ wave_queue::wave_queue(
 	_collection( NULL ),
     _nc_file( NULL )
 {
-    const double az_first = abs((*_source_az)(0)) ;
-    const double az_last = abs((*_source_az)(_source_az->size()-1)) ;
-    _az_boundary = ( fmod(az_first+360.0, 360.0) == fmod(az_last+360.0, 360.0) ) ;
+    _az_boundary = false ;
+    if( _source_az->size() > 1 ) {
+        const double az_first = abs((*_source_az)(0)) ;
+        const double az_last = abs((*_source_az)(_source_az->size()-1)) ;
+        _az_boundary = ( fmod(az_first+360.0, 360.0) == fmod(az_last+360.0, 360.0) ) ;
+    }
 
     _intensity_threshold = 300.0 ; //In dB
     if ( _targets ) {
@@ -1132,11 +1135,10 @@ void wave_queue::build_eigenverb(
 	// initialize eigenverb
 
     usml::eigenverb::eigenverb verb ;
-    verb.frequencies = _frequencies ;
-    const size_t num_freq = verb.frequencies->size() ;
+    const size_t num_freq = _frequencies->size() ;
 
-	verb.time = time() + dt ;
-    verb.energy = vector<double>(num_freq) ;
+	verb.time = _time + dt ;
+    verb.energy = vector<double>(num_freq, 1e-30) ;
     verb.length2 = vector<double>(num_freq) ;
     verb.width2 = vector<double>(num_freq) ;
 	verb.grazing = grazing ;
@@ -1145,20 +1147,32 @@ void wave_queue::build_eigenverb(
 	verb.az_index = az ;
 	verb.source_de = to_radians(source_de(de)) ;
 	verb.source_az = to_radians(source_az(az)) ;
-	verb.frequencies = frequencies() ;
-	verb.surface = curr()->surface(de,az) ;
-	verb.bottom = curr()->bottom(de,az) ;
-	verb.caustic = curr()->caustic(de,az) ;
-	verb.upper = curr()->upper(de,az) ;
-	verb.lower = curr()->lower(de,az) ;
+	verb.frequencies = _frequencies ;
+	verb.surface = _curr->surface(de,az) ;
+	verb.bottom = _curr->bottom(de,az) ;
+	verb.caustic = _curr->caustic(de,az) ;
+	verb.upper = _curr->upper(de,az) ;
+	verb.lower = _curr->lower(de,az) ;
+	switch(type) {
+	    case usml::eigenverb::eigenverb::BOTTOM:
+	        verb.bottom += 1 ;
+	        break ;
+	    case usml::eigenverb::eigenverb::SURFACE:
+	        verb.surface += 1 ;
+	        break ;
+	    default:
+	        break ;
+	}
 
     // compute total energy in this eigenverb
     // using reflection/absorption loss along the path
     // and fraction of total energy at source
 
-    verb.energy = pow( 10.0, -0.1 * curr()->attenuation(de,az) )
-		* _spreading_model->init_area(de,az) / (4*M_PI) ;
-    if ( verb.energy(0) <= 1e-10 ) return ;
+	if( _spreading_model ) {
+        verb.energy = pow( 10.0, -0.1 * curr()->attenuation(de,az) )
+            * _spreading_model->init_area(de,az) / (4*M_PI) ;
+        if ( verb.energy(0) <= 1e-10 ) return ;
+	}
 
     // compute the frequency dependent beam widths in DE and AZ
     //    - multiplies the width by the spreading model's overlap factor
