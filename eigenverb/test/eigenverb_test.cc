@@ -5,8 +5,9 @@
 #include <boost/test/unit_test_suite.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
-#include <usml/eigenverb/eigenverb_collection.h>
 #include <usml/waveq3d/waveq3d.h>
+#include <usml/eigenverb/eigenverb_collection.h>
+#include <usml/eigenverb/envelope_collection.h>
 
 BOOST_AUTO_TEST_SUITE(eigenverb_test)
 
@@ -179,6 +180,82 @@ BOOST_AUTO_TEST_CASE( eigenverb_basic ) {
     // clean up and exit
 
     delete eigenverbs ;
+}
+
+/**
+ * Test the ability to generate a single envelope contributions and
+ * write it out to netCDF.
+ */
+BOOST_AUTO_TEST_CASE( envelope_basic ) {
+    cout << "=== eigenverb_test: envelope_basic ===" << endl;
+    const char* ncname = USML_TEST_DIR "/eigenverb/test/envelope_basic.nc";
+
+	// build a simple eigenverb
+
+	eigenverb verb ;
+	verb.time = 10.0 ;
+	verb.position = wposition1() ;
+	verb.direction = 0.0 ;
+	verb.grazing = M_PI / 3.0 ;
+	verb.sound_speed = 1500.0 ;
+	verb.de_index = 0 ;
+	verb.az_index = 0 ;
+	verb.source_de = -verb.grazing ;
+	verb.source_az = 0.0 ;
+	verb.surface = 0 ;
+	verb.bottom = 0 ;
+	verb.caustic = 0 ;
+	verb.upper = 0 ;
+	verb.lower = 0 ;
+
+	seq_linear freq(1000.0,1000.0,3) ;
+	verb.frequencies = &freq ;
+	verb.energy = vector<double>( freq.size() ) ;
+	verb.length2 = vector<double>( freq.size() ) ;
+	verb.width2 = vector<double>( freq.size() ) ;
+	for ( size_t f=0 ; f < freq.size() ; ++f ) {
+		verb.energy[f] = 0.2 ;
+		verb.length2[f] = 400.0 + 10.0 * f ;
+		verb.width2[f] = 100.0 + 10.0 * f ;
+	}
+
+	// construct an envelope_collection
+
+	envelope_collection collection(
+		&freq,		// transmit_freq
+		400,		// num_times
+		0.1,		// time_step
+		1.0, 		// pulse_length
+		-300.0,		// threshold
+		1, 			// num_azimuths
+		1, 			// num_src_beams
+		1 ) ; 		// num_rcv_beams
+
+	vector<double> scatter( freq.size() ) ;
+	matrix<double> src_beam( freq.size(), 1 ) ;
+	matrix<double> rcv_beam( freq.size(), 1 ) ;
+	for ( size_t f=0 ; f < freq.size() ; ++f ) {
+		scatter[f] = 0.1 + 0.01 * f ;
+		src_beam(f,0) = 1.0 ;
+		rcv_beam(f,0) = 1.0 ;
+	}
+
+	// add contributions at t=10 and t=30 sec
+
+	verb.time = 10 ;
+	collection.add_constribution(
+		0, 			//azimuth
+		scatter, src_beam, rcv_beam,
+		verb, verb ) ;
+
+	verb.time = 10 ;
+	verb.energy *= 0.5 ;
+	collection.add_constribution(
+		0, 			//azimuth
+		scatter, src_beam, rcv_beam,
+		verb, verb ) ;
+
+	collection.write_netcdf(ncname) ;
 }
 
 /// @}

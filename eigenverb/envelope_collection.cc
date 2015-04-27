@@ -3,6 +3,7 @@
  */
 #include <usml/eigenverb/envelope_collection.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <netcdfcpp.h>
 
 using namespace usml::eigenverb;
 
@@ -89,10 +90,51 @@ void envelope_collection::add_constribution(
 
 /**
  * Writes the envelope data to disk
- *
- * TODO Write envelope_collection data to netCDF files.
  */
 void envelope_collection::write_netcdf(const char* filename) const {
+	NcFile* nc_file = new NcFile(filename, NcFile::Replace);
 
+	nc_file->add_att("pulse_length", _pulse_length ) ;
+	nc_file->add_att("threshold", _threshold ) ;
+
+	// dimensions
+
+	NcDim* azimuth_dim = nc_file->add_dim("azimuth", (long) _num_azimuths ) ;
+	NcDim* src_beam_dim = nc_file->add_dim("src_beam", (long) _num_src_beams ) ;
+	NcDim* rcv_beam_dim = nc_file->add_dim("rcv_beam", (long) _num_rcv_beams ) ;
+	NcDim* freq_dim = nc_file->add_dim("frequency", (long) _transmit_freq->size()) ;
+	NcDim* time_dim = nc_file->add_dim("travel_time", (long) _travel_time.size()) ;
+
+	// variables
+
+	NcVar* time_var = nc_file->add_var("travel_time", ncDouble, time_dim);
+	NcVar* freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
+	NcVar* envelopes_var = nc_file->add_var("energy", ncDouble,
+		azimuth_dim, src_beam_dim, rcv_beam_dim, freq_dim, time_dim ) ;
+
+	// units
+
+	time_var->add_att("units", "seconds");
+	freq_var->add_att("units", "hertz");
+	envelopes_var->add_att("units", "dB");
+
+	// data
+
+	time_var->put( _transmit_freq->data().begin(), (long) _transmit_freq->size());
+	freq_var->put( _transmit_freq->data().begin(), (long) _transmit_freq->size());
+
+	for (size_t a = 0; a < _num_azimuths; ++a) {
+		for (size_t s = 0; s < _num_src_beams; ++s) {
+			for (size_t r = 0; r < _num_rcv_beams; ++r) {
+				envelopes_var->set_cur(a,s,r) ;
+				matrix<double> envelope = 10.0*log10(max(*_envelopes[a][s][r], 1e-30));
+				envelopes_var->put( envelope.data().begin(),
+						(long) _transmit_freq->size(), (long) _travel_time.size());
+			}
+		}
+	}
+
+    // close file
+
+    delete nc_file; // destructor frees all netCDF temp variables
 }
-
