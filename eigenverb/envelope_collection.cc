@@ -109,9 +109,9 @@ void envelope_collection::write_netcdf(const char* filename) const {
 
 	// variables
 
-	NcVar* time_var = nc_file->add_var("travel_time", ncDouble, time_dim);
 	NcVar* freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
-	NcVar* envelopes_var = nc_file->add_var("energy", ncDouble,
+	NcVar* time_var = nc_file->add_var("travel_time", ncDouble, time_dim);
+	NcVar* envelopes_var = nc_file->add_var("intensity", ncDouble,
 		azimuth_dim, src_beam_dim, rcv_beam_dim, freq_dim, time_dim ) ;
 
 	// units
@@ -122,17 +122,16 @@ void envelope_collection::write_netcdf(const char* filename) const {
 
 	// data
 
-	time_var->put( _transmit_freq->data().begin(), (long) _transmit_freq->size());
 	freq_var->put( _transmit_freq->data().begin(), (long) _transmit_freq->size());
+	time_var->put( _travel_time.data().begin(), (long) _travel_time.size());
 
 	for (size_t a = 0; a < _num_azimuths; ++a) {
 		for (size_t s = 0; s < _num_src_beams; ++s) {
 			for (size_t r = 0; r < _num_rcv_beams; ++r) {
-				envelopes_var->set_cur(a,s,r) ;
+				envelopes_var->set_cur(a,s,r,0,0) ;
 				matrix<double> envelope = 10.0*log10(max(*_envelopes[a][s][r], 1e-30));
-				envelopes_var->put( envelope.data().begin(),
+				envelopes_var->put( envelope.data().begin(), 1, 1, 1,
 						(long) _transmit_freq->size(), (long) _travel_time.size());
-				// TODO fix writing of this data to netCDF file: NetCDF: Start+count exceeds dimension bound
 			}
 		}
 	}
