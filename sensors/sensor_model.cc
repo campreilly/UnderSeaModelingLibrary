@@ -42,6 +42,10 @@ sensor_model::sensor_model(sensor_model::id_type sensorID, sensor_params::id_typ
     {
         _mode = NONE;
     }
+
+    // Select frequency band from _source or _receiver 
+    // with min/max active included
+    select_frequencies();
 }
 
 /**
@@ -126,8 +130,8 @@ void sensor_model::update_eigenrays(eigenray_collection::reference& eigenrays)
             // Get eigenray_list for listener, ie sensor_pair
             // Get complement's row's eigenray_list
             eigenray_list* list = _eigenray_collection->eigenrays(row, 0);
-             // Send out shared_ptr of eigenray_list to listener
-            listener->update_eigenrays(_sensorID, list);
+             // Send out eigenray_list to listener
+            listener->update_fathometer(_sensorID, list);
         }
 	}
 }
@@ -244,6 +248,59 @@ wposition sensor_model::target_positions(std::list<const sensor_model*>& list) {
 }
 
 /**
+ * Utility to select frequencies band from sensor including min and max active frequencies
+ */
+void sensor_model::select_frequencies() {
+
+    double min; 
+    double max;
+
+    double band_min;
+    double band_max;    
+    size_t band_size;
+
+    switch ( _mode ) {
+
+        case usml::sensors::RECEIVER:
+        {
+            min = _receiver->min_active_freq();
+            max = _receiver->max_active_freq();
+
+            band_min = *( _receiver->frequencies()->begin() );
+            band_max = *( _receiver->frequencies()->end() - 1 );
+            band_size = _receiver->frequencies()->size();
+            break;
+        }
+        default:  // SOURCE or BOTH
+        {
+            min = _source->min_active_freq();
+            max = _source->max_active_freq();
+
+            band_min = *( _source->frequencies()->begin() );
+            band_max = *( _source->frequencies()->end() - 1 );
+            band_size = _source->frequencies()->size();
+        }
+    }
+
+    // Set min/max 
+    if ( band_min  < min ) {
+        min = band_min;
+    }
+
+    if ( band_max  > max ) {
+        max = band_max;
+    }
+
+    #ifdef USML_DEBUG
+        cout << "sensor_model: _frequencies min " << min << " max " << max << " size " << band_size << endl;
+    #endif
+    
+    _frequencies.reset(new seq_linear(min, max, band_size, true));
+
+}
+
+
+/**
  * Run the wavefront_generator thread task to start the waveq3d model.
  */
 void sensor_model::run_wave_generator() {
@@ -266,7 +323,7 @@ void sensor_model::run_wave_generator() {
 
         // Create the wavefront_generator
         wavefront_generator* generator = new wavefront_generator(
-            ocean_shared::current(), _position, target_pos, _source->frequencies(), this);
+            ocean_shared::current(), _position, target_pos, frequencies(), this);
 
         // Make wavefront_generator a wavefront_task, with use of shared_ptr
         _wavefront_task = thread_task::reference(generator);

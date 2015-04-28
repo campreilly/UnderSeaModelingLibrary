@@ -41,22 +41,24 @@ BOOST_AUTO_TEST_CASE(pairs_test)
 
     // Source frequencies 6.5K, 7.5K, 8.5K, 9.5K
     seq_linear source_frequencies(6500.0, 1000.0, 4);
-    // Receiver frequencies 3.0K, 10.0K
-    seq_linear receiver_frequencies(3000.0, 7000.0, 2);
+    // Receiver frequencies 3.0K, 4.0K, 5.0K, 6.0K, 7.0K, 8.0K, 9.0K, 10.0K
+    seq_linear receiver_frequencies(3000, 1000.0, 7);
 
     // setup SOURCE sensor type  #12 with omni beam pattern
     sensor_params::id_type params1 = 12;
     source_params::reference source1(new source_params(
-        params1,	// paramsID
-        vector<double> (1, 123.0),		// source_level
+        params1,	                // paramsID
+        vector<double> (1, 123.0),	// source_level
+        7000.0, 10000.0,            // min, max active freq
         source_frequencies,
-        0));		// beamID
+        beamList));		           // beam_list
     source_params_map::instance()->insert(source1->paramsID(), source1);
 
     // setup RECEIVER sensor type #21 
     sensor_params::id_type params2 = 21;
     receiver_params::reference receiver1(new receiver_params(
-        params2,	// paramsID
+        params2,	            // paramsID
+        5000.0, 9000.0,         // min, max active freq
         receiver_frequencies,
         beamList));
     receiver_params_map::instance()->insert(receiver1->paramsID(), receiver1);
@@ -65,34 +67,38 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     // setup source side of sensor type #33  BOTH with omni beam pattern
     sensor_params::id_type params3 = 33;
     source_params::reference source3(new source_params(
-        params3,	// paramsID
-        vector<double> (1, 130.0),		// source_level
+        params3,	                // paramsID
+        vector<double> (1, 130.0),  // source_level
+        7000.0, 10000.0,            // min, max active freq
         source_frequencies,
-        0,   		// beamID
-        false));	// not multistatic
+        beamList,   		        // beam_list
+        false));	                // not multistatic
     source_params_map::instance()->insert(source3->paramsID(), source3);
 
     // setup receiver side of sensor type #33 BOTH with beam pattern's 0 and 1
     receiver_params::reference receiver3(new receiver_params(
-        params3,	// paramsID
+        params3,	            // paramsID
+        5000.0, 9000.0,         // min, max active freq
         receiver_frequencies,
         beamList,
-        false));	// not multistatic
+        false));	            // not multistatic
     receiver_params_map::instance()->insert(receiver3->paramsID(), receiver3);
 
     // Vary source and or reciever mutlistatic flag's to test 
     // setup source side of sensor type #44 BOTH with omni beam pattern
     sensor_params::id_type params4 = 44;
     source_params::reference source4(new source_params(
-        params4,	// paramsID	
+        params4,	                    // paramsID	
         vector<double> (1, 130.0),		// source_level
+        6000.0, 9000.0,                 // min, max active freq
         source_frequencies,
-        0,  		// beamID
-        true));     // multistatic flag - vary to test different combo's
+        beamList,  		                // beamID's
+        true));                         // multistatic flag - vary to test different combo's
     source_params_map::instance()->insert(source4->paramsID(), source4);
     // setup receiver side of sensor type #44 with beam pattern's 0 and 1
     receiver_params::reference receiver4(new receiver_params(
         params4,	// paramsID
+        5000.0, 9000.0,         // min, max active freq
         receiver_frequencies,
         beamList,
         true));     // multistatic flag - vary to test different combo's
@@ -118,6 +124,16 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     if ( manager->remove_sensor(2) != false ) {
          BOOST_FAIL("pairs_test:: Removed non-existent sensor_model");
     }
+
+    // Get Frequencies of sensor_model
+    sensor_model* sensor_three = manager->find(3);
+    const seq_linear* freq = sensor_three->frequencies();   
+
+    cout << "   sensor_three freq:  size " << freq->size();
+    BOOST_FOREACH(double f, *freq) {
+        cout << " " << f;
+    }
+    cout << endl;
 
     //cout << "=== pairs_test: remove_sensor 1 BOTH ===" << endl;
     if ( manager->remove_sensor(sensors[0]) == false )

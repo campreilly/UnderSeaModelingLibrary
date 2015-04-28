@@ -132,24 +132,16 @@ fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(sensor
     read_lock_guard guard(_manager_mutex);
 
     std::set<std::string> keys = find_pairs(sensors);
-
-    sensor_model::id_type src_id, rcv_id;
     fathometer_model::fathometer_package fathometers;
     fathometers.reserve(keys.size());
-    fathometer_model* fathometer; 
     BOOST_FOREACH(std::string s, keys)
     {
         pair = _map.find(s);
         sensor_pair* pair_data = pair;
         if ( pair_data != NULL ) {
-            shared_ptr<eigenray_list> eigenrays = pair_data->eigenrays();
-            if (eigenrays.get() != NULL){
-                src_id = pair_data->source()->sensorID();
-                rcv_id = pair_data->receiver()->sensorID();
-                wposition1 src_pos = pair_data->source()->position();
-                wposition1 rcv_pos = pair_data->receiver()->position();
-                fathometer = new fathometer_model(src_id, rcv_id, src_pos, rcv_pos, eigenrays);
-                fathometers.push_back(fathometer);
+            shared_ptr<fathometer_model> fathometer = pair_data->fathometer();
+            if ( fathometer.get() != NULL ) {
+                fathometers.push_back(fathometer.get());
             }
         }
     }
@@ -232,10 +224,10 @@ void sensor_pair_manager::write_fathometers(fathometer_model::fathometer_package
         
 
         // Get the eigenray list for current fathometer
-        eigenray_list* eigenrays = fathometer->eigenrays().get();
+        eigenray_list eigenrays = fathometer->eigenrays();
        
-        long num_eigenrays = ( long ) eigenrays->size();
-        long num_frequencies = ( long ) eigenrays->begin()->frequencies->size();
+        long num_eigenrays = ( long ) eigenrays.size();
+        long num_frequencies = ( long ) eigenrays.begin()->frequencies->size();
 
         // dimensions
         NcDim *eigenray_dim = nc_file->add_dim("eigenrays", num_eigenrays);
@@ -276,10 +268,10 @@ void sensor_pair_manager::write_fathometers(fathometer_model::fathometer_package
         
         // write eigenrays  
         
-        freq_var->put(eigenrays->begin()->frequencies->data().begin(), num_frequencies);
+        freq_var->put(eigenrays.begin()->frequencies->data().begin(), num_frequencies);
 
         int record = 0; // current record number
-        BOOST_FOREACH(eigenray ray, *eigenrays)
+        BOOST_FOREACH(eigenray ray, eigenrays)
         {
             // set record number for each eigenray data element
 
@@ -371,6 +363,7 @@ void sensor_pair_manager::add_sensor(sensor_model* sensor) {
         default:
             break;
     }
+
     #ifdef USML_DEBUG
         // Print out all pairs
         cout << "sensor_pair_manager:  current pairs" << endl;
@@ -450,7 +443,19 @@ bool sensor_pair_manager::remove_sensor(sensor_model* sensor) {
 void sensor_pair_manager::add_monostatic_pair(sensor_model* sensor) {
 	sensor_model::id_type sourceID = sensor->sensorID();
     std::string hash_key = generate_hash_key(sourceID, sourceID);
-	sensor_pair* pair = new sensor_pair(sensor, sensor);
+    std::vector<double> frequencies;
+    const seq_vector* seq_freq = sensor->source()->frequencies();
+    BOOST_FOREACH(double freq, *seq_freq) {
+        frequencies.push_back(freq);
+    }
+    #ifdef USML_DEBUG
+        cout << "   add_monostatic_pair:  frequencies";
+        BOOST_FOREACH(double f, frequencies) {
+            cout << " " << f;
+        }
+        cout << endl;
+    #endif
+    sensor_pair* pair = new sensor_pair(sensor, sensor, frequencies);
 	_map.insert(hash_key, pair);
 	sensor->add_sensor_listener(pair);
 	#ifdef USML_DEBUG
@@ -473,7 +478,9 @@ void sensor_pair_manager::add_multistatic_source(sensor_model* source) {
                                         receiver_sensor->receiver()->frequencies()) )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
-                sensor_pair* pair = new sensor_pair(source, receiver_sensor);
+                sensor_pair* pair = new sensor_pair(source, receiver_sensor, 
+                    build_frequencies(source->source()->frequencies(),
+                    receiver_sensor->receiver()->frequencies()));
                 _map.insert(hash_key, pair);
 				source->add_sensor_listener(pair);
                 receiver_sensor->add_sensor_listener(pair);
@@ -500,7 +507,9 @@ void sensor_pair_manager::add_multistatic_receiver(sensor_model* receiver) {
                                         receiver->receiver()->frequencies() ) )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
-                sensor_pair* pair = new sensor_pair(source_sensor, receiver);
+                sensor_pair* pair = new sensor_pair(source_sensor, receiver, 
+                    build_frequencies(source_sensor->source()->frequencies(),
+                    receiver->receiver()->frequencies()));
                 _map.insert(hash_key, pair);
                 source_sensor->add_sensor_listener(pair);
 				receiver->add_sensor_listener(pair);
@@ -597,19 +606,13 @@ void sensor_pair_manager::remove_multistatic_receiver(sensor_model* receiver) {
 */
 bool sensor_pair_manager::frequencies_overlap(const seq_vector* src_freq, const seq_vector* rcv_freq) {
 
-    seq_vector::iterator iter;
-
     // Get source min and max
-    iter = src_freq->begin();
-    double src_min = *iter;
-    iter = src_freq->end()-1;
-    double src_max = *iter;
+    double src_min = *( src_freq->data().begin() );
+    double src_max = *( src_freq->data().end() - 1 );
 
     // Get receiver min and max
-    iter = rcv_freq->begin();
-    double rcv_min = *iter;
-    iter = rcv_freq->end()-1;
-    double rcv_max = *iter;
+    double rcv_min = *( rcv_freq->data().begin() );
+    double rcv_max = *( rcv_freq->data().end() - 1 );
 
     bool overlap = src_min <= rcv_max &&  rcv_min <= src_max;
     
@@ -622,5 +625,35 @@ bool sensor_pair_manager::frequencies_overlap(const seq_vector* src_freq, const 
     #endif
 
     return overlap;
+}
+
+/**
+* Utility to build the intersecting frequencies of a sensor_pair.
+* Stored in the sensor_pair.
+*/
+std::vector<double> sensor_pair_manager::build_frequencies(const seq_vector* src_freq, const seq_vector* rcv_freq) {
+    
+    std::vector<double> frequencies;
+
+    // Get source min and max
+    double src_min = *( src_freq->data().begin() );
+    double src_max = *(src_freq->data().end() - 1);
+    
+    BOOST_FOREACH(double rcv_f, *rcv_freq) {
+
+        if ( ( rcv_f >= src_min ) && ( rcv_f <= src_max ) ) {
+            frequencies.push_back(rcv_f);
+        }
+    }
+
+    #ifdef USML_DEBUG
+        cout << "   build_frequencies:  size " << frequencies.size();
+        BOOST_FOREACH(double f, frequencies) {
+            cout << " " << f ;
+        }
+        cout << endl;
+    #endif
+
+    return frequencies;
 }
 

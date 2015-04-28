@@ -103,15 +103,19 @@ private:
 		vector<double> source_level(1, 200.0);
         // Source frequencies 6.5K, 7.5K, 8.5K, 9.5K
 		seq_linear source_frequencies(6500.0, 1000.0, 4);
+        beam_pattern_model::id_type omni = 0;
+        std::list<beam_pattern_model::id_type> source_beams;
+        source_beams.push_back(omni);
+
         // Receiver frequencies 3.0K, 10.0K
         seq_linear receiver_frequencies(3000.0, 7000.0, 2);
-		beam_pattern_model::id_type omni = 0;
-
+		
 		// define source parameters
 
 		source_params::reference source(
 				new source_params(paramsID, source_level,
-                source_frequencies, omni, multistatic));
+                6000.0, 9000.0,             // min, max active freq
+                source_frequencies, source_beams, multistatic));
 		source_params_map::instance()->insert(source->paramsID(), source);
 
 		// define receiver parameters
@@ -120,7 +124,9 @@ private:
 		receiver_beams.push_back(omni);
 
 		receiver_params::reference receiver(
-            new receiver_params(paramsID, receiver_frequencies, receiver_beams, multistatic));
+            new receiver_params(paramsID, 
+            3000.0, 10000.0,  // min, max active freq
+            receiver_frequencies, receiver_beams, multistatic));
 		receiver_params_map::instance()->insert(receiver->paramsID(), receiver);
 	}
 
@@ -206,10 +212,7 @@ private:
         std::string ncname_all = USML_STUDIES_DIR "/reverberation/fathometers.nc";
         sp_man->write_fathometers(fathometers, ncname_all.c_str());
 
-		// Delete all for valgrind memcheck testing
-        BOOST_FOREACH(fathometer_model* fathometer, fathometers) {
-            delete fathometer;
-        }
+        // No need to delete fathometers as they are shared_ptr's
 	}
 };
 

@@ -23,14 +23,13 @@ void fathometer_model::write_netcdf( const char* filename, const char* long_name
     nc_file->add_att("Conventions", "COARDS");
 
     // Get the list to get the frequency size
-    eigenray_list* eigenrays = _eigenrays.get();
-    long num_frequencies = ( long ) eigenrays->front().frequencies->size();
+    long num_frequencies = ( long ) _eigenrays.front().frequencies->size();
 
     // dimensions
 
     NcDim *freq_dim = nc_file->add_dim("frequency", num_frequencies);
     NcVar *freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
-    NcDim *eigenray_dim = nc_file->add_dim("eigenrays", ( long ) eigenrays->size());
+    NcDim *eigenray_dim = nc_file->add_dim("eigenrays", ( long ) _eigenrays.size());
    
     // fathometer_model attributes
 
@@ -99,7 +98,7 @@ void fathometer_model::write_netcdf( const char* filename, const char* long_name
     
     // write base attributes
 
-    freq_var->put(eigenrays->front().frequencies->data().begin(), num_frequencies);
+    freq_var->put(_eigenrays.front().frequencies->data().begin(), num_frequencies);
     item = _source_id; source_id->put(&item, 1);
     item = _receiver_id; receiver_id->put(&item, 1); 
 
@@ -119,7 +118,7 @@ void fathometer_model::write_netcdf( const char* filename, const char* long_name
     v = _receiver_position.longitude();   rcv_lng_var->put(&v, 1);
     v = _receiver_position.altitude();    rcv_alt_var->put(&v, 1);
 
-    BOOST_FOREACH(eigenray ray, *eigenrays)
+    BOOST_FOREACH(eigenray ray, _eigenrays)
     {
         // set record number for each eigenray data element
 
