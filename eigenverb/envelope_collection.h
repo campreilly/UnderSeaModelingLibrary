@@ -134,11 +134,15 @@ public:
 	 * @param azimuth	Receiver azimuth number.
 	 * @param scatter	Scattering strength at each transmit frequency (ratio).
 	 * @param src_beam	Source beam level at each transmit frequency (ratio).
+	 * 					Each row represents a specific transmit frequency.
+	 * 					Each column represents a beam number.
 	 * @param rcv_beam	Receiver beam level at each transmit frequency (ratio).
+	 * 					Each row represents a specific transmit frequency.
+	 * 					Each column represents a beam number.
 	 * @param src_verb	Eigenverb contribution from the source.
 	 * @param rcv_verb	Eigenverb contribution from the receiver.
 	 */
-	void add_constribution( size_t azimuth, const vector<double>& scatter,
+	void add_contribution( size_t azimuth, const vector<double>& scatter,
 		const matrix<double>& src_beam, const matrix<double>& rcv_beam,
 		const eigenverb& src_verb, const eigenverb& rcv_verb ) ;
 

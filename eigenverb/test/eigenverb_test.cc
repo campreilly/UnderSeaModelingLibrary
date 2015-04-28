@@ -190,17 +190,23 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
     cout << "=== eigenverb_test: envelope_basic ===" << endl;
     const char* ncname = USML_TEST_DIR "/eigenverb/test/envelope_basic.nc";
 
+    // setup scenario for 30 deg D/E in 1000 meters of water
+
+    double angle = M_PI / 6.0 ;
+    double depth = 1000.0 ;
+    double range = sqrt(3) * depth / ( 1852.0 * 60.0 );
+
 	// build a simple eigenverb
 
 	eigenverb verb ;
 	verb.time = 10.0 ;
-	verb.position = wposition1() ;
+	verb.position = wposition1(range,0.0,-depth) ;
 	verb.direction = 0.0 ;
-	verb.grazing = M_PI / 3.0 ;
+	verb.grazing = angle ;
 	verb.sound_speed = 1500.0 ;
 	verb.de_index = 0 ;
 	verb.az_index = 0 ;
-	verb.source_de = -verb.grazing ;
+	verb.source_de = -angle ;
 	verb.source_az = 0.0 ;
 	verb.surface = 0 ;
 	verb.bottom = 0 ;
@@ -226,7 +232,7 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 		400,		// num_times
 		0.1,		// time_step
 		1.0, 		// pulse_length
-		-300.0,		// threshold
+		1e-30,		// threshold
 		1, 			// num_azimuths
 		1, 			// num_src_beams
 		1 ) ; 		// num_rcv_beams
@@ -242,15 +248,15 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 
 	// add contributions at t=10 and t=30 sec
 
-	verb.time = 10 ;
-	collection.add_constribution(
+	verb.time = 10.0 ;
+	collection.add_contribution(
 		0, 			//azimuth
 		scatter, src_beam, rcv_beam,
 		verb, verb ) ;
 
-	verb.time = 10 ;
+	verb.time = 30.0 ;
 	verb.energy *= 0.5 ;
-	collection.add_constribution(
+	collection.add_contribution(
 		0, 			//azimuth
 		scatter, src_beam, rcv_beam,
 		verb, verb ) ;

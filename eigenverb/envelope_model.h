@@ -72,7 +72,7 @@ private:
 	 * @param pulse_length	Duration of the transmit pulse (sec).
 	 * @return				False if reverbereation energy below threshold.
 	 */
-	bool conpute_intensity( const vector<double>& scatter,
+	bool compute_intensity( const vector<double>& scatter,
 			const eigenverb& src_verb, const eigenverb& rcv_verb ) ;
 
 	/**
@@ -122,20 +122,20 @@ private:
 	 * Times at which the sensor_pair's reverberation envelopes
 	 * are computed (sec).
 	 */
-	vector<double> _travel_time ;
+	const vector<double> _travel_time ;
 
 	/**
 	 * Duration of the transmitted pulse (sec).
 	 * Defines the temporaal resolution of the envelope.
 	 */
-	double _pulse_length ;
+	const double _pulse_length ;
 
 	/**
 	 * Minimum energy level for valid reverberation contributions
 	 * (linear units).  Note that this is converted from intensity units
 	 * in the constructor.
 	 */
-	double _threshold ;
+	const double _threshold ;
 
 	/**
 	 * Workspace for storing total energy of eigenverb overlap (linear units).

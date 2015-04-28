@@ -1,5 +1,7 @@
 /**
  * @file envelope_collection.cc
+ * Computes the reverberation envelope time series for all combinations of
+ * receiver azimuth, source beam number, receiver beam number.
  */
 #include <usml/eigenverb/envelope_collection.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -69,19 +71,19 @@ envelope_collection::~envelope_collection() {
  * Adds the intensity contribution for a single combination of source
  * and receiver eigenverbs.
  */
-void envelope_collection::add_constribution(
+void envelope_collection::add_contribution(
 	size_t azimuth, const vector<double>& scatter,
 	const matrix<double>& src_beam, const matrix<double>& rcv_beam,
 	const eigenverb& src_verb, const eigenverb& rcv_verb )
 {
-	bool ok = _envelope_model.conpute_intensity(scatter,src_verb,rcv_verb) ;
+	bool ok = _envelope_model.compute_intensity(scatter,src_verb,rcv_verb) ;
 	if ( ok ) {
-		for ( size_t s=0 ; s < src_beam.size1() ; ++s ) {
-			for ( size_t r=0 ; r < rcv_beam.size1() ; ++r ) {
+		for ( size_t s=0 ; s < src_beam.size2() ; ++s ) {
+			for ( size_t r=0 ; r < rcv_beam.size2() ; ++r ) {
 				for ( size_t f=0 ; f < _transmit_freq->size() ; ++f ) {
 					matrix_row< matrix<double> > envelope( *_envelopes[azimuth][s][r], f);
 					matrix_row< matrix<double> > intensity( _envelope_model.intensity(), f);
-					envelope += src_beam(s,f) * rcv_beam(r,f) * intensity ;
+					envelope += src_beam(f,s) * rcv_beam(f,r) * intensity ;
 				}
 			}
 		}
@@ -130,6 +132,7 @@ void envelope_collection::write_netcdf(const char* filename) const {
 				matrix<double> envelope = 10.0*log10(max(*_envelopes[a][s][r], 1e-30));
 				envelopes_var->put( envelope.data().begin(),
 						(long) _transmit_freq->size(), (long) _travel_time.size());
+				// TODO fix writing of this data to netCDF file: NetCDF: Start+count exceeds dimension bound
 			}
 		}
 	}
