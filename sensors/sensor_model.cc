@@ -290,13 +290,8 @@ void sensor_model::select_frequencies() {
     if ( band_max  > max ) {
         max = band_max;
     }
-
-    #ifdef USML_DEBUG
-        cout << "sensor_model: _frequencies min " << min << " max " << max << " size " << band_size << endl;
-    #endif
     
-    _frequencies.reset(new seq_linear(min, max, band_size, true));
-
+    _frequencies.reset(new seq_linear(min, (max-min)/band_size, max));
 }
 
 

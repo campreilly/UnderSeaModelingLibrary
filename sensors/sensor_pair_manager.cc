@@ -448,13 +448,6 @@ void sensor_pair_manager::add_monostatic_pair(sensor_model* sensor) {
     BOOST_FOREACH(double freq, *seq_freq) {
         frequencies.push_back(freq);
     }
-    #ifdef USML_DEBUG
-        cout << "   add_monostatic_pair:  frequencies";
-        BOOST_FOREACH(double f, frequencies) {
-            cout << " " << f;
-        }
-        cout << endl;
-    #endif
     sensor_pair* pair = new sensor_pair(sensor, sensor, frequencies);
 	_map.insert(hash_key, pair);
 	sensor->add_sensor_listener(pair);
@@ -645,14 +638,6 @@ std::vector<double> sensor_pair_manager::build_frequencies(const seq_vector* src
             frequencies.push_back(rcv_f);
         }
     }
-
-    #ifdef USML_DEBUG
-        cout << "   build_frequencies:  size " << frequencies.size();
-        BOOST_FOREACH(double f, frequencies) {
-            cout << " " << f ;
-        }
-        cout << endl;
-    #endif
 
     return frequencies;
 }

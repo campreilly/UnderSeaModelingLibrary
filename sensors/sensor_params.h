@@ -138,7 +138,7 @@ protected:
 	 * 						    for sources and receivers that have this flag
 	 * 							set to true. Set to false for monostatic sensors.
 	 */
-    sensor_params(sensor_params::id_type paramsID, double max_freq, double min_freq, 
+    sensor_params(sensor_params::id_type paramsID, double min_freq, double max_freq,
         const seq_vector& frequencies, const beam_pattern_list& beam_list, 
         bool multistatic = true)
         : _paramsID(paramsID), _min_active_freq( min_freq), _max_active_freq(max_freq),
