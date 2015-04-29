@@ -75,7 +75,7 @@ public:
 	 * @param  sensorID The ID of the sensor that issued the notification.
      * @param  eigenray_list Shared pointer to the list of eigenrays
 	 */
-	virtual void update_eigenrays(sensor_model::id_type sensorID, shared_ptr<eigenray_list> list) ;
+	virtual void update_eigenrays(sensor_model::id_type sensorID, eigenray_list* list) ;
 
 	/**
 	 * Notification that new eigenverb data is ready.

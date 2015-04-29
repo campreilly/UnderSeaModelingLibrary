@@ -35,7 +35,8 @@ class USML_DECLSPEC sensor_pair_manager {
 public:
 
     // Data type used to query the a random group of sensorID's and mode's
-    typedef std::map<sensor_model::id_type,xmitRcvModeType> sensor_query_map;
+    typedef std::map<sensor_model::id_type,xmitRcvModeType> sensor_query_map ;
+    typedef std::pair<sensor_model::id_type, xmitRcvModeType> query_type ;
 
 	/**
 	 * Singleton Constructor - Creates sensor_pair_manager instance just once.

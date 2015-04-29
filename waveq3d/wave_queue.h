@@ -313,14 +313,6 @@ class USML_DECLSPEC wave_queue {
     }
 
     /**
-     * Determines if a ray is a valid candidate to make an eigenverb.
-     * All rays are false if the reflection model does not have an
-     * eigenverb_collection, if time is at time zero, or if the ray
-     * is max_de/max_az.
-     */
-    bool is_ray_valid( size_t de, size_t az ) ;
-
-    /**
      * Marches to the next integration step in the acoustic propagation.
      * Uses the third order Adams-Bashforth algorithm to estimate the position
      * and direction of each point on the next wavefront from the previous
@@ -558,22 +550,6 @@ class USML_DECLSPEC wave_queue {
 	 * if the curr point is below but the next point is above.
 	 */
     void detect_volume_scattering( size_t de, size_t az ) ;
-
-    /**
-     * A modified version of the function reflection_model::bottom_reflection used
-     * to determine the infromation needed to produce a volume reverberation calculation
-     * from this layer when colliding from above the layer.
-     */
-    void collide_from_above( size_t de, size_t az, double depth, size_t layer ) ;
-
-    /**
-     * A modified version of the function reflection_model::surface_reflection used
-     * to determine the infromation needed to produce a volume reverberation calculation
-     * from this layer when colliding from below the layer.
-     *      @todo need to rectify this code, it mimics the bottom_reflection but signs
-     *            should be changed to adjust for approaching from below.
-     */
-    void collide_from_below( size_t de, size_t az, double depth, size_t layer ) ;
 
     //**************************************************
     // eigenray estimation routines

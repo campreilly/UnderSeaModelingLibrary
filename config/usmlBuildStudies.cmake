@@ -22,18 +22,12 @@
     add_executable( malta_rays studies/malta_movie/malta_rays.cc )
     target_link_libraries( malta_rays usml )
 
-#    add_executable( monostatic studies/reverberation/reverberation_monostatic.cc )
-#    target_link_libraries( monostatic usml )
-
-#    add_executable( bistatic studies/reverberation/reverberation_bistatic.cc )
-#    target_link_libraries( bistatic usml )
-
     add_executable( reverb_analytic_test studies/reverberation/reverb_analytic_test.cc )
     target_link_libraries( reverb_analytic_test usml )
     
     set_property(
         TARGET cmp_speed ray_speed eigenray_extra_test pedersen_test 
-        malta_movie malta_rays reverb_analytic_test #monostatic bistatic 
+        malta_movie malta_rays reverb_analytic_test
         PROPERTY COMPILE_DEFINITIONS
         USML_DATA_DIR="${USML_DATA_DIR}"
         USML_STUDIES_DIR="${USML_STUDIES_DIR}"

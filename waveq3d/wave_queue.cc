@@ -48,9 +48,12 @@ wave_queue::wave_queue(
 	_collection( NULL ),
     _nc_file( NULL )
 {
-    const double az_first = abs((*_source_az)(0)) ;
-    const double az_last = abs((*_source_az)(_source_az->size()-1)) ;
-    _az_boundary = ( fmod(az_first+360.0, 360.0) == fmod(az_last+360.0, 360.0) ) ;
+    _az_boundary = false ;
+    if( _source_az->size() > 1 ) {
+        const double az_first = abs((*_source_az)(0)) ;
+        const double az_last = abs((*_source_az)(_source_az->size()-1)) ;
+        _az_boundary = ( fmod(az_first+360.0, 360.0) == fmod(az_last+360.0, 360.0) ) ;
+    }
 
     _intensity_threshold = 300.0 ; //In dB
     if ( _targets ) {
@@ -307,127 +310,34 @@ void wave_queue::detect_volume_scattering(size_t de, size_t az) {
 		layer.depth(pos_next, &height, NULL);
 		double d1 = height - pos_next.rho(); // positive when next below layer
 		double d2 = height - pos_curr.rho(); // positive when curr below layer
+
+		// compute the grazing angle
+	    double c = _curr->sound_speed(de,az) ;
+	    const double d = c*c * _curr->ndirection.rho(de,az) ;
+	    double time_water = (d==0.0) ? 0.0
+	        : - _curr->position.altitude(de,az) / d ;
+
+	    // compute the precise values for position, direction,
+	    // sound speed, and grazing angle at the point of collision
+	    wposition1 position ;
+	    wvector1 ndirection ;
+	    collision_location( de, az, time_water, &position, &ndirection, &c ) ;
+	    double grazing = atan2( _curr->ndirection.rho(de,az), sqrt(
+	        _curr->ndirection.theta(de,az) *
+	        _curr->ndirection.theta(de,az) +
+	        _curr->ndirection.phi(de,az) *
+	        _curr->ndirection.phi(de,az)
+	    ) ) ;
+
+	    // determine whether the collision is from below or from above the layer
 		if (d1 > 0 && d2 < 0) {
-			collide_from_above(de, az, d1, i);
+		    build_eigenverb( de, az, time_water, grazing, c, position, ndirection,
+		        usml::eigenverb::eigenverb::VOLUME_LOWER + i * 2 ) ;
 		} else if (d1 < 0 && d2 > 0) {
-			collide_from_below(de, az, d2, i);
+		    build_eigenverb( de, az, time_water, grazing, c, position, ndirection,
+		        usml::eigenverb::eigenverb::VOLUME_UPPER + i * 2 ) ;
 		}
 	}
-}
-
-void wave_queue::collide_from_above(
-        size_t de, size_t az, double depth, size_t layer )
-{
-	double MIN_REFLECT = 6.0 ;
-	wposition1 position( _curr->position, de, az ) ;
-	wvector1 ndirection( _curr->ndirection, de, az ) ;
-	double c = _curr->sound_speed( de, az ) ;
-	double c2 = c*c ;
-
-	double layer_rho ;
-	wvector1 layer_normal( 1.0, 0.0, 0.0 ) ;
-	volume_model& volume = _ocean.volume(layer) ;
-	volume.depth( position, &layer_rho ) ;
-	double height_water = position.rho() - layer_rho ;
-
-	ndirection.rho(   c2 * ndirection.rho() ) ;
-	ndirection.theta( c2 * ndirection.theta() ) ;
-	ndirection.phi(   c2 * ndirection.phi() ) ;
-	double dot_full = layer_normal.rho() * ndirection.rho()
-					+ layer_normal.theta() * ndirection.theta()
-					+ layer_normal.phi() * ndirection.phi() ;
-
-	double max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
-	if ( dot_full >= max_dot ) dot_full = max_dot ;
-
-	const double dot_water = -height_water * layer_normal.rho() ;
-	double time_water = max( 0.0, dot_water / dot_full ) ;
-
-	collision_location( de, az, time_water, &position, &ndirection, &c ) ;
-	volume.depth( position, &layer_rho ) ;
-	c2 = c*c ;
-	height_water = position.rho() - layer_rho ;
-
-	ndirection.rho(   c2 * ndirection.rho() ) ;
-	ndirection.theta( c2 * ndirection.theta() ) ;
-	ndirection.phi(   c2 * ndirection.phi() ) ;
-	dot_full = layer_normal.rho() * ndirection.rho()
-		+ layer_normal.theta() * ndirection.theta()
-		+ layer_normal.phi() * ndirection.phi() ;  // negative #
-	max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
-	if( dot_full >= max_dot )
-		dot_full = max_dot ;
-
-	double grazing = 0.0 ;
-	if( dot_full / c >= 1.0 )
-		grazing = -M_PI_2 ;
-	else if( dot_full / c <= -1.0 )
-		grazing = M_PI_2 ;
-	else
-		grazing = asin( -dot_full / c ) ;
-
-	// build the eigenverb
-	build_eigenverb( de, az, time_water, grazing, c, position, ndirection,
-		usml::eigenverb::eigenverb::VOLUME_LOWER + layer * 2 ) ;
-}
-
-/**
- * @todo correct logic/signs for collisions from below the boundary
- */
-void wave_queue::collide_from_below(
-        size_t de, size_t az, double depth, size_t layer )
-{
-	double MIN_REFLECT = 6.0 ;
-	wposition1 position( _curr->position, de, az ) ;
-	wvector1 ndirection( _curr->ndirection, de, az ) ;
-	double c = _curr->sound_speed( de, az ) ;
-	double c2 = c*c ;
-	double layer_rho ;
-	wvector1 layer_normal( -1.0, 0.0, 0.0 ) ;
-	volume_model& volume = _ocean.volume(layer) ;
-	volume.depth( position, &layer_rho ) ;
-	double height_water = position.rho() - layer_rho ;
-
-	ndirection.rho(   c2 * ndirection.rho() ) ;
-	ndirection.theta( c2 * ndirection.theta() ) ;
-	ndirection.phi(   c2 * ndirection.phi() ) ;
-	double dot_full = layer_normal.rho() * ndirection.rho()
-					+ layer_normal.theta() * ndirection.theta()
-					+ layer_normal.phi() * ndirection.phi() ;
-
-	double max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
-	if( dot_full >= max_dot )
-		dot_full = max_dot ;
-
-	const double dot_water = -height_water * layer_normal.rho() ;
-	double time_water = max( 0.0, dot_water / dot_full ) ;
-
-	collision_location( de, az, time_water, &position, &ndirection, &c ) ;
-	volume.depth( position, &layer_rho ) ;
-	c2 = c*c ;
-	height_water = position.rho() - layer_rho ;
-
-	ndirection.rho(   c2 * ndirection.rho() ) ;
-	ndirection.theta( c2 * ndirection.theta() ) ;
-	ndirection.phi(   c2 * ndirection.phi() ) ;
-	dot_full = layer_normal.rho() * ndirection.rho()
-		+ layer_normal.theta() * ndirection.theta()
-		+ layer_normal.phi() * ndirection.phi() ;  // negative #
-	max_dot = - max( MIN_REFLECT, (height_water+depth)*layer_normal.rho() ) ;
-	if( dot_full >= max_dot )
-		dot_full = max_dot ;
-
-	double grazing = 0.0 ;
-	if( dot_full / c >= 1.0 )
-		grazing = -M_PI_2 ;
-	else if( dot_full / c <= -1.0 )
-		grazing = M_PI_2 ;
-	else
-		grazing = asin( -dot_full / c ) ;
-
-	// build the eigenverb
-	build_eigenverb( de, az, time_water, grazing, c, position, ndirection,
-		usml::eigenverb::eigenverb::VOLUME_UPPER + layer * 2 ) ;
 }
 
 /**
@@ -1132,11 +1042,10 @@ void wave_queue::build_eigenverb(
 	// initialize eigenverb
 
     usml::eigenverb::eigenverb verb ;
-    verb.frequencies = _frequencies ;
-    const size_t num_freq = verb.frequencies->size() ;
+    const size_t num_freq = _frequencies->size() ;
 
-	verb.time = time() + dt ;
-    verb.energy = vector<double>(num_freq) ;
+	verb.time = _time + dt ;
+    verb.energy = vector<double>(num_freq, 1e-30) ;
     verb.length2 = vector<double>(num_freq) ;
     verb.width2 = vector<double>(num_freq) ;
 	verb.grazing = grazing ;
@@ -1145,20 +1054,32 @@ void wave_queue::build_eigenverb(
 	verb.az_index = az ;
 	verb.source_de = to_radians(source_de(de)) ;
 	verb.source_az = to_radians(source_az(az)) ;
-	verb.frequencies = frequencies() ;
-	verb.surface = curr()->surface(de,az) ;
-	verb.bottom = curr()->bottom(de,az) ;
-	verb.caustic = curr()->caustic(de,az) ;
-	verb.upper = curr()->upper(de,az) ;
-	verb.lower = curr()->lower(de,az) ;
+	verb.frequencies = _frequencies ;
+	verb.surface = _curr->surface(de,az) ;
+	verb.bottom = _curr->bottom(de,az) ;
+	verb.caustic = _curr->caustic(de,az) ;
+	verb.upper = _curr->upper(de,az) ;
+	verb.lower = _curr->lower(de,az) ;
+	switch(type) {
+	    case usml::eigenverb::eigenverb::BOTTOM:
+	        verb.bottom += 1 ;
+	        break ;
+	    case usml::eigenverb::eigenverb::SURFACE:
+	        verb.surface += 1 ;
+	        break ;
+	    default:
+	        break ;
+	}
 
     // compute total energy in this eigenverb
     // using reflection/absorption loss along the path
     // and fraction of total energy at source
 
-    verb.energy = pow( 10.0, -0.1 * curr()->attenuation(de,az) )
-		* _spreading_model->init_area(de,az) / (4*M_PI) ;
-    if ( verb.energy(0) <= 1e-10 ) return ;
+	if( _spreading_model ) {
+        verb.energy = pow( 10.0, -0.1 * curr()->attenuation(de,az) )
+            * _spreading_model->init_area(de,az) / (4*M_PI) ;
+        if ( verb.energy(0) <= 1e-10 ) return ;
+	}
 
     // compute the frequency dependent beam widths in DE and AZ
     //    - multiplies the width by the spreading model's overlap factor

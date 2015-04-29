@@ -356,7 +356,7 @@ private:
     /**
      * Eigenrays that connect source and receiver locations.
      */
-    boost::shared_ptr<eigenray_list> _eigenrays;
+    shared_ptr<eigenray_list> _eigenrays;
 
 	/**
 	 * Mutex that locks during eigenray access
