@@ -15,6 +15,7 @@ using namespace usml::eigenverb;
  */
 envelope_collection::envelope_collection(
 	const seq_vector* transmit_freq,
+
 	size_t num_times,
 	double time_step,
 	double pulse_length,

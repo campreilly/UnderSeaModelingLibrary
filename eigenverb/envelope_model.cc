@@ -9,7 +9,7 @@
 
 using namespace usml::eigenverb;
 
- #define DEBUG_CONVOLUTION
+#define DEBUG_ENVELOPE
 
 /**
  * Reserve the memory used to store the results of this calculation.
@@ -60,7 +60,7 @@ bool envelope_model::compute_overlap( const vector<double>& scatter,
     double xs = range * cos( bearing ) ;
     double ys = range * sin( bearing ) ;
 
-	#ifdef DEBUG_CONVOLUTION
+	#ifdef DEBUG_ENVELOPE
     	cout << "*** envelope_model::compute_overlap ***" << endl ;
 		cout << "    Travel time:     " << src_verb.time + rcv_verb.time << endl;
 		cout << "        DE:          " << src_verb.source_de << endl;
@@ -82,25 +82,25 @@ bool envelope_model::compute_overlap( const vector<double>& scatter,
 	alpha = M_PI - abs( fmod(abs(alpha), TWO_PI) - M_PI);
 	double cos2alpha = cos(2.0 * alpha);
 	double sin2alpha = sin(2.0 * alpha);
-    cout << "alpha=" << alpha
- 		 << " cos2alpha=" << cos2alpha
-		 << " sin2alpha=" << sin2alpha << endl ;
+//    cout << "alpha=" << alpha
+// 		 << " cos2alpha=" << cos2alpha
+//		 << " sin2alpha=" << sin2alpha << endl ;
 
     // compute the intersection of the Gaussian profiles
 
     vector<double> src_sum = src_verb.length2 + src_verb.width2 ;
     vector<double> src_diff = src_verb.length2 - src_verb.width2 ;
     vector<double> src_prod = src_verb.length2 * src_verb.width2 ;
-    cout << "src_sum=" << src_sum
- 		 << " src_diff=" << src_diff
-		 << " src_prod=" << src_prod << endl ;
+//    cout << "src_sum=" << src_sum
+// 		 << " src_diff=" << src_diff
+//		 << " src_prod=" << src_prod << endl ;
 
     vector<double> rcv_sum = rcv_verb.length2 + rcv_verb.width2 ;
     vector<double> rcv_diff = rcv_verb.length2 - rcv_verb.width2 ;
     vector<double> rcv_prod = rcv_verb.length2 * rcv_verb.width2 ;
-    cout << "rcv_sum=" << src_sum
- 		 << " rcv_diff=" << src_diff
-		 << " rcv_prod=" << src_prod << endl ;
+//    cout << "rcv_sum=" << src_sum
+// 		 << " rcv_diff=" << src_diff
+//		 << " rcv_prod=" << src_prod << endl ;
 
     // compute the scaling of the exponential
     // equations (26) and (28) from the paper
@@ -110,8 +110,8 @@ bool envelope_model::compute_overlap( const vector<double>& scatter,
     noalias(_energy) = element_div(
     		TWO_PI * src_verb.energy * rcv_verb.energy * scatter,
 			sqrt( det_sr ) ) ;
-    cout << "det_sr=" << det_sr
- 		 << " energy=" << _energy << endl ;
+//    cout << "det_sr=" << det_sr
+// 		 << " energy=" << _energy << endl ;
 
     // check threshold to avoid calculations for weak signals
 
@@ -123,7 +123,7 @@ bool envelope_model::compute_overlap( const vector<double>& scatter,
     	}
     }
     if ( !ok ) {
-		#ifdef DEBUG_CONVOLUTION
+		#ifdef DEBUG_ENVELOPE
 			cout << "      Energy:        " << 10.0*log10(_energy) << endl
 				 << "*** threshold not met ***" << endl ;
 		#endif
@@ -139,9 +139,9 @@ bool envelope_model::compute_overlap( const vector<double>& scatter,
 		+ ys*ys * ( src_sum - src_prod + 2.0 * rcv_verb.width2 )
 		- 2.0 * xs * ys * src_diff * sin2alpha ;
     _energy = element_prod( _energy, exp( -0.25*element_div(kappa,det_sr) ) ) ;
-    cout << "src_prod=" << src_prod
- 		 << " kappa=" << kappa
-		 << " energy=" << _energy << endl ;
+//    cout << "src_prod=" << src_prod
+// 		 << " kappa=" << kappa
+//		 << " energy=" << _energy << endl ;
 
     // check threshold again to avoid calculations for weak signals
 
@@ -153,7 +153,7 @@ bool envelope_model::compute_overlap( const vector<double>& scatter,
     	}
     }
     if ( !ok ) {
-		#ifdef DEBUG_CONVOLUTION
+		#ifdef DEBUG_ENVELOPE
 			cout << "      Energy:        " << 10.0*log10(_energy) << endl
 				 << "*** threshold not met ***" << endl ;
 		#endif
@@ -170,17 +170,17 @@ bool envelope_model::compute_overlap( const vector<double>& scatter,
 			+ ( 1.0 / src_verb.width2 - 1.0 / src_verb.length2 ) * cos2alpha
 			+ 2.0 / rcv_verb.width2,
 			det_sr ) ;
-    cout << "det_sr=" << det_sr
-    	 << " src_sum=" << src_sum
-	     << " src_diff=" << src_diff
-		 << " duration=" << _duration << endl ;
+//    cout << "det_sr=" << det_sr
+//    	 << " src_sum=" << src_sum
+//	     << " src_diff=" << src_diff
+//		 << " duration=" << _duration << endl ;
 
 	double factor = cos( rcv_verb.grazing ) / rcv_verb.sound_speed ;
 	_duration = 0.5 * sqrt( _pulse_length * _pulse_length
 			+ factor * factor * (_duration) ) ;
-    cout << "factor=" << factor << endl
-		 << " duration=" << _duration << endl ;
-	#ifdef DEBUG_CONVOLUTION
+//    cout << "factor=" << factor << endl
+//		 << " duration=" << _duration << endl ;
+	#ifdef DEBUG_ENVELOPE
 		cout << "      Energy:        " << 10.0*log10(_energy) << endl;
 		cout << "      Duration:        " << _duration << endl;
 	#endif
