@@ -249,14 +249,12 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 
 	verb.time = 10.0 ;
 	collection.add_contribution(
-		0, 			//azimuth
 		scatter, src_beam, rcv_beam,
 		verb, verb ) ;
 
 	verb.time = 30.0 ;
 	verb.energy *= 0.5 ;
 	collection.add_contribution(
-		0, 			//azimuth
 		scatter, src_beam, rcv_beam,
 		verb, verb ) ;
 

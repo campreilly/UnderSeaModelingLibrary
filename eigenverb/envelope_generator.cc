@@ -63,15 +63,56 @@ envelope_generator::envelope_generator(
  * Executes the Eigenverb reverberation model.
  */
 void envelope_generator::run() {
-	BOOST_FOREACH( eigenverb rcv_verb, _rcv_eigenverbs.get() ) {
 
+	// create memory for work products
+
+    const seq_vector* freq = _envelopes->transmit_freq() ;
+    size_t num_freq = freq->size() ;
+    size_t num_src_beams = _envelopes->num_src_beams() ;
+    size_t num_rcv_beams = _envelopes->num_rcv_beams() ;
+
+	vector<double> scatter( num_freq ) ;
+	matrix<double> src_beam( num_freq, num_src_beams ) ;
+	matrix<double> rcv_beam( num_freq, num_rcv_beams ) ;
+
+	eigenverb rcv_verb ;
+	rcv_verb.frequencies = freq ;
+	rcv_verb.energy = vector<double>( num_freq ) ;
+	rcv_verb.length2 = vector<double>( num_freq ) ;
+	rcv_verb.width2 = vector<double>( num_freq ) ;
+
+	// loop through eigenrays for each interface
+
+	for ( size_t interface=0 ; interface < _rcv_eigenverbs->num_interfaces() ; ++interface) {
+		BOOST_FOREACH( eigenverb verb, _rcv_eigenverbs->eigenverbs(interface) ) {
+			_eigenverb_interpolator.interpolate(verb,&rcv_verb) ;
+			BOOST_FOREACH( eigenverb src_verb, _src_eigenverbs->eigenverbs(interface) ) {
+
+				// compute interface scattering strength
+
+				scattering( interface,
+					rcv_verb.position, *freq,
+					src_verb.grazing, rcv_verb.grazing,
+					src_verb.direction, rcv_verb.direction,
+					&scatter ) ;
+
+				// compute beam levels
+				//
+				// TODO Replace the scalar_matrix versions of src_beam and rcv_beam
+				// 		with real beam pattern results.
+
+				src_beam = scalar_matrix<double>(num_freq,num_src_beams,1.0);
+				rcv_beam = scalar_matrix<double>(num_freq,num_rcv_beams,1.0);
+
+				// create envelope contribution
+
+				_envelopes->add_contribution( scatter, src_beam, rcv_beam,
+						src_verb, rcv_verb ) ;
+			}
+		}
 	}
 	this->notify_envelope_listeners(_envelopes) ;
 }
-
-/**
- *
- */
 
 /**
  * Computes the broadband scattering strength for a specific interface.

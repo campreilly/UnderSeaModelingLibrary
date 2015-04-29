@@ -73,10 +73,11 @@ envelope_collection::~envelope_collection() {
  * and receiver eigenverbs.
  */
 void envelope_collection::add_contribution(
-	size_t azimuth, const vector<double>& scatter,
+	const vector<double>& scatter,
 	const matrix<double>& src_beam, const matrix<double>& rcv_beam,
 	const eigenverb& src_verb, const eigenverb& rcv_verb )
 {
+	size_t azimuth = rcv_verb.az_index ;
 	bool ok = _envelope_model.compute_intensity(scatter,src_verb,rcv_verb) ;
 	if ( ok ) {
 		for ( size_t s=0 ; s < src_beam.size2() ; ++s ) {

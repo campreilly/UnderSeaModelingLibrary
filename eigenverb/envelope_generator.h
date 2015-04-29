@@ -105,7 +105,7 @@ public:
 		return _done;
 	}
 
-protected:
+private:
 
 	/**
 	 * Computes the broadband scattering strength for a specific interface.
@@ -125,15 +125,6 @@ protected:
 			const seq_vector& frequencies, double de_incident,
 			double de_scattered, double az_incident, double az_scattered,
 			vector<double>* amplitude);
-
-	/**
-	 * Compute the reverberation envelopes for a specific azimuth.
-	 *
-	 * @param azimuth	Receiver azimuth number.
- 	 */
-	void generate_envelope() ;
-
-private:
 
 	/** Set to true when this task complete. */
 	bool _done;
