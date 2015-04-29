@@ -122,7 +122,7 @@ public:
      * Current heading of the rotated system.
      * @return  current value stored in _heading (deg)
      */
-    double heading() {
+    double heading() const {
         return -(_heading*180.0/M_PI) ;
     }
 
@@ -190,6 +190,20 @@ protected:
     double _x ;
     double _y ;
     double _z ;
+
+    /**
+     * Computes the orientation components of pitch, heading, and
+     * roll from a tilt angle and direction. The tilt angle corresponds
+     * to the tilt from the nominal vertical axis and the direction
+     * corresponds to the azimuthal direction the tilt would be applied
+     * to. Note this is for vertical arrays, but can be applied to horizontal
+     * arrays. Where the tilt angle is almost nearly 90 degrees and the
+     * direction corresponds to the heading of the array.
+     *
+     * @param angle     tilt angle of the array from the vertical reference axis
+     * @param direction azimuthal direction of the tilt angle
+     */
+    void compute_orientation(double angle, double direction) ;
 
     /**
      * Rotates the reference axis and computes the necessary theta and

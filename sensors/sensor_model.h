@@ -155,6 +155,42 @@ public:
 	 */
 	void remove_sensor_listener(sensor_listener* listener);
 
+    /**
+     * Maximum change in altitude that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double alt_threshold ;
+
+    /**
+     * Maximum change in latitude that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double lat_threshold ;
+
+    /**
+     * Maximum change in longitude that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double lon_threshold ;
+
+    /**
+     * Maximum change in pitch that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double pitch_threshold ;
+
+    /**
+     * Maximum change in heading that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double heading_threshold ;
+
+    /**
+     * Maximum change in roll that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double roll_threshold ;
+
 private:
 
 	/**
@@ -162,12 +198,12 @@ private:
 	 * to require a new WaveQ3D run.
 	 *
 	 * @param position  	Updated position data
-	 * @param orientation	Updated orientation value
+	 * @param orient    	Updated orientation value
 	 * @return 				True when thresholds exceeded, requiring a
 	 * 						rerun of the model for this sensor.
 	 */
 	bool check_thresholds( const wposition1& position,
-			const orientation& orientation );
+			const orientation& orient );
 
 	/**
 	 * Queries the current list of sensor listeners for the complements
@@ -233,6 +269,14 @@ private:
 	 * Orientation of the sensor in world coordinates.
 	 */
 	orientation _orient;
+
+	/**
+	 * Flag the designates whether an update requires the creation of
+	 * new data, because the new position/orientation has changed enough
+	 * such that the currently cached data for eigenrays and eigenverbs
+	 * are no longer sufficiently accurate.
+	 */
+	bool _initial_update ;
 
 	/**
 	 * Mutex that locks sensor during update_sensor.
