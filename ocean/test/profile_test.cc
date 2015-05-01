@@ -148,7 +148,6 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
         wposition::compute_earth_radius((18.5 + 22.5) / 2.0);
 
         // load temperature & salinity data from World Ocean Atlas
-
         netcdf_woa temp(
 	    USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
    	    USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
@@ -174,6 +173,7 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
 
         const char* name = USML_TEST_DIR "/ocean/test/mackenzie_test.csv" ;
         std::ofstream os(name);
+        os.precision(12) ;
         cout << "writing tables to " << name << endl;
 
         size_t index[3];
@@ -205,8 +205,8 @@ BOOST_AUTO_TEST_CASE( compute_mackenzie_test ) {
                 case 18:    // depth=1000 temp=4.3149 sal=34.5221
                 BOOST_CHECK_CLOSE( speed(0, 0), 1483.6464, 1e-3 );
                 break;
-                case 32:    // depth=5500 temp=1.50817 sal=34.7001
-                BOOST_CHECK_CLOSE( speed(0, 0), 1549.90469, 1e-3 );
+                case 32:    // depth=5500 temp=1.4156 sal=34.6951
+                BOOST_CHECK_CLOSE( speed(0, 0), 1549.4983, 1e-3 );
                 break;
                 default:
                 break;

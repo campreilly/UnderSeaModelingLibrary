@@ -204,8 +204,8 @@ class mackenzie_tester : public tester_base
                 case 18:    // depth=1000 temp=4.3149 sal=34.5221
                     BOOST_CHECK_CLOSE( speed(0, 0), 1483.6464, 1e-3 );
                     break;
-                case 32:    // depth=5500 temp=1.50817 sal=34.7001
-                    BOOST_CHECK_CLOSE( speed(0, 0), 1549.90469, 1e-3 );
+                case 32:    // depth=5500 temp=1.4156 sal=34.6951
+                    BOOST_CHECK_CLOSE( speed(0, 0), 1549.4983, 1e-3 );
                     break;
                 default:
                     break;
