@@ -51,14 +51,21 @@ bool envelope_model::compute_overlap( const vector<double>& scatter,
 {
 	// determine the range and bearing between the projected Gaussians
 	// normalize bearing to min distance between angles
+	// exit early if source more than 5 beam width away
 
     double bearing ;
-    double range = rcv_verb.position.gc_range( src_verb.position, &bearing ) ;
+    const double range = rcv_verb.position.gc_range( src_verb.position, &bearing ) ;
     if ( range < 1e-6 ) bearing = 0 ;	// fixes bearing = NaN
     bearing -= rcv_verb.direction ;
     bearing = M_PI - abs( fmod(abs(bearing), TWO_PI) - M_PI);
-    double xs = range * cos( bearing ) ;
-    double ys = range * sin( bearing ) ;
+
+    const double xs = range * cos( bearing ) ;
+    const double xs2 = xs * xs ;
+    if ( xs2 > 25.0 * rcv_verb.length2[0] ) return false ;
+
+    const double ys = range * sin( bearing ) ;
+    const double ys2 = ys * ys ;
+    if ( ys2 > 25.0 * rcv_verb.width2[0] ) return false ;
 
 	#ifdef DEBUG_ENVELOPE
     	cout << "*** envelope_model::compute_overlap ***" << endl ;
@@ -78,10 +85,10 @@ bool envelope_model::compute_overlap( const vector<double>& scatter,
 	// determine the relative tilt between the projected Gaussians
 	// normalize tilt to min distance between angles
 
-    double alpha = src_verb.direction - rcv_verb.direction;
+	double alpha = src_verb.direction - rcv_verb.direction;
 	alpha = M_PI - abs( fmod(abs(alpha), TWO_PI) - M_PI);
-	double cos2alpha = cos(2.0 * alpha);
-	double sin2alpha = sin(2.0 * alpha);
+	const double cos2alpha = cos(2.0 * alpha);
+	const double sin2alpha = sin(2.0 * alpha);
 //    cout << "alpha=" << alpha
 // 		 << " cos2alpha=" << cos2alpha
 //		 << " sin2alpha=" << sin2alpha << endl ;
@@ -135,8 +142,8 @@ bool envelope_model::compute_overlap( const vector<double>& scatter,
 
     src_prod = src_diff * cos2alpha ;
     vector<double> kappa =
-  		  xs*xs * ( src_sum + src_prod * 2.0 * rcv_verb.length2 )
-		+ ys*ys * ( src_sum - src_prod + 2.0 * rcv_verb.width2 )
+  		  xs2 * ( src_sum + src_prod * 2.0 * rcv_verb.length2 )
+		+ ys2 * ( src_sum - src_prod + 2.0 * rcv_verb.width2 )
 		- 2.0 * xs * ys * src_diff * sin2alpha ;
     _energy = element_prod( _energy, exp( -0.25*element_div(kappa,det_sr) ) ) ;
 //    cout << "src_prod=" << src_prod
