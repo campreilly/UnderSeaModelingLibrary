@@ -6,17 +6,19 @@
   <body>
     <h1>Under Sea Modeling Library (USML) Release Notes</h1>
     
-    <h2>Release 1.0.0 - March 2015</h2>
+    <h2>Release 1.0.0 - May 2015</h2>
     <ul>
 	<li>Bugs</li>
 	<ul>
 	    <li>Re-work the implementation of seq_vector and it sub-classes to allow better in ublas expressions. Fixes issues #95 and #66.
 		<ul>
 		<li>Restructured seq_vector to follow the design pattern of a typical ublas vector but still preserves the read-only nature of the original implementation.
-		<li>Removed depricated function data( size_type i ) const as it is not used or needed.
-		<li>Removed dependancy of ublas vector from seq_vector.
+		<li>Removed deprecated function data( size_type i ) const as it is not used or needed.
+		<li>Removed dependency of ublas vector from seq_vector.
 		</ul>
 	   <li>Fix implementation of (v / t) [i] = v [i] / t in config/vector_expressions.h so that it uses scalar_divides instead of scalar_multiplies.
+           <li>Update the logic in netcdf_profile::fill_missing to extend all profiles to the maximum depth, even if the
+               dataset does not have any data at the deepest depths.  The updated fill_missing logic removes all NaN values from the profile.
 	</ul>
 	<li>Enhancements</li>
 	<ul>

@@ -187,6 +187,7 @@ void netcdf_profile::fill_missing() {
 
 	vector_type profile_grad( ndepth ) ;
 	vector_type replace_grad( ndepth ) ;
+	size_type max_depth = 0 ;
 	for(size_type d=0; d<ndepth; ++d) {
 		if( d==0 ) replace_grad(d) = matrix_s( nlat, nlon, NAN ) ;
 		replace_grad(d) = matrix_z( nlat, nlon ) ;
@@ -197,6 +198,7 @@ void netcdf_profile::fill_missing() {
 					size_type indx[] = { d, j, k } ;
 					value_type curr = this->data( indx ) ;
 					if( ! isnan(curr) ) {
+                        max_depth = max( max_depth, d ) ;
 						size_type indx2[] = { d-1, j, k } ;
 						value_type prev = this->data( indx2 ) ;
 						profile_grad(d)(j,k) = ( curr - prev ) / depth->increment(d-1) ;
@@ -207,57 +209,76 @@ void netcdf_profile::fill_missing() {
 	}
 
 	int Q = 4 ;
-	for(size_type d=0; d<ndepth; ++d) {
-		for(size_type j=0; j<nlat; ++j) {
-			for(size_type k=0; k<nlon; ++k) {
-				size_type index[] = { d, j, k } ;
-				value_type r = this->data( index );
-				if( ! isnan(r) ) {
-					replace.data( index, r ) ;
-					replace_grad(d)(j,k) = profile_grad(d)(j,k) ;
-				} else {
-					// compute weight
-					value_type weight = 0.0 ;
-					for(size_type n=0; n<nlat; ++n) {
-						for(size_type m=0; m<nlon; ++m) {
-							size_type index2[] = { d, n, m } ;
-//							index2[0] = d ;
-//							index2[1] = n ;
-//							index2[2] = m ;
-							value_type tmp = this->data(index2) ;
-							if( ! isnan(tmp) ) {
-								value_type t = (j-n)*(j-n) + (k-m)*(k-m) ;
-								t = pow( t, Q ) ;
-								value_type dist2 = 1.0 / t ;
-								weight += dist2 ;
-								if( d==0 ) {
-									r = replace.data(index) + dist2 * tmp ;
-									replace.data( index, r ) ;
-								} else {
-									replace_grad(d)(j,k) += dist2 * profile_grad(d)(n,m) ;
-								}	// end if( d==0 )
-							}	// end if( !isnan(tmp) )
-						}	// end for m<nlon
-					}	// end for n<nlat
-					// apply weighted sum
-					if( weight > 0.0 ) {
-						if( d==0 ) {
-							r = replace.data(index) / weight ;
-							replace.data( index, r ) ;
-						} else {
-							replace_grad(d)(j,k) /= weight ;
-							size_type index2[3] ;
-							index2[0] = d-1 ;
-							index2[1] = j ;
-							index2[2] = k ;
-							r = replace.data(index2) + replace_grad(d)(j,k) * depth->increment(d-1) ;
-							replace.data( index, r ) ;
-						}
-					}	// end if( weight > 0.0 )
-				}	// end of if( ! isnan )
-			}	// end for k<nlon
+	for(size_type d=0; d<max_depth+1; ++d) {
+	    for(size_type j=0; j<nlat; ++j) {
+            for(size_type k=0; k<nlon; ++k) {
+                size_type index[] = { d, j, k } ;
+                value_type r = this->data( index );
+                if( ! isnan(r) ) {
+                    replace.data( index, r ) ;
+                    replace_grad(d)(j,k) = profile_grad(d)(j,k) ;
+                } else {
+                    // compute weight
+                    value_type weight = 0.0 ;
+                    for(size_type n=0; n<nlat; ++n) {
+                        for(size_type m=0; m<nlon; ++m) {
+                            size_type index2[] = { d, n, m } ;
+                            value_type tmp = this->data(index2) ;
+                            if( ! isnan(tmp) ) {
+                                value_type t = (j-n)*(j-n) + (k-m)*(k-m) ;
+                                t = pow( t, Q ) ;
+                                value_type dist2 = 1.0 / t ;
+                                weight += dist2 ;
+                                if( d==0 ) {
+                                    r = replace.data(index) + dist2 * tmp ;
+                                    replace.data( index, r ) ;
+                                } else {
+                                    replace_grad(d)(j,k) += dist2 * profile_grad(d)(n,m) ;
+                                }	// end if( d==0 )
+                            }	// end if( !isnan(tmp) )
+                        }	// end for m<nlon
+                    }	// end for n<nlat
+                    // apply weighted sum
+                    if( weight > 0.0 ) {
+                        if( d==0 ) {
+                            r = replace.data(index) / weight ;
+                            replace.data( index, r ) ;
+                        } else {
+                            replace_grad(d)(j,k) /= weight ;
+                            size_type index2[] = { d-1, j, k } ;
+                            r = replace.data(index2) + replace_grad(d)(j,k) * depth->increment(d-1) ;
+                            replace.data( index, r ) ;
+                        }
+                    }	// end if( weight > 0.0 )
+                }	// end if( ! isnan )
+            }	// end for k<nlon
 		}	// end for j<nlat
 	}	// end for d<ndepth
+
+	// fill in all of the values that are NANs that are beyond the maximum depth
+	// that contained valid values.
+    for(size_type j=0; j<nlat; ++j) {
+        for(size_type k=0; k<nlon; ++k) {
+            size_type w = 2 ;
+            if( max_depth+1 < ndepth ) {
+                for(size_type d=max_depth+1; d<ndepth; ++d) {
+                    replace_grad(d)(j,k) = replace_grad(max_depth)(j,k) / w ;
+                    size_type in[] = { d, j, k } ;
+                    size_type in_1[] = { d-1, j, k } ;
+                    value_type v = replace.data(in_1) + replace_grad(d)(j,k) * abs(depth->increment(d-1)) ;
+                    replace.data( in, v ) ;
+                    w *= 2 ;
+                }
+            } else {
+                replace_grad(max_depth)(j,k) = replace_grad(max_depth)(j,k) / w ;
+                size_type in[] = { max_depth, j, k } ;
+                size_type in_1[] = { max_depth-1, j, k } ;
+                value_type v = replace.data(in_1) + replace_grad(max_depth)(j,k) * abs(depth->increment(max_depth-1)) ;
+                replace.data( in, v ) ;
+            }   // end if( max_depth+1 < ndepth )
+        }   // end for k<nlon
+    }   // end for j<nlat
+
 	this->copy(replace) ;
 }
 
