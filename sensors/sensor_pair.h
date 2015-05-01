@@ -37,16 +37,25 @@ public:
      *
      * @param	source		Pointer to the source for this pair.
      * @param	receiver	Pointer to the receiver for this pair.
-     * @param	frequencies	std::vector of doubles of 
-     *                      intersecting frequencies for this pair.
      */
-    sensor_pair(sensor_model* source, sensor_model* receiver, std::vector<double> frequencies)
-        : _source(source), _receiver(receiver), _frequencies(frequencies) {};
+    sensor_pair(sensor_model* source, sensor_model* receiver)
+        : _source(source), _receiver(receiver)
+    {
+        if ( _source->mode() == usml::sensors::BOTH ) {
+            _frequencies = _source->frequencies()->clone();
+            _src_freq_first = 0;
+            _src_freq_last = _source->frequencies()->size()-1;
+        } else {
+            frequencies();
+        }
+    };
 
     /**
      * Default Destructor
      */
-    virtual ~sensor_pair() {}
+    virtual ~sensor_pair() {
+        delete _frequencies;
+    }
 
     /**
      * Gets a pointer to the source sensor.
@@ -65,10 +74,10 @@ public:
     }
 
     /**
-     * The intersecting frequencies of both the _source and _reciever sensors.
-     * @return frequencies in a std::vector of doubles.
+     * The intersecting frequencies from the _source for this pair.
+     * @return frequencies 
      */
-    std::vector<double> frequencies() const {
+    const seq_vector* frequencies() const {
         return _frequencies;
     }
 
@@ -116,6 +125,23 @@ private:
     sensor_pair() {};
 
     /**
+     * Utility to build the intersecting frequencies of a sensor_pair.
+     */
+    void frequencies();
+
+    /**
+     * Index of the first intersecting frequency of the 
+     * source frequencies seq_vector;
+     */
+    size_t _src_freq_first;
+
+    /**
+     * Index of the last intersecting frequency of the
+     * source frequencies seq_vector;
+     */
+    size_t _src_freq_last;
+
+    /**
      * Pointer to the source sensor.
      * The source and receiver will be equal for monostatic sensors.
      */
@@ -128,9 +154,10 @@ private:
     const sensor_model* _receiver;
 
     /**
-     * The intersecting frequencies of both the _source and _reciever sensors
+     * The intersecting frequencies from the _source of t
+     * the _source and _reciever sensors.
      */
-    const std::vector<double> _frequencies;
+    const seq_vector* _frequencies;
 
     /**
      * Mutex that locks sensor_pair during complement lookups.

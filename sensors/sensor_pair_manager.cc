@@ -443,12 +443,7 @@ bool sensor_pair_manager::remove_sensor(sensor_model* sensor) {
 void sensor_pair_manager::add_monostatic_pair(sensor_model* sensor) {
 	sensor_model::id_type sourceID = sensor->sensorID();
     std::string hash_key = generate_hash_key(sourceID, sourceID);
-    std::vector<double> frequencies;
-    const seq_vector* seq_freq = sensor->source()->frequencies();
-    BOOST_FOREACH(double freq, *seq_freq) {
-        frequencies.push_back(freq);
-    }
-    sensor_pair* pair = new sensor_pair(sensor, sensor, frequencies);
+    sensor_pair* pair = new sensor_pair(sensor, sensor); 
 	_map.insert(hash_key, pair);
 	sensor->add_sensor_listener(pair);
 	#ifdef USML_DEBUG
@@ -471,9 +466,7 @@ void sensor_pair_manager::add_multistatic_source(sensor_model* source) {
                                         receiver_sensor->receiver()->frequencies()) )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
-                sensor_pair* pair = new sensor_pair(source, receiver_sensor, 
-                    build_frequencies(source->source()->frequencies(),
-                    receiver_sensor->receiver()->frequencies()));
+                sensor_pair* pair = new sensor_pair(source, receiver_sensor);
                 _map.insert(hash_key, pair);
 				source->add_sensor_listener(pair);
                 receiver_sensor->add_sensor_listener(pair);
@@ -500,9 +493,7 @@ void sensor_pair_manager::add_multistatic_receiver(sensor_model* receiver) {
                                         receiver->receiver()->frequencies() ) )
 			{
                 std::string hash_key = generate_hash_key(sourceID, receiverID);
-                sensor_pair* pair = new sensor_pair(source_sensor, receiver, 
-                    build_frequencies(source_sensor->source()->frequencies(),
-                    receiver->receiver()->frequencies()));
+                sensor_pair* pair = new sensor_pair(source_sensor, receiver);
                 _map.insert(hash_key, pair);
                 source_sensor->add_sensor_listener(pair);
 				receiver->add_sensor_listener(pair);
@@ -619,26 +610,3 @@ bool sensor_pair_manager::frequencies_overlap(const seq_vector* src_freq, const 
 
     return overlap;
 }
-
-/**
-* Utility to build the intersecting frequencies of a sensor_pair.
-* Stored in the sensor_pair.
-*/
-std::vector<double> sensor_pair_manager::build_frequencies(const seq_vector* src_freq, const seq_vector* rcv_freq) {
-    
-    std::vector<double> frequencies;
-
-    // Get source min and max
-    double src_min = *( src_freq->data().begin() );
-    double src_max = *(src_freq->data().end() - 1);
-    
-    BOOST_FOREACH(double rcv_f, *rcv_freq) {
-
-        if ( ( rcv_f >= src_min ) && ( rcv_f <= src_max ) ) {
-            frequencies.push_back(rcv_f);
-        }
-    }
-
-    return frequencies;
-}
-

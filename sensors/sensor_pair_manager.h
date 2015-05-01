@@ -320,14 +320,6 @@ private:
      */
     bool frequencies_overlap(const seq_vector* src_freq, const seq_vector* rcv_freq);
 
-    /**
-     * Utility to build the intersecting frequencies of a sensor_pair.
-     * @param	src_freq  frequency range for source
-     * @param	rcv_freq  frequenc range for receiver
-     * @return frequencies in a std::vector of doubles.
-     */
-    std::vector<double> build_frequencies(const seq_vector* src_freq, const seq_vector* rcv_freq);
-
 	/**
 	 * Hide access to default constructor.
 	 */

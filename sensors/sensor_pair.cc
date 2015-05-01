@@ -7,6 +7,25 @@
 using namespace usml::sensors;
 
 /**
+* Utility to build the intersecting frequencies of a sensor_pair.
+*/
+void sensor_pair::frequencies() {
+
+    // Build intersecting frequencies
+    _frequencies = _source->frequencies()->clip(
+        _receiver->min_active_freq(), _receiver->max_active_freq());
+
+    // Get first and last values
+    double first_value = *( _frequencies->begin() );
+    double last_value = *( _frequencies->end() - 1 );
+   
+    // Set first and last index's
+    _src_freq_first = _source->frequencies()->find_index(first_value);
+    _src_freq_last = _source->frequencies()->find_index(last_value);
+}
+
+
+/**
  * Notification that new eigenray data is ready.
  */
 void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_list* list)

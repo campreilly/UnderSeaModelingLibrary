@@ -56,46 +56,17 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
             throw std::invalid_argument("NetCDF variable not found");
         }
 
-        // search for linear or logrithmic pattern in this data
-
         const int N = (int) axis->num_vals() ;
-        bool isLinear = true ;
-        bool isLog = true ;
-        boost::numeric::ublas::vector<double> data(N) ;
-
-        double p1 = axis->as_double(0) ; data(0) = p1 ;
-        double minValue = p1 ;
-        double maxValue = p1 ;
-
-        if ( N > 1 ) {
-            double p2 = axis->as_double(1) ; data(1) = p2 ;
-            for ( int n=2 ; n < N ; ++n ) {
-                double p3 = axis->as_double(n) ; data(n) = p3 ;
-                maxValue = p3 ;
-                // printf("diff[%d] = %f\n",n,p3-p2);
-                if ( abs( ((p3-p2)-(p2-p1)) / p2 ) > 1E-4 ) {
-                    isLinear = false ;
-                }
-                if ( p1 == 0.0 || p2 == 0.0 ||
-                    abs( (p3/p2)-(p2/p1) ) > 1E-5 )
-                {
-                    isLog = false ;
-                }
-                if ( ! ( isLinear || isLog ) ) break ;
-                p1 = p2 ;
-                p2 = p3 ;
-            }
+        std::vector<double> data(N);
+    
+        // Convert to std::vector
+        for ( int n = 0; n < N; ++n ) {
+            data.push_back(axis->as_double(n));
         }
 
-        // build a new sequence for this axis
-
-        cout << axis->name() << " N=" << N << " minValue=" << minValue << " maxValue=" << maxValue << endl ;
-        if ( isLinear ) {
-            return new seq_linear( minValue, (maxValue-minValue)/(N-1), N ) ;
-        } else if ( isLog ) {
-            return new seq_log( minValue, (maxValue/minValue)/(N-1), N ) ;
-        }
-        return new seq_data( data ) ;
+        // build and return 
+        // best fit for seq_linear or seq_log or worst case seq_data
+        return  seq_vector::build_best(data); 
     }
 
   public:

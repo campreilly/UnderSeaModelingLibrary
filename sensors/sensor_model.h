@@ -75,12 +75,28 @@ public:
 	}
 
     /**
+     * Gets the minimum active frequency
+     * @return double 
+     */
+    double min_active_freq() const {
+        return _min_active_freq;
+    }
+
+    /**
+     * Gets the maximum active frequency
+     * @return double
+     */
+    double max_active_freq() const {
+        return _max_active_freq;
+    }
+
+    /**
      * Frequencies of transmitted pulse. Multiple frequencies can be
      * used to compute multiple results at the same time. These are the
      * frequencies at which transmission loss and reverberation are computed.
-     * @return frequencies pointer to a seq_linear. 
+     * @return frequencies pointer to a seq_vector. 
      */
-    const seq_linear* frequencies() const {
+    seq_vector* frequencies() const {
         return _frequencies.get();
     }
 
@@ -206,10 +222,10 @@ private:
 	void run_wave_generator();
 
     /**
-     * Utility to select frequencies band from sensor including
+     * Utility to set the frequencies band from sensor including
      * min and max active frequencies.
      */
-    void select_frequencies();
+    void frequencies();
 
 	/**
 	 * Identification used to find this sensor instance in sensor_manager.
@@ -222,11 +238,21 @@ private:
 	const sensor_params::id_type _paramsID;
 
     /**
+     * Minimum active frequency for the sensor.
+     */
+    double _min_active_freq;
+
+    /**
+     *  Maximum active frequency for the sensor.
+     */
+    double _max_active_freq;
+
+    /**
      * Frequencies of transmitted pulse. Multiple frequencies can be
      * used to compute multiple results at the same time. These are the
      * frequencies at which transmission loss and reverberation are computed.
      */
-    unique_ptr<seq_linear> _frequencies;
+    unique_ptr<seq_vector> _frequencies;
 
     /**
      * Enumerated type for the sensor transmit/receiver mode.

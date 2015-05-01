@@ -125,15 +125,6 @@ BOOST_AUTO_TEST_CASE(pairs_test)
          BOOST_FAIL("pairs_test:: Removed non-existent sensor_model");
     }
 
-    // Check min, max active frequency manipulation
-    // Get Frequencies of sensor_model
-    sensor_model* sensor_three = manager->find(3);
-    const seq_linear* freq = sensor_three->frequencies();   
-    BOOST_CHECK_EQUAL((*freq)(1), 7375.0);
-    BOOST_CHECK_EQUAL((*freq)(2), 8250.0);
-    BOOST_CHECK_EQUAL((*freq)(3), 9125.0);
-    BOOST_CHECK_EQUAL((*freq)(4), 10000.0);
-
     //cout << "=== pairs_test: remove_sensor 1 BOTH ===" << endl;
     if ( manager->remove_sensor(sensors[0]) == false )
     {
@@ -176,7 +167,9 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     fathometer_model::fathometer_package fathometers = 
         sensor_pair_manager::instance()->get_fathometers(query);
 
-    cout << "=== pairs_test: fathometers return size " << fathometers.size() << endl;
+    // Expect zero fathometer for this test!
+    BOOST_CHECK_EQUAL(fathometers.size(), 0);
+    //cout << "=== pairs_test: fathometers return size " << fathometers.size() << endl;
 
     // Clean up all singleton to prevent use by other tests!
     source_params_map::reset();

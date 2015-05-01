@@ -43,9 +43,9 @@ sensor_model::sensor_model(sensor_model::id_type sensorID, sensor_params::id_typ
         _mode = NONE;
     }
 
-    // Select frequency band from _source or _receiver 
-    // with min/max active included
-    select_frequencies();
+    // Set frequency band from _source or _receiver 
+    // and min/max active frequencies
+    frequencies();
 }
 
 /**
@@ -248,50 +248,26 @@ wposition sensor_model::target_positions(std::list<const sensor_model*>& list) {
 }
 
 /**
- * Utility to select frequencies band from sensor including min and max active frequencies
+ * Utility to set frequencies from sensor including min and max active frequencies
  */
-void sensor_model::select_frequencies() {
-
-    double min; 
-    double max;
-
-    double band_min;
-    double band_max;    
-    size_t band_size;
+void sensor_model::frequencies() {
 
     switch ( _mode ) {
 
         case usml::sensors::RECEIVER:
         {
-            min = _receiver->min_active_freq();
-            max = _receiver->max_active_freq();
-
-            band_min = *( _receiver->frequencies()->begin() );
-            band_max = *( _receiver->frequencies()->end() - 1 );
-            band_size = _receiver->frequencies()->size();
+            _min_active_freq = _receiver->min_active_freq();
+            _max_active_freq = _receiver->max_active_freq();
+            _frequencies.reset(_receiver->frequencies()->clone());
             break;
         }
         default:  // SOURCE or BOTH
         {
-            min = _source->min_active_freq();
-            max = _source->max_active_freq();
-
-            band_min = *( _source->frequencies()->begin() );
-            band_max = *( _source->frequencies()->end() - 1 );
-            band_size = _source->frequencies()->size();
+            _min_active_freq = _source->min_active_freq();
+            _max_active_freq = _source->max_active_freq();
+            _frequencies.reset(_source->frequencies()->clone());
         }
-    }
-
-    // Set min/max 
-    if ( band_min  < min ) {
-        min = band_min;
-    }
-
-    if ( band_max  > max ) {
-        max = band_max;
-    }
-    
-    _frequencies.reset(new seq_linear(min, (max-min)/band_size, max));
+    }  
 }
 
 
@@ -318,7 +294,7 @@ void sensor_model::run_wave_generator() {
 
         // Create the wavefront_generator
         wavefront_generator* generator = new wavefront_generator(
-            ocean_shared::current(), _position, target_pos, frequencies(), this);
+            ocean_shared::current(), _position, target_pos, _frequencies.get(), this);
 
         // Make wavefront_generator a wavefront_task, with use of shared_ptr
         _wavefront_task = thread_task::reference(generator);
