@@ -130,10 +130,13 @@ void envelope_collection::write_netcdf(const char* filename) const {
 	for (size_t a = 0; a < _num_azimuths; ++a) {
 		for (size_t s = 0; s < _num_src_beams; ++s) {
 			for (size_t r = 0; r < _num_rcv_beams; ++r) {
-				envelopes_var->set_cur(a,s,r,0,0) ;
-				matrix<double> envelope = 10.0*log10(max(*_envelopes[a][s][r], 1e-30));
-				envelopes_var->put( envelope.data().begin(), 1, 1, 1,
-						(long) _transmit_freq->size(), (long) _travel_time.size());
+				for (size_t f = 0; f < _transmit_freq->size(); ++f) {
+					matrix_row< matrix<double> > row(*_envelopes[a][s][r], f);
+					vector<double> envelope = 10.0*log10(max(row, 1e-30));
+					envelopes_var->set_cur((long)a, (long)s, (long)r, (long) f, 0L );
+					envelopes_var->put(envelope.data().begin(), 1L, 1L, 1L, 1L,
+						(long) _travel_time.size() );
+				}
 			}
 		}
 	}
