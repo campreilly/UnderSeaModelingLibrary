@@ -198,7 +198,7 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 	// build a simple eigenverb
 
 	eigenverb verb ;
-	verb.time = 10.0 ;
+	verb.time = 0.0 ;
 	verb.position = wposition1(range,0.0,-depth) ;
 	verb.direction = 0.0 ;
 	verb.grazing = angle ;
@@ -247,12 +247,12 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 
 	// add contributions at t=10 and t=30 sec
 
-	verb.time = 10.0 ;
+	verb.time = 5.0 ;
 	collection.add_contribution(
 		scatter, src_beam, rcv_beam,
 		verb, verb ) ;
 
-	verb.time = 30.0 ;
+	verb.time = 15.0 ;
 	verb.energy *= 0.5 ;
 	collection.add_contribution(
 		scatter, src_beam, rcv_beam,
