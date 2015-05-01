@@ -29,30 +29,26 @@ function eigenverbs = load_eigenverbs( filename )
 
 % read netCDF data into local variables
 
-start = [1, 1] ;
-count = [inf, inf] ;
-energy = ncread(filename,'energy',start,count) ;
-leng = ncread(filename,'length',start,count) ;
-width = ncread(filename,'width',start,count) ;
-start = 1 ;
-count = inf ;
-travel_time = ncread(filename,'travel_time',start,count) ;
-frequency = ncread(filename,'frequency',start,count) ;
-latitude = ncread(filename,'latitude',start,count) ;
-longitude = ncread(filename,'longitude',start,count) ;
-altitude = ncread(filename,'altitude',start,count) ;
-direction = ncread(filename,'direction',start,count) ;
-grazing = ncread(filename,'grazing_angle',start,count) ;
-sound_speed = ncread(filename,'sound_speed',start,count) ;
-de_index = ncread(filename,'de_index',start,count) ;
-az_index = ncread(filename,'az_index',start,count) ;
-source_de = ncread(filename,'source_de',start,count) ;
-source_az = ncread(filename,'source_az',start,count) ;
-surface = ncread(filename,'surface',start,count) ;
-bottom = ncread(filename,'bottom',start,count) ;
-caustic = ncread(filename,'caustic',start,count) ;
-upper = ncread(filename,'upper',start,count) ;
-lower = ncread(filename,'lower',start,count) ;
+energy = ncread(filename,'energy') ;
+leng = ncread(filename,'length') ;
+width = ncread(filename,'width') ;
+travel_time = ncread(filename,'travel_time') ;
+frequency = ncread(filename,'frequency') ;
+latitude = ncread(filename,'latitude') ;
+longitude = ncread(filename,'longitude') ;
+altitude = ncread(filename,'altitude') ;
+direction = ncread(filename,'direction') ;
+grazing = ncread(filename,'grazing_angle') ;
+sound_speed = ncread(filename,'sound_speed') ;
+de_index = ncread(filename,'de_index') ;
+az_index = ncread(filename,'az_index') ;
+source_de = ncread(filename,'source_de') ;
+source_az = ncread(filename,'source_az') ;
+surface = ncread(filename,'surface') ;
+bottom = ncread(filename,'bottom') ;
+caustic = ncread(filename,'caustic') ;
+upper = ncread(filename,'upper') ;
+lower = ncread(filename,'lower') ;
 
 % translate data into structure
 

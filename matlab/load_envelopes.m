@@ -16,15 +16,10 @@ function envelopes = load_envelopes( filename )
 
 % read netCDF data into local variables
 
-start = 1 ;
-count = inf ;
-travel_time = ncread(filename,'travel_time',start,count) ;
-frequency = ncread(filename,'frequency',start,count) ;
-
-start = [1, 1, 1, 1, 1] ;
-count = [inf, inf, inf, inf, inf] ;
-intensity = ncread(filename,'intensity',start,count) ;
-intensity = permute(intensity,[5 4 3 2 1]);
+travel_time = ncread(filename,'travel_time') ;
+frequency = ncread(filename,'frequency') ;
+intensity = ncread(filename,'intensity') ;
+intensity = permute(intensity,5:-1:1);
 
 [ num_azimuths, num_src_beams , num_rcv_beams, num_freq, num_time ] ...
     = size( intensity ) ;
