@@ -183,7 +183,11 @@ BOOST_AUTO_TEST_CASE( eigenverb_basic ) {
 
 /**
  * Test the ability to generate a single envelope contributions and
- * write it out to netCDF.
+ * write it out to netCDF.  Automatically compares the peaks of the
+ * first contribution to the monostatic solution.
+ * $f[
+ *		E_{monostatic} = \pi * E_s^2 * \sigma / \sqrt{ L_s^2 W_s^2 }
+ * $f]
  */
 BOOST_AUTO_TEST_CASE( envelope_basic ) {
     cout << "=== eigenverb_test: envelope_basic ===" << endl;
@@ -259,6 +263,20 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 		verb, verb ) ;
 
 	collection.write_netcdf(ncname) ;
+
+	// compare total energy to analytic solution for monostatic result (eqn. 31).
+
+	const double coeff = 4.0 * M_PI * sqrt(TWO_PI) ;
+	vector<double> theory = 10.0*log10(element_div(
+		M_PI * 0.2 * 0.2 * scatter,
+		sqrt(verb.length2 * verb.width2)))
+		- 10.0*log10(coeff * 0.5);
+	size_t index = 105 ;
+	for (size_t f = 0; f < freq.size(); ++f) {
+		double model = 10.0*log10(collection.envelope(0,0,0)(f,index));
+		cout << "theory=" << theory[f] << " model=" << model << endl;
+		BOOST_CHECK_CLOSE(theory[f], model, 1e-2);
+	}
 }
 
 /// @}
