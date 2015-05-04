@@ -94,7 +94,18 @@ public:
 	}
 
 	/**
-	 * Executes the Eigenverb reverberation model.
+	 * Executes the Eigenverb reverberation model.  For each receiver eigenverb,
+	 * it loops through the list of source eigenverbs looking for overlaps.
+	 *
+	 * First, it computes the great circle range and bearing of the source
+	 * relative to the receiver.  The combination is skipped if the location
+	 * of the source (its peak intensity) is more than three (3) times the
+	 * length/width of the receiver eigenverb,
+	 * Next, it computes the scattering strength and beam patterns for
+	 * this source/receiver combination.
+	 * Finally, it uses the evelope_collection.add_contribution() method
+	 * to add this this source/receiver combination to the reverberation
+	 * envelopes.
 	 */
 	virtual void run() ;
 

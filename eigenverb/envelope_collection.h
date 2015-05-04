@@ -131,19 +131,26 @@ public:
 	 * It also assumes that the calling routine has computed the scattering
 	 * coefficient and beam levels for this combination of eigenverbs,
 	 *
-	 * @param scatter	Scattering strength at each transmit frequency (ratio).
+	 * @param src_verb	Eigenverb contribution from the source.
+	 * @param rcv_verb	Eigenverb contribution from the receiver.
 	 * @param src_beam	Source beam level at each transmit frequency (ratio).
 	 * 					Each row represents a specific transmit frequency.
 	 * 					Each column represents a beam number.
 	 * @param rcv_beam	Receiver beam level at each transmit frequency (ratio).
 	 * 					Each row represents a specific transmit frequency.
 	 * 					Each column represents a beam number.
-	 * @param src_verb	Eigenverb contribution from the source.
-	 * @param rcv_verb	Eigenverb contribution from the receiver.
+	 * @param scatter	Scattering strength at each transmit frequency (ratio).
+	 * @param xs2		Square of the relative distance from the
+	 * 					receiver to the target along the direction
+	 * 					of the receiver's length.
+	 * @param ys2		Square of the relative distance from the
+	 * 					receiver to the target along the direction
+	 * 					of the receiver's width.
 	 */
-	void add_contribution( const vector<double>& scatter,
-		const matrix<double>& src_beam, const matrix<double>& rcv_beam,
-		const eigenverb& src_verb, const eigenverb& rcv_verb ) ;
+	void add_contribution(
+			const eigenverb& src_verb, const eigenverb& rcv_verb,
+			const matrix<double>& src_beam, const matrix<double>& rcv_beam,
+			const vector<double>& scatter, double xs2, double ys2 ) ;
 
 	/**
 	 * Writes the envelope data to disk

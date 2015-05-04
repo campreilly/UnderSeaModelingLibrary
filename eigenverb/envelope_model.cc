@@ -33,10 +33,11 @@ envelope_model::envelope_model(
  * Adds a single combination of source and receiver eigenverbs
  * to this time series.
  */
-bool envelope_model::compute_intensity( const vector<double>& scatter,
-		const eigenverb& src_verb, const eigenverb& rcv_verb )
+bool envelope_model::compute_intensity(
+		const eigenverb& src_verb, const eigenverb& rcv_verb,
+		const vector<double>& scatter, double xs2, double ys2 )
 {
-	bool ok = compute_overlap( scatter, src_verb, rcv_verb  );
+	bool ok = compute_overlap( src_verb, rcv_verb, scatter, xs2, ys2 );
 	if ( !ok ) return false ;
 
 	compute_time_series( src_verb, rcv_verb ) ;
@@ -46,35 +47,14 @@ bool envelope_model::compute_intensity( const vector<double>& scatter,
 /**
  * Compute the total energy of the overlap between two eigenverbs.
  */
-bool envelope_model::compute_overlap( const vector<double>& scatter,
-		const eigenverb& src_verb, const eigenverb& rcv_verb )
+bool envelope_model::compute_overlap(
+	const eigenverb& src_verb, const eigenverb& rcv_verb,
+	const vector<double>& scatter, double xs2, double ys2 )
 {
-	// determine the range and bearing between the projected Gaussians
-	// normalize bearing to min distance between angles
-	// exit early if source more than 5 beam width away
-
-    double bearing ;
-    const double range = rcv_verb.position.gc_range( src_verb.position, &bearing ) ;
-    if ( range < 1e-6 ) bearing = 0 ;	// fixes bearing = NaN
-    bearing -= rcv_verb.direction ;
-    bearing = M_PI - abs( fmod(abs(bearing), TWO_PI) - M_PI);
-
-    const double xs = range * cos( bearing ) ;
-    const double xs2 = xs * xs ;
-    if ( xs2 > 25.0 * rcv_verb.length2[0] ) return false ;
-
-    const double ys = range * sin( bearing ) ;
-    const double ys2 = ys * ys ;
-    if ( ys2 > 25.0 * rcv_verb.width2[0] ) return false ;
-
 	#ifdef DEBUG_ENVELOPE
     	cout << "*** envelope_model::compute_overlap ***" << endl ;
 		cout << "    Travel time:     " << src_verb.time + rcv_verb.time << endl;
 		cout << "        DE:          " << src_verb.source_de << endl;
-		cout << "       range:        " << range << endl;
-		cout << "       bearing:      " << bearing << endl;
-		cout << "        xs:          " << xs << endl;
-		cout << "        ys:          " << ys << endl;
 		cout << "   grazing angle:    " << src_verb.grazing*180.0/M_PI << endl;
 		cout << "      Loss in:       " << 10.0*log10(src_verb.energy) << endl;
 		cout << "      Loss out:      " << 10.0*log10(rcv_verb.energy) << endl;
@@ -144,7 +124,7 @@ bool envelope_model::compute_overlap( const vector<double>& scatter,
     vector<double> kappa =
   		  xs2 * ( src_sum + src_prod * 2.0 * rcv_verb.length2 )
 		+ ys2 * ( src_sum - src_prod + 2.0 * rcv_verb.width2 )
-		- 2.0 * xs * ys * src_diff * sin2alpha ;
+		- 2.0 * sqrt( xs2 * ys2 ) * src_diff * sin2alpha ;
     _energy = element_prod( _energy, exp( -0.25*element_div(kappa,det_sr) ) ) ;
 //    cout << "src_prod=" << src_prod
 // 		 << " kappa=" << kappa

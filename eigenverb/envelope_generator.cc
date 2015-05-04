@@ -88,6 +88,29 @@ void envelope_generator::run() {
 			_eigenverb_interpolator.interpolate(verb,&rcv_verb) ;
 			BOOST_FOREACH( eigenverb src_verb, _src_eigenverbs->eigenverbs(interface) ) {
 
+				// determine the range and bearing between the projected Gaussians
+				// normalize bearing to min distance between angles
+				// skip this combo if source peak more than 3 beam width away
+				//
+				// TODO Use quadtree to make searching through source
+				//      eigenverbs faster.
+
+			    double bearing ;
+			    const double range = rcv_verb.position.gc_range( src_verb.position, &bearing ) ;
+			    if ( range*range > 9.0 * max(rcv_verb.length2[0],rcv_verb.width2[0])) continue ;
+
+			    if ( range < 1e-6 ) bearing = 0 ;	// fixes bearing = NaN
+			    bearing -= rcv_verb.direction ;
+			    bearing = M_PI - abs( fmod(abs(bearing), TWO_PI) - M_PI);
+
+			    const double xs = range * cos( bearing ) ;
+			    const double xs2 = xs * xs ;
+			    if ( xs2 > 9.0 * rcv_verb.length2[0] ) continue ;
+
+			    const double ys = range * sin( bearing ) ;
+			    const double ys2 = ys * ys ;
+			    if ( ys2 > 9.0 * rcv_verb.width2[0] ) continue ;
+
 				// compute interface scattering strength
 
 				scattering( interface,
@@ -106,8 +129,8 @@ void envelope_generator::run() {
 
 				// create envelope contribution
 
-				_envelopes->add_contribution( scatter, src_beam, rcv_beam,
-						src_verb, rcv_verb ) ;
+				_envelopes->add_contribution( src_verb, rcv_verb,
+						src_beam, rcv_beam, scatter, xs2, ys2 ) ;
 			}
 		}
 	}

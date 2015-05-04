@@ -69,11 +69,18 @@ private:
 	 * @param rcv_verb		Eigenverb contribution from the receiver.
 	 * @param scatter		Scattering strength coefficient for this
 	 * 						combination of eigenverbs (ratio).
+	 * @param xs2			Square of the relative distance from the
+	 * 						receiver to the target along the direction
+	 * 						of the receiver's length.
+	 * @param ys2			Square of the relative distance from the
+	 * 						receiver to the target along the direction
+	 * 						of the receiver's width.
 	 * @param pulse_length	Duration of the transmit pulse (sec).
 	 * @return				False if reverbereation energy below threshold.
 	 */
-	bool compute_intensity( const vector<double>& scatter,
-			const eigenverb& src_verb, const eigenverb& rcv_verb ) ;
+	bool compute_intensity(
+			const eigenverb& src_verb, const eigenverb& rcv_verb,
+			const vector<double>& scatter, double xs2, double ys2 ) ;
 
 	/**
 	 * Reverberation intensity at each point the time series.
@@ -92,15 +99,22 @@ private:
 	 * the bistatic reverberation contribution from eqn. (28) ans (29)
 	 * in the paper.  Computes the duration from eqn. (45) and (33).
 	 *
+	 * @param src_verb		Eigenverb contribution from the source.
+	 * @param rcv_verb		Eigenverb contribution from the receiver.
 	 * @param scatter		Scattering strength coefficient for this
 	 * 						combination of eigenverbs,
 	 * 						as a function of transmit frequency (ratio).
-	 * @param src_verb		Eigenverb contribution from the source.
-	 * @param rcv_verb		Eigenverb contribution from the receiver.
+	 * @param xs2			Square of the relative distance from the
+	 * 						receiver to the target along the direction
+	 * 						of the receiver's length.
+	 * @param ys2			Square of the relative distance from the
+	 * 						receiver to the target along the direction
+	 * 						of the receiver's width.
 	 * @return				False if energy below threshold.
 	 */
-	bool compute_overlap( const vector<double>& scatter,
-			const eigenverb& src_verb, const eigenverb& rcv_verb ) ;
+	bool compute_overlap(
+			const eigenverb& src_verb, const eigenverb& rcv_verb,
+			const vector<double>& scatter, double xs2, double ys2 ) ;
 
 	/**
 	 * Computes Gaussian time series contribution given delay, duration, and

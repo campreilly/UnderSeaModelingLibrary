@@ -252,15 +252,13 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 	// add contributions at t=10 and t=30 sec
 
 	verb.time = 5.0 ;
-	collection.add_contribution(
-		scatter, src_beam, rcv_beam,
-		verb, verb ) ;
+	collection.add_contribution( verb, verb,
+		src_beam, rcv_beam, scatter, 0.0, 0.0 ) ;
 
 	verb.time = 15.0 ;
 	verb.energy *= 0.5 ;
-	collection.add_contribution(
-		scatter, src_beam, rcv_beam,
-		verb, verb ) ;
+	collection.add_contribution( verb, verb,
+			src_beam, rcv_beam, scatter, 0.0, 0.0 ) ;
 
 	collection.write_netcdf(ncname) ;
 
