@@ -1,142 +1,158 @@
 /**
  * @file envelope_generator.h
+ * Computes reverberation envelopes from eigenverbs.
  */
 #pragma once
 
-//#define EIGENVERB_COLLISION_DEBUG
-//#define EIGENVERB_MODEL_DEBUG
-
-#include <usml/ocean/ocean.h>
+#include <usml/ocean/ocean_shared.h>
+#include <usml/threads/thread_task.h>
 #include <usml/eigenverb/eigenverb_collection.h>
-#include <usml/eigenverb/envelope_collection.h>
-#include <iostream>
-#include <fstream>
+#include <usml/eigenverb/eigenverb_interpolator.h>
+#include <usml/eigenverb/envelope_notifier.h>
 
 namespace usml {
 namespace eigenverb {
 
-using namespace usml::ocean ;
-using namespace boost::numeric::ublas ;
+using namespace usml::ocean;
+using namespace usml::threads;
 
-/// @ingroup waveq3d
+/// @ingroup eigenverb
 /// @{
 
-class USML_DECLSPEC envelope_generator {
+/**
+ * Computes reverberation envelopes from eigenverbs.
+ * Combines eigenverbs to create the reverberation envelope,
+ * as a function of travel time, frequency, and receiver beam number,
+ * for a fixed set of azimuthal directions around each receiver.
+ * An overlap is computed between each receiver eigenverb and
+ * all of the source eigenverbs in its vicinity.  This overlap creates
+ * a Gaussian reverberation envelope contribution in the time domain.
+ *
+ * The reverberation envelope contributions for each receiver azimuth
+ * are incoherently power summed.  Beam patterns are applied to the
+ * eigenverbs during envelope generation.  This allows a single pair of
+ * eigenverbs to create separate envelopes for each receiver beam.
+ * Eigenverbs and envelopes are computed as functions of frequency
+ * so that the pre-computed reverberation results can be applied
+ * to a variety of transmitted waveforms in the sonar training system.
+ *
+ * Invoked as a background thread_task by the sensor_pair for
+ * a specific source/receiver combination, whenever one of the sensors
+ * updates its eigenverbs. If an existing envelope_generator is running for
+ * this sensor_pair, that task is aborted before the new envelope_generator
+ * is created.
+ */
+class USML_DECLSPEC envelope_generator: public thread_task, envelope_notifier {
+public:
 
-    public:
+	/**
+	 * Default pulse length of the signal (sec)
+	 * Defaults to 1.0 sec.
+	 */
+	static double pulse_length;
 
-        /**
-         * Virtual destructor
-         */
-        virtual ~envelope_generator() {}
+	/**
+	 * Default duration of the reverberation envelope (sec).
+	 * Defaults to 40 sec.
+	 */
+	static double time_maximum;
 
-        /**
-         * Computes the reverberation curve from the data cataloged from the
-         * wavefront(s).
-         *
-         * @param source
-         * @param receiver
-         * @param curves
-         */
-        void generate_envelopes(
-                const eigenverb_collection& source,
-                const eigenverb_collection& receiver,
-                envelope_collection* levels ) ;
+	/**
+	 * Default sampling period for the reverberation envelope (sec).
+	 * Defaults to 0.1 sec.
+	 */
+	static double time_step;
 
-    protected:
+	/**
+	 * Minimum intensity level for valid reverberation contributions (linear units).
+	 * Defaults to -300 dB.
+	 */
+	static double threshold;
 
-        /**
-         * Storage for the envelope collection
-         */
-        envelope_collection* _envelope ;
+	/**
+	 * Initialize model parameters and reserve memory.
+	 *
+	 * @param transmit_freq	Frequencies at which the source and receiver
+	 * 						eigenverbs are computed (Hz).
+	 * @param num_azimuths	Number of receiver azimuths in result.
+	 * @param num_src_beams	Number of source beams in result.
+	 * @param num_rcv_beams Number of receiver beams in result.
+	 */
+	envelope_generator(
+		const seq_vector* transmit_freq,
+		const seq_vector* receiver_freq,
+		size_t num_azimuths,
+		size_t num_src_beams,
+		size_t num_rcv_beams,
+	    eigenverb_collection::reference src_eigenverbs,
+	    eigenverb_collection::reference rcv_eigenverbs ) ;
 
-        /**
-         * Computes the contribution value of two eigenverbs to the total
-         * reverberation level.
-         *
-         * @param u
-         * @param v
-         * @param levels
-         */
-         void compute_contribution(
-             const eigenverb* u, const eigenverb* v,
-             envelope_collection* levels ) ;
+	/**
+	 * Virtual destructor
+	 */
+	virtual ~envelope_generator() {
+	}
 
-        /**
-         * Computes the energy contributions to the reverberation
-         * energy curve from the bottom interactions.
-         *
-         * @param source
-         * @param receiver
-         * @param levels
-         */
-        virtual void compute_bottom_energy(
-                const eigenverb_collection& source,
-                const eigenverb_collection& receiver,
-                envelope_collection* levels ) = 0 ;
+	/**
+	 * Executes the Eigenverb reverberation model.
+	 */
+	virtual void run() ;
 
-        /**
-         * Computes the energy contributions to the reverberation
-         * energy curve from the surface interactions.
-         *
-         * @param source
-         * @param receiver
-         * @param levels
-         */
-        virtual void compute_surface_energy(
-                const eigenverb_collection& source,
-                const eigenverb_collection& receiver,
-                envelope_collection* levels ) = 0 ;
+	/**
+	 * Set to true when this task complete.
+	 */
+	bool done() {
+		return _done;
+	}
 
-        /**
-         * Calculate the contributions due to collisions from below
-         * a volume layer.
-         *
-         * @param source
-         * @param receiver
-         * @param levels
-         */
-        virtual void compute_upper_volume_energy(
-                const eigenverb_collection& source,
-                const eigenverb_collection& receiver,
-                envelope_collection* levels ) = 0 ;
+private:
 
-        /**
-         * Calculate the contributions due to collisions from above
-         * a volume layer.
-         *
-         * @param source
-         * @param receiver
-         * @param levels
-         */
-        virtual void compute_lower_volume_energy(
-                const eigenverb_collection& source,
-                const eigenverb_collection& receiver,
-                envelope_collection* levels ) = 0 ;
+	/**
+	 * Computes the broadband scattering strength for a specific interface.
+	 *
+	 * @param interface		Interface number of ocean component that is doing
+	 * 						the scattering. See the eigenverb class header
+	 * 						for documentation on interpreting this number.
+	 * @param location      Location at which to compute attenuation.
+	 * @param frequencies   Frequencies over which to compute loss. (Hz)
+	 * @param de_incident   Depression incident angle (radians).
+	 * @param de_scattered  Depression scattered angle (radians).
+	 * @param az_incident   Azimuthal incident angle (radians).
+	 * @param az_scattered  Azimuthal scattered angle (radians).
+	 * @param amplitude     Change in ray strength in dB (output).
+	 */
+	void scattering( size_t interface, const wposition1& location,
+			const seq_vector& frequencies, double de_incident,
+			double de_scattered, double az_incident, double az_scattered,
+			vector<double>* amplitude);
 
-        /**
-         * Pulse length of the signal (sec)
-         */
-        double _pulse ;
+	/** Set to true when this task complete. */
+	bool _done;
 
-        /**
-         * Max time for the reverberation curve
-         */
-        double _max_time ;
+	/** Ocean data to use for the envelope calculation. */
+	shared_ptr<ocean_model> _ocean;
 
-        /**
-         * The current boundary that computations need
-         */
-        boundary_model* _current_boundary ;
+    /**
+     * Interface collisions for wavefront emanating from the source.
+     */
+    eigenverb_collection::reference _src_eigenverbs;
 
-        /**
-         * Time resolution of the reverberation curve. This is used to spread
-         * the energy from a contribution out in time along the curve.
-         */
-        vector<double> _two_way_time ;
+    /**
+     * Interface collisions for wavefront emanating from the receiver.
+     */
+    eigenverb_collection::reference _rcv_eigenverbs;
 
-};
+    /**
+     * Utility used to interpolate eigenrays.
+     */
+    eigenverb_interpolator _eigenverb_interpolator ;
+
+	/**
+	 * Collection of envelopes generated by this calculation.
+	 */
+	envelope_collection::reference _envelopes ;
+} ;
 
 /// @}
-}   // end of namespace waveq3d
+}	// end of namespace eigenverb
 }   // end of namespace usml

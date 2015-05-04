@@ -81,7 +81,7 @@ class USML_DLLEXPORT data_grid {
          *              The seq_vector::clone() routine is used to make a
          *              local copy of each axis within the data grid.
          */
-        data_grid(seq_vector *axis[])
+        data_grid(const seq_vector *axis[])
         {
         	size_type N = 1 ;
             for (size_t n = 0; n < NUM_DIMS; ++n) {

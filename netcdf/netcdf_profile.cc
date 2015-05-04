@@ -175,7 +175,7 @@ void netcdf_profile::fill_missing() {
 	typedef zero_matrix<value_type>			matrix_z ;
 	typedef scalar_matrix<value_type>		matrix_s ;
 
-	seq_vector* ax[3] ;
+	const seq_vector* ax[3] ;
 	ax[0] = this->_axis[0] ;
 	ax[1] = this->_axis[1] ;
 	ax[2] = this->_axis[2] ;
