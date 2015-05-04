@@ -121,6 +121,11 @@ private:
 	 * total energy.  Implements equation (6) from the paper.  Replaces the
 	 * values previously held by the _intensity member variable.
 	 *
+	 * In an effort to speed up the calculation of the Gaussian, this
+	 * routine uses uBLAS vector and matrix proxies to only compute the
+	 * portion of the time series within +/- five (5) times the duration
+	 * of each pulse.
+	 *
 	 * @param src_verb		Eigenverb contribution from the source.
 	 * @param rcv_verb		Eigenverb contribution from the receiver.
 	 */
@@ -136,7 +141,19 @@ private:
 	 * Times at which the sensor_pair's reverberation envelopes
 	 * are computed (sec).
 	 */
-	const vector<double> _travel_time ;
+	vector<double> _travel_time ;
+
+	/**
+	 * First time in the reverberation time series (sec).
+	 * Used compute_time_series to insert envelope over a limited set of times.
+	 */
+	const double _first_time ;
+
+	/**
+	 * Sampling rate of the time series.
+	 * Used compute_time_series to insert envelope over a limited set of times.
+	 */
+	const double _fsample ;
 
 	/**
 	 * Duration of the transmitted pulse (sec).

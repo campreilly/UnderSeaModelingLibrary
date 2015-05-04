@@ -4,6 +4,7 @@
  * receiver azimuth, source beam number, receiver beam number.
  */
 #include <boost/foreach.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <usml/eigenverb/envelope_model.h>
 
@@ -21,6 +22,8 @@ envelope_model::envelope_model(
 ) :
 	_transmit_freq(transmit_freq),
 	_travel_time(travel_time->data()),
+	_first_time( _travel_time[0] ),
+	_fsample( 1.0 / (_travel_time[1]-_travel_time[0]) ),
 	_pulse_length( pulse_length ),
 	_threshold( threshold * pulse_length ),
 	_energy(transmit_freq->size()),
@@ -183,11 +186,25 @@ void envelope_model::compute_time_series(
 	const eigenverb& src_verb, const eigenverb& rcv_verb )
 {
 	const double coeff = 1.0 / (4.0 * M_PI * sqrt(TWO_PI));
+	_intensity.clear() ;
 	for (size_t f = 0; f < _transmit_freq->size(); ++f) {
+
+		// compute the peak time and intensity
+
 		double delay = src_verb.time + rcv_verb.time + _duration[f];
 		double scale = _energy[f] * coeff / _duration[f];
-		matrix_row<matrix<double> > row(_intensity, f);
-		row = scale * exp(-0.5 * abs2((_travel_time - delay) / _duration[f]));
+
+		// use uBLAS vector and matrix proxies to only compute the
+		// portion of the time series within +/- five (5) times the duration
+
+		size_t first = max( 0,
+				(int) ( (delay - 5.0*_duration[f]) * _fsample) );
+		size_t last = min( ((int) _travel_time.size()),
+				(int) ( (delay + 5.0*_duration[f]) * _fsample) + 1 );
+		vector_range< vector<double> > time(_travel_time, range (first,last));
+		matrix_vector_range< matrix<double> > mvr(
+				_intensity, range(f,f), range(first,last) ) ;
+		mvr = scale * exp(-0.5 * abs2(( time - delay) / _duration[f]));
 	}
 }
 
