@@ -57,16 +57,17 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
         }
 
         const int N = (int) axis->num_vals() ;
-        std::vector<double> data(N);
-    
+        std::vector<double> data;
+
         // Convert to std::vector
         for ( int n = 0; n < N; ++n ) {
-            data.push_back(axis->as_double(n));
+            double p = axis->as_double(n);
+            data.push_back(p);
         }
 
-        // build and return 
+        // build and return
         // best fit for seq_linear or seq_log or worst case seq_data
-        return  seq_vector::build_best(data); 
+        return  seq_vector::build_best(data);
     }
 
   public:

@@ -192,7 +192,6 @@ private:
         }
         cout << "waited for " << timer.elapsed() << " secs" << endl ;
 
-        int index = 0;
         std::string ncname = USML_STUDIES_DIR "/reverberation/fathometer_";
         fathometer_model::fathometer_package::iterator iter;
         for ( iter = fathometers.begin(); iter != fathometers.end(); ++iter )

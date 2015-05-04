@@ -4,6 +4,7 @@
  */
 #include <usml/types/seq_vector.h>
 
+#include <iostream>
 #include <boost/foreach.hpp>
 #include <usml/types/seq_data.h>
 #include <usml/types/seq_linear.h>
@@ -19,13 +20,13 @@ using namespace usml::types;
  */
 seq_vector::self_type* seq_vector::clip(double min, double max) const {
 
-    size_t index = -1;
+    size_t index = 0;
     double* data = new double[size() - 1];
     BOOST_FOREACH(double value, *this) {
-        ++index;
         if ( ( value >= min ) && ( value <= max ) ) {
             data[index] = value;
         }
+        ++index;
     }
     self_type* seq = build_best(data, index);
     delete[] data;
@@ -51,7 +52,7 @@ seq_vector::self_type* seq_vector::build_best(double* data, size_t count) {
         for ( int n = 2; n < N; ++n ) {
             double p3 = data[n];
             maxValue = p3;
-            // printf("diff[%d] = %f\n",n,p3-p2);
+             //printf("diff[%d] = %f\n",n,p3-p2);
             if ( abs(( ( p3 - p2 ) - ( p2 - p1 ) ) / p2) > 1E-4 ) {
                 isLinear = false;
             }
@@ -65,8 +66,10 @@ seq_vector::self_type* seq_vector::build_best(double* data, size_t count) {
         }
     }
 
+//    cout << "seq_vector::build_best " << " N=" << N <<
+//        " minValue=" << minValue << " maxValue=" << maxValue << endl;
+
     // build a new seq_vector sub type
-    cout << "seq_vector::build_best " << " N=" << N << " minValue=" << minValue << " maxValue=" << maxValue << endl;
     if ( isLinear ) {
         return new seq_linear(minValue, ( maxValue - minValue ) / ( N - 1 ), N);
     }
@@ -82,11 +85,11 @@ seq_vector::self_type* seq_vector::build_best(double* data, size_t count) {
  */
 seq_vector::self_type* seq_vector::build_best(boost::numeric::ublas::vector<double> data) {
  
-    double* data_array = new double[data.size() - 1];
-    size_t index = -1;
+    double* data_array = new double[data.size()-1];
+    size_t index = 0;
     BOOST_FOREACH(double value, data) {
-        ++index;
         data_array[index] = value;
+         ++index;
     }
     self_type* seq = build_best(data_array, index);
     delete[] data_array;
@@ -99,11 +102,11 @@ seq_vector::self_type* seq_vector::build_best(boost::numeric::ublas::vector<doub
  */
 seq_vector::self_type* seq_vector::build_best(std::vector<double> data) {
 
-    double* data_array = new double[data.size() - 1];
-    size_t index = -1;
+    double* data_array = new double[data.size()-1];
+    size_t index = 0;
     BOOST_FOREACH(double value, data) {
-        ++index;
         data_array[index] = value;
+        ++index;
     }
     self_type* seq = build_best(data_array, index);
     delete[] data_array;

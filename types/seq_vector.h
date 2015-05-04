@@ -202,8 +202,6 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
               _max_index(other._max_index)
         {}
 
-        self_type* build_best_helper(void* data) const;
-
         /**
          * Cache of sequence values.
          */
