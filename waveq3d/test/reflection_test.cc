@@ -41,7 +41,7 @@ public:
      * Initialize counter.
      */
     reflection_callback( eigenverb_collection* collection )
-        : _collection(collection), time(0.0), surf_count(0), bot_count(0)
+        : _collection(collection), time(0.0), latitude(0.0), surf_count(0), bot_count(0)
     {}
 
     virtual ~reflection_callback() {}
