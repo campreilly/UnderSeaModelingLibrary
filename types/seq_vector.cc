@@ -4,7 +4,6 @@
  */
 #include <usml/types/seq_vector.h>
 
-#include <iostream>
 #include <boost/foreach.hpp>
 #include <usml/types/seq_data.h>
 #include <usml/types/seq_linear.h>
@@ -25,8 +24,8 @@ seq_vector::self_type* seq_vector::clip(double min, double max) const {
     BOOST_FOREACH(double value, *this) {
         if ( ( value >= min ) && ( value <= max ) ) {
             data[index] = value;
+             ++index;
         }
-        ++index;
     }
     self_type* seq = build_best(data, index);
     delete[] data;
@@ -49,10 +48,10 @@ seq_vector::self_type* seq_vector::build_best(double* data, size_t count) {
 
     if ( N > 1 ) {
         double p2 = data[1];
+        maxValue = p2;
         for ( int n = 2; n < N; ++n ) {
             double p3 = data[n];
             maxValue = p3;
-             //printf("diff[%d] = %f\n",n,p3-p2);
             if ( abs(( ( p3 - p2 ) - ( p2 - p1 ) ) / p2) > 1E-4 ) {
                 isLinear = false;
             }
@@ -65,9 +64,6 @@ seq_vector::self_type* seq_vector::build_best(double* data, size_t count) {
             p2 = p3;
         }
     }
-
-//    cout << "seq_vector::build_best " << " N=" << N <<
-//        " minValue=" << minValue << " maxValue=" << maxValue << endl;
 
     // build a new seq_vector sub type
     if ( isLinear ) {
