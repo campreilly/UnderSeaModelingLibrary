@@ -313,7 +313,7 @@ private:
 
     /**
      * Utility to determine if two frequency ranges overlap
-     * Used to determine of a sensor_pair needs to be created.
+     * Used to determine if a sensor_pair needs to be created.
      * @param	src_freq  frequency range for source
      * @param	rcv_freq  frequenc range for receiver
      * @return  true when frequency ranges overlap

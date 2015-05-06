@@ -35,13 +35,13 @@ public:
     bool surface ;
     bool bottom ;
     size_t surf_count ;
-	size_t bot_count;
+    size_t bot_count;
 
     /**
      * Initialize counter.
      */
     reflection_callback( eigenverb_collection* collection )
-        : _collection(collection), time(0.0), latitude(0.0), surf_count(0), bot_count(0)
+        : _collection(collection), time(0.0), latitude(0.0),  surf_count(0), bot_count(0)
     {}
 
     virtual ~reflection_callback() {}
@@ -214,7 +214,7 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
             if( callback.check_count( old_count ) ) {
                 double predict_time = old_count * 7.450560973 ;
                 double current_time = callback.time ;
-                double predict_lat = 45.0 + old_count * 0.1 ;
+                double predict_lat = 45.0 + int(old_count) * 0.1 ;
                 double current_lat = callback.latitude ;
 
                 if ( callback.surface ) cout << "surface" ;
