@@ -521,4 +521,52 @@ BOOST_AUTO_TEST_CASE( seq_ublas_test ) {
     delete[] d ;
 }
 
+/**
+ * Tests the seq_vector::clip method
+ */
+BOOST_AUTO_TEST_CASE( seq_vector_clip_test ) {
+    cout << "=== sequence_test/seq_vector_clip_test ===" << endl ;
+
+     // 6.5K, 7.5K, 8.5K, 9.5K
+    seq_linear values(6500.0, 1000.0, 4);
+
+    // Max Clip
+    seq_vector* clipped_values_one = values.clip(5000.0, 9000.0);
+
+    BOOST_CHECK_EQUAL( clipped_values_one->size(), 3 ) ;
+
+    double test_value = (*clipped_values_one)(0);
+    BOOST_CHECK_EQUAL( test_value, 6500 ) ;
+    test_value = (*clipped_values_one)(1);
+    BOOST_CHECK_EQUAL( test_value, 7500 ) ;
+    test_value = (*clipped_values_one)(2);
+    BOOST_CHECK_EQUAL( test_value, 8500 ) ;
+    delete clipped_values_one;
+
+    // Min clip
+    seq_vector* clipped_values_two = values.clip(7000.0, 11000.0);
+
+    BOOST_CHECK_EQUAL( clipped_values_two->size(), 3 ) ;
+
+    test_value = (*clipped_values_two)(0);
+    BOOST_CHECK_EQUAL( test_value, 7500 ) ;
+    test_value = (*clipped_values_two)(1);
+    BOOST_CHECK_EQUAL( test_value, 8500 ) ;
+    test_value = (*clipped_values_two)(2);
+    BOOST_CHECK_EQUAL( test_value, 9500 ) ;
+    delete clipped_values_two;
+
+
+    // Max and Min clip
+    seq_vector* clipped_values_three = values.clip(7000.0, 9000.0);
+
+    BOOST_CHECK_EQUAL( clipped_values_three->size(), 2 ) ;
+
+    test_value = (*clipped_values_three)(0);
+    BOOST_CHECK_EQUAL( test_value, 7500 ) ;
+    test_value = (*clipped_values_three)(1);
+    BOOST_CHECK_EQUAL( test_value, 8500 ) ;
+    delete clipped_values_three;
+}
+
 BOOST_AUTO_TEST_SUITE_END()

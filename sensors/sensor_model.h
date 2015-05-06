@@ -67,11 +67,38 @@ public:
 	}
 
 	/**
-	 * Identification used to lookup sensor type data in source_params_map and receiver_params_map.
+	 * Identification used to lookup sensor type data in 
+     * source_params_map and receiver_params_map.
 	 */
 	sensor_params::id_type paramsID() const {
 		return _paramsID;
 	}
+
+    /**
+     * Gets the minimum active frequency
+     * @return double 
+     */
+    double min_active_freq() const {
+        return _min_active_freq;
+    }
+
+    /**
+     * Gets the maximum active frequency
+     * @return double
+     */
+    double max_active_freq() const {
+        return _max_active_freq;
+    }
+
+    /**
+     * Frequencies of transmitted pulse. Multiple frequencies can be
+     * used to compute multiple results at the same time. These are the
+     * frequencies at which transmission loss and reverberation are computed.
+     * @return frequencies pointer to a seq_vector. 
+     */
+    seq_vector* frequencies() const {
+        return _frequencies.get();
+    }
 
 	/**
 	 * Human readable name for this sensor instance.
@@ -158,7 +185,7 @@ public:
 private:
 
 	/**
-	 * Checks to see if new position and orientation have changed enough
+	 * Utility to check if new position and orientation have changed enough
 	 * to require a new WaveQ3D run.
 	 *
 	 * @param position  	Updated position data
@@ -170,29 +197,35 @@ private:
 			const orientation& orientation );
 
 	/**
-	 * Queries the current list of sensor listeners for the complements
+	 * Utility to query the current list of sensor listeners for the complements
 	 * of this sensor. Assumes that these listeners act like sensor_pair objects.
 	 * @return list of sensor_model pointers that are the complements of the this sensor.
 	 */
 	std::list<const sensor_model*> sensor_targets();
 
 	/**
-	 * Sets the list of target sensorID's from the list of sensors provided.
+	 * Utility to set the list of target sensorID's from the list of sensors provided.
 	 * @params list of sensor_model pointers.
 	 */
 	void target_ids(std::list<const sensor_model*>& list);
 
 	/**
-	 * Builds a list of target positions from the input list of sensors provided.
+	 * Utility to builds a list of target positions from the input list of sensors provided.
 	 * @params list of sensor_model pointers.
 	 * @return wposition container of positions of the list of sensors provided.
 	 */
 	wposition target_positions(std::list<const sensor_model*>& list);
 
 	/**
-	 * Run the wave_generator thread task to start the waveq3d model.
+	 * Utility to run the wave_generator thread task to start the waveq3d model.
 	 */
 	void run_wave_generator();
+
+    /**
+     * Utility to set the frequencies band from sensor including
+     * min and max active frequencies.
+     */
+    void frequencies();
 
 	/**
 	 * Identification used to find this sensor instance in sensor_manager.
@@ -203,6 +236,23 @@ private:
 	 * Identification used to lookup sensor type data in source_params_map and receiver_params_map.
 	 */
 	const sensor_params::id_type _paramsID;
+
+    /**
+     * Minimum active frequency for the sensor.
+     */
+    double _min_active_freq;
+
+    /**
+     *  Maximum active frequency for the sensor.
+     */
+    double _max_active_freq;
+
+    /**
+     * Frequencies of transmitted pulse. Multiple frequencies can be
+     * used to compute multiple results at the same time. These are the
+     * frequencies at which transmission loss and reverberation are computed.
+     */
+    unique_ptr<seq_vector> _frequencies;
 
     /**
      * Enumerated type for the sensor transmit/receiver mode.
@@ -274,7 +324,7 @@ private:
 	/**
 	 * List containing the references of objects that will be used to
 	 * update classes that require sensor data.
-	 * These classes must implement update_eigenrays and update_eigenverbs methods.
+	 * These classes must implement update_fathometer and update_eigenverbs methods.
 	 */
 	std::list<sensor_listener*> _sensor_listeners;
 

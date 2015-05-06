@@ -7,26 +7,48 @@
 using namespace usml::sensors;
 
 /**
+* Utility to build the intersecting frequencies of a sensor_pair.
+*/
+void sensor_pair::frequencies() {
+
+    // Build intersecting frequencies
+    _frequencies = _source->frequencies()->clip(
+        _receiver->min_active_freq(), _receiver->max_active_freq());
+
+    // Get first and last values
+    double first_value = *( _frequencies->begin() );
+    double last_value = *( _frequencies->end() - 1 );
+   
+    // Set first and last index's
+    _src_freq_first = _source->frequencies()->find_index(first_value);
+    _src_freq_last = _source->frequencies()->find_index(last_value);
+}
+
+
+/**
  * Notification that new eigenray data is ready.
  */
-void sensor_pair::update_eigenrays(sensor_model::id_type sensorID, eigenray_list* list)
+void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_list* list)
 {
-    write_lock_guard guard(_eigenrays_mutex);
+    write_lock_guard guard(_fathometer_mutex);
     #ifdef USML_DEBUG
-        cout << "sensor_pair: update_eigenrays("
+        cout << "sensor_pair: update_fathometer("
              << sensorID << ")" << endl ;
     #endif
-    // Must create a new memory location for eigenrays
-    eigenray_list* new_list = new eigenray_list(*list);
+   
     // If sensor that made this call is the _receiver of this pair
     //    then Swap de's, and az's
-    if (sensorID == _receiver->sensorID()) {
-        BOOST_FOREACH( eigenray ray, *new_list) {
-            std::swap(ray.source_de, ray.target_de);
-            std::swap(ray.source_az, ray.target_az);
+    if ( list != NULL ) {
+        if (sensorID == _receiver->sensorID()) {
+            BOOST_FOREACH(eigenray ray, *list) {
+                std::swap(ray.source_de, ray.target_de);
+                std::swap(ray.source_az, ray.target_az);
+            }
         }
+        // Note new memory location for eigenrays is create here
+        _fathometer = shared_ptr<fathometer_model>(new fathometer_model(_source->sensorID(), 
+            _receiver->sensorID(), _source->position(), _receiver->position(), *list));
     }
-    _eigenrays = shared_ptr<eigenray_list> (new_list);
 }
 
 /**

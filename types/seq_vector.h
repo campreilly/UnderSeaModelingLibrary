@@ -144,6 +144,42 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
             return const_iterator (*this, i);
         }
 
+        /**
+         * Clips the current seq_vector based on the intersection of the min 
+         * and max values provided. Creates and returns new seq_vector using 
+         * the build_best method. Caller is responsible to delete the returned
+         * pointer.
+         * @param   min       The element number to retrieve (zero indexed).
+         * @param   max       The element number to retrieve (zero indexed).
+         * @return  pointer to a new clipped seq_vector.            
+         */
+        self_type* clip(double min, double max) const;
+
+        /**
+         * Builds the best seq_vector pointer from seq_data, seq_linear or seq_log 
+         * based on the contents of the array.
+         * @param   data      Pointer to an array of doubles
+         * @param   count     Size of the array
+         * @return  pointer to a seq_data, seq_linear or seq_log
+         */
+        static self_type* build_best(double* data, size_t count);  
+
+        /**
+         * Builds the best seq_vector pointer from seq_data, seq_linear or seq_log
+         * based on the contents of the ublas vector.
+         * @param   data      boost::numeric::ublas::vector<double>
+         * @return  pointer to a seq_data, seq_linear or seq_log
+         */
+        static self_type* build_best(boost::numeric::ublas::vector<double> data);
+
+        /**
+         * Builds the best seq_vector pointer from seq_data, seq_linear or seq_log
+         * based on the contents of the std::vector.
+         * @param   data      std::vector<double>
+         * @return  pointer to a seq_data, seq_linear or seq_log
+         */
+        static self_type* build_best(std::vector<double> data);
+
     protected:
 
         /**

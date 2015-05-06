@@ -69,6 +69,10 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 
 	cout << "=== maps_test: source_params_test ===" << endl;
 
+    std::list<beam_pattern_model::id_type> beamList;
+    beamList.push_back(beam_pattern_model::OMNI);
+    beamList.push_back(beam_pattern_model::COSINE);
+
 	source_params_map* source_map = source_params_map::instance();
 
     // Source frequencies 6.5K, 7.5K, 8.5K, 9.5K
@@ -78,20 +82,22 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 	sensor_params::id_type id1 = 1 ;
 	source_params::reference source1( new source_params(
 		id1, 		// paramsID
-		vector<double> (1, 123.0),		// source_level
+		vector<double> (1, 123.0), // source_level
+        7000.0, 10000.0,           // min, max active freq
         source_frequencies,
-		0,          // beamID
-        false));	// multistatic	
+        beamList,                  // beam_list
+        false));	               // multistatic	
 	source_map->insert(source1->paramsID(), source1);
 
 	// setup sensor #2 with bad beam pattern
 
 	sensor_params::id_type id2 = 2 ;
 	source_params::reference source2( new source_params(
-		id2, 		// paramsID		
-		vector<double> (1, 321.0),		// source_level
+		id2, 		                // paramsID		
+		vector<double> (1, 321.0),	// source_level
+        6000.0, 9000.0,             // min, max active freq
         source_frequencies,
-		999)); 		// beamID   // multistatic defaults true
+        beamList)); 		        // beam_list   // multistatic defaults true
 	source_map->insert(source2->paramsID(), source2);
 
 	// test retrieval
@@ -103,10 +109,10 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 
 	// check beam patterns
 
-	beam_pattern_model::reference bpm1 = spm1->beam_pattern() ;
-	beam_pattern_model::reference bpm2 = spm2->beam_pattern() ;
+	beam_pattern_model::reference bpm1 = spm1->beam_pattern(0) ;
+	beam_pattern_model::reference bpm2 = spm2->beam_pattern(1) ;
 	BOOST_CHECK_EQUAL(bpm1->beamID(), 0);
-	BOOST_CHECK_EQUAL(bpm2.get(), (beam_pattern_model*) 0);
+    BOOST_CHECK_EQUAL(bpm2->beamID(), 1);
 
 	// cleanup inserted source_params so that other tests start fresh
 
@@ -139,7 +145,8 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
 	sensor_params::id_type id1 = 1 ;
 	receiver_params::reference receiver1( new receiver_params(
-		id1, 		// paramsID
+		id1, 		    // paramsID
+        5000.0, 10000,  // min, max active freq
         receiver_frequencies,
         beamList,
         false));   // multistatic
@@ -149,9 +156,10 @@ BOOST_AUTO_TEST_CASE(receiver_params_test) {
 
 	sensor_params::id_type id2 = 2 ;
 	receiver_params::reference receiver2( new receiver_params(
-		id2, 		// paramsID
+		id2, 		     // paramsID
+        2000.0, 9000.0,  // min, max active freq
         receiver_frequencies,
-		beamList)); // multistatic defaults true
+		beamList));      // multistatic defaults true
 	receiver_map->insert(receiver2->paramsID(), receiver2);
 
 	// test retrieval
@@ -201,10 +209,11 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
 	sensor_params::id_type params1 = 12 ;
 	source_params::reference source1( new source_params(
-		params1,	// paramsID
-		vector<double> (1, 123.0),		// source_level
+		params1,	                // paramsID
+		vector<double> (1, 123.0),	// source_level
+        7000.0, 10000.0,            // min, max active freq
         source_frequencies,
-        0));  		// beamID
+        beamList));  		        // beam_list
 	source_params_map::instance()->insert(source1->paramsID(), source1);
 	sensor_model::id_type id1 = 101 ;
 	sensor_mgr->add_sensor(id1, params1, "source_101");
@@ -213,7 +222,8 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 
 	sensor_params::id_type params2 = 21 ;
 	receiver_params::reference receiver2( new receiver_params(
-		params2,	// paramsID
+		params2,	            // paramsID
+        5000.0, 9000.0,         // min, max active freq
         receiver_frequencies,
 		beamList));
 	receiver_params_map::instance()->insert(receiver2->paramsID(), receiver2);

@@ -44,7 +44,7 @@ public:
      * @param   eigenrays   Shared Pointer to the eigenray list.
      */
     fathometer_model(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
-                     wposition1 src_pos, wposition1 rcv_pos, shared_ptr<eigenray_list> list )
+                     wposition1 src_pos, wposition1 rcv_pos, const eigenray_list& list )
         : _source_id(source_id), _receiver_id(receiver_id), _slant_range(0.0), 
         _distance_from_sensor(0.0), _depth_offset_from_sensor(0.0),
         _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
@@ -170,21 +170,21 @@ public:
     }
 
 	/**
-     * Gets the shared_ptr to last eigenray_list update for this fathometer_model.
-     * @return  eigenray_list shared_ptr
+     * Gets the eigenray_list for this fathometer_model.
+     * @return  eigenray_list
      */
-    boost::shared_ptr<eigenray_list> eigenrays() {
+    eigenray_list eigenrays() {
          read_lock_guard guard(_eigenrays_mutex);
          return _eigenrays;
     }
 
     /**
-     * Sets the shared_ptr to eigenray_list for this fathometer_model.
-     * @return  eigenray_list shared_ptr to the eigenray_list
+     * Sets the eigenray_list for this fathometer_model.
+     * @param  eigenray_list
      */
-    void eigenrays(eigenray_list* list) {
+    void eigenrays(eigenray_list list) {
          write_lock_guard guard(_eigenrays_mutex);
-         _eigenrays = boost::shared_ptr<eigenray_list>(list);
+         _eigenrays = list;
     }
 
     /**
@@ -356,7 +356,7 @@ private:
     /**
      * Eigenrays that connect source and receiver locations.
      */
-    shared_ptr<eigenray_list> _eigenrays;
+    eigenray_list _eigenrays;
 
 	/**
 	 * Mutex that locks during eigenray access
