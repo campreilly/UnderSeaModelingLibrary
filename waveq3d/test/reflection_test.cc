@@ -34,8 +34,8 @@ public:
     double latitude ;
     bool surface ;
     bool bottom ;
-    int surf_count ;
-    int bot_count ;
+    size_t surf_count ;
+	size_t bot_count;
 
     /**
      * Initialize counter.
@@ -46,7 +46,7 @@ public:
 
     virtual ~reflection_callback() {}
 
-    bool check_count( int& old_count ) {
+    bool check_count( size_t& old_count ) {
         bottom = surface = false ;
         if( surf_count != _collection->eigenverbs(1).size() ) {
             surf_count = _collection->eigenverbs(1).size() ;
@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE( reflect_flat_test ) {
         eigenverb_collection verb_collection( 0 ) ;
         wave.add_eigenverb_listener( &verb_collection ) ;
         reflection_callback callback( &verb_collection ) ;
-        int old_count = callback.surf_count + callback.bot_count ;
+        size_t old_count = callback.surf_count + callback.bot_count ;
         double max_time_error = 0.0 ;
         double max_lat_error = 0.0 ;
 
