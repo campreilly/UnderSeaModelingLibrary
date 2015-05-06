@@ -10,7 +10,8 @@
 
 using namespace usml::eigenverb;
 
-#define DEBUG_ENVELOPE
+//#define DEBUG_ENVELOPE
+#define ENVELOPE_WINDOW
 
 /**
  * Reserve the memory used to store the results of this calculation.
@@ -21,13 +22,13 @@ envelope_model::envelope_model(
 	double pulse_length, double threshold
 ) :
 	_transmit_freq(transmit_freq),
-	_travel_time(travel_time->data()),
-	_first_time( _travel_time[0] ),
-	_fsample( 1.0 / (_travel_time[1]-_travel_time[0]) ),
+	_travel_time( travel_time->clone() ),
+	_time_vector( _travel_time->data() ),
 	_pulse_length( pulse_length ),
 	_threshold( threshold * pulse_length ),
 	_energy(transmit_freq->size()),
 	_duration(transmit_freq->size()),
+	_level(travel_time->size()),
 	_intensity(transmit_freq->size(), travel_time->size())
 {
 }
@@ -194,17 +195,34 @@ void envelope_model::compute_time_series(
 		double delay = src_verb.time + rcv_verb.time + _duration[f];
 		double scale = _energy[f] * coeff / _duration[f];
 
-		// use uBLAS vector and matrix proxies to only compute the
-		// portion of the time series within +/- five (5) times the duration
+		// compute Gaussian intensity as a function of time
+		//
+		// TODO Test to see if using uBLAS vector proxies to limit computation is faster
 
-		size_t first = max( 0,
-				(int) ( (delay - 5.0*_duration[f]) * _fsample) );
-		size_t last = min( ((int) _travel_time.size()),
-				(int) ( (delay + 5.0*_duration[f]) * _fsample) + 1 );
-		vector_range< vector<double> > time(_travel_time, range (first,last));
-		matrix_vector_range< matrix<double> > mvr(
-				_intensity, range(f,f), range(first,last) ) ;
-		mvr = scale * exp(-0.5 * abs2(( time - delay) / _duration[f]));
+		matrix_row< matrix<double> > intensity( _intensity, f ) ;
+
+		#ifdef ENVELOPE_WINDOW
+
+			// use uBLAS vector proxies to only compute the portion of the
+			// time series within +/- five (5) times the duration
+
+			_level.clear() ;
+			size_t first = _travel_time->find_index(delay - 5.0 * _duration[f]);
+			size_t last = _travel_time->find_index(delay + 5.0 * _duration[f]) + 1;
+			range window(first, last);
+			vector_range< vector<double> > time(_time_vector, window);
+			vector_range< vector<double> > level(_level, window);
+			level = scale * exp(-0.5 * abs2((time - delay) / _duration[f]));
+			intensity = _level ;
+
+		#else
+
+			// compute intensity at all times
+
+			intensity = scale * exp(-0.5 * abs2(
+					(_time_vector - delay) / _duration[f]));
+			cout << "f=" << f << " " << intensity << endl ;
+		#endif
 	}
 }
 

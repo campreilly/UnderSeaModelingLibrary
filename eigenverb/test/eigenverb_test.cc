@@ -8,8 +8,6 @@
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 #include <usml/eigenverb/envelope_collection.h>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
 
 BOOST_AUTO_TEST_SUITE(eigenverb_test)
 
@@ -277,37 +275,6 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 		cout << "theory=" << theory[f] << " model=" << model << endl;
 		BOOST_CHECK_CLOSE(theory[f], model, 1e-2);
 	}
-}
-
-/**
-* Test the ability to use uBLAS matrix proxies.
-* If successful the first digit of each entry should be 1,
-* the second digit should be the row number, and
-* the third digit should be the column number.
-*/
-BOOST_AUTO_TEST_CASE(ublas_proxy_test) {
-	cout << "=== eigenverb_test: ublas_proxy_test ===" << endl;
-
-	// fill a vector wit column numbers
-
-	vector<double> v(3);
-	for (unsigned i = 0; i < v.size(); ++i) {
-		v(i) = i + 1;
-	}
-
-	// initialize matrix to all values of 100.0
-
-	matrix<double> m(3, 3);
-	m = matrix<double>(3, 3, 100.0);
-
-	// add column and row number to existing matrix data
-
-	for (unsigned i = 0; i < m.size1(); ++i) {
-		matrix_row< matrix<double> > mr(m, i);
-		mr += v + 10 * (i + 1);
-	}
-	std::cout << m << std::endl;
-	BOOST_CHECK_CLOSE(m(2,2), 133, 1e-10);
 }
 
 /// @}

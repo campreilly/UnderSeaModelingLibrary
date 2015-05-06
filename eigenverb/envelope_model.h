@@ -86,6 +86,8 @@ private:
 	 * Reverberation intensity at each point the time series.
 	 * Each row represents a specific transmit frequency.
 	 * Each column represents a specific travel time.
+	 * Passing this back as a non-const reference allows it to be accessed
+	 * by a matrix_row<> proxy in the calling program.
 	 */
 	matrix< double >& intensity() {
 		return _intensity ;
@@ -139,25 +141,16 @@ private:
 
 	/**
 	 * Times at which the sensor_pair's reverberation envelopes
-	 * are computed (sec).
+	 * are computed (sec).  These times are not required to be evenly spaced.
+	 * In the compute_time_series(), the find() method is used on this
+	 * variable to search for the window in which to deposit the
+	 * Gaussian contribution from each eigenverb overlap.
 	 */
-	vector<double> _travel_time ;
-
-	/**
-	 * First time in the reverberation time series (sec).
-	 * Used compute_time_series to insert envelope over a limited set of times.
-	 */
-	const double _first_time ;
-
-	/**
-	 * Sampling rate of the time series.
-	 * Used compute_time_series to insert envelope over a limited set of times.
-	 */
-	const double _fsample ;
+	seq_vector* _travel_time ;
 
 	/**
 	 * Duration of the transmitted pulse (sec).
-	 * Defines the temporaal resolution of the envelope.
+	 * Defines the temporaal resolution of the envelope calculation.
 	 */
 	const double _pulse_length ;
 
@@ -169,25 +162,45 @@ private:
 	const double _threshold ;
 
 	/**
-	 * Workspace for storing total energy of eigenverb overlap (linear units).
+	 * Reverberation intensity at each point the time series.
+	 * Each row represents a specific transmit frequency.
+	 * Each column represents a specific travel time.
+	 */
+	matrix< double > _intensity;
+
+	/**
+	 * Workspace for storing total energy of eigenverb overlap,
+	 * as a function of transmit frequency (linear units).
 	 * Making is a member variable prevents us from having to
 	 * rebuilt it for each calculation.
 	 */
 	vector<double> _energy ;
 
 	/**
-	 * Workspace for storing duration result of eigenverb overlap (sec).
+	 * Workspace for storing duration result of eigenverb overlap,
+	 * as a function of transmit frequency (sec).
 	 * Making is a member variable prevents us from having to
 	 * rebuilt it for each calculation.
 	 */
 	vector<double> _duration ;
 
 	/**
-	 * Reverberation intensity at each point the time series.
-	 * Each row represents a specific transmit frequency.
-	 * Each column represents a specific travel time.
+	 * Times in the form of a uBLAS vector.  This is used as the independent
+	 * variable during compute_time_series().
+	 * Making is a member variable prevents us from having to
+	 * rebuilt it for each calculation.
 	 */
-	matrix< double > _intensity;
+	vector<double> _time_vector ;
+
+	/**
+	 * Workspace for storing intensity as a function of time (linear units).
+	 * The Gaussian contributions from each eigenverb overlap are added
+	 * to this object, and then this object is copied into the appropriate
+	 * row of the _intensity object.
+	 * Making is a member variable prevents us from having to
+	 * rebuilt it for each calculation.
+	 */
+	vector<double> _level ;
 };
 
 }   // end of namespace eigenverb
