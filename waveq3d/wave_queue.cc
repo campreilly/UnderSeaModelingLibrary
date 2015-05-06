@@ -1060,16 +1060,6 @@ void wave_queue::build_eigenverb(
 	verb.caustic = _curr->caustic(de,az) ;
 	verb.upper = _curr->upper(de,az) ;
 	verb.lower = _curr->lower(de,az) ;
-	switch(type) {
-	    case usml::eigenverb::eigenverb::BOTTOM:
-	        verb.bottom += 1 ;
-	        break ;
-	    case usml::eigenverb::eigenverb::SURFACE:
-	        verb.surface += 1 ;
-	        break ;
-	    default:
-	        break ;
-	}
 
     // compute total energy in this eigenverb
     // using reflection/absorption loss along the path

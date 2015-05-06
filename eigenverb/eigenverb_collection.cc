@@ -65,6 +65,7 @@ void eigenverb_collection::write_netcdf(
 		NcVar* alt_var = nc_file->add_var("altitude", ncDouble, eigenverb_dim) ;
 		NcVar* direction_var = nc_file->add_var("direction", ncDouble, eigenverb_dim);
 		NcVar* grazing_var = nc_file->add_var("grazing_angle", ncDouble, eigenverb_dim);
+		NcVar* sound_speed_var = nc_file->add_var("sound_speed", ncDouble, eigenverb_dim);
 		NcVar* de_index_var = nc_file->add_var("de_index", ncShort, eigenverb_dim);
 		NcVar* az_index_var = nc_file->add_var("az_index", ncShort, eigenverb_dim);
 		NcVar* source_de_var = nc_file->add_var("source_de", ncDouble, eigenverb_dim);
@@ -89,6 +90,7 @@ void eigenverb_collection::write_netcdf(
 		direction_var->add_att("positive", "clockwise");
 		grazing_var->add_att("units", "degrees");
 		grazing_var->add_att("positive", "up");
+		sound_speed_var->add_att("units", "m/s");
 		de_index_var->add_att("units", "count");
 		az_index_var->add_att("units", "count");
 		source_de_var->add_att("units", "degrees");
@@ -119,6 +121,7 @@ void eigenverb_collection::write_netcdf(
 			alt_var->set_cur(record);
 			direction_var->set_cur(record);
 			grazing_var->set_cur(record);
+			sound_speed_var->set_cur(record);
 			de_index_var->set_cur(record);
 			az_index_var->set_cur(record);
 			source_de_var->set_cur(record);
@@ -149,7 +152,8 @@ void eigenverb_collection::write_netcdf(
 			v = verb.position.longitude(); lng_var->put(&v, 1);
 			v = verb.position.altitude(); alt_var->put(&v, 1);
 			v = to_degrees(verb.direction) ; direction_var->put(&v, 1);
-			v = to_degrees(verb.grazing) ; grazing_var->put(&v, 1);
+			v = to_degrees(verb.grazing); grazing_var->put(&v, 1);
+			v = verb.sound_speed; sound_speed_var->put(&v, 1);
 			i = (long) verb.de_index; de_index_var->put(&i, 1);
 			i = (long) verb.az_index; az_index_var->put(&i, 1);
 			v = to_degrees(verb.source_de) ; source_de_var->put(&v, 1);
