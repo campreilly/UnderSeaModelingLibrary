@@ -1,7 +1,7 @@
 /*
  * @file envelope_listener.h
  * Abstract interface for alerting listeners to the results of
- * a reverberation evelope calculation.
+ * a reverberation envelope calculation.
  */
 #pragma once
 
@@ -18,7 +18,7 @@ using namespace usml::threads;
 
 /**
  * Abstract interface for alerting listeners to the results of
- * a reverberation evelope calculation.
+ * a reverberation envelope calculation.
  */
 class USML_DECLSPEC envelope_listener {
 public:
@@ -30,8 +30,8 @@ public:
 	}
 
 	/**
-	 * Pure virtual method to update the eigenrays for the object that implements it.
-	 *  @param  eigenrays - Shared pointer to a envelope_collection object which contains eigenrays.
+	 * Pure virtual method to update the envelopes for the object that implements it.
+	 *  @param  envelopes - Shared pointer to a envelope_collection object which contains envelopes.
 	 */
 	virtual void update_envelopes(
 			envelope_collection::reference& envelopes) = 0;
