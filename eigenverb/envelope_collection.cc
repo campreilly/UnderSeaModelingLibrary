@@ -44,6 +44,7 @@ envelope_collection::envelope_collection(
 			for (size_t r = 0; r < _num_rcv_beams; ++r, ++pr) {
 				*pr = new matrix< double >(
 						_transmit_freq->size(), _travel_time.size() ) ;
+				(*pr)->clear();
 			}
 		}
 	}
@@ -84,10 +85,11 @@ void envelope_collection::add_contribution(
 		for ( size_t s=0 ; s < src_beam.size2() ; ++s ) {
 			for ( size_t r=0 ; r < rcv_beam.size2() ; ++r ) {
 				for ( size_t f=0 ; f < _transmit_freq->size() ; ++f ) {
-					matrix_row< matrix<double> > envelope( *_envelopes[azimuth][s][r], f);
-					matrix_row< matrix<double> > intensity( _envelope_model.intensity(), f);
-					envelope += src_beam(f,s) * rcv_beam(f,r) * intensity ;
+					matrix_row< matrix<double> > intensity(_envelope_model.intensity(), f);
+					matrix_row< matrix<double> > envelope(*_envelopes[azimuth][s][r], f);
+					envelope += src_beam(f, s) * rcv_beam(f, r) * intensity;
 				}
+				//cout << "_envelopes=" << *_envelopes[azimuth][s][r] << endl;
 			}
 		}
 	}
