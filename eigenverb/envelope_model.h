@@ -55,7 +55,7 @@ private:
 	/**
 	 * Default constructor.
 	 */
-	~envelope_model() {}
+	~envelope_model() ;
 
 	/**
 	 * Computes the intensity for a single combination of source and receiver

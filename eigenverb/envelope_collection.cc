@@ -66,6 +66,7 @@ envelope_collection::~envelope_collection() {
 		delete[] *pa ;
 	}
 	delete[] _envelopes ;
+	delete _transmit_freq ;
 }
 
 /**

@@ -34,6 +34,13 @@ envelope_model::envelope_model(
 }
 
 /**
+ * Reserve the memory used to store the results of this calculation.
+ */
+envelope_model::~envelope_model() {
+	delete _travel_time ;
+}
+
+/**
  * Adds a single combination of source and receiver eigenverbs
  * to this time series.
  */
