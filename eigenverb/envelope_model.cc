@@ -23,13 +23,13 @@ envelope_model::envelope_model(
 ) :
 	_transmit_freq(transmit_freq),
 	_travel_time( travel_time->clone() ),
-	_time_vector( _travel_time->data() ),
 	_pulse_length( pulse_length ),
 	_threshold( threshold * pulse_length ),
+	_intensity(transmit_freq->size(), travel_time->size()),
 	_energy(transmit_freq->size()),
 	_duration(transmit_freq->size()),
-	_level(travel_time->size()),
-	_intensity(transmit_freq->size(), travel_time->size())
+	_time_vector( _travel_time->data() ),
+	_level(travel_time->size())
 {
 }
 
