@@ -44,7 +44,7 @@ public:
      * @param   eigenrays   Shared Pointer to the eigenray list.
      */
     fathometer_model(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
-                     wposition1 src_pos, wposition1 rcv_pos, eigenray_list list )
+                     wposition1 src_pos, wposition1 rcv_pos, const eigenray_list& list )
         : _source_id(source_id), _receiver_id(receiver_id), _slant_range(0.0), 
         _distance_from_sensor(0.0), _depth_offset_from_sensor(0.0),
         _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
