@@ -202,13 +202,11 @@ void eigenray_collection::sum_eigenrays( bool coherent ) {
 }
 
 /**
- * Add eigenray via proplossListener
+ * Add eigenray via eigenray_listener
  */
-bool eigenray_collection::add_eigenray( size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id ) {
-
-	 _eigenrays(targetRow, targetCol).push_back( pRay ) ;
+void eigenray_collection::add_eigenray( size_t target_row, size_t target_col, eigenray ray ) {
+	 _eigenrays(target_row, target_col).push_back( ray ) ;
 	 ++_num_eigenrays ;
-	 return true;
 }
 
 /**

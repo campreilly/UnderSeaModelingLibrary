@@ -44,6 +44,15 @@ protected:
 	envelope_listener() {
 	}
 
+private:
+
+	// -------------------------
+    // Disabling default copy constructor and default
+    // assignment operator.
+    // -------------------------
+    envelope_listener(const envelope_listener& yRef);
+    envelope_listener& operator=(const envelope_listener& yRef);
+
 };
 
 /// @}

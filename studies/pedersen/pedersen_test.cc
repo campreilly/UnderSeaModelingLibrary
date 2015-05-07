@@ -297,10 +297,8 @@ void analyze_proploss(
 
     wave_queue wave( *ocean, freq, pos, de, az, time_inc, &target ) ;
 
-    if (!wave.add_eigenray_listener(&loss)) {
-    	cout << "Error adding eigenray_collection listener! " << endl ;
-    	exit(1);
-    }
+    // adding eigenray_collection listener
+    wave.add_eigenray_listener(&loss);
 
     // compute the eigenray_collection and store eigenrays to disk
 

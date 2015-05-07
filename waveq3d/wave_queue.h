@@ -6,7 +6,8 @@
 
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/wave_front.h>
-#include <usml/waveq3d/eigenray_listener.h>
+#include <usml/waveq3d/eigenray_notifier.h>
+#include <usml/eigenverb/eigenverb_notifier.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 #include <netcdfcpp.h>
 
@@ -15,11 +16,11 @@ namespace waveq3d {
 
 using namespace usml::ocean ;
 using namespace usml::eigenverb ;
+
 class reflection_model ;
 class spreading_model ;
 class spreading_ray ;
 class spreading_hybrid_gaussian ;
-class eigenray_listener ;
 
 /// @ingroup waveq3d
 /// @{
@@ -59,7 +60,7 @@ class eigenray_listener ;
  * @xref S.M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
-class USML_DECLSPEC wave_queue {
+class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_notifier {
 
     friend class reflection_model ;
     friend class spreading_ray ;
@@ -268,45 +269,16 @@ class USML_DECLSPEC wave_queue {
 	}
 
     /**
-     * Add a eigenray_listener to the eigenray_listeners vector
-     */
-    bool add_eigenray_listener(eigenray_listener* pListener);
-
-    /**
-	 * Remove a eigenray_listener from the eigenray_listeners vector
-	 */
-    bool remove_eigenray_listener(eigenray_listener* pListener);
-
-    /**
-	 * For each eigenray_listener in the eigenray_listeners vector
-	 * call the check_eigenrays method to deliver all eigenrays after
-	 * a certain amount of time has passed.
-	 *  @param	waveTime Current Time of the WaveFront in msec
-	 *  @return True on success, false on failure.
-	 */
-	bool check_eigenray_listeners(long waveTime);
-
-	/**
-	 * Adds an eigenverb_collection to the wave_queue to store
-	 * all important information regarding eigenverbs to be used
-	 * to compute reverberation envelope.
-	 */
-	void add_eigenverb_listener( eigenverb_collection* collection ) ;
-
-    /**
-     * Set the type of wavefront that this is, i.e. a wavefront
-     * originating from a source or receiver. This is exclusively
-     * used within the reverbation models.
+     * Set the id for the next run.
+     * @param run_id
      */
     inline void ID( size_t id ) {
         _run_id = id ;
     }
 
     /**
-     * Get the type of wavefront that this is, i.e. a wavefront
-     * originating from a source or receiver. This is exclusively
-     * used within the reverbation models.
-     * @return      Type of wavefront (receiver/source)
+     * Get the run_id
+     * @return  current run id value
      */
     inline const size_t ID() {
         return _run_id ;
@@ -434,15 +406,15 @@ class USML_DECLSPEC wave_queue {
     wave_front *_past, *_prev, *_curr, *_next ;
 
 
-    /**
-	* Vector containing the references of objects that will be used to
-	* update classes that require eigenrays as they are built.
-	* These classes must implement add_eigenray method.
-	*/
-    std::vector<eigenray_listener *> eigenray_listeners;
+//    /**
+//	* Vector containing the references of objects that will be used to
+//	* update classes that require eigenrays as they are built.
+//	* These classes must implement add_eigenray method.
+//	*/
+//    std::vector<eigenray_listener *> eigenray_listeners;
 
-    /** Associated eigenverb collection **/
-    eigenverb_collection* _collection ;
+//    /** Associated eigenverb collection **/
+//    eigenverb_collection* _collection ;
 
     /**
      * Create an Azimuthal boundary loop condition upon initialization.
@@ -745,12 +717,6 @@ class USML_DECLSPEC wave_queue {
         wposition1* position, wvector1* ndirection, double* speed ) const ;
 
     /**
-	 * For each eigenray_listener in the eigenray_listeners vector
-	 * call the add_eigenray method to provide eigenrays to object that requested them.
-	 */
-	bool notify_eigenray_listeners(size_t targetRow, size_t targetCol, eigenray pEigenray);
-
-    /**
      * Constructs an eigenverb from the data provided. If the eigenverb meets
      * the intensity threshold, the eigenverb is passed to the collision
      * listener who then calls its collector to save the eigenverb.
@@ -864,7 +830,7 @@ class USML_DECLSPEC wave_queue {
 
     /**
      * Write current record to netCDF wavefront log.
-     * Records travel time, latitude, longtiude, altitude for
+     * Records travel time, latitude, longitude, altitude for
      * the current wavefront.
      */
     void save_netcdf() ;
