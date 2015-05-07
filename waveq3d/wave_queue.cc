@@ -189,6 +189,10 @@ void wave_queue::step() {
     // search for eigenray collisions with acoustic targets
 
     detect_eigenrays() ;
+
+    // notify listeners that this step is complete
+
+    check_eigenray_listeners( _time, runID() ) ;
 }
 
 /**
@@ -665,7 +669,7 @@ void wave_queue::build_eigenray(
              << "\tsurface=" << ray.surface << " bottom=" << ray.bottom << " caustic=" << ray.caustic << endl ;
     #endif
     // Add eigenray to those objects which requested them
-    notify_eigenray_listeners(t1,t2,ray);
+    notify_eigenray_listeners(t1,t2,ray,runID());
 
 }
 

@@ -204,7 +204,9 @@ void eigenray_collection::sum_eigenrays( bool coherent ) {
 /**
  * Add eigenray via eigenray_listener
  */
-void eigenray_collection::add_eigenray( size_t target_row, size_t target_col, eigenray ray ) {
+void eigenray_collection::add_eigenray(
+		size_t target_row, size_t target_col, eigenray ray, size_t runID )
+{
 	 _eigenrays(target_row, target_col).push_back( ray ) ;
 	 ++_num_eigenrays ;
 }

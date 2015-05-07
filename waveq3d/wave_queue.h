@@ -269,18 +269,21 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
 	}
 
     /**
-     * Set the id for the next run.
-     * @param run_id
+     * Optional identification number for this wavefront calculation.
+	 * This can be used to correlate results to a specific wavefront when
+	 * concurrent wavefronts are used.  The scheme for defining this ID
+	 * can be different for each sonar training system.
+	 *
+     * @param id	New identification number for this wavefront calculation.
      */
-    inline void ID( size_t id ) {
+    inline void runID( size_t id ) {
         _run_id = id ;
     }
 
     /**
-     * Get the run_id
-     * @return  current run id value
+     * Optional identification number for this wavefront calculation.
      */
-    inline const size_t ID() {
+    inline const size_t runID() {
         return _run_id ;
     }
 

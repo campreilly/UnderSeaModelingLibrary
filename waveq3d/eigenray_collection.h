@@ -194,14 +194,16 @@ public:
     }
 
 	/**
-	 * add_eigenray - Adds an eigenray to the eigenray_list for the target specified.
-	 * implementation of the pure virtual method of proplossListener.
-	 * @param   target_row         Row number of the current target.
-	 * @param   target_col         Column number of the current target.
-	 * @param   ray                The eigenray to add.
-	 * @return                     True on success, false on failure.
+	 * Adds a new eigenray to this collection for a specific target.
+	 * Implementation of the pure virtual method in eigenray_listener.
+	 *
+	 * @param   target_row 	Row identifier for the target involved in this collision.
+	 * @param   target_col 	Column identifier for the target involved in this collision.
+	 * @param   ray        	Propagation loss information for this collision.
+	 * @param 	runID		Identification number of the wavefront that
+	 * 						produced this result.  Ignored in this implementation.
 	 */
-	void add_eigenray(size_t target_row, size_t target_col, eigenray ray) ;
+	void add_eigenray(size_t target_row, size_t target_col, eigenray ray, size_t runID) ;
 
     /**
      * Compute propagation loss summed over all eigenrays.

@@ -1,10 +1,7 @@
-/*
+/**
  * @file eigenray_listener.h
- *
- *  Created on: Sep 9, 2013
- *      Author: Ted Burns, AEgis Technologies Group, Inc.
+ * Abstract interface for passing newly created eigenrays to an observer.
  */
-
 #pragma once
 
 #include <usml/waveq3d/eigenray.h>
@@ -16,12 +13,11 @@ namespace waveq3d {
 /// @{
 
 /**
- * @class eigenray_listener
- * @brief This class is part of a Observer/Subject pattern for the wave_queue class
- * and allows for multiple eigenray listeners to be added to wave_queue.
- * The add_eigenray call must be defined in each class which inherits it.
+ * Abstract interface for passing newly created eigenrays to an observer.
+ * Uses an Observer/Subject pattern which allows the receiver to process
+ * propagation information as soon as it becomes available. The observer does
+ * not need to wait until the propagation model is complete.
  */
-
 class USML_DECLSPEC eigenray_listener {
 public:
 
@@ -33,25 +29,31 @@ public:
 	}
 
 	/**
-	 * Pure virtual method to add eigenray to an object.
-	 *  @param   target_row Index of the target row to add to list of eigenrays
-     *  @param   target_col Index of the target row to add to list of eigenrays
-     *  @param   ray        eigenray data to add to list of eigenrays
-     *  @param   run_id     Run Identification number.
+	 * Notifies the observer that a wave front collision has been detected for
+	 * one of the targets. Targets are specified by a row and column number.
+	 * Must be overloaded by sub-classes.
+	 *
+	 * @param   target_row 	Row identifier for the target involved in this collision.
+	 * @param   target_col 	Column identifier for the target involved in this collision.
+	 * @param   ray        	Propagation loss information for this collision.
+	 * @param 	runID		Identification number of the wavefront that
+	 * 						produced this result.
+	 * @see		wave_queue.runID()
 	 */
-	virtual void add_eigenray(size_t target_row, size_t target_col, eigenray ray) = 0; //, size_t run_id) = 0;
-	
-	/**
-	 * Virtual method to check if all eigenrays are available within a time frame.
-	 *  @param 	run_id      Run number of waveQ3D
-	 *  @param  wave_time   Current Time of the wavefront used to check elapsed time.
-	 *  @return  		    True on Success, false otherwise.
-	 */
-	virtual bool check_eigenrays(size_t runID, long wave_time)
-	{
-		return false;
-	}
+	virtual void add_eigenray(
+		size_t target_row, size_t target_col, eigenray ray, size_t runID) = 0;
 
+	/**
+	 * Notifies the observer that eigenray processing is complete for
+	 * a specific wavefront time step. This can be used to limit the time
+	 * window for eigenrays to each specific target.
+	 *
+	 * @param  wave_time   	Elapsed time for this wavefront step.
+	 * @param 	runID		Identification number of the wavefront that
+	 * 						produced this result.
+	 * @see		wave_queue.runID()
+	 */
+	virtual void check_eigenrays(long wave_time, size_t runID) {}
 
 protected:
 
@@ -60,20 +62,19 @@ protected:
 	 */
 	eigenray_listener() {}
 
-
-
 private:
 
-	// -------------------------
-	// Disabling default copy constructor and default
-	// assignment operator.
-	// -------------------------
+	/*
+	 * Disabling default copy constructor and default
+	 * assignment operator.
+	  */
 	eigenray_listener(const eigenray_listener& yRef);
 	eigenray_listener& operator=(const eigenray_listener& yRef);
 
 };
 
 /// @}
-} // end of namespace waveq3d
-} // end of namespace usml
+}
+	// end of namespace waveq3d
+}	// end of namespace usml
 
