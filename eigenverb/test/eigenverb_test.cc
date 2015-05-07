@@ -230,15 +230,17 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 
 	// construct an envelope_collection
 
+	const seq_vector* travel_time = new seq_linear(0.0,0.1,400.0) ;
 	envelope_collection collection(
-		&freq,		// transmit_freq
-		400,		// num_times
-		0.1,		// time_step
-		1.0, 		// pulse_length
-		1e-30,		// threshold
-		1, 			// num_azimuths
-		1, 			// num_src_beams
-		1 ) ; 		// num_rcv_beams
+		&freq,			// transmit_freq
+		travel_time,	// travel_time
+		40.0,			// reverb_duration
+		1.0, 			// pulse_length
+		1e-30,			// threshold
+		1, 				// num_azimuths
+		1, 				// num_src_beams
+		1 ) ; 			// num_rcv_beams
+	delete travel_time ;
 
 	vector<double> scatter( freq.size() ) ;
 	matrix<double> src_beam( freq.size(), 1 ) ;
