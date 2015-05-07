@@ -99,7 +99,7 @@ bool reflection_model::bottom_reflection( size_t de, size_t az, double depth ) {
 
     // invoke bottom reverberation callback
 
-    if ( _wave._collection ) {
+    if ( _wave.has_eigenverb_listeners() ) {
 		_wave.build_eigenverb( de, az, time_water, grazing, c,
 			position, ndirection, usml::eigenverb::eigenverb::BOTTOM ) ;
     }
@@ -164,7 +164,7 @@ bool reflection_model::surface_reflection( size_t de, size_t az ) {
     if ( grazing <= 0.0 ) return false ;	// near miss of the surface
 
     // surface reverberation callback
-    if ( _wave._collection ) {
+    if ( _wave.has_eigenverb_listeners() ) {
 		_wave.build_eigenverb( de, az, time_water, grazing, c,
 			position, ndirection, usml::eigenverb::eigenverb::SURFACE ) ;
     }

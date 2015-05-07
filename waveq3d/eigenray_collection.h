@@ -28,9 +28,7 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
 public:
 
 	// eigenray_collection shared_ptr
-	typedef boost::shared_ptr<eigenray_collection> reference;
-
-	//typedef boost::shared_ptr<eigenray_list>  reference ;
+	typedef boost::shared_ptr<eigenray_collection> reference ;
 
 private:
 
@@ -196,16 +194,16 @@ public:
     }
 
 	/**
-	 * add_eigenray - Adds an eigenray to the eigenray_list for the target specified.
-	 * implementation of the pure virtual method of proplossListener.
-	 * @param   targetRow          Row number of the current target.
-	 * @param   targetCol          Column number of the current target.
-	 * @param   pRay               The eigenray to add.
-	 * @param   run_id             The run_id of WaveQ3D which the eigenray was produced.
-	 * @return                     True on success, false on failure.
+	 * Adds a new eigenray to this collection for a specific target.
+	 * Implementation of the pure virtual method in eigenray_listener.
+	 *
+	 * @param   target_row 	Row identifier for the target involved in this collision.
+	 * @param   target_col 	Column identifier for the target involved in this collision.
+	 * @param   ray        	Propagation loss information for this collision.
+	 * @param 	runID		Identification number of the wavefront that
+	 * 						produced this result.  Ignored in this implementation.
 	 */
-	bool add_eigenray(size_t targetRow, size_t targetCol, eigenray pRay, size_t run_id );
-
+	void add_eigenray(size_t target_row, size_t target_col, eigenray ray, size_t runID) ;
 
     /**
      * Compute propagation loss summed over all eigenrays.

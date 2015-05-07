@@ -5,6 +5,7 @@
 #pragma once
 
 #include <usml/eigenverb/eigenverb.h>
+#include <usml/eigenverb/eigenverb_listener.h>
 //#include <usml/types/quadtree.h>
 
 using namespace usml::types;
@@ -27,7 +28,7 @@ namespace eigenverb {
  *    - Subsequent columns provide the upper and lower
  *    	interfaces for additional volume scattering layers.
  */
-class USML_DECLSPEC eigenverb_collection {
+class USML_DECLSPEC eigenverb_collection : public eigenverb_listener {
 
 public:
 

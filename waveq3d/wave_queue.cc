@@ -45,7 +45,6 @@ wave_queue::wave_queue(
     _time( 0.0 ),
     _targets( targets ),
     _run_id(run_id),
-	_collection( NULL ),
     _nc_file( NULL )
 {
     _az_boundary = false ;
@@ -108,16 +107,6 @@ wave_queue::~wave_queue() {
     delete _prev ;
     delete _curr ;
     delete _next ;
-}
-
-/**
- * Assigns an eigeverb_collection to the reflection model
- */
-void wave_queue::add_eigenverb_listener(
-    eigenverb_collection* collection )
-{
-    if( _collection ) delete _collection ;
-    _collection = collection ;
 }
 
 /**
@@ -200,6 +189,10 @@ void wave_queue::step() {
     // search for eigenray collisions with acoustic targets
 
     detect_eigenrays() ;
+
+    // notify listeners that this step is complete
+
+    check_eigenray_listeners( _time, runID() ) ;
 }
 
 /**
@@ -300,7 +293,7 @@ void wave_queue::detect_caustics( size_t de, size_t az ) {
  * Detect volume boundary reflections for reverberation contributions
  */
 void wave_queue::detect_volume_scattering(size_t de, size_t az) {
-	if ( _collection == NULL ) return;
+	if ( !has_eigenverb_listeners() ) return;
 	std::size_t n = _ocean.num_volume();
 	for (std::size_t i = 0; i < n; ++i) {
 		volume_model& layer = _ocean.volume(i);
@@ -676,7 +669,7 @@ void wave_queue::build_eigenray(
              << "\tsurface=" << ray.surface << " bottom=" << ray.bottom << " caustic=" << ray.caustic << endl ;
     #endif
     // Add eigenray to those objects which requested them
-    notify_eigenray_listeners(t1,t2,ray);
+    notify_eigenray_listeners(t1,t2,ray,runID());
 
 }
 
@@ -1030,7 +1023,7 @@ void wave_queue::build_eigenverb(
     double speed, const wposition1& position,
     const wvector1& ndirection, size_t type )
 {
-	if ( _collection == NULL ) return ;
+	if ( !has_eigenverb_listeners() ) return;
 	grazing = abs(grazing) ;
 	if ( _time <= 0.0 || grazing < 1e-6 ) return ;
 	if ( this->_az_boundary && az == this->_max_az ) return;
@@ -1112,65 +1105,7 @@ void wave_queue::build_eigenverb(
 			<< "\tsurface="	<< verb.surface << " bottom=" << verb.bottom
 			<< " caustic=" << verb.caustic << endl;
 	#endif
-	_collection->add_eigenverb( verb, type ) ;
+
+	notify_eigenverb_listeners(verb, type) ;
 //	cout << "wave_queue::build_eigenverb() - done " << endl ;
-}
-
-/**
-* Add a eigenray_listener to the eigenray_listeners vector
-*/
-bool wave_queue::add_eigenray_listener(eigenray_listener* pListener) {
-
-    std::vector<eigenray_listener*>::iterator iter = find(eigenray_listeners.begin(), eigenray_listeners.end(), pListener);
-    if ( iter != eigenray_listeners.end() ) {
-        return false;
-    }
-    eigenray_listeners.push_back(pListener);
-    return true;
-}
-
-
-/**
- * Remove a eigenray_listener from the eigenray_listeners vector
- */
-bool wave_queue::remove_eigenray_listener(eigenray_listener* pListener){
-
-    std::vector<eigenray_listener*>::iterator iter = find(eigenray_listeners.begin(), eigenray_listeners.end(), pListener);
-    if ( iter == eigenray_listeners.end() ){
-        return false;
-    } else {
-        eigenray_listeners.erase(remove(eigenray_listeners.begin(), eigenray_listeners.end(), pListener));
-    }
-    return true;
-}
-
-/**
- * For each eigenray_listener in the eigenray_listeners vector
- * call the add_eigenray method to provide eigenrays.
- */
-bool wave_queue::notify_eigenray_listeners(size_t targetRow, size_t targetCol, eigenray pEigenray){
-
-    for (std::vector<eigenray_listener*>::iterator iter = eigenray_listeners.begin();
-                                                iter != eigenray_listeners.end(); ++iter){
-        eigenray_listener* pListener = *iter;
-        pListener->add_eigenray(targetRow, targetCol, pEigenray, _run_id);
-    }
-
-    return (eigenray_listeners.size() > 0);
-}
-
-/**
- * For each eigenray_listener in the eigenray_listeners vector
- * call the check_eigenrays method to deliver all eigenrays after
- * a certain amount of time has passed.
- */
-bool wave_queue::check_eigenray_listeners(long waveTime){
-
-    for (std::vector<eigenray_listener*>::iterator iter = eigenray_listeners.begin();
-                                                iter != eigenray_listeners.end(); ++iter){
-        eigenray_listener* pListener = *iter;
-        pListener->check_eigenrays((unsigned long)_run_id, waveTime);
-    }
-
-    return (eigenray_listeners.size() > 0);
 }
