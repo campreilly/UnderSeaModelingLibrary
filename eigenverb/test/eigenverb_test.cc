@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 	verb.position = wposition1(range,0.0,-depth) ;
 	verb.direction = 0.0 ;
 	verb.grazing = angle ;
-	verb.sound_speed = 1500.0 ;
+	verb.sound_speed = c0 ;
 	verb.de_index = 0 ;
 	verb.az_index = 0 ;
 	verb.source_de = -angle ;
