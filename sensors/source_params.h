@@ -82,12 +82,37 @@ public:
 		return _source_level ;
 	}
 
+	/**
+	 * Duration of the transmitted signal (sec).
+	 */
+	double pulse_length() {
+		return _pulse_length ;
+	}
+
+	/**
+	 * Duration of the reverberation envelope (sec).
+	 */
+	double reverb_duration() {
+		return _reverb_duration  ;
+	}
+
 private:
 
 	/**
 	 * Peak intensity of the transmitted pulse (dB//uPa@1m)
 	 */
 	const vector<double> _source_level;
+
+	/**
+	 * Duration of the transmitted signal (sec).
+	 */
+	double _pulse_length ;
+
+	/**
+	 * Duration of the reverberation envelope (sec).
+	 */
+	double _reverb_duration ;
+
 };
 
 /// @}

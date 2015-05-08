@@ -15,9 +15,8 @@ using namespace usml::eigenverb;
  */
 envelope_collection::envelope_collection(
 	const seq_vector* transmit_freq,
-
-	size_t num_times,
-	double time_step,
+	const seq_vector* travel_time,
+	double reverb_duration,
 	double pulse_length,
 	double threshold,
 	size_t num_azimuths,
@@ -25,13 +24,13 @@ envelope_collection::envelope_collection(
 	size_t num_rcv_beams
 ) :
 	_transmit_freq(transmit_freq->clone()),
-	_travel_time(0.0,time_step,num_times),
+	_travel_time( travel_time->clip(0.0,reverb_duration) ),
 	_pulse_length(pulse_length),
 	_threshold( threshold ),
 	_num_azimuths(num_azimuths),
 	_num_src_beams(num_src_beams),
 	_num_rcv_beams(num_rcv_beams),
-	_envelope_model( _transmit_freq, &_travel_time, _pulse_length, _threshold)
+	_envelope_model( _transmit_freq, _travel_time, _pulse_length, _threshold)
 {
 	_envelopes = new matrix<double>***[_num_azimuths];
 	matrix<double>**** pa = _envelopes;
@@ -43,7 +42,7 @@ envelope_collection::envelope_collection(
 			matrix<double>** pr = *ps;
 			for (size_t r = 0; r < _num_rcv_beams; ++r, ++pr) {
 				*pr = new matrix< double >(
-						_transmit_freq->size(), _travel_time.size() ) ;
+						_transmit_freq->size(), _travel_time->size() ) ;
 				(*pr)->clear();
 			}
 		}
@@ -68,6 +67,7 @@ envelope_collection::~envelope_collection() {
 	}
 	delete[] _envelopes ;
 	delete _transmit_freq ;
+	delete _travel_time ;
 }
 
 /**
@@ -110,7 +110,7 @@ void envelope_collection::write_netcdf(const char* filename) const {
 	NcDim* src_beam_dim = nc_file->add_dim("src_beam", (long) _num_src_beams ) ;
 	NcDim* rcv_beam_dim = nc_file->add_dim("rcv_beam", (long) _num_rcv_beams ) ;
 	NcDim* freq_dim = nc_file->add_dim("frequency", (long) _transmit_freq->size()) ;
-	NcDim* time_dim = nc_file->add_dim("travel_time", (long) _travel_time.size()) ;
+	NcDim* time_dim = nc_file->add_dim("travel_time", (long) _travel_time->size()) ;
 
 	// variables
 
@@ -128,7 +128,7 @@ void envelope_collection::write_netcdf(const char* filename) const {
 	// data
 
 	freq_var->put( _transmit_freq->data().begin(), (long) _transmit_freq->size());
-	time_var->put( _travel_time.data().begin(), (long) _travel_time.size());
+	time_var->put( _travel_time->data().begin(), (long) _travel_time->size());
 
 	for (size_t a = 0; a < _num_azimuths; ++a) {
 		for (size_t s = 0; s < _num_src_beams; ++s) {
@@ -138,7 +138,7 @@ void envelope_collection::write_netcdf(const char* filename) const {
 					vector<double> envelope = 10.0*log10(max(row, 1e-30));
 					envelopes_var->set_cur((long)a, (long)s, (long)r, (long) f, 0L );
 					envelopes_var->put(envelope.data().begin(), 1L, 1L, 1L, 1L,
-						(long) _travel_time.size() );
+						(long) _travel_time->size() );
 				}
 			}
 		}
