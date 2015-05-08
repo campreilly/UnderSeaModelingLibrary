@@ -41,6 +41,8 @@ public:
 	 * 							source_params_map and/or receiver_params_map.
 	 * @param   source_level	Peak intensity of the transmitted pulse
 	 * 							(dB//uPa@1m)
+	 * @param  	pulse_length	Duration of the transmitted signal (sec).
+	 * @param   reverb_duration Duration of the reverberation envelope (sec).
      * @param	min_freq		Minimum active frequency for the sensor. Lower
      *                          active bound of the sensor.
      * @param	max_freq		Maximum active frequency for the sensor. Upper
@@ -60,6 +62,7 @@ public:
 	 * 							set to true.  Set to false for monostatic sensors.
 	 */
 	source_params( sensor_params::id_type paramsID, vector<double> source_level,
+			double pulse_length, double reverb_duration,
             double min_freq, double max_freq, const seq_vector& frequencies, 
             const beam_pattern_list& beam_list, bool multistatic = true);
 	/**
