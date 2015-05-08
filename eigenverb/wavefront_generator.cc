@@ -5,6 +5,8 @@
  *      Author: Ted Burns, AEgis Technologies Group, Inc.
  */
 
+#define DEBUG_PRINTOUT
+
 #include <usml/eigenverb/wavefront_generator.h>
 
 using namespace usml::eigenverb ;
@@ -66,8 +68,8 @@ void wavefront_generator::run()
     // For Matlab output
     std::string ncname_wave = "./generator_wave.nc";
     std::string ncname_proploss = "./generator_proploss.nc";
-    std::string ncname_eigenverbs = "./generator_eigenverbs.nc";
-#ifdef USML_DEBUG
+    std::string ncname_eigenverbs = "./generator_eigenverbs_";
+#ifdef DEBUG_PRINTOUT
     bool print_out = true;
 #else
     bool print_out = false;
@@ -110,11 +112,6 @@ void wavefront_generator::run()
 
     seq_linear az(0.0, 180.0, _number_az, true);
 
-
-    if (_ocean.get()->num_volume()) {
-        eigenverbs = new eigenverb_collection( _ocean.get()->num_volume());
-    }
-
     if (_target_positions != NULL) {
         proploss = new eigenray_collection(*(_frequencies), _source_position, *de, az, _time_step, _target_positions);
     }
@@ -127,9 +124,8 @@ void wavefront_generator::run()
         wave.add_eigenray_listener(proploss);
     }
 
-    if ( eigenverbs != NULL ) {
-        wave.add_eigenverb_listener(eigenverbs);
-    }
+    eigenverbs = new eigenverb_collection( _ocean.get()->num_volume());
+    wave.add_eigenverb_listener(eigenverbs);
 
     wave.intensity_threshold(_intensity_threshold);
 
@@ -164,12 +160,20 @@ void wavefront_generator::run()
         if (proploss != NULL) {
             proploss->write_netcdf(ncname_proploss.c_str());
         }
-        if (eigenverbs != NULL) {
-            for ( int n=0 ; n < eigenverbs->num_interfaces() ; ++n ) {
-                std::ostringstream filename ;
-                filename << ncname_eigenverbs.c_str() << n << ".nc" ;
-                eigenverbs->write_netcdf( filename.str().c_str(),n) ;
+        for ( int n=0 ; n < eigenverbs->num_interfaces() ; ++n ) {
+            std::ostringstream filename ;
+            switch (n)
+            {
+                case 0:
+                    filename << ncname_eigenverbs.c_str() << "bottom.nc" ;
+                    break;
+                case 1:
+                    filename << ncname_eigenverbs.c_str() << "surface.nc" ;
+                    break;
+                default:
+                    filename << ncname_eigenverbs.c_str() << n << ".nc" ;
             }
+            eigenverbs->write_netcdf( filename.str().c_str(),n) ;
         }
     }
 
@@ -178,10 +182,8 @@ void wavefront_generator::run()
         _wavefront_listener->update_eigenrays(rays);
     }
 
-    if (eigenverbs != NULL) {
-        eigenverb_collection::reference verbs(eigenverbs);
-        _wavefront_listener->update_eigenverbs(verbs);
-    }
+    eigenverb_collection::reference verbs(eigenverbs);
+    _wavefront_listener->update_eigenverbs(verbs);
 
     // mark task as complete
     _done = true ;

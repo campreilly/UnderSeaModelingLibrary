@@ -307,7 +307,6 @@ private:
 
     /**
      * Last set of eigenverbs computed for this sensor.
-     * @todo migrate to shared pointer.
      */
 	eigenverb_collection::reference _eigenverbs;
 
