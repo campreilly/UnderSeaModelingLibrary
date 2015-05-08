@@ -166,7 +166,7 @@ private:
 
 	/**
 	 * Times at which the sensor_pair's reverberation envelopes
-	 * are computed (sec).
+	 * are computed (sec). This class takes ownership of this pointer.
 	 */
 	const seq_vector* _travel_time ;
 
