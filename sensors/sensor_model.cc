@@ -231,18 +231,18 @@ void sensor_model::target_ids(std::list<const sensor_model*>& list) {
 /**
  * Builds a list of target positions from the input list of sensors provided.
  */
-wposition sensor_model::target_positions(std::list<const sensor_model*>& list) {
+wposition* sensor_model::target_positions(std::list<const sensor_model*>& list) {
 
 	// builds wposition container of target positions from the list provided.
 
-	wposition target_pos(list.size(), 1);
+    wposition* target_pos = new wposition(list.size(), 1);
 	int row = -1;
 	BOOST_FOREACH( const sensor_model* target, list ){
 		++row;
 		wposition1 pos = target->position();
-		target_pos.latitude( row, 0, pos.latitude());
-		target_pos.longitude(row, 0, pos.longitude());
-		target_pos.altitude( row, 0, pos.altitude());
+		target_pos->latitude( row, 0, pos.latitude());
+		target_pos->longitude(row, 0, pos.longitude());
+		target_pos->altitude( row, 0, pos.altitude());
 	}
 	return target_pos ;
 }
@@ -283,14 +283,18 @@ void sensor_model::run_wave_generator() {
             cout << "sensor_model: run_wave_generator(" << _sensorID << ")" << endl ;
         #endif
 
+        wposition* target_pos = NULL;
+
         // Get the targets sensor references
         std::list<const sensor_model*> targets = sensor_targets();
 
-        // Store the targetID's for later use in sending on to sensor_pairs
-        target_ids(targets);
+        if (targets.size() > 0) {
+            // Store the targetID's for later use in sending on to sensor_pairs
+            target_ids(targets);
 
-        // Get the target positions for wavefront_generator
-        wposition target_pos = target_positions(targets);
+            // Get the target positions for wavefront_generator
+            target_pos = target_positions(targets);
+        }
 
         // Create the wavefront_generator
         wavefront_generator* generator = new wavefront_generator(

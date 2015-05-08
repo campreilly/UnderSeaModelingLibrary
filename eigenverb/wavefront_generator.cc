@@ -19,7 +19,7 @@ double wavefront_generator::intensity_threshold = 300.0; // dB
  * Constructor
  */
 wavefront_generator::wavefront_generator(shared_ptr<ocean_model> ocean,
-        wposition1 source_position, wposition target_positions,
+        wposition1 source_position, const wposition* target_positions,
         const seq_vector* frequencies, wavefront_listener* listener,
         double vertical_beamwidth,  double depression_elevation_angle, int run_id)
     : _done(false),
@@ -66,6 +66,7 @@ void wavefront_generator::run()
     // For Matlab output
     std::string ncname_wave = "./generator_wave.nc";
     std::string ncname_proploss = "./generator_proploss.nc";
+    std::string ncname_eigenverbs = "./generator_eigenverbs.nc";
 #ifdef USML_DEBUG
     bool print_out = true;
 #else
@@ -73,7 +74,10 @@ void wavefront_generator::run()
 #endif
 
     /** Pointer to Proploss object */
-    eigenray_collection* proploss;
+    eigenray_collection* proploss = NULL;
+
+    /** Pointer to eigenverbs object */
+    eigenverb_collection* eigenverbs = NULL;
 
     // check to see if WaveQ3D propagation model task has already been aborted
 
@@ -86,6 +90,7 @@ void wavefront_generator::run()
 
     // Setup DE sequence vector for WaveQ3D
     // when vertical_beamwidth has been set to a value other than zero.
+
     if (_vertical_beamwidth != 0.0) {
 
         double de_start = _depression_elevation_angle - (_vertical_beamwidth * 0.5f);
@@ -106,46 +111,77 @@ void wavefront_generator::run()
     seq_linear az(0.0, 180.0, _number_az, true);
 
 
-    proploss = new eigenray_collection(*(_frequencies), _source_position, *de, az, _time_step, &_target_positions);
+    if (_ocean.get()->num_volume()) {
+        eigenverbs = new eigenverb_collection( _ocean.get()->num_volume());
+    }
 
-    wave_queue wqWave(*(_ocean.get()), *(_frequencies), _source_position, *de, az, _time_step, &_target_positions,
-                                                                                                            _run_id);
+    if (_target_positions != NULL) {
+        proploss = new eigenray_collection(*(_frequencies), _source_position, *de, az, _time_step, _target_positions);
+    }
+
+    wave_queue wave(*(_ocean.get()), *(_frequencies), _source_position, *de, az, _time_step, _target_positions, _run_id);
 
     delete de;
 
-    wqWave.add_eigenray_listener(proploss);
+    if ( proploss != NULL ) {
+        wave.add_eigenray_listener(proploss);
+    }
 
-    wqWave.intensity_threshold(_intensity_threshold);
+    if ( eigenverbs != NULL ) {
+        wave.add_eigenverb_listener(eigenverbs);
+    }
+
+    wave.intensity_threshold(_intensity_threshold);
 
     if (print_out)
     {
-        // Plot the rays.
-        wqWave.init_netcdf(ncname_wave.c_str());
-        wqWave.save_netcdf();
+        // Plot the wavefront.
+        wave.init_netcdf(ncname_wave.c_str());
+        wave.save_netcdf();
     }
-    // propagate rays & record
-    while (wqWave.time() < _time_maximum)
+
+    // propagate wavefront & record
+
+    while (wave.time() < _time_maximum)
     {
-        wqWave.step();
+        wave.step();
         if (print_out)
         {
-            wqWave.save_netcdf();
+            wave.save_netcdf();
         }
     }
 
     if (print_out)
     {
-        wqWave.close_netcdf();
+        wave.close_netcdf();
     }
 
-    proploss->sum_eigenrays();
+    if (proploss != NULL) {
+        proploss->sum_eigenrays();
+    }
 
     if (print_out) {
-        proploss->write_netcdf(ncname_proploss.c_str());
+        if (proploss != NULL) {
+            proploss->write_netcdf(ncname_proploss.c_str());
+        }
+        if (eigenverbs != NULL) {
+            for ( int n=0 ; n < eigenverbs->num_interfaces() ; ++n ) {
+                std::ostringstream filename ;
+                filename << ncname_eigenverbs.c_str() << n << ".nc" ;
+                eigenverbs->write_netcdf( filename.str().c_str(),n) ;
+            }
+        }
     }
 
-    eigenray_collection::reference rays(proploss);
-    _wavefront_listener->update_eigenrays(rays);
+    if (proploss != NULL) {
+        eigenray_collection::reference rays(proploss);
+        _wavefront_listener->update_eigenrays(rays);
+    }
+
+    if (eigenverbs != NULL) {
+        eigenverb_collection::reference verbs(eigenverbs);
+        _wavefront_listener->update_eigenverbs(verbs);
+    }
 
     // mark task as complete
     _done = true ;
