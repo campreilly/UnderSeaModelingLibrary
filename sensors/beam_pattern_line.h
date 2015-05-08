@@ -1,5 +1,6 @@
 /**
  * @file beam_pattern_line.h
+ * Beam pattern for an array of linearly spaced elements.
  */
 #pragma once
 

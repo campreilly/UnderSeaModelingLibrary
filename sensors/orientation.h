@@ -11,6 +11,9 @@ using namespace boost::numeric::ublas ;
 namespace usml {
 namespace sensors {
 
+/// @ingroup sensors
+/// @{
+
 /**
  * This class holds the physical orientation of the
  * sensor and provides a conversion from incident ray
@@ -45,9 +48,10 @@ public:
     /**
      * Constructor using a given heading, pitch, and roll
      *
-     * @param heading  rotation about the z-axis (deg)
-     * @param pitch    rotation about the x-axis (deg)
-     * @param roll     rotation about the y-axis (deg)
+     * @param heading   rotation about the z-axis (deg)
+     * @param pitch     rotation about the x-axis (deg)
+     * @param roll      rotation about the y-axis (deg)
+     * @param ref_axis  reference axis for spatial rotations (Cartesian)
      */
     orientation( double heading,
                  double pitch,
@@ -218,5 +222,6 @@ protected:
 
 };
 
+/// @}
 }   // end of namespace sensors
 }   // end of namespace usml

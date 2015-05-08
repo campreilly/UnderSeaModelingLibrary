@@ -37,7 +37,7 @@ void beam_pattern_multi::beam_level(
     vector<double>* level )
 {
     write_lock_guard(_mutex) ;
-    vector<double> tmp ;
+    vector<double> tmp( frequencies.size(), 1.0 ) ;
     noalias(*level) = vector<double>( frequencies.size(), 1.0 ) ;
     BOOST_FOREACH( beam_pattern_model* b, _beam_list )
     {
@@ -54,7 +54,7 @@ void beam_pattern_multi::directivity_index(
     vector<double>* level )
 {
     write_lock_guard(_mutex) ;
-    vector<double> tmp ;
+    vector<double> tmp( frequencies.size(), 1.0 ) ;
     noalias(*level) = vector<double>( frequencies.size(), 1.0 ) ;
     BOOST_FOREACH( beam_pattern_model* b, _beam_list )
     {
