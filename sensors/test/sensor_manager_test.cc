@@ -157,6 +157,39 @@ BOOST_AUTO_TEST_CASE(pairs_test)
      xmitRcvModeType sensor_mode[] = { usml::sensors::SOURCE,   // 6
                                        usml::sensors::RECEIVER, // 7
                                        usml::sensors::BOTH };   // 9
+
+     wposition1 pos(0.0,0.0,-100.0) ;
+     vector<double> raxis(3,0) ;
+     raxis(0) = 1.0 ;
+     orientation orient(0.0,0.0,0.0,raxis) ;
+     cout << "Updated sensor 6's depth by 100 m" << endl ;
+     sensor_manager::instance()->update_sensor( 6, pos, orient ) ;
+
+     pos.latitude(2.0) ;
+     pos.altitude(0.0) ;
+     cout << "Updated sensor 7's latitude by 2 deg" << endl ;
+     sensor_manager::instance()->update_sensor( 7, pos, orient ) ;
+
+     pos.longitude(2.0) ;
+     pos.latitude(0.0) ;
+     cout << "Updated sensor 9's longitude by 2 deg" << endl ;
+     sensor_manager::instance()->update_sensor( 9, pos, orient ) ;
+
+     orient.pitch(10.0) ;
+     pos.longitude(0.0) ;
+     cout << "Updated sensor 6's pitch by 10 deg" << endl ;
+     sensor_manager::instance()->update_sensor( 6, pos, orient ) ;
+
+     orient.heading(25.0) ;
+     orient.pitch(0.0) ;
+     cout << "Updated sensor 7's heading by 25 deg" << endl ;
+     sensor_manager::instance()->update_sensor( 7, pos, orient ) ;
+
+     orient.roll(15.0) ;
+     orient.heading(0.0) ;
+     cout << "Updated sensor 9's roll by 15 deg" << endl ;
+     sensor_manager::instance()->update_sensor( 9, pos, orient ) ;
+
     // Build a query 
     sensor_pair_manager::sensor_query_map query;
     for ( int i = 0; i < sizeof(sensors_remaining) / sizeof(sensor_model::id_type); ++i ) {
