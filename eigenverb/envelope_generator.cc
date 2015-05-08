@@ -4,30 +4,26 @@
  */
 #include <usml/eigenverb/envelope_generator.h>
 #include <usml/eigenverb/eigenverb.h>
+#include <usml/threads/smart_ptr.h>
 #include <boost/foreach.hpp>
 
 using namespace usml::eigenverb ;
-
-/**
- * Default pulse length of the signal (sec).
- */
-double envelope_generator::pulse_length = 1.0 ;
-
-/**
- * Default duration of the reverberation envelope (sec).
- */
-double envelope_generator::time_maximum = 40.0 ;
-
-/**
- * Default sampling period for the reverberation envelope (sec).
- */
-double envelope_generator::time_step = 0.1 ;
 
 /**
  * Minimum intensity level for valid reverberation contributions (dB).
  */
 double envelope_generator::threshold = -300.0 ;
 
+/**
+ * The _mutex for the singleton sensor_manager.
+ */
+read_write_lock envelope_generator::_property_mutex;
+
+/**
+ * Time axis for reverberation calculation.  Defaults to
+ * a linear sequence out to 400 sec with a sampling period of 0.1 sec.
+ */
+unique_ptr<const seq_vector> envelope_generator::_travel_time( new seq_linear(0.0,0.1,400.0) ) ;
 
 /**
  * Copies envelope computation parameters from static memory into
@@ -36,6 +32,8 @@ double envelope_generator::threshold = -300.0 ;
 envelope_generator::envelope_generator(
 		const seq_vector* transmit_freq,
 		const seq_vector* receiver_freq,
+		double reverb_duration,
+		double pulse_length,
 		size_t num_azimuths,
 		size_t num_src_beams,
 		size_t num_rcv_beams,
@@ -46,17 +44,18 @@ envelope_generator::envelope_generator(
 	_ocean( ocean_shared::current() ),
 	_src_eigenverbs(src_eigenverbs),
 	_rcv_eigenverbs(rcv_eigenverbs),
-	_eigenverb_interpolator(transmit_freq,receiver_freq),
-	_envelopes( new envelope_collection(
+	_eigenverb_interpolator(transmit_freq,receiver_freq)
+{
+	write_lock_guard guard(_property_mutex);
+	_envelopes = envelope_collection::reference( new envelope_collection(
 		transmit_freq,
-		(size_t) ceil( time_maximum / time_step ),
-		time_step,
+		_travel_time.get(),
+		reverb_duration,
 		pulse_length,
 		pow(10.0,threshold/10.0),
 		num_azimuths,
 		num_src_beams,
-		num_rcv_beams ) )
-{
+		num_rcv_beams ) ) ;
 }
 
 /**

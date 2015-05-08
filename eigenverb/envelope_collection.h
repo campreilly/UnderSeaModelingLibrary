@@ -53,8 +53,8 @@ public:
 	 */
 	envelope_collection(
 		const seq_vector* transmit_freq,
-		size_t num_times,
-		double time_step,
+		const seq_vector* travel_time,
+		double reverb_duration,
 		double pulse_length,
 		double threshold,
 		size_t num_azimuths,
@@ -78,7 +78,7 @@ public:
 	 * are computed (sec).
 	 */
 	const seq_vector* travel_time() const {
-		return &_travel_time;
+		return _travel_time;
 	}
 
 	/**
@@ -173,9 +173,9 @@ private:
 
 	/**
 	 * Times at which the sensor_pair's reverberation envelopes
-	 * are computed (sec).
+	 * are computed (sec). This class takes ownership of this pointer.
 	 */
-	seq_linear _travel_time ;
+	const seq_vector* _travel_time ;
 
 	/**
 	 * Duration of the transmitted pulse (sec).

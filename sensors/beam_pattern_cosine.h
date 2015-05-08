@@ -1,5 +1,6 @@
 /**
  * @file beam_pattern_cosine.h
+ * Frequency independent North/South directional beam pattern.
  */
 #pragma once
 

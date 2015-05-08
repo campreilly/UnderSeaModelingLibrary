@@ -10,9 +10,10 @@ using namespace usml::sensors ;
  * Construct new class of source.
  */
 source_params::source_params( sensor_params::id_type paramsID,
-	vector<double> source_level, double min_freq, double max_freq, 
+	vector<double> source_level, double pulse_length, double reverb_duration,
+	double min_freq, double max_freq,
     const seq_vector& frequencies, const beam_pattern_list& beam_list, bool multistatic)
     : sensor_params(paramsID, min_freq, max_freq, frequencies, beam_list, multistatic),
-  _source_level( source_level )
+  _source_level( source_level ), _pulse_length(pulse_length), _reverb_duration(reverb_duration)
 {
 }

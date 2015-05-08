@@ -49,6 +49,8 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     source_params::reference source1(new source_params(
         params1,	                // paramsID
         vector<double> (1, 123.0),	// source_level
+		1.0,					   // pulse_length
+		10.0,					   // reverb_duration
         7000.0, 10000.0,            // min, max active freq
         source_frequencies,
         beamList));		           // beam_list
@@ -69,6 +71,8 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     source_params::reference source3(new source_params(
         params3,	                // paramsID
         vector<double> (1, 130.0),  // source_level
+		1.0,					   // pulse_length
+		10.0,					   // reverb_duration
         7000.0, 10000.0,            // min, max active freq
         source_frequencies,
         beamList,   		        // beam_list
@@ -90,6 +94,8 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     source_params::reference source4(new source_params(
         params4,	                    // paramsID	
         vector<double> (1, 130.0),		// source_level
+		1.0,					   // pulse_length
+		10.0,					   // reverb_duration
         6000.0, 9000.0,                 // min, max active freq
         source_frequencies,
         beamList,  		                // beamID's

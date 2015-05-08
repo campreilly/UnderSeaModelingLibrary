@@ -1042,6 +1042,7 @@ void wave_queue::build_eigenverb(
     verb.length2 = vector<double>(num_freq) ;
     verb.width2 = vector<double>(num_freq) ;
 	verb.grazing = grazing ;
+	verb.sound_speed = speed ;
 	verb.position = position ;
 	verb.de_index = de ;
 	verb.az_index = az ;

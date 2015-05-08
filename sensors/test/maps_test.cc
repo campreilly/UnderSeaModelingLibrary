@@ -83,6 +83,8 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 	source_params::reference source1( new source_params(
 		id1, 		// paramsID
 		vector<double> (1, 123.0), // source_level
+		1.0,					   // pulse_length
+		10.0,					   // reverb_duration
         7000.0, 10000.0,           // min, max active freq
         source_frequencies,
         beamList,                  // beam_list
@@ -95,6 +97,8 @@ BOOST_AUTO_TEST_CASE(source_params_test) {
 	source_params::reference source2( new source_params(
 		id2, 		                // paramsID		
 		vector<double> (1, 321.0),	// source_level
+		1.0,					   	// pulse_length
+		10.0,					   	// reverb_duration
         6000.0, 9000.0,             // min, max active freq
         source_frequencies,
         beamList)); 		        // beam_list   // multistatic defaults true
@@ -211,6 +215,8 @@ BOOST_AUTO_TEST_CASE(sensor_test) {
 	source_params::reference source1( new source_params(
 		params1,	                // paramsID
 		vector<double> (1, 123.0),	// source_level
+		1.0,					   	// pulse_length
+		10.0,					   	// reverb_duration
         7000.0, 10000.0,            // min, max active freq
         source_frequencies,
         beamList));  		        // beam_list
