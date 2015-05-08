@@ -88,7 +88,7 @@ private:
 	 * <pre>
 	 * multistatic:			false
 	 * source strength:     200 dB
-	 * transmit frequency:  3 KHz
+	 * envelope frequency:  3 KHz
 	 * src beam pattern:    omni directional
 	 * rcv beam pattern: 	omni directional
 	 * </pre>

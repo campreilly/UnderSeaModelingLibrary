@@ -54,14 +54,22 @@ public:
 	/**
 	 * Initialize model parameters and reserve memory.
 	 *
-	 * @param transmit_freq	Frequencies at which the source and receiver
-	 * 						eigenverbs are computed (Hz).
+	 * @param envelope_freq		Frequencies at which the source and receiver
+	 * 							eigenverbs overlap (Hz).  Frequencies at which
+	 * 							envelope will be computed.
+	 * @param src_freq_first	Index of the first intersecting frequency of the
+	 * 							source frequencies seq_vector.  Used to map
+	 * 							source eigenverbs onto envelope_freq values.
+	 * @param receiver_freq		Frequencies at which receiver eigenverbs were
+	 * 							generated (Hz).  Used to interpolate receiver
+	 * 							eigenverbs onto envelope_freq values.
 	 * @param num_azimuths	Number of receiver azimuths in result.
 	 * @param num_src_beams	Number of source beams in result.
 	 * @param num_rcv_beams Number of receiver beams in result.
 	 */
 	envelope_generator(
-		const seq_vector* transmit_freq,
+		const seq_vector* envelope_freq,
+		size_t src_freq_first,
 		const seq_vector* receiver_freq,
 		double reverb_duration,
 		double pulse_length,
