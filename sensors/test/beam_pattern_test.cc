@@ -100,7 +100,6 @@ BOOST_AUTO_TEST_CASE( sine_pattern_test ) {
     cout << "Directivity index" << endl ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
     BOOST_CHECK_CLOSE( level(0), total, 1.0 ) ;
-
 }
 
 /**
@@ -150,7 +149,6 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
     cout << "Directivity index" << endl ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
     BOOST_CHECK_CLOSE( level(0), total, 1.0 ) ;
-
 }
 
 /**
@@ -391,6 +389,50 @@ BOOST_AUTO_TEST_CASE( solid_pattern_test ) {
     BOOST_CHECK_CLOSE( level(0), total, 1.5 ) ;
 }
 
+
+/**
+ * Tests the ability to produce a multi-pattern beam
+ */
+BOOST_AUTO_TEST_CASE( multi_pattern_test ) {
+    cout << "==== beam_pattern_test/multi_pattern_test ====" << endl ;
+    std::list<beam_pattern_model*> beam_list ;
+    beam_list.push_back( new beam_pattern_sine ) ;
+    beam_list.push_back( new beam_pattern_cosine ) ;
+    beam_pattern_multi multi( beam_list ) ;
+
+    const char* csvname = USML_TEST_DIR "/sensors/test/beam_pattern_multi.csv" ;
+    vector<double> freq( 1, 900.0 ) ;
+
+    int pitch = 62 ;
+    int heading = 31 ;
+    int roll = 57 ;
+    double dr = M_PI / 180.0 ;
+    vector<double> raxis(3,0) ;
+    raxis(0) = 1.0 ;
+    orientation orient( pitch, heading, roll, raxis ) ;
+
+    std::ofstream of( csvname ) ;
+    cout << "Saving beam data to " << csvname << endl ;
+    vector<double> level( freq.size(), 0.0 ) ;
+    double total = 0.0 ;
+    for(int az=0; az<=360; ++az) {
+        for(int de=-90; de<=90; ++de) {
+            double de_rad = de * dr ;
+            double az_rad = az * dr ;
+            multi.beam_level( de_rad, az_rad, orient, freq, &level ) ;
+            total += level(0)*cos(de_rad)*dr*dr ;
+            of << level(0) ;
+            if( de!=90 ) of << "," ;
+        }
+        of << endl ;
+    }
+    total = 10.0*log10( (4*M_PI) / total ) ;
+    multi.directivity_index( freq, &level ) ;
+    cout << "Directivity index" << endl ;
+    cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
+//    BOOST_CHECK_CLOSE( level(0), total, 1.0 ) ;
+}
+
 /**
  * Test for a mesh beam pattern for a 1-D beam pattern. With
  * 1-D beam patterns the beam_level and directivity_index are
@@ -408,7 +450,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_1d_test ) {
     vector<double> freq(N) ;
     double axis_data[] = { 10.1, 57.0, 79.0, 81.5, 100.7, 152.7 } ;
 //    seq_vector* axes = new seq_log( 10.0, 10.0, N ) ;
-    seq_vector* axes[1] ;
+    const seq_vector* axes[1] ;
     axes[0] = new seq_data( axis_data, N ) ;
     double* data = new double[N] ;
     for(int i=0; i<N; ++i) {
@@ -466,7 +508,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
     seq_linear* frequencies = new seq_linear( 100.0, 100.0, n ) ;
     vector<double> freq = *frequencies ;
     seq_vector* de = new seq_linear( to_radians(-2.0), to_radians(1.0), n ) ;
-    seq_vector* axes[2] ;
+    const seq_vector* axes[2] ;
     axes[0] = frequencies ;
     axes[1] = de ;
     double* data = new double[N] ;
@@ -532,7 +574,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_3d_test ) {
     vector<double> freq = frequencies ;
     seq_linear de( to_radians(-2.0), to_radians(1.0), n ) ;
     seq_linear az( to_radians(0.0), to_radians(5.0), n ) ;
-    seq_vector* axes[3] ;
+    const seq_vector* axes[3] ;
     axes[0] = &frequencies ;
     axes[1] = &de ;
     axes[2] = &az ;

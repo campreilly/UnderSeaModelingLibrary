@@ -5,8 +5,9 @@
 #include <boost/test/unit_test_suite.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
-#include <usml/eigenverb/eigenverb_collection.h>
 #include <usml/waveq3d/waveq3d.h>
+#include <usml/eigenverb/eigenverb_collection.h>
+#include <usml/eigenverb/envelope_collection.h>
 
 BOOST_AUTO_TEST_SUITE(eigenverb_test)
 
@@ -14,7 +15,7 @@ using namespace boost::unit_test;
 using namespace usml::waveq3d;
 
 /**
- * @ingroup waveq3d_test
+ * @ingroup eigenverb_test
  * @{
  */
 
@@ -178,6 +179,103 @@ BOOST_AUTO_TEST_CASE( eigenverb_basic ) {
     // clean up and exit
 
     delete eigenverbs ;
+}
+
+/**
+ * Test the ability to generate a single envelope contributions and
+ * write it out to netCDF.  Automatically compares the peaks of the
+ * first contribution to the monostatic solution.
+ * $f[
+ *		E_{monostatic} = \pi * E_s^2 * \sigma / \sqrt{ L_s^2 W_s^2 }
+ * $f]
+ */
+BOOST_AUTO_TEST_CASE( envelope_basic ) {
+    cout << "=== eigenverb_test: envelope_basic ===" << endl;
+    const char* ncname = USML_TEST_DIR "/eigenverb/test/envelope_basic.nc";
+
+    // setup scenario for 30 deg D/E in 1000 meters of water
+
+    double angle = M_PI / 6.0 ;
+    double depth = 1000.0 ;
+    double range = sqrt(3) * depth / ( 1852.0 * 60.0 );
+
+	// build a simple eigenverb
+
+	eigenverb verb ;
+	verb.time = 0.0 ;
+	verb.position = wposition1(range,0.0,-depth) ;
+	verb.direction = 0.0 ;
+	verb.grazing = angle ;
+	verb.sound_speed = c0 ;
+	verb.de_index = 0 ;
+	verb.az_index = 0 ;
+	verb.source_de = -angle ;
+	verb.source_az = 0.0 ;
+	verb.surface = 0 ;
+	verb.bottom = 0 ;
+	verb.caustic = 0 ;
+	verb.upper = 0 ;
+	verb.lower = 0 ;
+
+	seq_linear freq(1000.0,1000.0,3) ;
+	verb.frequencies = &freq ;
+	verb.energy = vector<double>( freq.size() ) ;
+	verb.length2 = vector<double>( freq.size() ) ;
+	verb.width2 = vector<double>( freq.size() ) ;
+	for ( size_t f=0 ; f < freq.size() ; ++f ) {
+		verb.energy[f] = 0.2 ;
+		verb.length2[f] = 400.0 + 10.0 * f ;
+		verb.width2[f] = 100.0 + 10.0 * f ;
+	}
+
+	// construct an envelope_collection
+
+	const seq_vector* travel_time = new seq_linear(0.0,0.1,400.0) ;
+	envelope_collection collection(
+		&freq,			// transmit_freq
+		travel_time,	// travel_time  ownership passed into envelope_collection
+		40.0,			// reverb_duration
+		1.0, 			// pulse_length
+		1e-30,			// threshold
+		1, 				// num_azimuths
+		1, 				// num_src_beams
+		1 ) ; 			// num_rcv_beams
+
+	vector<double> scatter( freq.size() ) ;
+	matrix<double> src_beam( freq.size(), 1 ) ;
+	matrix<double> rcv_beam( freq.size(), 1 ) ;
+	for ( size_t f=0 ; f < freq.size() ; ++f ) {
+		scatter[f] = 0.1 + 0.01 * f ;
+		src_beam(f,0) = 1.0 ;
+		rcv_beam(f,0) = 1.0 ;
+	}
+
+	// add contributions at t=10 and t=30 sec
+
+	verb.time = 5.0 ;
+	collection.add_contribution( verb, verb,
+		src_beam, rcv_beam, scatter, 0.0, 0.0 ) ;
+
+	verb.time = 15.0 ;
+	verb.energy *= 0.5 ;
+	collection.add_contribution( verb, verb,
+			src_beam, rcv_beam, scatter, 0.0, 0.0 ) ;
+
+	collection.write_netcdf(ncname) ;
+
+	// compare total energy to analytic solution for monostatic result (eqn. 31).
+
+	const double coeff = 4.0 * M_PI * sqrt(TWO_PI) ;
+	vector<double> theory = 10.0*log10(element_div(
+		M_PI * 0.2 * 0.2 * scatter,
+		sqrt(verb.length2 * verb.width2)))
+		- 10.0*log10(coeff * 0.5);
+	size_t index = 105 ;
+	for (size_t f = 0; f < freq.size(); ++f) {
+		double model = 10.0*log10(collection.envelope(0,0,0)(f,index));
+		cout << "theory=" << theory[f] << " model=" << model << endl;
+		BOOST_CHECK_CLOSE(theory[f], model, 1e-2);
+	}
 }
 
 /// @}

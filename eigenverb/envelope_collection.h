@@ -1,146 +1,209 @@
 /**
  * @file envelope_collection.h
+ * Computes the reverberation envelope time series for all combinations of
+ * receiver azimuth, source beam number, receiver beam number.
  */
 #pragma once
 
-#include <cstddef>
-#include <usml/eigenverb/eigenverb.h>
-#include <usml/types/quad.h>
-#include <usml/ublas/vector_math.h>
-#include <boost/foreach.hpp>
-#include <netcdfcpp.h>
-
-using boost::numeric::ublas::vector ;
-using namespace usml::ublas ;
+#include <usml/eigenverb/envelope_model.h>
+#include <usml/types/seq_linear.h>
 
 namespace usml {
 namespace eigenverb {
 
-class USML_DECLSPEC envelope_collection {
-
-    public:
-
-		// shared pointer
-		typedef boost::shared_ptr<envelope_collection> reference ;
-
-        /**
-         * Constructor
-         *
-         * @param resolution
-         * @param num_bins
-         * @param num_az
-         */
-        envelope_collection(
-                double resolution,
-                size_t num_bins,
-                size_t num_az ) ;
-
-        /**
-         * Destructor
-         */
-        virtual ~envelope_collection() ;
-
-        /**
-         * Initializes the envelope and two way travel time
-         * containers that are used to compute and add
-         * Guassian projections.
-         *
-         * @param size
-         * @param resolution
-         */
-        void initialize( size_t size, double resolution ) ;
-
-        /**
-         * Adds a gaussian contribution to the time series,
-         * reverberation envelope, along the azimuthal direction.
-         *
-         * @param peak
-         * @param travel_time
-         * @param duration_time
-         * @param az
-         */
-        void add_gaussian( double peak, double travel_time,
-                           double duration_time, size_t az ) ;
-
-        /**
-         * Returns the reverberation envelope along a specific
-         * azimuthal direction.
-         *
-         * @param az
-         */
-         vector<double> envelopes( size_t az ) const ;
-
-         /**
-          * Returns the entire reveberation envelope collection
-          */
-         vector<vector<double>*> envelopes() const ;
-
-         /**
-          * Writes the envelope data to disk
-          */
-         void write_netcdf( const char* filename ) ;
-
-    private:
-
-         /**
-          * Reverberation envelope collection
-          */
-         vector<vector<double>*> _envelopes ;
-
-         /**
-          * Reveberation time duration
-          */
-         vector<double> _two_way_time ;
-
-};
+using namespace usml::types;
 
 /**
- * Eigenverb box used for querying a quadtree
- * with eigenverbs as the data.
+ * Computes and stores the reverberation envelope time series for all
+ * combinations of receiver azimuth, source beam number, receiver beam number.
+ * Relies on envelope_model to calculate the actual time series for each
+ * transmit frequency.  Each envelope is stored as a matrix that represents
+ * the results a function of the sensor_pair's transmit frequency (rows)
+ * and two-way travel time (columns).
  */
-struct USML_DECLSPEC eigenverb_box {
-    typedef double      coord_type ;
+class USML_DECLSPEC envelope_collection {
 
-    /**
-     * Construct a box from an eigenverb
-     */
-    eigenverb_box( const eigenverb& e )
-    : x( e.position.longitude() ),
-      y( e.position.latitude() )
-    {
-    	width = 1.0 ;
-    	height = 1.0 ;
-//    	TODO stubbed out
-//        width = std::abs(e.width2 * cos( e.launch_az )
-//                        - e.length2 * sin( e.launch_az ) ) ;
-//        height = std::abs(e.length2 * cos( e.launch_az )
-//                        + e.width2 * sin( e.launch_az ) ) ;
-    }
+public:
 
-    /**
-     * Construct a box from a quadtree node
-     */
-    eigenverb_box( const usml::types::quad<eigenverb>& q )
-    : x( q._x ),
-      y( q._y ),
-      width( q._w ),
-      height( q._h )
-    {}
+	// shared pointer
+	typedef boost::shared_ptr<envelope_collection> reference;
 
-    /**
-     * Empty Constructor, canvases the entire Earth
-     */
-    eigenverb_box() : x( -M_PI_2 ), y( 0.0 ),
-            width( 2.0*M_PI ), height( M_PI )
-    {}
+	/**
+	 * Reserve memory in which to store results as a series of
+	 * nested dynamic arrays.
+	 *
+	 * @param transmit_freq	Frequencies at which the source and receiver
+	 * 						eigenverbs are computed (Hz).
+	 * @param num_times		Number of times in the reverberation time series.
+	 * @param time_step		Sampling period of the reverberation time series.
+	 * @param pulse_length	Duration of the transmitted pulse (sec).
+	 * 						Defines the temporal resolution of the envelope.
+	 * @param threshold		Minimum intensity level for valid reverberation
+	 * 						contributions (linear units).
+	 * @param num_azimuths	Number of receiver azimuths in result.
+	 * @param num_src_beams	Number of source beams in result.
+	 * @param num_rcv_beams Number of receiver beams in result.
+	 */
+	envelope_collection(
+		const seq_vector* transmit_freq,
+		const seq_vector* travel_time,
+		double reverb_duration,
+		double pulse_length,
+		double threshold,
+		size_t num_azimuths,
+		size_t num_src_beams,
+		size_t num_rcv_beams ) ;
 
-    /**
-     * Public data members for the box
-     */
-    coord_type x ;
-    coord_type y ;
-    coord_type width ;
-    coord_type height ;
+	/**
+	 * Delete dynamic memory in each of the nested dynamic arrays.
+	 */
+	~envelope_collection();
+
+	/**
+	 * Frequencies at which the source and receiver eigenverbs are computed (Hz).
+	 */
+	const seq_vector* transmit_freq() const {
+		return _transmit_freq ;
+	}
+
+	/**
+	 * Times at which the sensor_pair's reverberation envelopes
+	 * are computed (sec).
+	 */
+	const seq_vector* travel_time() const {
+		return _travel_time;
+	}
+
+	/**
+	 * Duration of the transmitted pulse (sec).
+	 * Defines the temporaal resolution of the envelope.
+	 */
+	double pulse_length() const {
+		return _pulse_length;
+	}
+
+	/**
+	 * Minimum energy level for valid reverberation contributions
+	 * (linear units).
+	 */
+	double threshold() const {
+		return _threshold ;
+	}
+
+	/** Number of receiver azimuths in result. */
+	size_t num_azimuths() const {
+		return _num_azimuths;
+	}
+
+	/** Number of receiver azimuths in result. */
+	size_t num_src_beams() const {
+		return _num_src_beams;
+	}
+
+	/** Number of receiver azimuths in result. */
+	size_t num_rcv_beams() const {
+		return _num_rcv_beams;
+	}
+
+	/**
+	 * Intensity time series for one combination of parameters.
+	 *
+	 * @param azimuth	Receiver azimuth number.
+	 * @param src_beam	Source beam number.
+	 * @param rcv_beam	Receiver beam number
+	 * @return			Reverberation intensity at each point the time series.
+	 * 					Each row represents a specific transmit frequency.
+	 * 					Each column represents a specific travel time.
+	 */
+	const matrix< double >& envelope(
+		size_t azimuth, size_t src_beam, size_t rcv_beam ) const
+	{
+		return *_envelopes[azimuth][src_beam][rcv_beam];
+	}
+
+	/**
+	 * Adds the intensity contribution for a single combination of source
+	 * and receiver eigenverbs.  Loops over source and receiver beams to
+	 * apply beam pattern to each contribution.
+	 *
+	 * Assumes that the source and receiver eigenverbs have been interpolated
+	 * onto the sensor_pair's frequency domain before this routine is called.
+	 * It also assumes that the calling routine has computed the scattering
+	 * coefficient and beam levels for this combination of eigenverbs,
+	 *
+	 * @param src_verb	Eigenverb contribution from the source.
+	 * @param rcv_verb	Eigenverb contribution from the receiver.
+	 * @param src_beam	Source beam level at each transmit frequency (ratio).
+	 * 					Each row represents a specific transmit frequency.
+	 * 					Each column represents a beam number.
+	 * @param rcv_beam	Receiver beam level at each transmit frequency (ratio).
+	 * 					Each row represents a specific transmit frequency.
+	 * 					Each column represents a beam number.
+	 * @param scatter	Scattering strength at each transmit frequency (ratio).
+	 * @param xs2		Square of the relative distance from the
+	 * 					receiver to the target along the direction
+	 * 					of the receiver's length.
+	 * @param ys2		Square of the relative distance from the
+	 * 					receiver to the target along the direction
+	 * 					of the receiver's width.
+	 */
+	void add_contribution(
+			const eigenverb& src_verb, const eigenverb& rcv_verb,
+			const matrix<double>& src_beam, const matrix<double>& rcv_beam,
+			const vector<double>& scatter, double xs2, double ys2 ) ;
+
+	/**
+	 * Writes the envelope data to disk
+	 */
+	void write_netcdf(const char* filename) const ;
+
+private:
+
+	/**
+	 * Frequencies at which the source and receiver eigenverbs are computed (Hz).
+	 */
+	const seq_vector* _transmit_freq ;
+
+	/**
+	 * Times at which the sensor_pair's reverberation envelopes
+	 * are computed (sec). This class takes ownership of this pointer.
+	 */
+	const seq_vector* _travel_time ;
+
+	/**
+	 * Duration of the transmitted pulse (sec).
+	 * Defines the temporaal resolution of the envelope.
+	 */
+	double _pulse_length ;
+
+	/**
+	 * Minimum energy level for valid reverberation contributions
+	 * (linear units).
+	 */
+	double _threshold ;
+
+	/** Number of receiver azimuths in result. */
+	size_t _num_azimuths;
+
+	/** Number of source beams in result. */
+	size_t _num_src_beams;
+
+	/** Number of receiver beams in result. */
+	size_t _num_rcv_beams;
+
+	/**
+	 * Engine for computing Gaussian envelope contributions.
+	 */
+	envelope_model _envelope_model ;
+
+	/**
+	 * Reverberation envelopes for each combination of parameters.
+	 * The order of indices is azimuth number, source beam number,
+	 * and then receiver beam number.  Each envelope is stored as a
+	 * matrix that represents the results a function of the sensor_pair's
+	 * transmit frequency (rows) and two-way travel time (columns).
+	 */
+	matrix< double >**** _envelopes;
 };
 
 }   // end of namespace eigenverb

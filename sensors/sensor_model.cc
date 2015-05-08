@@ -49,6 +49,10 @@ sensor_model::sensor_model(sensor_model::id_type sensorID, sensor_params::id_typ
     {
         _mode = NONE;
     }
+
+    // Set frequency band from _source or _receiver 
+    // and min/max active frequencies
+    frequencies();
 }
 
 /**
@@ -133,8 +137,8 @@ void sensor_model::update_eigenrays(eigenray_collection::reference& eigenrays)
             // Get eigenray_list for listener, ie sensor_pair
             // Get complement's row's eigenray_list
             eigenray_list* list = _eigenray_collection->eigenrays(row, 0);
-             // Send out shared_ptr of eigenray_list to listener
-            listener->update_eigenrays(_sensorID, list);
+             // Send out eigenray_list to listener
+            listener->update_fathometer(_sensorID, list);
         }
 	}
 }
@@ -277,6 +281,30 @@ wposition sensor_model::target_positions(std::list<const sensor_model*>& list) {
 }
 
 /**
+ * Utility to set frequencies from sensor including min and max active frequencies
+ */
+void sensor_model::frequencies() {
+
+    switch ( _mode ) {
+
+        case usml::sensors::RECEIVER:
+        {
+            _min_active_freq = _receiver->min_active_freq();
+            _max_active_freq = _receiver->max_active_freq();
+            _frequencies.reset(_receiver->frequencies()->clone());
+            break;
+        }
+        default:  // SOURCE or BOTH
+        {
+            _min_active_freq = _source->min_active_freq();
+            _max_active_freq = _source->max_active_freq();
+            _frequencies.reset(_source->frequencies()->clone());
+        }
+    }  
+}
+
+
+/**
  * Run the wavefront_generator thread task to start the waveq3d model.
  */
 void sensor_model::run_wave_generator() {
@@ -299,7 +327,7 @@ void sensor_model::run_wave_generator() {
 
         // Create the wavefront_generator
         wavefront_generator* generator = new wavefront_generator(
-            ocean_shared::current(), _position, target_pos, _source->frequencies(), this);
+            ocean_shared::current(), _position, target_pos, _frequencies.get(), this);
 
         // Make wavefront_generator a wavefront_task, with use of shared_ptr
         _wavefront_task = thread_task::reference(generator);

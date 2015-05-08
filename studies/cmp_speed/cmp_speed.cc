@@ -116,10 +116,7 @@ int main( int argc, char* argv[] ) {
     eigenray_collection loss(freq, src_pos, de, az, time_step, &target);
     wave_queue wave( ocean, freq, src_pos, de, az, time_step, &target ) ;
 
-    if (!wave.add_eigenray_listener(&loss)) {
-    	cout << "Error adding eigenray_collection listener! " << endl ;
-    	exit(1);
-    }
+    wave.add_eigenray_listener(&loss);
 
     // propagate wavefront
 

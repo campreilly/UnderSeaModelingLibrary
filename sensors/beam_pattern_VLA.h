@@ -1,5 +1,6 @@
 /**
  * @file beam_pattern_VLA.h
+ * Beam pattern for a vertical line array.
  */
 #pragma once
 

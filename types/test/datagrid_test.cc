@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE( linear_1d_test ) {
     // construct synthetic data for this test
 
     seq_linear axis(1.0,2.0,9.0);
-    seq_vector *ax[] = {&axis};
+    const seq_vector *ax[] = {&axis};
     data_grid<double,1> grid( ax );
     grid.edge_limit(0,false);
 
@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE( cubic_1d_test ) {
     // construct synthetic data for this test
 
     seq_linear axis(1.0,2.0,9.0);
-    seq_vector *ax[] = {&axis};
+    const seq_vector *ax[] = {&axis};
     data_grid<double,1> grid( ax );
     grid.edge_limit(0,false);
 
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE( deriv_1d_test ) {
     // construct synthetic data for this test
 
     seq_linear axis(1.0,2.0,9.0);
-    seq_vector *ax[] = {&axis};
+    const seq_vector *ax[] = {&axis};
     data_grid<double,1> grid( ax );
 
     for ( size_t n=0; n < axis.size(); ++n ) {
@@ -280,7 +280,7 @@ BOOST_AUTO_TEST_CASE( interp_speed_test ) {
     int counter = 0 ;
     size_t index[2] ;
 
-    seq_vector* ax[2] ;
+    const seq_vector* ax[2] ;
     ax[0] = new seq_linear(1.0, 1.0, 5) ;
     ax[1] = new seq_linear(1.0, 1.0, 5) ;
     data_grid<double,2>* grid = new data_grid<double,2>(ax) ;
@@ -351,7 +351,7 @@ BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
     double span = 0.5 ;
 
     // Build a data grid with simple axes
-    seq_vector* axis[2] ;
+    const seq_vector* axis[2] ;
     axis[0] = new seq_linear(-span, 0.1, N) ;
     axis[1] = new seq_linear(-span, 0.1, N) ;
     data_grid<double,2>* test_grid = new data_grid<double,2>(axis) ;
@@ -430,8 +430,8 @@ BOOST_AUTO_TEST_CASE( fast_accuracy_test ) {
     grid->interp_type(0, GRID_INTERP_PCHIP);
     grid->interp_type(1, GRID_INTERP_PCHIP);
 
-    seq_vector* ax0 = grid->axis(0) ;
-    seq_vector* ax1 = grid->axis(1) ;
+    const seq_vector* ax0 = grid->axis(0) ;
+    const seq_vector* ax1 = grid->axis(1) ;
 //    cout << "axis0(13 to 21): (" << (*ax0)(13) << "," << (*ax0)(14) << ","
 //                                       << (*ax0)(15) << "," << (*ax0)(16) << ","
 //                                       << (*ax0)(17) << "," << (*ax0)(18) << ","

@@ -3,7 +3,10 @@
  */
 #include <boost/test/unit_test.hpp>
 #include <usml/ublas/matrix_math.h>
+#include <usml/ublas/vector_math.h>
 #include <usml/ublas/test/matrix_test_support.h>
+#include <boost/numeric/ublas/vector_proxy.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
 
 using namespace usml::ublas;
 using namespace matrix_test ;
@@ -289,6 +292,37 @@ BOOST_AUTO_TEST_CASE( complexInverse_matrix_test ) {
     USML_MATRIX_COMPLEX_TESTER( atan(tan(cmat)), cmat, identity<complex<double> > ) ;
     cout << "atanh(tanh(t)):  " << atanh(tanh(cmat)) << endl;
     USML_MATRIX_COMPLEX_TESTER( atanh(tanh(cmat)), cmat, identity<complex<double> > ) ;
+}
+
+/**
+* Test the ability to use uBLAS matrix proxies.
+* If successful the first digit of each entry should be 1,
+* the second digit should be the row number, and
+* the third digit should be the column number.
+*/
+BOOST_AUTO_TEST_CASE(ublas_proxy_test) {
+	cout << "=== matrix_test: ublas_proxy_test ===" << endl;
+
+	// fill a vector wit column numbers
+
+	vector<double> v(3);
+	for (unsigned i = 0; i < v.size(); ++i) {
+		v(i) = i + 1;
+	}
+
+	// initialize matrix to all values of 100.0
+
+	matrix<double> m(3, 3);
+	m = matrix<double>(3, 3, 100.0);
+
+	// add column and row number to existing matrix data
+
+	for (unsigned i = 0; i < m.size1(); ++i) {
+		matrix_row< matrix<double> > mr(m, i);
+		mr += v + 10 * (i + 1);
+	}
+	std::cout << m << std::endl;
+	BOOST_CHECK_CLOSE(m(2,2), 133, 1e-10);
 }
 
 /// @}

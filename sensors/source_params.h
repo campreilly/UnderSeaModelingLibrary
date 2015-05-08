@@ -5,7 +5,6 @@
 #pragma once
 
 #include <usml/sensors/sensor_params.h>
-#include <usml/sensors/beam_pattern_model.h>
 
 using namespace boost::numeric::ublas ;
 
@@ -42,27 +41,33 @@ public:
 	 * 							source_params_map and/or receiver_params_map.
 	 * @param   source_level	Peak intensity of the transmitted pulse
 	 * 							(dB//uPa@1m)
+     * @param	min_freq		Minimum active frequency for the sensor. Lower
+     *                          active bound of the sensor.
+     * @param	max_freq		Maximum active frequency for the sensor. Upper
+     *                          active bound of the sensor.
 	 * @param	frequencies		Frequencies of transmitted pulse.
 	 * 							Multiple frequencies can be used to compute
 	 * 							multiple results at the same time.
 	 * 							These are the frequencies at which transmission
 	 * 							loss and reverberation are computed.
 	 * 							This is cloned during construction.
-	 * @param   beamID			Reference to the beam pattern used during
-	 * 							transmission.  Will be NULL if beamID is not
-	 * 							found in beam_pattern_map.
+	 * @param   beam_list	    List of beamIds associated with this sensor.
+     * 						    The actual beams are extracted from beam_pattern_map
+     * 						    using these beamIDs.
      * @param	multistatic		Optional, defaults to true. 
      *                          Bistatic sensor_pair objects are only created
 	 * 							for sources and receivers that have this flag
 	 * 							set to true.  Set to false for monostatic sensors.
 	 */
 	source_params( sensor_params::id_type paramsID, vector<double> source_level,
-            const seq_vector& frequencies, beam_pattern_model::id_type beamID, 
-            bool multistatic = true);
+            double min_freq, double max_freq, const seq_vector& frequencies, 
+            const beam_pattern_list& beam_list, bool multistatic = true);
 	/**
 	 * Clone source parameters from an existing source class.
 	 */
-	source_params(const source_params& other) ;
+    source_params(const source_params& other)
+        : sensor_params(other), _source_level(other._source_level) 
+    {}
 
 	/**
 	 * Virtual destructor
@@ -78,10 +83,17 @@ public:
 	}
 
 	/**
-	 * Shared reference to the beam patterns for this source.
+	 * Duration of the transmitted signal (sec).
 	 */
-	beam_pattern_model::reference beam_pattern() const {
-		return _beam_pattern ;
+	double pulse_length() {
+		return _pulse_length ;
+	}
+
+	/**
+	 * Duration of the reverberation envelope (sec).
+	 */
+	double reverb_duration() {
+		return _reverb_duration  ;
 	}
 
 private:
@@ -92,9 +104,15 @@ private:
 	const vector<double> _source_level;
 
 	/**
-	 * Shared reference to the beam patterns for this source.
+	 * Duration of the transmitted signal (sec).
 	 */
-	const beam_pattern_model::reference _beam_pattern;
+	double _pulse_length ;
+
+	/**
+	 * Duration of the reverberation envelope (sec).
+	 */
+	double _reverb_duration ;
+
 };
 
 /// @}

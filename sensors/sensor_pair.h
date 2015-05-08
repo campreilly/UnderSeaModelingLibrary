@@ -7,6 +7,7 @@
 #include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_listener.h>
 #include <usml/sensors/xmitRcvModeType.h>
+#include <usml/sensors/fathometer_model.h>
 #include <usml/waveq3d/eigenray_collection.h>
 #include <usml/eigenverb/envelope_collection.h>
 #include <usml/eigenverb/eigenverb_collection.h>
@@ -24,7 +25,7 @@ using namespace eigenverb ;
  * Container for one sensor pair instance.
  * On construction a pointer to the source and receiver sensor are obtained.
  * Inherits the sensor_listener interface so a sensor instance can get
- * access to its complement sensor, and updates the eigenverbs and eigenrays.
+ * access to its complement sensor, and updates the eigenverbs and fathometers.
  */
 class USML_DECLSPEC sensor_pair : public sensor_listener
 {
@@ -38,12 +39,23 @@ public:
      * @param	receiver	Pointer to the receiver for this pair.
      */
     sensor_pair(sensor_model* source, sensor_model* receiver)
-        : _source(source),_receiver(receiver) {};
+        : _source(source), _receiver(receiver)
+    {
+        if ( _source->mode() == usml::sensors::BOTH ) {
+            _frequencies = _source->frequencies()->clone();
+            _src_freq_first = 0;
+            _src_freq_last = _source->frequencies()->size()-1;
+        } else {
+            frequencies();
+        }
+    };
 
     /**
      * Default Destructor
      */
-    virtual ~sensor_pair() {}
+    virtual ~sensor_pair() {
+        delete _frequencies;
+    }
 
     /**
      * Gets a pointer to the source sensor.
@@ -61,6 +73,14 @@ public:
         return _receiver;
     }
 
+    /**
+     * The intersecting frequencies from the _source for this pair.
+     * @return frequencies 
+     */
+    const seq_vector* frequencies() const {
+        return _frequencies;
+    }
+
 	/**
 	 * Bistatic sensor_pairs are those for which the source and receiver
 	 * are different.  Set to false for monostatic sensors.
@@ -70,12 +90,12 @@ public:
 	}
 
 	/**
-	 * Notification that new eigenray data is ready.
+	 * Notification that new fathometer data is ready.
 	 *
 	 * @param  sensorID The ID of the sensor that issued the notification.
-     * @param  eigenray_list Shared pointer to the list of eigenrays
+     * @param  eigenray_list pointer std::list of eigenrays
 	 */
-	virtual void update_eigenrays(sensor_model::id_type sensorID, eigenray_list* list) ;
+	virtual void update_fathometer(sensor_model::id_type sensorID, eigenray_list* list) ;
 
 	/**
 	 * Notification that new eigenverb data is ready.
@@ -92,17 +112,34 @@ public:
 	virtual const sensor_model* sensor_complement(const sensor_model* sensor) const ;
 
 	/**
-     * Gets the shared_ptr to last eigenray_list update for this sensor_pair.
-     * @return  eigenray_list shared_ptr
+     * Gets the shared_ptr to last fathometer update for this sensor_pair.
+     * @return  fathometer_model shared_ptr
      */
-     boost::shared_ptr<eigenray_list> eigenrays() {
-         read_lock_guard guard(_eigenrays_mutex);
-         return _eigenrays;
+     shared_ptr<fathometer_model> fathometer() {
+         read_lock_guard guard(_fathometer_mutex);
+         return _fathometer;
      }
 
 private:
 
     sensor_pair() {};
+
+    /**
+     * Utility to build the intersecting frequencies of a sensor_pair.
+     */
+    void frequencies();
+
+    /**
+     * Index of the first intersecting frequency of the 
+     * source frequencies seq_vector;
+     */
+    size_t _src_freq_first;
+
+    /**
+     * Index of the last intersecting frequency of the
+     * source frequencies seq_vector;
+     */
+    size_t _src_freq_last;
 
     /**
      * Pointer to the source sensor.
@@ -117,19 +154,25 @@ private:
     const sensor_model* _receiver;
 
     /**
+     * The intersecting frequencies from the _source of t
+     * the _source and _reciever sensors.
+     */
+    const seq_vector* _frequencies;
+
+    /**
      * Mutex that locks sensor_pair during complement lookups.
      */
     mutable read_write_lock _complements_mutex ;
 
     /**
-     * Eigenrays that connect source and receiver locations.
+     * Fathometer that connects source and receiver locations.
      */
-    shared_ptr<eigenray_list> _eigenrays;
+    shared_ptr<fathometer_model> _fathometer;
 
 	/**
-	 * Mutex that locks sensor_pair during eigenray updates.
+	 * Mutex that locks sensor_pair during fathometer updates.
 	 */
-	mutable read_write_lock _eigenrays_mutex ;
+	mutable read_write_lock _fathometer_mutex ;
 
     /**
      * Interface collisions for wavefront emanating from the source.

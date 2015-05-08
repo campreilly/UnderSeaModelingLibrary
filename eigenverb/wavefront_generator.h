@@ -13,7 +13,7 @@
 #include <usml/ocean/ocean_shared.h>
 #include <usml/waveq3d/eigenray_collection.h>
 #include <usml/waveq3d/wave_queue.h>
-#include <usml/waveq3d/eigenray_listener.h>
+#include <usml/waveq3d/eigenray_notifier.h>
 #include <usml/eigenverb/wavefront_listener.h>
 
 namespace usml {

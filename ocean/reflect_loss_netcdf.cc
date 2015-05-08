@@ -52,7 +52,7 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
         bot_shear_atten->get(&shearatten[0], n_types) ;
 
     /** Creates a sequence vector of axes that are passed to the data grid constructor */
-    seq_vector* axis[2];
+    const seq_vector* axis[2];
     double latinc = ( latitude[latdim-1] - latitude[0] ) / latdim ;
     axis[0] = new seq_linear(latitude[0], latinc, int(latdim));
     double loninc = ( longitude[londim-1] - longitude[0] ) / londim ;
