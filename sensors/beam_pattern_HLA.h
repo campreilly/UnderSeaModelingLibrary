@@ -1,5 +1,6 @@
 /**
  * @file beam_pattern_HLA.h
+ * Beam pattern of a horizontal line array.
  */
 #pragma once
 

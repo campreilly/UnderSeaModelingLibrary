@@ -1,5 +1,6 @@
 /**
  * @file beam_pattern_sine.h
+ * Frequency independent East/West directional beam pattern.
  */
 #pragma once
 

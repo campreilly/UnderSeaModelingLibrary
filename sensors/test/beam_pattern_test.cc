@@ -100,7 +100,6 @@ BOOST_AUTO_TEST_CASE( sine_pattern_test ) {
     cout << "Directivity index" << endl ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
     BOOST_CHECK_CLOSE( level(0), total, 1.0 ) ;
-
 }
 
 /**
@@ -150,7 +149,6 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
     cout << "Directivity index" << endl ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
     BOOST_CHECK_CLOSE( level(0), total, 1.0 ) ;
-
 }
 
 /**
@@ -389,6 +387,50 @@ BOOST_AUTO_TEST_CASE( solid_pattern_test ) {
     solid.directivity_index( freq, &level ) ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
     BOOST_CHECK_CLOSE( level(0), total, 1.5 ) ;
+}
+
+
+/**
+ * Tests the ability to produce a multi-pattern beam
+ */
+BOOST_AUTO_TEST_CASE( multi_pattern_test ) {
+    cout << "==== beam_pattern_test/multi_pattern_test ====" << endl ;
+    std::list<beam_pattern_model*> beam_list ;
+    beam_list.push_back( new beam_pattern_sine ) ;
+    beam_list.push_back( new beam_pattern_cosine ) ;
+    beam_pattern_multi multi( beam_list ) ;
+
+    const char* csvname = USML_TEST_DIR "/sensors/test/beam_pattern_multi.csv" ;
+    vector<double> freq( 1, 900.0 ) ;
+
+    int pitch = 62 ;
+    int heading = 31 ;
+    int roll = 57 ;
+    double dr = M_PI / 180.0 ;
+    vector<double> raxis(3,0) ;
+    raxis(0) = 1.0 ;
+    orientation orient( pitch, heading, roll, raxis ) ;
+
+    std::ofstream of( csvname ) ;
+    cout << "Saving beam data to " << csvname << endl ;
+    vector<double> level( freq.size(), 0.0 ) ;
+    double total = 0.0 ;
+    for(int az=0; az<=360; ++az) {
+        for(int de=-90; de<=90; ++de) {
+            double de_rad = de * dr ;
+            double az_rad = az * dr ;
+            multi.beam_level( de_rad, az_rad, orient, freq, &level ) ;
+            total += level(0)*cos(de_rad)*dr*dr ;
+            of << level(0) ;
+            if( de!=90 ) of << "," ;
+        }
+        of << endl ;
+    }
+    total = 10.0*log10( (4*M_PI) / total ) ;
+    multi.directivity_index( freq, &level ) ;
+    cout << "Directivity index" << endl ;
+    cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
+//    BOOST_CHECK_CLOSE( level(0), total, 1.0 ) ;
 }
 
 /**

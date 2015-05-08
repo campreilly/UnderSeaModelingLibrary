@@ -1,5 +1,6 @@
 /**
  * @file beam_pattern_omni.h
+ * Omni-direction beam pattern.
  */
 #pragma once
 

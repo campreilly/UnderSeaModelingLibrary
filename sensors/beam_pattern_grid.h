@@ -1,5 +1,6 @@
 /**
  * @file beam_pattern_grid.h
+ * A beam pattern that is a function of freq/de/az, with the dimensions respectively.
  */
 #pragma once
 

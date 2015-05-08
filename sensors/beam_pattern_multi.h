@@ -1,5 +1,6 @@
 /**
  * @file beam_pattern_multi.h
+ * Beam pattern that is a combination of other beam patterns.
  */
 #pragma once
 
@@ -9,6 +10,15 @@
 namespace usml {
 namespace sensors {
 
+/// @ingroup beams
+/// @{
+
+/**
+ * Models a multi-pattern beam. This class is for instances
+ * where the user requires that a beam pattern be modeled as
+ * the combination of two or more beams, to produce the physical
+ * representation of the beam.
+ */
 class USML_DECLSPEC beam_pattern_multi
    : public beam_pattern_model
 {
@@ -64,5 +74,6 @@ private:
 
 };
 
+/// @}
 }   // end of namespace sensors
 }   // end of namespace usml
