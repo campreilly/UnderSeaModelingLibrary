@@ -136,3 +136,15 @@ endif (USML_BUILD_TESTS)
 if (USML_BUILD_STUDIES)
     include ( usmlBuildStudies )
 endif(USML_BUILD_STUDIES)
+
+######################################################################
+# generate RPM installation package
+
+set(CPACK_PACKAGE_VERSION ${PACKAGE_VERSION})
+set(CPACK_GENERATOR "RPM")
+set(CPACK_PACKAGE_NAME "usml")
+set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.${CMAKE_SYSTEM_PROCESSOR}")
+include(CPack)
+
+
