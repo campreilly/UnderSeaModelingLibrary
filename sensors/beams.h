@@ -12,9 +12,6 @@
  * The Models can produce a beam level and directivity index of the
  * array they are modeling.
  *
- * @defgroup beams_test Regression Tests
- * @ingroup beams
- *
  * Regression tests for the beams package
  */
 #pragma once
