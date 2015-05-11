@@ -201,14 +201,6 @@ private:
 	vector<double> _duration ;
 
 	/**
-	 * Times in the form of a uBLAS vector.  This is used as the independent
-	 * variable during compute_time_series().
-	 * Making is a member variable prevents us from having to
-	 * rebuilt it for each calculation.
-	 */
-	vector<double> _time_vector ;
-
-	/**
 	 * Workspace for storing intensity as a function of time (linear units).
 	 * The Gaussian contributions from each eigenverb overlap are added
 	 * to this object, and then this object is copied into the appropriate

@@ -30,16 +30,8 @@ envelope_model::envelope_model(
 	_intensity(envelope_freq->size(), travel_time->size()),
 	_energy(envelope_freq->size()),
 	_duration(envelope_freq->size()),
-	_time_vector(_travel_time->data()),
-//	_time_vector(_travel_time->size()),
 	_level(travel_time->size())
 {
-//	// copy data from the _travel_time's unbounded_array
-//	// to _time_vector's vector<double> as a work around
-//	// to a shortcoming in Boost 1.41
-//
-//	std::copy( _travel_time->data().begin(), _travel_time->data().end(),
-//			_time_vector.begin()) ;
 }
 
 /**
@@ -238,7 +230,7 @@ void envelope_model::compute_time_series(
 			size_t first = _travel_time->find_index(delay - 5.0 * _duration[f]);
 			size_t last = _travel_time->find_index(delay + 5.0 * _duration[f]) + 1;
 			range window(first, last);
-			vector_range< vector<double> > time(_time_vector, window);
+			vector_range< seq_vector > time(*_travel_time, window);
 			vector_range< vector<double> > level(_level, window);
 			level = scale * exp(-0.5 * abs2((time - delay) / _duration[f]));
 			intensity = _level ;
@@ -248,8 +240,8 @@ void envelope_model::compute_time_series(
 			// compute intensity at all times
 
 			intensity = scale * exp(-0.5 * abs2(
-					(_time_vector - delay) / _duration[f]));
-			cout << "f=" << f << " " << intensity << endl ;
+					(*_travel_time - delay) / _duration[f]));
+//			cout << "f=" << f << " " << intensity << endl ;
 		#endif
 	}
 }
