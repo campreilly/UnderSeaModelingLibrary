@@ -1,6 +1,6 @@
-/*
+/**
  * @file eigenverb_notifier.h
- * Manage eigenverb listeners and distribute eigenverb updates.
+ * Manages eigenverb listeners and distributes eigenverb updates.
  */
 #pragma once
 
@@ -14,7 +14,7 @@ namespace eigenverb {
 /// @{
 
 /**
- * Manage eigenverb listeners and distribute eigenverb updates.
+ * Manages eigenverb listeners and distributes eigenverb updates.
  */
 class USML_DECLSPEC eigenverb_notifier {
 public:

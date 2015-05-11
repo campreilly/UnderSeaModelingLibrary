@@ -1,4 +1,4 @@
-/*
+/**
  * @file eigenverb_collection.h
  * Collection of eigenverbs in the form of a vector of eigenverbs_lists.
  */

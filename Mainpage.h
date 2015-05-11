@@ -1,4 +1,8 @@
 /**
+ * @file
+ * Simple class that illustrates key features of
+ * the coding style guide.
+
 @mainpage Under Sea Modeling Library (USML)
 
 The Under Sea Modeling Library (USML) is a collection of C++ software

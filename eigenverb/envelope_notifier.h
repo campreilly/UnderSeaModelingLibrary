@@ -1,6 +1,6 @@
-/*
+/**
  * @file envelope_notifier.h
- * Manage envelope listeners and distribute envelope updates.
+ * Manages envelope listeners and distributes envelope updates.
  */
 #pragma once
 
@@ -14,7 +14,7 @@ namespace eigenverb {
 /// @{
 
 /**
- * Manage envelope listeners and distribute envelope updates.
+ * Manages envelope listeners and distributes envelope updates.
  */
 class USML_DECLSPEC envelope_notifier {
 public:

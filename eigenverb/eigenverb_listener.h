@@ -1,4 +1,4 @@
-/*
+/**
  * @file eigenverb_listener.h
  * Abstract interface for alerting listeners to the
  * results of a reverberation eigenverb calculation.

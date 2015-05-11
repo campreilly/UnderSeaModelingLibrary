@@ -1,5 +1,6 @@
 /**
- * Helper functions for the vector tests
+ * @file vector_test_support.h
+ * Helper functions for the vector tests.
  */
 #include <usml/ublas/math_traits.h>
 #include <boost/foreach.hpp>
@@ -27,7 +28,7 @@ using namespace boost ;
 
 namespace vector_test {
 /**
- * Various helper functions to allow for ease of comparisions
+ * Various helper functions to allow for ease of comparisons.
  */
 template<class T>
 T abs2_helper( const T t ) {

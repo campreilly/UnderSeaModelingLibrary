@@ -1,4 +1,4 @@
-/*
+/**
  * @file eigenverb_interpolator.h
  * Interpolates eigenverbs onto a new frequency axis.
  */

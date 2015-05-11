@@ -1,7 +1,6 @@
 /**
  *  @file xmitRcvModeType.h
- *  Definition of the enum xmitRcvModeType
- *  Created on: 10-Feb-2015 12:49:09 PM
+ *  Definition of the enum xmitRcvModeType.
  */
 
 #pragma once

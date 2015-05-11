@@ -1,16 +1,34 @@
 /**
  * @file quadtree_functors.h
+ * Contains all quadtree functors, Criteria_functor, Split_functor, and Bound_functor.
+ */
+
+#pragma once
+
+#include <cstddef>
+#include <usml/eigenverb/eigenverb.h>
+
+namespace usml {
+namespace types {
+
+/**
+ * Forward declaration of quad class
+ */
+template<class T, class D> class quad ;
+
+/**
+ * Contains all quadtree functors, Criteria_functor, Split_functor, and Bound_functor.
  *
- * This is where all quadtree functors should be included. While C++11 and newer
- * have access to functors, C++98 and older do not. So in order to allow full
- * customization of the quadtree class, pseudo-functors were created. These functors
- * are structures that have static functions and therefore need no instantiation.
+ * While C++11 and newer have access to functors, C++98 and older do not.
+ * So in order to allow full customization of the quadtree class,
+ * pseudo-functors were created. These functors are structures that have static
+ * functions and therefore need no instantiation.
  * These functions are then passed into the class as the template parameters and
  * allow the user to create and customize the quadtree to their own designs.
  *
  * With the provided quadtree class, the user must specify three functors:
  *
- * - Criteria functor: This functor tells the quadtree class when a given node
+ * - Criteria_functor: This functor tells the quadtree class when a given node
  *                     needs to be split. This functor must return a bool and the
  *                     static function must be called check.
  * - Split_functor: This functor does the work of splitting the elements of a
@@ -29,18 +47,6 @@
  * and bound_functors that apply to shapes. At present quadtree functors are only
  * provided for points in a 2D space and a criteria of maximum size.
  */
-#pragma once
-
-#include <cstddef>
-#include <usml/eigenverb/eigenverb.h>
-
-namespace usml {
-namespace types {
-
-/**
- * Forward declaration of quad class
- */
-template<class T, class D> class quad ;
 
 /**
  * Criteria functor
