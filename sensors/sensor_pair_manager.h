@@ -56,7 +56,7 @@ public:
     static void reset();
 
 	/**
-	 * Gets the fathometers for the list of sensors provided
+	 * Gets the fathometers for the list of sensors requested.
 	 * @param sensors contains sensor_query_map sensorID, and sensor xmitRcvModeType
 	 * @return fathometer_model::fathometer_package contains a collection of fathometer_model pointers
 	 */
@@ -64,7 +64,7 @@ public:
 
     /**
      * Writes the fathometers provided to a NetCDF file.
-     * @param fathometrs fathometer_model::fathometer_package contains
+     * @param fathometers fathometer_model::fathometer_package contains
      *                    a collection of fathometer_model pointers
      * @params filename The name of the file to write the fathometers.
      *
@@ -201,11 +201,11 @@ public:
     void write_fathometers(fathometer_model::fathometer_package fathometers, const char* filename);
 
 	/**
-	 * Gets the envelopes for the receiverID requested
-	 * @param receiverID ID for the receiver
-	 * @return envelopes in the envelope_collection pointer
+	 * Gets the envelopes for the list of sensors requested.
+	 * @param sensors contains sensor_query_map sensorID, and sensor xmitRcvModeType
+     * @return envelope_collection::envelope_package contains a collection of envelope_collection pointers
 	 */
-//	envelope_collection* get_envelopes(sensor_model::id_type receiverID);
+    envelope_collection::envelope_package get_envelopes(sensor_query_map sensors);
 
 protected:
 

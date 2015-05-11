@@ -1,5 +1,6 @@
 /**
- * @file wavefront_generator.h
+ @file wavefront_generator.h
+ Thread safe wave_queue generator.
  */
 #pragma once
 
@@ -14,6 +15,7 @@
 #include <usml/waveq3d/eigenray_collection.h>
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/eigenray_notifier.h>
+#include <usml/eigenverb/eigenverb_collection.h>
 #include <usml/eigenverb/wavefront_listener.h>
 
 namespace usml {
@@ -28,6 +30,7 @@ using namespace usml::types ;
 /// @{
 
 /**
+ * Thread safe wave_queue generator.
  * This class inherits the thread_task interface and is used to assemble
  * the all data required by the wave_queue and then run the wave_queue.
  * Once instantiated the class run method is called by passing its pointer
@@ -69,13 +72,17 @@ class USML_DECLSPEC wavefront_generator : public thread_task
      *         Optional. Defaults to 0 (zero).
      */
     wavefront_generator(shared_ptr<ocean_model> ocean, wposition1 source_position,
-        wposition target_positions, const seq_vector* frequencies, wavefront_listener* listener,
+        const wposition* target_positions, const seq_vector* frequencies, wavefront_listener* listener,
         double vertical_beamwidth = 0.0, double depression_elevation_angle = 0.0, int run_id = 0);
 
     /**
      * Virtual destructor
      */
-    virtual ~wavefront_generator() {}
+    virtual ~wavefront_generator() {
+        if (_target_positions != NULL) {
+            delete _target_positions;
+        }
+    }
 
     /**
      * Overloads of the thread_task run method.
@@ -173,7 +180,8 @@ private:
     const wposition1 _source_position;
 
     /** Targets container */
-    const wposition _target_positions;
+    // Takes ownership
+    const wposition* _target_positions;
 
     /** Frequencies container */
     const seq_vector* _frequencies;

@@ -88,7 +88,9 @@ private:
 	 * <pre>
 	 * multistatic:			false
 	 * source strength:     200 dB
-	 * envelope frequency:  3 KHz
+	 * pulse length:		250 msec
+	 * reverb duration:		7.0 sec
+	 * transmit frequency:  3 KHz
 	 * src beam pattern:    omni directional
 	 * rcv beam pattern: 	omni directional
 	 * </pre>
@@ -114,9 +116,9 @@ private:
 
 		source_params::reference source(
 				new source_params(paramsID, source_level,
-                0.250,                               // pulse_length
-                wavefront_generator::time_maximum,   // reverb_duration
-                6000.0, 9000.0,                      // min, max active freq
+				0.250,						// pulse_length
+				7.0,						// reverb_duration
+                6000.0, 9000.0,      		// min, max active freq
                 source_frequencies, source_beams, multistatic));
 		source_params_map::instance()->insert(source->paramsID(), source);
 
@@ -157,15 +159,15 @@ private:
 	/**
 	 * Wait for the reverberation model to compute results.
 	 *
-	 * TODO Retrieve envelopes from sensor_pair_manager.
+	 * Retrieve eigenrays and envelopes from sensor_pair_manager.
 	 */
 	void wait_for_results() {
 
     	cout << "== wait for results ==" << endl ;
 
     	sensor_pair_manager* sp_manager = sensor_pair_manager::instance() ;
-        fathometer_model::fathometer_package fathometers;
-        envelope_collection::reference envelopes ;
+        fathometer_model::fathometer_package fathometers ;
+        envelope_collection::envelope_package envelopes ;
 
     	// Build query for fathometers
     	sensor_model::id_type sensor_ids[] = {1};
@@ -187,33 +189,50 @@ private:
 
         while ( true ) {
             fathometers = sp_manager->get_fathometers(query);
-            //envelopes = manager->get_envelopes(sensorID);
+            // TODO when generate_envelopes available uncomment
+            // envelopes = sp_manager->get_envelopes(query);
+            // if ( fathometers.size() > 0 && envelopes.size() > 0 ) break ;
+
             if ( fathometers.size() > 0 ) break ;
-            //if ( fathometers.size() > 0 && envelopes.get() != NULL ) break ;
+
             boost::this_thread::sleep(boost::posix_time::milliseconds(250));
         }
         cout << "waited for " << timer.elapsed() << " secs" << endl ;
 
-        std::string ncname = USML_STUDIES_DIR "/reverberation/fathometer_";
-        fathometer_model::fathometer_package::iterator iter;
-        for ( iter = fathometers.begin(); iter != fathometers.end(); ++iter )
+        std::string ncname_fathometers = USML_STUDIES_DIR "/reverberation/fathometer_";
+        fathometer_model::fathometer_package::iterator iter_fathometers;
+        for ( iter_fathometers = fathometers.begin();
+            iter_fathometers != fathometers.end(); ++iter_fathometers )
         {
-            fathometer_model* model = ( *iter );
+            fathometer_model* model = ( *iter_fathometers );
             sensor_model::id_type src_id = model->source_id();
             sensor_model::id_type rcv_id = model->receiver_id();
             std::stringstream ss ;
             ss << "src_" << src_id << "_rcv_" << rcv_id;
-            ncname += ss.str();
-            ncname += ".nc";
-            model->write_netcdf(ncname.c_str());
+            ncname_fathometers += ss.str();
+            ncname_fathometers += ".nc";
+            model->write_netcdf(ncname_fathometers.c_str());
         }
 
-        sensor_pair_manager* sp_man = sensor_pair_manager::instance();
-    
-        std::string ncname_all = USML_STUDIES_DIR "/reverberation/fathometers.nc";
-        sp_man->write_fathometers(fathometers, ncname_all.c_str());
+//        std::string ncname_envelopes = USML_STUDIES_DIR "/reverberation/envelopes_";
+//        envelope_collection::envelope_package::iterator iter_envelopes;
+//        for ( iter_envelopes = envelopes.begin();
+//            iter_envelopes != envelopes.end(); ++iter_envelopes )
+//        {
+//            envelope_collection* collection = ( *iter_envelopes );
+//            // TODO uncomment when source_id and receiver_id getter's available.
+//            //sensor_model::id_type src_id = collection->source_id();
+//            //sensor_model::id_type rcv_id = collection->receiver_id();
+//            sensor_model::id_type src_id = 1;
+//            sensor_model::id_type rcv_id = 1;
+//            std::stringstream ss ;
+//            ss << "src_" << src_id << "_rcv_" << rcv_id;
+//            ncname_envelopes += ss.str();
+//            ncname_envelopes += ".nc";
+//            collection->write_netcdf(ncname_envelopes.c_str());
+//        }
 
-        // No need to delete fathometers as they are shared_ptr's
+        // No need to delete fathometers or envelopes as they are shared_ptr's
 	}
 };
 

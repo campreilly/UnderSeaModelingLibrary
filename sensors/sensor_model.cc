@@ -13,13 +13,20 @@
 using namespace usml::sensors;
 using namespace usml::waveq3d;
 
+const double sensor_model::alt_threshold = 10.0 ;       // meters
+const double sensor_model::lat_threshold = 0.01 ;       // degrees
+const double sensor_model::lon_threshold = 0.01 ;       // degrees
+const double sensor_model::pitch_threshold = 5.0 ;      // degrees
+const double sensor_model::heading_threshold = 20.0 ;   // degrees
+const double sensor_model::roll_threshold = 10.0 ;      // degrees
+
 /**
  * Construct a new instance of a specific sensor type.
  */
 sensor_model::sensor_model(sensor_model::id_type sensorID, sensor_params::id_type paramsID,
 	const std::string& description)
 	: _sensorID(sensorID), _paramsID(paramsID), _description(description),
-	  _position(NAN, NAN, NAN), _orient()
+	  _position(NAN, NAN, NAN), _orient(), _initial_update(true)
 {
 	_source = source_params_map::instance()->find(paramsID);
 	_receiver = receiver_params_map::instance()->find(paramsID);
@@ -140,8 +147,8 @@ void sensor_model::update_eigenrays(eigenray_collection::reference& eigenrays)
  * Last set of eigenverbs computed for this sensor.
  */
 eigenverb_collection::reference sensor_model::eigenverbs() const {
-	read_lock_guard guard(_update_eigenverbs_mutex);
-	return _eigenverbs;
+	read_lock_guard guard(_eigenverbs_mutex);
+	return _eigenverb_collection;
 }
 
 /**
@@ -150,11 +157,16 @@ eigenverb_collection::reference sensor_model::eigenverbs() const {
  * Blocks until update is complete.
  */
 void sensor_model::update_eigenverbs( eigenverb_collection::reference& eigenverbs ) {
-	write_lock_guard guard(_update_eigenverbs_mutex);
+     // Don't allow updates to _sensor_listeners
+    write_lock_guard guard(_sensor_listeners_mutex);
+
 	#ifdef USML_DEBUG
 		cout << "sensor_model: update_eigenverbs(" << _sensorID << ")" << endl ;
 	#endif
-	_eigenverbs = eigenverbs;
+	{   // Scope for lock on _eigenverb_collection
+		write_lock_guard guard(_eigenverbs_mutex);
+		_eigenverb_collection = eigenverbs;
+	}
 	BOOST_FOREACH( sensor_listener* listener, _sensor_listeners ) {
 		listener->update_eigenverbs(this);
 	}
@@ -178,24 +190,50 @@ void sensor_model::remove_sensor_listener(sensor_listener* listener) {
 
 /**
  * Checks to see if new position and orientation have changed enough
- * to require a new WaveQ3D run.
- *
- * @todo using dummy values for prototyping
+ * to require a new wave_queue to be run, as the data in the eigenrays
+ * and eigenverbs are no longer sufficiently accurate.
  */
 bool sensor_model::check_thresholds(const wposition1& position,
-		const orientation& orientation)
+		const orientation& orient)
 {
-	// force update if old values not valid
+    // since the sensor defaults to NAN for positions
+    // we already know that we need meet the threshold, so
+    // don't worry about checking for this
+    if( _initial_update ) {
+        _initial_update = false ;
+        return true ;
+    }
+    // check that the roll of the array hasn't changed too much
+    double delta_alt = abs(position.altitude() - _position.altitude()) ;
+    if(delta_alt > alt_threshold) return true ;
 
-	if (isnan(_position.rho()) || isnan(_position.theta())
-			|| isnan(_position.phi()) || isnan(_orient.heading())
-			|| isnan(_orient.pitch()) || isnan(_orient.roll())) {
-		return true;
-	}
+    // check that the roll of the array hasn't changed too much
+    double delta_lat = abs(position.latitude() - _position.latitude()) ;
+    if(delta_lat > lat_threshold) return true ;
 
-	// check difference between old and new values
+    // check that the roll of the array hasn't changed too much
+    double delta_lon = abs(position.longitude() - _position.longitude()) ;
+    if(delta_lon > lon_threshold) return true ;
 
-	return true;// using dummy values for prototyping
+    /**
+     * TODO: I do not believe these checks are necessary to a wavefront
+     *       data collection, as eigenrays/eigenverbs are independent of
+     *       array orientation. These checks seem to only be valid if we
+     *       use a wavefront of -90 < DE < 90 and 0 < AZ < 360, which at
+     *       present is not an option.
+     */
+    // check that the pitch of the array hasn't changed too much
+    double delta_pitch = abs(orient.pitch() - _orient.pitch()) ;
+    if(delta_pitch > pitch_threshold) return true ;
+
+    // check that the heading of the array hasn't changed too much
+    double delta_heading = abs(orient.heading() - _orient.heading()) ;
+    if(delta_heading > heading_threshold) return true ;
+
+    // check that the roll of the array hasn't changed too much
+    double delta_roll = abs(orient.roll() - _orient.roll()) ;
+    if(delta_roll > roll_threshold) return true ;
+    return false ;
 }
 
 
@@ -231,18 +269,18 @@ void sensor_model::target_ids(std::list<const sensor_model*>& list) {
 /**
  * Builds a list of target positions from the input list of sensors provided.
  */
-wposition sensor_model::target_positions(std::list<const sensor_model*>& list) {
+const wposition* sensor_model::target_positions(std::list<const sensor_model*>& list) const {
 
 	// builds wposition container of target positions from the list provided.
 
-	wposition target_pos(list.size(), 1);
+    wposition* target_pos = new wposition(list.size(), 1);
 	int row = -1;
 	BOOST_FOREACH( const sensor_model* target, list ){
 		++row;
 		wposition1 pos = target->position();
-		target_pos.latitude( row, 0, pos.latitude());
-		target_pos.longitude(row, 0, pos.longitude());
-		target_pos.altitude( row, 0, pos.altitude());
+		target_pos->latitude( row, 0, pos.latitude());
+		target_pos->longitude(row, 0, pos.longitude());
+		target_pos->altitude( row, 0, pos.altitude());
 	}
 	return target_pos ;
 }
@@ -283,17 +321,21 @@ void sensor_model::run_wave_generator() {
             cout << "sensor_model: run_wave_generator(" << _sensorID << ")" << endl ;
         #endif
 
+        const wposition* target_pos = NULL;
+
         // Get the targets sensor references
         std::list<const sensor_model*> targets = sensor_targets();
 
-        // Store the targetID's for later use in sending on to sensor_pairs
-        target_ids(targets);
+        if (targets.size() > 0) {
+            // Store the targetID's for later use in sending on to sensor_pairs
+            target_ids(targets);
 
-        // Get the target positions for wavefront_generator
-        wposition target_pos = target_positions(targets);
+            // Get the target positions for wavefront_generator
+            target_pos = target_positions(targets);
+        }
 
         // Create the wavefront_generator
-        wavefront_generator* generator = new wavefront_generator(
+        wavefront_generator* generator = new wavefront_generator (
             ocean_shared::current(), _position, target_pos, _frequencies.get(), this);
 
         // Make wavefront_generator a wavefront_task, with use of shared_ptr

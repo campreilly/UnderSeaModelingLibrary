@@ -182,6 +182,42 @@ public:
 	 */
 	void remove_sensor_listener(sensor_listener* listener);
 
+    /**
+     * Maximum change in altitude that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double alt_threshold ;
+
+    /**
+     * Maximum change in latitude that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double lat_threshold ;
+
+    /**
+     * Maximum change in longitude that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double lon_threshold ;
+
+    /**
+     * Maximum change in pitch that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double pitch_threshold ;
+
+    /**
+     * Maximum change in heading that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double heading_threshold ;
+
+    /**
+     * Maximum change in roll that constitutes new data for
+     * eigenverbs and eigenrays be generated.
+     */
+	static const double roll_threshold ;
+
 private:
 
 	/**
@@ -189,12 +225,12 @@ private:
 	 * to require a new WaveQ3D run.
 	 *
 	 * @param position  	Updated position data
-	 * @param orientation	Updated orientation value
+	 * @param orient    	Updated orientation value
 	 * @return 				True when thresholds exceeded, requiring a
 	 * 						rerun of the model for this sensor.
 	 */
 	bool check_thresholds( const wposition1& position,
-			const orientation& orientation );
+			const orientation& orient );
 
 	/**
 	 * Utility to query the current list of sensor listeners for the complements
@@ -212,9 +248,9 @@ private:
 	/**
 	 * Utility to builds a list of target positions from the input list of sensors provided.
 	 * @params list of sensor_model pointers.
-	 * @return wposition container of positions of the list of sensors provided.
+	 * @return wposition pointer to container of positions of the list of sensors provided.
 	 */
-	wposition target_positions(std::list<const sensor_model*>& list);
+	const wposition* target_positions(std::list<const sensor_model*>& list) const ;
 
 	/**
 	 * Utility to run the wave_generator thread task to start the waveq3d model.
@@ -285,6 +321,14 @@ private:
 	orientation _orient;
 
 	/**
+	 * Flag the designates whether an update requires the creation of
+	 * new data, because the new position/orientation has changed enough
+	 * such that the currently cached data for eigenrays and eigenverbs
+	 * are no longer sufficiently accurate.
+	 */
+	bool _initial_update ;
+
+	/**
 	 * Mutex that locks sensor during update_sensor.
 	 */
     mutable read_write_lock _update_sensor_mutex ;
@@ -301,20 +345,19 @@ private:
     eigenray_collection::reference _eigenray_collection;
 
 	/**
-	 * Mutex to that locks sensor _eigenray_collection access/write
+	 * Mutex that locks sensor _eigenray_collection access/write
 	 */
 	mutable read_write_lock _eigenrays_mutex ;
 
     /**
      * Last set of eigenverbs computed for this sensor.
-     * @todo migrate to shared pointer.
      */
-	eigenverb_collection::reference _eigenverbs;
+	eigenverb_collection::reference _eigenverb_collection;
 
 	/**
-	 * Mutex to that locks sensor during update_eigenverbs.
+	 * Mutex that locks sensor during _eigenverb_collection access/write.
 	 */
-	mutable read_write_lock _update_eigenverbs_mutex ;
+	mutable read_write_lock _eigenverbs_mutex ;
 
     /**
      * reference to the task that is computing eigenrays and eigenverbs.

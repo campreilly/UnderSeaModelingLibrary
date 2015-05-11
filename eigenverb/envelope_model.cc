@@ -30,9 +30,16 @@ envelope_model::envelope_model(
 	_intensity(envelope_freq->size(), travel_time->size()),
 	_energy(envelope_freq->size()),
 	_duration(envelope_freq->size()),
-	_time_vector( _travel_time->data() ),
+	_time_vector(_travel_time->data()),
+//	_time_vector(_travel_time->size()),
 	_level(travel_time->size())
 {
+//	// copy data from the _travel_time's unbounded_array
+//	// to _time_vector's vector<double> as a work around
+//	// to a shortcoming in Boost 1.41
+//
+//	std::copy( _travel_time->data().begin(), _travel_time->data().end(),
+//			_time_vector.begin()) ;
 }
 
 /**

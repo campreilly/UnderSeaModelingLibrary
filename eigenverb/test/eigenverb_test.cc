@@ -232,7 +232,7 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 	envelope_collection collection(
 		&freq,			// envelope_freq
 		0,				// src_freq_first
-		travel_time,	// travel_time  ownership passed into envelope_collection
+		travel_time,	// travel_time, cloned by model
 		40.0,			// reverb_duration
 		1.0, 			// pulse_length
 		1e-30,			// threshold

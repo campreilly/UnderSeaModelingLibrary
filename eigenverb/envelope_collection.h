@@ -25,7 +25,14 @@ class USML_DECLSPEC envelope_collection {
 
 public:
 
-	// shared pointer
+    /**
+     * Data type used handle a collection of envelope_collection pointers.
+     */
+    typedef std::vector<envelope_collection*> envelope_package;
+
+	/**
+     * Data type used for reference to a envelope_collection.
+     */
 	typedef boost::shared_ptr<envelope_collection> reference;
 
 	/**
@@ -178,7 +185,7 @@ private:
 
 	/**
 	 * Duration of the transmitted pulse (sec).
-	 * Defines the temporaal resolution of the envelope.
+	 * Defines the temporal resolution of the envelope.
 	 */
 	double _pulse_length ;
 

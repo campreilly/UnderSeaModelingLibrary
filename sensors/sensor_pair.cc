@@ -47,7 +47,7 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
             }
         }
         // Note new memory location for eigenrays is create here
-        _fathometer = shared_ptr<fathometer_model>(new fathometer_model(_source->sensorID(), 
+        _fathometer = fathometer_model::reference(new fathometer_model(_source->sensorID(),
             _receiver->sensorID(), _source->position(), _receiver->position(), *list));
     }
 }
@@ -64,15 +64,18 @@ void sensor_pair::update_eigenverbs(sensor_model* sensor)
 				 << sensor->sensorID() << ")" << endl ;
 		#endif
 
-// TODO
-//        if (sensor == _source.get()) {
-//            write_lock_guard guard(_src_eigenverbs_mutex);
-//            _src_eigenverbs = sensor->eigenverbs();
-//        }
-//        if (sensor == _receiver.get()) {
-//            write_lock_guard guard(_rcv_eigenverbs_mutex);
-//            _rcv_eigenverbs = sensor->eigenverbs();
-//        }
+        if (sensor == _source) {
+            write_lock_guard guard(_src_eigenverbs_mutex);
+            _src_eigenverbs = sensor->eigenverbs();
+        }
+        if (sensor == _receiver) {
+            write_lock_guard guard(_rcv_eigenverbs_mutex);
+            _rcv_eigenverbs = sensor->eigenverbs();
+        }
+
+        // TODO Create and run the envelope_generator
+        // run_envelope_generator();
+
 	}
 }
 
