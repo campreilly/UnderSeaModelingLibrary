@@ -88,6 +88,8 @@ private:
 	 * <pre>
 	 * multistatic:			false
 	 * source strength:     200 dB
+	 * pulse length:		250 msec
+	 * reverb duration:		7.0 sec
 	 * transmit frequency:  3 KHz
 	 * src beam pattern:    omni directional
 	 * rcv beam pattern: 	omni directional
@@ -114,6 +116,8 @@ private:
 
 		source_params::reference source(
 				new source_params(paramsID, source_level,
+				0.250,						// pulse_length
+				7.0,						// reverb_duration
                 6000.0, 9000.0,             // min, max active freq
                 source_frequencies, source_beams, multistatic));
 		source_params_map::instance()->insert(source->paramsID(), source);
