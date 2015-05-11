@@ -87,8 +87,7 @@ private:
 	 * @param ys2			Square of the relative distance from the
 	 * 						receiver to the target along the direction
 	 * 						of the receiver's width.
-	 * @param pulse_length	Duration of the transmit pulse (sec).
-	 * @return				False if reverbereation energy below threshold.
+	 * @return				False if reverberation energy below threshold.
 	 */
 	bool compute_intensity(
 			const eigenverb& src_verb, const eigenverb& rcv_verb,
@@ -142,8 +141,8 @@ private:
 	 * portion of the time series within +/- five (5) times the duration
 	 * of each pulse.
 	 *
-	 * @param src_verb		One way travel time for source eigenverb.
-	 * @param rcv_verb		One way travel time for receiver eigenverb.
+	 * @param src_verb_time		One way travel time for source eigenverb.
+	 * @param rcv_verb_time		One way travel time for receiver eigenverb.
 	 */
 	void compute_time_series( double src_verb_time, double rcv_verb_time ) ;
 

@@ -1,5 +1,6 @@
 /**
  * @file orientation_VLA.h
+ * Specialized version of orientation utilized in VLA.
  */
 #pragma once
 
@@ -9,7 +10,7 @@ namespace usml {
 namespace sensors {
 
 /**
- *
+ * Specialized version of orientation utilized in VLA.
  */
 class USML_DECLSPEC orientation_VLA : public orientation {
 

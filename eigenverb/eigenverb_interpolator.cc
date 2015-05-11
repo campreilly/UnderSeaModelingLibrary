@@ -1,5 +1,5 @@
 /**
- * @file eigenverb.cc
+ * @file eigenverb_interpolator.cc
  * Interpolates eigenverbs onto a new frequency axis.
  */
 #include <usml/eigenverb/eigenverb_interpolator.h>

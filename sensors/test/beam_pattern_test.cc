@@ -1,5 +1,5 @@
-/*
- * @examples sensors/test/beam_pattern_test.cc
+/**
+ * @example sensors/test/beam_pattern_test.cc
  */
 
 #include <boost/test/unit_test.hpp>
@@ -14,7 +14,7 @@ using namespace boost::unit_test ;
 using namespace usml::sensors ;
 
 /**
- * @ingroup beams_test
+ * @ingroup sensors_test
  * @{
  */
 

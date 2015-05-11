@@ -1,7 +1,6 @@
 /**
  *  @file sonobuoy.h
  *  Definition of the Class sonobuoy
- *  Created on: 10-Feb-2015 12:49:09 PM
  */
 
 #pragma once
@@ -12,9 +11,7 @@ namespace usml {
 namespace sensors {
 
 /**
- * @author tedburns
- * @version 1.0
- * @created 10-Feb-2015 12:49:09 PM
+ *  Definition of the Class sonobuoy
  */
 class USML_DECLSPEC sonobuoy : public sensor_model
 {

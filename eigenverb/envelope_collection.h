@@ -40,17 +40,18 @@ public:
 	 * nested dynamic arrays.
 	 *
 	 * @param envelope_freq		Frequencies at which the source and receiver
-	 * 							eigenverbs overlap (Hz).  Frequencies at which
-	 * 							envelope will be computed.
+	 * 				eigenverbs overlap (Hz).  Frequencies at which
+	 * 				envelope will be computed.
 	 * @param src_freq_first	Index of the first source frequency that
-	 * 							overlaps receiver (Hz).  Used to map
-	 * 							source eigenverbs onto envelope_freq values.
+	 * 				overlaps receiver (Hz).  Used to map
+	 * 				source eigenverbs onto envelope_freq values.
 	 * @param travel_time		Times at which the sensor_pair's
-	 * 							reverberation envelopes are computed (Hz).
+	 * 				reverberation envelopes are computed (Hz).
+         * @param reverb_duration       Length of time in seconds the reverb is to be calculated.
 	 * @param pulse_length		Duration of the transmitted pulse (sec).
-	 * 							Defines the temporal resolution of the envelope.
-	 * @param threshold			Minimum intensity level for valid reverberation
-	 * 							contributions (linear units).
+	 * 				Defines the temporal resolution of the envelope.
+	 * @param threshold		Minimum intensity level for valid reverberation
+	 * 				contributions (linear units).
 	 * @param num_azimuths		Number of receiver azimuths in result.
 	 * @param num_src_beams		Number of source beams in result.
 	 * @param num_rcv_beams 	Number of receiver beams in result.

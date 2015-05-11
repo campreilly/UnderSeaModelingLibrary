@@ -1,4 +1,13 @@
+/**
+ * @file types/test/quadtree_test_support.h
+ * Helper struct's, and classes for the quadtree tests.
+ */
+
 #include <iostream>
+
+/**
+ * Helper struct's, and classes for the quadtree tests.
+ */
 
 /**
  * Point class that stores a Cartesian pair, (x,y)

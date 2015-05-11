@@ -1,4 +1,4 @@
-/*
+/**
  * @file envelope_listener.h
  * Abstract interface for alerting listeners to the results of
  * a reverberation envelope calculation.

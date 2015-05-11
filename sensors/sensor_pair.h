@@ -75,7 +75,7 @@ public:
 
     /**
      * The intersecting frequencies from the _source for this pair.
-     * @return frequencies 
+     * @return Pointer to a seq_vector of frequencies.
      */
     const seq_vector* frequencies() const {
         return _frequencies;
@@ -92,8 +92,8 @@ public:
 	/**
 	 * Notification that new fathometer data is ready.
 	 *
-	 * @param  sensorID The ID of the sensor that issued the notification.
-     * @param  eigenray_list pointer std::list of eigenrays
+	 * @param  sensorID     The ID of the sensor that issued the notification.
+     * @param  list         Pointer std::list of eigenrays.
 	 */
 	virtual void update_fathometer(sensor_model::id_type sensorID, eigenray_list* list) ;
 

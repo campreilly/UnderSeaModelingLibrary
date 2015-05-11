@@ -1,5 +1,5 @@
 /**
- * @example threads/test/ocean_shared_test.cc
+ * @example ocean/test/ocean_shared_test.cc
  */
 #include <boost/test/unit_test.hpp>
 #include <boost/progress.hpp>
