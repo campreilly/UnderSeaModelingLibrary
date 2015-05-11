@@ -1,8 +1,10 @@
 /**
- * @file sensors.h 
- * @defgroup sensors Fundamental Data sensors
+ * @file sensors.h
+ * Basic sensors data specific to USML
  *
- * This package defines the basic data sensors specific to USML.
+ * @defgroup sensors Sensor Components
+ *
+ * This package defines the basic sensors data specific to USML.
  *
  * @defgroup wposition World Coordinates
  * @ingroup sensors

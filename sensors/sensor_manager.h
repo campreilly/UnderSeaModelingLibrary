@@ -30,10 +30,6 @@ class sensor;
  * The map stores pointers to sensor's and take's ownership of the pointers.
  * See usml/sensors/map_template.h A typedef of sensor_model::id_type has been defined
  * to allow for modification of the key of the map at a later time if needed.
- *
- * @author Ted Burns, AEgis Technologies Group, Inc.
- * @version 1.0
- * @updated 27-Feb-2015 3:15:03 PM
  */
 class USML_DECLSPEC sensor_manager {
 public:

@@ -41,7 +41,7 @@ public:
      * @param	receiver_id	The receiver id for this pair.
      * @param	src_pos		The source position when eigenrays were obtained.
      * @param	rcv_pos	    The receiver position when eigenrays were obtained.
-     * @param   eigenrays   Shared Pointer to the eigenray list.
+     * @param   list        The list of eigenrays.
      */
     fathometer_model(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
                      wposition1 src_pos, wposition1 rcv_pos, const eigenray_list& list )
@@ -67,7 +67,7 @@ public:
 
     /**
      * Sets the source sensor id.
-     * @param  The source sensor id
+     * @param  source_id The source sensor id.
      */
     void source_id(sensor_model::id_type source_id) {
         _source_id = source_id;
@@ -83,7 +83,7 @@ public:
 
     /**
      * Sets the receiver sensor id.
-     * @param  The receiver sensor id.
+     * @param  receiver_id The receiver sensor id.
      */
     void receiver_id(sensor_model::id_type receiver_id) {
         _receiver_id = receiver_id;
@@ -91,7 +91,7 @@ public:
 
     /**
      * Sets the slant_range.
-     * @param  The slant_range.
+     * @param  slant_range The slant_range.
      */
     void slant_range(double slant_range) {
         _slant_range = slant_range;
@@ -107,7 +107,7 @@ public:
 
     /**
      * Sets the distance_from_sensor.
-     * @param  The distance_from_sensor.
+     * @param  distance_from_sensor The distance_from_sensor.
      */
     void distance_from_sensor(double distance_from_sensor) {
         _distance_from_sensor = distance_from_sensor;
@@ -123,7 +123,7 @@ public:
 
     /**
      * Sets the depth_offset_from_sensor.
-     * @param  The depth_offset_from_sensor.
+     * @param  depth_offset The depth_offset_from_sensor.
      */
     void depth_offset(double depth_offset) {
         _depth_offset_from_sensor = depth_offset;
@@ -147,7 +147,7 @@ public:
 
     /**
      * Sets the source position
-     * @param  The source position
+     * @param  position The source position
      */
     void source_position(wposition1 position) {
         _source_position = position;
@@ -163,7 +163,7 @@ public:
 
     /**
     * Sets the receiver position.
-    * @param  The receiver position
+    * @param  position The receiver position.
     */
     void receiver_position(wposition1 position) {
         _receiver_position = position;
@@ -180,7 +180,7 @@ public:
 
     /**
      * Sets the eigenray_list for this fathometer_model.
-     * @param  eigenray_list
+     * @param  list The list of eigenrays.
      */
     void eigenrays(eigenray_list list) {
          write_lock_guard guard(_eigenrays_mutex);

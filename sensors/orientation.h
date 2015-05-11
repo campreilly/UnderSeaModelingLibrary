@@ -1,5 +1,8 @@
 /**
  * @file orientation.h
+ * Container for the physical orientation of the
+ * sensor and provides a conversion from incident ray
+ * coordinates to the spherical array coordinates.
  */
 #pragma once
 
@@ -15,7 +18,7 @@ namespace sensors {
 /// @{
 
 /**
- * This class holds the physical orientation of the
+ * Container for the physical orientation of the
  * sensor and provides a conversion from incident ray
  * coordinates to the spherical array coordinates.
  *

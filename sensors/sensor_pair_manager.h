@@ -35,7 +35,7 @@ class USML_DECLSPEC sensor_pair_manager {
 public:
 
     // Data type used to query the a random group of sensorID's and mode's
-    typedef std::map<sensor_model::id_type,xmitRcvModeType> sensor_query_map ;
+    typedef std::map<sensor_model::id_type, xmitRcvModeType> sensor_query_map ;
     typedef std::pair<sensor_model::id_type, xmitRcvModeType> query_type ;
 
 	/**
@@ -64,9 +64,9 @@ public:
 
     /**
      * Writes the fathometers provided to a NetCDF file.
-     * @param fathometers fathometer_model::fathometer_package contains
+     * @param fathometers The fathometer_model::fathometer_package contains
      *                    a collection of fathometer_model pointers
-     * @params filename The name of the file to write the fathometers.
+     * @param filename    The name of the file to write the fathometers.
      *
      * Write fathometers data to a netCDF file using a ragged
      * array structure. This ragged array concept (see reference) stores
@@ -202,7 +202,7 @@ public:
 
 	/**
 	 * Gets the envelopes for the list of sensors requested.
-	 * @param sensors contains sensor_query_map sensorID, and sensor xmitRcvModeType
+	 * @param sensors   Contains sensor_query_map sensorID, and sensor xmitRcvModeType.
      * @return envelope_collection::envelope_package contains a collection of envelope_collection pointers
 	 */
     envelope_collection::envelope_package get_envelopes(sensor_query_map sensors);
@@ -259,7 +259,7 @@ private:
 	 * Excludes sensors that don't support multi-static behaviors.
 	 * Also used to support multistatic sensors where mode() is BOTH.
 	 *
-	 * @param	sensor	Pointer to the sensor_model that needs to be paired with sources.
+	 * @param	receiver	Pointer to the sensor_model that needs to be paired with sources.
 	 */
 	void add_multistatic_receiver(sensor_model* receiver);
 
@@ -285,7 +285,7 @@ private:
 	 * Excludes sensors that don't support multi-static behaviors.
 	 * Also used to support multistatic sensors where mode() is BOTH.
 	 *
-	 * @param	sensor  Pointer to the sensor_model that needs to be paired with sources.
+	 * @param	receiver  Pointer to the sensor_model that needs to be paired with sources.
 	 */
 	void remove_multistatic_receiver(sensor_model* receiver);
 
@@ -314,9 +314,9 @@ private:
     /**
      * Utility to determine if two frequency ranges overlap
      * Used to determine if a sensor_pair needs to be created.
-     * @param	src_freq  frequency range for source
-     * @param	rcv_freq  frequenc range for receiver
-     * @return  true when frequency ranges overlap
+     * @param	src_freq  frequency range for source.
+     * @param	rcv_freq  frequency range for receiver.
+     * @return  true when frequency ranges overlap.
      */
     bool frequencies_overlap(const seq_vector* src_freq, const seq_vector* rcv_freq);
 
@@ -365,7 +365,7 @@ private:
 
 	/**
 	 * Container for storing the sensor pair objects.
-	 * Key is a string concatenation of "sourceID" + "_" + receiverID"
+	 * Key is a string concatenation of "sourceID" + "_" + "receiverID"
      * See generate_hash_key method.
 	 * Payload is a pointer to sensor_pair object.
 	 */

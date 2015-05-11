@@ -1,5 +1,6 @@
 /**
  * @file orientation_HLA.h
+ * Specialized version of orientation utilized in HLA.
  */
 #pragma once
 
@@ -9,7 +10,7 @@ namespace usml {
 namespace sensors {
 
 /**
- *
+ * Specialized version of orientation utilized in HLA.
  */
 class USML_DECLSPEC orientation_HLA : public orientation {
 

@@ -1,4 +1,4 @@
-/*
+/**
  * @file eigenverb_listener.h
  * Abstract interface for alerting listeners to the
  * results of a reverberation eigenverb calculation.
@@ -31,7 +31,7 @@ public:
 
 	/**
 	 * Pure virtual method to add an eigenverb for the object that implements it.
-	 *  @param  eigenverb - eigenverb data to add to list of eigenverbs
+	 *  @param  verb      - eigenverb data to add to list of eigenverbs.
 	 *  @param  interface - Interface number for the interface that generated
      *                      for this eigenverb.  See the eigenverb_collection
      *                      class header for documentation on interpreting

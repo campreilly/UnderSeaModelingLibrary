@@ -75,8 +75,7 @@ private:
 	 * @param ys2			Square of the relative distance from the
 	 * 						receiver to the target along the direction
 	 * 						of the receiver's width.
-	 * @param pulse_length	Duration of the transmit pulse (sec).
-	 * @return				False if reverbereation energy below threshold.
+	 * @return				False if reverberation energy below threshold.
 	 */
 	bool compute_intensity(
 			const eigenverb& src_verb, const eigenverb& rcv_verb,

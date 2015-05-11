@@ -1,5 +1,7 @@
 /**
  * @file quadtree.h
+ * Quadtree is an advanced data structure that is specialized for
+ * storing 2-dimensional data.
  */
 #pragma once
 
@@ -10,7 +12,7 @@ namespace usml {
 namespace types {
 
 /**
- * A Quadtree is an advanced data structure that is specialized for
+ * Quadtree is an advanced data structure that is specialized for
  * storing 2-dimensional data. A Quadtree gets its name from the way the
  * information in the tree is stored. Rather then linearly storing data in
  * a list, a Quadtree divides the 2D grid into quadrants, hence Quadtree.

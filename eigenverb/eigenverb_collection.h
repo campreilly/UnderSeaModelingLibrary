@@ -1,4 +1,4 @@
-/*
+/**
  * @file eigenverb_collection.h
  * Collection of eigenverbs in the form of a vector of eigenverbs_lists.
  */
@@ -42,7 +42,7 @@ public:
 	 * of interfaces (index 0=bottom, 1=surface), plus two for each
 	 * volume scattering layer.
 	 *
-	 * @param num_volume	Number of volume scattering layers in the ocean.
+	 * @param num_volumes	Number of volume scattering layers in the ocean.
 	 */
 	eigenverb_collection(size_t num_volumes) :
 			_collection((1 + num_volumes) * 2) {
@@ -78,6 +78,7 @@ public:
 	 * Adds a new eigenverb to this collection.  Make a copy of the new
 	 * contribution and stores the copy in its collection.
 	 *
+	 * @param verb      Eigenverb to add to the eigenverb_collection.
 	 * @param interface	Interface number of the desired list of eigenverbs.
 	 * 					See the class header for documentation on interpreting
 	 * 					this number. For some layers, you can also use the
@@ -163,12 +164,13 @@ public:
      *   etc...
      *
      * }
-	 * <pre>
+	 *
 	 * If the interface has no eigenverbs, the file will contain only the
 	 * global attributes, and there will be no dimensions, variables,
 	 * or data.
+	 * </pre>
 	 *
-	 * @param filename  File uses to store this data.
+	 * @param filename  Filename used to store this data.
 	 * @param interface	Interface number of the desired list of eigenverbs.
 	 * 					See the class header for documentation interpreting
 	 * 					this number.

@@ -1,8 +1,7 @@
-/*
+/**
  * @file wavefront_listener.h
- *
- *  Created on: March 25, 2015
- *      Author: Ted Burns, AEgis Technologies Group, Inc.
+ * Part of the Observer/Subject pattern for the wavefront class
+ * which allows for multiple listeners to be added to wavefront.
  */
 
 #pragma once
@@ -23,11 +22,10 @@ using namespace usml::threads ;
 /// @{
 
 /**
- * @class wavefront_listener
- * This class is part of a Observer/Subject pattern for the wavefront class
- * and allows for multiple listeners to be added to wavefront.
+ * Part of the Observer/Subject pattern for the wavefront class
+ * which allows for multiple listeners to be added to wavefront.
  * The update_eigenrays and update_eigenverbs methods must be defined in
- * each class which inherits it.
+ * each class that inherits them.
  */
 
 class USML_DECLSPEC wavefront_listener

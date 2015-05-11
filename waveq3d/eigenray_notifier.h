@@ -1,6 +1,6 @@
-/*
+/**
  * @file eigenray_notifier.h
- * Manage eigenray listeners and distribute eigenray updates.
+ * Manages eigenray listeners and distributes eigenray updates.
  */
 #pragma once
 
@@ -14,7 +14,7 @@ namespace waveq3d {
 /// @{
 
 /**
- * Manage eigenray listeners and distribute eigenray updates.
+ * Manages eigenray listeners and distributes eigenray updates.
  */
 class USML_DECLSPEC eigenray_notifier {
 

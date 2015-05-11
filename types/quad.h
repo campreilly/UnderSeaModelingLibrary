@@ -1,5 +1,7 @@
 /**
  * @file quad.h
+ * Base class that describes the Cartesian pair and the pair
+ * extents used in the quadtree class.
  */
 #pragma once
 
@@ -14,6 +16,8 @@ using boost::numeric::ublas::vector ;
 /// @{
 
     /**
+     * Base class that describes the Cartesian pair and the pair
+     * extents used in the quadtree class.
      * Quadrants are defined as below:
      *  _________________
      * |        |        |
@@ -37,7 +41,7 @@ using boost::numeric::ublas::vector ;
     };
 
 /**
- * A quadrant (quad) is defined by a Cartesian pair and a pair of
+ * The quadrant (quad) is defined by a Cartesian pair and a pair of
  * extents. The (x,y) Cartesian pair stored within this class
  * corresponds to the lower left hand corner, with the extents
  * width for x distance and height for y distance, defining the

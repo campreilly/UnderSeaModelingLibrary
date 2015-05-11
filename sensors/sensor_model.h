@@ -61,6 +61,7 @@ public:
 
 	/**
 	 * Identification used to find this sensor instance in sensor_manager.
+	 * @return sensorID for this sensor_model.
 	 */
 	id_type sensorID() const {
 		return _sensorID;
@@ -69,6 +70,7 @@ public:
 	/**
 	 * Identification used to lookup sensor type data in 
      * source_params_map and receiver_params_map.
+     * @return paramID for this sensor_model.
 	 */
 	sensor_params::id_type paramsID() const {
 		return _paramsID;
@@ -102,6 +104,7 @@ public:
 
 	/**
 	 * Human readable name for this sensor instance.
+	 * @return string that contains human readable name of this sensor_model instance.
 	 */
 	const std::string& description() const {
 		return _description;
@@ -109,11 +112,13 @@ public:
 
 	/**
 	 * Queries the sensor's ability to support source and/or receiver behaviors.
+	 * @return mode which is an enumeration of this sensor_model instance.
 	 */
 	xmitRcvModeType mode() const ;
 
 	/**
 	 * Shared pointer to the the source_params for this sensor.
+	 * @return A shared pointer to the source_params.
 	 */
 	source_params::reference source() const {
 		return _source;
@@ -121,6 +126,7 @@ public:
 
 	/**
 	 * Shared pointer to the the receiver_params for this sensor.
+	 * @return A shared pointer to the receiver_params.
 	 */
 	receiver_params::reference receiver() const {
 		return _receiver;
@@ -128,11 +134,13 @@ public:
 
 	/**
 	 * Location of the sensor in world coordinates.
+	 * @return the location of this sensor_model instance.
 	 */
 	wposition1 position() const ;
 
 	/**
 	 * Orientation of the sensor in world coordinates.
+	 * @return the orientation of this sensor_model instance.
 	 */
 	orientation orient() const ;
 
@@ -145,7 +153,7 @@ public:
 	 * Blocks until update is complete.
 	 *
 	 * @param position  	Updated position data
-	 * @param orientation	Updated orientation value
+	 * @param orient    	Updated orientation value
 	 * @param force_update	When true, forces update without checking thresholds.
 	 */
 	void update_sensor(const wposition1& position,
@@ -155,13 +163,14 @@ public:
 	 * Asynchronous update of eigenray data from the wavefront task.
      * Passes this data onto all sensor listeners.
 	 * Blocks until update is complete.
+	 * @param eigenrays Shared pointer to an eigenray_collection.
 	 */
 	virtual void update_eigenrays( eigenray_collection::reference& eigenrays ) ;
 
     /**
      * Last set of eigenverbs computed for this sensor.
 	 * Blocks during updates from the wavefront task.
-     * @param shared_pointer to and eigenverb_collection
+     * @return shared pointer to and eigenverb_collection.
      */
 	eigenverb_collection::reference eigenverbs() const ;
 
@@ -169,16 +178,21 @@ public:
 	 * Asynchronous update of eigenverbs data from the wavefront task.
 	 * Passes this data onto all sensor listeners.
 	 * Blocks until update is complete.
+	 * @param eigenverbs Shared pointer to an eigenverb_collection.
 	 */
 	virtual void update_eigenverbs( eigenverb_collection::reference& eigenverbs) ;
 
 	/**
 	 * Add a sensor_listener to the _sensor_listeners list
+	 * @param listener  Pointer to a sensor_listener to add
+	 *                  to the sensor_listeners list.
 	 */
 	void add_sensor_listener(sensor_listener* listener);
 
 	/**
-	 * Remove a sensor_listener from the _sensor_listeners list
+	 * Remove a sensor_listener from the _sensor_listeners list.
+	 * @param listener  Pointer to a sensor_listener to remove
+	 *                  from the sensor_listeners list.
 	 */
 	void remove_sensor_listener(sensor_listener* listener);
 
@@ -241,13 +255,13 @@ private:
 
 	/**
 	 * Utility to set the list of target sensorID's from the list of sensors provided.
-	 * @params list of sensor_model pointers.
+	 * @param list of sensor_model pointers.
 	 */
 	void target_ids(std::list<const sensor_model*>& list);
 
 	/**
 	 * Utility to builds a list of target positions from the input list of sensors provided.
-	 * @params list of sensor_model pointers.
+	 * @param list of sensor_model pointers.
 	 * @return wposition pointer to container of positions of the list of sensors provided.
 	 */
 	const wposition* target_positions(std::list<const sensor_model*>& list) const ;
