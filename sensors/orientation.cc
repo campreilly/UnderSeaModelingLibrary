@@ -34,13 +34,8 @@ orientation::orientation(
  * Tilt angle/direction constructor
  */
 orientation::orientation( double angle, double direction )
-    : _heading(0.0)
 {
-    double sin_theta2 = sin(angle)*sin(angle) ;
-    double sin_phi2 = sin(direction)*sin(direction) ;
-    double sqrt_theta_phi = std::sqrt(1 - sin_theta2*sin_phi2) ;
-    _roll = std::atan2( (cos(angle) / sqrt_theta_phi) , (cos(direction)*sin(angle) / sqrt_theta_phi) ) ;
-    _pitch = std::atan2( sqrt_theta_phi, (-sin(angle)*sin(direction)) ) ;
+    compute_orientation(angle,direction) ;
 }
 
 /**
@@ -49,6 +44,26 @@ orientation::orientation( double angle, double direction )
 orientation::~orientation()
 {
 
+}
+
+/**
+ * Computes pitch, heading, and roll as a function angle/direction from
+ * the vertical reference axis
+ */
+void orientation::compute_orientation(double angle, double direction)
+{
+    if( angle <= M_PI_2 ) {
+        double sin_theta2 = sin(angle)*sin(angle) ;
+        double sin_phi2 = sin(direction)*sin(direction) ;
+        double sqrt_theta_phi = std::sqrt(1 - sin_theta2*sin_phi2) ;
+        _roll = std::atan2( (cos(angle) / sqrt_theta_phi) , (cos(direction)*sin(angle) / sqrt_theta_phi) ) ;
+        _pitch = std::atan2( sqrt_theta_phi, (-sin(angle)*sin(direction)) ) ;
+        _heading = 0.0 ;
+    } else {
+        _pitch = angle ;
+        _heading = direction ;
+        _roll = 0.0 ;
+    }
 }
 
 /**
@@ -86,12 +101,9 @@ void orientation::update_orientation( double h, double p, double r )
 */
 void orientation::update_orientation(double angle, double direction)
 {
-	double sin_theta2 = sin(angle)*sin(angle);
-	double sin_phi2 = sin(direction)*sin(direction);
-	double sqrt_theta_phi = std::sqrt(1 - sin_theta2*sin_phi2);
-	_roll = std::atan2((cos(angle) / sqrt_theta_phi), (cos(direction)*sin(angle) / sqrt_theta_phi));
-	_pitch = std::atan2(sqrt_theta_phi, (-sin(angle)*sin(direction)));
+    compute_orientation(angle,direction) ;
 }
+
 /**
  * Applies a rotation from one coordinate system to the
  * current rotated coordinates for symmetric systems.

@@ -13,13 +13,20 @@
 using namespace usml::sensors;
 using namespace usml::waveq3d;
 
+const double sensor_model::alt_threshold = 10.0 ;       // meters
+const double sensor_model::lat_threshold = 0.01 ;       // degrees
+const double sensor_model::lon_threshold = 0.01 ;       // degrees
+const double sensor_model::pitch_threshold = 5.0 ;      // degrees
+const double sensor_model::heading_threshold = 20.0 ;   // degrees
+const double sensor_model::roll_threshold = 10.0 ;      // degrees
+
 /**
  * Construct a new instance of a specific sensor type.
  */
 sensor_model::sensor_model(sensor_model::id_type sensorID, sensor_params::id_type paramsID,
 	const std::string& description)
 	: _sensorID(sensorID), _paramsID(paramsID), _description(description),
-	  _position(NAN, NAN, NAN), _orient()
+	  _position(NAN, NAN, NAN), _orient(), _initial_update(true)
 {
 	_source = source_params_map::instance()->find(paramsID);
 	_receiver = receiver_params_map::instance()->find(paramsID);
@@ -178,24 +185,50 @@ void sensor_model::remove_sensor_listener(sensor_listener* listener) {
 
 /**
  * Checks to see if new position and orientation have changed enough
- * to require a new WaveQ3D run.
- *
- * @todo using dummy values for prototyping
+ * to require a new wave_queue to be run, as the data in the eigenrays
+ * and eigenverbs are no longer sufficiently accurate.
  */
 bool sensor_model::check_thresholds(const wposition1& position,
-		const orientation& orientation)
+		const orientation& orient)
 {
-	// force update if old values not valid
+    // since the sensor defaults to NAN for positions
+    // we already know that we need meet the threshold, so
+    // don't worry about checking for this
+    if( _initial_update ) {
+        _initial_update = false ;
+        return true ;
+    }
+    // check that the roll of the array hasn't changed too much
+    double delta_alt = abs(position.altitude() - _position.altitude()) ;
+    if(delta_alt > alt_threshold) return true ;
 
-	if (isnan(_position.rho()) || isnan(_position.theta())
-			|| isnan(_position.phi()) || isnan(_orient.heading())
-			|| isnan(_orient.pitch()) || isnan(_orient.roll())) {
-		return true;
-	}
+    // check that the roll of the array hasn't changed too much
+    double delta_lat = abs(position.latitude() - _position.latitude()) ;
+    if(delta_lat > lat_threshold) return true ;
 
-	// check difference between old and new values
+    // check that the roll of the array hasn't changed too much
+    double delta_lon = abs(position.longitude() - _position.longitude()) ;
+    if(delta_lon > lon_threshold) return true ;
 
-	return true;// using dummy values for prototyping
+    /**
+     * TODO: I do not believe these checks are necessary to a wavefront
+     *       data collection, as eigenrays/eigenverbs are independent of
+     *       array orientation. These checks seem to only be valid if we
+     *       use a wavefront of -90 < DE < 90 and 0 < AZ < 360, which at
+     *       present is not an option.
+     */
+    // check that the pitch of the array hasn't changed too much
+    double delta_pitch = abs(orient.pitch() - _orient.pitch()) ;
+    if(delta_pitch > pitch_threshold) return true ;
+
+    // check that the heading of the array hasn't changed too much
+    double delta_heading = abs(orient.heading() - _orient.heading()) ;
+    if(delta_heading > heading_threshold) return true ;
+
+    // check that the roll of the array hasn't changed too much
+    double delta_roll = abs(orient.roll() - _orient.roll()) ;
+    if(delta_roll > roll_threshold) return true ;
+    return false ;
 }
 
 
