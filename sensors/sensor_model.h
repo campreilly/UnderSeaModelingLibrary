@@ -248,9 +248,9 @@ private:
 	/**
 	 * Utility to builds a list of target positions from the input list of sensors provided.
 	 * @params list of sensor_model pointers.
-	 * @return wposition container of positions of the list of sensors provided.
+	 * @return wposition pointer to container of positions of the list of sensors provided.
 	 */
-	wposition target_positions(std::list<const sensor_model*>& list);
+	const wposition* target_positions(std::list<const sensor_model*>& list) const ;
 
 	/**
 	 * Utility to run the wave_generator thread task to start the waveq3d model.
@@ -345,20 +345,19 @@ private:
     eigenray_collection::reference _eigenray_collection;
 
 	/**
-	 * Mutex to that locks sensor _eigenray_collection access/write
+	 * Mutex that locks sensor _eigenray_collection access/write
 	 */
 	mutable read_write_lock _eigenrays_mutex ;
 
     /**
      * Last set of eigenverbs computed for this sensor.
-     * @todo migrate to shared pointer.
      */
-	eigenverb_collection::reference _eigenverbs;
+	eigenverb_collection::reference _eigenverb_collection;
 
 	/**
-	 * Mutex to that locks sensor during update_eigenverbs.
+	 * Mutex that locks sensor during _eigenverb_collection access/write.
 	 */
-	mutable read_write_lock _update_eigenverbs_mutex ;
+	mutable read_write_lock _eigenverbs_mutex ;
 
     /**
      * reference to the task that is computing eigenrays and eigenverbs.

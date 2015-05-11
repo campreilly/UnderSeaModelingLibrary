@@ -25,8 +25,8 @@ class USML_DECLSPEC fathometer_model
 public:
 
     /**
-    * Data type used handle a collection of fathometer_model pointers.
-    */
+     * Data type used handle a collection of fathometer_model pointers.
+     */
     typedef std::vector<fathometer_model*> fathometer_package;
 
 	/**

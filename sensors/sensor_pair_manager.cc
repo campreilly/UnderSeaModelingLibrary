@@ -139,7 +139,7 @@ fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(sensor
         pair = _map.find(s);
         sensor_pair* pair_data = pair;
         if ( pair_data != NULL ) {
-            shared_ptr<fathometer_model> fathometer = pair_data->fathometer();
+            fathometer_model::reference fathometer = pair_data->fathometer();
             if ( fathometer.get() != NULL ) {
                 fathometers.push_back(fathometer.get());
             }
@@ -309,6 +309,30 @@ void sensor_pair_manager::write_fathometers(fathometer_model::fathometer_package
     delete nc_file; // destructor frees all netCDF temp variables
 }
 
+/**
+ * Gets the envelopes for the sensor receiver_id requested.
+ */
+envelope_collection::envelope_package sensor_pair_manager::get_envelopes(sensor_query_map sensors)
+{
+    sensor_pair* pair;
+    read_lock_guard guard(_manager_mutex);
+
+    std::set<std::string> keys = find_pairs(sensors);
+    envelope_collection::envelope_package envelopes;
+    envelopes.reserve(keys.size());
+    BOOST_FOREACH(std::string s, keys)
+    {
+        pair = _map.find(s);
+        sensor_pair* pair_data = pair;
+        if ( pair_data != NULL ) {
+            envelope_collection::reference collection = pair_data->envelopes();
+            if ( collection.get() != NULL ) {
+                envelopes.push_back(collection.get());
+            }
+        }
+    }
+    return envelopes;
+}
 
 /**
  * Builds new sensor_pair objects in reaction to notification

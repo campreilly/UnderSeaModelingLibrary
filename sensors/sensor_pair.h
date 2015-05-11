@@ -115,9 +115,18 @@ public:
      * Gets the shared_ptr to last fathometer update for this sensor_pair.
      * @return  fathometer_model shared_ptr
      */
-     shared_ptr<fathometer_model> fathometer() {
+     fathometer_model::reference fathometer() {
          read_lock_guard guard(_fathometer_mutex);
          return _fathometer;
+     }
+
+     /**
+      * Gets the shared_ptr to last envelopes update for this sensor_pair.
+      * @return  envelope_collection shared_ptr
+      */
+     envelope_collection::reference envelopes() {
+         read_lock_guard guard(_envelopes_mutex);
+         return _envelopes;
      }
 
 private:
@@ -167,7 +176,7 @@ private:
     /**
      * Fathometer that connects source and receiver locations.
      */
-    shared_ptr<fathometer_model> _fathometer;
+    fathometer_model::reference _fathometer;
 
 	/**
 	 * Mutex that locks sensor_pair during fathometer updates.
