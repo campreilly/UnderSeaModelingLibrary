@@ -174,11 +174,11 @@ bool envelope_model::compute_overlap(
     // compute the duration of the overlap
 
     det_sr = element_div( det_sr, src_prod * rcv_prod ) ;
-	src_sum = 1.0 / src_verb.width2 + 1.0 / src_verb.length2 ;
-	src_diff = 1.0 / src_verb.width2 - 1.0 / src_verb.length2 ;
+	src_sum = 1.0 / src_verb_width2 + 1.0 / src_verb_length2 ;
+	src_diff = 1.0 / src_verb_width2 - 1.0 / src_verb_length2 ;
 	noalias(_duration) = 0.5 * element_div(
-			( 1.0 / src_verb.width2 + 1.0 / src_verb.length2 )
-			+ ( 1.0 / src_verb.width2 - 1.0 / src_verb.length2 ) * cos2alpha
+			( 1.0 / src_verb_width2 + 1.0 / src_verb_length2 )
+			+ ( 1.0 / src_verb_width2 - 1.0 / src_verb_length2 ) * cos2alpha
 			+ 2.0 / rcv_verb.width2,
 			det_sr ) ;
 //    cout << "det_sr=" << det_sr

@@ -114,7 +114,9 @@ private:
 
 		source_params::reference source(
 				new source_params(paramsID, source_level,
-                6000.0, 9000.0,             // min, max active freq
+                0.250,                               // pulse_length
+                wavefront_generator::time_maximum,   // reverb_duration
+                6000.0, 9000.0,                      // min, max active freq
                 source_frequencies, source_beams, multistatic));
 		source_params_map::instance()->insert(source->paramsID(), source);
 
@@ -145,7 +147,7 @@ private:
 		sensor_manager::instance()->add_sensor(sensorID, paramsID, "sensor1");
 
 		// Set wave_queue attributes
-		wavefront_generator::time_maximum = 1.0; // sec
+		wavefront_generator::time_maximum =  7.0/2.0;     // reverb_duration/2
 		wavefront_generator::intensity_threshold = 150.0; //dB
 
 		// Update sensor data and run wave_queue.

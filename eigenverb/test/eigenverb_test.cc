@@ -396,14 +396,14 @@ BOOST_AUTO_TEST_CASE( envelope_interpolate ) {
 
 	src_verb.time = 5.0 ;
 	rcv_verb.time = 5.0 ;
-	collection.add_contribution( src_verb, src_verb,
+	collection.add_contribution( src_verb, rcv_verb,
 		src_beam, rcv_beam, scatter, 0.0, 0.0 ) ;
 
 	src_verb.time = 15.0 ;
 	rcv_verb.time = 15.0 ;
 	src_verb.energy *= 0.5 ;
 	rcv_verb.energy *= 0.5 ;
-	collection.add_contribution( src_verb, src_verb,
+	collection.add_contribution( src_verb, rcv_verb,
 			src_beam, rcv_beam, scatter, 0.0, 0.0 ) ;
 
 	collection.write_netcdf(ncname) ;
