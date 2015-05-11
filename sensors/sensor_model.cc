@@ -140,8 +140,8 @@ void sensor_model::update_eigenrays(eigenray_collection::reference& eigenrays)
  * Last set of eigenverbs computed for this sensor.
  */
 eigenverb_collection::reference sensor_model::eigenverbs() const {
-	read_lock_guard guard(_update_eigenverbs_mutex);
-	return _eigenverbs;
+	read_lock_guard guard(_eigenverbs_mutex);
+	return _eigenverb_collection;
 }
 
 /**
@@ -150,11 +150,16 @@ eigenverb_collection::reference sensor_model::eigenverbs() const {
  * Blocks until update is complete.
  */
 void sensor_model::update_eigenverbs( eigenverb_collection::reference& eigenverbs ) {
-	write_lock_guard guard(_update_eigenverbs_mutex);
+     // Don't allow updates to _sensor_listeners
+    write_lock_guard guard(_sensor_listeners_mutex);
+
 	#ifdef USML_DEBUG
 		cout << "sensor_model: update_eigenverbs(" << _sensorID << ")" << endl ;
 	#endif
-	_eigenverbs = eigenverbs;
+	{   // Scope for lock on _eigenverb_collection
+		write_lock_guard guard(_eigenverbs_mutex);
+		_eigenverb_collection = eigenverbs;
+	}
 	BOOST_FOREACH( sensor_listener* listener, _sensor_listeners ) {
 		listener->update_eigenverbs(this);
 	}
@@ -297,7 +302,7 @@ void sensor_model::run_wave_generator() {
         }
 
         // Create the wavefront_generator
-        wavefront_generator* generator = new wavefront_generator(
+        wavefront_generator* generator = new wavefront_generator (
             ocean_shared::current(), _position, target_pos, _frequencies.get(), this);
 
         // Make wavefront_generator a wavefront_task, with use of shared_ptr

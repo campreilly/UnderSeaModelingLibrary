@@ -301,19 +301,19 @@ private:
     eigenray_collection::reference _eigenray_collection;
 
 	/**
-	 * Mutex to that locks sensor _eigenray_collection access/write
+	 * Mutex that locks sensor _eigenray_collection access/write
 	 */
 	mutable read_write_lock _eigenrays_mutex ;
 
     /**
      * Last set of eigenverbs computed for this sensor.
      */
-	eigenverb_collection::reference _eigenverbs;
+	eigenverb_collection::reference _eigenverb_collection;
 
 	/**
-	 * Mutex to that locks sensor during update_eigenverbs.
+	 * Mutex that locks sensor during _eigenverb_collection access/write.
 	 */
-	mutable read_write_lock _update_eigenverbs_mutex ;
+	mutable read_write_lock _eigenverbs_mutex ;
 
     /**
      * reference to the task that is computing eigenrays and eigenverbs.

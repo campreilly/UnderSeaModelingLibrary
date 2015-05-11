@@ -114,7 +114,8 @@ private:
 
 		source_params::reference source(
 				new source_params(paramsID, source_level,
-                6000.0, 9000.0,             // min, max active freq
+				1.0, 40.0,           // pulse, duration
+                6000.0, 9000.0,      // min, max active freq
                 source_frequencies, source_beams, multistatic));
 		source_params_map::instance()->insert(source->paramsID(), source);
 
