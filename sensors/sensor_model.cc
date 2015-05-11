@@ -269,7 +269,7 @@ void sensor_model::target_ids(std::list<const sensor_model*>& list) {
 /**
  * Builds a list of target positions from the input list of sensors provided.
  */
-wposition* sensor_model::target_positions(std::list<const sensor_model*>& list) {
+const wposition* sensor_model::target_positions(std::list<const sensor_model*>& list) const {
 
 	// builds wposition container of target positions from the list provided.
 
@@ -321,7 +321,7 @@ void sensor_model::run_wave_generator() {
             cout << "sensor_model: run_wave_generator(" << _sensorID << ")" << endl ;
         #endif
 
-        wposition* target_pos = NULL;
+        const wposition* target_pos = NULL;
 
         // Get the targets sensor references
         std::list<const sensor_model*> targets = sensor_targets();

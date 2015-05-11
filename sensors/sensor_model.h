@@ -250,7 +250,7 @@ private:
 	 * @params list of sensor_model pointers.
 	 * @return wposition pointer to container of positions of the list of sensors provided.
 	 */
-	wposition* target_positions(std::list<const sensor_model*>& list);
+	const wposition* target_positions(std::list<const sensor_model*>& list) const ;
 
 	/**
 	 * Utility to run the wave_generator thread task to start the waveq3d model.
