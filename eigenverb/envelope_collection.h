@@ -39,17 +39,17 @@ public:
 	 * Reserve memory in which to store results as a series of
 	 * nested dynamic arrays.
 	 *
-	 * @param transmit_freq	Frequencies at which the source and receiver
-	 * 						eigenverbs are computed (Hz).
-	 * @param num_times		Number of times in the reverberation time series.
-	 * @param time_step		Sampling period of the reverberation time series.
-	 * @param pulse_length	Duration of the transmitted pulse (sec).
-	 * 						Defines the temporal resolution of the envelope.
-	 * @param threshold		Minimum intensity level for valid reverberation
-	 * 						contributions (linear units).
-	 * @param num_azimuths	Number of receiver azimuths in result.
-	 * @param num_src_beams	Number of source beams in result.
-	 * @param num_rcv_beams Number of receiver beams in result.
+	 * @param transmit_freq	    Frequencies at which the source and receiver
+	 * 						    eigenverbs are computed (Hz).
+	 * @param travel_time       Pointer to a seq_vector of travel times.
+	 * @param reverb_duration	Length of time in seconds the reverb is to be calculated.
+	 * @param pulse_length	    Duration of the transmitted pulse (sec).
+	 * 						    Defines the temporal resolution of the envelope.
+	 * @param threshold		    Minimum intensity level for valid reverberation
+	 * 						    contributions (linear units).
+	 * @param num_azimuths	    Number of receiver azimuths in result.
+	 * @param num_src_beams	    Number of source beams in result.
+	 * @param num_rcv_beams     Number of receiver beams in result.
 	 */
 	envelope_collection(
 		const seq_vector* transmit_freq,

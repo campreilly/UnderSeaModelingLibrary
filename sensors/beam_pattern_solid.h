@@ -29,7 +29,7 @@ class USML_DECLSPEC beam_pattern_solid : public beam_pattern_model {
 
         /**
          * Constructs a solid-angle beam pattern.
-         * DE \in [-90.0 90.0], AZ \in [0.0 360.0]
+         * DE in [-90.0 90.0], AZ in [0.0 360.0]
          *
          * @param max_de        maximum DE of the solid angle (deg)
          * @param min_de        minimum DE of the solid angle (deg)

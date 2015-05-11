@@ -40,7 +40,7 @@ public:
 	 * @param	paramsID		Identification used to find this sensor type in
 	 * 							source_params_map and/or receiver_params_map.
 	 * @param   source_level	Peak intensity of the transmitted pulse
-	 * 							(dB//uPa@1m)
+	 * 							(dB//uPa at 1m)
 	 * @param  	pulse_length	Duration of the transmitted signal (sec).
 	 * @param   reverb_duration Duration of the reverberation envelope (sec).
      * @param	min_freq		Minimum active frequency for the sensor. Lower
@@ -79,7 +79,7 @@ public:
 	}
 
 	/**
-	 * Peak intensity of the transmitted pulse (dB//uPa@1m)
+	 * Peak intensity of the transmitted pulse (dB//uPa at 1m)
 	 */
 	vector<double> source_level() const {
 		return _source_level ;
@@ -102,7 +102,7 @@ public:
 private:
 
 	/**
-	 * Peak intensity of the transmitted pulse (dB//uPa@1m)
+	 * Peak intensity of the transmitted pulse (dB//uPa at 1m)
 	 */
 	const vector<double> _source_level;
 

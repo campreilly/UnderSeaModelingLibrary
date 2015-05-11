@@ -7,7 +7,7 @@
 using namespace usml::sensors ;
 
 /**
- * Cosntructor
+ * Constructor
  */
 beam_pattern_solid::beam_pattern_solid(
     double max_de, double min_de,

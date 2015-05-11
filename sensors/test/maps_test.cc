@@ -21,10 +21,6 @@ using namespace usml::threads;
  * Also test the find method and the destructor.
  * Generate errors if pointer values are not equal.
  * For Destructor testing run with Valgrind memcheck.
- *
- * @author Ted Burns, AEgis Technologies Group, Inc.
- * @version 1.0
- * @updated 6-Mar-2015 3:15:03 PM
  */
 BOOST_AUTO_TEST_CASE(beam_pattern_test) {
 

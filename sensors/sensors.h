@@ -1,6 +1,6 @@
 /**
  * @file sensors.h 
- * @defgroup sensors Fundamental Data sensors
+ * @defgroup sensors Sensor Components
  *
  * This package defines the basic data sensors specific to USML.
  *

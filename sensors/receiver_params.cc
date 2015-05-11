@@ -11,7 +11,7 @@ using namespace usml::sensors;
  */
 receiver_params::receiver_params(sensor_params::id_type paramsID, 
     double min_freq, double max_freq, const seq_vector& frequencies, 
-    const std::list<beam_pattern_model::id_type>& beamList, bool multistatic)
-    : sensor_params(paramsID, min_freq, max_freq, frequencies, beamList, multistatic)
+    const beam_pattern_list& beam_list, bool multistatic)
+    : sensor_params(paramsID, min_freq, max_freq, frequencies, beam_list, multistatic)
 {
 }
