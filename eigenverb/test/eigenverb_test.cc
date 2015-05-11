@@ -9,6 +9,7 @@
 #include <usml/eigenverb/eigenverb_collection.h>
 #include <usml/eigenverb/envelope_collection.h>
 #include <usml/eigenverb/eigenverb_interpolator.h>
+#include <boost/numeric/ublas/vector_proxy.hpp>
 
 BOOST_AUTO_TEST_SUITE(eigenverb_test)
 
@@ -127,10 +128,6 @@ BOOST_AUTO_TEST_CASE( eigenverb_basic ) {
     	filename << ncname << n << ".nc" ;
     	eigenverbs->write_netcdf( filename.str().c_str(),n) ;
     }
-
-    // compute the sound speed at the bottom for rofile->flat_earth(true) ;
-//    const double c_bottom = c0 * (wposition::earth_radius-depth)
-//    		/ wposition::earth_radius ;
 
     // test the accuracy of the eigenverb contributions
     // just tests downward facing rays to the bottom, along az=0
@@ -353,8 +350,8 @@ BOOST_AUTO_TEST_CASE( envelope_interpolate ) {
 	rcv_verb_original.width2 = vector<double>( rcv_freq.size() ) ;
 	for ( size_t f=0 ; f < rcv_freq.size() ; ++f ) {
 		rcv_verb_original.energy[f] = 0.2 ;
-		rcv_verb_original.length2[f] = 400.0 + 10.0 * f ;
-		rcv_verb_original.width2[f] = 100.0 + 10.0 * f ;
+		rcv_verb_original.length2[f] = 400.0 + 10.0 * ( rcv_freq[f] - 1000.0 ) / 1000.0 ;
+		rcv_verb_original.width2[f] = 100.0 + 10.0 * ( rcv_freq[f] - 1000.0 ) / 1000.0 ;
 	}
 
 	// interpolate rcv_verb_original onto frequency axis of envelope
@@ -411,9 +408,13 @@ BOOST_AUTO_TEST_CASE( envelope_interpolate ) {
 	// compare total energy to analytic solution for monostatic result (eqn. 31).
 
 	const double coeff = 4.0 * M_PI * sqrt(TWO_PI) ;
-	vector<double> theory = 10.0*log10(element_div(
+	boost::numeric::ublas::range window(0,2);
+	const vector_range< vector<double> > src_verb_length2( src_verb.length2, window ) ;
+	const vector_range< vector<double> > src_verb_width2( src_verb.width2, window ) ;
+
+	vector<double> theory = 10.0*log10( element_div(
 		M_PI * 0.2 * 0.2 * scatter,
-		sqrt(src_verb.length2 * src_verb.width2)))
+		sqrt(src_verb_length2 * src_verb_width2)))
 		- 10.0*log10(coeff * 0.5);
 	size_t index = 105 ;
 	for (size_t f = 0; f < envelope_freq.size(); ++f) {
