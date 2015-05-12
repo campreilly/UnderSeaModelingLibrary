@@ -54,20 +54,26 @@ public:
 	/**
 	 * Initialize model parameters and reserve memory.
 	 *
-	 * @param transmit_freq	    Frequencies at which the source
-	 * 						    eigenverbs are computed (Hz).
-	 * @param receiver_freq     Frequencies at which the receiver
-     *                          eigenverbs are computed (Hz).
-     * @param reverb_duration   Length of time in seconds the reverb is to be calculated.
-     * @param pulse_length      Duration of the transmitted pulse (sec).
-	 * @param num_azimuths	    Number of receiver azimuths in result.
-	 * @param num_src_beams	    Number of source beams in result.
-	 * @param num_rcv_beams     Number of receiver beams in result.
-	 * @param src_eigenverbs    Shared pointer to the source eigenverbs.
-	 * @param rcv_eigenverbs    Shared pointer to the receiver eigenverbs.
+	 * @param envelope_freq		Frequencies at which the source and receiver
+	 * 				eigenverbs overlap (Hz).  Frequencies at which
+	 * 				envelope will be computed.
+	 * @param src_freq_first        Index of the first intersecting frequency of the
+	 * 				source frequencies seq_vector.  Used to map
+	 * 				source eigenverbs onto envelope_freq values.
+	 * @param receiver_freq	        Frequencies at which receiver eigenverbs were
+	 * 			        generated (Hz).  Used to interpolate receiver
+	 * 			        eigenverbs onto envelope_freq values.
+         * @param reverb_duration       Length of time in seconds the reverb is to be calculated.
+         * @param pulse_length          Duration of the transmitted pulse (sec).
+	 * @param num_azimuths	        Number of receiver azimuths in result.
+	 * @param num_src_beams	        Number of source beams in result.
+	 * @param num_rcv_beams         Number of receiver beams in result.
+         * @param src_eigenverbs        Shared pointer to the source's eigenverbs.        
+         * @param rcv_eigenverbs        Shared pointer to the receiver's eigenverbs.
 	 */
 	envelope_generator(
-		const seq_vector* transmit_freq,
+		const seq_vector* envelope_freq,
+		size_t src_freq_first,
 		const seq_vector* receiver_freq,
 		double reverb_duration,
 		double pulse_length,

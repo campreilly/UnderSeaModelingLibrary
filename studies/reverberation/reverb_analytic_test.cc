@@ -149,7 +149,7 @@ private:
 		sensor_manager::instance()->add_sensor(sensorID, paramsID, "sensor1");
 
 		// Set wave_queue attributes
-		wavefront_generator::time_maximum = 1.0; // sec
+		wavefront_generator::time_maximum =  7.0/2.0;     // reverb_duration/2
 		wavefront_generator::intensity_threshold = 150.0; //dB
 
 		// Update sensor data and run wave_queue.

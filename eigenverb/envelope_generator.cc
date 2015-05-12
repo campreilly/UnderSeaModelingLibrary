@@ -30,7 +30,8 @@ unique_ptr<const seq_vector> envelope_generator::_travel_time( new seq_linear(0.
  * this specific task.
  */
 envelope_generator::envelope_generator(
-		const seq_vector* transmit_freq,
+		const seq_vector* envelope_freq,
+		size_t src_freq_first,
 		const seq_vector* receiver_freq,
 		double reverb_duration,
 		double pulse_length,
@@ -44,11 +45,12 @@ envelope_generator::envelope_generator(
 	_ocean( ocean_shared::current() ),
 	_src_eigenverbs(src_eigenverbs),
 	_rcv_eigenverbs(rcv_eigenverbs),
-	_eigenverb_interpolator(transmit_freq,receiver_freq)
+	_eigenverb_interpolator(receiver_freq,envelope_freq)
 {
 	write_lock_guard guard(_property_mutex);
 	_envelopes = envelope_collection::reference( new envelope_collection(
-		transmit_freq,
+		envelope_freq,
+		src_freq_first,
 		_travel_time.get(),
 		reverb_duration,
 		pulse_length,
@@ -65,7 +67,7 @@ void envelope_generator::run() {
 
 	// create memory for work products
 
-    const seq_vector* freq = _envelopes->transmit_freq() ;
+    const seq_vector* freq = _envelopes->envelope_freq() ;
     size_t num_freq = freq->size() ;
     size_t num_src_beams = _envelopes->num_src_beams() ;
     size_t num_rcv_beams = _envelopes->num_rcv_beams() ;

@@ -19,7 +19,12 @@ class envelope_collection ; // forward declaration
  * Computes the reverberation envelope time series for a single combination of
  * receiver azimuth, source beam number, receiver beam number. The envelope is
  * stored as a matrix that represents the results a function of the
- * sensor_pair's transmit frequency (rows) and two-way travel time (columns).
+ * sensor_pair's envelope frequency (rows) and two-way travel time (columns).
+ *
+ * This implementation requires the receiver eigenverbs to be interpolated
+ * onto the envelope frequencies.  However, to save time, it assumes that
+ * the envelope frequencies are a subset of the source eigenverbs frequencies,
+ * so that no interpolation is required.
  *
  * There are no public methods in this class.  It just acts as a set of service
  * routines for the envelope_collection class.
@@ -37,17 +42,22 @@ private:
 	/**
 	 * Reserve the memory used to store the results of this calculation.
 	 *
-	 * @param transmit_freq	Frequencies at which the source and receiver
-	 * 						eigenverbs are computed (Hz).
-	 * @param travel_time	Times at which the sensor_pair's
-	 * 						reverberation envelopes are computed (Hz).
-	 * @param pulse_length	Duration of the transmitted pulse (sec).
-	 * 						Defines the temporal resolution of the envelope.
-	 * @param threshold		Minimum intensity level for valid reverberation
-	 * 						contributions (linear units).
+	 * @param envelope_freq		Frequencies at which the source and receiver
+	 * 							eigenverbs overlap (Hz).  Frequencies at which
+	 * 							envelope will be computed.
+	 * @param src_freq_first	Index of the first source frequency that
+	 * 							overlaps receiver (Hz).  Used to map
+	 * 							source eigenverbs onto envelope_freq values.
+	 * @param travel_time		Times at which the sensor_pair's
+	 * 							reverberation envelopes are computed (Hz).
+	 * @param pulse_length		Duration of the transmitted pulse (sec).
+	 * 							Defines the temporal resolution of the envelope.
+	 * @param threshold			Minimum intensity level for valid reverberation
+	 * 							contributions (linear units).
 	 */
 	envelope_model(
-		const seq_vector* transmit_freq,
+		const seq_vector* envelope_freq,
+		size_t src_freq_first,
 		const seq_vector* travel_time,
 		double pulse_length, double threshold
 	) ;
@@ -65,8 +75,10 @@ private:
 	 * has computed the scattering coefficient; which saves this
 	 * class from having to know anything about the ocean.
 	 *
-	 * @param src_verb		Eigenverb contribution from the source.
-	 * @param rcv_verb		Eigenverb contribution from the receiver.
+	 * @param src_verb		Eigenverb contribution from the source
+	 * 						at the original source frequencies.
+	 * @param rcv_verb		Eigenverb contribution from the receiver
+	 * 						interpolated onto the envelope frequencies.
 	 * @param scatter		Scattering strength coefficient for this
 	 * 						combination of eigenverbs (ratio).
 	 * @param xs2			Square of the relative distance from the
@@ -83,7 +95,7 @@ private:
 
 	/**
 	 * Reverberation intensity at each point the time series.
-	 * Each row represents a specific transmit frequency.
+	 * Each row represents a specific envelope frequency.
 	 * Each column represents a specific travel time.
 	 * Passing this back as a non-const reference allows it to be accessed
 	 * by a matrix_row<> proxy in the calling program.
@@ -100,11 +112,13 @@ private:
 	 * the bistatic reverberation contribution from eqn. (28) ans (29)
 	 * in the paper.  Computes the duration from eqn. (45) and (33).
 	 *
-	 * @param src_verb		Eigenverb contribution from the source.
-	 * @param rcv_verb		Eigenverb contribution from the receiver.
+	 * @param src_verb		Eigenverb contribution from the source,
+	 * 						at the original source frequencies.
+	 * @param rcv_verb		Eigenverb contribution from the receiver,
+	 * 						interpolated onto the envelope frequencies.
 	 * @param scatter		Scattering strength coefficient for this
 	 * 						combination of eigenverbs,
-	 * 						as a function of transmit frequency (ratio).
+	 * 						as a function of envelope frequency (ratio).
 	 * @param xs2			Square of the relative distance from the
 	 * 						receiver to the target along the direction
 	 * 						of the receiver's length.
@@ -127,16 +141,22 @@ private:
 	 * portion of the time series within +/- five (5) times the duration
 	 * of each pulse.
 	 *
-	 * @param src_verb		Eigenverb contribution from the source.
-	 * @param rcv_verb		Eigenverb contribution from the receiver.
+	 * @param src_verb_time		One way travel time for source eigenverb.
+	 * @param rcv_verb_time		One way travel time for receiver eigenverb.
 	 */
-	void compute_time_series(
-			const eigenverb& src_verb, const eigenverb& rcv_verb ) ;
+	void compute_time_series( double src_verb_time, double rcv_verb_time ) ;
 
 	/**
-	 * Frequencies at which the source and receiver eigenverbs are computed (Hz).
+	 * Frequencies at which the source and receiver eigenverbs overlap (Hz).
+	 * Frequencies at which envelope will be computed.
 	 */
-	const seq_vector* _transmit_freq ;
+	const seq_vector* _envelope_freq ;
+
+	/**
+	 * Index of the first source frequency that overlaps receiver (Hz).
+	 * Used to map source eigenverbs onto envelope_freq values.
+	 */
+	const size_t _src_freq_first ;
 
 	/**
 	 * Times at which the sensor_pair's reverberation envelopes
@@ -162,34 +182,22 @@ private:
 
 	/**
 	 * Reverberation intensity at each point the time series.
-	 * Each row represents a specific transmit frequency.
+	 * Each row represents a specific envelope frequency.
 	 * Each column represents a specific travel time.
 	 */
 	matrix< double > _intensity;
 
 	/**
 	 * Workspace for storing total energy of eigenverb overlap,
-	 * as a function of transmit frequency (linear units).
-	 * Making is a member variable prevents us from having to
-	 * rebuilt it for each calculation.
+	 * as a function of envelope frequency (linear units).
 	 */
 	vector<double> _energy ;
 
 	/**
 	 * Workspace for storing duration result of eigenverb overlap,
-	 * as a function of transmit frequency (sec).
-	 * Making is a member variable prevents us from having to
-	 * rebuilt it for each calculation.
+	 * as a function of envelope frequency (sec).
 	 */
 	vector<double> _duration ;
-
-	/**
-	 * Times in the form of a uBLAS vector.  This is used as the independent
-	 * variable during compute_time_series().
-	 * Making is a member variable prevents us from having to
-	 * rebuilt it for each calculation.
-	 */
-	vector<double> _time_vector ;
 
 	/**
 	 * Workspace for storing intensity as a function of time (linear units).

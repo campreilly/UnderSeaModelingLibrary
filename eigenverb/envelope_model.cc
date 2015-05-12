@@ -17,26 +17,21 @@ using namespace usml::eigenverb;
  * Reserve the memory used to store the results of this calculation.
  */
 envelope_model::envelope_model(
-	const seq_vector* transmit_freq,
+	const seq_vector* envelope_freq,
+	size_t src_freq_first,
 	const seq_vector* travel_time,
 	double pulse_length, double threshold
 ) :
-	_transmit_freq(transmit_freq),
+	_envelope_freq(envelope_freq),
+	_src_freq_first(src_freq_first),
 	_travel_time( travel_time->clone() ),
 	_pulse_length( pulse_length ),
 	_threshold( threshold * pulse_length ),
-	_intensity(transmit_freq->size(), travel_time->size()),
-	_energy(transmit_freq->size()),
-	_duration(transmit_freq->size()),
-	_time_vector( _travel_time->size() ),
+	_intensity(envelope_freq->size(), travel_time->size()),
+	_energy(envelope_freq->size()),
+	_duration(envelope_freq->size()),
 	_level(travel_time->size())
 {
-	// copy data from the _travel_time's unbounded_array
-	// to _time_vector's vector<double< as aa work around
-	// to a shortcoming in Boost 1.41
-
-	std::copy( _travel_time->data().begin(), _travel_time->data().end(),
-			_time_vector.begin()) ;
 }
 
 /**
@@ -57,7 +52,7 @@ bool envelope_model::compute_intensity(
 	bool ok = compute_overlap( src_verb, rcv_verb, scatter, xs2, ys2 );
 	if ( !ok ) return false ;
 
-	compute_time_series( src_verb, rcv_verb ) ;
+	compute_time_series( src_verb.time, rcv_verb.time ) ;
 	return true ;
 }
 
@@ -90,11 +85,22 @@ bool envelope_model::compute_overlap(
 // 		 << " cos2alpha=" << cos2alpha
 //		 << " sin2alpha=" << sin2alpha << endl ;
 
+	// define subset of frequency dependent terms in source
+    //
+    // Although the use of const_cast<> allows us to ignore the read-only
+    // nature of src_verb, we are *very careful* to not write anything to it.
+
+	range window( _src_freq_first, _src_freq_first + _envelope_freq->size() ) ;
+	eigenverb& verb = const_cast<eigenverb&>( src_verb ) ;
+	const vector_range< vector<double> > src_verb_length2( verb.length2, window ) ;
+	const vector_range< vector<double> > src_verb_width2( verb.width2, window ) ;
+	const vector_range< vector<double> > src_verb_energy( verb.energy, window ) ;
+
     // compute the intersection of the Gaussian profiles
 
-    vector<double> src_sum = src_verb.length2 + src_verb.width2 ;
-    vector<double> src_diff = src_verb.length2 - src_verb.width2 ;
-    vector<double> src_prod = src_verb.length2 * src_verb.width2 ;
+    vector<double> src_sum = src_verb_length2 + src_verb_width2 ;
+    vector<double> src_diff = src_verb_length2 - src_verb_width2 ;
+    vector<double> src_prod = src_verb_length2 * src_verb_width2 ;
 //    cout << "src_sum=" << src_sum
 // 		 << " src_diff=" << src_diff
 //		 << " src_prod=" << src_prod << endl ;
@@ -112,7 +118,7 @@ bool envelope_model::compute_overlap(
     vector<double> det_sr = 0.5 * ( 2.0 * ( src_prod + rcv_prod )
     		+ ( src_sum * rcv_sum ) - ( src_diff * rcv_diff ) * cos2alpha ) ;
     noalias(_energy) = element_div(
-    		TWO_PI * src_verb.energy * rcv_verb.energy * scatter,
+    		TWO_PI * src_verb_energy * rcv_verb.energy * scatter,
 			sqrt( det_sr ) ) ;
 //    cout << "det_sr=" << det_sr
 // 		 << " energy=" << _energy << endl ;
@@ -167,11 +173,11 @@ bool envelope_model::compute_overlap(
     // compute the duration of the overlap
 
     det_sr = element_div( det_sr, src_prod * rcv_prod ) ;
-	src_sum = 1.0 / src_verb.width2 + 1.0 / src_verb.length2 ;
-	src_diff = 1.0 / src_verb.width2 - 1.0 / src_verb.length2 ;
+	src_sum = 1.0 / src_verb_width2 + 1.0 / src_verb_length2 ;
+	src_diff = 1.0 / src_verb_width2 - 1.0 / src_verb_length2 ;
 	noalias(_duration) = 0.5 * element_div(
-			( 1.0 / src_verb.width2 + 1.0 / src_verb.length2 )
-			+ ( 1.0 / src_verb.width2 - 1.0 / src_verb.length2 ) * cos2alpha
+			( 1.0 / src_verb_width2 + 1.0 / src_verb_length2 )
+			+ ( 1.0 / src_verb_width2 - 1.0 / src_verb_length2 ) * cos2alpha
 			+ 2.0 / rcv_verb.width2,
 			det_sr ) ;
 //    cout << "det_sr=" << det_sr
@@ -197,20 +203,21 @@ bool envelope_model::compute_overlap(
  * total energy.
  */
 void envelope_model::compute_time_series(
-	const eigenverb& src_verb, const eigenverb& rcv_verb )
+		double src_verb_time, double rcv_verb_time )
 {
 	const double coeff = 1.0 / (4.0 * M_PI * sqrt(TWO_PI));
 	_intensity.clear() ;
-	for (size_t f = 0; f < _transmit_freq->size(); ++f) {
+
+	for ( size_t f = 0 ;f < _envelope_freq->size(); ++f ) {
 
 		// compute the peak time and intensity
 
-		double delay = src_verb.time + rcv_verb.time + _duration[f];
+		double delay = src_verb_time + rcv_verb_time + _duration[f];
 		double scale = _energy[f] * coeff / _duration[f];
 
 		// compute Gaussian intensity as a function of time
 		//
-		// TODO Test to see if using uBLAS vector proxies to limit computation is faster
+		// TODO Test to see if using uBLAS vector proxies to limit computation is faster (issue #189)
 
 		matrix_row< matrix<double> > intensity( _intensity, f ) ;
 
@@ -223,7 +230,7 @@ void envelope_model::compute_time_series(
 			size_t first = _travel_time->find_index(delay - 5.0 * _duration[f]);
 			size_t last = _travel_time->find_index(delay + 5.0 * _duration[f]) + 1;
 			range window(first, last);
-			vector_range< vector<double> > time(_time_vector, window);
+			vector_range< seq_vector > time(*_travel_time, window);
 			vector_range< vector<double> > level(_level, window);
 			level = scale * exp(-0.5 * abs2((time - delay) / _duration[f]));
 			intensity = _level ;
@@ -233,8 +240,8 @@ void envelope_model::compute_time_series(
 			// compute intensity at all times
 
 			intensity = scale * exp(-0.5 * abs2(
-					(_time_vector - delay) / _duration[f]));
-			cout << "f=" << f << " " << intensity << endl ;
+					(*_travel_time - delay) / _duration[f]));
+//			cout << "f=" << f << " " << intensity << endl ;
 		#endif
 	}
 }

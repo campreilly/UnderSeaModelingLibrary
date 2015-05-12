@@ -8,6 +8,8 @@
 #include <usml/waveq3d/waveq3d.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 #include <usml/eigenverb/envelope_collection.h>
+#include <usml/eigenverb/eigenverb_interpolator.h>
+#include <boost/numeric/ublas/vector_proxy.hpp>
 
 BOOST_AUTO_TEST_SUITE(eigenverb_test)
 
@@ -127,10 +129,6 @@ BOOST_AUTO_TEST_CASE( eigenverb_basic ) {
     	eigenverbs->write_netcdf( filename.str().c_str(),n) ;
     }
 
-    // compute the sound speed at the bottom for rofile->flat_earth(true) ;
-//    const double c_bottom = c0 * (wposition::earth_radius-depth)
-//    		/ wposition::earth_radius ;
-
     // test the accuracy of the eigenverb contributions
     // just tests downward facing rays to the bottom, along az=0
 
@@ -232,14 +230,17 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 
 	const seq_vector* travel_time = new seq_linear(0.0,0.1,400.0) ;
 	envelope_collection collection(
-		&freq,			// transmit_freq
-		travel_time,	// travel_time  ownership passed into envelope_collection
+		&freq,			// envelope_freq
+		0,				// src_freq_first
+		travel_time,	// travel_time, cloned by model
 		40.0,			// reverb_duration
 		1.0, 			// pulse_length
 		1e-30,			// threshold
 		1, 				// num_azimuths
 		1, 				// num_src_beams
 		1 ) ; 			// num_rcv_beams
+
+    delete travel_time;
 
 	vector<double> scatter( freq.size() ) ;
 	matrix<double> src_beam( freq.size(), 1 ) ;
@@ -272,6 +273,155 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 		- 10.0*log10(coeff * 0.5);
 	size_t index = 105 ;
 	for (size_t f = 0; f < freq.size(); ++f) {
+		double model = 10.0*log10(collection.envelope(0,0,0)(f,index));
+		cout << "theory=" << theory[f] << " model=" << model << endl;
+		BOOST_CHECK_CLOSE(theory[f], model, 1e-2);
+	}
+}
+
+/**
+ * Test the ability to compute source and receiver eigenverbs at different
+ * frequencies.  Similar to envelope_basic test except that:
+ *
+ * 		- source and receiver are at different frequencies
+ * 		- receiver is interpolated onto envelope frequency axis
+ * 		- result is limited to first two source frequencies
+ */
+BOOST_AUTO_TEST_CASE( envelope_interpolate ) {
+    cout << "=== eigenverb_test: envelope_interpolate ===" << endl;
+    const char* ncname = USML_TEST_DIR "/eigenverb/test/envelope_interpolate.nc";
+
+    // setup scenario for 30 deg D/E in 1000 meters of water
+
+    double angle = M_PI / 6.0 ;
+    double depth = 1000.0 ;
+    double range = sqrt(3) * depth / ( 1852.0 * 60.0 );
+
+	// build a simple source eigenverb
+
+	eigenverb src_verb ;
+	src_verb.time = 0.0 ;
+	src_verb.position = wposition1(range,0.0,-depth) ;
+	src_verb.direction = 0.0 ;
+	src_verb.grazing = angle ;
+	src_verb.sound_speed = c0 ;
+	src_verb.de_index = 0 ;
+	src_verb.az_index = 0 ;
+	src_verb.source_de = -angle ;
+	src_verb.source_az = 0.0 ;
+	src_verb.surface = 0 ;
+	src_verb.bottom = 0 ;
+	src_verb.caustic = 0 ;
+	src_verb.upper = 0 ;
+	src_verb.lower = 0 ;
+
+	seq_linear src_freq(1000.0,1000.0,3) ;
+	src_verb.frequencies = &src_freq ;
+	src_verb.energy = vector<double>( src_freq.size() ) ;
+	src_verb.length2 = vector<double>( src_freq.size() ) ;
+	src_verb.width2 = vector<double>( src_freq.size() ) ;
+	for ( size_t f=0 ; f < src_freq.size() ; ++f ) {
+		src_verb.energy[f] = 0.2 ;
+		src_verb.length2[f] = 400.0 + 10.0 * f ;
+		src_verb.width2[f] = 100.0 + 10.0 * f ;
+	}
+
+	// build a simple receiver eigenverb
+	// identical to src_verb except for frequency axis
+
+	eigenverb rcv_verb_original ;
+	rcv_verb_original.time = 0.0 ;
+	rcv_verb_original.position = wposition1(range,0.0,-depth) ;
+	rcv_verb_original.direction = 0.0 ;
+	rcv_verb_original.grazing = angle ;
+	rcv_verb_original.sound_speed = c0 ;
+	rcv_verb_original.de_index = 0 ;
+	rcv_verb_original.az_index = 0 ;
+	rcv_verb_original.source_de = -angle ;
+	rcv_verb_original.source_az = 0.0 ;
+	rcv_verb_original.surface = 0 ;
+	rcv_verb_original.bottom = 0 ;
+	rcv_verb_original.caustic = 0 ;
+	rcv_verb_original.upper = 0 ;
+	rcv_verb_original.lower = 0 ;
+
+	seq_linear rcv_freq(500.0,200.0,10) ;
+	rcv_verb_original.frequencies = &rcv_freq ;
+	rcv_verb_original.energy = vector<double>( rcv_freq.size() ) ;
+	rcv_verb_original.length2 = vector<double>( rcv_freq.size() ) ;
+	rcv_verb_original.width2 = vector<double>( rcv_freq.size() ) ;
+	for ( size_t f=0 ; f < rcv_freq.size() ; ++f ) {
+		rcv_verb_original.energy[f] = 0.2 ;
+		rcv_verb_original.length2[f] = 400.0 + 10.0 * ( rcv_freq[f] - 1000.0 ) / 1000.0 ;
+		rcv_verb_original.width2[f] = 100.0 + 10.0 * ( rcv_freq[f] - 1000.0 ) / 1000.0 ;
+	}
+
+	// interpolate rcv_verb_original onto frequency axis of envelope
+
+	seq_linear envelope_freq( 1000.0, 1000.0, 2 ) ;
+	eigenverb rcv_verb ;
+	rcv_verb.frequencies = &envelope_freq ;
+	rcv_verb.energy = vector<double>( envelope_freq.size() ) ;
+	rcv_verb.length2 = vector<double>( envelope_freq.size() ) ;
+	rcv_verb.width2 = vector<double>( envelope_freq.size() ) ;
+
+	eigenverb_interpolator interpolator( &rcv_freq,  &envelope_freq ) ;
+	interpolator.interpolate( rcv_verb_original, &rcv_verb ) ;
+
+	// construct an envelope_collection
+
+	const seq_vector* travel_time = new seq_linear(0.0,0.1,400.0) ;
+	envelope_collection collection(
+		&envelope_freq,			// envelope_freq
+		0,				// src_freq_first
+		travel_time,	// travel_time  ownership passed into envelope_collection
+		40.0,			// reverb_duration
+		1.0, 			// pulse_length
+		1e-30,			// threshold
+		1, 				// num_azimuths
+		1, 				// num_src_beams
+		1 ) ; 			// num_rcv_beams
+
+    delete travel_time;
+
+	vector<double> scatter( envelope_freq.size() ) ;
+	matrix<double> src_beam( envelope_freq.size(), 1 ) ;
+	matrix<double> rcv_beam( envelope_freq.size(), 1 ) ;
+	for ( size_t f=0 ; f < envelope_freq.size() ; ++f ) {
+		scatter[f] = 0.1 + 0.01 * f ;
+		src_beam(f,0) = 1.0 ;
+		rcv_beam(f,0) = 1.0 ;
+	}
+
+	// add contributions at t=10 and t=30 sec
+
+	src_verb.time = 5.0 ;
+	rcv_verb.time = 5.0 ;
+	collection.add_contribution( src_verb, rcv_verb,
+		src_beam, rcv_beam, scatter, 0.0, 0.0 ) ;
+
+	src_verb.time = 15.0 ;
+	rcv_verb.time = 15.0 ;
+	src_verb.energy *= 0.5 ;
+	rcv_verb.energy *= 0.5 ;
+	collection.add_contribution( src_verb, rcv_verb,
+			src_beam, rcv_beam, scatter, 0.0, 0.0 ) ;
+
+	collection.write_netcdf(ncname) ;
+
+	// compare total energy to analytic solution for monostatic result (eqn. 31).
+
+	const double coeff = 4.0 * M_PI * sqrt(TWO_PI) ;
+	boost::numeric::ublas::range window(0,2);
+	const vector_range< vector<double> > src_verb_length2( src_verb.length2, window ) ;
+	const vector_range< vector<double> > src_verb_width2( src_verb.width2, window ) ;
+
+	vector<double> theory = 10.0*log10( element_div(
+		M_PI * 0.2 * 0.2 * scatter,
+		sqrt(src_verb_length2 * src_verb_width2)))
+		- 10.0*log10(coeff * 0.5);
+	size_t index = 105 ;
+	for (size_t f = 0; f < envelope_freq.size(); ++f) {
 		double model = 10.0*log10(collection.envelope(0,0,0)(f,index));
 		cout << "theory=" << theory[f] << " model=" << model << endl;
 		BOOST_CHECK_CLOSE(theory[f], model, 1e-2);
