@@ -29,8 +29,8 @@ public:
      * is used to prevent multiple threads from simultaneously trying to
      * construct the singleton.
      *
-     * @xref 	Meyers, S., Alexandrescu, A.: C++ and the perils of
-     * 		 	double-checked locking. Dr. Dobbs Journal (July-August 2004)
+     * @xref     Meyers, S., Alexandrescu, A.: C++ and the perils of
+     *              double-checked locking. Dr. Dobbs Journal (July-August 2004)
      * @return  Reference to the thread_controller singleton.
      */
     static thread_pool* instance();

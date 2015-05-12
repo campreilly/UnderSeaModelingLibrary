@@ -10,10 +10,10 @@ namespace sensors {
 
 enum xmitRcvMode
 {
-	NONE = 0,
+    NONE = 0,
     RECEIVER = 1,
-	SOURCE = 2,
-	BOTH = 3
+    SOURCE = 2,
+    BOTH = 3
 };
 
 typedef xmitRcvMode xmitRcvModeType;

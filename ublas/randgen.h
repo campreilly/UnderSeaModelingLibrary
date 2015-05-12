@@ -63,7 +63,7 @@ namespace ublas {
 
         /** Gaussian random number generator with sigma = 1. */
         static USML_DECLSPEC boost::variate_generator< random_type, 
-    	    boost::normal_distribution<double> > gaussian_gen;
+            boost::normal_distribution<double> > gaussian_gen;
 
         //******************************************************************
         // Utility routines
@@ -72,8 +72,8 @@ namespace ublas {
          * Quickly fill a vector with random numbers.
          * Designed to handle both double and complex<double> vectors.
          *
-         * @param    result	Vector of random numbers.
-         * @param    rand	Random number generator.
+         * @param    result    Vector of random numbers.
+         * @param    rand    Random number generator.
          */
         template < class T, class Random >
         static inline void fill(vector< T > & result, Random & rand) {
@@ -89,8 +89,8 @@ namespace ublas {
          * Quickly fill a matrix with random numbers.
          * Designed to handle both double and complex<double> matrices.
          *
-         * @param    result	Matrix of random numbers.
-         * @param    rand	Random number generator.
+         * @param    result    Matrix of random numbers.
+         * @param    rand    Random number generator.
          */
         template < class T, class Random >
         static inline void fill(matrix< T > & result, Random & rand) {
@@ -116,7 +116,7 @@ namespace ublas {
          * This allows the system to re-create random signals from
          * run-to-run.
          *
-         * @param    value	New seed for the random number generator.
+         * @param    value    New seed for the random number generator.
          */
         static inline void seed(random_type::result_type value) {
             master_gen.seed(value);
@@ -141,7 +141,7 @@ namespace ublas {
         /**
          * Generate a vector of random numbers from a Uniform distribution.
          *
-         * @param    N		Length of the output vector.
+         * @param    N        Length of the output vector.
          */
         static inline vector<double> uniform(int N) {
             vector<double> result(N);
@@ -152,7 +152,7 @@ namespace ublas {
         /**
          * Generate a vector of random numbers from a Gaussian distribution.
          *
-         * @param    N		Length of the output vector.
+         * @param    N        Length of the output vector.
          */
         static inline vector<double> gaussian(int N) {
             vector<double> result(N);
@@ -164,7 +164,7 @@ namespace ublas {
          * Generate a vector of complex random numbers from a
          * Gaussian distribution.
          *
-         * @param    N		Length of the output vector.
+         * @param    N        Length of the output vector.
          */
         static inline vector< complex<double> > noise(int N) {
             vector< complex<double> > result(N);
@@ -178,8 +178,8 @@ namespace ublas {
         /**
          * Generate a matrix of random numbers from a Uniform distribution.
          *
-         * @param    N		Rows of the output matrix.
-         * @param    M		Columns of the output matrix.
+         * @param    N        Rows of the output matrix.
+         * @param    M        Columns of the output matrix.
          */
         static inline matrix<double> uniform(int N, int M) {
             matrix<double> result(N, M);
@@ -190,8 +190,8 @@ namespace ublas {
         /**
          * Generate a matrix of random numbers from a Gaussian distribution.
          *
-         * @param    N		Rows of the output matrix.
-         * @param    M		Columns of the output matrix.
+         * @param    N        Rows of the output matrix.
+         * @param    M        Columns of the output matrix.
          */
         static inline matrix<double> gaussian(int N, int M) {
             matrix<double> result(N, M);
@@ -203,8 +203,8 @@ namespace ublas {
          * Generate a matrix of complex random numbers from a
          * Gaussian distribution.
          *
-         * @param    N		Rows of the output matrix.
-         * @param    M		Columns of the output matrix.
+         * @param    N        Rows of the output matrix.
+         * @param    M        Columns of the output matrix.
          */
         static inline matrix< complex<double> > noise(int N, int M) {
             matrix< complex<double> > result(N, M);

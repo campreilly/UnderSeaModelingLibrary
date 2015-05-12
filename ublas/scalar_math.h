@@ -43,11 +43,11 @@ namespace ublas {
     struct scalar_max:
         public scalar_binary_functor<T1, T2> {
         typedef typename scalar_binary_functor<T1, T2>::argument1_type
-			 argument1_type;
+             argument1_type;
         typedef typename scalar_binary_functor<T1, T2>::argument2_type
-			 argument2_type;
+             argument2_type;
         typedef typename scalar_binary_functor<T1, T2>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument1_type t1, argument2_type t2) {
             return math_traits<result_type>::max(t1,t2) ;
@@ -62,11 +62,11 @@ namespace ublas {
     struct scalar_min:
         public scalar_binary_functor<T1, T2> {
         typedef typename scalar_binary_functor<T1, T2>::argument1_type
-			 argument1_type;
+             argument1_type;
         typedef typename scalar_binary_functor<T1, T2>::argument2_type
-			 argument2_type;
+             argument2_type;
         typedef typename scalar_binary_functor<T1, T2>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument1_type t1, argument2_type t2) {
             return math_traits<result_type>::min(t1,t2) ;
@@ -114,9 +114,9 @@ namespace ublas {
     struct scalar_to_degrees:
         public scalar_real_unary_functor<T> {
         typedef typename scalar_real_unary_functor<T>::argument_type
-			 argument_type;
+             argument_type;
         typedef typename scalar_real_unary_functor<T>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument_type t) {
             return math_traits<result_type>::to_degrees(t);
@@ -131,9 +131,9 @@ namespace ublas {
     struct scalar_to_radians:
         public scalar_real_unary_functor<T> {
         typedef typename scalar_real_unary_functor<T>::argument_type
-			 argument_type;
+             argument_type;
         typedef typename scalar_real_unary_functor<T>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument_type t) {
             return math_traits<result_type>::to_radians(t);
@@ -149,9 +149,9 @@ namespace ublas {
     struct scalar_to_latitude:
         public scalar_real_unary_functor<T> {
         typedef typename scalar_real_unary_functor<T>::argument_type
-			 argument_type;
+             argument_type;
         typedef typename scalar_real_unary_functor<T>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument_type t) {
             return math_traits<result_type>::to_latitude(t);
@@ -167,9 +167,9 @@ namespace ublas {
     struct scalar_to_colatitude:
         public scalar_real_unary_functor<T> {
         typedef typename scalar_real_unary_functor<T>::argument_type
-			 argument_type;
+             argument_type;
         typedef typename scalar_real_unary_functor<T>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument_type t) {
             return math_traits<result_type>::to_colatitude(t);
@@ -187,9 +187,9 @@ namespace ublas {
     struct scalar_abs:
         public scalar_real_unary_functor<T> {
         typedef typename scalar_real_unary_functor<T>::argument_type
-			 argument_type;
+             argument_type;
         typedef typename scalar_real_unary_functor<T>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument_type t) {
             return math_traits<result_type>::abs(t);
@@ -204,9 +204,9 @@ namespace ublas {
     struct scalar_abs2:
         public scalar_real_unary_functor<T> {
         typedef typename scalar_real_unary_functor<T>::argument_type
-			 argument_type;
+             argument_type;
         typedef typename scalar_real_unary_functor<T>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument_type t) {
             return math_traits<result_type>::abs2(t);
@@ -221,9 +221,9 @@ namespace ublas {
     struct scalar_arg:
         public scalar_real_unary_functor<T> {
         typedef typename scalar_real_unary_functor<T>::argument_type
-			 argument_type;
+             argument_type;
         typedef typename scalar_real_unary_functor<T>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument_type t) {
             return math_traits<result_type>::arg(t);
@@ -253,11 +253,11 @@ namespace ublas {
     struct scalar_copysign:
         public scalar_binary_functor<T1, T2> {
         typedef typename scalar_binary_functor<T1, T2>::argument1_type
-			 argument1_type;
+             argument1_type;
         typedef typename scalar_binary_functor<T1, T2>::argument2_type
-			 argument2_type;
+             argument2_type;
         typedef typename scalar_binary_functor<T1, T2>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument1_type t1, argument2_type t2) {
             return math_traits<result_type>::copysign(t1,t2) ;
@@ -525,11 +525,11 @@ namespace ublas {
     struct scalar_pow:
         public scalar_binary_functor<T1, T2> {
         typedef typename scalar_binary_functor<T1, T2>::argument1_type
-			 argument1_type;
+             argument1_type;
         typedef typename scalar_binary_functor<T1, T2>::argument2_type
-			 argument2_type;
+             argument2_type;
         typedef typename scalar_binary_functor<T1, T2>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument1_type t1, argument2_type t2) {
             return math_traits<result_type>::pow(t1,t2) ;
@@ -548,9 +548,9 @@ namespace ublas {
     struct scalar_signal:
         public scalar_real_unary_functor<T> {
         typedef typename scalar_real_unary_functor<T>::argument_type
-			 argument_type;
+             argument_type;
         typedef typename scalar_real_unary_functor<T>::result_type
-			 result_type;
+             result_type;
 
         static inline result_type apply(argument_type t) {
             return math_traits<result_type>::sin(t);
@@ -569,7 +569,7 @@ namespace ublas {
 
         static inline result_type apply(argument_type t) {
             return result_type( math_traits<T>::sin(t),
-			        math_traits<T>::cos(t) ) ;
+                    math_traits<T>::cos(t) ) ;
         }
     };
 

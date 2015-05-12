@@ -32,15 +32,15 @@ class USML_DECLSPEC wavefront_listener
 {
 public:
 
-	/**
-	 * Destructor.
-	 */
+    /**
+     * Destructor.
+     */
     virtual ~wavefront_listener() {}
 
-	/**
-	 * Pure virtual method to update the eigenrays for the object that implements it.
-	 *  @param  eigenrays - Shared pointer to a eigenray_collection object which contains eigenrays.
-	 */
+    /**
+     * Pure virtual method to update the eigenrays for the object that implements it.
+     *  @param  eigenrays - Shared pointer to a eigenray_collection object which contains eigenrays.
+     */
     virtual void update_eigenrays(eigenray_collection::reference& eigenrays) = 0;
 
     /**
@@ -48,20 +48,20 @@ public:
      *  @param  eigenverbs - Shared pointer to a eigenverb_collection object which contains eigenverbs.
      */
     virtual void update_eigenverbs(eigenverb_collection::reference& eigenverbs) = 0;
-	
+    
 protected:
 
-	/**
-	 * Constructor - protected
-	 */
+    /**
+     * Constructor - protected
+     */
     wavefront_listener() {}
 
 private:
 
-	// -------------------------
-	// Disabling default copy constructor and default
-	// assignment operator.
-	// -------------------------
+    // -------------------------
+    // Disabling default copy constructor and default
+    // assignment operator.
+    // -------------------------
     wavefront_listener(const wavefront_listener& yRef);
     wavefront_listener& operator=( const wavefront_listener& yRef );
 

@@ -44,11 +44,11 @@ public:
      * Constructs a matrix of wpositions. Initializes each wposition to
      * the surface of the earth at a latitude/longitude of (0,0).
      *
-     * @param  rows     	Number of rows
-     * @param  cols     	Number of columns
-     * @param  latitude		Initial latitude
-     * @param  longitude	Initial longitude
-     * @param  altitude		Initial altitude
+     * @param  rows         Number of rows
+     * @param  cols         Number of columns
+     * @param  latitude        Initial latitude
+     * @param  longitude    Initial longitude
+     * @param  altitude        Initial altitude
      */
     wposition(size_t rows = 1, size_t cols = 1, double latitude = 0.0,
             double longitude = 0.0, double altitude = 0.0);
@@ -57,7 +57,7 @@ public:
      * Constructs a new wposition as a copy of an existing wposition.
      * Accepts either an actual wposition, or one of its superclasses.
      *
-     * @param  other		wposition to be copied.
+     * @param  other        wposition to be copied.
      */
     wposition(const wvector & other) :
         wvector(other)
@@ -70,9 +70,9 @@ public:
      * of the mesh corresponds to a single longitude from the input list.
      * A common altitude is copied to every point in the mesh.
      *
-     * @param  latitude		List of latitudes
-     * @param  longitude	List of longitudes
-     * @param  altitude		Initial altitude
+     * @param  latitude        List of latitudes
+     * @param  longitude    List of longitudes
+     * @param  altitude        Initial altitude
      */
     template<class E1, class E2> inline wposition(
             const vector_expression<E1>& latitude,
@@ -115,7 +115,7 @@ public:
      * </pre>
      * Results are stored in the earth_radius static variable.
      *
-     * @param latitude		Latitude component in degrees.
+     * @param latitude        Latitude component in degrees.
      *
      * @xref J. G. Dworski, J. A. Mercer, "Hamiltonian 3-D Ray Tracing
      * in the Oceanic Waveguide on the Ellipsoidal Earth", ARL-UW TR8929
@@ -130,7 +130,7 @@ public:
      * Retrieves the altitude above the mean sea level.
      * Acts as a convenient transformation of the "Rho" property.
      *
-     * @return			Altitude in meters returned as a reference to
+     * @return            Altitude in meters returned as a reference to
      *                  a temporary varible.  The calling routine should
      *                  make a copy of this as soon as possible.
      */
@@ -143,7 +143,7 @@ public:
      * Defines the altitude above the mean sea level.
      * Acts as a convenient transformation of the "Rho" property.
      *
-     * @param  altitude	Altitude in meters.
+     * @param  altitude    Altitude in meters.
      * @param  no_alias Use uBLAS noalias() assignment speed-up if true.
      */
     template<class E> inline
@@ -156,9 +156,9 @@ public:
      * Retrieves ia single altitude above the mean sea level.
      * Acts as a convenient transformation of the "Rho" property.
      *
-     * @param  row		Row index of the element to access.
-     * @param  col		Column index of the element to access.
-     * @return			Altitude in meters.
+     * @param  row        Row index of the element to access.
+     * @param  col        Column index of the element to access.
+     * @return            Altitude in meters.
      */
     inline double altitude(size_t row, size_t col) const
     {
@@ -169,9 +169,9 @@ public:
      * Defines a single altitude above the mean sea level.
      * Acts as a convenient transformation of the "Rho" property.
      *
-     * @param  row      	Row index of the element to access.
-     * @param  col      	Column index of the element to access.
-     * @param  altitude 	Altitude in meters.
+     * @param  row          Row index of the element to access.
+     * @param  col          Column index of the element to access.
+     * @param  altitude     Altitude in meters.
      */
     inline void altitude(size_t row, size_t col, double altitude)
     {
@@ -198,7 +198,7 @@ public:
      * Defines the latitude component of geodetic earth coordinates.
      * Acts as a convenient transformation of the "Theta" property.
      *
-     * @param  latitude	Latitude component in degrees.
+     * @param  latitude    Latitude component in degrees.
      * @param  no_alias Use uBLAS noalias() assignment speed-up if true.
      */
     template<class E> inline
@@ -211,8 +211,8 @@ public:
      * Retrieves a single latitude component of geodetic earth coordinates.
      * Acts as a convenient transformation of the "Theta" property.
      *
-     * @param  row      	Row index of the element to access.
-     * @param  col      	Column index of the element to access.
+     * @param  row          Row index of the element to access.
+     * @param  col          Column index of the element to access.
      * @return              Latitude component in degrees.
      */
     inline double latitude(size_t row, size_t col) const
@@ -224,9 +224,9 @@ public:
      * Defines a single latitude component of geodetic earth coordinates.
      * Acts as a convenient transformation of the "Theta" property.
      *
-     * @param  row      	Row index of the element to access.
-     * @param  col      	Column index of the element to access.
-     * @param  latitude		Latitude component in degrees.
+     * @param  row          Row index of the element to access.
+     * @param  col          Column index of the element to access.
+     * @param  latitude        Latitude component in degrees.
      */
     inline void latitude(size_t row, size_t col, double latitude)
     {
@@ -240,7 +240,7 @@ public:
      * Retrieves the longitude component of geodetic earth coordinates.
      * Acts as a convenient transformation of the "theta" property.
      *
-     * @return			Longitude component in degrees returned as a reference
+     * @return            Longitude component in degrees returned as a reference
      *                  to a temporary varible.  The calling routine should
      *                  make a copy of this as soon as possible.
      */
@@ -253,7 +253,7 @@ public:
      * Defines the longitude component of geodetic earth coordinates.
      * Acts as a convenient transformation of the "theta" property.
      *
-     * @param  longitude	Longitude component in degrees.
+     * @param  longitude    Longitude component in degrees.
      * @param  no_alias     Use uBLAS noalias() assignment speed-up if true.
      */
     template<class E> inline
@@ -266,9 +266,9 @@ public:
      * Retrieves a single longitude component of geodetic earth coordinates.
      * Acts as a convenient transformation of the "theta" property.
      *
-     * @param  row      	Row index of the element to access.
-     * @param  col      	Column index of the element to access.
-     * @return          	Longitude component in degrees.
+     * @param  row          Row index of the element to access.
+     * @param  col          Column index of the element to access.
+     * @return              Longitude component in degrees.
      */
     inline double longitude(size_t row, size_t col) const
     {
@@ -279,8 +279,8 @@ public:
      * Defines a single longitude component of geodetic earth coordinates.
      * Acts as a convenient transformation of the "theta" property.
      *
-     * @param  row      	Row index of the element to access.
-     * @param  col      	Column index of the element to access.
+     * @param  row          Row index of the element to access.
+     * @param  col          Column index of the element to access.
      * @param  longitude        Longitude component in degrees.
      */
     inline void longitude(size_t row, size_t col, double longitude)

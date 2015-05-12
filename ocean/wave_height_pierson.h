@@ -20,9 +20,9 @@ namespace ocean {
  * This is the concept is called a fully developed sea.
  *
  * \f[
- *   	H_{1/3} \approx 0.22 \frac{ U_{10}^2 }{g}
+ *       H_{1/3} \approx 0.22 \frac{ U_{10}^2 }{g}
  *
- *   	H_{rms} = \frac{1}{4} H_{1/3} \approx 0.0056 \: U_{10}^2
+ *       H_{rms} = \frac{1}{4} H_{1/3} \approx 0.0056 \: U_{10}^2
  * \f]
  * where
  * \f$ U_{10} \f$ = average wind speed measured at 10 meters above water (m/s),
@@ -41,10 +41,10 @@ namespace ocean {
  * http://www.wikiwaves.org/Ocean-Wave_Spectra .
  *
  * @param  wind_speed   Average wind speed at height of 10 m above surface (m/s).
- * @return 				RMS wave height (m).
+ * @return                 RMS wave height (m).
  */
 template<class T> T wave_height_pierson(T wind_speed) {
-	return (0.22 / 9.8 / 4) * wind_speed * wind_speed;
+    return (0.22 / 9.8 / 4) * wind_speed * wind_speed;
 }
 
 /// @}

@@ -44,7 +44,7 @@ class USML_DECLSPEC spreading_model {
          */
         spreading_model( wave_queue& wave, size_t num_freqs ) :
             _wave(wave), _spread(num_freqs),
-			_init_area(wave.num_de(), wave.num_az())
+            _init_area(wave.num_de(), wave.num_az())
         {}
 
         /**
@@ -96,7 +96,7 @@ class USML_DECLSPEC spreading_model {
          * @param   az          AZ index of contributing cell.
          */
         double init_area( size_t de, size_t az ) {
-        	return _init_area(de,az) ;
+            return _init_area(de,az) ;
         }
 } ;
 

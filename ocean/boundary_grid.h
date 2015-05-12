@@ -99,8 +99,8 @@ public:
                     element_div( -t, sqrt(1.0+abs2(t)) ));
                 normal->phi(
                     element_div( -p, sqrt(1.0+abs2(p)) ));
-                normal->rho(sqrt(           	// r=sqrt(1-t^2-p^2)
-                		1.0 - abs2(normal->theta()) - abs2(normal->phi()) ));
+                normal->rho(sqrt(               // r=sqrt(1-t^2-p^2)
+                        1.0 - abs2(normal->theta()) - abs2(normal->phi()) ));
             } else {
                 this->_height->interpolate(location.theta(), location.phi(),
                     rho);
@@ -143,7 +143,7 @@ public:
                 normal->theta(-t / sqrt(1.0 + t * t));  // normal = -sin(angle)
                 normal->phi(0.0);
                 const double N = normal->theta() * normal->theta() ;
-                normal->rho( sqrt(1.0-N) );				// r=sqrt(1-t^2)
+                normal->rho( sqrt(1.0-N) );                // r=sqrt(1-t^2)
             } else {
                 double theta = location.theta();
                 *rho = this->_height->interpolate(&theta);
@@ -171,7 +171,7 @@ public:
                 normal->phi(-p / sqrt(1.0 + p * p));
                 const double N = normal->theta() * normal->theta()
                                + normal->phi()  * normal->phi();
-                normal->rho( sqrt(1.0-N) );				// r=sqrt(1-t^2-p^2)
+                normal->rho( sqrt(1.0-N) );                // r=sqrt(1-t^2-p^2)
             } else {
                 double loc[2] = { location.theta(), location.phi() };
                 *rho = this->_height->interpolate(loc);

@@ -43,10 +43,10 @@ public:
         const matrix<double>& distance,
         matrix< vector<double> >* attenuation ) = 0 ;
 
-	/**
-	 * Virtual destructor
-	 */
-	virtual ~attenuation_model() {}
+    /**
+     * Virtual destructor
+     */
+    virtual ~attenuation_model() {}
 } ;
 
 /// @}

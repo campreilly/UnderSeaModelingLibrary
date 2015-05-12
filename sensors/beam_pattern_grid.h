@@ -101,38 +101,38 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                 /**
                  * 2-D gridded beam levels
                  */
-				case 2:
-					{
-						value_type location[2] ;
-						double de_prime = 0 ;
-						double dummy = 0 ;
-						orient.apply_rotation( de, az, &de_prime, &dummy ) ;
-						location[1] = de_prime ;
-						for (size_type i = 0; i < num_freq; ++i) {
-							location[0] = frequencies[i] ;
-							tmp[i] = this->interpolate(location) ;
-						}
-						noalias(*level) = tmp ;
-					}
+                case 2:
+                    {
+                        value_type location[2] ;
+                        double de_prime = 0 ;
+                        double dummy = 0 ;
+                        orient.apply_rotation( de, az, &de_prime, &dummy ) ;
+                        location[1] = de_prime ;
+                        for (size_type i = 0; i < num_freq; ++i) {
+                            location[0] = frequencies[i] ;
+                            tmp[i] = this->interpolate(location) ;
+                        }
+                        noalias(*level) = tmp ;
+                    }
                     break ;
 
                 /**
                  * 3-D gridded beam levels
                  */
-				case 3:
-					{
-						value_type location[3] ;
+                case 3:
+                    {
+                        value_type location[3] ;
                         double de_prime = 0 ;
                         double az_prime = 0 ;
                         orient.apply_rotation( de, az, &de_prime, &az_prime ) ;
-						location[1] = de_prime ;
-						location[2] = az_prime ;
-						for (size_type i = 0; i < num_freq; ++i) {
-							location[0] = frequencies[i] ;
-							tmp[i] = this->interpolate(location) ;
-						}
-						noalias(*level) = tmp ;
-					}
+                        location[1] = de_prime ;
+                        location[2] = az_prime ;
+                        for (size_type i = 0; i < num_freq; ++i) {
+                            location[0] = frequencies[i] ;
+                            tmp[i] = this->interpolate(location) ;
+                        }
+                        noalias(*level) = tmp ;
+                    }
                     break ;
 
                 /**

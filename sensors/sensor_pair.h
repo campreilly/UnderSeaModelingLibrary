@@ -35,8 +35,8 @@ public:
      * Construct from references to source and receiver.
      * The source and receiver will be equal for monostatic sensors.
      *
-     * @param	source		Pointer to the source for this pair.
-     * @param	receiver	Pointer to the receiver for this pair.
+     * @param    source        Pointer to the source for this pair.
+     * @param    receiver    Pointer to the receiver for this pair.
      */
     sensor_pair(sensor_model* source, sensor_model* receiver)
         : _source(source), _receiver(receiver)
@@ -81,37 +81,37 @@ public:
         return _frequencies;
     }
 
-	/**
-	 * Bistatic sensor_pairs are those for which the source and receiver
-	 * are different.  Set to false for monostatic sensors.
-	 */
-	bool multistatic() const {
-		return _source != _receiver ;
-	}
+    /**
+     * Bistatic sensor_pairs are those for which the source and receiver
+     * are different.  Set to false for monostatic sensors.
+     */
+    bool multistatic() const {
+        return _source != _receiver ;
+    }
 
-	/**
-	 * Notification that new fathometer data is ready.
-	 *
-	 * @param  sensorID     The ID of the sensor that issued the notification.
+    /**
+     * Notification that new fathometer data is ready.
+     *
+     * @param  sensorID     The ID of the sensor that issued the notification.
      * @param  list         Pointer std::list of eigenrays.
-	 */
-	virtual void update_fathometer(sensor_model::id_type sensorID, eigenray_list* list) ;
+     */
+    virtual void update_fathometer(sensor_model::id_type sensorID, eigenray_list* list) ;
 
-	/**
-	 * Notification that new eigenverb data is ready.
-	 *
-	 * @param	sensor	Pointer to sensor that issued the notification.
-	 */
-	virtual void update_eigenverbs(sensor_model* sensor) ;
+    /**
+     * Notification that new eigenverb data is ready.
+     *
+     * @param    sensor    Pointer to sensor that issued the notification.
+     */
+    virtual void update_eigenverbs(sensor_model* sensor) ;
 
-	/**
-	 * Queries for the sensor pair complements of this sensor.
-	 * @param	sensor	Const sensor_model pointer Sensor that requested the complement.
+    /**
+     * Queries for the sensor pair complements of this sensor.
+     * @param    sensor    Const sensor_model pointer Sensor that requested the complement.
      * @return  Pointer to the complement sensor of the pair.
-	 */
-	virtual const sensor_model* sensor_complement(const sensor_model* sensor) const ;
+     */
+    virtual const sensor_model* sensor_complement(const sensor_model* sensor) const ;
 
-	/**
+    /**
      * Gets the shared_ptr to last fathometer update for this sensor_pair.
      * @return  fathometer_model shared_ptr
      */
@@ -178,40 +178,40 @@ private:
      */
     fathometer_model::reference _fathometer;
 
-	/**
-	 * Mutex that locks sensor_pair during fathometer updates.
-	 */
-	mutable read_write_lock _fathometer_mutex ;
+    /**
+     * Mutex that locks sensor_pair during fathometer updates.
+     */
+    mutable read_write_lock _fathometer_mutex ;
 
     /**
      * Interface collisions for wavefront emanating from the source.
      */
     eigenverb_collection::reference _src_eigenverbs;
 
-	/**
-	 * Mutex to that locks sensor_pair during source eigenverb updates.
-	 */
-	mutable read_write_lock _src_eigenverbs_mutex ;
+    /**
+     * Mutex to that locks sensor_pair during source eigenverb updates.
+     */
+    mutable read_write_lock _src_eigenverbs_mutex ;
 
     /**
      * Interface collisions for wavefront emanating from the receiver.
      */
     eigenverb_collection::reference _rcv_eigenverbs;
 
-	/**
-	 * Mutex to that locks sensor_pair during receiver eigenverb updates.
-	 */
-	mutable read_write_lock _rcv_eigenverbs_mutex ;
+    /**
+     * Mutex to that locks sensor_pair during receiver eigenverb updates.
+     */
+    mutable read_write_lock _rcv_eigenverbs_mutex ;
 
     /**
      * envelopes - contains the Reverb envelopes
      */
     envelope_collection::reference _envelopes;
 
-	/**
-	 * Mutex to that locks sensor_pair during _envelope updates.
-	 */
-	mutable read_write_lock _envelopes_mutex ;
+    /**
+     * Mutex to that locks sensor_pair during _envelope updates.
+     */
+    mutable read_write_lock _envelopes_mutex ;
 
 };
 

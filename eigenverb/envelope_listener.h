@@ -23,30 +23,30 @@ using namespace usml::threads;
 class USML_DECLSPEC envelope_listener {
 public:
 
-	/**
-	 * Destructor.
-	 */
-	virtual ~envelope_listener() {
-	}
+    /**
+     * Destructor.
+     */
+    virtual ~envelope_listener() {
+    }
 
-	/**
-	 * Pure virtual method to update the envelopes for the object that implements it.
-	 *  @param  envelopes - Shared pointer to a envelope_collection object which contains envelopes.
-	 */
-	virtual void update_envelopes(
-			envelope_collection::reference& envelopes) = 0;
+    /**
+     * Pure virtual method to update the envelopes for the object that implements it.
+     *  @param  envelopes - Shared pointer to a envelope_collection object which contains envelopes.
+     */
+    virtual void update_envelopes(
+            envelope_collection::reference& envelopes) = 0;
 
 protected:
 
-	/**
-	 * Constructor - protected
-	 */
-	envelope_listener() {
-	}
+    /**
+     * Constructor - protected
+     */
+    envelope_listener() {
+    }
 
 private:
 
-	// -------------------------
+    // -------------------------
     // Disabling default copy constructor and default
     // assignment operator.
     // -------------------------

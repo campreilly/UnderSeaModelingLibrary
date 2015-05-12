@@ -25,9 +25,9 @@ class USML_DECLSPEC boundary_lock : public boundary_model {
    private:
 
         /** Mutex's to prevent simultaneous access/update by multiple threads. */
-		boost::mutex* _heightMutex ;
-		boost::mutex* _reflect_lossMutex ;
-		/** The "has a" object to prevent simultaneous access */
+        boost::mutex* _heightMutex ;
+        boost::mutex* _reflect_lossMutex ;
+        /** The "has a" object to prevent simultaneous access */
         boundary_model* _other;
 
     public:
@@ -53,7 +53,7 @@ class USML_DECLSPEC boundary_lock : public boundary_model {
          * @param quick_interp  Determines if you want a fast nearest or pchip interp
          */
         virtual void height( const wposition& location, matrix<double>* rho,
-        		wvector* normal=NULL, bool quick_interp=false )
+                wvector* normal=NULL, bool quick_interp=false )
         {
             // Locks mutex then unlocks on method exit
             // Avoids try/catch on _other->height call
@@ -72,7 +72,7 @@ class USML_DECLSPEC boundary_lock : public boundary_model {
          * @param quick_interp  Determines if you want a fast nearest or pchip interp
          */
         virtual void height( const wposition1& location, double* rho,
-        		wvector1* normal=NULL, bool quick_interp=false )
+                wvector1* normal=NULL, bool quick_interp=false )
         {
             // Locks mutex then unlocks on method exit
             boost::lock_guard<boost::mutex> heightLock(*_heightMutex);

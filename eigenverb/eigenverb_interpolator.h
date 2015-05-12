@@ -23,35 +23,35 @@ using namespace usml::types ;
 class USML_DECLSPEC eigenverb_interpolator {
 public:
 
-	/**
-	 * Construct interpolating data_grid objects on original frequency scale.
-	 *
-	 * @param freq 		Original frequency axis for eigenverbs.
-	 * @param new_freq	Frequency axis for new eigenverb.
-	 */
-	eigenverb_interpolator( const seq_vector* freq, const seq_vector* new_freq) ;
+    /**
+     * Construct interpolating data_grid objects on original frequency scale.
+     *
+     * @param freq         Original frequency axis for eigenverbs.
+     * @param new_freq    Frequency axis for new eigenverb.
+     */
+    eigenverb_interpolator( const seq_vector* freq, const seq_vector* new_freq) ;
 
-	/**
-	 * Destroy interpolating data_grid objects.
-	 */
-	~eigenverb_interpolator() ;
+    /**
+     * Destroy interpolating data_grid objects.
+     */
+    ~eigenverb_interpolator() ;
 
-	/**
-	 * Interpolate frequency dependent terms onto a new frequency axis.
-	 * Assumes that the calling routine had setup working space
-	 * for the Eigenverb after interpolation, and that this working
-	 *
-	 * @param verb 		Eigenverb to be interpolated.
-	 * @param new_verb 	Eigenverb after interpolation.
-	 */
-	void interpolate( const eigenverb& verb, eigenverb* new_verb ) ;
+    /**
+     * Interpolate frequency dependent terms onto a new frequency axis.
+     * Assumes that the calling routine had setup working space
+     * for the Eigenverb after interpolation, and that this working
+     *
+     * @param verb         Eigenverb to be interpolated.
+     * @param new_verb     Eigenverb after interpolation.
+     */
+    void interpolate( const eigenverb& verb, eigenverb* new_verb ) ;
 
 private:
-	size_t _freq_size ;
-	const seq_vector* _new_freq ;
-	data_grid<double,1>* _energy_interp ;
-	data_grid<double,1>*_length2_interp ;
-	data_grid<double,1>*_width2_interp ;
+    size_t _freq_size ;
+    const seq_vector* _new_freq ;
+    data_grid<double,1>* _energy_interp ;
+    data_grid<double,1>*_length2_interp ;
+    data_grid<double,1>*_width2_interp ;
 };
 
 /// @}

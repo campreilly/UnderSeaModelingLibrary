@@ -22,80 +22,80 @@ namespace eigenverb {
  *    - index=0 is eigenverbs for the bottom.
  *    - index=1 is eigenverbs for the surface.
  *    - index=2 is for the upper interface of the first
- *    	volume scattering layer, if it exists.
+ *        volume scattering layer, if it exists.
  *    - index=3 is for the lower interface of the first
- *    	volume scattering layer, if it exists.
+ *        volume scattering layer, if it exists.
  *    - Subsequent columns provide the upper and lower
- *    	interfaces for additional volume scattering layers.
+ *        interfaces for additional volume scattering layers.
  */
 class USML_DECLSPEC eigenverb_collection : public eigenverb_listener {
 
 public:
 
-	/**
-	 * Shared pointer reference to an eigenverb _collection.
-	 */
-	typedef boost::shared_ptr<eigenverb_collection> reference;
+    /**
+     * Shared pointer reference to an eigenverb _collection.
+     */
+    typedef boost::shared_ptr<eigenverb_collection> reference;
 
-	/**
-	 * Construct a collection for a specific scenario.  Creates a minimum
-	 * of interfaces (index 0=bottom, 1=surface), plus two for each
-	 * volume scattering layer.
-	 *
-	 * @param num_volumes	Number of volume scattering layers in the ocean.
-	 */
-	eigenverb_collection(size_t num_volumes) :
-			_collection((1 + num_volumes) * 2) {
-	}
+    /**
+     * Construct a collection for a specific scenario.  Creates a minimum
+     * of interfaces (index 0=bottom, 1=surface), plus two for each
+     * volume scattering layer.
+     *
+     * @param num_volumes    Number of volume scattering layers in the ocean.
+     */
+    eigenverb_collection(size_t num_volumes) :
+            _collection((1 + num_volumes) * 2) {
+    }
 
-	/*
-	 * Virtual destructor
-	 */
-	virtual ~eigenverb_collection() {
-	}
+    /*
+     * Virtual destructor
+     */
+    virtual ~eigenverb_collection() {
+    }
 
-	/**
-	 * Number of interfaces in this collection.
-	 */
-	size_t num_interfaces() const {
-		return _collection.size();
-	}
+    /**
+     * Number of interfaces in this collection.
+     */
+    size_t num_interfaces() const {
+        return _collection.size();
+    }
 
-	/**
-	 * Provides access to eigenverbs for a specific combination
-	 * of azimuth and interface.
-	 *
-	 * @param interface	Interface number of the desired list of eigenverbs.
-	 * 					See the class header for documentation on interpreting
-	 * 					this number.  For some layers, you can also use the
-	 * 					eigenverb::interface_type.
-	 */
-	const eigenverb_list& eigenverbs(size_t interface) const {
-		return _collection[interface];
-	}
+    /**
+     * Provides access to eigenverbs for a specific combination
+     * of azimuth and interface.
+     *
+     * @param interface    Interface number of the desired list of eigenverbs.
+     *                     See the class header for documentation on interpreting
+     *                     this number.  For some layers, you can also use the
+     *                     eigenverb::interface_type.
+     */
+    const eigenverb_list& eigenverbs(size_t interface) const {
+        return _collection[interface];
+    }
 
-	/**
-	 * Adds a new eigenverb to this collection.  Make a copy of the new
-	 * contribution and stores the copy in its collection.
-	 *
-	 * @param verb      Eigenverb to add to the eigenverb_collection.
-	 * @param interface	Interface number of the desired list of eigenverbs.
-	 * 					See the class header for documentation on interpreting
-	 * 					this number. For some layers, you can also use the
-	 * 					eigenverb::interface_type.
-	 */
-	void add_eigenverb(const eigenverb& verb, size_t interface) {
-		_collection[interface].push_back(verb);
-	}
+    /**
+     * Adds a new eigenverb to this collection.  Make a copy of the new
+     * contribution and stores the copy in its collection.
+     *
+     * @param verb      Eigenverb to add to the eigenverb_collection.
+     * @param interface    Interface number of the desired list of eigenverbs.
+     *                     See the class header for documentation on interpreting
+     *                     this number. For some layers, you can also use the
+     *                     eigenverb::interface_type.
+     */
+    void add_eigenverb(const eigenverb& verb, size_t interface) {
+        _collection[interface].push_back(verb);
+    }
 
-	/**
-	 * Writes the eigenverbs for an individual interface to a netcdf file.
-	 * There are separate variables for each eigenverb component,
-	 * and each eigenverb add a row to that variable.  The energy,
-	 * length, and width variables have a column for each frequency.
-	 *
-	 * An example of the file format is given below.
-	 * <pre>
+    /**
+     * Writes the eigenverbs for an individual interface to a netcdf file.
+     * There are separate variables for each eigenverb component,
+     * and each eigenverb add a row to that variable.  The energy,
+     * length, and width variables have a column for each frequency.
+     *
+     * An example of the file format is given below.
+     * <pre>
      * netcdf eigenverb_basic_2 {
      * dimensions:
      *         eigenverbs = 24 ;
@@ -164,28 +164,28 @@ public:
      *   etc...
      *
      * }
-	 *
-	 * If the interface has no eigenverbs, the file will contain only the
-	 * global attributes, and there will be no dimensions, variables,
-	 * or data.
-	 * </pre>
-	 *
-	 * @param filename  Filename used to store this data.
-	 * @param interface	Interface number of the desired list of eigenverbs.
-	 * 					See the class header for documentation interpreting
-	 * 					this number.
-	 */
-	void write_netcdf(const char* filename, size_t interface) const;
+     *
+     * If the interface has no eigenverbs, the file will contain only the
+     * global attributes, and there will be no dimensions, variables,
+     * or data.
+     * </pre>
+     *
+     * @param filename  Filename used to store this data.
+     * @param interface    Interface number of the desired list of eigenverbs.
+     *                     See the class header for documentation interpreting
+     *                     this number.
+     */
+    void write_netcdf(const char* filename, size_t interface) const;
 
 private:
 
-	/**
-	 * Collection of eigenverbs.
-	 *
-	 * TODO Use an quadtree instead of a std::list to store the eigenverbs,
-	 *      We hope this will improve the speed of envelope calculations.
-	 */
-	std::vector<eigenverb_list> _collection;
+    /**
+     * Collection of eigenverbs.
+     *
+     * TODO Use an quadtree instead of a std::list to store the eigenverbs,
+     *      We hope this will improve the speed of envelope calculations.
+     */
+    std::vector<eigenverb_list> _collection;
 };
 
 }   // end of namespace waveq3d
