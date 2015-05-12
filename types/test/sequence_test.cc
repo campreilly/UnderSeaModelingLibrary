@@ -569,4 +569,31 @@ BOOST_AUTO_TEST_CASE( seq_vector_clip_test ) {
     delete clipped_values_three;
 }
 
+/**
+ * Tests the implementation of seq_augment
+ * Test fails if any values are unequal to the
+ * predetermined truth vector.
+ */
+BOOST_AUTO_TEST_CASE( seq_augment_test ) {
+    cout << "=== sequence_test/seq_augment_test ===" << endl ;
+
+    seq_linear origin( 6.0, 1.0, 5 ) ;
+    size_t N = 6 ;
+
+    double tmp[] = { 6.0, 6.25, 6.5, 6.75, 7.0, 8.0, 9.0, 9.25, 9.5, 9.75, 10.0 } ;
+    size_t size( sizeof(tmp)/sizeof(double) ) ;
+    vector<double> data( size, 0.0 ) ;
+    size_t index = 0 ;
+    BOOST_FOREACH( double& i, data )
+        i = tmp[index++] ;
+    seq_data truth( data ) ;
+
+    seq_augment aug( &origin, N) ;
+    cout << "origin: " << origin << endl ;
+    cout << "augment: " << aug << endl ;
+    index = 0 ;
+    BOOST_FOREACH( double i, aug )
+        BOOST_CHECK_EQUAL( i, tmp[index++] ) ;
+}
+
 BOOST_AUTO_TEST_SUITE_END()

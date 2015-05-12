@@ -49,6 +49,7 @@
 #include <usml/types/seq_log.h>
 #include <usml/types/seq_data.h>
 #include <usml/types/seq_rayfan.h>
+#include <usml/types/seq_augment.h>
 
 #include <usml/types/data_grid.h>
 #include <usml/types/data_grid_bathy.h>
