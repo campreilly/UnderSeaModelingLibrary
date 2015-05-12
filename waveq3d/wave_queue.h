@@ -310,6 +310,14 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      */
     void step() ;
 
+
+    /**
+     * Thresholds for the number of boundary interactions that
+     * are allowed to create an eigenverb or eigenray
+     */
+    static int max_bottom ;
+    static int max_surface ;
+
   protected:
 
     /**
