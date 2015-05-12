@@ -240,6 +240,8 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 		1, 				// num_src_beams
 		1 ) ; 			// num_rcv_beams
 
+    delete travel_time;
+
 	vector<double> scatter( freq.size() ) ;
 	matrix<double> src_beam( freq.size(), 1 ) ;
 	matrix<double> rcv_beam( freq.size(), 1 ) ;
@@ -379,6 +381,8 @@ BOOST_AUTO_TEST_CASE( envelope_interpolate ) {
 		1, 				// num_azimuths
 		1, 				// num_src_beams
 		1 ) ; 			// num_rcv_beams
+
+    delete travel_time;
 
 	vector<double> scatter( envelope_freq.size() ) ;
 	matrix<double> src_beam( envelope_freq.size(), 1 ) ;
