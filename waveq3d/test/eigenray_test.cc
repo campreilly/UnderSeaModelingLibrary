@@ -2,7 +2,9 @@
  * @example waveq3d/test/eigenray_test.cc
  */
 #include <boost/test/unit_test.hpp>
+#include <boost/foreach.hpp>
 #include <usml/waveq3d/waveq3d.h>
+#include <usml/waveq3d/eigenray_interpolator.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -24,6 +26,126 @@ static const double src_lat = 45.0;        // location = mid-Atlantic
 static const double src_lng = -45.0;
 static const double c0 = 1500.0;           // constant sound speed
 static const double bot_depth = 1e5 ;
+
+/**
+ * Test the ability to compute source and receiver eigenrays at different
+ * frequencies.  Similar to eigenray_basic test except that:
+ *
+ *      - source and receiver are at different frequencies
+ *      - receiver is interpolated onto eigenray frequency axis
+ */
+BOOST_AUTO_TEST_CASE( eigenray_interpolate ) {
+    cout << "=== eigenray_test: eigenray_interpolate ===" << endl;
+
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_interpolate.csv";
+
+    double angle = M_PI / 6.0 ;
+
+    // build a simple source eigenray_list
+
+    seq_linear src_freq(1000.0,1000.0,3) ;
+
+    eigenray_list src_eigenrays ;
+    src_eigenrays.resize(3);
+
+    BOOST_FOREACH(eigenray ray , src_eigenrays) {
+        ray.time = 0.0 ;
+        ray.source_de = -angle ;
+        ray.source_az = 0.0 ;
+        ray.target_de = 0.0;
+        ray.target_az = 0.0 ;
+        ray.surface = 0 ;
+        ray.bottom = 0 ;
+        ray.caustic = 0 ;
+        ray.upper = 0 ;
+        ray.lower = 0 ;
+
+        ray.frequencies = &src_freq ;
+        ray.intensity = vector<double>( src_freq.size() ) ;
+        ray.phase = vector<double>( src_freq.size() ) ;
+        for ( size_t f=0 ; f < src_freq.size() ; ++f ) {
+            ray.intensity[f] = 0.2 ;
+            ray.phase[f] = 400.0 + 10.0 * f ;
+        }
+    }
+
+    // build a simple receiver eigenray
+    // identical to src_eigenrays except for frequency axis
+
+    seq_linear rcv_freq(500.0,200.0,10) ;
+
+    eigenray_list rcv_eigenrays_original ;
+    rcv_eigenrays_original.resize(3);
+
+    BOOST_FOREACH(eigenray ray, rcv_eigenrays_original) {
+        ray.time = 0.0 ;
+        ray.source_de = -angle ;
+        ray.source_az = 0.0 ;
+        ray.target_de = 0.0;
+        ray.target_az = 0.0 ;
+        ray.surface = 0 ;
+        ray.bottom = 0 ;
+        ray.caustic = 0 ;
+        ray.upper = 0 ;
+        ray.lower = 0 ;
+
+        ray.frequencies = &rcv_freq ;
+        ray.intensity = vector<double>( rcv_freq.size() ) ;
+        ray.phase = vector<double>( rcv_freq.size() ) ;
+        for ( size_t f=0 ; f < rcv_freq.size() ; ++f ) {
+            ray.intensity[f] = 0.2 ;
+            ray.phase[f] = 400.0 + 10.0 * ( rcv_freq[f] - 1000.0 ) / 1000.0 ;
+        }
+    }
+
+    // interpolate rcv_eigenrays_original onto frequency axis of eigenray
+
+    seq_linear eigenray_freq( 1000.0, 1000.0, 2 ) ;
+    eigenray_list rcv_eigenray_list ;
+    rcv_eigenray_list.resize(3);
+
+    // Set frequencies for new eigenray_list
+    BOOST_FOREACH(eigenray ray, rcv_eigenray_list) {
+        ray.frequencies = &eigenray_freq;
+        ray.intensity = vector<double>( eigenray_freq.size() ) ;
+        ray.phase = vector<double>( eigenray_freq.size() ) ;
+    }
+
+    eigenray_interpolator interpolator( &rcv_freq,  &eigenray_freq ) ;
+    interpolator.interpolate( rcv_eigenrays_original, &rcv_eigenray_list ) ;
+
+    std::ofstream os(csvname);
+    os << "time,s_de,s_az,t_de,t_az,surface,bottom,caustic,upper,lower,intensity,phase"
+    << endl;
+    os << std::setprecision(8);
+
+    BOOST_FOREACH(eigenray ray, rcv_eigenray_list) {
+        os << ray.time
+           << "," << ray.source_de
+           << "," << ray.source_az
+           << "," << ray.target_de
+           << "," << ray.target_az
+           << "," << ray.surface
+           << "," << ray.bottom
+           << "," << ray.caustic
+           << "," << ray.upper
+           << "," << ray.lower
+           << "," << ray.intensity(0)
+           << "," << ray.phase(0)
+           << "," << ray.intensity(1)
+           << "," << ray.phase(1)
+           << endl;
+    }
+
+
+    // compare intensity to analytic solution for correct result (eqn. XXX).
+
+//    for (size_t f = 0; f < eigenray_freq.size(); ++f) {
+//        double model = 10.0*log10(collection.eigenray(0,0,0)(f,index));
+//        cout << "theory=" << theory[f] << " model=" << model << endl;
+//        BOOST_CHECK_CLOSE(theory[f], model, 1e-2);
+//    }
+}
 
 /**
  * Tests the basic features of the eigenray model for a simple target.
@@ -201,6 +323,147 @@ BOOST_AUTO_TEST_CASE( eigenray_basic ) {
 }
 
 /**
+ * Tests the basic features of the eigenray model for a simple target with
+ * multiple frequencies. Same scenario as eigenray_basic test.
+ *
+ */
+BOOST_AUTO_TEST_CASE( eigenray_multi_freq ) {
+    cout << "=== eigenray_test: eigenray_multi_freq ===" << endl;
+    const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_multi_freq.csv";
+    const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_multi_freq.nc";
+    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/eigenray_multi_freq.nc";
+    const double src_alt = -1000.0;
+    const double trg_lat = 45.02;
+    const double time_max = 3.5;
+
+    // initialize propagation model
+
+    wposition::compute_earth_radius( src_lat );
+    attenuation_model* attn = new attenuation_constant(0.0);
+    profile_model* profile = new profile_linear(c0,attn);
+    boundary_model* surface = new boundary_flat();
+    boundary_model* bottom = new boundary_flat(3000.0);
+    ocean_model ocean( surface, bottom, profile );
+
+    seq_linear freq(1000.0,1000.0,3) ;
+    wposition1 pos( src_lat, src_lng, src_alt );
+    seq_linear de( -60.0, 5.0, 60.0 );
+    seq_linear az( -4.0, 1.0, 4.0 );
+
+    // build a single target
+
+    wposition target( 1, 1, trg_lat, src_lng, src_alt );
+
+    eigenray_collection loss(freq, pos, de, az, time_step, &target);
+    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
+    wave.add_eigenray_listener(&loss);
+
+    // propagate rays and record wavefronts to disk.
+
+    cout << "propagate wavefronts for " << time_max << " seconds" << endl;
+    cout << "writing wavefronts to " << ncname_wave << endl;
+
+    wave.init_netcdf( ncname_wave );
+    wave.save_netcdf();
+    while ( wave.time() < time_max ) {
+        wave.step();
+        wave.save_netcdf();
+    }
+    wave.close_netcdf();
+
+   // compute coherent propagation loss and write eigenrays to disk
+
+    loss.sum_eigenrays();
+    cout << "writing eigenray_collection to " << ncname << endl;
+    loss.write_netcdf(ncname,"eigenray_multi_freq test");
+
+    // save results to spreadsheet and compare to analytic results
+
+    const eigenray_list *raylist = loss.eigenrays(0,0);
+
+    const seq_vector* src_freq = raylist->begin()->frequencies;
+
+    cout << "writing tables to " << csvname << endl;
+    std::ofstream os(csvname);
+    os << "frequencies"
+        << ","  << (*src_freq)(0)
+        << ","  << (*src_freq)(1)
+        << ","  << (*src_freq)(2)
+        <<  endl;
+    os << "time,s_de,s_az,t_de,t_az,surface,bottom,caustic,upper,lower,intensity,phase"
+    << endl;
+    os << std::setprecision(8);
+    cout << std::setprecision(18);
+
+    int n=0;
+    BOOST_CHECK_EQUAL( raylist->size(), 3 ) ;
+    BOOST_FOREACH( const eigenray ray, *raylist) {
+        os << ray.time
+           << "," << ray.source_de
+           << "," << ray.source_az
+           << "," << ray.target_de
+           << "," << ray.target_az
+           << "," << ray.surface
+           << "," << ray.bottom
+           << "," << ray.caustic
+           << "," << ray.upper
+           << "," << ray.lower
+           << "," << ray.intensity(0)
+           << "," << ray.phase(0)
+           << "," << ray.intensity(1)
+           << "," << ray.phase(1)
+           << "," << ray.intensity(2)
+           << "," << ray.phase(2)
+           << endl;
+
+       cout << "ray #" << n
+           << " tl=" << ray.intensity(0)
+           << " t=" << ray.time
+           << " de=" << -ray.target_de
+           << " error:" ;
+
+       // Only checks the first frequency
+       switch (n) {
+           case 0 :
+               cout << " tl=" << (ray.intensity(0)-66.9506)
+                   << " t=" << (ray.time-1.484018789)
+                   << " de=" << max( abs(ray.source_de+0.01),
+                                   abs(ray.target_de-0.01) ) << endl ;
+               BOOST_CHECK_SMALL( ray.intensity(0)-66.9506, 0.1 );
+               BOOST_CHECK_SMALL( ray.time-1.484018789, 0.002 );
+               BOOST_CHECK_SMALL( ray.phase(0)-0.0, 1e-6 );
+               BOOST_CHECK_SMALL( ray.source_de+0.01, 0.01 );
+               BOOST_CHECK_SMALL( ray.target_de-0.01, 0.01 );
+               break;
+           case 1 :
+               cout << " tl=" << (ray.intensity(0)-69.5211)
+                    << " t=" << (ray.time-1.995102731)
+                    << " de=" << max( abs(ray.source_de-41.93623171),
+                                       abs(ray.target_de+41.93623171) ) << endl ;
+               BOOST_CHECK_SMALL( ray.intensity(0)-69.5211, 0.1 );
+               BOOST_CHECK_SMALL( ray.time-1.995102731, 0.002 );
+               BOOST_CHECK_SMALL( ray.phase(0)+M_PI, 1e-6 );
+               BOOST_CHECK_SMALL( ray.source_de-41.93623171, 0.01 );
+               BOOST_CHECK_SMALL( ray.target_de+41.93623171, 0.01 );
+               break;
+           case 2 : // note that extrapolation is less accurate
+               cout << " tl=" << (ray.intensity(0)-73.2126)
+                    << " t=" << (ray.time-3.051676949)
+                    << " de=" << max( abs(ray.source_de+60.91257162),
+                                       abs(ray.target_de-60.91257162) ) << endl ;
+               BOOST_CHECK_SMALL( ray.time-3.051676949, 0.02 );
+               BOOST_CHECK_SMALL( ray.phase(0)-0.0, 1e-6 );
+               break;
+           default :
+               break;
+        }
+        BOOST_CHECK_SMALL( ray.source_az-0.0, 1e-6 );
+        BOOST_CHECK_SMALL( ray.target_az-0.0, 1e-6 );
+        ++n;
+    }
+}
+
+/**
  * Tests the model's ability to accurately estimate geometric terms for
  * the direct path and surface reflected eigenrays on a spherical earth.
  * The concave shape of the earth's surface causes the analytic solution
@@ -238,7 +501,7 @@ BOOST_AUTO_TEST_CASE( eigenray_concave ) {
     const char* ncname = USML_TEST_DIR "/waveq3d/test/eigenray_concave.nc";
 
     const double src_alt = -200.0;      // source depth = 200 meters
-    const double time_max = 120.0 ;     // let rays plots go into region w/ 2 roots
+    const double time_max = 120.0 ;     // let rays plots go into region w/2 roots
     const double trg_lat = 46.2;        // 1.2 degrees north of source
     const double trg_lng = src_lng ;
     const double trg_alt = -150.0;      // target depth = 150 meters
