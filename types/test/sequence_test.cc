@@ -340,7 +340,7 @@ BOOST_AUTO_TEST_CASE( sequence_data_test3 ) {
 
     cout << "=== sequence_test: sequence_data_test3() ===" << endl;
 
-    // test decreasing sequence form of contructor
+    // test decreasing sequence form of constructor
     // test use as a uBLAS vector
     int N = 1;
     double data[] = {123.5};
@@ -523,6 +523,8 @@ BOOST_AUTO_TEST_CASE( seq_ublas_test ) {
 
 /**
  * Tests the seq_vector::clip method
+ * Test fails if any the clipped values are
+ * not equal to the predetermined correct values.
  */
 BOOST_AUTO_TEST_CASE( seq_vector_clip_test ) {
     cout << "=== sequence_test/seq_vector_clip_test ===" << endl ;
@@ -530,9 +532,12 @@ BOOST_AUTO_TEST_CASE( seq_vector_clip_test ) {
      // 6.5K, 7.5K, 8.5K, 9.5K
     seq_linear values(6500.0, 1000.0, 4);
 
+    cout << "original values: " << values << endl ;
+
     // Max Clip
     seq_vector* clipped_values_one = values.clip(5000.0, 9000.0);
 
+    cout << "after max clip :  " <<  *clipped_values_one << endl ;
     BOOST_CHECK_EQUAL( clipped_values_one->size(), 3 ) ;
 
     double test_value = (*clipped_values_one)(0);
@@ -546,6 +551,7 @@ BOOST_AUTO_TEST_CASE( seq_vector_clip_test ) {
     // Min clip
     seq_vector* clipped_values_two = values.clip(7000.0, 11000.0);
 
+    cout << "after min clip:  " << *clipped_values_two << endl ;
     BOOST_CHECK_EQUAL( clipped_values_two->size(), 3 ) ;
 
     test_value = (*clipped_values_two)(0);
@@ -560,6 +566,7 @@ BOOST_AUTO_TEST_CASE( seq_vector_clip_test ) {
     // Max and Min clip
     seq_vector* clipped_values_three = values.clip(7000.0, 9000.0);
 
+    cout << "after max and min clip:  " << *clipped_values_three << endl ;
     BOOST_CHECK_EQUAL( clipped_values_three->size(), 2 ) ;
 
     test_value = (*clipped_values_three)(0);
@@ -577,10 +584,12 @@ BOOST_AUTO_TEST_CASE( seq_vector_clip_test ) {
 BOOST_AUTO_TEST_CASE( seq_augment_test ) {
     cout << "=== sequence_test/seq_augment_test ===" << endl ;
 
-    seq_linear origin( 6.0, 1.0, 5 ) ;
+    //seq_linear origin( 6.0, 1.0, 5 ) ;
+    seq_rayfan origin(6.0, 10.0, 5);
     size_t N = 6 ;
 
-    double tmp[] = { 6.0, 6.25, 6.5, 6.75, 7.0, 8.0, 9.0, 9.25, 9.5, 9.75, 10.0 } ;
+    //double tmp[] = { 6.0, 6.25, 6.5, 6.75, 7.0, 8.0, 9.0, 9.25, 9.5, 9.75, 10.0 } ;
+    double tmp[]= { 6.0,6.19598,6.39196,6.58795,6.78393,7.68466,8.73893,8.93492,9.1309,9.32688,10.0 };
     size_t size( sizeof(tmp)/sizeof(double) ) ;
     vector<double> data( size, 0.0 ) ;
     size_t index = 0 ;
@@ -589,11 +598,12 @@ BOOST_AUTO_TEST_CASE( seq_augment_test ) {
     seq_data truth( data ) ;
 
     seq_augment aug( &origin, N) ;
+    cout << std::setprecision(8);
     cout << "origin: " << origin << endl ;
     cout << "augment: " << aug << endl ;
     index = 0 ;
     BOOST_FOREACH( double i, aug )
-        BOOST_CHECK_EQUAL( i, tmp[index++] ) ;
+        BOOST_CHECK_CLOSE( i, tmp[index++], 0.0001 ) ;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
