@@ -170,12 +170,6 @@ private:
      */
     const double _intensity_threshold; //In dB
 
-    /** Depression elevation angle in degrees */
-    const double  _depression_elevation_angle;
-
-    /** Vertical beam width in degrees*/
-    const double  _vertical_beamwidth;
-
     /** Source position */
     const wposition1 _source_position;
 

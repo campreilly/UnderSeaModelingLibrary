@@ -238,7 +238,7 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
                     if (derivative) {
                         _dz(i, j) = (6 * t_2 - 6 * t) * v1 / inc1
                                 + (3 * t_2 - 4 * t + 1) * derv_z[k0][k1 + i][k2 + j] / inc1
-								+ (6 * t - 6 * t_2) * v2 / inc1
+                                + (6 * t - 6 * t_2) * v2 / inc1
                                 + (3 * t_2 - 2 * t) * derv_z[k0 + 1][k1 + i][k2 + j] / inc1 ;
                     }
                 }

@@ -30,7 +30,7 @@ using namespace usml::threads;
  * instance as the entry for beamID #0.
  */
 class USML_DECLSPEC beam_pattern_map: public sensor_map_template<
-		beam_pattern_model::id_type, beam_pattern_model::reference>
+        beam_pattern_model::id_type, beam_pattern_model::reference>
 {
 public:
 
@@ -41,8 +41,8 @@ public:
      * is used to prevent multiple threads from simultaneously trying to
      * construct the singleton.
      *
-     * @xref 	Meyers, S., Alexandrescu, A.: C++ and the perils of
-     * 		 	double-checked locking. Dr. Dobbs Journal (July-August 2004)
+     * @xref     Meyers, S., Alexandrescu, A.: C++ and the perils of
+     *              double-checked locking. Dr. Dobbs Journal (July-August 2004)
      * @return  Reference to the beam_pattern_map singleton.
      */
     static beam_pattern_map* instance() ;

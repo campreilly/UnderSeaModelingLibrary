@@ -49,8 +49,8 @@ public:
     /**
      * Constructs a new coordinate from matrix dimensions.
      *
-     * @param  rows	Number of rows
-     * @param  cols	Number of columns
+     * @param  rows    Number of rows
+     * @param  cols    Number of columns
      */
     wvector(size_t rows = 1, size_t cols = 1);
 
@@ -70,7 +70,7 @@ public:
      * operations.  Because the shape of the earth is elliptical, this is not
      * the same as the distance from the center of the earth.
      *
-     * @return		    Radial coordinate in meters.
+     * @return            Radial coordinate in meters.
      */
     inline const matrix<double>& rho() const
     {
@@ -134,7 +134,7 @@ public:
      * This property is the complement of latitude, which is measured 
      * up from the equator.
      *
-     * @return		    Colatitude coordinate in radians.
+     * @return            Colatitude coordinate in radians.
      */
     inline const matrix<double>& theta() const
     {
@@ -162,7 +162,7 @@ public:
      *
      * @param  row      Row index of the element to access.
      * @param  col      Column index of the element to access.
-     * @return		    Colatitude coordinate in radians.
+     * @return            Colatitude coordinate in radians.
      */
     inline double theta(size_t row, size_t col) const
     {
@@ -290,7 +290,7 @@ public:
      *      dot product = r1*r2
      *          * { 1-2*{ sin^2[(t1-t2)/2] + sin(t1)sin(t2)sin^2[(p1-p2)/2] } }
      * </pre>
-     * @param  other	Second vector in the dot product.
+     * @param  other    Second vector in the dot product.
      * @param  result   Dot product between these two vectors.
      *
      * @xref Weisstein, Eric W. "Spherical Trigonometry."
@@ -310,7 +310,7 @@ public:
      *                 = ( cos(t1)cos(t2) + sin(t1)sin(t2)cos(p1-p2) )
      *                 = { 1-2*( sin^2[(t1-t2)/2] + sin(t1)sin(t2)sin^2[(p1-p2)/2] ) }
      * </pre>
-     * @param  other	Second vector in the dot product.
+     * @param  other    Second vector in the dot product.
      * @param  result   Normalized dot product between these two vectors.
      */
     void dotnorm(const wvector1& other, matrix<double>& result) const;

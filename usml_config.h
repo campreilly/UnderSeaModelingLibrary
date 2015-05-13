@@ -12,9 +12,9 @@
 #if defined(_MSC_VER) && defined(USML_DYN_LINK)
     #ifdef usml_EXPORTS
         #define USML_DECLSPEC __declspec(dllexport)
-	#else
+    #else
         #define USML_DECLSPEC __declspec(dllimport)
-	#endif
+    #endif
     #define USML_DLLEXPORT __declspec(dllexport)
 #else
     #define USML_DECLSPEC 

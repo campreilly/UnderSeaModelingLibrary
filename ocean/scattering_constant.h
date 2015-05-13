@@ -25,34 +25,34 @@ class USML_DECLSPEC scattering_constant: public scattering_model {
 
 public:
 
-	/**
-	 * Initialize model with a constant factors.
-	 *
+    /**
+     * Initialize model with a constant factors.
+     *
      * @param amplitude     Reverberation scattering strength (dB).
-     * 						Provided in dB but converted to ratio internally.
-	 */
-	scattering_constant( double amplitude=-300.0 ) :
-		_amplitude( pow(10.0,amplitude/10.0) ) {}
+     *                         Provided in dB but converted to ratio internally.
+     */
+    scattering_constant( double amplitude=-300.0 ) :
+        _amplitude( pow(10.0,amplitude/10.0) ) {}
 
-	/**
-	 * Computes the broadband scattering strength for a single location.
-	 *
-	 * @param location      Location at which to compute attenuation.
-	 * @param frequencies   Frequencies over which to compute loss. (Hz)
-	 * @param de_incident   Depression incident angle (radians).
-	 * @param de_scattered  Depression scattered angle (radians).
-	 * @param az_incident   Azimuthal incident angle (radians).
-	 * @param az_scattered  Azimuthal scattered angle (radians).
+    /**
+     * Computes the broadband scattering strength for a single location.
+     *
+     * @param location      Location at which to compute attenuation.
+     * @param frequencies   Frequencies over which to compute loss. (Hz)
+     * @param de_incident   Depression incident angle (radians).
+     * @param de_scattered  Depression scattered angle (radians).
+     * @param az_incident   Azimuthal incident angle (radians).
+     * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Reverberation scattering strength ratio (output).
-	 */
-	virtual void scattering(const wposition1& location,
-			const seq_vector& frequencies, double de_incident,
-			double de_scattered, double az_incident, double az_scattered,
-			vector<double>* amplitude)
-	{
-		noalias(*amplitude) = scalar_vector<double>( frequencies.size(), _amplitude );
-			// fast assignment of scalar to vector
-	}
+     */
+    virtual void scattering(const wposition1& location,
+            const seq_vector& frequencies, double de_incident,
+            double de_scattered, double az_incident, double az_scattered,
+            vector<double>* amplitude)
+    {
+        noalias(*amplitude) = scalar_vector<double>( frequencies.size(), _amplitude );
+            // fast assignment of scalar to vector
+    }
 
     /**
      * Computes the broadband scattering strength for a collection of
@@ -72,13 +72,13 @@ public:
     virtual void scattering( const wposition& location,
         const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
         double az_incident, matrix<double> az_scattered,
-		matrix< vector<double> >* amplitude )
+        matrix< vector<double> >* amplitude )
     {
-			// fast assignment of scalar to vector of matrices
-		noalias(*amplitude) = scalar_matrix< vector<double> >(
-				location.size1(), location.size2(),
-				scalar_vector<double>( frequencies.size(), _amplitude ) );
-			// fast assignment of scalar to matrix of vectors
+            // fast assignment of scalar to vector of matrices
+        noalias(*amplitude) = scalar_matrix< vector<double> >(
+                location.size1(), location.size2(),
+                scalar_vector<double>( frequencies.size(), _amplitude ) );
+            // fast assignment of scalar to matrix of vectors
     }
 
 private:
@@ -89,5 +89,5 @@ private:
 };
 
 /// @}
-}	// end of namespace ocean
+}    // end of namespace ocean
 }   // end of namespace usml

@@ -123,7 +123,7 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model, scattering_model
     /**
      * Define a new reverberation scattering strength model.
      *
-     * @param scattering	Scattering model for this boundary
+     * @param scattering    Scattering model for this boundary
      */
     void scattering( scattering_model* scattering ) {
         if( _scattering ) delete _scattering ;
@@ -145,9 +145,9 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model, scattering_model
         const seq_vector& frequencies, double de_incident, double de_scattered,
         double az_incident, double az_scattered, vector<double>* amplitude )
     {
-    	_scattering->scattering( location,
-    			frequencies, de_incident, de_scattered,
-				az_incident, az_scattered, amplitude ) ;
+        _scattering->scattering( location,
+                frequencies, de_incident, de_scattered,
+                az_incident, az_scattered, amplitude ) ;
     }
 
     /**
@@ -169,9 +169,9 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model, scattering_model
         const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
         double az_incident, matrix<double> az_scattered, matrix< vector<double> >* amplitude )
     {
-    	_scattering->scattering( location,
-    			frequencies, de_incident, de_scattered,
-				az_incident, az_scattered, amplitude ) ;
+        _scattering->scattering( location,
+                frequencies, de_incident, de_scattered,
+                az_incident, az_scattered, amplitude ) ;
     }
 
     //**************************************************
@@ -181,21 +181,21 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model, scattering_model
      * Initialize reflection loss components for a boundary.
      *
      * @param reflect_loss  Reflection loss model.
-     * @param scattering	Reverberation scattering strength model.
+     * @param scattering    Reverberation scattering strength model.
      */
     boundary_model( reflect_loss_model* reflect_loss=NULL,
                     scattering_model* scattering=NULL )
     {
-		if ( reflect_loss ) {
-			_reflect_loss = reflect_loss ;
-		} else {
-			_reflect_loss = new reflect_loss_constant( 0.0, 0.0 ) ;
-		}
-		if ( scattering ) {
-			_scattering = scattering ;
-		} else {
-			_scattering = new scattering_constant() ;
-		}
+        if ( reflect_loss ) {
+            _reflect_loss = reflect_loss ;
+        } else {
+            _reflect_loss = new reflect_loss_constant( 0.0, 0.0 ) ;
+        }
+        if ( scattering ) {
+            _scattering = scattering ;
+        } else {
+            _scattering = new scattering_constant() ;
+        }
     }
 
     /**

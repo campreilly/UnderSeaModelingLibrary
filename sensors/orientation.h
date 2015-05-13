@@ -168,15 +168,15 @@ public:
      */
     void update_orientation( double h, double p, double r ) ;
 
-	/**
-	* Updates the tilt angle and direction.
-	*
-	* @param angle     tilt from the nominal vertical axis,
-	*                  equivalent to theta in spherical coordinates.
-	* @param direction direction of the tilt from the nominal vertical axis,
-	*                  equivalent to phi in spherical coordinates.
-	*/
-	void update_orientation(double angle, double direction);
+    /**
+    * Updates the tilt angle and direction.
+    *
+    * @param angle     tilt from the nominal vertical axis,
+    *                  equivalent to theta in spherical coordinates.
+    * @param direction direction of the tilt from the nominal vertical axis,
+    *                  equivalent to phi in spherical coordinates.
+    */
+    void update_orientation(double angle, double direction);
 
 
 protected:

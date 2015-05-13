@@ -189,7 +189,7 @@ template<> struct math_traits<double>
     }
     static inline value_type copysign(const_reference t1, const_reference t2)
     {
-		return ( t2 < 0.0 ) ? -t1 : t1 ;
+        return ( t2 < 0.0 ) ? -t1 : t1 ;
     }
 
     //*********************************************************
@@ -373,7 +373,7 @@ template<> struct math_traits<float>
     }
     static inline value_type copysign(const_reference t1, const_reference t2)
     {
-		return ( t2 < 0.0 ) ? -t1 : t1 ;
+        return ( t2 < 0.0 ) ? -t1 : t1 ;
     }
 
     //*********************************************************
@@ -781,9 +781,9 @@ inline math_traits<double>::value_type copysign(
 
 #if (_MSC_VER < 1800 )  // Visual Sudio eariler than 2013
 
-	inline int round(double x) { return floor(x + 0.5); }
+    inline int round(double x) { return floor(x + 0.5); }
 
-	inline math_traits<double>::value_type acosh(
+    inline math_traits<double>::value_type acosh(
         math_traits<double>::const_reference t)
     {
         return math_traits<double>::acosh(t);

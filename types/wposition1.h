@@ -53,7 +53,7 @@ public:
      * Constructs a new position as a copy of an existing position.
      * Accepts either an actual wposition, or one of its superclasses.
      *
-     * @param  other		wposition1 to be copied.
+     * @param  other        wposition1 to be copied.
      */
     wposition1(const wvector1& other);
 
@@ -71,7 +71,7 @@ public:
      * Retrieves the altitude above the mean sea level.
      * Acts as a convenient transformation of the "Rho" property.
      *
-     * @return			Altitude in meters.
+     * @return            Altitude in meters.
      */
     inline double altitude() const {
         return rho() - wposition::earth_radius;
@@ -81,7 +81,7 @@ public:
      * Defines the altitude above the mean sea level.
      * Acts as a convenient transformation of the "Rho" property.
      *
-     * @param  altitude	Altitude in meters.
+     * @param  altitude    Altitude in meters.
      */
     inline void altitude(double altitude) {
         rho(altitude + wposition::earth_radius);
@@ -104,7 +104,7 @@ public:
      * Defines the latitude component of geodetic earth coordinates.
      * Acts as a convenient transformation of the "Theta" property.
      *
-     * @param  latitude	Latitude component in degrees.
+     * @param  latitude    Latitude component in degrees.
      */
     inline void latitude(double latitude) {
         theta(to_colatitude(latitude));
@@ -117,7 +117,7 @@ public:
      * Retrieves the longitude component of geodetic earth coordinates.
      * Acts as a convenient transformation of the "Phi" property.
      *
-     * @return			Longitude component in degrees.
+     * @return            Longitude component in degrees.
      */
     inline double longitude() const {
         return to_degrees(phi());
@@ -127,7 +127,7 @@ public:
      * Defines the longitude component of geodetic earth coordinates.
      * Acts as a convenient transformation of the "Phi" property.
      *
-     * @param  longitude	Longitude component in degrees.
+     * @param  longitude    Longitude component in degrees.
      */
     inline void longitude(double longitude) {
         phi(to_radians(longitude));

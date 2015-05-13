@@ -54,7 +54,7 @@ public:
     /**
      * Retrieves the radial component of the spherical earth coordinate system.
      *
-     * @return		    Radial coordinate in meters.
+     * @return            Radial coordinate in meters.
      */
     inline double rho() const
     {
@@ -85,7 +85,7 @@ public:
      * Retrieves the colatitude component of the spherical earth
      * coordinate system.
      *
-     * @return		    Colatitude coordinate in radians.
+     * @return            Colatitude coordinate in radians.
      */
     inline double theta() const
     {
@@ -145,7 +145,7 @@ public:
      * Compute the dot product between this vector and some other
      * spherical earth vector.
      *
-     * @param  other	Second vector in the dot product.
+     * @param  other    Second vector in the dot product.
      * @return          Dot product between these two vectors.
      */
     double dot(const wvector1& other) const;
@@ -153,7 +153,7 @@ public:
     /**
      * Dot product divided by the magnitude of the two vectors.
      *
-     * @param  other	Second vector in the dot product.
+     * @param  other    Second vector in the dot product.
      * @return          Normalized dot product between these two vectors.
      */
     double dotnorm(const wvector1& other) const;
@@ -217,9 +217,9 @@ public:
      * between the vertices in the triangle (this,p2,p3) can be used to
      * compute the surface area using the formula:
      * <pre>
-     * 		a = length(this,p2)
-     * 		b = length(this,p3)
-     * 		c = length(p2,p3)
+     *         a = length(this,p2)
+     *         b = length(this,p3)
+     *         c = length(p2,p3)
      *      area = 1/4 sqrt[ (a+b+c)(b+c-a)(c+a-b)(a+b-c) ]
      * </pre>
      *

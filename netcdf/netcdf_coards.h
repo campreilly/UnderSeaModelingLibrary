@@ -77,10 +77,10 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
      * Creates new memory area for field data.
      * Replaces missing data with fill value.
      *
-     * @param  file     	Reference to an open NetCDF file.
-     * @param  name     	Name of the data grid to extract (case sensitive).
-     * @param  read_fill	Read _FillValue from NetCDF file if true.
-     * 						Use NAN as fill value if false.
+     * @param  file         Reference to an open NetCDF file.
+     * @param  name         Name of the data grid to extract (case sensitive).
+     * @param  read_fill    Read _FillValue from NetCDF file if true.
+     *                         Use NAN as fill value if false.
      */
     netcdf_coards( NcFile& file, NcToken name, bool read_fill=false ) {
 
@@ -114,8 +114,8 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
 
         DATA_TYPE filling = NAN ;   // default for fill value
         if ( read_fill ) {
-			att = variable->get_att("_FillValue") ;
-			if ( att ) {
+            att = variable->get_att("_FillValue") ;
+            if ( att ) {
                 NcValues* values = att->values() ;
                 filling = values->as_double(0) ;
                 delete att ; delete values ;
@@ -130,9 +130,9 @@ template< class DATA_TYPE, int NUM_DIMS > class netcdf_coards :
         for ( size_t n=0 ; n < N ; ++n ) {
             this->_data[n] = (DATA_TYPE) values->as_double((long) n) ;
             if ( ! isnan(missing) ) {
-            	if ( this->_data[n] == missing ) {
-            		this->_data[n] = filling ;
-            	}
+                if ( this->_data[n] == missing ) {
+                    this->_data[n] = filling ;
+                }
             }
         }
         delete values ;

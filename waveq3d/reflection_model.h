@@ -86,9 +86,9 @@ class USML_DECLSPEC reflection_model
      * Hide default constructor to prohibit use by non-friends.
      */
     reflection_model( wave_queue& wave )
-    	: _wave( wave ),
-    	  TOO_SHALLOW( 300.0 * wave._time_step )
-    	{}
+        : _wave( wave ),
+          TOO_SHALLOW( 300.0 * wave._time_step )
+        {}
 
     virtual ~reflection_model() {}
 

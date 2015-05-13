@@ -46,10 +46,10 @@ class USML_DECLSPEC reflect_loss_constant : public reflect_loss_model {
             const seq_vector& frequencies, double angle,
             vector<double>* amplitude, vector<double>* phase=NULL )
         {
-			noalias(*amplitude) = scalar_vector<double>(frequencies.size(),_amplitude);
-			if ( phase ) {
-				noalias(*phase) = scalar_vector<double>(frequencies.size(),_phase);
-			}
+            noalias(*amplitude) = scalar_vector<double>(frequencies.size(),_amplitude);
+            if ( phase ) {
+                noalias(*phase) = scalar_vector<double>(frequencies.size(),_phase);
+            }
         }
 
     private:

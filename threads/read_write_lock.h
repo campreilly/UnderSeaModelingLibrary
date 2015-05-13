@@ -10,15 +10,15 @@
  */
 #if __cplusplus >= 201402L
 
-	#include <mutex>
-	#include <shared_mutex>
+    #include <mutex>
+    #include <shared_mutex>
 
-	namespace usml {
-	namespace threads {
+    namespace usml {
+    namespace threads {
 
-	using std::shared_mutex ;
-	using std::shared_lock ;
-	using std::unique_lock ;
+    using std::shared_mutex ;
+    using std::shared_lock ;
+    using std::unique_lock ;
 
 /**
  * Use boost:: versions of mutex and lock for
@@ -26,15 +26,15 @@
  */
 #else
 
-	#include <boost/thread/locks.hpp>
-	#include <boost/thread/shared_mutex.hpp>
+    #include <boost/thread/locks.hpp>
+    #include <boost/thread/shared_mutex.hpp>
 
-	namespace usml {
-	namespace threads {
+    namespace usml {
+    namespace threads {
 
-	using boost::shared_mutex ;
-	using boost::shared_lock ;
-	using boost::unique_lock ;
+    using boost::shared_mutex ;
+    using boost::shared_lock ;
+    using boost::unique_lock ;
 
 #endif
 
@@ -86,7 +86,7 @@
  *
  * A serious error occurs if you attempt to use an anonymous in the form
  * <pre>
- * 		write_lock_guard(_mutex);
+ *         write_lock_guard(_mutex);
  * </pre>
  * when _mutex is not defined. The compiler sees this as an error to
  * invoke the default constructor on write_lock_guard() and the default
