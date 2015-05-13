@@ -32,8 +32,6 @@ wavefront_generator::wavefront_generator(shared_ptr<ocean_model> ocean,
       _time_maximum(time_maximum),
       _time_step(time_step),
       _intensity_threshold(intensity_threshold),
-      _depression_elevation_angle(depression_elevation_angle),
-      _vertical_beamwidth(vertical_beamwidth),
       _source_position(source_position),
       _target_positions(target_positions),
       _frequencies(frequencies),
@@ -54,8 +52,6 @@ wavefront_generator::wavefront_generator()
       _time_maximum(time_maximum),
       _time_step(time_step),
       _intensity_threshold(intensity_threshold),
-      _depression_elevation_angle(0.0),
-      _vertical_beamwidth(0.0),
       _source_position(NULL),
       _target_positions(NULL),
       _frequencies(NULL),
@@ -89,37 +85,26 @@ void wavefront_generator::run()
         return ;
     }
 
-    seq_vector* de;
 
-    // Setup DE sequence vector for WaveQ3D
-    // when vertical_beamwidth has been set to a value other than zero.
+    // Setup DE sequence rayfan for WaveQ3D
+    // Augment rayfan with additional de's near -90 and 90.
 
-    if (_vertical_beamwidth != 0.0) {
+    // TODO - add augmented DE
+    //size_t num_xtra_rays = 6;
+    //seq_rayfan de(-90.0, 90.0, _number_de - num_xtra_rays);
+    //seq_augment aug_de(&de, num_xtra_rays);
+    //cout << std::setprecision(8);
+    //cout << "aug_de: " << aug_de << endl ;
 
-        double de_start = _depression_elevation_angle - (_vertical_beamwidth * 0.5f);
-        double de_end = _depression_elevation_angle + (_vertical_beamwidth * 0.5f);
-
-        // Don't go above 90 or below -90
-        // Add extra 2 degrees on each end
-        de_start = max(de_start - 2.0, -90.0);
-        de_end = min(de_end + 2.0, 90.00);
-
-        de = new seq_rayfan(de_start, de_end, _number_de, _depression_elevation_angle);
-
-    } else { // use default values for de and az
-
-        de = new seq_rayfan(-90.0, 90.0, _number_de);
-    }
+    seq_rayfan de(-90.0, 90.0, _number_de);
 
     seq_linear az(0.0, 180.0, _number_az, true);
 
     if (_target_positions != NULL) {
-        proploss = new eigenray_collection(*(_frequencies), _source_position, *de, az, _time_step, _target_positions);
+        proploss = new eigenray_collection(*(_frequencies), _source_position, de, az, _time_step, _target_positions);
     }
 
-    wave_queue wave(*(_ocean.get()), *(_frequencies), _source_position, *de, az, _time_step, _target_positions, _run_id);
-
-    delete de;
+    wave_queue wave(*(_ocean.get()), *(_frequencies), _source_position, de, az, _time_step, _target_positions, _run_id);
 
     if ( proploss != NULL ) {
         wave.add_eigenray_listener(proploss);
