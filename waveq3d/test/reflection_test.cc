@@ -606,8 +606,8 @@ BOOST_AUTO_TEST_CASE( bounce_threshold_test ) {
     wave_queue wave( ocean, freq, src, de, az, dt, &target ) ;
     wave.add_eigenray_listener(&loss) ;
     wave.add_eigenverb_listener(&reverb) ;
-    wave_queue::max_surface = 3 ;
-    wave_queue::max_bottom = 5 ;
+    wave.max_surface(3) ;
+    wave.max_bottom(5) ;
 
     cout << "propagating for " << max_time << " seconds" << endl ;
     while ( wave.time() < max_time ) {
@@ -617,20 +617,20 @@ BOOST_AUTO_TEST_CASE( bounce_threshold_test ) {
     eigenray_list* elist = loss.eigenrays(0,0) ;
     cout << "propagation complete, " << elist->size() << " rays were produced" << endl ;
     BOOST_FOREACH( eigenray e, *elist ) {
-        BOOST_CHECK( e.bottom <= wave_queue::max_bottom ) ;
-        BOOST_CHECK( e.surface <= wave_queue::max_surface ) ;
+        BOOST_CHECK( e.bottom <= wave.max_bottom() ) ;
+        BOOST_CHECK( e.surface <= wave.max_surface() ) ;
     }
     cout << "Checking eigenerbs for bottom interface" << endl ;
     eigenverb_list vlist = reverb.eigenverbs( eigenverb::BOTTOM ) ;
     BOOST_FOREACH( eigenverb v, vlist ) {
-        BOOST_CHECK( v.bottom <= wave_queue::max_bottom ) ;
-        BOOST_CHECK( v.surface <= wave_queue::max_surface ) ;
+        BOOST_CHECK( v.bottom <= wave.max_bottom() ) ;
+        BOOST_CHECK( v.surface <= wave.max_surface() ) ;
     }
     cout << "Checking eigenverbs for surface interface" << endl ;
     vlist = reverb.eigenverbs( eigenverb::SURFACE ) ;
     BOOST_FOREACH( eigenverb v, vlist ) {
-        BOOST_CHECK( v.bottom <= wave_queue::max_bottom ) ;
-        BOOST_CHECK( v.surface <= wave_queue::max_surface ) ;
+        BOOST_CHECK( v.bottom <= wave.max_bottom() ) ;
+        BOOST_CHECK( v.surface <= wave.max_surface() ) ;
     }
 
 }

@@ -250,23 +250,64 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
     }
 
     /**
-	 * intensity_threshold
-	 * @param  dThreshold The new value of the intensity threshold in dB.
-	 *
-	 */
+     * The value of the intensity threshold in dB.
+     * Any eigenray or eigenverb with an intensity value that are weaker
+     * than this threshold is not sent the listeners.
+     */
 	inline void intensity_threshold(double dThreshold) {
 
 	    // Convert to absolute value for later comparison
 	    // with the positive ray.intensity value.
 		_intensity_threshold = abs(dThreshold);
 	}
-	/**
-	 * intensity_threshold
-	 * @return  Returns current value of the intensity threshold in dB
-	 */
+
+    /**
+     * The value of the intensity threshold in dB.
+     * Any eigenray or eigenverb with an intensity value that are weaker
+     * than this threshold is not sent the listeners.
+     * Defaults to -300 dB.
+     */
 	inline double intensity_threshold() {
 		return _intensity_threshold;
 	}
+
+    /**
+     * The maximum number of bottom bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of bottom bounces is not sent the listeners.
+     */
+    inline void max_bottom( int max ) {
+    	_max_bottom = max ;
+    }
+
+    /**
+     * The maximum number of bottom bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of bottom bounces is not sent the listeners.
+     * Defaults to 999.
+     */
+    inline int max_bottom() const {
+    	return _max_bottom ;
+    }
+
+    /**
+     * The maximum number of surface bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of surface bounces is not sent the listeners.
+     */
+    inline void max_surface( int max ) {
+    	_max_surface = max ;
+    }
+
+    /**
+     * The maximum number of surface bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of surface bounces is not sent the listeners.
+     * Defaults to 999.
+     */
+    inline int max_surface() const {
+    	return _max_surface ;
+    }
 
     /**
      * Optional identification number for this wavefront calculation.
@@ -283,7 +324,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
     /**
      * Optional identification number for this wavefront calculation.
      */
-    inline const size_t runID() {
+    inline const size_t runID() const {
         return _run_id ;
     }
 
@@ -310,13 +351,6 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      */
     void step() ;
 
-
-    /**
-     * Thresholds for the number of boundary interactions that
-     * are allowed to create an eigenverb or eigenray
-     */
-    static int max_bottom ;
-    static int max_surface ;
 
   protected:
 
@@ -349,16 +383,16 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
     const seq_vector* _source_de ;
 
     /**
-     * Maximum index for source_de
-     */
-    const size_t _max_de ;
-
-    /**
      * Initial azimuthal angle (AZ) at the source location
      * (degrees, clockwise from true north).
      * Defined as a pointer to support virtual methods in seq_vector class.
      */
     const seq_vector* _source_az ;
+
+    /**
+     * Maximum index for source_de
+     */
+    const size_t _max_de ;
 
     /**
      * Maximum index for source_az
@@ -398,12 +432,28 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
     spreading_model* _spreading_model ;
 
     /**
-     * The value of the intensity threshold in dB
-     * Any eigenray intensity values that are weaker than this
-     * threshold are not sent the proplossListner(s);
+     * The value of the intensity threshold in dB.
+     * Any eigenray or eigenverb with an intensity value that are weaker
+     * than this threshold is not sent the listeners.
      * Defaults to -300 dB
      */
-    double _intensity_threshold; //In dB
+    double _intensity_threshold;
+
+    /**
+     * The maximum number of bottom bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of bottom bounces is not sent the listeners.
+     * Defaults to 999.
+     */
+    int _max_bottom ;
+
+    /**
+     * The maximum number of surface bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of surface bounces is not sent the listeners.
+     * Defaults to 999.
+     */
+    int _max_surface ;
 
     /**
      * Circular queue of wavefront elements needed by the
