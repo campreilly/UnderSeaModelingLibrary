@@ -29,18 +29,18 @@ public:
      */
     typedef std::vector<fathometer_model*> fathometer_package;
 
-	/**
-	 * Data type used for reference to a fathometer_model.
-	 */
+    /**
+     * Data type used for reference to a fathometer_model.
+     */
     typedef shared_ptr<fathometer_model> reference;
 
     /**
      * Construct from all data required.
      *
-     * @param	source_id   The source id for this pair.
-     * @param	receiver_id	The receiver id for this pair.
-     * @param	src_pos		The source position when eigenrays were obtained.
-     * @param	rcv_pos	    The receiver position when eigenrays were obtained.
+     * @param    source_id   The source id for this pair.
+     * @param    receiver_id    The receiver id for this pair.
+     * @param    src_pos        The source position when eigenrays were obtained.
+     * @param    rcv_pos        The receiver position when eigenrays were obtained.
      * @param   list        The list of eigenrays.
      */
     fathometer_model(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
@@ -169,7 +169,7 @@ public:
         _receiver_position = position;
     }
 
-	/**
+    /**
      * Gets the eigenray_list for this fathometer_model.
      * @return  eigenray_list
      */
@@ -358,10 +358,10 @@ private:
      */
     eigenray_list _eigenrays;
 
-	/**
-	 * Mutex that locks during eigenray access
-	 */
-	mutable read_write_lock _eigenrays_mutex ;
+    /**
+     * Mutex that locks during eigenray access
+     */
+    mutable read_write_lock _eigenrays_mutex ;
 
 };
 

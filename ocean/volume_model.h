@@ -59,7 +59,7 @@ class USML_DECLSPEC volume_model : public scattering_model {
     /**
      * Define a new reverberation scattering strength model.
      *
-     * @param scattering	Scattering model for this layer.
+     * @param scattering    Scattering model for this layer.
      */
     void scattering( scattering_model* scattering ) {
         if( _scattering ) delete _scattering ;
@@ -81,9 +81,9 @@ class USML_DECLSPEC volume_model : public scattering_model {
         const seq_vector& frequencies, double de_incident, double de_scattered,
         double az_incident, double az_scattered, vector<double>* amplitude )
     {
-    	_scattering->scattering( location,
-    			frequencies, de_incident, de_scattered,
-				az_incident, az_scattered, amplitude ) ;
+        _scattering->scattering( location,
+                frequencies, de_incident, de_scattered,
+                az_incident, az_scattered, amplitude ) ;
     }
 
     /**
@@ -105,9 +105,9 @@ class USML_DECLSPEC volume_model : public scattering_model {
         const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
         double az_incident, matrix<double> az_scattered, matrix< vector<double> >* amplitude )
     {
-    	_scattering->scattering( location,
-    			frequencies, de_incident, de_scattered,
-				az_incident, az_scattered, amplitude ) ;
+        _scattering->scattering( location,
+                frequencies, de_incident, de_scattered,
+                az_incident, az_scattered, amplitude ) ;
     }
 
     //**************************************************
@@ -116,16 +116,16 @@ class USML_DECLSPEC volume_model : public scattering_model {
     /**
      * Initialize reflection loss components for a boundary.
      *
-     * @param scatter		Reverberation scattering strength model
+     * @param scatter        Reverberation scattering strength model
      */
     volume_model( scattering_model* scatter=NULL ) :
         _scattering( scatter )
     {
-		if ( scatter ) {
-			_scattering = scatter ;
-		} else {
-			_scattering = new scattering_constant() ;
-		}
+        if ( scatter ) {
+            _scattering = scatter ;
+        } else {
+            _scattering = new scattering_constant() ;
+        }
     }
 
     /**

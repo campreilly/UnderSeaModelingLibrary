@@ -31,24 +31,24 @@ class USML_DECLSPEC NcFile
     virtual ~NcFile( void );
 
     enum FileMode {
-	ReadOnly,	// file exists, open read-only
-	Write,		// file exists, open for writing
-        Replace,	// create new file, even if already exists
-	New		// create new file, fail if already exists
+    ReadOnly,    // file exists, open read-only
+    Write,        // file exists, open for writing
+        Replace,    // create new file, even if already exists
+    New        // create new file, fail if already exists
       };
 
     enum FileFormat {
        Classic,         // netCDF classic format (i.e. version 1 format)
        Offset64Bits,    // netCDF 64-bit offset format
-       Netcdf4,		// netCDF-4 using HDF5 format
-       Netcdf4Classic,	// netCDF-4 using HDF5 format using only netCDF-3 calls
+       Netcdf4,        // netCDF-4 using HDF5 format
+       Netcdf4Classic,    // netCDF-4 using HDF5 format using only netCDF-3 calls
        BadFormat
     };
 
     NcFile( const char * path, FileMode = ReadOnly ,
-	    size_t *bufrsizeptr = NULL,    // optional tuning parameters
-	    size_t initialsize = 0,
-	    FileFormat = Classic );
+        size_t *bufrsizeptr = NULL,    // optional tuning parameters
+        size_t initialsize = 0,
+        FileFormat = Classic );
 
     NcBool is_valid( void ) const;         // opened OK in ctr, still valid
 
@@ -151,11 +151,11 @@ class USML_DECLSPEC NcDim
     NcBool sync( void );
 
   private:
-    NcFile *the_file;		// not const because of rename
+    NcFile *the_file;        // not const because of rename
     int the_id;
     char *the_name;
 
-    NcDim(NcFile*, int num);	// existing dimension
+    NcDim(NcFile*, int num);    // existing dimension
     NcDim(NcFile*, NcToken name, long sz); // defines a new dim
     virtual ~NcDim( void );
     
@@ -189,7 +189,7 @@ class USML_DECLSPEC NcTypedComponent
     virtual ncbyte as_ncbyte( long n ) const;    // nth value as an unsgnd char
     virtual char as_char( long n ) const;        // nth value as char
     virtual short as_short( long n ) const;      // nth value as short
-    virtual int as_int( long n ) const;	         // nth value as int
+    virtual int as_int( long n ) const;             // nth value as int
     virtual int as_nclong( long n ) const;       // nth value as nclong (deprecated)
     virtual long as_long( long n ) const;        // nth value as long
     virtual float as_float( long n ) const;      // nth value as floating-point
@@ -314,7 +314,7 @@ class USML_DECLSPEC NcVar : public NcTypedComponent
     // for other variables, using first dimension as record dimension.
 
     // Get a record's worth of data
-    NcValues *get_rec(void);	        // get current record
+    NcValues *get_rec(void);            // get current record
     NcValues *get_rec(long rec);        // get specified record
     NcValues *get_rec(NcDim* d);        // get current dimension slice
     NcValues *get_rec(NcDim* d, long slice); // get specified dimension slice
@@ -410,7 +410,7 @@ class USML_DECLSPEC NcVar : public NcTypedComponent
 class USML_DECLSPEC NcAtt : public NcTypedComponent
 {
   public:  
-	NcAtt(NcFile*, const NcVar*, NcToken);
+    NcAtt(NcFile*, const NcVar*, NcToken);
     virtual ~NcAtt( void );
     NcToken name( void ) const;
     NcType type( void ) const;
@@ -426,7 +426,7 @@ class USML_DECLSPEC NcAtt : public NcTypedComponent
     // protected constructors because only NcVars and NcFiles create
     // attributes
     NcAtt( NcFile*, NcToken); // global attribute
-	
+    
     
     // To make attributes, since constructor is private
   friend class NcFile;

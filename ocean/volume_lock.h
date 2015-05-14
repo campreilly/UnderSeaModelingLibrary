@@ -82,7 +82,7 @@ public:
     /**
      * Define a new reverberation scattering strength model.
      *
-     * @param scattering	Scattering model for this layer.
+     * @param scattering    Scattering model for this layer.
      */
     void scattering( scattering_model* scattering ) {
         lock_guard<mutex> guard(_scattering_mutex);

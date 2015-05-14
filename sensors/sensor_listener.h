@@ -29,52 +29,52 @@ using namespace usml::waveq3d ;
 class USML_DECLSPEC sensor_listener {
 public:
 
-	/**
-	 * Destructor.
-	 */
-	virtual ~sensor_listener() {
-	}
+    /**
+     * Destructor.
+     */
+    virtual ~sensor_listener() {
+    }
 
-	/**
-	 * Notification that new eigenray data is ready.
-	 *
-	 * @param	sensorID    The ID of the sensor that issued the notification.
-	 * @param   list        Pointer to std::list of eigenrays.
-	 */
-	virtual void update_fathometer(int sensorID, eigenray_list* list) = 0;
-
-	/**
-	 * Notification that new eigenverb data is ready.
-	 *
-	 * @param	sensor	Pointer to sensor that issued the notification.
-	 */
-	virtual void update_eigenverbs(sensor_model* sensor) = 0;
-
-	/**
-	 * Queries for the sensor pair complements of this sensor.
+    /**
+     * Notification that new eigenray data is ready.
      *
-	 * @param	sensor	Sensor that issued the notification.
+     * @param    sensorID    The ID of the sensor that issued the notification.
+     * @param   list        Pointer to std::list of eigenrays.
+     */
+    virtual void update_fathometer(int sensorID, eigenray_list* list) = 0;
+
+    /**
+     * Notification that new eigenverb data is ready.
+     *
+     * @param    sensor    Pointer to sensor that issued the notification.
+     */
+    virtual void update_eigenverbs(sensor_model* sensor) = 0;
+
+    /**
+     * Queries for the sensor pair complements of this sensor.
+     *
+     * @param    sensor    Sensor that issued the notification.
      * @return  Pointer to the sensor complement of this pair.
-	 */
+     */
 
     virtual const sensor_model* sensor_complement(const sensor_model* sensor) const = 0;
 
 protected:
 
-	/**
-	 * Constructor - protected
-	 */
-	sensor_listener() {
-	}
+    /**
+     * Constructor - protected
+     */
+    sensor_listener() {
+    }
 
 private:
 
-	/**
-	 * Disabling default copy constructor and default
-	 * assignment operator.
-	 */
-	sensor_listener(const sensor_listener& yRef);
-	sensor_listener& operator=(const sensor_listener& yRef);
+    /**
+     * Disabling default copy constructor and default
+     * assignment operator.
+     */
+    sensor_listener(const sensor_listener& yRef);
+    sensor_listener& operator=(const sensor_listener& yRef);
 };
 
 /// @}

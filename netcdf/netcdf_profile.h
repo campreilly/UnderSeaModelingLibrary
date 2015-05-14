@@ -81,7 +81,7 @@ class USML_DECLSPEC netcdf_profile : public data_grid<double,3> {
      * @param  earth_radius Depth correction term (meters).
      *                      Set to zero if you want to make depths
      *                      relative to earth's surface.
-     * @throws				std:invalid_argument on invalid name or path of temperature file.
+     * @throws                std:invalid_argument on invalid name or path of temperature file.
      */
     netcdf_profile(
         const char* profile, double date,

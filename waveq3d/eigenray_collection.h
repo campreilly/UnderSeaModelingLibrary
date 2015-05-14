@@ -27,8 +27,8 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
 
 public:
 
-	// eigenray_collection shared_ptr
-	typedef boost::shared_ptr<eigenray_collection> reference ;
+    // eigenray_collection shared_ptr
+    typedef boost::shared_ptr<eigenray_collection> reference ;
 
 private:
 
@@ -103,11 +103,11 @@ public:
     /**
      * Initialize with references to wave front information.
      *
-     * @param	frequencies Frequencies over which to compute loss (Hz).
-     * @param	source_pos  Location of the wavefront source.
-     * @param	source_de   Launch D/E angle at source (deg)
-     * @param	source_az   Launch AZ angle at source (deg)
-     * @param	time_step   Propagation step size (seconds).
+     * @param    frequencies Frequencies over which to compute loss (Hz).
+     * @param    source_pos  Location of the wavefront source.
+     * @param    source_de   Launch D/E angle at source (deg)
+     * @param    source_az   Launch AZ angle at source (deg)
+     * @param    time_step   Propagation step size (seconds).
      * @param   targets     Grid of targets to ensonify.
      */
     eigenray_collection( const seq_vector& frequencies, const wposition1& source_pos,
@@ -193,17 +193,17 @@ public:
         return &(_loss(t1, t2));
     }
 
-	/**
-	 * Adds a new eigenray to this collection for a specific target.
-	 * Implementation of the pure virtual method in eigenray_listener.
-	 *
-	 * @param   target_row 	Row identifier for the target involved in this collision.
-	 * @param   target_col 	Column identifier for the target involved in this collision.
-	 * @param   ray        	Propagation loss information for this collision.
-	 * @param 	runID		Identification number of the wavefront that
-	 * 						produced this result.  Ignored in this implementation.
-	 */
-	void add_eigenray(size_t target_row, size_t target_col, eigenray ray, size_t runID) ;
+    /**
+     * Adds a new eigenray to this collection for a specific target.
+     * Implementation of the pure virtual method in eigenray_listener.
+     *
+     * @param   target_row     Row identifier for the target involved in this collision.
+     * @param   target_col     Column identifier for the target involved in this collision.
+     * @param   ray            Propagation loss information for this collision.
+     * @param     runID        Identification number of the wavefront that
+     *                         produced this result.  Ignored in this implementation.
+     */
+    void add_eigenray(size_t target_row, size_t target_col, eigenray ray, size_t runID) ;
 
     /**
      * Compute propagation loss summed over all eigenrays.
@@ -236,71 +236,71 @@ public:
      * <pre>
      *     netcdf eigenray_basic {
      *     dimensions:
-     *     	frequency = 1 ;
-     *     	rows = 1 ;
-     *     	cols = 1 ;
-     *     	eigenrays = 4 ;
-     *     	launch_de = 25 ;
-     *     	launch_az = 5 ;
+     *         frequency = 1 ;
+     *         rows = 1 ;
+     *         cols = 1 ;
+     *         eigenrays = 4 ;
+     *         launch_de = 25 ;
+     *         launch_az = 5 ;
      *     variables:
-     *     	double source_latitude ;
-     *     		source_latitude:units = "degrees_north" ;
-     *     	double source_longitude ;
-     *     		source_longitude:units = "degrees_east" ;
-     *     	double source_altitude ;
-     *     		source_altitude:units = "meters" ;
-     *     		source_altitude:positive = "up" ;
-     *     	double launch_de(launch_de) ;
-     *     		launch_de:units = "degrees" ;
-     *     		launch_de:positive = "up" ;
-     *     	double launch_az(launch_az) ;
-     *     		launch_az:units = "degrees_true" ;
-     *     		launch_az:positive = "clockwise" ;
-     *     	double time_step ;
-     *     		time_step:units = "seconds" ;
-     *     	double frequency(frequency) ;
-     *     		frequency:units = "hertz" ;
-     *     	double latitude(rows, cols) ;
-     *     		latitude:units = "degrees_north" ;
-     *     	double longitude(rows, cols) ;
-     *     		longitude:units = "degrees_east" ;
-     *     	double altitude(rows, cols) ;
-     *     		altitude:units = "meters" ;
-     *     		altitude:positive = "up" ;
-     *     	short proploss_index(rows, cols) ;
-     *     		proploss_index:units = "count" ;
-     *     	short eigenray_index(rows, cols) ;
-     *     		eigenray_index:units = "count" ;
-     *     	short eigenray_num(rows, cols) ;
-     *     		eigenray_num:units = "count" ;
-     *     	double intensity(eigenrays, frequency) ;
-     *     		intensity:units = "dB" ;
-     *     	double phase(eigenrays, frequency) ;
-     *     		phase:units = "radians" ;
-     *     	double travel_time(eigenrays) ;
-     *     		travel_time:units = "seconds" ;
-     *     	double source_de(eigenrays) ;
-     *     		source_de:units = "degrees" ;
-     *     		source_de:positive = "up" ;
-     *     	double source_az(eigenrays) ;
-     *     		source_az:units = "degrees_true" ;
-     *     		source_az:positive = "clockwise" ;
-     *     	double target_de(eigenrays) ;
-     *     		target_de:units = "degrees" ;
-     *     		target_de:positive = "up" ;
-     *     	double target_az(eigenrays) ;
-     *     		target_az:units = "degrees_true" ;
-     *     		target_az:positive = "clockwise" ;
-     *     	short surface(eigenrays) ;
-     *     		surface:units = "count" ;
-     *     	short bottom(eigenrays) ;
-     *     		bottom:units = "count" ;
-     *     	short caustic(eigenrays) ;
-     *     		caustic:units = "count" ;
+     *         double source_latitude ;
+     *             source_latitude:units = "degrees_north" ;
+     *         double source_longitude ;
+     *             source_longitude:units = "degrees_east" ;
+     *         double source_altitude ;
+     *             source_altitude:units = "meters" ;
+     *             source_altitude:positive = "up" ;
+     *         double launch_de(launch_de) ;
+     *             launch_de:units = "degrees" ;
+     *             launch_de:positive = "up" ;
+     *         double launch_az(launch_az) ;
+     *             launch_az:units = "degrees_true" ;
+     *             launch_az:positive = "clockwise" ;
+     *         double time_step ;
+     *             time_step:units = "seconds" ;
+     *         double frequency(frequency) ;
+     *             frequency:units = "hertz" ;
+     *         double latitude(rows, cols) ;
+     *             latitude:units = "degrees_north" ;
+     *         double longitude(rows, cols) ;
+     *             longitude:units = "degrees_east" ;
+     *         double altitude(rows, cols) ;
+     *             altitude:units = "meters" ;
+     *             altitude:positive = "up" ;
+     *         short proploss_index(rows, cols) ;
+     *             proploss_index:units = "count" ;
+     *         short eigenray_index(rows, cols) ;
+     *             eigenray_index:units = "count" ;
+     *         short eigenray_num(rows, cols) ;
+     *             eigenray_num:units = "count" ;
+     *         double intensity(eigenrays, frequency) ;
+     *             intensity:units = "dB" ;
+     *         double phase(eigenrays, frequency) ;
+     *             phase:units = "radians" ;
+     *         double travel_time(eigenrays) ;
+     *             travel_time:units = "seconds" ;
+     *         double source_de(eigenrays) ;
+     *             source_de:units = "degrees" ;
+     *             source_de:positive = "up" ;
+     *         double source_az(eigenrays) ;
+     *             source_az:units = "degrees_true" ;
+     *             source_az:positive = "clockwise" ;
+     *         double target_de(eigenrays) ;
+     *             target_de:units = "degrees" ;
+     *             target_de:positive = "up" ;
+     *         double target_az(eigenrays) ;
+     *             target_az:units = "degrees_true" ;
+     *             target_az:positive = "clockwise" ;
+     *         short surface(eigenrays) ;
+     *             surface:units = "count" ;
+     *         short bottom(eigenrays) ;
+     *             bottom:units = "count" ;
+     *         short caustic(eigenrays) ;
+     *             caustic:units = "count" ;
      *     
      *     // global attributes:
-     *     		:long_name = "eigenray_basic test" ;
-     *     		:Conventions = "COARDS" ;
+     *             :long_name = "eigenray_basic test" ;
+     *             :Conventions = "COARDS" ;
      *     data:
      *      source_latitude = 45 ;
      *      source_longitude = -45 ;

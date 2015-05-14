@@ -28,26 +28,26 @@ class USML_DECLSPEC profile_model : public attenuation_model {
 
 public:
 
-	/**
-	 * Constructor - Initialize component models within ocean profile.
-	 *
-	 * @param attenuation   In-water attenuation model.
-	 *                      Uses Thorp model if none specified.
-	 */
-	profile_model( attenuation_model* attenuation = NULL ) : _flat_earth(false) {
-		if ( attenuation ) {
-			_attenuation = attenuation ;
-		} else {
-			_attenuation = new attenuation_thorp() ;
-		}
-	}
+    /**
+     * Constructor - Initialize component models within ocean profile.
+     *
+     * @param attenuation   In-water attenuation model.
+     *                      Uses Thorp model if none specified.
+     */
+    profile_model( attenuation_model* attenuation = NULL ) : _flat_earth(false) {
+        if ( attenuation ) {
+            _attenuation = attenuation ;
+        } else {
+            _attenuation = new attenuation_thorp() ;
+        }
+    }
 
-	/**
-	 * Destructor - Delete attenuation model.
-	 */
-	virtual ~profile_model() {
-		delete _attenuation ;
-	}
+    /**
+     * Destructor - Delete attenuation model.
+     */
+    virtual ~profile_model() {
+        delete _attenuation ;
+    }
 
     /**
      * Anti-correction term to make the earth seem flat.
@@ -72,31 +72,31 @@ public:
         matrix<double>* speed, wvector* gradient=NULL ) = 0 ;
 
    /**
-	* Define a new in-water attenuation model.
-	*
-	* @param attenuation	In-water attenuation model.
-	*/
+    * Define a new in-water attenuation model.
+    *
+    * @param attenuation    In-water attenuation model.
+    */
    void attenuation( attenuation_model* attenuation ) {
-	   if ( _attenuation ) delete _attenuation ;
-	   _attenuation = attenuation ;
+       if ( _attenuation ) delete _attenuation ;
+       _attenuation = attenuation ;
    }
 
    /**
-	* Computes the broadband absorption loss of sea water.
-	*
-	* @param location      Location at which to compute attenuation.
-	* @param frequencies   Frequencies over which to compute loss. (Hz)
-	* @param distance      Distance travelled through the water (meters).
-	* @param attenuation   Absorption loss of sea water in dB (output).
-	*/
+    * Computes the broadband absorption loss of sea water.
+    *
+    * @param location      Location at which to compute attenuation.
+    * @param frequencies   Frequencies over which to compute loss. (Hz)
+    * @param distance      Distance travelled through the water (meters).
+    * @param attenuation   Absorption loss of sea water in dB (output).
+    */
    virtual void attenuation(
-	   const wposition& location,
-	   const seq_vector& frequencies,
-	   const matrix<double>& distance,
-	   matrix< vector<double> >* attenuation)
+       const wposition& location,
+       const seq_vector& frequencies,
+       const matrix<double>& distance,
+       matrix< vector<double> >* attenuation)
    {
-	   _attenuation->attenuation(
-		   location, frequencies, distance, attenuation ) ;
+       _attenuation->attenuation(
+           location, frequencies, distance, attenuation ) ;
    }
 
 

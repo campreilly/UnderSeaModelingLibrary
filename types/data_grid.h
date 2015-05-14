@@ -83,7 +83,7 @@ class USML_DLLEXPORT data_grid {
          */
         data_grid(const seq_vector *axis[])
         {
-        	size_type N = 1 ;
+            size_type N = 1 ;
             for (size_t n = 0; n < NUM_DIMS; ++n) {
                 _axis[n] = axis[n]->clone();
                 N *= _axis[n]->size();
@@ -105,7 +105,7 @@ class USML_DLLEXPORT data_grid {
          */
         data_grid(const data_grid& other, bool copy_data)
         {
-        	size_type N = 1 ;
+            size_type N = 1 ;
             for (size_type n = 0; n < NUM_DIMS; ++n) {
                 _axis[n] = other._axis[n]->clone() ;
                 N *= _axis[n]->size();
@@ -126,7 +126,7 @@ class USML_DLLEXPORT data_grid {
          * The data and axes are copied from rhs to this.
          */
         void copy(const self_type& rhs) {
-        	size_type N = 1 ;
+            size_type N = 1 ;
             for(size_type n = 0; n < NUM_DIMS; ++n) {
                 if(_axis[n] != NULL) {
                     delete _axis[n] ;
@@ -138,7 +138,7 @@ class USML_DLLEXPORT data_grid {
                 delete[] _data ;
             }
             _data = new DATA_TYPE[N] ;
-        	memcpy( _data, rhs._data, N * sizeof(DATA_TYPE) ) ;
+            memcpy( _data, rhs._data, N * sizeof(DATA_TYPE) ) ;
         }
 
         /**
@@ -216,8 +216,8 @@ class USML_DLLEXPORT data_grid {
             vector<NcVar*> axis_var(NUM_DIMS) ;
             const NcDim** axis_size = new const NcDim*[NUM_DIMS] ;
             long* data_size = new long[NUM_DIMS] ; 
-				// Note: Using size_type instead of long for this variable
-			    // doesn't work on VC++ 32 bit, data_var->put() requires long.
+                // Note: Using size_type instead of long for this variable
+                // doesn't work on VC++ 32 bit, data_var->put() requires long.
             NcType type = ncDouble ;
             const std::type_info& dt = typeid(DATA_TYPE) ;
             const char* dtype = dt.name() ;
@@ -242,8 +242,8 @@ class USML_DLLEXPORT data_grid {
 
             earth_radius->put( &wposition::earth_radius, 1 ) ;
             for(long i=0; i < NUM_DIMS; ++i) {
-            	axis_var[i]->put( boost::numeric::ublas::vector<double>(*_axis[i]).data().begin(),
-					data_size[i] ) ;
+                axis_var[i]->put( boost::numeric::ublas::vector<double>(*_axis[i]).data().begin(),
+                    data_size[i] ) ;
             }
             data_var->put( _data, data_size ) ;
 
@@ -523,9 +523,9 @@ class USML_DLLEXPORT data_grid {
          *                      point. Must have the same rank as the data grid.
          * @param   location    Location at which field value is desired. Must
          *                      have the same NUM_DIM as the data grid or higher.
-         * @param   deriv	    Derivative for this iteration.
-         * @param	deriv_vec   Results vector for derivative.
-         *			            Derivative not computed if NULL.
+         * @param   deriv        Derivative for this iteration.
+         * @param    deriv_vec   Results vector for derivative.
+         *                        Derivative not computed if NULL.
          * @return              Estimate of the field after interpolation.
          */
         DATA_TYPE interp(int dim, const size_t* index, const double* location,
@@ -540,10 +540,10 @@ class USML_DLLEXPORT data_grid {
          *                      point. Must have the same NUM_DIM as the data grid.
          * @param   location    Location at which field value is desired. Must
          *                      have the same NUM_DIM as the data grid or higher.
-         * @param   deriv	    Derivative for this iteration. Always zero for
+         * @param   deriv        Derivative for this iteration. Always zero for
          *                      nearest neighbor interpolation.
-         * @param	deriv_vec   Results vector for derivative.
-         *			            Derivative not computed if NULL.
+         * @param    deriv_vec   Results vector for derivative.
+         *                        Derivative not computed if NULL.
          * @return              Estimate of the field after interpolation.
          */
         DATA_TYPE nearest(int dim, const size_t* index, const double* location,
@@ -586,10 +586,10 @@ class USML_DLLEXPORT data_grid {
          *                      point. Must have the same rank as the data grid.
          * @param   location    Location at which field value is desired. Must
          *                      have the same rank as the data grid or higher.
-         * @param   deriv	    Derivative for this iteration. Constant across the
+         * @param   deriv        Derivative for this iteration. Constant across the
          *                      interval for linear interpolation.
-         * @param	deriv_vec   Results vector for derivative.
-         *			    		Derivative not computed if NULL.
+         * @param    deriv_vec   Results vector for derivative.
+         *                        Derivative not computed if NULL.
          * @return              Estimate of the field after interpolation.
          */
         DATA_TYPE linear(int dim, const size_t* index, const double* location,
@@ -600,10 +600,10 @@ class USML_DLLEXPORT data_grid {
             // build interpolation coefficients
 
             const DATA_TYPE a = interp(dim - 1, index, location, da, deriv_vec);
-			size_t next[NUM_DIMS];
-			memcpy(next, index, NUM_DIMS * sizeof(size_t));
-			++next[dim];
-			const DATA_TYPE b = interp(dim - 1, next, location, db, deriv_vec);
+            size_t next[NUM_DIMS];
+            memcpy(next, index, NUM_DIMS * sizeof(size_t));
+            ++next[dim];
+            const DATA_TYPE b = interp(dim - 1, next, location, db, deriv_vec);
             const size_t k = index[dim];
             seq_vector* ax = _axis[dim];
 
@@ -658,10 +658,10 @@ class USML_DLLEXPORT data_grid {
          * spaced points, and their forward (one-sided) derivatives.
          *
          * <pre>
-         * 		y0 = y[k-1]		h0 = x[k]-x[k-1]	deriv0 = (y1-y0)/h0
-         * 		y1 = y[k]		h1 = x[k+1]-x[k]	deriv1 = (y2-y1)/h1
-         * 		y2 = y[k+1]		h2 = x[k+2]-x[k+1]	deriv2 = (y3-y2)/h2
-         * 		y3 = y[k+2]		s = x - x[k]
+         *         y0 = y[k-1]        h0 = x[k]-x[k-1]    deriv0 = (y1-y0)/h0
+         *         y1 = y[k]        h1 = x[k+1]-x[k]    deriv1 = (y2-y1)/h1
+         *         y2 = y[k+1]        h2 = x[k+2]-x[k+1]    deriv2 = (y3-y2)/h2
+         *         y3 = y[k+2]        s = x - x[k]
          *
          * such that
          *
@@ -673,7 +673,7 @@ class USML_DLLEXPORT data_grid {
          *
          * where:
          *
-         *		slope[k] = weighted harmonic average of deriv0, deriv1, deriv2 terms
+         *        slope[k] = weighted harmonic average of deriv0, deriv1, deriv2 terms
          *
          * </pre>
          * At the end-points, y'[0] and y'[N-1] must be estimated.  This
@@ -685,19 +685,19 @@ class USML_DLLEXPORT data_grid {
          *                      point. Must have the same rank as the data grid.
          * @param   location    Location at which field value is desired. Must
          *                      have the same rank as the data grid or higher.
-         * @param   deriv	    Derivative for this iteration. Constant across the
+         * @param   deriv        Derivative for this iteration. Constant across the
          *                      interval for linear interpolation.
-         * @param	deriv_vec   Results vector for derivative.
-         *			            Derivative not computed if NULL.
+         * @param    deriv_vec   Results vector for derivative.
+         *                        Derivative not computed if NULL.
          * @return              Estimate of the field after interpolation.
          */
         DATA_TYPE pchip(int dim, const size_t* index, const double* location,
                 DATA_TYPE& deriv, DATA_TYPE* deriv_vec) const
         {
             DATA_TYPE result ;
-            DATA_TYPE y0, y1, y2, y3 ; 			// dim-1 values at k-1, k, k+1, k+2
-            DATA_TYPE dy0=0, dy1=0, dy2=0, dy3=0 ;		// dim-1 derivs at k-1, k, k+1, k+2
-            const size_t kmin = 1u ;					  // at endpt if k-1 < 0
+            DATA_TYPE y0, y1, y2, y3 ;             // dim-1 values at k-1, k, k+1, k+2
+            DATA_TYPE dy0=0, dy1=0, dy2=0, dy3=0 ;        // dim-1 derivs at k-1, k, k+1, k+2
+            const size_t kmin = 1u ;                      // at endpt if k-1 < 0
             const size_t kmax = _axis[dim]->size()-3u ; // at endpt if k+2 > N-1
 
             // interpolate in dim-1 dimension to find values and derivs at k, k-1
@@ -711,7 +711,7 @@ class USML_DLLEXPORT data_grid {
                 memcpy(prev, index, NUM_DIMS * sizeof(size_t));
                 --prev[dim];
                 y0 = interp( dim-1, prev, location, dy0, deriv_vec );
-            } else {	// use harmless values at left end-point
+            } else {    // use harmless values at left end-point
                 y0 = y1 ;
                 dy0 = dy1 ;
             }
@@ -728,33 +728,33 @@ class USML_DLLEXPORT data_grid {
                 memcpy(last, next, NUM_DIMS * sizeof(size_t));
                 ++last[dim];
                 y3 = interp(dim - 1, last, location, dy3, deriv_vec);
-            } else {	// use harmless values at right end-point
+            } else {    // use harmless values at right end-point
                 y3 = y2 ;
                 dy3 = dy2 ;
             }
 
             // compute difference values used frequently in computation
 
-            const DATA_TYPE h0 = (DATA_TYPE) ax->increment(k - 1); 	// interval from k-1 to k
-            const DATA_TYPE h1 = (DATA_TYPE) ax->increment(k);	   	// interval from k to k+1
-            const DATA_TYPE h2 = (DATA_TYPE) ax->increment(k + 1); 	// interval from k+1 to k+2
-            const DATA_TYPE h1_2 = h1 * h1; 		   	// k to k+1 interval squared
-            const DATA_TYPE h1_3 = h1_2 * h1;		   	// k to k+1 interval cubed
+            const DATA_TYPE h0 = (DATA_TYPE) ax->increment(k - 1);     // interval from k-1 to k
+            const DATA_TYPE h1 = (DATA_TYPE) ax->increment(k);           // interval from k to k+1
+            const DATA_TYPE h2 = (DATA_TYPE) ax->increment(k + 1);     // interval from k+1 to k+2
+            const DATA_TYPE h1_2 = h1 * h1;                // k to k+1 interval squared
+            const DATA_TYPE h1_3 = h1_2 * h1;               // k to k+1 interval cubed
 
-            const DATA_TYPE s = location[dim]-(*ax)(k);	// local variable
-            const DATA_TYPE s_2 = s * s, s_3 = s_2 * s;	// s squared and cubed
+            const DATA_TYPE s = location[dim]-(*ax)(k);    // local variable
+            const DATA_TYPE s_2 = s * s, s_3 = s_2 * s;    // s squared and cubed
             const DATA_TYPE sh_minus = s - h1;
             const DATA_TYPE sh_term = 3.0 * h1 * s_2 - 2.0 * s_3;
 
             // compute first divided differences (forward derivative)
             // for both the values, and their derivatives
 
-            const DATA_TYPE deriv0 = (y1 - y0) / h0;	// fwd deriv from k-1 to k
-            const DATA_TYPE deriv1 = (y2 - y1) / h1; 	// fwd deriv from k to k+1
-            const DATA_TYPE deriv2 = (y3 - y2) / h2; 	// fwd deriv from k+1 to k+2
+            const DATA_TYPE deriv0 = (y1 - y0) / h0;    // fwd deriv from k-1 to k
+            const DATA_TYPE deriv1 = (y2 - y1) / h1;     // fwd deriv from k to k+1
+            const DATA_TYPE deriv2 = (y3 - y2) / h2;     // fwd deriv from k+1 to k+2
 
             DATA_TYPE dderiv0=0.0, dderiv1=0.0, dderiv2=0.0 ;
-            if (deriv_vec) {				// fwd deriv of dim-1 derivatives
+            if (deriv_vec) {                // fwd deriv of dim-1 derivatives
                 dderiv0 = (dy1 - dy0) / h0;
                 dderiv1 = (dy2 - dy1) / h1;
                 dderiv2 = (dy3 - dy2) / h2;
@@ -825,7 +825,7 @@ class USML_DLLEXPORT data_grid {
             // at right end-point, use Matlab end-point formula with slope limits
             // note that the deriv2 value is bogus values when this is true
 
-            } else {		// otherwise, compute harmonic weighted average
+            } else {        // otherwise, compute harmonic weighted average
                 slope2 = ( (2.0+h1+h2) * deriv1 - h1 * deriv0 ) / (h1+h0) ;
                 if ( slope2 * deriv1 < 0.0 ) {
                     slope2 = 0.0 ;
@@ -855,12 +855,12 @@ class USML_DLLEXPORT data_grid {
             if (deriv_vec) {
                 const DATA_TYPE u = s / h1;
                 deriv = slope1 * (1.0 - u) + slope2 * u;
-				deriv_vec[dim] = deriv ;
+                deriv_vec[dim] = deriv ;
                 if (dim > 0) {
                     deriv_vec[dim-1] = dy2 * sh_term / h1_3
-									 + dy1 * (h1_3 - sh_term) / h1_3
-									 + dslope2 * s_2 * sh_minus / h1_2
-									 + dslope1 * s * sh_minus * sh_minus / h1_2;
+                                     + dy1 * (h1_3 - sh_term) / h1_3
+                                     + dslope2 * s_2 * sh_minus / h1_2
+                                     + dslope1 * s * sh_minus * sh_minus / h1_2;
                 }
             }
 

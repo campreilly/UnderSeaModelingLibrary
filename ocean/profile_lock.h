@@ -25,9 +25,9 @@ class USML_DECLSPEC profile_lock : public profile_model {
    private:
 
         /** Mutex to prevent simultaneous access/update by multiple threads. */
-		boost::mutex* _sound_speedMutex ;
-		boost::mutex* _attenuationMutex ;
-	    /** The "has a" object to prevent simultaneous access */
+        boost::mutex* _sound_speedMutex ;
+        boost::mutex* _attenuationMutex ;
+        /** The "has a" object to prevent simultaneous access */
         profile_model* _other;
 
     public:

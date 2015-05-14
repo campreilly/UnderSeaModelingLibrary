@@ -141,8 +141,8 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
     inline vector<double> gaussian(double d,double w,double A) {
         _beam_width = _spread + OVERLAP * OVERLAP * w * w ; // sum of squares
         return element_div(
-        	exp( (-0.5*d*d) / _beam_width ),
-        	sqrt(_beam_width) ) * A ;
+            exp( (-0.5*d*d) / _beam_width ),
+            sqrt(_beam_width) ) * A ;
     }
 
     /**

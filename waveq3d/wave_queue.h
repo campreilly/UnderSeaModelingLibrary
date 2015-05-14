@@ -95,7 +95,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      *                      include rays for both 0 and 360 degrees.
      * @param  time_step    Propagation step size (seconds).
      * @param  targets      List of acoustic targets.
-     * @param  run_id		Run Identification number.
+     * @param  run_id        Run Identification number.
      * @param  type         Type of spreading model to use: CLASSIC_RAY
      *                      or HYBRID_GAUSSIAN.
      *   NOTE: The freq paramater above, is a seq_vector pointer and is owned 
@@ -150,7 +150,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
     /**
      * Initial azimuthal angle at the source location.
      *
-     * @param  az       	Index of the element to access.
+     * @param  az           Index of the element to access.
      * @return              Depression/elevation angle.
      *                      (degrees, clockwise from true north)
      */
@@ -311,11 +311,11 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
 
     /**
      * Optional identification number for this wavefront calculation.
-	 * This can be used to correlate results to a specific wavefront when
-	 * concurrent wavefronts are used.  The scheme for defining this ID
-	 * can be different for each sonar training system.
-	 *
-     * @param id	New identification number for this wavefront calculation.
+     * This can be used to correlate results to a specific wavefront when
+     * concurrent wavefronts are used.  The scheme for defining this ID
+     * can be different for each sonar training system.
+     *
+     * @param id    New identification number for this wavefront calculation.
      */
     inline void runID( size_t id ) {
         _run_id = id ;
@@ -414,13 +414,13 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
     size_t _run_id ;
 
     /**
-	 * Intermediate term: sin of colatitude for targets.
-	 * By caching this value here, we avoid re-calculating it each time
-	 * the that wave_front::compute_target_distance() needs to
-	 * compute the distance squared from each target to each point
-	 * on the wavefront.
-	 */
-	matrix<double> _targets_sin_theta ;
+     * Intermediate term: sin of colatitude for targets.
+     * By caching this value here, we avoid re-calculating it each time
+     * the that wave_front::compute_target_distance() needs to
+     * compute the distance squared from each target to each point
+     * on the wavefront.
+     */
+    matrix<double> _targets_sin_theta ;
 
     /** Reference to the reflection model component. */
     reflection_model* _reflection_model ;
@@ -468,10 +468,10 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
 
 
 //    /**
-//	* Vector containing the references of objects that will be used to
-//	* update classes that require eigenrays as they are built.
-//	* These classes must implement add_eigenray method.
-//	*/
+//    * Vector containing the references of objects that will be used to
+//    * update classes that require eigenrays as they are built.
+//    * These classes must implement add_eigenray method.
+//    */
 //    std::vector<eigenray_listener *> eigenray_listeners;
 
 //    /** Associated eigenverb collection **/
@@ -539,7 +539,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      *
      * @param   de      D/E angle index number.
      * @param   az      AZ angle index number.
-     * @return		True if first recursion reflects from surface.
+     * @return        True if first recursion reflects from surface.
      */
     bool detect_reflections_surface( size_t de, size_t az ) ;
 
@@ -552,7 +552,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      *
      * @param   de      D/E angle index number.
      * @param   az      AZ angle index number.
-     * @return		True if first recursion reflects from bottom.
+     * @return        True if first recursion reflects from bottom.
      */
     bool detect_reflections_bottom( size_t de, size_t az ) ;
 
@@ -574,14 +574,14 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
 
     void detect_caustics( size_t de, size_t az ) ;
 
-	/**
-	 * Searches the volume layers collisions and sends data to the
-	 * reverberation model. Compares the rho coordinate of the curr
-	 * and next wavefronts to the height of each layer at the curr and next
-	 * locations.  Calls collide_from_above() if the curr point is above
-	 * but the next point is below the layer.  Calls collide_from_below()
-	 * if the curr point is below but the next point is above.
-	 */
+    /**
+     * Searches the volume layers collisions and sends data to the
+     * reverberation model. Compares the rho coordinate of the curr
+     * and next wavefronts to the height of each layer at the curr and next
+     * locations.  Calls collide_from_above() if the curr point is above
+     * but the next point is below the layer.  Calls collide_from_below()
+     * if the curr point is below but the next point is above.
+     */
     void detect_volume_scattering( size_t de, size_t az ) ;
 
     //**************************************************
@@ -797,10 +797,10 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      * @param position      Location at which the collision occurs
      * @param ndirection    Normalized direction at the point of collision.
      * @param type          Interface number for the interface that generated
-     * 					    for this eigenverb.  See the eigenverb_collection
-     * 					    class header for documentation on interpreting
-	 * 						this number. For some layers, you can also use the
-	 * 						eigenverb::interface_type.
+     *                         for this eigenverb.  See the eigenverb_collection
+     *                         class header for documentation on interpreting
+     *                         this number. For some layers, you can also use the
+     *                         eigenverb::interface_type.
      */
     void build_eigenverb(
         size_t de, size_t az, double dt, double grazing,

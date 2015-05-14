@@ -35,19 +35,19 @@ using boost::numeric::ublas::vector ;
  */
 struct eigenverb {
 
-	/**
-	 * Types of interface interactions that eigenverbs need to
-	 * keep track of.
-	 */
-	typedef enum
-	{
-	    BOTTOM=0,
-	    SURFACE=1,
-	    VOLUME_UPPER=2,
-	    VOLUME_LOWER=3
-	}  interface_type ;
+    /**
+     * Types of interface interactions that eigenverbs need to
+     * keep track of.
+     */
+    typedef enum
+    {
+        BOTTOM=0,
+        SURFACE=1,
+        VOLUME_UPPER=2,
+        VOLUME_LOWER=3
+    }  interface_type ;
 
-	/** Data type used for coordinates. */
+    /** Data type used for coordinates. */
     typedef double coord_type ;
 
     /**

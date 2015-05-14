@@ -22,23 +22,23 @@ using namespace usml::threads;
  * parameters for its own use.
  */
 class USML_DECLSPEC receiver_params_map: public sensor_map_template<
-	sensor_params::id_type, receiver_params::reference >
+    sensor_params::id_type, receiver_params::reference >
 {
 
 public:
 
-	/**
-	 * Provides a reference to the receiver_params_map singleton.
-	 * If this is the first time that this has been invoked, the singleton
-	 * is automatically constructed.  The double check locking pattern
-	 * is used to prevent multiple threads from simultaneously trying to
-	 * construct the singleton.
-	 *
-	 * @xref 	Meyers, S., Alexandrescu, A.: C++ and the perils of
-	 * 		 	double-checked locking. Dr. Dobbs Journal (July-August 2004)
-	 * @return  Reference to the receiver_params_map singleton.
-	 */
-	static receiver_params_map* instance();
+    /**
+     * Provides a reference to the receiver_params_map singleton.
+     * If this is the first time that this has been invoked, the singleton
+     * is automatically constructed.  The double check locking pattern
+     * is used to prevent multiple threads from simultaneously trying to
+     * construct the singleton.
+     *
+     * @xref     Meyers, S., Alexandrescu, A.: C++ and the perils of
+     *              double-checked locking. Dr. Dobbs Journal (July-August 2004)
+     * @return  Reference to the receiver_params_map singleton.
+     */
+    static receiver_params_map* instance();
 
     /**
      * Reset the receiver_params_map singleton unique pointer to empty.
@@ -47,15 +47,15 @@ public:
 
 private:
 
-	/**
-	 * The singleton access pointer.
-	 */
-	static unique_ptr<receiver_params_map> _instance;
+    /**
+     * The singleton access pointer.
+     */
+    static unique_ptr<receiver_params_map> _instance;
 
-	/**
-	 * The mutex for the singleton pointer.
-	 */
-	static read_write_lock _instance_mutex;
+    /**
+     * The mutex for the singleton pointer.
+     */
+    static read_write_lock _instance_mutex;
 };
 
 /// @}

@@ -34,10 +34,10 @@ using boost::numeric::ublas::vector;
  *   \frac{I_{scat}}{I_{inc}} = \sigma_A \: \delta A
  * \f]
  * where
- * 		\f$ I_{inc} \f$ = scattering strength coefficient,
- * 		\f$ I_{scat} \f$ = scattering strength coefficient,
- * 		\f$ \delta A \f$ = ensonified area,
- * 		\f$ \sigma_A \f$ = interface scattering strength coefficient.
+ *         \f$ I_{inc} \f$ = scattering strength coefficient,
+ *         \f$ I_{scat} \f$ = scattering strength coefficient,
+ *         \f$ \delta A \f$ = ensonified area,
+ *         \f$ \sigma_A \f$ = interface scattering strength coefficient.
  *
  * When used as part of a "volume_model", the reverberation scattering
  * strength coefficient is the intensity ratio per unit volume.
@@ -45,15 +45,15 @@ using boost::numeric::ublas::vector;
  *   \frac{I_{scat}}{I_{inc}} = \sigma_V \: \delta V
  * \f]
  * where
- * 		\f$ \delta V \f$ = ensonified volume,
- * 		\f$ \sigma_V \f$ = volume scattering strength coefficient.
+ *         \f$ \delta V \f$ = ensonified volume,
+ *         \f$ \sigma_V \f$ = volume scattering strength coefficient.
  *
  * The integrated volume scattering strength per unit area is given by
  * \f[
  *   \sigma_A = h \sigma_V
  * \f]
  * where
- * 		\f$ h \f$ = thickness of the volume scattering layer.
+ *         \f$ h \f$ = thickness of the volume scattering layer.
  */
 class USML_DECLSPEC scattering_model {
 

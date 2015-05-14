@@ -37,12 +37,12 @@ class USML_DECLSPEC volume_flat : public volume_model {
     virtual void depth( const wposition& location,
         matrix<double>* rho, matrix<double>* thickness=NULL )
     {
-    	noalias(*rho) = scalar_matrix<double>(
-    			rho->size1(), rho->size2(), _rho ) ;
-    	if ( thickness ) {
-    		noalias(*thickness) = scalar_matrix<double>(
-    			thickness->size1(), thickness->size2(), _thickness ) ;
-    	}
+        noalias(*rho) = scalar_matrix<double>(
+                rho->size1(), rho->size2(), _rho ) ;
+        if ( thickness ) {
+            noalias(*thickness) = scalar_matrix<double>(
+                thickness->size1(), thickness->size2(), _thickness ) ;
+        }
     }
 
     /**
@@ -57,10 +57,10 @@ class USML_DECLSPEC volume_flat : public volume_model {
     virtual void depth( const wposition1& location,
         double* rho, double* thickness=NULL )
     {
-    	*rho = _rho ;
-    	if ( thickness ) {
-    		*thickness = _thickness ;
-    	}
+        *rho = _rho ;
+        if ( thickness ) {
+            *thickness = _thickness ;
+        }
 
     }
 
@@ -75,9 +75,9 @@ class USML_DECLSPEC volume_flat : public volume_model {
      * @param amplitude     Reverberation scattering strength ratio.
      */
     volume_flat( double depth=0.0, double thickness=0.0, double amplitude=-300.0  ) :
-    	volume_model( new scattering_constant(amplitude) ),
-		_rho( wposition::earth_radius - abs(depth) ),
-		_thickness( thickness)
+        volume_model( new scattering_constant(amplitude) ),
+        _rho( wposition::earth_radius - abs(depth) ),
+        _thickness( thickness)
     {
     }
 
@@ -89,9 +89,9 @@ class USML_DECLSPEC volume_flat : public volume_model {
      * @param scattering    Reverberation scattering strength model.
      */
     volume_flat( double depth, double thickness, scattering_model* scattering ) :
-    	volume_model( scattering ),
-		_rho( wposition::earth_radius - abs(depth) ),
-		_thickness( thickness)
+        volume_model( scattering ),
+        _rho( wposition::earth_radius - abs(depth) ),
+        _thickness( thickness)
     {
     }
 
