@@ -56,18 +56,28 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
             original_freq = _source->frequencies();
         }
 
-        // Interpolate to this sensor_pair's bounded frequencies
         eigenray_list new_eigenray_list;
-        new_eigenray_list.resize(list->size());
+        // Only interpolate when needed
+        if ( !((*original_freq) == (*_frequencies) )) {
 
-        // Set frequencies for new eigenray_list
-         BOOST_FOREACH(eigenray ray, new_eigenray_list) {
-             ray.frequencies = _frequencies;
-         }
+            // Interpolate to this sensor_pair's bounded frequencies
+            // Set frequencies, and space for intensity's,
+            // and phase's for new eigenray_list
+            for (int i = 0; i < list->size(); ++i) {
+                eigenray new_ray;
+                new_ray.frequencies = _frequencies;
+                new_ray.intensity = vector<double>( _frequencies->size() ) ;
+                new_ray.phase = vector<double>( _frequencies->size() ) ;
+                new_eigenray_list.push_back(new_ray);
+            }
 
-         eigenray_interpolator interpolator( original_freq, _frequencies ) ;
-         interpolator.interpolate( *list, &new_eigenray_list ) ;
+            eigenray_interpolator interpolator( original_freq, _frequencies ) ;
+            interpolator.interpolate( *list, &new_eigenray_list ) ;
 
+        } else {
+            // Just use original
+            new_eigenray_list = *list;
+        }
         // Note new memory location for eigenrays is create here
         _fathometer = fathometer_model::reference ( new fathometer_model(
             _source->sensorID(),_receiver->sensorID(), _source->position(),
