@@ -38,8 +38,8 @@ wave_queue::wave_queue(
     _frequencies( &freq ),
     _source_pos( pos ),
     _source_de( de.clone() ),
-    _max_de( de.size()-1 ),
     _source_az( az.clone() ),
+    _max_de( de.size()-1 ),
     _max_az( az.size()-1 ),
     _time_step( time_step ),
     _time( 0.0 ),
@@ -55,6 +55,8 @@ wave_queue::wave_queue(
     }
 
     _intensity_threshold = 300.0 ; //In dB
+    _max_bottom = 999 ;
+    _max_surface = 999 ;
     if ( _targets ) {
         _targets_sin_theta = sin( _targets->theta() ) ;
     }
@@ -460,6 +462,8 @@ void wave_queue::build_eigenray(
    size_t de, size_t az,
    double distance2[3][3][3] )
 {
+    if( _max_bottom < _curr->bottom(de,az) ) return ;
+    if( _max_surface < _curr->surface(de,az) ) return ;
     #ifdef DEBUG_EIGENRAYS_DETAIL
         //cout << "*** wave_queue::step: time=" << time() << endl ;
         wposition1 tgt( *(_curr->targets), t1, t2 ) ;
@@ -1023,7 +1027,9 @@ void wave_queue::build_eigenverb(
     double speed, const wposition1& position,
     const wvector1& ndirection, size_t type )
 {
-	if ( !has_eigenverb_listeners() ) return;
+    if ( !has_eigenverb_listeners() ) return;
+    if( _max_bottom < _curr->bottom(de,az) ) return ;
+    if( _max_surface < _curr->surface(de,az) ) return ;
 	grazing = abs(grazing) ;
 	if ( _time <= 0.0 || grazing < 1e-6 ) return ;
 	if ( this->_az_boundary && az == this->_max_az ) return;

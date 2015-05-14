@@ -1,6 +1,6 @@
 /**
- @file wavefront_generator.h
- Thread safe wave_queue generator.
+ * @file wavefront_generator.h
+ * Generates eigenrays and eigenverbs for the reverberation model.
  */
 #pragma once
 
@@ -30,7 +30,7 @@ using namespace usml::types ;
 /// @{
 
 /**
- * Thread safe wave_queue generator.
+ * Generates eigenrays and eigenverbs for the reverberation model.
  * This class inherits the thread_task interface and is used to assemble
  * the all data required by the wave_queue and then run the wave_queue.
  * Once instantiated the class run method is called by passing its pointer
@@ -38,12 +38,15 @@ using namespace usml::types ;
  *
  * Several of the static attributes that can be set prior to constructing
  * this class are as follows with there default values:
- *
+ * <pre>
  *  wavefront_generator::number_de = 181;              // Number of depression/elevation indices
  *  wavefront_generator::number_az = 18;               // Number of azimuthal indices
  *  wavefront_generator::time_maximum = 90.0;          // Max run time seconds
  *  wavefront_generator::time_step = 0.01;             // Step time i seconds
  *  wavefront_generator::intensity_threshold = -300.0; // dB  Eigenray with intensity values below this are discarded.
+ *  wavefront_generator::max_bottom = 999; 			   // Max number of bottom bounces.
+ *  wavefront_generator::max_surface = 999;            // Max number of surface bounces.
+ * </pre>
  */
 
 class USML_DECLSPEC wavefront_generator : public thread_task
@@ -118,12 +121,29 @@ class USML_DECLSPEC wavefront_generator : public thread_task
      */
     static double time_step;
 
-     /**
-     * The value of the intensity threshold in dB
-     * Any eigenray intensity values that are weaker than this
-     * threshold are stored for later retrieval.
+    /**
+     * The value of the intensity threshold in dB.
+     * Any eigenray or eigenverb with an intensity value that are weaker
+     * than this threshold is not sent the listeners.
+     * Defaults to -300 dB
      */
     static double intensity_threshold;
+
+    /**
+     * The maximum number of bottom bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of bottom bounces is not sent the listeners.
+     * Defaults to 999.
+     */
+    static int max_bottom ;
+
+    /**
+     * The maximum number of surface bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of surface bounces is not sent the listeners.
+     * Defaults to 999.
+     */
+    static int max_surface ;
 
 private:
 
@@ -162,13 +182,6 @@ private:
      * Time each step (sec) of WaveQ3D wavefront increases.
      */
     const double _time_step;
-
-    /**
-     * The value of the intensity threshold in dB
-     * Any eigenray intensity values that are weaker than this
-     * threshold are not sent the eigenray_listner(s);
-     */
-    const double _intensity_threshold; //In dB
 
     /** Source position */
     const wposition1 _source_position;
