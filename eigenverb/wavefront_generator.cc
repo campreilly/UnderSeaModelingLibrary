@@ -1,8 +1,6 @@
 /**
  * @file wavefront_generator.cc
- *
- *  Created on: Mar 25, 2015
- *      Author: Ted Burns, AEgis Technologies Group, Inc.
+ * Generates eigenrays and eigenverbs for the reverberation model.
  */
 
 #define PRINTOUT_WAVE_DATA
@@ -17,6 +15,8 @@ int wavefront_generator::number_az = 18;
 double wavefront_generator::time_maximum = 90.0;         // sec
 double wavefront_generator::time_step = 0.01;            // sec
 double wavefront_generator::intensity_threshold = 300.0; // dB
+int wavefront_generator::max_bottom = 999 ;
+int wavefront_generator::max_surface = 999 ;
 
 /**
  * Constructor
@@ -31,7 +31,6 @@ wavefront_generator::wavefront_generator(shared_ptr<ocean_model> ocean,
       _number_az(number_az),
       _time_maximum(time_maximum),
       _time_step(time_step),
-      _intensity_threshold(intensity_threshold),
       _source_position(source_position),
       _target_positions(target_positions),
       _frequencies(frequencies),
@@ -51,7 +50,6 @@ wavefront_generator::wavefront_generator()
       _number_az(number_az),
       _time_maximum(time_maximum),
       _time_step(time_step),
-      _intensity_threshold(intensity_threshold),
       _source_position(NULL),
       _target_positions(NULL),
       _frequencies(NULL),
@@ -104,7 +102,9 @@ void wavefront_generator::run()
         proploss = new eigenray_collection(*(_frequencies), _source_position, de, az, _time_step, _target_positions);
     }
 
-    wave_queue wave(*(_ocean.get()), *(_frequencies), _source_position, de, az, _time_step, _target_positions, _run_id);
+	wave_queue wave(*(_ocean.get()), *(_frequencies),
+			_source_position, de, az,
+			_time_step, _target_positions, _run_id);
 
     if ( proploss != NULL ) {
         wave.add_eigenray_listener(proploss);
@@ -117,7 +117,9 @@ void wavefront_generator::run()
 
 #endif
 
-    wave.intensity_threshold(_intensity_threshold);
+    wave.intensity_threshold(intensity_threshold);
+    wave.max_bottom(max_bottom);
+	wave.max_surface(max_surface);
 
     if (print_out)
     {

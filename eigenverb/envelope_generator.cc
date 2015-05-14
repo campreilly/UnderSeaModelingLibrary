@@ -12,7 +12,7 @@ using namespace usml::eigenverb ;
 /**
  * Minimum intensity level for valid reverberation contributions (dB).
  */
-double envelope_generator::threshold = -300.0 ;
+double envelope_generator::intensity_threshold = -300.0 ;
 
 /**
  * The _mutex for the singleton sensor_manager.
@@ -54,7 +54,7 @@ envelope_generator::envelope_generator(
 		_travel_time.get(),
 		reverb_duration,
 		pulse_length,
-		pow(10.0,threshold/10.0),
+		pow(10.0,intensity_threshold/10.0),
 		num_azimuths,
 		num_src_beams,
 		num_rcv_beams ) ) ;
