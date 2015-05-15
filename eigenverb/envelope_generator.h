@@ -47,9 +47,9 @@ public:
 
     /**
      * Minimum intensity level for valid reverberation contributions (linear units).
-     * Defaults to -300 dB.
+     * Defaults to the linear equivalent of -300 dB.
      */
-    static double threshold;
+    static double intensity_threshold;
 
     /**
      * Initialize model parameters and reserve memory.

@@ -146,7 +146,10 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
         }
 
         /**
-         * Computes the directivity index for each frequency.
+         * Directivity index for gridded beam pattern
+         *
+         * @param frequencies   list of frequencies to compute DI for
+         * @param level         gain for each frequency
          */
         virtual void directivity_index( const vector<double>& frequencies,
                                         vector<double>* level )

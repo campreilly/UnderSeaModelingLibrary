@@ -20,7 +20,7 @@ using namespace usml::types;
 seq_vector::self_type* seq_vector::clip(double min, double max) const {
 
     size_t index = 0;
-    double* data = new double[size() - 1];
+    double* data = new double[size()];
     BOOST_FOREACH(double value, *this) {
         if ( ( value >= min ) && ( value <= max ) ) {
             data[index] = value;
