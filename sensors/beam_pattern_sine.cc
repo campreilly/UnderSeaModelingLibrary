@@ -9,7 +9,10 @@ using namespace usml::sensors ;
 /**
  * Constructor
  */
-beam_pattern_sine::beam_pattern_sine()
+beam_pattern_sine::beam_pattern_sine(
+    double null, double gain )
+    : _null( std::pow(10.0, -std::abs(null)/10.0) ),
+      _gain( std::abs(gain) )
 {
     _reference_axis(0) = 1.0 ;
     _reference_axis(1) = 0.0 ;
@@ -38,8 +41,9 @@ void beam_pattern_sine::beam_level(
     double sinp = sin( 0.5 * (az + orient.phi()) + 1e-10 ) ;
     double dotnorm = 1.0 - 2.0 * ( sint * sint
                      + sin(theta_prime) * sin(orient.theta()) * sinp * sinp ) ;
+    double loss = _null * _gain * dotnorm ;
     noalias(*level) =
-            scalar_vector<double>( frequencies.size(), dotnorm ) ;
+            scalar_vector<double>( frequencies.size(), loss ) ;
 }
 
 /**

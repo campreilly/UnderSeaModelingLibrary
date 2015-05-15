@@ -30,8 +30,11 @@ class USML_DECLSPEC beam_pattern_cosine : public beam_pattern_model {
 
         /**
          * Constructs a cosine-directional beam pattern.
+         *
+         * @param null      minimum loss value (dB)
+         * @param gain      gain factor
          */
-        beam_pattern_cosine() ;
+        beam_pattern_cosine( double null = 0.0, double gain = 1.0 ) ;
 
         /**
          * Destructor
@@ -62,6 +65,18 @@ class USML_DECLSPEC beam_pattern_cosine : public beam_pattern_model {
          */
         virtual void directivity_index( const vector<double>& frequencies,
                                         vector<double>* level ) ;
+
+    private:
+
+        /**
+         * Minimum loss value in a null zone (linear)
+         */
+        double _null ;
+
+        /**
+         * Gain factor of the array
+         */
+        double _gain ;
 
 };
 
