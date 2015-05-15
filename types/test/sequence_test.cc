@@ -6,6 +6,7 @@
 #include <iostream>
 #include <boost/foreach.hpp>
 #include <cstdlib>
+#include <iomanip>
 
 BOOST_AUTO_TEST_SUITE(sequence_test)
 

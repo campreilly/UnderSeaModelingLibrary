@@ -4,17 +4,19 @@
 #include <boost/test/unit_test.hpp>
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/waveq3d/waveq3d.h>
-//#include <usml/waveq3d/reverberation_model.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <boost/foreach.hpp>
+#include <boost/progress.hpp>
 
 BOOST_AUTO_TEST_SUITE(reflection_test)
 
-using namespace boost::unit_test ;
+using namespace boost ;
+using namespace unit_test ;
+using namespace numeric::ublas ;
 using namespace usml::netcdf ;
 using namespace usml::waveq3d ;
-using namespace boost::numeric::ublas ;
 
 /**
  * @ingroup waveq3d_test
@@ -576,6 +578,62 @@ BOOST_AUTO_TEST_CASE( reflect_interp_spd_acc_test ){
    }
 }
 
+
+/**
+ *
+ */
+BOOST_AUTO_TEST_CASE( bounce_threshold_test ) {
+    cout << "=== reflection_test: bounce_threshold_test ===" << endl ;
+
+    double depth = 1000.0 ;
+    double c0 = 1500.0 ;
+    double dt = 0.1 ;
+    double max_time = 10.0 ;
+
+    seq_linear freq( 900.0, 1.0, 1) ;
+    seq_linear de(-90.0, 1.0, 90.0) ;
+    seq_linear az(0.0, 30.0, 360.0) ;
+    wposition1 src( 0.0, 0.0, -500.0 ) ;
+
+    boundary_model* surface = new boundary_flat() ;
+    boundary_model* bottom = new boundary_flat( depth, new reflect_loss_constant(0.0) ) ;
+    profile_model* profile = new profile_linear( c0 ) ;
+    ocean_model ocean( surface, bottom, profile ) ;
+
+    wposition target(1, 1, 0.01, 0.0, -500.0) ;
+    eigenray_collection loss( freq, src, de, az, dt, &target ) ;
+    eigenverb_collection reverb( 0 ) ;
+    wave_queue wave( ocean, freq, src, de, az, dt, &target ) ;
+    wave.add_eigenray_listener(&loss) ;
+    wave.add_eigenverb_listener(&reverb) ;
+    wave.max_surface(3) ;
+    wave.max_bottom(5) ;
+
+    cout << "propagating for " << max_time << " seconds" << endl ;
+    while ( wave.time() < max_time ) {
+        wave.step() ;
+    }
+
+    eigenray_list* elist = loss.eigenrays(0,0) ;
+    cout << "propagation complete, " << elist->size() << " rays were produced" << endl ;
+    BOOST_FOREACH( eigenray e, *elist ) {
+        BOOST_CHECK( e.bottom <= wave.max_bottom() ) ;
+        BOOST_CHECK( e.surface <= wave.max_surface() ) ;
+    }
+    cout << "Checking eigenerbs for bottom interface" << endl ;
+    eigenverb_list vlist = reverb.eigenverbs( eigenverb::BOTTOM ) ;
+    BOOST_FOREACH( eigenverb v, vlist ) {
+        BOOST_CHECK( v.bottom <= wave.max_bottom() ) ;
+        BOOST_CHECK( v.surface <= wave.max_surface() ) ;
+    }
+    cout << "Checking eigenverbs for surface interface" << endl ;
+    vlist = reverb.eigenverbs( eigenverb::SURFACE ) ;
+    BOOST_FOREACH( eigenverb v, vlist ) {
+        BOOST_CHECK( v.bottom <= wave.max_bottom() ) ;
+        BOOST_CHECK( v.surface <= wave.max_surface() ) ;
+    }
+
+}
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()
