@@ -75,7 +75,7 @@ protected:
         }
         _data[size-1] = (*origin)[size_old-1] ;
 
-        for(size_t i=1; i<size-1; ++i) {
+        for(size_t i=1; i<size; ++i) {
             _increment[i-1] = _data[i] - _data[i-1] ;
         }
         _increment[_max_index] = _data[_max_index] - _data[_max_index-1] ;

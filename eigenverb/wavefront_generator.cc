@@ -90,13 +90,13 @@ void wavefront_generator::run()
     // Augment rayfan with additional de's near -90 and 90.
 
     // TODO - add augmented DE
-    //size_t num_xtra_rays = 6;
-    //seq_rayfan de(-90.0, 90.0, _number_de - num_xtra_rays);
-    //seq_augment aug_de(&de, num_xtra_rays);
-    //cout << std::setprecision(8);
-    //cout << "aug_de: " << aug_de << endl ;
+    size_t num_xtra_rays = 6;
+    seq_rayfan orig_de(-90.0, 90.0, _number_de - num_xtra_rays);
+    seq_augment de(&orig_de, num_xtra_rays);
+    cout << std::setprecision(8);
+    cout << "aug_de: " << de << endl ;
 
-    seq_rayfan de(-90.0, 90.0, _number_de);
+//    seq_rayfan de(-90.0, 90.0, _number_de);
 
     seq_linear az(0.0, 180.0, _number_az, true);
 
