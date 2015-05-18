@@ -39,9 +39,9 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
              << sensorID << ")" << endl ;
     #endif
    
-    seq_vector* original_freq = NULL;
-
     if ( list != NULL ) {
+        seq_vector* original_freq = NULL;
+
         // If sensor that made this call is the _receiver of this pair
         //    then Swap de's, and az's
         if (sensorID == _receiver->sensorID()) {
@@ -58,16 +58,17 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
 
         eigenray_list new_eigenray_list;
         // Only interpolate when needed
-        if ( !((*original_freq) == (*_frequencies) )) {
+        if ( *original_freq != *_frequencies ) {
 
             // Interpolate to this sensor_pair's bounded frequencies
             // Set frequencies, and space for intensity's,
             // and phase's for new eigenray_list
+            size_t num_freq( _frequencies->size() ) ;
             for (int i = 0; i < list->size(); ++i) {
                 eigenray new_ray;
                 new_ray.frequencies = _frequencies;
-                new_ray.intensity = vector<double>( _frequencies->size() ) ;
-                new_ray.phase = vector<double>( _frequencies->size() ) ;
+                new_ray.intensity.resize( num_freq, false ) ;
+                new_ray.phase.resize( num_freq, false ) ;
                 new_eigenray_list.push_back(new_ray);
             }
 

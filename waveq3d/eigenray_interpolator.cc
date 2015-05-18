@@ -41,12 +41,11 @@ void eigenray_interpolator::interpolate(
 
     BOOST_FOREACH (eigenray ray, eigenrays) {
         for (size_t f = 0; f < _freq_size; ++f) {
-            size_t index[1] = { f };
-            _intensity_interp->data(index, ray.intensity[f]);
-            _phase_interp->data(index, ray.phase[f]);
+            _intensity_interp->data(&f, ray.intensity[f]);
+            _phase_interp->data(&f, ray.phase[f]);
         }
         // copy terms that are not frequency dependent
-        eigenray new_ray = *new_eigenray_list_iter;
+        eigenray& new_ray = *new_eigenray_list_iter;
 
         new_ray.time = ray.time ;
         new_ray.source_de = ray.source_de ;
@@ -63,15 +62,10 @@ void eigenray_interpolator::interpolate(
         // assume that calling routine has set new_eigenrays->freq
 
         for (size_t f = 0; f < _new_freq->size(); ++f) {
-            double location[1] = { (*_new_freq)[f] };
-            new_ray.intensity[f] = _intensity_interp->interpolate(location);
-            new_ray.phase[f] = _phase_interp->interpolate(location);
+            double freq = (*_new_freq)[f] ;
+            new_ray.intensity[f] = _intensity_interp->interpolate( &freq );
+            new_ray.phase[f] = _phase_interp->interpolate( &freq );
         }
         ++new_eigenray_list_iter;
-        new_eigenrays->push_back(new_ray);
-    }
-    // Remove incoming data from new eigenray list
-    for (size_t i = 0; i < eigenrays.size(); ++i) {
-        new_eigenrays->pop_front();
     }
 }

@@ -632,7 +632,7 @@ BOOST_AUTO_TEST_CASE( seq_vector_equal_test ) {
     // Same should be equal
     seq_rayfan rayfan( 6.0, 10.0, 6);
 
-    if (!(rayfan == rayfan_six)) {
+    if (rayfan != rayfan_six) {
         BOOST_FAIL("seq_vector_compare_test are equal ");
     }
 }

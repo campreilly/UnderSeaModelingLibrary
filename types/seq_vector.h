@@ -95,7 +95,7 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
          * @param  rhs  The reference to a seq_vector on rhs hand side.
          * @return true if the contents of the containers are equal, false otherwise
          */
-        virtual bool operator==( const self_type& rhs) const
+        bool operator==( const self_type& rhs) const
         {
             if (size() != rhs.size()) {
                 return false;
@@ -104,6 +104,16 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
             return (std::equal(begin(), end(), rhs.begin()));
         }
 
+        /**
+         * Contrapositive of operator==
+         *
+         * @param  rhs  The reference to a seq_vector on rhs hand side.
+         * @return true if the contents of the containers are unequal, false otherwise
+         */
+        bool operator!=( const self_type& rhs) const
+        {
+            return !operator==(rhs) ;
+        }
 
         /**
          * Retrieves the increment between two elements in this sequence.
