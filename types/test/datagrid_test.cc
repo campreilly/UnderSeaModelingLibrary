@@ -140,6 +140,122 @@ BOOST_AUTO_TEST_CASE( linear_1d_test ) {
 }
 
 /**
+ * @ingroup types_test
+ * Interpolate 1-D linear field using a vector.
+ * Exercise all of the 1-D interpolation types.
+ * Generate errors if values differ by more that 1E-6 percent.
+ */
+BOOST_AUTO_TEST_CASE( linear_1d_vector_test ) {
+    typedef boost::numeric::ublas::vector<double>   element_type ;
+    element_type truth, nearest, linear, pchip;
+    size_t N = 3 ;
+
+    cout << "=== datagrid_test: linear_1d_vector_test ===" << endl;
+
+    // construct synthetic data for this test
+
+    seq_linear axis(1.0,2.0,9.0);
+    const seq_vector *ax[] = {&axis};
+    data_grid<element_type,1> grid( ax );
+    grid.edge_limit(0,false);
+
+    for ( size_t n=0; n < axis.size(); ++n ) {
+        element_type values(N, linear1d(axis(n)) ) ;
+        grid.data( &n, values );
+    }
+
+    // interpolate using all possible algorithms
+
+    cout << "x\ttruth\tnearest\tlinear\tpchip" << endl;
+    for ( double x=0.25; x <= 10.0; x += 0.25 ) {
+        double y = x ;
+        cout << y << "\t";
+        truth = scalar_vector<double>(N, linear1d(y)) ;
+        cout << truth << "\t";
+
+        grid.interp_type(0,GRID_INTERP_NEAREST);
+        nearest = grid.interpolate( &y );
+        cout << nearest << "\t";
+
+        grid.interp_type(0,GRID_INTERP_LINEAR);
+        linear = grid.interpolate( &y );
+        cout << linear << "\t";
+        for(size_t i=0; i<N; ++i) {
+            BOOST_CHECK_CLOSE( linear(i), truth(i), 1e-6 );
+        }
+
+        grid.interp_type(0,GRID_INTERP_PCHIP);
+        pchip = grid.interpolate( &y );
+        cout << pchip << "\t";
+        for(size_t i=0; i<N; ++i) {
+            BOOST_CHECK_CLOSE( pchip(i), truth(i), 1e-6 );
+        }
+
+        cout << endl;
+    }
+}
+
+/**
+ * @ingroup types_test
+ * Interpolate 1-D linear field using a matrix.
+ * Exercise all of the 1-D interpolation types.
+ * Generate errors if values differ by more that 1E-6 percent.
+ */
+BOOST_AUTO_TEST_CASE( linear_1d_matrix_test ) {
+    typedef boost::numeric::ublas::matrix<double>   element_type ;
+    element_type truth, nearest, linear, pchip;
+    size_t N = 2 ;
+
+    cout << "=== datagrid_test: linear_1d_vector_test ===" << endl;
+
+    // construct synthetic data for this test
+
+    seq_linear axis(1.0,2.0,9.0);
+    const seq_vector *ax[] = {&axis};
+    data_grid<element_type,1> grid( ax );
+    grid.edge_limit(0,false);
+
+    for ( size_t n=0; n < axis.size(); ++n ) {
+        element_type values(N, N, linear1d(axis(n)) ) ;
+        grid.data( &n, values );
+    }
+
+    // interpolate using all possible algorithms
+
+    cout << "x\ttruth\tnearest\tlinear\tpchip" << endl;
+    for ( double x=0.25; x <= 10.0; x += 0.25 ) {
+        double y = x ;
+        cout << y << "\t";
+        truth = scalar_matrix<double>(N, N, linear1d(y)) ;
+        cout << truth << "\t";
+
+        grid.interp_type(0,GRID_INTERP_NEAREST);
+        nearest = grid.interpolate( &y );
+        cout << nearest << "\t";
+
+        grid.interp_type(0,GRID_INTERP_LINEAR);
+        linear = grid.interpolate( &y );
+        cout << linear << "\t";
+        for(size_t i=0; i<N; ++i) {
+            for(size_t j=0; j<N; ++j) {
+                BOOST_CHECK_CLOSE( linear(i,j), truth(i,j), 1e-6 );
+            }
+        }
+
+        grid.interp_type(0,GRID_INTERP_PCHIP);
+        pchip = grid.interpolate( &y );
+        cout << pchip << "\t";
+        for(size_t i=0; i<N; ++i) {
+            for(size_t j=0; j<N; ++j) {
+                BOOST_CHECK_CLOSE( pchip(i,j), truth(i,j), 1e-6 );
+            }
+        }
+
+        cout << endl;
+    }
+}
+
+/**
  * Compute a cubic field value of 1-D interpolation test data
  */
 static double cubic1d( double axis ) {
