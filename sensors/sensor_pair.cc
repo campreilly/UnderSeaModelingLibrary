@@ -3,9 +3,44 @@
  * Container for one sensor pair instance.
  */
 #include <usml/sensors/sensor_pair.h>
+#include <usml/sensors/source_params_map.h>
+#include <usml/sensors/receiver_params_map.h>
+#include <usml/eigenverb/envelope_generator.h>
+#include <usml/eigenverb/wavefront_generator.h>
 #include <boost/foreach.hpp>
 
 using namespace usml::sensors;
+
+/**
+ * Utility to run the envelope_generator
+ */
+void sensor_pair::run_envelope_generator() {
+
+
+    #ifdef USML_DEBUG
+        cout << "sensor_pair: run_envelope_generator " << endl ;
+    #endif
+
+
+    // Kill any currently running task
+    if ( _envelopes_task.get() != 0 ) {
+        _envelopes_task->abort();
+    }
+
+    // Create the envelope_generator
+    envelope_generator* generator = new envelope_generator (
+        _frequencies, _src_freq_first,
+        _source, _receiver,
+        wavefront_generator::number_az,
+        _src_eigenverbs, _rcv_eigenverbs
+        );
+
+    // Make envelope_generator a _envelopes_task, with use of shared_ptr
+    _envelopes_task = thread_task::reference(generator);
+
+    // Pass in to thread_pool
+    thread_controller::instance()->run(_envelopes_task);
+}
 
 /**
 * Utility to build the intersecting frequencies of a sensor_pair.
@@ -73,8 +108,7 @@ void sensor_pair::update_eigenverbs(sensor_model* sensor)
             _rcv_eigenverbs = sensor->eigenverbs();
         }
 
-        // TODO Create and run the envelope_generator
-        // run_envelope_generator();
+        run_envelope_generator();
 
 	}
 }

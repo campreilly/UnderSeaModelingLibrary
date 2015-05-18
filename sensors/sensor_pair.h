@@ -55,6 +55,9 @@ public:
      */
     virtual ~sensor_pair() {
         delete _frequencies;
+        if ( _envelopes_task.get() != 0 ) {
+            _envelopes_task->abort();
+        }
     }
 
     /**
@@ -131,7 +134,15 @@ public:
 
 private:
 
+     /**
+      * Default Constructor - prevent access
+      */
     sensor_pair() {};
+
+    /**
+     * Utility to run the envelope_generator
+     */
+    void run_envelope_generator();
 
     /**
      * Utility to build the intersecting frequencies of a sensor_pair.
@@ -212,6 +223,11 @@ private:
      * Mutex to that locks sensor_pair during _envelope updates.
      */
     mutable read_write_lock _envelopes_mutex ;
+
+    /**
+     * reference to the task that is computing envelopes.
+     */
+    thread_task::reference _envelopes_task;
 
 };
 

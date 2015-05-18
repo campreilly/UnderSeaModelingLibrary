@@ -4,10 +4,13 @@
  */
 #include <usml/eigenverb/envelope_generator.h>
 #include <usml/eigenverb/eigenverb.h>
+#include <usml/sensors/beam_pattern_map.h>
+#include <usml/sensors/beam_pattern_model.h>
 #include <usml/threads/smart_ptr.h>
 #include <boost/foreach.hpp>
 
 using namespace usml::eigenverb ;
+using namespace usml::sensors ;
 
 /**
  * Minimum intensity level for valid reverberation contributions (dB).
@@ -30,14 +33,50 @@ unique_ptr<const seq_vector> envelope_generator::_travel_time( new seq_linear(0.
  * this specific task.
  */
 envelope_generator::envelope_generator(
+        const seq_vector* envelope_freq,
+        size_t src_freq_first,
+        const seq_vector* receiver_freq,
+        double reverb_duration,
+        double pulse_length,
+        size_t num_azimuths,
+        size_t num_src_beams,
+        size_t num_rcv_beams,
+        eigenverb_collection::reference src_eigenverbs,
+        eigenverb_collection::reference rcv_eigenverbs
+):
+    _done(false),
+    _ocean( ocean_shared::current() ),
+    _src_eigenverbs(src_eigenverbs),
+    _rcv_eigenverbs(rcv_eigenverbs),
+    _eigenverb_interpolator(receiver_freq,envelope_freq)
+{
+    write_lock_guard guard(_property_mutex);
+
+
+    _envelopes = envelope_collection::reference( new envelope_collection(
+        envelope_freq,
+        src_freq_first,
+        _travel_time.get(),
+        reverb_duration,
+        pulse_length,
+        pow(10.0,intensity_threshold/10.0),
+        num_azimuths,
+        num_src_beams,
+        num_rcv_beams,
+        1, // Place holder for testing
+        1 ) ) ; // Place holder for testing
+}
+
+/**
+ * Copies envelope computation parameters from static memory into
+ * this specific task.
+ */
+envelope_generator::envelope_generator(
 		const seq_vector* envelope_freq,
 		size_t src_freq_first,
-		const seq_vector* receiver_freq,
-		double reverb_duration,
-		double pulse_length,
+		const sensor_model* source,
+		const sensor_model* receiver,
 		size_t num_azimuths,
-		size_t num_src_beams,
-		size_t num_rcv_beams,
 	    eigenverb_collection::reference src_eigenverbs,
 	    eigenverb_collection::reference rcv_eigenverbs
 ):
@@ -45,19 +84,36 @@ envelope_generator::envelope_generator(
 	_ocean( ocean_shared::current() ),
 	_src_eigenverbs(src_eigenverbs),
 	_rcv_eigenverbs(rcv_eigenverbs),
-	_eigenverb_interpolator(receiver_freq,envelope_freq)
+	_eigenverb_interpolator(receiver->frequencies(),envelope_freq)
 {
 	write_lock_guard guard(_property_mutex);
+
+	// Get source_params for reverb_duration and pulse_length, and beam_list size
+    sensor_params::id_type src_params_ID = source->paramsID();
+    source_params::reference src_params =
+        source_params_map::instance()->find(src_params_ID);
+
+    _src_beam_list = src_params->beam_list();
+
+    // Get receiver_params for beam_list size
+    sensor_params::id_type rcv_params_ID = receiver->paramsID();
+    receiver_params::reference rcv_params =
+        receiver_params_map::instance()->find(rcv_params_ID);
+
+    _rcv_beam_list = rcv_params->beam_list();
+
 	_envelopes = envelope_collection::reference( new envelope_collection(
 		envelope_freq,
 		src_freq_first,
 		_travel_time.get(),
-		reverb_duration,
-		pulse_length,
+		src_params->reverb_duration(),
+		src_params->pulse_length(),
 		pow(10.0,intensity_threshold/10.0),
 		num_azimuths,
-		num_src_beams,
-		num_rcv_beams ) ) ;
+		_src_beam_list.size(),
+		_rcv_beam_list.size(),
+		source->sensorID(),
+		receiver->sensorID() ) ) ;
 }
 
 /**
@@ -128,6 +184,8 @@ void envelope_generator::run() {
 				src_beam = scalar_matrix<double>(num_freq,num_src_beams,1.0);
 				rcv_beam = scalar_matrix<double>(num_freq,num_rcv_beams,1.0);
 
+
+
 				// create envelope contribution
 
 				_envelopes->add_contribution( src_verb, rcv_verb,
@@ -136,6 +194,31 @@ void envelope_generator::run() {
 		}
 	}
 	this->notify_envelope_listeners(_envelopes) ;
+}
+
+/**
+ * Computes the beam_gain
+ */
+matrix<double> envelope_generator::beam_gain(
+    sensor_params::beam_pattern_list beam_list,
+    const seq_vector* freq, double de, double az, orientation orient)
+{
+    matrix<double> src_beam( freq->size(), beam_list.size() ) ;
+
+    vector<double> level( freq->size(), 0.0 ) ;
+
+
+    double de_rad = de * M_PI/180.0 ;
+    double az_rad = az * M_PI/180.0 ;
+    BOOST_FOREACH( beam_pattern_model::id_type id, beam_list) {
+
+        beam_pattern_model::reference bp = beam_pattern_map::instance()->find(id);
+        bp->beam_level(de_rad, az_rad, orient, freq, &level ) ;
+
+       // src_beam.insert_element()
+
+    }
+    return NULL;
 }
 
 /**

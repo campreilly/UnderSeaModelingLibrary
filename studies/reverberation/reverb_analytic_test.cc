@@ -189,11 +189,11 @@ private:
 
         while ( true ) {
             fathometers = sp_manager->get_fathometers(query);
-            // TODO when generate_envelopes available uncomment
-            // envelopes = sp_manager->get_envelopes(query);
-            // if ( fathometers.size() > 0 && envelopes.size() > 0 ) break ;
+            envelopes = sp_manager->get_envelopes(query);
 
-            if ( fathometers.size() > 0 ) break ;
+            if ( fathometers.size() > 0 && envelopes.size() > 0 ) break ;
+
+            //if ( fathometers.size() > 0 ) break ;
 
             boost::this_thread::sleep(boost::posix_time::milliseconds(250));
         }
@@ -214,23 +214,20 @@ private:
             model->write_netcdf(ncname_fathometers.c_str());
         }
 
-//        std::string ncname_envelopes = USML_STUDIES_DIR "/reverberation/envelopes_";
-//        envelope_collection::envelope_package::iterator iter_envelopes;
-//        for ( iter_envelopes = envelopes.begin();
-//            iter_envelopes != envelopes.end(); ++iter_envelopes )
-//        {
-//            envelope_collection* collection = ( *iter_envelopes );
-//            // TODO uncomment when source_id and receiver_id getter's available.
-//            //sensor_model::id_type src_id = collection->source_id();
-//            //sensor_model::id_type rcv_id = collection->receiver_id();
-//            sensor_model::id_type src_id = 1;
-//            sensor_model::id_type rcv_id = 1;
-//            std::stringstream ss ;
-//            ss << "src_" << src_id << "_rcv_" << rcv_id;
-//            ncname_envelopes += ss.str();
-//            ncname_envelopes += ".nc";
-//            collection->write_netcdf(ncname_envelopes.c_str());
-//        }
+        std::string ncname_envelopes = USML_STUDIES_DIR "/reverberation/envelopes_";
+        envelope_collection::envelope_package::iterator iter_envelopes;
+        for ( iter_envelopes = envelopes.begin();
+            iter_envelopes != envelopes.end(); ++iter_envelopes )
+        {
+            envelope_collection* collection = ( *iter_envelopes );
+            sensor_model::id_type src_id = collection->source_id();
+            sensor_model::id_type rcv_id = collection->receiver_id();
+            std::stringstream ss ;
+            ss << "src_" << src_id << "_rcv_" << rcv_id;
+            ncname_envelopes += ss.str();
+            ncname_envelopes += ".nc";
+            collection->write_netcdf(ncname_envelopes.c_str());
+        }
 
         // No need to delete fathometers or envelopes as they are shared_ptr's
 	}

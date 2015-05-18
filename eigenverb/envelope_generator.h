@@ -6,6 +6,9 @@
 
 #include <usml/ocean/ocean_shared.h>
 #include <usml/threads/thread_task.h>
+#include <usml/sensors/sensor_manager.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_params.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 #include <usml/eigenverb/eigenverb_interpolator.h>
 #include <usml/eigenverb/envelope_notifier.h>
@@ -52,24 +55,50 @@ public:
     static double intensity_threshold;
 
     /**
-     * Initialize model parameters and reserve memory.
+     * Constructor - Initialize model parameters and reserve memory.
      *
-     * @param envelope_freq        Frequencies at which the source and receiver
-     *                 eigenverbs overlap (Hz).  Frequencies at which
-     *                 envelope will be computed.
-     * @param src_freq_first        Index of the first intersecting frequency of the
-     *                 source frequencies seq_vector.  Used to map
-     *                 source eigenverbs onto envelope_freq values.
-     * @param receiver_freq            Frequencies at which receiver eigenverbs were
-     *                     generated (Hz).  Used to interpolate receiver
-     *                     eigenverbs onto envelope_freq values.
-         * @param reverb_duration       Length of time in seconds the reverb is to be calculated.
-         * @param pulse_length          Duration of the transmitted pulse (sec).
-     * @param num_azimuths            Number of receiver azimuths in result.
-     * @param num_src_beams            Number of source beams in result.
-     * @param num_rcv_beams         Number of receiver beams in result.
-         * @param src_eigenverbs        Shared pointer to the source's eigenverbs.        
-         * @param rcv_eigenverbs        Shared pointer to the receiver's eigenverbs.
+     * @param envelope_freq     Frequencies at which the source and receiver
+     *                          eigenverbs overlap (Hz).  Frequencies at which
+     *                          envelope will be computed.
+     * @param src_freq_first    Index of the first intersecting frequency of the
+     *                          source frequencies seq_vector.  Used to map
+     *                          source eigenverbs onto envelope_freq values.
+     * @param source            Pointer to the source sensor.
+     * @param receiver          Pointer to the receiver sensor.
+     * @param num_azimuths      Number of receiver azimuths in result.
+     * @param src_eigenverbs    Shared pointer to the source's eigenverbs.
+     * @param rcv_eigenverbs    Shared pointer to the receiver's eigenverbs.
+     */
+
+    envelope_generator(
+        const seq_vector* envelope_freq,
+        size_t src_freq_first,
+        const sensor_model* source,
+        const sensor_model* receiver,
+        size_t num_azimuths,
+        eigenverb_collection::reference src_eigenverbs,
+        eigenverb_collection::reference rcv_eigenverbs) ;
+
+    /**
+     * Constructor for test - Initialize model parameters and reserve memory.
+     *
+     * @param envelope_freq     Frequencies at which the source and receiver
+     *                          eigenverbs overlap (Hz).  Frequencies at which
+     *                          envelope will be computed.
+     * @param src_freq_first    Index of the first intersecting frequency of the
+     *                          source frequencies seq_vector.  Used to map
+     *                          source eigenverbs onto envelope_freq values.
+     * @param receiver_freq     Frequencies at which receiver eigenverbs were
+     *                          generated (Hz).  Used to interpolate receiver
+     *                          eigenverbs onto envelope_freq values.
+     * @param reverb_duration   Length of time in seconds the reverb is to be
+     *                          calculated.
+     * @param pulse_length      Duration of the transmitted pulse (sec).
+     * @param num_azimuths      Number of receiver azimuths in result.
+     * @param num_src_beams     Number of source beams in result.
+     * @param num_rcv_beams     Number of receiver beams in result.
+     * @param src_eigenverbs    Shared pointer to the source's eigenverbs.
+     * @param rcv_eigenverbs    Shared pointer to the receiver's eigenverbs.
      */
     envelope_generator(
         const seq_vector* envelope_freq,
@@ -81,7 +110,7 @@ public:
         size_t num_src_beams,
         size_t num_rcv_beams,
         eigenverb_collection::reference src_eigenverbs,
-        eigenverb_collection::reference rcv_eigenverbs ) ;
+        eigenverb_collection::reference rcv_eigenverbs) ;
 
     /**
      * Virtual destructor
@@ -131,6 +160,18 @@ public:
 private:
 
     /**
+     * Computes the beam_gain matrix
+     *
+     * @param beam_list Location at which to compute attenuation.
+     * @param freq      Frequencies over which to compute loss. (Hz)
+     * @param de        Depression incident angle (degrees).
+     * @param az        Azimuthal incident angle  (degrees).
+     * @param orient
+     */
+    matrix<double> beam_gain(sensor_params::beam_pattern_list beam_list,
+    const seq_vector* freq, double de, double az, orientation orient);
+
+    /**
      * Computes the broadband scattering strength for a specific interface.
      *
      * @param interface        Interface number of ocean component that is doing
@@ -165,6 +206,16 @@ private:
 
     /** Ocean data to use for the envelope calculation. */
     shared_ptr<ocean_model> _ocean;
+
+    /**
+     * Source Beam Pattern List.
+     */
+    sensor_params::beam_pattern_list _src_beam_list;
+
+    /**
+     * Receiver Beam Pattern List.
+     */
+    sensor_params::beam_pattern_list _rcv_beam_list;
 
     /**
      * Interface collisions for wavefront emanating from the source.
