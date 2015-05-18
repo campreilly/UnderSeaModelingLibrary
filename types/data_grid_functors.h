@@ -2,6 +2,7 @@
 
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
+#include <usml/usml_config.h>
 
 namespace usml {
 namespace types {
@@ -10,7 +11,7 @@ namespace types {
  * Base functor for derivatives
  */
 template<typename T>
-struct derivative {
+struct USML_DLLEXPORT derivative {
     typedef T  argument_type ;
 
     static void compute(
@@ -32,7 +33,7 @@ struct derivative {
  * used for ublas::vector<T>
  */
 template<typename T>
-struct derivative< boost::numeric::ublas::vector<T> > {
+struct USML_DLLEXPORT derivative< boost::numeric::ublas::vector<T> > {
     typedef T  value_type ;
     typedef std::size_t    size_type ;
     typedef boost::numeric::ublas::vector<value_type>  argument_type ;
@@ -59,7 +60,7 @@ struct derivative< boost::numeric::ublas::vector<T> > {
  * used for ublas::vector<T>
  */
 template<typename T>
-struct derivative< boost::numeric::ublas::matrix<T> > {
+struct USML_DLLEXPORT derivative< boost::numeric::ublas::matrix<T> > {
     typedef T  value_type ;
     typedef std::size_t    size_type ;
     typedef boost::numeric::ublas::matrix<value_type>  argument_type ;
@@ -88,7 +89,7 @@ struct derivative< boost::numeric::ublas::matrix<T> > {
  * Base functor for end point derivatives
  */
 template<typename T>
-struct end_point_derivative {
+struct USML_DLLEXPORT end_point_derivative {
     typedef T  argument_type ;
 
     static void compute(
@@ -117,7 +118,7 @@ struct end_point_derivative {
  * used for ublas::vector<T>
  */
 template<typename T>
-struct end_point_derivative< boost::numeric::ublas::vector<T> > {
+struct USML_DLLEXPORT end_point_derivative< boost::numeric::ublas::vector<T> > {
     typedef T  value_type ;
     typedef std::size_t    size_type ;
     typedef boost::numeric::ublas::vector<value_type> argument_type ;
@@ -151,7 +152,7 @@ struct end_point_derivative< boost::numeric::ublas::vector<T> > {
  * used for ublas::matrix<T>
  */
 template<typename T>
-struct end_point_derivative< boost::numeric::ublas::matrix<T> > {
+struct USML_DLLEXPORT end_point_derivative< boost::numeric::ublas::matrix<T> > {
     typedef T  value_type ;
     typedef std::size_t    size_type ;
     typedef boost::numeric::ublas::matrix<value_type> argument_type ;
@@ -187,7 +188,7 @@ struct end_point_derivative< boost::numeric::ublas::matrix<T> > {
  * Base functor sets values to zero
  */
 template<typename T>
-struct initialize {
+struct USML_DLLEXPORT initialize {
     typedef T  argument_type ;
     typedef std::size_t    size_type ;
     static void zero( argument_type& a1, const argument_type s )
@@ -227,7 +228,7 @@ struct initialize {
  * for ublas::vector<T>
  */
 template<typename T>
-struct initialize< boost::numeric::ublas::vector<T> > {
+struct USML_DLLEXPORT initialize< boost::numeric::ublas::vector<T> > {
     typedef T  value_type ;
     typedef std::size_t    size_type ;
     typedef boost::numeric::ublas::vector<value_type>  argument_type ;
@@ -278,7 +279,7 @@ struct initialize< boost::numeric::ublas::vector<T> > {
  * for ublas::matrix<T>
  */
 template<typename T>
-struct initialize< boost::numeric::ublas::matrix<T> > {
+struct USML_DLLEXPORT initialize< boost::numeric::ublas::matrix<T> > {
     typedef T  value_type ;
     typedef std::size_t    size_type ;
     typedef boost::numeric::ublas::matrix<value_type>  argument_type ;
