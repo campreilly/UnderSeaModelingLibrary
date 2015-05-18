@@ -88,6 +88,34 @@ class USML_DECLSPEC seq_vector: public vector_container<seq_vector>
         }
 
         /**
+         * Checks if the contents of seq_vector's lhs and rhs are equal,
+         * that is, whether lhs.size() == rhs.size() and each element
+         * in lhs compares equal with the element in rhs at the same position.
+         *
+         * @param  rhs  The reference to a seq_vector on rhs hand side.
+         * @return true if the contents of the containers are equal, false otherwise
+         */
+        bool operator==( const self_type& rhs) const
+        {
+            if (size() != rhs.size()) {
+                return false;
+            }
+            // Compare each data value in each seq_vector
+            return (std::equal(begin(), end(), rhs.begin()));
+        }
+
+        /**
+         * Contrapositive of operator==
+         *
+         * @param  rhs  The reference to a seq_vector on rhs hand side.
+         * @return true if the contents of the containers are unequal, false otherwise
+         */
+        bool operator!=( const self_type& rhs) const
+        {
+            return !operator==(rhs) ;
+        }
+
+        /**
          * Retrieves the increment between two elements in this sequence.
          * If the index is outside of the range [0,size-1), the value for
          * the nearest endpoint will be returned.
