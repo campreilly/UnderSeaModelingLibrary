@@ -32,9 +32,9 @@ class USML_DECLSPEC beam_pattern_sine : public beam_pattern_model {
          * Constructs a sine-directional beam pattern.
          *
          * @param null      minimum loss value (dB)
-         * @param gain      gain factor
+         * @param gain      gain value of the array (dB)
          */
-        beam_pattern_sine( double null = 0.0, double gain = 1.0 ) ;
+        beam_pattern_sine( double null = -300.0, double gain = 0.0 ) ;
 
         /**
          * Destructor
@@ -77,6 +77,11 @@ class USML_DECLSPEC beam_pattern_sine : public beam_pattern_model {
          * Gain factor of the array
          */
         double _gain ;
+
+        /**
+         * Direcitivity index of the array
+         */
+        double _directivity_index ;
 
 };
 

@@ -12,12 +12,13 @@ using namespace usml::sensors ;
 beam_pattern_cosine::beam_pattern_cosine(
     double null, double gain )
     : _null( std::pow(10.0, -std::abs(null)/10.0) ),
-      _gain( std::abs(gain) )
+      _gain( std::pow(10.0, std::abs(gain)/10.0) )
 {
     _reference_axis(0) = 0.0 ;
     _reference_axis(1) = 1.0 ;
     _reference_axis(2) = 0.0 ;
     _beamID = beam_pattern_model::COSINE ;
+    _directivity_index = 10.0*log10( 2.0*TWO_PI / (_null+_gain*TWO_PI) ) ;
 }
 
 /**
@@ -41,7 +42,7 @@ void beam_pattern_cosine::beam_level(
     double sinp = sin( 0.5 * (az + orient.phi()) + 1e-10 ) ;
     double dotnorm = 1.0 - 2.0 * ( sint * sint
                      + sin(theta_prime) * sin(orient.theta()) * sinp * sinp ) ;
-    double loss = _null * _gain * dotnorm ;
+    double loss = _null + _gain * dotnorm ;
     noalias(*level) =
             scalar_vector<double>( frequencies.size(), loss ) ;
 }
@@ -54,6 +55,5 @@ void beam_pattern_cosine::directivity_index(
         vector<double>* level )
 {
 	write_lock_guard(_mutex);
-    noalias(*level) =
-            scalar_vector<double>( frequencies.size(), 10.0*log10( 2.0 ) ) ;
+    noalias(*level) = scalar_vector<double>( frequencies.size(), _directivity_index ) ;
 }
