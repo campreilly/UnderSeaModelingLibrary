@@ -21,7 +21,9 @@ using namespace usml::types ;
  * A beam pattern function as a mesh or grid beam pattern.
  */
 template<class T, std::size_t Dim>
-class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
+class USML_DLLEXPORT beam_pattern_grid
+    : public beam_pattern_model, public data_grid<T,Dim>
+{
 
     public:
 
@@ -30,7 +32,7 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
         typedef value_ptr*      value_double_ptr ;
         typedef std::size_t     size_type ;
         typedef beam_pattern_grid<T,Dim>    self_type ;
-        typedef enum { LINEAR_UNITS, LOG_UNITS }    data_units ;
+        typedef enum { POWER_UNITS, AMP_UNITS, DB_UNITS }    data_units ;
 
         /**
          * Constructs a grid or mesh of beam levels for a beam
@@ -76,7 +78,7 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
          * @param az            Azimuthal angle (rad)
          * @param orient        Orientation of the array
          * @param frequencies   List of frequencies to compute beam level for
-         * @param level         Beam level for each frequency (linear units)
+         * @param level         Beam level for each frequency (squared linear units)
          */
         virtual void beam_level( double de, double az,
                                  orientation& orient,
@@ -227,7 +229,7 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                  * Data that has been passed in is in log units
                  * and needs to be converted to linear units
                  */
-                case LOG_UNITS :
+                case DB_UNITS :
                 {
                     value_ptr data_copy = new value_type[N] ;
                     memcpy( data_copy, data, N*sizeof(value_type) ) ;
@@ -241,8 +243,25 @@ class beam_pattern_grid: public beam_pattern_model, public data_grid<T,Dim> {
                 }
 
                 /**
+                 * Levels were passed in as amplitude and so we'll square
+                 * them to get them into square linear units.
+                 */
+                case AMP_UNITS :
+                {
+                    value_ptr data_copy = new value_type[N] ;
+                    memcpy( data_copy, data, N*sizeof(value_type) ) ;
+                    for(size_type i=0; i<N; ++i) {
+                        *data_copy *= *data_copy ;
+                        ++data_copy ;
+                    }
+                    memcpy( this->_data, data_copy, N*sizeof(value_type) ) ;
+                    delete data_copy ;
+                    break ;
+                }
+
+                /**
                  * The data was already passed to this constructor in
-                 * linear units.
+                 * square linear units, power.
                  */
                 default:
                     memcpy( this->_data, data, N*sizeof(value_type) ) ;

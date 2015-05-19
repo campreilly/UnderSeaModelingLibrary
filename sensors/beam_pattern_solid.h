@@ -53,7 +53,7 @@ class USML_DECLSPEC beam_pattern_solid : public beam_pattern_model {
          * @param az            Azimuthal angle (rad)
          * @param orient        Orientation of the array
          * @param frequencies   List of frequencies to compute beam level for
-         * @param level         Beam level for each frequency (linear units)
+         * @param level         Beam level for each frequency (squared linear units)
          */
         virtual void beam_level( double de, double az,
                                  orientation& orient,
