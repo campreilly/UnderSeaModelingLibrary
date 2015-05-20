@@ -134,7 +134,9 @@ bool envelope_model::compute_overlap(
 	alpha = M_PI - abs( fmod(abs(alpha), TWO_PI) - M_PI);
 	const double cos2alpha = cos(2.0 * alpha);
 	const double sin2alpha = sin(2.0 * alpha);
-    cout << "alpha=" << alpha
+
+	// TODO Remove debugging output
+	cout << "alpha=" << alpha
  		 << " cos2alpha=" << cos2alpha
 		 << " sin2alpha=" << sin2alpha << endl ;
 
@@ -154,6 +156,8 @@ bool envelope_model::compute_overlap(
     vector<double> src_sum = src_verb_length2 + src_verb_width2 ;
     vector<double> src_diff = src_verb_length2 - src_verb_width2 ;
     vector<double> src_prod = src_verb_length2 * src_verb_width2 ;
+
+    // TODO Remove debugging output
     cout << "src_sum=" << src_sum
  		 << " src_diff=" << src_diff
 		 << " src_prod=" << src_prod << endl ;
@@ -161,6 +165,8 @@ bool envelope_model::compute_overlap(
     vector<double> rcv_sum = rcv_verb.length2 + rcv_verb.width2 ;
     vector<double> rcv_diff = rcv_verb.length2 - rcv_verb.width2 ;
     vector<double> rcv_prod = rcv_verb.length2 * rcv_verb.width2 ;
+
+    // TODO Remove debugging output
     cout << "rcv_sum=" << src_sum
  		 << " rcv_diff=" << src_diff
 		 << " rcv_prod=" << src_prod << endl ;
@@ -176,6 +182,7 @@ bool envelope_model::compute_overlap(
     cout << "det_sr=" << det_sr
  		 << " energy=" << _energy << endl ;
 
+    // TODO Remove debugging
     BOOST_FOREACH( double level, _energy ) {
         if ( level > 1.0 ) {
             cout << " Bad Energy Level" << endl;
@@ -213,6 +220,7 @@ bool envelope_model::compute_overlap(
 		+ ys2 * ( src_sum - src_prod + 2.0 * rcv_verb.width2 )
 		- 2.0 * sqrt( xs2 * ys2 ) * src_diff * sin2alpha ;
 
+    // TODO Remove debugging output
     cout << "src_prod=" << src_prod
          << " kappa=" << kappa << endl;
 
@@ -220,6 +228,7 @@ bool envelope_model::compute_overlap(
 
     cout << " energy = " << _energy << endl ;
 
+    // TODO Remove debugging
     BOOST_FOREACH( double level, _energy ) {
         if ( level > 1.0 ) {
             cout << " Bad Energy Level" << endl;
@@ -254,6 +263,7 @@ bool envelope_model::compute_overlap(
 			+ ( 1.0 / src_verb_width2 - 1.0 / src_verb_length2 ) * cos2alpha
 			+ 2.0 / rcv_verb.width2,
 			det_sr ) ;
+	// TODO Remove debugging output
 //    cout << "det_sr=" << det_sr
 //    	 << " src_sum=" << src_sum
 //	     << " src_diff=" << src_diff
@@ -263,6 +273,7 @@ bool envelope_model::compute_overlap(
 	double factor = cos( rcv_verb.grazing ) / rcv_verb.sound_speed ;
 	_duration = 0.5 * sqrt( _pulse_length * _pulse_length
 			+ factor * factor * (_duration) ) ;
+	// TODO Remove debugging output
 //    cout << "factor=" << factor << endl
 //		 << " duration=" << _duration << endl ;
 	#ifdef DEBUG_ENVELOPE

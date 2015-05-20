@@ -46,8 +46,8 @@ envelope_generator::envelope_generator(
 ):
     _done(false),
     _ocean( ocean_shared::current() ),
-    _source(NULL);
-    _receiver(NULL);
+    _source(NULL),
+    _receiver(NULL),
     _src_eigenverbs(src_eigenverbs),
     _rcv_eigenverbs(rcv_eigenverbs),
     _eigenverb_interpolator(receiver_freq,envelope_freq)
@@ -142,6 +142,7 @@ void envelope_generator::run() {
 	// loop through eigenrays for each interface
 
 	for ( size_t interface=0 ; interface < 1 ; ++interface) {
+	// TODO Replace after debugged.
 	//for ( size_t interface=0 ; interface < _rcv_eigenverbs->num_interfaces() ; ++interface) {
 		BOOST_FOREACH( eigenverb verb, _rcv_eigenverbs->eigenverbs(interface) ) {
 			_eigenverb_interpolator.interpolate(verb,&rcv_verb) ;
@@ -222,7 +223,8 @@ matrix<double> envelope_generator::beam_gain(
         std::copy(level.begin(), level.end(), beam_matrix.begin1());
     }
 
-#ifdef NOOP
+    // TODO Remove debugging output
+#ifdef USML_DEBUG
 
     typedef boost::numeric::ublas::matrix<double> matrix;
 
@@ -265,7 +267,7 @@ bool envelope_generator::scattering( size_t interface, const wposition1& locatio
 		break;
 	}
 
-	// Check for threshold
+	// TODO Check for threshold
 //	BOOST_FOREACH (double amp, *amplitude) {
 //	    if (amp <= intensity_threshold ) {
 //	        return true;
