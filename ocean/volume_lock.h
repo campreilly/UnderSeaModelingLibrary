@@ -37,7 +37,7 @@ public:
       */
      virtual ~volume_lock() {
          lock_guard<mutex> depth_guard(_depth_mutex);
-         lock_guard<mutex> _scattering_guard(_scattering_mutex);
+         lock_guard<mutex> scattering_guard(_scattering_mutex);
          delete _other ;
      }
 
@@ -98,7 +98,7 @@ public:
      * @param de_scattered  Depression scattered angle (radians).
      * @param az_incident   Azimuthal incident angle (radians).
      * @param az_scattered  Azimuthal scattered angle (radians).
-     * @param amplitude     Change in ray strength in dB (output).
+     * @param amplitude     Reverberation scattering strength ratio (output).
      */
     virtual void scattering( const wposition1& location,
         const seq_vector& frequencies, double de_incident, double de_scattered,

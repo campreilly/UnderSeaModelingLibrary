@@ -10,7 +10,7 @@
 
 using namespace usml::eigenverb;
 
-//#define DEBUG_ENVELOPE
+#define DEBUG_ENVELOPE
 #define ENVELOPE_WINDOW
 
 /**
@@ -70,9 +70,62 @@ bool envelope_model::compute_overlap(
 		cout << "   grazing angle:    " << src_verb.grazing*180.0/M_PI << endl;
 		cout << "      Loss in:       " << 10.0*log10(src_verb.energy) << endl;
 		cout << "      Loss out:      " << 10.0*log10(rcv_verb.energy) << endl;
-		cout << "     Two-way TL:     " << 10.0*log10(element_prod(src_verb.energy, rcv_verb.energy)) << endl;
+		// Make sure their the same size - else crash
+		if (src_verb.energy.size() == rcv_verb.energy.size()) {
+		    cout << "     Two-way TL:     " <<
+		     10.0*log10(element_prod(src_verb.energy, rcv_verb.energy)) << endl;
+		}
 		cout << "scattering strength: " << 10.0*log10(scatter) << endl;
 	#endif
+
+    #ifdef DEBUG_ENVELOPE
+        cout << "*** envelope_model:: src_verb ***" << endl ;
+
+        cout << "    src_verb.time:        " << src_verb.time << endl;
+        cout << "    src_verb.freq         " << *src_verb.frequencies << endl;
+        cout << "    src_verb.energy       " << src_verb.energy << endl;
+        cout << "    src_verb.length2      " << src_verb.length2 << endl;
+        cout << "    src_verb.width2       " << src_verb.width2 << endl;
+        cout << "    src_verb.latitude     " << src_verb.position.latitude() << endl;
+        cout << "    src_verb.longitude    " << src_verb.position.longitude() << endl;
+        cout << "    src_verb.altitude     " << src_verb.position.altitude() << endl;
+        cout << "    src_verb.direction    " << src_verb.direction << endl;
+        cout << "    src_verb.grazing      " << src_verb.grazing << endl;
+        cout << "    src_verb.sound_speed  " << src_verb.sound_speed << endl;
+        cout << "    src_verb.de_index     " << src_verb.de_index << endl;
+        cout << "    src_verb.az_index     " << src_verb.az_index << endl;
+        cout << "    src_verb.source_de    " << src_verb.source_de << endl;
+        cout << "    src_verb.source_az    " << src_verb.source_az << endl;
+        cout << "    src_verb.surface      " << src_verb.surface << endl;
+        cout << "    src_verb.bottom       " << src_verb.bottom << endl;
+        cout << "    src_verb.caustic      " << src_verb.caustic << endl;
+        cout << "    src_verb.upper        " << src_verb.upper << endl;
+        cout << "    src_verb.lower        " << src_verb.lower << endl;
+
+        cout << "*** envelope_model:: rcv_verb ***" << endl ;
+
+        cout << "    rcv_verb.time:        " << rcv_verb.time << endl;
+        cout << "    rcv_verb.freq         " << *rcv_verb.frequencies << endl;
+        cout << "    rcv_verb.energy       " << rcv_verb.energy << endl;
+        cout << "    rcv_verb.length2      " << rcv_verb.length2 << endl;
+        cout << "    rcv_verb.width2       " << rcv_verb.width2 << endl;
+        cout << "    rcv_verb.latitude     " << rcv_verb.position.latitude() << endl;
+        cout << "    rcv_verb.longitude    " << rcv_verb.position.longitude() << endl;
+        cout << "    rcv_verb.altitude     " << rcv_verb.position.altitude() << endl;
+        cout << "    rcv_verb.direction    " << rcv_verb.direction << endl;
+        cout << "    rcv_verb.grazing      " << rcv_verb.grazing << endl;
+        cout << "    rcv_verb.sound_speed  " << rcv_verb.sound_speed << endl;
+        cout << "    rcv_verb.de_index     " << rcv_verb.de_index << endl;
+        cout << "    rcv_verb.az_index     " << rcv_verb.az_index << endl;
+        cout << "    rcv_verb.source_de    " << rcv_verb.source_de << endl;
+        cout << "    rcv_verb.source_az    " << rcv_verb.source_az << endl;
+        cout << "    rcv_verb.surface      " << rcv_verb.surface << endl;
+        cout << "    rcv_verb.bottom       " << rcv_verb.bottom << endl;
+        cout << "    rcv_verb.caustic      " << rcv_verb.caustic << endl;
+        cout << "    rcv_verb.upper        " << rcv_verb.upper << endl;
+        cout << "    rcv_verb.lower        " << rcv_verb.lower << endl;
+
+    #endif
 
 	// determine the relative tilt between the projected Gaussians
 	// normalize tilt to min distance between angles
@@ -81,9 +134,9 @@ bool envelope_model::compute_overlap(
 	alpha = M_PI - abs( fmod(abs(alpha), TWO_PI) - M_PI);
 	const double cos2alpha = cos(2.0 * alpha);
 	const double sin2alpha = sin(2.0 * alpha);
-//    cout << "alpha=" << alpha
-// 		 << " cos2alpha=" << cos2alpha
-//		 << " sin2alpha=" << sin2alpha << endl ;
+    cout << "alpha=" << alpha
+ 		 << " cos2alpha=" << cos2alpha
+		 << " sin2alpha=" << sin2alpha << endl ;
 
 	// define subset of frequency dependent terms in source
     //
@@ -101,16 +154,16 @@ bool envelope_model::compute_overlap(
     vector<double> src_sum = src_verb_length2 + src_verb_width2 ;
     vector<double> src_diff = src_verb_length2 - src_verb_width2 ;
     vector<double> src_prod = src_verb_length2 * src_verb_width2 ;
-//    cout << "src_sum=" << src_sum
-// 		 << " src_diff=" << src_diff
-//		 << " src_prod=" << src_prod << endl ;
+    cout << "src_sum=" << src_sum
+ 		 << " src_diff=" << src_diff
+		 << " src_prod=" << src_prod << endl ;
 
     vector<double> rcv_sum = rcv_verb.length2 + rcv_verb.width2 ;
     vector<double> rcv_diff = rcv_verb.length2 - rcv_verb.width2 ;
     vector<double> rcv_prod = rcv_verb.length2 * rcv_verb.width2 ;
-//    cout << "rcv_sum=" << src_sum
-// 		 << " rcv_diff=" << src_diff
-//		 << " rcv_prod=" << src_prod << endl ;
+    cout << "rcv_sum=" << src_sum
+ 		 << " rcv_diff=" << src_diff
+		 << " rcv_prod=" << src_prod << endl ;
 
     // compute the scaling of the exponential
     // equations (26) and (28) from the paper
@@ -120,8 +173,14 @@ bool envelope_model::compute_overlap(
     noalias(_energy) = element_div(
     		TWO_PI * src_verb_energy * rcv_verb.energy * scatter,
 			sqrt( det_sr ) ) ;
-//    cout << "det_sr=" << det_sr
-// 		 << " energy=" << _energy << endl ;
+    cout << "det_sr=" << det_sr
+ 		 << " energy=" << _energy << endl ;
+
+    BOOST_FOREACH( double level, _energy ) {
+        if ( level > 1.0 ) {
+            cout << " Bad Energy Level" << endl;
+        }
+    }
 
     // check threshold to avoid calculations for weak signals
 
@@ -134,8 +193,13 @@ bool envelope_model::compute_overlap(
     }
     if ( !ok ) {
 		#ifdef DEBUG_ENVELOPE
-			cout << "      Energy:        " << 10.0*log10(_energy) << endl
-				 << "*** threshold not met ***" << endl ;
+//            vector<double> energy;
+//            BOOST_FOREACH( double level, _energy ) {
+//                double new_level = max(1e-30, level);
+//                energy
+//            }
+//			cout << "      Energy:        " << 10.0*log10(energy) << endl
+            cout    << "*** threshold not met ***" << endl ;
 		#endif
 		return false ;
     }
@@ -148,10 +212,19 @@ bool envelope_model::compute_overlap(
   		  xs2 * ( src_sum + src_prod * 2.0 * rcv_verb.length2 )
 		+ ys2 * ( src_sum - src_prod + 2.0 * rcv_verb.width2 )
 		- 2.0 * sqrt( xs2 * ys2 ) * src_diff * sin2alpha ;
+
+    cout << "src_prod=" << src_prod
+         << " kappa=" << kappa << endl;
+
     _energy = element_prod( _energy, exp( -0.25*element_div(kappa,det_sr) ) ) ;
-//    cout << "src_prod=" << src_prod
-// 		 << " kappa=" << kappa
-//		 << " energy=" << _energy << endl ;
+
+    cout << " energy = " << _energy << endl ;
+
+    BOOST_FOREACH( double level, _energy ) {
+        if ( level > 1.0 ) {
+            cout << " Bad Energy Level" << endl;
+        }
+    }
 
     // check threshold again to avoid calculations for weak signals
 
@@ -164,13 +237,14 @@ bool envelope_model::compute_overlap(
     }
     if ( !ok ) {
 		#ifdef DEBUG_ENVELOPE
-			cout << "      Energy:        " << 10.0*log10(_energy) << endl
-				 << "*** threshold not met ***" << endl ;
+          //  cout << "      Energy:        " << 10.0*log10(max(1e-30,_energy)) << endl
+             cout    << "*** threshold not met ***" << endl ;
 		#endif
 		return false ;
     }
 
     // compute the duration of the overlap
+    // equation (41) from the paper
 
     det_sr = element_div( det_sr, src_prod * rcv_prod ) ;
 	src_sum = 1.0 / src_verb_width2 + 1.0 / src_verb_length2 ;
@@ -185,6 +259,7 @@ bool envelope_model::compute_overlap(
 //	     << " src_diff=" << src_diff
 //		 << " duration=" << _duration << endl ;
 
+	// equation (33) from the paper
 	double factor = cos( rcv_verb.grazing ) / rcv_verb.sound_speed ;
 	_duration = 0.5 * sqrt( _pulse_length * _pulse_length
 			+ factor * factor * (_duration) ) ;

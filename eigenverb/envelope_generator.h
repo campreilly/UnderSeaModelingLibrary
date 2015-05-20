@@ -163,13 +163,13 @@ private:
      * Computes the beam_gain matrix
      *
      * @param beam_list Location at which to compute attenuation.
-     * @param freq      Frequencies over which to compute loss. (Hz)
-     * @param de        Depression incident angle (degrees).
-     * @param az        Azimuthal incident angle  (degrees).
-     * @param orient
+     * @param freq      Frequencies to get beam levels (Hz)
+     * @param de_rad    Depression incident angle (radians).
+     * @param az_rad    Azimuthal incident angle  (radians).
+     * @param orient    orientation
      */
     matrix<double> beam_gain(sensor_params::beam_pattern_list beam_list,
-    const seq_vector* freq, double de, double az, orientation orient);
+    const seq_vector* freq, double de_rad, double az_rad, orientation orient);
 
     /**
      * Computes the broadband scattering strength for a specific interface.
@@ -184,8 +184,9 @@ private:
      * @param az_incident   Azimuthal incident angle (radians).
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Change in ray strength in dB (output).
+     * @return true when any scattering strength is less than threshold
      */
-    void scattering( size_t interface, const wposition1& location,
+    bool scattering( size_t interface, const wposition1& location,
             const seq_vector& frequencies, double de_incident,
             double de_scattered, double az_incident, double az_scattered,
             vector<double>* amplitude);
@@ -208,6 +209,16 @@ private:
     shared_ptr<ocean_model> _ocean;
 
     /**
+     * Source sensor of the sensor pair.
+     */
+    const sensor_model* _source;
+
+    /**
+     * Receiver sensor of the sensor pair.
+     */
+    const sensor_model* _receiver;
+    
+    /**
      * Source Beam Pattern List.
      */
     sensor_params::beam_pattern_list _src_beam_list;
@@ -216,6 +227,7 @@ private:
      * Receiver Beam Pattern List.
      */
     sensor_params::beam_pattern_list _rcv_beam_list;
+    
 
     /**
      * Interface collisions for wavefront emanating from the source.
