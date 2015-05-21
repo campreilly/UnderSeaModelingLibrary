@@ -607,4 +607,34 @@ BOOST_AUTO_TEST_CASE( seq_augment_test ) {
         BOOST_CHECK_CLOSE( i, tmp[index++], 0.0001 ) ;
 }
 
+/**
+ * Tests the implementation of seq_vector operator==
+ * Test fails if equal seq_vector's are not found false, or
+ * unequal seq_vector's are found true.
+ */
+BOOST_AUTO_TEST_CASE( seq_vector_equal_test ) {
+    cout << "=== sequence_test/seq_vector_equal_test ===" << endl ;
+
+    seq_linear linear( 6.0, 1.0, 5 ) ;
+
+    seq_rayfan rayfan_five( 6.0, 10.0, 5);
+
+    if (linear == rayfan_five) {
+        BOOST_FAIL("seq_vector_compare_test are not equal ");
+    }
+
+    seq_rayfan rayfan_six( 6.0, 10.0, 6);
+
+    if (rayfan_five == rayfan_six) {
+        BOOST_FAIL("seq_vector_compare_test are not equal ");
+    }
+
+    // Same should be equal
+    seq_rayfan rayfan( 6.0, 10.0, 6);
+
+    if (rayfan != rayfan_six) {
+        BOOST_FAIL("seq_vector_compare_test are equal ");
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

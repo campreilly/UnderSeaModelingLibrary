@@ -3,13 +3,13 @@
  * Container for one sensor pair instance.
  */
 #include <usml/sensors/sensor_pair.h>
-#include <usml/sensors/source_params_map.h>
-#include <usml/sensors/receiver_params_map.h>
 #include <usml/eigenverb/envelope_generator.h>
 #include <usml/eigenverb/wavefront_generator.h>
+#include <usml/waveq3d/eigenray_interpolator.h>
 #include <boost/foreach.hpp>
 
 using namespace usml::sensors;
+using namespace usml::waveq3d;
 
 /**
  * Utility to run the envelope_generator
@@ -72,18 +72,50 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
              << sensorID << ")" << endl ;
     #endif
    
-    // If sensor that made this call is the _receiver of this pair
-    //    then Swap de's, and az's
     if ( list != NULL ) {
+        seq_vector* original_freq = NULL;
+
+        // If sensor that made this call is the _receiver of this pair
+        //    then Swap de's, and az's
         if (sensorID == _receiver->sensorID()) {
             BOOST_FOREACH(eigenray ray, *list) {
                 std::swap(ray.source_de, ray.target_de);
                 std::swap(ray.source_az, ray.target_az);
             }
+            // Get frequencies from receiver
+            original_freq = _receiver->frequencies();
+        } else {
+            // Get frequencies from source
+            original_freq = _source->frequencies();
+        }
+
+        eigenray_list new_eigenray_list;
+        // Only interpolate when needed
+        if ( *original_freq != *_frequencies ) {
+
+            // Interpolate to this sensor_pair's bounded frequencies
+            // Set frequencies, and space for intensity's,
+            // and phase's for new eigenray_list
+            size_t num_freq( _frequencies->size() ) ;
+            for (int i = 0; i < list->size(); ++i) {
+                eigenray new_ray;
+                new_ray.frequencies = _frequencies;
+                new_ray.intensity.resize( num_freq, false ) ;
+                new_ray.phase.resize( num_freq, false ) ;
+                new_eigenray_list.push_back(new_ray);
+            }
+
+            eigenray_interpolator interpolator( original_freq, _frequencies ) ;
+            interpolator.interpolate( *list, &new_eigenray_list ) ;
+
+        } else {
+            // Just use original
+            new_eigenray_list = *list;
         }
         // Note new memory location for eigenrays is create here
-        _fathometer = fathometer_model::reference(new fathometer_model(_source->sensorID(),
-            _receiver->sensorID(), _source->position(), _receiver->position(), *list));
+        _fathometer = fathometer_model::reference ( new fathometer_model(
+            _source->sensorID(),_receiver->sensorID(), _source->position(),
+            _receiver->position(), new_eigenray_list));
     }
 }
 
@@ -109,7 +141,6 @@ void sensor_pair::update_eigenverbs(sensor_model* sensor)
         }
 
         run_envelope_generator();
-
 	}
 }
 
