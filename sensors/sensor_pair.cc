@@ -30,7 +30,7 @@ void sensor_pair::run_envelope_generator() {
     // Create the envelope_generator
     envelope_generator* generator = new envelope_generator (
         _frequencies, _src_freq_first,
-        _source, _receiver,
+        this,
         wavefront_generator::number_az,
         _src_eigenverbs, _rcv_eigenverbs
         );
@@ -88,7 +88,7 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
 }
 
 /**
- * Updates the sensors eigenverb_collection
+ * Updates the eigenverb_collection
  */
 void sensor_pair::update_eigenverbs(sensor_model* sensor)
 {
@@ -111,6 +111,22 @@ void sensor_pair::update_eigenverbs(sensor_model* sensor)
         run_envelope_generator();
 
 	}
+}
+
+/**
+ * Updates new envelope_colection
+ */
+void sensor_pair::update_envelopes(envelope_collection::reference& collection) {
+
+    if (collection.get() != NULL) {
+        write_lock_guard guard(_envelopes_mutex);
+        #ifdef USML_DEBUG
+            cout << "sensor_pair: update_envelopes src_rcv ("
+                << collection.get()->source_id() << "_"
+                << collection.get()->receiver_id() <<  ")" << endl ;
+        #endif
+        _envelopes = collection;
+    }
 }
 
 /**

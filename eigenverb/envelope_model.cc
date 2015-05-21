@@ -220,9 +220,16 @@ bool envelope_model::compute_overlap(
 		+ ys2 * ( src_sum - src_prod + 2.0 * rcv_verb.width2 )
 		- 2.0 * sqrt( xs2 * ys2 ) * src_diff * sin2alpha ;
 
-    // TODO Remove debugging output
+    // TODO Remove after debugged
     cout << "src_prod=" << src_prod
          << " kappa=" << kappa << endl;
+    BOOST_FOREACH( double value, kappa ) {
+        if (value < 0.0) {
+             cout    << "*** Kappa less than zero ***" << endl ;
+            return false;
+        }
+    }
+
 
     _energy = element_prod( _energy, exp( -0.25*element_div(kappa,det_sr) ) ) ;
 

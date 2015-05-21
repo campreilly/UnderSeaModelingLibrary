@@ -9,6 +9,7 @@
 #include <usml/sensors/xmitRcvModeType.h>
 #include <usml/sensors/fathometer_model.h>
 #include <usml/waveq3d/eigenray_collection.h>
+#include <usml/eigenverb/envelope_listener.h>
 #include <usml/eigenverb/envelope_collection.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 
@@ -27,7 +28,7 @@ using namespace eigenverb ;
  * Inherits the sensor_listener interface so a sensor instance can get
  * access to its complement sensor, and updates the eigenverbs and fathometers.
  */
-class USML_DECLSPEC sensor_pair : public sensor_listener
+class USML_DECLSPEC sensor_pair : public sensor_listener, public envelope_listener
 {
 public:
 
@@ -106,6 +107,13 @@ public:
      * @param    sensor    Pointer to sensor that issued the notification.
      */
     virtual void update_eigenverbs(sensor_model* sensor) ;
+
+    /**
+     * Notification that new envelope data is ready.
+     *
+     * @param    sensor    Pointer to sensor that issued the notification.
+     */
+    virtual void update_envelopes(envelope_collection::reference& collection) ;
 
     /**
      * Queries for the sensor pair complements of this sensor.

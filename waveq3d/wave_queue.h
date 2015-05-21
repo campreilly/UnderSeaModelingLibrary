@@ -466,17 +466,6 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      */
     wave_front *_past, *_prev, *_curr, *_next ;
 
-
-//    /**
-//    * Vector containing the references of objects that will be used to
-//    * update classes that require eigenrays as they are built.
-//    * These classes must implement add_eigenray method.
-//    */
-//    std::vector<eigenray_listener *> eigenray_listeners;
-
-//    /** Associated eigenverb collection **/
-//    eigenverb_collection* _collection ;
-
     /**
      * Create an Azimuthal boundary loop condition upon initialization.
      * This condition will prevent the production of multiple eigenrays

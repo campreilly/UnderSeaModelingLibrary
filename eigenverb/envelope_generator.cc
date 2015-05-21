@@ -35,6 +35,54 @@ unique_ptr<const seq_vector> envelope_generator::_travel_time( new seq_linear(0.
 envelope_generator::envelope_generator(
         const seq_vector* envelope_freq,
         size_t src_freq_first,
+        sensor_pair* sensor_pair,
+        size_t num_azimuths,
+        eigenverb_collection::reference src_eigenverbs,
+        eigenverb_collection::reference rcv_eigenverbs
+):
+    _done(false),
+    _ocean( ocean_shared::current() ),
+    _sensor_pair(sensor_pair),
+    _src_eigenverbs(src_eigenverbs),
+    _rcv_eigenverbs(rcv_eigenverbs),
+    _eigenverb_interpolator(sensor_pair->receiver()->frequencies(),envelope_freq)
+{
+    write_lock_guard guard(_property_mutex);
+
+    // Get source_params for reverb_duration and pulse_length, and beam_list size
+    source_params::reference src_params = _sensor_pair->source()->source();
+    _src_beam_list = src_params->beam_list();
+
+    // Get receiver_params for beam_list size
+    sensor_params::id_type rcv_params_ID = _sensor_pair->receiver()->paramsID();
+    receiver_params::reference rcv_params =
+        receiver_params_map::instance()->find(rcv_params_ID);
+
+    _rcv_beam_list = rcv_params->beam_list();
+
+    add_envelope_listener(_sensor_pair);
+
+    _envelopes = envelope_collection::reference( new envelope_collection(
+        envelope_freq,
+        src_freq_first,
+        _travel_time.get(),
+        src_params->reverb_duration(),
+        src_params->pulse_length(),
+        pow(10.0,intensity_threshold/10.0),
+        num_azimuths,
+        _src_beam_list.size(),
+        _rcv_beam_list.size(),
+        _sensor_pair->source()->sensorID(),
+        _sensor_pair->receiver()->sensorID() ) ) ;
+}
+
+/**
+ * Copies envelope computation parameters from static memory into
+ * this specific task.
+ */
+envelope_generator::envelope_generator(
+        const seq_vector* envelope_freq,
+        size_t src_freq_first,
         const seq_vector* receiver_freq,
         double reverb_duration,
         double pulse_length,
@@ -46,14 +94,12 @@ envelope_generator::envelope_generator(
 ):
     _done(false),
     _ocean( ocean_shared::current() ),
-    _source(NULL),
-    _receiver(NULL),
+    _sensor_pair(NULL),
     _src_eigenverbs(src_eigenverbs),
     _rcv_eigenverbs(rcv_eigenverbs),
     _eigenverb_interpolator(receiver_freq,envelope_freq)
 {
     write_lock_guard guard(_property_mutex);
-
 
     _envelopes = envelope_collection::reference( new envelope_collection(
         envelope_freq,
@@ -67,54 +113,6 @@ envelope_generator::envelope_generator(
         num_rcv_beams,
         1, // Place holder for testing
         1 ) ) ; // Place holder for testing
-}
-
-/**
- * Copies envelope computation parameters from static memory into
- * this specific task.
- */
-envelope_generator::envelope_generator(
-		const seq_vector* envelope_freq,
-		size_t src_freq_first,
-		const sensor_model* source,
-		const sensor_model* receiver,
-		size_t num_azimuths,
-	    eigenverb_collection::reference src_eigenverbs,
-	    eigenverb_collection::reference rcv_eigenverbs
-):
-	_done(false),
-	_ocean( ocean_shared::current() ),
-	_source(source),
-	_receiver(receiver),
-	_src_eigenverbs(src_eigenverbs),
-	_rcv_eigenverbs(rcv_eigenverbs),
-	_eigenverb_interpolator(receiver->frequencies(),envelope_freq)
-{
-	write_lock_guard guard(_property_mutex);
-
-	// Get source_params for reverb_duration and pulse_length, and beam_list size
-    source_params::reference src_params = _source->source();
-    _src_beam_list = src_params->beam_list();
-
-    // Get receiver_params for beam_list size
-    sensor_params::id_type rcv_params_ID = receiver->paramsID();
-    receiver_params::reference rcv_params =
-        receiver_params_map::instance()->find(rcv_params_ID);
-
-    _rcv_beam_list = rcv_params->beam_list();
-
-	_envelopes = envelope_collection::reference( new envelope_collection(
-		envelope_freq,
-		src_freq_first,
-		_travel_time.get(),
-		src_params->reverb_duration(),
-		src_params->pulse_length(),
-		pow(10.0,intensity_threshold/10.0),
-		num_azimuths,
-		_src_beam_list.size(),
-		_rcv_beam_list.size(),
-		source->sensorID(),
-		receiver->sensorID() ) ) ;
 }
 
 /**
@@ -142,12 +140,27 @@ void envelope_generator::run() {
 	// loop through eigenrays for each interface
 
 	for ( size_t interface=0 ; interface < 1 ; ++interface) {
+
+	    // TODO Remove after Debugged
+        // record eigenverbs for each interface to their own disk file
+	    const char* rcv_ncname = "rcv_eigenverbs_";
+        std::ostringstream rcv_filename ;
+        rcv_filename << rcv_ncname << interface << ".nc" ;
+        _rcv_eigenverbs->write_netcdf( rcv_filename.str().c_str(),interface) ;
+
 	// TODO Replace after debugged.
 	//for ( size_t interface=0 ; interface < _rcv_eigenverbs->num_interfaces() ; ++interface) {
+
+        // TODO Remove after Debugged
+        // record eigenverbs for each interface to their own disk file
+        const char* src_ncname = "src_eigenverbs_";
+        std::ostringstream src_filename ;
+        src_filename << src_ncname << interface << ".nc" ;
+        _src_eigenverbs->write_netcdf( src_filename.str().c_str(),interface) ;
+
 		BOOST_FOREACH( eigenverb verb, _rcv_eigenverbs->eigenverbs(interface) ) {
 			_eigenverb_interpolator.interpolate(verb,&rcv_verb) ;
 			BOOST_FOREACH( eigenverb src_verb, _src_eigenverbs->eigenverbs(interface) ) {
-
 
 			    // TODO - Remove after Debugged
 			    if ( src_verb.az_index != 0  || rcv_verb.az_index != 0) continue;
@@ -186,9 +199,9 @@ void envelope_generator::run() {
                     // compute beam levels
 
                     src_beam = beam_gain(_src_beam_list, freq, src_verb.source_de,
-                        src_verb.source_az, _source->orient());
+                        src_verb.source_az, _sensor_pair->source()->orient());
                     rcv_beam = beam_gain(_rcv_beam_list, freq, rcv_verb.source_de,
-                        rcv_verb.source_az, _receiver->orient());
+                        rcv_verb.source_az, _sensor_pair->receiver()->orient());
 
                     // create envelope contribution
 

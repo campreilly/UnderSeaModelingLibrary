@@ -158,8 +158,9 @@ private:
 		sensor_manager::instance()->add_sensor(sensorID, paramsID, "sensor1");
 
 		// Set wave_queue attributes
-		wavefront_generator::time_maximum =  7.0/2.0;     // reverb_duration/2
+		wavefront_generator::time_maximum =  7.0/2.0 + 0.5; // reverb_duration/2 + 1/2 sec
 		//wavefront_generator::intensity_threshold = 150.0; //dB
+		wavefront_generator::number_de = 91;              // For comparsion to eigenverb_demo.m
 		wavefront_generator::max_bottom = 0;              // Max number of bottom bounces.
 		wavefront_generator::max_surface = 0;             // Max number of surface bounces.
 		// Update sensor data and run wave_queue.
@@ -198,11 +199,15 @@ private:
         boost::timer timer ;
 
         while ( true ) {
+
+            // TODO - Uncomment after debugging
             // fathometers = sp_manager->get_fathometers(query);
             envelopes = sp_manager->get_envelopes(query);
 
+            // TODO - Uncomment after debugging
             //if ( fathometers.size() > 0 && envelopes.size() > 0 ) break ;
 
+            // TODO - Remove after debugging
             //if ( fathometers.size() > 0 ) break ;
             if ( envelopes.size() > 0 ) break ;
 
@@ -210,6 +215,7 @@ private:
         }
         cout << "waited for " << timer.elapsed() << " secs" << endl ;
 
+         // TODO - Uncomment after debugging
 //        std::string ncname_fathometers = USML_STUDIES_DIR "/reverberation/fathometer_";
 //        fathometer_model::fathometer_package::iterator iter_fathometers;
 //        for ( iter_fathometers = fathometers.begin();

@@ -45,7 +45,7 @@ using namespace usml::threads;
  * this sensor_pair, that task is aborted before the new envelope_generator
  * is created.
  */
-class USML_DECLSPEC envelope_generator: public thread_task, envelope_notifier {
+class USML_DECLSPEC envelope_generator: public thread_task, public envelope_notifier {
 public:
 
     /**
@@ -63,8 +63,7 @@ public:
      * @param src_freq_first    Index of the first intersecting frequency of the
      *                          source frequencies seq_vector.  Used to map
      *                          source eigenverbs onto envelope_freq values.
-     * @param source            Pointer to the source sensor.
-     * @param receiver          Pointer to the receiver sensor.
+     * @param sensor_pair       Pointer to the sensor_pair that instantiated this class
      * @param num_azimuths      Number of receiver azimuths in result.
      * @param src_eigenverbs    Shared pointer to the source's eigenverbs.
      * @param rcv_eigenverbs    Shared pointer to the receiver's eigenverbs.
@@ -73,8 +72,7 @@ public:
     envelope_generator(
         const seq_vector* envelope_freq,
         size_t src_freq_first,
-        const sensor_model* source,
-        const sensor_model* receiver,
+        sensor_pair* sensor_pair,
         size_t num_azimuths,
         eigenverb_collection::reference src_eigenverbs,
         eigenverb_collection::reference rcv_eigenverbs) ;
@@ -209,14 +207,9 @@ private:
     shared_ptr<ocean_model> _ocean;
 
     /**
-     * Source sensor of the sensor pair.
+     * The sensor pair that instantiated this class
      */
-    const sensor_model* _source;
-
-    /**
-     * Receiver sensor of the sensor pair.
-     */
-    const sensor_model* _receiver;
+    sensor_pair* _sensor_pair;
     
     /**
      * Source Beam Pattern List.

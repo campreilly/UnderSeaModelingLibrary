@@ -87,9 +87,14 @@ void wavefront_generator::run()
     // Setup DE sequence rayfan for WaveQ3D
     // Augment rayfan with additional de's near -90 and 90.
 
-    size_t num_xtra_rays = 6;
-    seq_rayfan orig_de(-90.0, 90.0, _number_de - num_xtra_rays);
-    seq_augment de(&orig_de, num_xtra_rays);
+    // TODO - Add back after debugging
+    // size_t num_xtra_rays = 6;
+    // seq_rayfan orig_de(-90.0, 90.0, _number_de - num_xtra_rays);
+    // seq_augment de(&orig_de, num_xtra_rays);
+
+    // TODO - Remove after debugging
+    // For reverb_analytic_test comparison - only bottom
+    seq_rayfan de(-90.0, 0, _number_de);
 
     seq_linear az(0.0, 180.0, _number_az, true);
 
