@@ -3,6 +3,8 @@
  * Container for one sensor pair instance.
  */
 #include <usml/sensors/sensor_pair.h>
+#include <usml/eigenverb/envelope_generator.h>
+#include <usml/eigenverb/wavefront_generator.h>
 #include <usml/waveq3d/eigenray_interpolator.h>
 #include <boost/foreach.hpp>
 
@@ -10,9 +12,36 @@ using namespace usml::sensors;
 using namespace usml::waveq3d;
 
 /**
+ * Utility to run the envelope_generator
+ */
+void sensor_pair::run_envelope_generator() {
+
+
+    #ifdef USML_DEBUG
+        cout << "sensor_pair: run_envelope_generator " << endl ;
+    #endif
+
+
+    // Kill any currently running task
+    if ( _envelopes_task.get() != 0 ) {
+        _envelopes_task->abort();
+    }
+
+    // Create the envelope_generator
+    envelope_generator* generator = new envelope_generator (
+		this, _src_freq_first, wavefront_generator::number_az );
+
+    // Make envelope_generator a _envelopes_task, with use of shared_ptr
+    _envelopes_task = thread_task::reference(generator);
+
+    // Pass in to thread_pool
+    thread_controller::instance()->run(_envelopes_task);
+}
+
+/**
 * Utility to build the intersecting frequencies of a sensor_pair.
 */
-void sensor_pair::frequencies() {
+void sensor_pair::compute_frequencies() {
 
     // Build intersecting frequencies
     _frequencies = _source->frequencies()->clip(
@@ -87,7 +116,7 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
 }
 
 /**
- * Updates the sensors eigenverb_collection
+ * Updates the eigenverb_collection
  */
 void sensor_pair::update_eigenverbs(sensor_model* sensor)
 {
@@ -107,10 +136,24 @@ void sensor_pair::update_eigenverbs(sensor_model* sensor)
             _rcv_eigenverbs = sensor->eigenverbs();
         }
 
-        // TODO Create and run the envelope_generator
-        // run_envelope_generator();
-
+        run_envelope_generator();
 	}
+}
+
+/**
+ * Updates new envelope_colection
+ */
+void sensor_pair::update_envelopes(envelope_collection::reference& collection) {
+
+    if (collection.get() != NULL) {
+        write_lock_guard guard(_envelopes_mutex);
+        #ifdef USML_DEBUG
+            cout << "sensor_pair: update_envelopes src_rcv ("
+                << collection.get()->source_id() << "_"
+                << collection.get()->receiver_id() <<  ")" << endl ;
+        #endif
+        _envelopes = collection;
+    }
 }
 
 /**

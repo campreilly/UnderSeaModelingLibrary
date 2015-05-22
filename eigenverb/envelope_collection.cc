@@ -22,7 +22,9 @@ envelope_collection::envelope_collection(
 	double threshold,
 	size_t num_azimuths,
 	size_t num_src_beams,
-	size_t num_rcv_beams
+	size_t num_rcv_beams,
+	sensor_model::id_type source_id,
+    sensor_model::id_type receiver_id
 ) :
 	_envelope_freq(envelope_freq->clone()),
 	_travel_time( travel_time->clip(0.0,reverb_duration) ),
@@ -31,6 +33,8 @@ envelope_collection::envelope_collection(
 	_num_azimuths(num_azimuths),
 	_num_src_beams(num_src_beams),
 	_num_rcv_beams(num_rcv_beams),
+	_source_id(source_id),
+	_receiver_id(receiver_id),
 	_envelope_model( _envelope_freq, src_freq_first, _travel_time, _pulse_length, _threshold)
 {
 	_envelopes = new matrix<double>***[_num_azimuths];

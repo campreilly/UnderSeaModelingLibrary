@@ -9,6 +9,7 @@
 #include <usml/sensors/xmitRcvModeType.h>
 #include <usml/sensors/fathometer_model.h>
 #include <usml/waveq3d/eigenray_collection.h>
+#include <usml/eigenverb/envelope_listener.h>
 #include <usml/eigenverb/envelope_collection.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 
@@ -27,7 +28,7 @@ using namespace eigenverb ;
  * Inherits the sensor_listener interface so a sensor instance can get
  * access to its complement sensor, and updates the eigenverbs and fathometers.
  */
-class USML_DECLSPEC sensor_pair : public sensor_listener
+class USML_DECLSPEC sensor_pair : public sensor_listener, public envelope_listener
 {
 public:
 
@@ -46,7 +47,7 @@ public:
             _src_freq_first = 0;
             _src_freq_last = _source->frequencies()->size()-1;
         } else {
-            frequencies();
+            compute_frequencies();
         }
     };
 
@@ -55,6 +56,9 @@ public:
      */
     virtual ~sensor_pair() {
         delete _frequencies;
+        if ( _envelopes_task.get() != 0 ) {
+            _envelopes_task->abort();
+        }
     }
 
     /**
@@ -105,6 +109,13 @@ public:
     virtual void update_eigenverbs(sensor_model* sensor) ;
 
     /**
+     * Notification that new envelope data is ready.
+     *
+     * @param    sensor    Pointer to sensor that issued the notification.
+     */
+    virtual void update_envelopes(envelope_collection::reference& collection) ;
+
+    /**
      * Queries for the sensor pair complements of this sensor.
      * @param    sensor    Const sensor_model pointer Sensor that requested the complement.
      * @return  Pointer to the complement sensor of the pair.
@@ -131,12 +142,20 @@ public:
 
 private:
 
+     /**
+      * Default Constructor - prevent access
+      */
     sensor_pair() {};
+
+    /**
+     * Utility to run the envelope_generator
+     */
+    void run_envelope_generator();
 
     /**
      * Utility to build the intersecting frequencies of a sensor_pair.
      */
-    void frequencies();
+    void compute_frequencies();
 
     /**
      * Index of the first intersecting frequency of the 
@@ -212,6 +231,11 @@ private:
      * Mutex to that locks sensor_pair during _envelope updates.
      */
     mutable read_write_lock _envelopes_mutex ;
+
+    /**
+     * reference to the task that is computing envelopes.
+     */
+    thread_task::reference _envelopes_task;
 
 };
 

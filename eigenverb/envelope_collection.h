@@ -6,11 +6,13 @@
 #pragma once
 
 #include <usml/eigenverb/envelope_model.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/types/seq_linear.h>
 
 namespace usml {
 namespace eigenverb {
 
+using namespace usml::sensors;
 using namespace usml::types;
 
 /**
@@ -39,22 +41,24 @@ public:
      * Reserve memory in which to store results as a series of
      * nested dynamic arrays.
      *
-     * @param envelope_freq        Frequencies at which the source and receiver
-     *                 eigenverbs overlap (Hz).  Frequencies at which
-     *                 envelope will be computed.
+     * @param envelope_freq     Frequencies at which the source and receiver
+     *                          eigenverbs overlap (Hz).  Frequencies at which
+     *                          envelope will be computed.
      * @param src_freq_first    Index of the first source frequency that
-     *                 overlaps receiver (Hz).  Used to map
-     *                 source eigenverbs onto envelope_freq values.
-     * @param travel_time        Times at which the sensor_pair's
-     *                 reverberation envelopes are computed (Hz).
-         * @param reverb_duration       Length of time in seconds the reverb is to be calculated.
-     * @param pulse_length        Duration of the transmitted pulse (sec).
-     *                 Defines the temporal resolution of the envelope.
-     * @param threshold        Minimum intensity level for valid reverberation
-     *                 contributions (linear units).
-     * @param num_azimuths        Number of receiver azimuths in result.
-     * @param num_src_beams        Number of source beams in result.
+     *                          overlaps receiver (Hz).  Used to map
+     *                          source eigenverbs onto envelope_freq values.
+     * @param travel_time       Times at which the sensor_pair's
+     *                          reverberation envelopes are computed (Hz).
+     * @param reverb_duration   Length of time in seconds the reverb is to be calculated.
+     * @param pulse_length      Duration of the transmitted pulse (sec).
+     *                          Defines the temporal resolution of the envelope.
+     * @param threshold         Minimum intensity level for valid reverberation
+     *                          contributions (linear units).
+     * @param num_azimuths      Number of receiver azimuths in result.
+     * @param num_src_beams     Number of source beams in result.
      * @param num_rcv_beams     Number of receiver beams in result.
+     * @param source_id         ID of the source sensor.
+     * @param receiver_id       ID of the receiver sensor.
      */
     envelope_collection(
         const seq_vector* envelope_freq,
@@ -65,12 +69,24 @@ public:
         double threshold,
         size_t num_azimuths,
         size_t num_src_beams,
-        size_t num_rcv_beams ) ;
+        size_t num_rcv_beams,
+        sensor_model::id_type source_id,
+        sensor_model::id_type receiver_id) ;
 
     /**
      * Delete dynamic memory in each of the nested dynamic arrays.
      */
     ~envelope_collection();
+
+   /** ID of the the source sensor used to generate results. */
+    sensor_model::id_type source_id() const {
+        return _source_id;
+    }
+
+    /** ID of the the receiver sensor used to generate results. */
+    sensor_model::id_type receiver_id() const {
+        return _receiver_id;
+    }
 
     /**
      * Frequencies at which the source and receiver eigenverbs are computed (Hz).
@@ -204,6 +220,12 @@ private:
 
     /** Number of receiver beams in result. */
     size_t _num_rcv_beams;
+
+    /** ID for the source sensor  */
+    sensor_model::id_type _source_id;
+
+    /** ID for the sensor sensor  */
+    sensor_model::id_type _receiver_id;
 
     /**
      * Engine for computing Gaussian envelope contributions.

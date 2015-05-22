@@ -37,29 +37,29 @@ public:
     /**
      * Construct new class of source.
      *
-     * @param    paramsID        Identification used to find this sensor type in
-     *                             source_params_map and/or receiver_params_map.
-     * @param   source_level    Peak intensity of the transmitted pulse
-     *                             (dB//uPa at 1m)
-     * @param      pulse_length    Duration of the transmitted signal (sec).
-     * @param   reverb_duration Duration of the reverberation envelope (sec).
-     * @param    min_freq        Minimum active frequency for the sensor. Lower
-     *                          active bound of the sensor.
-     * @param    max_freq        Maximum active frequency for the sensor. Upper
-     *                          active bound of the sensor.
-     * @param    frequencies        Frequencies of transmitted pulse.
-     *                             Multiple frequencies can be used to compute
-     *                             multiple results at the same time.
-     *                             These are the frequencies at which transmission
-     *                             loss and reverberation are computed.
-     *                             This is cloned during construction.
-     * @param   beam_list        List of beamIds associated with this sensor.
-     *                             The actual beams are extracted from beam_pattern_map
-     *                             using these beamIDs.
-     * @param    multistatic        Optional, defaults to true. 
-     *                          Bistatic sensor_pair objects are only created
-     *                             for sources and receivers that have this flag
-     *                             set to true.  Set to false for monostatic sensors.
+     * @param   paramsID            Identification used to find this sensor type in
+     *                              source_params_map and/or receiver_params_map.
+     * @param   source_level        Peak intensity of the transmitted pulse
+     *                              (dB//uPa at 1m)
+     * @param   pulse_length        Duration of the transmitted signal (sec).
+     * @param   reverb_duration     Duration of the reverberation envelope (sec).
+     * @param   min_freq            Minimum active frequency for the sensor. Lower
+     *                              active bound of the sensor.
+     * @param   max_freq            Maximum active frequency for the sensor. Upper
+     *                              active bound of the sensor.
+     * @param   frequencies         Frequencies of transmitted pulse.
+     *                              Multiple frequencies can be used to compute
+     *                              multiple results at the same time.
+     *                              These are the frequencies at which transmission
+     *                              loss and reverberation are computed.
+     *                              This is cloned during construction.
+     * @param   beam_list           List of beamIds associated with this sensor.
+     *                              The actual beams are extracted from beam_pattern_map
+     *                              using these beamIDs.
+     * @param   multistatic         Optional, defaults to true.
+     *                              Bistatic sensor_pair objects are only created
+     *                              for sources and receivers that have this flag
+     *                              set to true.  Set to false for monostatic sensors.
      */
     source_params( sensor_params::id_type paramsID, vector<double> source_level,
             double pulse_length, double reverb_duration,

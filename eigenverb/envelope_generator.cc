@@ -4,10 +4,13 @@
  */
 #include <usml/eigenverb/envelope_generator.h>
 #include <usml/eigenverb/eigenverb.h>
+#include <usml/sensors/beam_pattern_map.h>
+#include <usml/sensors/beam_pattern_model.h>
 #include <usml/threads/smart_ptr.h>
 #include <boost/foreach.hpp>
 
 using namespace usml::eigenverb ;
+using namespace usml::sensors ;
 
 /**
  * Minimum intensity level for valid reverberation contributions (dB).
@@ -30,34 +33,83 @@ unique_ptr<const seq_vector> envelope_generator::_travel_time( new seq_linear(0.
  * this specific task.
  */
 envelope_generator::envelope_generator(
-		const seq_vector* envelope_freq,
-		size_t src_freq_first,
-		const seq_vector* receiver_freq,
-		double reverb_duration,
-		double pulse_length,
-		size_t num_azimuths,
-		size_t num_src_beams,
-		size_t num_rcv_beams,
-	    eigenverb_collection::reference src_eigenverbs,
-	    eigenverb_collection::reference rcv_eigenverbs
+	sensor_pair* sensor_pair,
+	size_t src_freq_first,
+	size_t num_azimuths
 ):
-	_done(false),
-	_ocean( ocean_shared::current() ),
-	_src_eigenverbs(src_eigenverbs),
-	_rcv_eigenverbs(rcv_eigenverbs),
-	_eigenverb_interpolator(receiver_freq,envelope_freq)
+    _done(false),
+    _ocean( ocean_shared::current() ),
+    _sensor_pair(sensor_pair),
+    _src_eigenverbs(sensor_pair->source()->eigenverbs()),
+    _rcv_eigenverbs(sensor_pair->receiver()->eigenverbs()),
+    _eigenverb_interpolator(sensor_pair->receiver()->frequencies(),sensor_pair->frequencies())
 {
-	write_lock_guard guard(_property_mutex);
-	_envelopes = envelope_collection::reference( new envelope_collection(
-		envelope_freq,
-		src_freq_first,
-		_travel_time.get(),
-		reverb_duration,
-		pulse_length,
-		pow(10.0,intensity_threshold/10.0),
-		num_azimuths,
-		num_src_beams,
-		num_rcv_beams ) ) ;
+    write_lock_guard guard(_property_mutex);
+
+    // Get source_params for reverb_duration and pulse_length, and beam_list size
+    source_params::reference src_params = _sensor_pair->source()->source();
+    _src_beam_list = src_params->beam_list();
+
+    // Get receiver_params for beam_list size
+    sensor_params::id_type rcv_params_ID = _sensor_pair->receiver()->paramsID();
+    receiver_params::reference rcv_params =
+        receiver_params_map::instance()->find(rcv_params_ID);
+
+    _rcv_beam_list = rcv_params->beam_list();
+
+    add_envelope_listener(_sensor_pair);
+
+    _envelopes = envelope_collection::reference( new envelope_collection(
+    	_sensor_pair->frequencies(),
+        src_freq_first,
+        _travel_time.get(),
+        src_params->reverb_duration(),
+        src_params->pulse_length(),
+        pow(10.0,intensity_threshold/10.0),
+        num_azimuths,
+        _src_beam_list.size(),
+        _rcv_beam_list.size(),
+        _sensor_pair->source()->sensorID(),
+        _sensor_pair->receiver()->sensorID() ) ) ;
+}
+
+/**
+ * Copies envelope computation parameters from static memory into
+ * this specific task.
+ */
+envelope_generator::envelope_generator(
+        const seq_vector* envelope_freq,
+        size_t src_freq_first,
+        const seq_vector* receiver_freq,
+        double reverb_duration,
+        double pulse_length,
+        size_t num_azimuths,
+        size_t num_src_beams,
+        size_t num_rcv_beams,
+        eigenverb_collection::reference src_eigenverbs,
+        eigenverb_collection::reference rcv_eigenverbs
+):
+    _done(false),
+    _ocean( ocean_shared::current() ),
+    _sensor_pair(NULL),
+    _src_eigenverbs(src_eigenverbs),
+    _rcv_eigenverbs(rcv_eigenverbs),
+    _eigenverb_interpolator(receiver_freq,envelope_freq)
+{
+    write_lock_guard guard(_property_mutex);
+
+    _envelopes = envelope_collection::reference( new envelope_collection(
+        envelope_freq,
+        src_freq_first,
+        _travel_time.get(),
+        reverb_duration,
+        pulse_length,
+        pow(10.0,intensity_threshold/10.0),
+        num_azimuths,
+        num_src_beams,
+        num_rcv_beams,
+        1, // Place holder for testing
+        1 ) ) ; // Place holder for testing
 }
 
 /**
@@ -84,10 +136,31 @@ void envelope_generator::run() {
 
 	// loop through eigenrays for each interface
 
-	for ( size_t interface=0 ; interface < _rcv_eigenverbs->num_interfaces() ; ++interface) {
+	for ( size_t interface=0 ; interface < 1 ; ++interface) {
+
+	    // TODO Remove after Debugged
+        // record eigenverbs for each interface to their own disk file
+	    const char* rcv_ncname = "rcv_eigenverbs_";
+        std::ostringstream rcv_filename ;
+        rcv_filename << rcv_ncname << interface << ".nc" ;
+        _rcv_eigenverbs->write_netcdf( rcv_filename.str().c_str(),interface) ;
+
+	// TODO Replace after debugged.
+	//for ( size_t interface=0 ; interface < _rcv_eigenverbs->num_interfaces() ; ++interface) {
+
+        // TODO Remove after Debugged
+        // record eigenverbs for each interface to their own disk file
+        const char* src_ncname = "src_eigenverbs_";
+        std::ostringstream src_filename ;
+        src_filename << src_ncname << interface << ".nc" ;
+        _src_eigenverbs->write_netcdf( src_filename.str().c_str(),interface) ;
+
 		BOOST_FOREACH( eigenverb verb, _rcv_eigenverbs->eigenverbs(interface) ) {
 			_eigenverb_interpolator.interpolate(verb,&rcv_verb) ;
 			BOOST_FOREACH( eigenverb src_verb, _src_eigenverbs->eigenverbs(interface) ) {
+
+			    // TODO - Remove after Debugged
+			    if ( src_verb.az_index != 0  || rcv_verb.az_index != 0) continue;
 
 				// determine the range and bearing between the projected Gaussians
 				// normalize bearing to min distance between angles
@@ -113,25 +186,25 @@ void envelope_generator::run() {
 			    if ( ys2 > 9.0 * rcv_verb.width2[0] ) continue ;
 
 				// compute interface scattering strength
+			    // continue if does not meet threshold
+				if ( scattering( interface,
+					 rcv_verb.position, *freq,
+					 src_verb.grazing, rcv_verb.grazing,
+					 src_verb.direction, rcv_verb.direction,
+					 &scatter )  ) {
 
-				scattering( interface,
-					rcv_verb.position, *freq,
-					src_verb.grazing, rcv_verb.grazing,
-					src_verb.direction, rcv_verb.direction,
-					&scatter ) ;
+                    // compute beam levels
 
-				// compute beam levels
-				//
-				// TODO Replace the scalar_matrix versions of src_beam and rcv_beam
-				// 		with real beam pattern results.
+                    src_beam = beam_gain(_src_beam_list, freq, src_verb.source_de,
+                        src_verb.source_az, _sensor_pair->source()->orient());
+                    rcv_beam = beam_gain(_rcv_beam_list, freq, rcv_verb.source_de,
+                        rcv_verb.source_az, _sensor_pair->receiver()->orient());
 
-				src_beam = scalar_matrix<double>(num_freq,num_src_beams,1.0);
-				rcv_beam = scalar_matrix<double>(num_freq,num_rcv_beams,1.0);
+                    // create envelope contribution
 
-				// create envelope contribution
-
-				_envelopes->add_contribution( src_verb, rcv_verb,
-						src_beam, rcv_beam, scatter, xs2, ys2 ) ;
+                    _envelopes->add_contribution( src_verb, rcv_verb,
+                            src_beam, rcv_beam, scatter, xs2, ys2 ) ;
+				}
 			}
 		}
 	}
@@ -139,9 +212,48 @@ void envelope_generator::run() {
 }
 
 /**
+ * Computes the beam_gain
+ */
+matrix<double> envelope_generator::beam_gain(
+    sensor_params::beam_pattern_list beam_list,
+    const seq_vector* freq, double de_rad, double az_rad, orientation orient)
+{
+    // beam_level requires ublas vector
+    const vector<double> frequencies = *freq;
+
+    matrix<double> beam_matrix( freq->size(), beam_list.size() ) ;
+
+    vector<double> level( freq->size(), 0.0 ) ;
+
+    BOOST_FOREACH( beam_pattern_model::id_type id, beam_list) {
+
+        beam_pattern_model::reference bp = beam_pattern_map::instance()->find(id);
+        bp->beam_level(de_rad, az_rad, orient, frequencies, &level ) ;
+
+        std::copy(level.begin(), level.end(), beam_matrix.begin1());
+    }
+
+    // TODO Remove debugging output
+#ifdef USML_DEBUG
+
+    typedef boost::numeric::ublas::matrix<double> matrix;
+
+    for(matrix::iterator1 it1 = beam_matrix.begin1(); it1 != beam_matrix.end1(); ++it1) {
+        for(matrix::iterator2 it2 = it1.begin(); it2 !=it1.end(); ++it2) {
+            std::cout << "(" << it2.index1() << "," << it2.index2() << ") = " << *it2;
+        }
+        cout << endl;
+    }
+
+#endif
+
+    return beam_matrix;
+}
+
+/**
  * Computes the broadband scattering strength for a specific interface.
  */
-void envelope_generator::scattering( size_t interface, const wposition1& location,
+bool envelope_generator::scattering( size_t interface, const wposition1& location,
 		const seq_vector& frequencies, double de_incident,
 		double de_scattered, double az_incident, double az_scattered,
 		vector<double>* amplitude)
@@ -164,4 +276,13 @@ void envelope_generator::scattering( size_t interface, const wposition1& locatio
 				amplitude) ;
 		break;
 	}
+
+	// TODO Check for threshold
+//	BOOST_FOREACH (double amp, *amplitude) {
+//	    if (amp <= intensity_threshold ) {
+//	        return true;
+//	    }
+//	}
+	// Threshold not met
+	return true;
 }
