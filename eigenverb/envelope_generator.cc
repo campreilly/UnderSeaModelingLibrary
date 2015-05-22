@@ -33,19 +33,16 @@ unique_ptr<const seq_vector> envelope_generator::_travel_time( new seq_linear(0.
  * this specific task.
  */
 envelope_generator::envelope_generator(
-        const seq_vector* envelope_freq,
-        size_t src_freq_first,
-        sensor_pair* sensor_pair,
-        size_t num_azimuths,
-        eigenverb_collection::reference src_eigenverbs,
-        eigenverb_collection::reference rcv_eigenverbs
+	sensor_pair* sensor_pair,
+	size_t src_freq_first,
+	size_t num_azimuths
 ):
     _done(false),
     _ocean( ocean_shared::current() ),
     _sensor_pair(sensor_pair),
-    _src_eigenverbs(src_eigenverbs),
-    _rcv_eigenverbs(rcv_eigenverbs),
-    _eigenverb_interpolator(sensor_pair->receiver()->frequencies(),envelope_freq)
+    _src_eigenverbs(sensor_pair->source()->eigenverbs()),
+    _rcv_eigenverbs(sensor_pair->receiver()->eigenverbs()),
+    _eigenverb_interpolator(sensor_pair->receiver()->frequencies(),sensor_pair->frequencies())
 {
     write_lock_guard guard(_property_mutex);
 
@@ -63,7 +60,7 @@ envelope_generator::envelope_generator(
     add_envelope_listener(_sensor_pair);
 
     _envelopes = envelope_collection::reference( new envelope_collection(
-        envelope_freq,
+    	_sensor_pair->frequencies(),
         src_freq_first,
         _travel_time.get(),
         src_params->reverb_duration(),

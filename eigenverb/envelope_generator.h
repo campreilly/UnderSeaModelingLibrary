@@ -57,25 +57,17 @@ public:
     /**
      * Constructor - Initialize model parameters and reserve memory.
      *
-     * @param envelope_freq     Frequencies at which the source and receiver
-     *                          eigenverbs overlap (Hz).  Frequencies at which
-     *                          envelope will be computed.
+     * @param sensor_pair       Pointer to the sensor_pair that instantiated this class
      * @param src_freq_first    Index of the first intersecting frequency of the
      *                          source frequencies seq_vector.  Used to map
      *                          source eigenverbs onto envelope_freq values.
-     * @param sensor_pair       Pointer to the sensor_pair that instantiated this class
      * @param num_azimuths      Number of receiver azimuths in result.
-     * @param src_eigenverbs    Shared pointer to the source's eigenverbs.
-     * @param rcv_eigenverbs    Shared pointer to the receiver's eigenverbs.
      */
 
     envelope_generator(
-        const seq_vector* envelope_freq,
+    	sensor_pair* sensor_pair,
         size_t src_freq_first,
-        sensor_pair* sensor_pair,
-        size_t num_azimuths,
-        eigenverb_collection::reference src_eigenverbs,
-        eigenverb_collection::reference rcv_eigenverbs) ;
+        size_t num_azimuths ) ;
 
     /**
      * Constructor for test - Initialize model parameters and reserve memory.

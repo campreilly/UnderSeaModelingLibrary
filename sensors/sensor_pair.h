@@ -47,7 +47,7 @@ public:
             _src_freq_first = 0;
             _src_freq_last = _source->frequencies()->size()-1;
         } else {
-            frequencies();
+            compute_frequencies();
         }
     };
 
@@ -155,7 +155,7 @@ private:
     /**
      * Utility to build the intersecting frequencies of a sensor_pair.
      */
-    void frequencies();
+    void compute_frequencies();
 
     /**
      * Index of the first intersecting frequency of the 

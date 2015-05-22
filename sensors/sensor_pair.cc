@@ -29,11 +29,7 @@ void sensor_pair::run_envelope_generator() {
 
     // Create the envelope_generator
     envelope_generator* generator = new envelope_generator (
-        _frequencies, _src_freq_first,
-        this,
-        wavefront_generator::number_az,
-        _src_eigenverbs, _rcv_eigenverbs
-        );
+		this, _src_freq_first, wavefront_generator::number_az );
 
     // Make envelope_generator a _envelopes_task, with use of shared_ptr
     _envelopes_task = thread_task::reference(generator);
@@ -45,7 +41,7 @@ void sensor_pair::run_envelope_generator() {
 /**
 * Utility to build the intersecting frequencies of a sensor_pair.
 */
-void sensor_pair::frequencies() {
+void sensor_pair::compute_frequencies() {
 
     // Build intersecting frequencies
     _frequencies = _source->frequencies()->clip(
