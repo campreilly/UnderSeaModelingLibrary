@@ -12,7 +12,7 @@
 namespace usml {
 namespace sensors {
 
-// forward declerations needed for friending
+// forward declarations needed for friend'ing
 class sensor_manager ;
 class sensor_pair_manager ;
 
@@ -44,7 +44,7 @@ using namespace usml::threads;
 template<class key_type, class mapped_type>
 class USML_DLLEXPORT sensor_map_template {
 
-    // Friend declerations needed to access the iterator calls
+    // Friend declarations needed to access the iterator calls
     friend class sensor_manager ;
     friend class sensor_pair_manager ;
 
