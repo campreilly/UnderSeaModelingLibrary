@@ -87,13 +87,12 @@ public:
      * Inserts the supplied mapped_type into the map with the key provided.
      * Ignores request if there is an existing entry for this key.
      *
-     * @param     keyID     Key used to lookup the sensor type parameters.
+     * @param     keyID    Key used to lookup the sensor type parameters.
      * @param    mapped    Sensor type parameters.
-     * @return             False if keyID was already in the map.
+     * @return             Always returns true
      */
     bool insert(key_type keyID, mapped_type mapped) {
         write_lock_guard guard(_map_mutex);
-        if (_map.count(keyID) != 0) return false;
         _map[keyID] = mapped;
         return true;
     }

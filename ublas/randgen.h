@@ -119,7 +119,8 @@ namespace ublas {
          * @param    value    New seed for the random number generator.
          */
         static inline void seed(random_type::result_type value) {
-            master_gen.seed(value);
+            uniform_gen.base().seed(value);
+            gaussian_gen.engine().seed(value);
         }
 
         //******************************************************************
