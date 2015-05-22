@@ -12,6 +12,10 @@
 namespace usml {
 namespace sensors {
 
+// forward declerations needed for friending
+class sensor_manager ;
+class sensor_pair_manager ;
+
 using namespace usml::ublas;
 using namespace usml::threads;
 
@@ -40,6 +44,10 @@ using namespace usml::threads;
 template<class key_type, class mapped_type>
 class USML_DLLEXPORT sensor_map_template {
 
+    // Friend declerations needed to access the iterator calls
+    friend class sensor_manager ;
+    friend class sensor_pair_manager ;
+
 public:
     /**
      * Data type used for store keyed data for the sensors namespace.
@@ -50,26 +58,6 @@ public:
      * Data type for use of accessing the _map iterator
      */
     typedef typename std::map<key_type, mapped_type>::iterator iterator;
-
-    /**
-     *  begin method for accessing the private _map.begin()
-     *  @return iterator
-     */
-    iterator begin()
-    { 
-        read_lock_guard guard(_map_mutex);
-        return _map.begin();
-    }
-
-    /**
-    *  end method for accessing the private _map.end()
-    *  @return iterator
-    */
-    iterator end()
-    {
-        read_lock_guard guard(_map_mutex);
-        return _map.end();
-    }
 
     /**
      * Finds the sensor parameters associated with the keyID.
@@ -120,6 +108,28 @@ public:
      * Virtual destructor.
      */
     virtual ~sensor_map_template() {
+    }
+
+protected:
+
+    /**
+     *  begin method for accessing the private _map.begin()
+     *  @return iterator
+     */
+    iterator begin()
+    {
+        read_lock_guard guard(_map_mutex);
+        return _map.begin();
+    }
+
+    /**
+    *  end method for accessing the private _map.end()
+    *  @return iterator
+    */
+    iterator end()
+    {
+        read_lock_guard guard(_map_mutex);
+        return _map.end();
     }
 
 private:
