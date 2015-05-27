@@ -37,18 +37,23 @@ public:
     /**
      * Construct from all data required.
      *
-     * @param    source_id   The source id for this pair.
+     * @param    source_id      The source id for this pair.
      * @param    receiver_id    The receiver id for this pair.
      * @param    src_pos        The source position when eigenrays were obtained.
      * @param    rcv_pos        The receiver position when eigenrays were obtained.
-     * @param   list        The list of eigenrays.
+     * @param    list           The list of eigenrays.
      */
     fathometer_model(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
-                     wposition1 src_pos, wposition1 rcv_pos, const eigenray_list& list )
+                     wposition1 src_pos, wposition1 rcv_pos,  const eigenray_list& list )
         : _source_id(source_id), _receiver_id(receiver_id), _slant_range(0.0), 
         _distance_from_sensor(0.0), _depth_offset_from_sensor(0.0),
         _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
-     {}
+    {
+        _slant_range = _receiver_position.distance(_source_position);
+        // Get first eigenray arrival time
+        std::list<eigenray>::const_iterator ray_iter = _eigenrays.begin();
+        _initial_time = ray_iter->time;
+    }
 
     /**
      * Destructor
@@ -66,27 +71,11 @@ public:
     }
 
     /**
-     * Sets the source sensor id.
-     * @param  source_id The source sensor id.
-     */
-    void source_id(sensor_model::id_type source_id) {
-        _source_id = source_id;
-    }
-
-    /**
      * Gets the receiver sensor id.
      * @return  The receiver sensor id.
      */
     sensor_model::id_type receiver_id() {
         return _receiver_id;
-    }
-
-    /**
-     * Sets the receiver sensor id.
-     * @param  receiver_id The receiver sensor id.
-     */
-    void receiver_id(sensor_model::id_type receiver_id) {
-        _receiver_id = receiver_id;
     }
 
     /**
@@ -138,6 +127,22 @@ public:
     }
 
     /**
+     * Sets the initial_time value.
+     * @param  The initial_time value.
+     */
+    void initial_time(double value) {
+        _initial_time = value;
+    }
+
+    /**
+     * Gets the initial_time value.
+     * @return  The initial_time.
+     */
+    double initial_time() {
+        return _initial_time;
+    }
+
+    /**
      * Gets the source position.
      * @return  The source position
      */
@@ -162,9 +167,9 @@ public:
     }
 
     /**
-    * Sets the receiver position.
-    * @param  position The receiver position.
-    */
+     * Sets the receiver position.
+     * @param  position The receiver position.
+     */
     void receiver_position(wposition1 position) {
         _receiver_position = position;
     }
@@ -176,15 +181,6 @@ public:
     eigenray_list eigenrays() {
          read_lock_guard guard(_eigenrays_mutex);
          return _eigenrays;
-    }
-
-    /**
-     * Sets the eigenray_list for this fathometer_model.
-     * @param  list The list of eigenrays.
-     */
-    void eigenrays(eigenray_list list) {
-         write_lock_guard guard(_eigenrays_mutex);
-         _eigenrays = list;
     }
 
     /**
@@ -212,43 +208,43 @@ public:
      *      double distance_from_sensor ;
      *      double depth_offset ;
      *      double source_latitude ;
-     *              source_latitude:units = "degrees_north" ;
+     *             source_latitude:units = "degrees_north" ;
      *      double source_longitude ;
-     *              source_longitude:units = "degrees_east" ;
+     *             source_longitude:units = "degrees_east" ;
      *      double source_altitude ;
-     *              source_altitude:units = "meters" ;
-     *              source_altitude:positive = "up" ;
+     *             source_altitude:units = "meters" ;
+     *             source_altitude:positive = "up" ;
      *      double receiver_latitude ;
-     *              receiver_latitude:units = "degrees_north" ;
+     *             receiver_latitude:units = "degrees_north" ;
      *      double receiver_longitude ;
-     *              receiver_longitude:units = "degrees_east" ;
+     *             receiver_longitude:units = "degrees_east" ;
      *      double receiver_altitude ;
-     *              receiver_altitude:units = "meters" ;
-     *              receiver_altitude:positive = "up" ;
-     *       double intensity(eigenrays, frequency) ;
-     *              intensity:units = "dB" ;
+     *             receiver_altitude:units = "meters" ;
+     *             receiver_altitude:positive = "up" ;
+     *      double intensity(eigenrays, frequency) ;
+     *             intensity:units = "dB" ;
      *      double phase(eigenrays, frequency) ;
      *             phase:units = "radians" ;
      *      double travel_time(eigenrays) ;
      *             travel_time:units = "seconds" ;
      *      double source_de(eigenrays) ;
-     *              source_de:units = "degrees" ;
-     *              source_de:positive = "up" ;
+     *             source_de:units = "degrees" ;
+     *             source_de:positive = "up" ;
      *      double source_az(eigenrays) ;
-     *              source_az:units = "degrees_true" ;
-     *              source_az:positive = "clockwise" ;
+     *             source_az:units = "degrees_true" ;
+     *             source_az:positive = "clockwise" ;
      *      double target_de(eigenrays) ;
-     *              target_de:units = "degrees" ;
-     *              target_de:positive = "up" ;
-     *       double target_az(eigenrays) ;
-     *              target_az:units = "degrees_true" ;
-     *              target_az:positive = "clockwise" ;
-     *       short surface(eigenrays) ;
-     *              surface:units = "count" ;
-     *       short bottom(eigenrays) ;
-     *              bottom:units = "count" ;
-     *       short caustic(eigenrays) ;
-     *              caustic:units = "count" ;
+     *             target_de:units = "degrees" ;
+     *             target_de:positive = "up" ;
+     *      double target_az(eigenrays) ;
+     *             target_az:units = "degrees_true" ;
+     *             target_az:positive = "clockwise" ;
+     *      short  surface(eigenrays) ;
+     *             surface:units = "count" ;
+     *      short  bottom(eigenrays) ;
+     *             bottom:units = "count" ;
+     *      short  caustic(eigenrays) ;
+     *             caustic:units = "count" ;
      *
      *   // global attributes:
      *               :Conventions = "COARDS" ;
@@ -265,6 +261,8 @@ public:
      *      distance_from_sensor = 0 ;
      *
      *      depth_offset = 0 ;
+     *      
+     *      initial_time = 0.253437554251589;
      *
      *      source_latitude = 0 ;
      *
@@ -342,6 +340,11 @@ private:
      * The depth offset (in meters) from the sensor when the eigenrays where obtained.
      */
     double _depth_offset_from_sensor;
+
+    /**
+    * The time of arrival of the fastest eigenray.
+    */
+    double _initial_time;
 
     /**
      * The position of the source sensor when the eigenrays where obtained.

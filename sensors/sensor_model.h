@@ -159,13 +159,21 @@ public:
     void update_sensor(const wposition1& position,
             const orientation& orient, bool force_update = false);
 
-    /**
-     * Asynchronous update of eigenray data from the wavefront task.
-     * Passes this data onto all sensor listeners.
-     * Blocks until update is complete.
-     * @param eigenrays Shared pointer to an eigenray_collection.
-     */
-    virtual void update_eigenrays( eigenray_collection::reference& eigenrays ) ;
+    // TODO - Remove
+    ///**
+    // * Asynchronous update of eigenray data from the wavefront task.
+    // * Passes this data onto all sensor listeners.
+    // * Blocks until update is complete.
+    // * @param eigenrays Shared pointer to an eigenray_collection.
+    // */
+    //virtual void update_eigenrays( eigenray_collection::reference& eigenrays ) ;
+    ///**
+    //* Asynchronous update of eigenverbs data from the wavefront task.
+    //* Passes this data onto all sensor listeners.
+    //* Blocks until update is complete.
+    //* @param eigenverbs Shared pointer to an eigenverb_collection.
+    //*/
+    //virtual void update_eigenverbs(eigenverb_collection::reference& eigenverbs);
 
     /**
      * Last set of eigenverbs computed for this sensor.
@@ -175,12 +183,14 @@ public:
     eigenverb_collection::reference eigenverbs() const ;
 
     /**
-     * Asynchronous update of eigenverbs data from the wavefront task.
+     * Asynchronous update of eigenrays and eigenverbs data from the wavefront task.
      * Passes this data onto all sensor listeners.
      * Blocks until update is complete.
+     * @param eigenrays Shared pointer to an eigenray_collection.
      * @param eigenverbs Shared pointer to an eigenverb_collection.
      */
-    virtual void update_eigenverbs( eigenverb_collection::reference& eigenverbs) ;
+    virtual void update_wavefront_data(eigenray_collection::reference& eigenrays,
+                                        eigenverb_collection::reference& eigenverbs);
 
     /**
      * Add a sensor_listener to the _sensor_listeners list

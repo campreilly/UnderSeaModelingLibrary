@@ -8,6 +8,7 @@
 
 #include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_pair.h>
+#include <usml/sensors/sensor_data.h>
 #include <usml/sensors/sensor_map_template.h>
 #include <usml/sensors/fathometer_model.h>
 #include <usml/threads/read_write_lock.h>
@@ -35,8 +36,8 @@ class USML_DECLSPEC sensor_pair_manager {
 public:
 
     // Data type used to query the a random group of sensorID's and mode's
-    typedef std::map<sensor_model::id_type, xmitRcvModeType> sensor_query_map ;
-    typedef std::pair<sensor_model::id_type, xmitRcvModeType> query_type ;
+    //typedef std::map<sensor_model::id_type, xmitRcvModeType> sensor_query_map ;
+    //typedef std::pair<sensor_model::id_type, xmitRcvModeType> query_type ;
 
     /**
      * Singleton Constructor - Creates sensor_pair_manager instance just once.
@@ -57,10 +58,10 @@ public:
 
     /**
      * Gets the fathometers for the list of sensors requested.
-     * @param sensors contains sensor_query_map sensorID, and sensor xmitRcvModeType
+     * @param sensors   Contains sensor_data_list.
      * @return fathometer_model::fathometer_package contains a collection of fathometer_model pointers
      */
-    fathometer_model::fathometer_package get_fathometers(const sensor_query_map sensors);
+    fathometer_model::fathometer_package get_fathometers(const sensor_data_list &sensors);
 
     /**
      * Writes the fathometers provided to a NetCDF file.
@@ -202,10 +203,10 @@ public:
 
     /**
      * Gets the envelopes for the list of sensors requested.
-     * @param sensors   Contains sensor_query_map sensorID, and sensor xmitRcvModeType.
+     * @param sensors   Contains a sensor_data_list.
      * @return envelope_collection::envelope_package contains a collection of envelope_collection pointers
      */
-    envelope_collection::envelope_package get_envelopes(sensor_query_map sensors);
+    envelope_collection::envelope_package get_envelopes(const sensor_data_list &sensors);
 
 protected:
 
@@ -306,10 +307,10 @@ private:
     /**
      * Utility to find the sensor_pair keys that are provided in the 
      * sensor_query_map parameter.
-     * @param    sensors Map of sensorID and modes that needs to be found
-     * @return   list of hash keys in the _map of found sensor_query
+     * @param    sensors Contains a sensor_data_list of sensorID and modes that needs to be found
+     * @return   list of hash keys in the _map.
      */
-    std::set<std::string> find_pairs(sensor_query_map& sensors);
+    std::set<std::string> find_pairs(const sensor_data_list &sensors);
 
     /**
      * Utility to determine if two frequency ranges overlap

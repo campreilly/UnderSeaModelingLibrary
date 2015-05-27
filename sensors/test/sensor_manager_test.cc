@@ -196,10 +196,12 @@ BOOST_AUTO_TEST_CASE(pairs_test)
      cout << "Updated sensor 9's roll by 15 deg" << endl ;
      sensor_manager::instance()->update_sensor( 9, pos, orient ) ;
 
-    // Build a query 
-    sensor_pair_manager::sensor_query_map query;
+    sensor_data_list query;
     for ( int i = 0; i < sizeof(sensors_remaining) / sizeof(sensor_model::id_type); ++i ) {
-        query.insert(std::pair<sensor_model::id_type, xmitRcvModeType>(sensors_remaining[i], sensor_mode[i]));
+        sensor_data sensor;
+        sensor._sensorID = sensors_remaining[i];
+        sensor._mode = sensor_mode[i];
+        query.push_back(sensor);
     }
 
     // Test find_pair through get_fathometers

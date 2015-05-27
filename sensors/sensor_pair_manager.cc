@@ -57,9 +57,9 @@ void sensor_pair_manager::reset() {
 }
 
 /**
- * Finds all the keys in the _maps that are in the sensor_query_map
+ * Finds all the keys in the _map that are in the sensor_data_list
  */
-std::set<std::string> sensor_pair_manager::find_pairs(sensor_query_map& sensors)
+std::set<std::string> sensor_pair_manager::find_pairs(const sensor_data_list &sensors)
 {   
     std::set<std::string> hash_keys;
     std::set<sensor_model::id_type> source_ids;
@@ -68,13 +68,14 @@ std::set<std::string> sensor_pair_manager::find_pairs(sensor_query_map& sensors)
 
     // Create a source_keys list and a receiver_key list 
     // of the requested items
+    sensor_data sensor;
     xmitRcvModeType mode;
     sensor_model::id_type sensorID;
-    std::pair<sensor_model::id_type, xmitRcvModeType> p;
-    BOOST_FOREACH(p, sensors)
+    
+    BOOST_FOREACH(sensor, sensors)
     {
-        sensorID = p.first;
-        mode = p.second;
+        sensorID = sensor._sensorID;
+        mode = sensor._mode;
       
         // Only add keys if the sensorID already exist in its respected list
         switch ( mode )
@@ -124,9 +125,9 @@ std::set<std::string> sensor_pair_manager::find_pairs(sensor_query_map& sensors)
 }
 
 /**
- * Gets the fathometers for the query of sensors provided
+ * Gets the fathometers for sensors in the sensor_data_list.
  */
-fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(sensor_query_map sensors)
+fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(const sensor_data_list &sensors)
 {
     sensor_pair* pair;
     read_lock_guard guard(_manager_mutex);
@@ -310,9 +311,9 @@ void sensor_pair_manager::write_fathometers(fathometer_model::fathometer_package
 }
 
 /**
- * Gets the envelopes for the sensor receiver_id requested.
+ * Gets the envelopes for the sensors in the sensor_data_list requested.
  */
-envelope_collection::envelope_package sensor_pair_manager::get_envelopes(sensor_query_map sensors)
+envelope_collection::envelope_package sensor_pair_manager::get_envelopes(const sensor_data_list &sensors)
 {
     sensor_pair* pair;
     read_lock_guard guard(_manager_mutex);

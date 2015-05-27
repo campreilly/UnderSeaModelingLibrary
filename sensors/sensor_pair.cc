@@ -16,11 +16,9 @@ using namespace usml::waveq3d;
  */
 void sensor_pair::run_envelope_generator() {
 
-
     #ifdef USML_DEBUG
         cout << "sensor_pair: run_envelope_generator " << endl ;
     #endif
-
 
     // Kill any currently running task
     if ( _envelopes_task.get() != 0 ) {
@@ -60,12 +58,12 @@ void sensor_pair::compute_frequencies() {
 /**
  * Notification that new eigenray data is ready.
  */
-void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_list* list)
+void sensor_pair::update_fathometer(sensor_model::id_type sensor_id, eigenray_list* list)
 {
     write_lock_guard guard(_fathometer_mutex);
     #ifdef USML_DEBUG
         cout << "sensor_pair: update_fathometer("
-             << sensorID << ")" << endl ;
+            << sensor_id << ")" << endl;
     #endif
    
     if ( list != NULL ) {
@@ -73,7 +71,7 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
 
         // If sensor that made this call is the _receiver of this pair
         //    then Swap de's, and az's
-        if (sensorID == _receiver->sensorID()) {
+        if ( sensor_id == _receiver->sensorID() ) {
             BOOST_FOREACH(eigenray ray, *list) {
                 std::swap(ray.source_de, ray.target_de);
                 std::swap(ray.source_az, ray.target_az);
@@ -118,7 +116,7 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
 /**
  * Updates the eigenverb_collection
  */
-void sensor_pair::update_eigenverbs(sensor_model* sensor)
+void sensor_pair::update_eigenverbs(double initial_time, sensor_model* sensor)
 {
 	if (sensor != NULL) {
 

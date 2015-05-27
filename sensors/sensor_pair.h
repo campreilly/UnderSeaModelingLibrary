@@ -96,17 +96,18 @@ public:
     /**
      * Notification that new fathometer data is ready.
      *
-     * @param  sensorID     The ID of the sensor that issued the notification.
-     * @param  list         Pointer std::list of eigenrays.
+     * @param   sensor_id       The ID of the sensor that issued the notification.
+     * @param   list            Pointer std::list of eigenrays.
      */
-    virtual void update_fathometer(sensor_model::id_type sensorID, eigenray_list* list) ;
+    virtual void update_fathometer(sensor_model::id_type sensor_id, eigenray_list* list) ;
 
     /**
      * Notification that new eigenverb data is ready.
      *
-     * @param    sensor    Pointer to sensor that issued the notification.
+     * @param   initial_time    The time of arrival of the fastest eigenray for this pair.
+     * @param   sensor          Pointer to sensor that issued the notification.
      */
-    virtual void update_eigenverbs(sensor_model* sensor) ;
+    virtual void update_eigenverbs(double initial_time, sensor_model* sensor) ;
 
     /**
      * Notification that new envelope data is ready.

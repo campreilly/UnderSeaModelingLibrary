@@ -4,7 +4,7 @@
  */
 
 #define PRINTOUT_WAVE_DATA
-//#define NO_EIGENVERBS
+#define NO_EIGENVERBS
 
 #include <usml/eigenverb/wavefront_generator.h>
 
@@ -88,13 +88,13 @@ void wavefront_generator::run()
     // Augment rayfan with additional de's near -90 and 90.
 
     // TODO - Add back after debugging
-    // size_t num_xtra_rays = 6;
-    // seq_rayfan orig_de(-90.0, 90.0, _number_de - num_xtra_rays);
-    // seq_augment de(&orig_de, num_xtra_rays);
+     size_t num_xtra_rays = 6;
+     seq_rayfan orig_de(-90.0, 90.0, _number_de - num_xtra_rays);
+     seq_augment de(&orig_de, num_xtra_rays);
 
     // TODO - Remove after debugging
     // For reverb_analytic_test comparison - only bottom
-    seq_rayfan de(-90.0, 0, _number_de);
+    // seq_rayfan de(-90.0, 0, _number_de);
 
     seq_linear az(0.0, 180.0, _number_az, true);
 
@@ -171,15 +171,20 @@ void wavefront_generator::run()
         }
     }
 
-    if (proploss != NULL) {
-        eigenray_collection::reference rays(proploss);
-        _wavefront_listener->update_eigenrays(rays);
-    }
+    eigenray_collection::reference rays(proploss);
+    eigenverb_collection::reference verbs(eigenverbs);
 
-    if (eigenverbs != NULL) {
-        eigenverb_collection::reference verbs(eigenverbs);
-        _wavefront_listener->update_eigenverbs(verbs);
-    }
+    _wavefront_listener->update_wavefront_data(rays, verbs);
+
+    //if (proploss != NULL) {
+    //    eigenray_collection::reference rays(proploss);
+    //    _wavefront_listener->update_eigenrays(rays);
+    //}
+
+    //if (eigenverbs != NULL) {
+    //    eigenverb_collection::reference verbs(eigenverbs);
+    //    _wavefront_listener->update_eigenverbs(verbs);
+    //}
 
     // mark task as complete
     _done = true ;
