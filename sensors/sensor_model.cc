@@ -211,11 +211,17 @@ void sensor_model::update_wavefront_data(eigenray_collection::reference& eigenra
             // Get eigenray_list for listener, ie sensor_pair
             // Get complement's row's eigenray_list
             eigenray_list* list = _eigenray_collection->eigenrays(row, 0);
-            // Get first eigenrays arrival time
-            std::list<eigenray>::const_iterator ray_iter = list->begin();
-            first_ray_arrival_time = ray_iter->time;
-            // Send out eigenray_list to listener
-            listener->update_fathometer(_sensorID, list);
+#ifdef USML_DEBUG
+            cout << "sensor_model: update_wavefront_data eigenray list size " << list->size() << endl;
+#endif
+            // Only update when eigenrays are found
+            if ( list->size() > 0 ) {
+                // Get first eigenrays arrival time
+                std::list<eigenray>::const_iterator ray_iter = list->begin();
+                first_ray_arrival_time = ray_iter->time;
+                // Send out eigenray_list to listener
+                listener->update_fathometer(_sensorID, list);
+            }
         }
         listener->update_eigenverbs(first_ray_arrival_time, this);
     }

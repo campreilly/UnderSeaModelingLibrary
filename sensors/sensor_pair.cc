@@ -134,7 +134,9 @@ void sensor_pair::update_eigenverbs(double initial_time, sensor_model* sensor)
             _rcv_eigenverbs = sensor->eigenverbs();
         }
 
-        run_envelope_generator();
+        if ( _src_eigenverbs.get() != NULL && _rcv_eigenverbs.get() != NULL ) {
+            run_envelope_generator();
+        }
 	}
 }
 

@@ -136,31 +136,26 @@ void envelope_generator::run() {
 
 	// loop through eigenrays for each interface
 
-	for ( size_t interface=0 ; interface < 1 ; ++interface) {
+	for ( size_t interface=0 ; interface < _rcv_eigenverbs->num_interfaces() ; ++interface) {
 
-	    // TODO Remove after Debugged
-        // record eigenverbs for each interface to their own disk file
-	    const char* rcv_ncname = "rcv_eigenverbs_";
-        std::ostringstream rcv_filename ;
-        rcv_filename << rcv_ncname << interface << ".nc" ;
-        _rcv_eigenverbs->write_netcdf( rcv_filename.str().c_str(),interface) ;
+#ifdef USML_DEBUG
+       
+        // record rcv eigenverbs for each interface to their own disk file
+        const char* rcv_ncname = "rcv_eigenverbs_";
+        std::ostringstream rcv_filename;
+        rcv_filename << rcv_ncname << interface << ".nc";
+        _rcv_eigenverbs->write_netcdf(rcv_filename.str().c_str(), interface);
 
-	// TODO Replace after debugged.
-	//for ( size_t interface=0 ; interface < _rcv_eigenverbs->num_interfaces() ; ++interface) {
-
-        // TODO Remove after Debugged
-        // record eigenverbs for each interface to their own disk file
+        // record src eigenverbs for each interface to their own disk file
         const char* src_ncname = "src_eigenverbs_";
         std::ostringstream src_filename ;
         src_filename << src_ncname << interface << ".nc" ;
         _src_eigenverbs->write_netcdf( src_filename.str().c_str(),interface) ;
 
+#endif
 		BOOST_FOREACH( eigenverb verb, _rcv_eigenverbs->eigenverbs(interface) ) {
 			_eigenverb_interpolator.interpolate(verb,&rcv_verb) ;
 			BOOST_FOREACH( eigenverb src_verb, _src_eigenverbs->eigenverbs(interface) ) {
-
-			    // TODO - Remove after Debugged
-			    if ( src_verb.az_index != 0  || rcv_verb.az_index != 0) continue;
 
 				// determine the range and bearing between the projected Gaussians
 				// normalize bearing to min distance between angles
