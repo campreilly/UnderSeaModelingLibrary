@@ -159,8 +159,7 @@ private:
 
 		// Set wave_queue attributes
 		wavefront_generator::time_maximum =  7.0/2.0 + 0.5; // reverb_duration/2 + 1/2 sec
-		wavefront_generator::intensity_threshold = 150.0; //dB
-		wavefront_generator::time_step = 0.01;
+        wavefront_generator::time_step = 0.01;              // For comparsion to eigenverb_demo.m
 		//wavefront_generator::number_de = 91;              // For comparsion to eigenverb_demo.m
 		//wavefront_generator::max_bottom = 0;              // Max number of bottom bounces.
 		//wavefront_generator::max_surface = 0;             // Max number of surface bounces.
