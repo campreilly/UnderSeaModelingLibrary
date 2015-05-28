@@ -3,8 +3,8 @@
  * Generates eigenrays and eigenverbs for the reverberation model.
  */
 
-#define PRINTOUT_WAVE_DATA
-//#define NO_EIGENVERBS
+//#define PRINTOUT_WAVE_DATA
+#define NO_EIGENVERBS
 
 #include <usml/eigenverb/wavefront_generator.h>
 
@@ -83,18 +83,12 @@ void wavefront_generator::run()
         return ;
     }
 
-
     // Setup DE sequence rayfan for WaveQ3D
     // Augment rayfan with additional de's near -90 and 90.
 
-    // TODO - Add back after debugging
-    // size_t num_xtra_rays = 6;
-    // seq_rayfan orig_de(-90.0, 90.0, _number_de - num_xtra_rays);
-    // seq_augment de(&orig_de, num_xtra_rays);
-
-    // TODO - Remove after debugging
-    // For reverb_analytic_test comparison - only bottom
-    seq_rayfan de(-90.0, 0, _number_de);
+     size_t num_xtra_rays = 6;
+     seq_rayfan orig_de(-90.0, 90.0, _number_de - num_xtra_rays);
+     seq_augment de(&orig_de, num_xtra_rays);
 
     seq_linear az(0.0, 180.0, _number_az, true);
 

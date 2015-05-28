@@ -57,7 +57,7 @@ void sensor_pair_manager::reset() {
 }
 
 /**
- * Finds all the keys in the _maps that are in the sensor_query_map
+ * Finds all the keys in the _map that are in the sensor_query_map
  */
 std::set<std::string> sensor_pair_manager::find_pairs(sensor_query_map& sensors)
 {   

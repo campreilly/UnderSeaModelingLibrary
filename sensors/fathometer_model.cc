@@ -22,6 +22,12 @@ void fathometer_model::write_netcdf( const char* filename, const char* long_name
     }
     nc_file->add_att("Conventions", "COARDS");
 
+    if ( _eigenrays.size() == 0 ) {
+        nc_file->add_att("Eigenrays", "None Found");
+        // close file
+        delete nc_file;
+        return;
+    }
     // Get the list to get the frequency size
     long num_frequencies = ( long ) _eigenrays.front().frequencies->size();
 

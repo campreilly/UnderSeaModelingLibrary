@@ -37,11 +37,11 @@ public:
     /**
      * Construct from all data required.
      *
-     * @param    source_id   The source id for this pair.
+     * @param    source_id      The source id for this pair.
      * @param    receiver_id    The receiver id for this pair.
      * @param    src_pos        The source position when eigenrays were obtained.
      * @param    rcv_pos        The receiver position when eigenrays were obtained.
-     * @param   list        The list of eigenrays.
+     * @param    list           The list of eigenrays.
      */
     fathometer_model(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
                      wposition1 src_pos, wposition1 rcv_pos, const eigenray_list& list )
@@ -212,43 +212,43 @@ public:
      *      double distance_from_sensor ;
      *      double depth_offset ;
      *      double source_latitude ;
-     *              source_latitude:units = "degrees_north" ;
+     *             source_latitude:units = "degrees_north" ;
      *      double source_longitude ;
-     *              source_longitude:units = "degrees_east" ;
+     *             source_longitude:units = "degrees_east" ;
      *      double source_altitude ;
-     *              source_altitude:units = "meters" ;
-     *              source_altitude:positive = "up" ;
+     *             source_altitude:units = "meters" ;
+     *             source_altitude:positive = "up" ;
      *      double receiver_latitude ;
-     *              receiver_latitude:units = "degrees_north" ;
+     *             receiver_latitude:units = "degrees_north" ;
      *      double receiver_longitude ;
-     *              receiver_longitude:units = "degrees_east" ;
+     *             receiver_longitude:units = "degrees_east" ;
      *      double receiver_altitude ;
-     *              receiver_altitude:units = "meters" ;
-     *              receiver_altitude:positive = "up" ;
-     *       double intensity(eigenrays, frequency) ;
-     *              intensity:units = "dB" ;
+     *             receiver_altitude:units = "meters" ;
+     *             receiver_altitude:positive = "up" ;
+     *      double intensity(eigenrays, frequency) ;
+     *             intensity:units = "dB" ;
      *      double phase(eigenrays, frequency) ;
      *             phase:units = "radians" ;
      *      double travel_time(eigenrays) ;
      *             travel_time:units = "seconds" ;
      *      double source_de(eigenrays) ;
-     *              source_de:units = "degrees" ;
-     *              source_de:positive = "up" ;
+     *             source_de:units = "degrees" ;
+     *             source_de:positive = "up" ;
      *      double source_az(eigenrays) ;
-     *              source_az:units = "degrees_true" ;
-     *              source_az:positive = "clockwise" ;
+     *             source_az:units = "degrees_true" ;
+     *             source_az:positive = "clockwise" ;
      *      double target_de(eigenrays) ;
-     *              target_de:units = "degrees" ;
-     *              target_de:positive = "up" ;
-     *       double target_az(eigenrays) ;
-     *              target_az:units = "degrees_true" ;
-     *              target_az:positive = "clockwise" ;
-     *       short surface(eigenrays) ;
-     *              surface:units = "count" ;
-     *       short bottom(eigenrays) ;
-     *              bottom:units = "count" ;
-     *       short caustic(eigenrays) ;
-     *              caustic:units = "count" ;
+     *             target_de:units = "degrees" ;
+     *             target_de:positive = "up" ;
+     *      double target_az(eigenrays) ;
+     *             target_az:units = "degrees_true" ;
+     *             target_az:positive = "clockwise" ;
+     *      short  surface(eigenrays) ;
+     *             surface:units = "count" ;
+     *      short  bottom(eigenrays) ;
+     *             bottom:units = "count" ;
+     *      short  caustic(eigenrays) ;
+     *             caustic:units = "count" ;
      *
      *   // global attributes:
      *               :Conventions = "COARDS" ;

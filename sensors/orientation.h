@@ -62,7 +62,7 @@ public:
                  vector<double> ref_axis ) ;
 
     /**
-     * Constructor using a tile angle/direction. Using these values and holding
+     * Constructor using a tilt angle/direction. Using these values and holding
      * _heading to zero, we can compute a unique value of _pitch and _roll.
      *
      * @param angle     tilt from the nominal vertical axis,
