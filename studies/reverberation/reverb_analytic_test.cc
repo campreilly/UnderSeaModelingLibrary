@@ -70,7 +70,8 @@ private:
 		boundary_model* surf = new boundary_flat();
 		boundary_lock* surface = new boundary_lock(surf);
 
-		boundary_model* btm = new boundary_flat(200.0);
+		/****************** BOTTOM DEPTH *****************************/
+		boundary_model* btm = new boundary_flat(200.0); // default 200
 		btm->reflect_loss(
 				new reflect_loss_rayleigh(reflect_loss_rayleigh::SAND));
 		btm->scattering(new scattering_lambert());
@@ -152,16 +153,18 @@ private:
 		cout << "== deploy sensor instance ==" << endl;
 		sensor_model::id_type sensorID = 1;
 		sensor_params::id_type paramsID = 1;
-		wposition1 pos(0.0, 0.0);		// locate on ocean surface
-		orientation orient(0.0, 0.0);	// default orientation
+		wposition1 pos(0.0, 0.0); // locate on ocean surface
+		orientation orient(0.0, 0.0);	 // default orientation
 
 		sensor_manager::instance()->add_sensor(sensorID, paramsID, "sensor1");
 
 		// Set wave_queue attributes
 		wavefront_generator::time_maximum =  7.0/2.0 + 0.5; // reverb_duration/2 + 1/2 sec
 		wavefront_generator::intensity_threshold = 150.0; //dB
-        wavefront_generator::time_step = 0.01;  
-		//wavefront_generator::number_de = 91;              // For comparsion to eigenverb_demo.m
+
+		/*************************** TIME STEP ********************************/
+        wavefront_generator::time_step = 0.1;
+		//wavefront_generator::number_de = 181;              // For comparsion to eigenverb_demo.m
 		//wavefront_generator::max_bottom = 0;              // Max number of bottom bounces.
 		//wavefront_generator::max_surface = 0;             // Max number of surface bounces.
 		// Update sensor data and run wave_queue.
