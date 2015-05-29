@@ -153,7 +153,7 @@ private:
 		cout << "== deploy sensor instance ==" << endl;
 		sensor_model::id_type sensorID = 1;
 		sensor_params::id_type paramsID = 1;
-		wposition1 pos(0.0, 0.0); // locate on ocean surface
+		wposition1 pos(0.0, 0.0);        // locate on ocean surface
 		orientation orient(0.0, 0.0);	 // default orientation
 
 		sensor_manager::instance()->add_sensor(sensorID, paramsID, "sensor1");
@@ -164,9 +164,11 @@ private:
 
 		/*************************** TIME STEP ********************************/
         wavefront_generator::time_step = 0.1;
-		//wavefront_generator::number_de = 181;              // For comparsion to eigenverb_demo.m
+        wavefront_generator::extra_rays = 4;
+		//wavefront_generator::number_de = 181;             // For comparsion to eigenverb_demo.m
 		//wavefront_generator::max_bottom = 0;              // Max number of bottom bounces.
 		//wavefront_generator::max_surface = 0;             // Max number of surface bounces.
+
 		// Update sensor data and run wave_queue.
 		sensor_manager::instance()->update_sensor(sensorID, pos, orient, true);
 	}

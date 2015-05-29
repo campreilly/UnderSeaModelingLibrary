@@ -3,8 +3,8 @@
  * Generates eigenrays and eigenverbs for the reverberation model.
  */
 
-#define PRINTOUT_WAVE_DATA
-#define NO_EIGENVERBS
+//#define PRINTOUT_WAVE_DATA
+//#define NO_EIGENVERBS
 
 #include <boost/foreach.hpp>
 #include <usml/eigenverb/wavefront_generator.h>
@@ -13,6 +13,7 @@ using namespace usml::eigenverb ;
 
 int wavefront_generator::number_de = 181;
 int wavefront_generator::number_az = 18;
+int wavefront_generator::extra_rays = 4;
 double wavefront_generator::time_maximum = 90.0;         // sec
 double wavefront_generator::time_step = 0.01;            // sec
 double wavefront_generator::intensity_threshold = 300.0; // dB
@@ -87,26 +88,11 @@ void wavefront_generator::run()
     // Setup DE sequence rayfan for WaveQ3D
     // Augment rayfan with additional de's near -90 and 90.
 
-    size_t num_xtra_rays = 4;
     seq_rayfan orig_de(-90.0, 90.0, _number_de);
-    seq_augment de(&orig_de, num_xtra_rays);
+    seq_augment de(&orig_de, extra_rays);
 
     double az_increment = 360.0/_number_az;
     seq_linear az(0.0, az_increment, 360.0);
-
-#ifdef USML_DEBUG
-    int index = -1;
-    BOOST_FOREACH (double val, de){
-        ++index;
-        cout << "de (" << index << ")" << " = " << val << endl;
-    }
-
-    index = -1;
-    BOOST_FOREACH (double val, az){
-        ++index;
-        cout << "az (" << index << ")" << " = " << val << endl;
-    }
-#endif
 
     if (_target_positions != NULL) {
         proploss = new eigenray_collection(*(_frequencies),
