@@ -105,7 +105,7 @@ public:
 
     /**
      * Duration of the transmitted pulse (sec).
-     * Defines the temporaal resolution of the envelope.
+     * Defines the temporal resolution of the envelope.
      */
     double pulse_length() const {
         return _pulse_length;

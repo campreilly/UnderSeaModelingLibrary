@@ -10,8 +10,8 @@
 
 using namespace usml::eigenverb;
 
-#define DEBUG_ENVELOPE
-#define ENVELOPE_WINDOW
+//#define DEBUG_ENVELOPE
+//#define ENVELOPE_WINDOW
 
 /**
  * Reserve the memory used to store the results of this calculation.
@@ -136,9 +136,9 @@ bool envelope_model::compute_overlap(
 	const double sin2alpha = sin(2.0 * alpha);
 
 	// TODO Remove debugging output
-	cout << "alpha=" << alpha
- 		 << " cos2alpha=" << cos2alpha
-		 << " sin2alpha=" << sin2alpha << endl ;
+	//cout  << "alpha=" << alpha
+    //      << " cos2alpha=" << cos2alpha
+	//      << " sin2alpha=" << sin2alpha << endl ;
 
 	// define subset of frequency dependent terms in source
     //
@@ -158,18 +158,18 @@ bool envelope_model::compute_overlap(
     vector<double> src_prod = src_verb_length2 * src_verb_width2 ;
 
     // TODO Remove debugging output
-    cout << "src_sum=" << src_sum
- 		 << " src_diff=" << src_diff
-		 << " src_prod=" << src_prod << endl ;
+    // cout << "src_sum=" << src_sum
+    //      << " src_diff=" << src_diff
+    //      << " src_prod=" << src_prod << endl ;
 
     vector<double> rcv_sum = rcv_verb.length2 + rcv_verb.width2 ;
     vector<double> rcv_diff = rcv_verb.length2 - rcv_verb.width2 ;
     vector<double> rcv_prod = rcv_verb.length2 * rcv_verb.width2 ;
 
     // TODO Remove debugging output
-    cout << "rcv_sum=" << src_sum
- 		 << " rcv_diff=" << src_diff
-		 << " rcv_prod=" << src_prod << endl ;
+    // cout << "rcv_sum=" << src_sum
+    //      << " rcv_diff=" << src_diff
+    //      << " rcv_prod=" << src_prod << endl ;
 
     // compute the scaling of the exponential
     // equations (26) and (28) from the paper
@@ -183,11 +183,11 @@ bool envelope_model::compute_overlap(
  		 << " energy=" << _energy << endl ;
 
     // TODO Remove debugging
-    BOOST_FOREACH( double level, _energy ) {
-        if ( level > 1.0 ) {
-            cout << " Bad Energy Level" << endl;
-        }
-    }
+    //BOOST_FOREACH( double level, _energy ) {
+    //    if ( level > 1.0 ) {
+    //        cout << " Bad Energy Level" << endl;
+    //    }
+    //}
 
     // check threshold to avoid calculations for weak signals
 
@@ -221,8 +221,8 @@ bool envelope_model::compute_overlap(
 		- 2.0 * sqrt( xs2 * ys2 ) * src_diff * sin2alpha ;
 
     // TODO Remove after debugged
-    cout << "src_prod=" << src_prod
-         << " kappa=" << kappa << endl;
+    // cout << "src_prod=" << src_prod
+    //      << " kappa=" << kappa << endl;
     BOOST_FOREACH( double value, kappa ) {
         if (value < 0.0) {
              cout    << "*** Kappa less than zero ***" << endl ;
@@ -236,11 +236,11 @@ bool envelope_model::compute_overlap(
     cout << " energy = " << _energy << endl ;
 
     // TODO Remove debugging
-    BOOST_FOREACH( double level, _energy ) {
-        if ( level > 1.0 ) {
-            cout << " Bad Energy Level" << endl;
-        }
-    }
+    //BOOST_FOREACH( double level, _energy ) {
+    //    if ( level > 1.0 ) {
+    //        cout << " Bad Energy Level" << endl;
+    //    }
+    //}
 
     // check threshold again to avoid calculations for weak signals
 
@@ -271,18 +271,18 @@ bool envelope_model::compute_overlap(
 			+ 2.0 / rcv_verb.width2,
 			det_sr ) ;
 	// TODO Remove debugging output
-//    cout << "det_sr=" << det_sr
-//    	 << " src_sum=" << src_sum
-//	     << " src_diff=" << src_diff
-//		 << " duration=" << _duration << endl ;
+    //    cout << "det_sr=" << det_sr
+    //    	 << " src_sum=" << src_sum
+    //	     << " src_diff=" << src_diff
+    //		 << " duration=" << _duration << endl ;
 
 	// equation (33) from the paper
 	double factor = cos( rcv_verb.grazing ) / rcv_verb.sound_speed ;
 	_duration = 0.5 * sqrt( _pulse_length * _pulse_length
 			+ factor * factor * (_duration) ) ;
 	// TODO Remove debugging output
-//    cout << "factor=" << factor << endl
-//		 << " duration=" << _duration << endl ;
+    //  cout << "factor=" << factor << endl
+    //       << " duration=" << _duration << endl ;
 	#ifdef DEBUG_ENVELOPE
 		cout << "      Energy:        " << 10.0*log10(_energy) << endl;
 		cout << "      Duration:        " << _duration << endl;

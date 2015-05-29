@@ -38,8 +38,8 @@ public:
     /**
      * Notification that new eigenray data is ready.
      *
-     * @param    sensorID    The ID of the sensor that issued the notification.
-     * @param   list        Pointer to std::list of eigenrays.
+     * @param   sensorID  The ID of the sensor that issued the notification.
+     * @param   list      Pointer to std::list of eigenrays.
      */
     virtual void update_fathometer(int sensorID, eigenray_list* list) = 0;
 
