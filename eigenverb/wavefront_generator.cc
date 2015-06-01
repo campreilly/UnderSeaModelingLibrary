@@ -12,6 +12,7 @@ using namespace usml::eigenverb ;
 
 int wavefront_generator::number_de = 181;
 int wavefront_generator::number_az = 18;
+int wavefront_generator::extra_rays = 4;
 double wavefront_generator::time_maximum = 90.0;         // sec
 double wavefront_generator::time_step = 0.01;            // sec
 double wavefront_generator::intensity_threshold = 300.0; // dB
@@ -83,20 +84,17 @@ void wavefront_generator::run()
         return ;
     }
 
-
     // Setup DE sequence rayfan for WaveQ3D
     // Augment rayfan with additional de's near -90 and 90.
+    seq_rayfan orig_de(-90.0, 90.0, _number_de);
+    seq_augment de(&orig_de, extra_rays);
 
-    size_t num_xtra_rays = 6;
-    seq_rayfan orig_de(-90.0, 90.0, _number_de - num_xtra_rays);
-    seq_augment de(&orig_de, num_xtra_rays);
-
-    //seq_rayfan de(-90.0, 90.0, _number_de);
-
-    seq_linear az(0.0, 180.0, _number_az, true);
+    double az_increment = 360.0/_number_az;
+    seq_linear az(0.0, az_increment, 360.0);
 
     if (_target_positions != NULL) {
-        proploss = new eigenray_collection(*(_frequencies), _source_position, de, az, _time_step, _target_positions);
+        proploss = new eigenray_collection(*(_frequencies),
+            _source_position, de, az, _time_step, _target_positions);
     }
 
 	wave_queue wave(*(_ocean.get()), *(_frequencies),

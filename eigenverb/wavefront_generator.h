@@ -111,6 +111,11 @@ class USML_DECLSPEC wavefront_generator : public thread_task
      */
     static int number_az;
 
+    /**
+     * Default Number of extra DE rays for the WaveQ3D wavefront
+     */
+    static int extra_rays;
+
      /**
      * Default Maximum time (sec) to propagate WaveQ3D wavefront.
      */

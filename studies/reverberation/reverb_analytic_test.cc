@@ -70,7 +70,8 @@ private:
 		boundary_model* surf = new boundary_flat();
 		boundary_lock* surface = new boundary_lock(surf);
 
-		boundary_model* btm = new boundary_flat(200.0);
+		/****************** BOTTOM DEPTH *****************************/
+		boundary_model* btm = new boundary_flat(200.0); // default 200
 		btm->reflect_loss(
 				new reflect_loss_rayleigh(reflect_loss_rayleigh::SAND));
 		btm->scattering(new scattering_lambert());
@@ -152,17 +153,22 @@ private:
 		cout << "== deploy sensor instance ==" << endl;
 		sensor_model::id_type sensorID = 1;
 		sensor_params::id_type paramsID = 1;
-		wposition1 pos(0.0, 0.0, -10.0);		// locate on ocean surface
-		orientation orient(0.0, 0.0);	// default orientation
+		wposition1 pos(0.0, 0.0);        // locate on ocean surface
+		orientation orient(0.0, 0.0);	 // default orientation
 
 		sensor_manager::instance()->add_sensor(sensorID, paramsID, "sensor1");
 
 		// Set wave_queue attributes
 		wavefront_generator::time_maximum =  7.0/2.0 + 0.5; // reverb_duration/2 + 1/2 sec
-        wavefront_generator::time_step = 0.01;              // For comparsion to eigenverb_demo.m
-		//wavefront_generator::number_de = 91;              // For comparsion to eigenverb_demo.m
+		wavefront_generator::intensity_threshold = 150.0; //dB
+
+		/*************************** TIME STEP ********************************/
+        wavefront_generator::time_step = 0.1;
+        wavefront_generator::extra_rays = 4;
+		//wavefront_generator::number_de = 181;             // For comparsion to eigenverb_demo.m
 		//wavefront_generator::max_bottom = 0;              // Max number of bottom bounces.
 		//wavefront_generator::max_surface = 0;             // Max number of surface bounces.
+
 		// Update sensor data and run wave_queue.
 		sensor_manager::instance()->update_sensor(sensorID, pos, orient, true);
 	}
@@ -205,9 +211,9 @@ private:
         // wait for results
         boost::timer timer ;
 
-        while ( true ) {
+        double start_time = timer.elapsed();
 
-            // TODO - Uncomment after debugging
+        while ( true ) {
             fathometers = sp_manager->get_fathometers(query);
             // envelopes = sp_manager->get_envelopes(query);
 
@@ -219,15 +225,11 @@ private:
             //if ( envelopes.size() > 0 ) break ;
 
             boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+            if ( ( timer.elapsed() - start_time ) > 200 ) break;
         }
         cout << "waited for " << timer.elapsed() << " secs" << endl ;
 
-        // TODO - Uncomment after debugging
-        std::string ncname_fathometers = USML_STUDIES_DIR "/reverberation/fathometer_";
-        fathometer_model::fathometer_package::iterator iter_fathometers;
-        for ( iter_fathometers = fathometers.begin();
-            iter_fathometers != fathometers.end(); ++iter_fathometers )
-        {
+            iter_envelopes != envelopes.end(); ++iter_envelopes )        {
             fathometer_model* model = ( *iter_fathometers );
             sensor_model::id_type src_id = model->source_id();
             sensor_model::id_type rcv_id = model->receiver_id();
@@ -238,6 +240,7 @@ private:
             model->write_netcdf(ncname_fathometers.c_str());
         }
 
+        // TODO add back after envelopes are operational
         //std::string ncname_envelopes = USML_STUDIES_DIR "/reverberation/envelopes_";
         //envelope_collection::envelope_package::iterator iter_envelopes;
         //for ( iter_envelopes = envelopes.begin();
@@ -252,7 +255,6 @@ private:
         //    ncname_envelopes += ".nc";
         //    collection->write_netcdf(ncname_envelopes.c_str());
         //}
-
         // No need to delete fathometers or envelopes as they are shared_ptr's
 	}
 };

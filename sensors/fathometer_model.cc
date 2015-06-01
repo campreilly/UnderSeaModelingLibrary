@@ -16,7 +16,6 @@ using namespace usml::sensors ;
  */
 void fathometer_model::write_netcdf( const char* filename, const char* long_name )
 {
-   
     NcFile* nc_file = new NcFile(filename, NcFile::Replace);
     if (long_name) {
         nc_file->add_att("long_name", long_name);
@@ -29,7 +28,6 @@ void fathometer_model::write_netcdf( const char* filename, const char* long_name
         delete nc_file;
         return;
     }
-
     // Get the list to get the frequency size
     long num_frequencies = ( long ) _eigenrays.front().frequencies->size();
 
