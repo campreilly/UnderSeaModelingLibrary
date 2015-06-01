@@ -229,7 +229,11 @@ private:
         }
         cout << "waited for " << timer.elapsed() << " secs" << endl ;
 
-            iter_envelopes != envelopes.end(); ++iter_envelopes )        {
+        std::string ncname_fathometers = USML_STUDIES_DIR "/reverberation/fathometer_";
+        fathometer_model::fathometer_package::iterator iter_fathometers;
+        for ( iter_fathometers = fathometers.begin();
+            iter_fathometers != fathometers.end(); ++iter_fathometers )
+        {
             fathometer_model* model = ( *iter_fathometers );
             sensor_model::id_type src_id = model->source_id();
             sensor_model::id_type rcv_id = model->receiver_id();
@@ -255,6 +259,7 @@ private:
         //    ncname_envelopes += ".nc";
         //    collection->write_netcdf(ncname_envelopes.c_str());
         //}
+
         // No need to delete fathometers or envelopes as they are shared_ptr's
 	}
 };
