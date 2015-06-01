@@ -3,7 +3,7 @@
  * Generates eigenrays and eigenverbs for the reverberation model.
  */
 
-#define PRINTOUT_WAVE_DATA
+//#define PRINTOUT_WAVE_DATA
 #define NO_EIGENVERBS
 
 #include <usml/eigenverb/wavefront_generator.h>

@@ -316,10 +316,11 @@ private:
      * Utility to determine if two frequency ranges overlap
      * Used to determine if a sensor_pair needs to be created.
      * @param    src_freq  frequency range for source.
-     * @param    rcv_freq  frequency range for receiver.
-     * @return  true when frequency ranges overlap.
+     * @param    rcv_min   minimum active frequency for the receiver.
+     * @param    rcv_max   maximum active frequency for the receiver.
+     * @return   true when frequency ranges overlap.
      */
-    bool frequencies_overlap(const seq_vector* src_freq, const seq_vector* rcv_freq);
+    bool frequencies_overlap(const seq_vector* src_freq, double rcv_min, double rcv_max );
 
     /**
      * Hide access to default constructor.
