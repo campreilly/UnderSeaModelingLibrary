@@ -20,11 +20,14 @@ envelope_model::envelope_model(
 	const seq_vector* envelope_freq,
 	size_t src_freq_first,
 	const seq_vector* travel_time,
-	double pulse_length, double threshold
+	double initial_time,
+	double pulse_length,
+	double threshold
 ) :
 	_envelope_freq(envelope_freq),
 	_src_freq_first(src_freq_first),
 	_travel_time( travel_time->clone() ),
+	_initial_time (initial_time ),
 	_pulse_length( pulse_length ),
 	_threshold( threshold * pulse_length ),
 	_intensity(envelope_freq->size(), travel_time->size()),
@@ -333,7 +336,7 @@ void envelope_model::compute_time_series(
 			// compute intensity at all times
 
 			intensity = scale * exp(-0.5 * abs2(
-					(*_travel_time - delay) / _duration[f]));
+					(*_travel_time + _initial_time - delay) / _duration[f]));
 //			cout << "f=" << f << " " << intensity << endl ;
 		#endif
 	}

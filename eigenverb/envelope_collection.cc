@@ -41,7 +41,8 @@ envelope_collection::envelope_collection(
 	_receiver_id(receiver_id),
 	_source_position(src_position),
 	_receiver_position(rcv_position),
-	_envelope_model( _envelope_freq, src_freq_first, _travel_time, _pulse_length, _threshold)
+	_envelope_model( _envelope_freq, src_freq_first, _travel_time,
+	                        _initial_time, _pulse_length, _threshold)
 {
     // Store range from source to receiver when eigenverbs were obtained.
     _slant_range = _receiver_position.distance(_source_position);
