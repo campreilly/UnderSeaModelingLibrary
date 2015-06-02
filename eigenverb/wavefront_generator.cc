@@ -4,7 +4,7 @@
  */
 
 //#define PRINTOUT_WAVE_DATA
-#define NO_EIGENVERBS
+//#define NO_EIGENVERBS
 
 #include <boost/foreach.hpp>
 #include <usml/eigenverb/wavefront_generator.h>
