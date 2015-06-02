@@ -108,7 +108,7 @@ public:
      * @param    source_de   Launch D/E angle at source (deg)
      * @param    source_az   Launch AZ angle at source (deg)
      * @param    time_step   Propagation step size (seconds).
-     * @param   targets     Grid of targets to ensonify.
+     * @param    targets     Grid of targets to ensonify.
      */
     eigenray_collection( const seq_vector& frequencies, const wposition1& source_pos,
               const seq_vector& source_de, const seq_vector& source_az,

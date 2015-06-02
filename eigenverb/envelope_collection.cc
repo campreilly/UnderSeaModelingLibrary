@@ -23,8 +23,11 @@ envelope_collection::envelope_collection(
 	size_t num_azimuths,
 	size_t num_src_beams,
 	size_t num_rcv_beams,
+	double initial_time,
 	sensor_model::id_type source_id,
-    sensor_model::id_type receiver_id
+    sensor_model::id_type receiver_id,
+    wposition1 src_position,
+    wposition1 rcv_position
 ) :
 	_envelope_freq(envelope_freq->clone()),
 	_travel_time( travel_time->clip(0.0,reverb_duration) ),
@@ -33,10 +36,16 @@ envelope_collection::envelope_collection(
 	_num_azimuths(num_azimuths),
 	_num_src_beams(num_src_beams),
 	_num_rcv_beams(num_rcv_beams),
+	_initial_time(initial_time),
 	_source_id(source_id),
 	_receiver_id(receiver_id),
+	_source_position(src_position),
+	_receiver_position(rcv_position),
 	_envelope_model( _envelope_freq, src_freq_first, _travel_time, _pulse_length, _threshold)
 {
+    // Store range from source to receiver when eigenverbs were obtained.
+    _slant_range = _receiver_position.distance(_source_position);
+
 	_envelopes = new matrix<double>***[_num_azimuths];
 	matrix<double>**** pa = _envelopes;
 	for (size_t a = 0; a < _num_azimuths; ++a, ++pa) {
@@ -76,6 +85,18 @@ envelope_collection::~envelope_collection() {
 }
 
 /**
+ * Clone
+ */
+envelope_collection* envelope_collection::clone()
+{
+    // Deep copy all data
+    envelope_collection* new_collection = NULL;
+
+
+    return new_collection;
+}
+
+/**
  * Adds the intensity contribution for a single combination of source
  * and receiver eigenverbs.
  */
@@ -98,6 +119,32 @@ void envelope_collection::add_contribution(
 			}
 		}
 	}
+}
+
+/**
+ * Updates the envelope_collection data with the parameters provided.
+ */
+void envelope_collection::dead_reckon(double delta_time, double slant_range,
+                                                            double prev_range) {
+
+    // Set new slant_range
+    _slant_range = slant_range;
+
+    // Set new _distance_from_sensor - TODO
+
+    // Set new _depth_offset_from_sensor - TODO
+
+    write_lock_guard guard(_envelopes_mutex);
+
+    // TODO dead_reckon envelopes
+//    BOOST_FOREACH ( envelope lope, _envelopes) {
+//
+//        lope.time = lope.time + delta_time;
+//        for (int i = 0; i < lope.frequencies->size(); ++i) {
+//            lope.intensity[i] = lope.intensity[i] +
+//                (20*log10(prev_range)) - (20*log10(_slant_range));
+//        }
+//    }
 }
 
 /**

@@ -20,7 +20,7 @@ using namespace usml::types;
  * combinations of receiver azimuth, source beam number, receiver beam number.
  * Relies on envelope_model to calculate the actual time series for each
  * envelope frequency.  Each envelope is stored as a matrix that represents
- * the results a function of the sensor_pair's envelope frequency (rows)
+ * the results as a function of the sensor_pair's envelope frequency (rows)
  * and two-way travel time (columns).
  */
 class USML_DECLSPEC envelope_collection {
@@ -57,8 +57,11 @@ public:
      * @param num_azimuths      Number of receiver azimuths in result.
      * @param num_src_beams     Number of source beams in result.
      * @param num_rcv_beams     Number of receiver beams in result.
+     * @param initial_time      Start time offset to used calculate the envelope data.
      * @param source_id         ID of the source sensor.
      * @param receiver_id       ID of the receiver sensor.
+     * @param src_position      The source position when eigenverbs were obtained.
+     * @param rcv_position      The receiver position when eigenverbs were obtained.
      */
     envelope_collection(
         const seq_vector* envelope_freq,
@@ -70,13 +73,23 @@ public:
         size_t num_azimuths,
         size_t num_src_beams,
         size_t num_rcv_beams,
+        double initial_time,
         sensor_model::id_type source_id,
-        sensor_model::id_type receiver_id) ;
+        sensor_model::id_type receiver_id,
+        wposition1 src_position,
+        wposition1 rcv_position) ;
 
     /**
      * Delete dynamic memory in each of the nested dynamic arrays.
      */
     ~envelope_collection();
+
+    /**
+     * Clone make a new deep copy of this envelope_collection
+     *
+     * @return  envelope_collection  Pointer to the new copy.
+     */
+    envelope_collection* clone();
 
    /** ID of the the source sensor used to generate results. */
     sensor_model::id_type source_id() const {
@@ -134,19 +147,30 @@ public:
         return _num_rcv_beams;
     }
 
+    /** Start time offset. */
+    double initial_time() const {
+        return _initial_time;
+    }
+
+    /** Range from source to receiver . */
+    double slant_range() const {
+        return _slant_range;
+    }
+
     /**
      * Intensity time series for one combination of parameters.
      *
-     * @param azimuth    Receiver azimuth number.
+     * @param azimuth     Receiver azimuth number.
      * @param src_beam    Source beam number.
      * @param rcv_beam    Receiver beam number
      * @return            Reverberation intensity at each point the time series.
-     *                     Each row represents a specific envelope frequency.
-     *                     Each column represents a specific travel time.
+     *                      Each row represents a specific envelope frequency.
+     *                      Each column represents a specific travel time.
      */
     const matrix< double >& envelope(
         size_t azimuth, size_t src_beam, size_t rcv_beam ) const
     {
+        read_lock_guard guard(_envelopes_mutex);
         return *_envelopes[azimuth][src_beam][rcv_beam];
     }
 
@@ -180,6 +204,16 @@ public:
             const eigenverb& src_verb, const eigenverb& rcv_verb,
             const matrix<double>& src_beam, const matrix<double>& rcv_beam,
             const vector<double>& scatter, double xs2, double ys2 ) ;
+
+    /**
+     * Updates the envelope data with the parameters provided.
+     *
+     * @param delta_time    The time amount to shift the eigenrays
+     * @param slant_range   The range in meters from the source and receiver.
+     * @param prev_range    The previous range in meters for the source and
+     *                        receiver at the the start of delta_time.
+     */
+    void dead_reckon(double delta_time, double slant_range, double prev_range);
 
     /**
      * Writes the envelope data to disk
@@ -221,11 +255,41 @@ private:
     /** Number of receiver beams in result. */
     size_t _num_rcv_beams;
 
+    /**
+     * The time of arrival of the fastest eigenray when eigenverbs were obtained.
+     */
+    double _initial_time;
+
+    /**
+     * The slant range (in meters) of the sensor when the eigenverbs were obtained.
+     */
+    double _slant_range;
+
+    /**
+     * The distance (in meters) from the sensor when the eigenverbs were obtained.
+     */
+    double _distance_from_sensor;
+
+    /**
+     * The depth offset (in meters) from the sensor when the eigenverbs were obtained.
+     */
+    double _depth_offset_from_sensor;
+
     /** ID for the source sensor  */
     sensor_model::id_type _source_id;
 
     /** ID for the sensor sensor  */
     sensor_model::id_type _receiver_id;
+
+    /**
+     * The position of the source sensor when the eigenverbs were obtained.
+     */
+    wposition1 _source_position;
+
+    /**
+     * The position of the receiver sensor when the eigenverbs were obtained.
+     */
+    wposition1 _receiver_position;
 
     /**
      * Engine for computing Gaussian envelope contributions.
@@ -240,6 +304,11 @@ private:
      * envelope frequency (rows) and two-way travel time (columns).
      */
     matrix< double >**** _envelopes;
+
+    /**
+     * Mutex that locks during envelopes access
+     */
+    mutable read_write_lock _envelopes_mutex ;
 };
 
 }   // end of namespace eigenverb

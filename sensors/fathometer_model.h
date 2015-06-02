@@ -63,6 +63,30 @@ public:
     }
 
     /**
+     * Clone make a new copy of this fathometer model
+     *
+     * @return fathometer_model Pointer to the new copy.
+     */
+    fathometer_model* clone()
+    {
+        // Deep copy all data
+        fathometer_model* new_fathometer = new fathometer_model();
+        new_fathometer->_source_id = this->_source_id;
+        new_fathometer->_source_position = this->_source_position;
+        new_fathometer->_receiver_id = this->_receiver_id;
+        new_fathometer->_receiver_position = this->_receiver_position;
+        new_fathometer->_initial_time = this->_initial_time;
+        new_fathometer->_slant_range = this->_slant_range;
+        new_fathometer->_distance_from_sensor = this->_distance_from_sensor;
+        new_fathometer->_depth_offset_from_sensor = this->_depth_offset_from_sensor;
+        {
+            read_lock_guard guard(_eigenrays_mutex);
+            new_fathometer->_eigenrays = this->_eigenrays;
+        }
+        return new_fathometer;
+    }
+
+    /**
      * Gets the source sensor id.
      * @return  The source sensor id.
      */
@@ -182,6 +206,16 @@ public:
          read_lock_guard guard(_eigenrays_mutex);
          return _eigenrays;
     }
+
+    /**
+     * Updates the fathometer data with the parameters provided.
+     *
+     * @param delta_time    The time amount to shift the eigenrays
+     * @param slant_range   The range in meters from the source and receiver.
+     * @param prev_range    The previous range in meters from the source and
+     *                      receiver at the start of delta_time.
+     */
+    void dead_reckon(double delta_time, double slant_range, double prev_range);
 
     /**
      * Write fathometer_model data to a netCDF file using a ragged
@@ -327,17 +361,17 @@ private:
     sensor_model::id_type _receiver_id;
 
     /**
-     * The slant range (in meters) of the sensor when the eigenrays where obtained.
+     * The slant range (in meters) of the sensor when the eigenrays were obtained.
      */
     double _slant_range;
 
     /**
-     * The distance (in meters) from the sensor when the eigenrays where obtained.
+     * The distance (in meters) from the sensor when the eigenrays were obtained.
      */
     double _distance_from_sensor;
 
     /**
-     * The depth offset (in meters) from the sensor when the eigenrays where obtained.
+     * The depth offset (in meters) from the sensor when the eigenrays were obtained.
      */
     double _depth_offset_from_sensor;
 
@@ -347,12 +381,12 @@ private:
     double _initial_time;
 
     /**
-     * The position of the source sensor when the eigenrays where obtained.
+     * The position of the source sensor when the eigenrays were obtained.
      */
     wposition1 _source_position;
 
     /**
-     * The position of the receiver sensor when the eigenrays where obtained.
+     * The position of the receiver sensor when the eigenrays were obtained.
      */
     wposition1 _receiver_position;
 

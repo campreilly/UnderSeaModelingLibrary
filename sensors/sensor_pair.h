@@ -36,7 +36,7 @@ public:
      * Construct from references to source and receiver.
      * The source and receiver will be equal for monostatic sensors.
      *
-     * @param    source        Pointer to the source for this pair.
+     * @param    source      Pointer to the source for this pair.
      * @param    receiver    Pointer to the receiver for this pair.
      */
     sensor_pair(sensor_model* source, sensor_model* receiver)
@@ -150,8 +150,11 @@ private:
 
     /**
      * Utility to run the envelope_generator
+     *
+     * @param initial_time  Start time offset for use to calculate the envelope
+     *                      data.
      */
-    void run_envelope_generator();
+    void run_envelope_generator(double initial_time);
 
     /**
      * Utility to build the intersecting frequencies of a sensor_pair.

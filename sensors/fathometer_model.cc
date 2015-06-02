@@ -11,6 +11,31 @@
 using namespace boost ;
 using namespace usml::sensors ;
 
+
+/**
+ * Updates the fathometer data with the parameters provided.
+ */
+void fathometer_model::dead_reckon(double delta_time, double slant_range, double prev_range) {
+
+    // Set new slant_range
+    _slant_range = slant_range;
+
+    // Set new _distance_from_sensor - TODO
+
+    // Set new _depth_offset_from_sensor - TODO
+
+    write_lock_guard guard(_eigenrays_mutex);
+
+    BOOST_FOREACH ( eigenray ray, _eigenrays) {
+
+        ray.time = ray.time + delta_time;
+        for (int i = 0; i < ray.frequencies->size(); ++i) {
+            ray.intensity[i] = ray.intensity[i] +
+                (20*log10(prev_range)) - (20*log10(_slant_range));
+        }
+    }
+}
+
 /**
  * Write fathometer_model data to to netCDF file.
  */

@@ -14,7 +14,7 @@ using namespace usml::waveq3d;
 /**
  * Utility to run the envelope_generator
  */
-void sensor_pair::run_envelope_generator() {
+void sensor_pair::run_envelope_generator(double initial_time) {
 
     #ifdef USML_DEBUG
         cout << "sensor_pair: run_envelope_generator " << endl ;
@@ -27,7 +27,7 @@ void sensor_pair::run_envelope_generator() {
 
     // Create the envelope_generator
     envelope_generator* generator = new envelope_generator (
-		this, _src_freq_first, wavefront_generator::number_az );
+		this, initial_time, _src_freq_first, wavefront_generator::number_az );
 
     // Make envelope_generator a _envelopes_task, with use of shared_ptr
     _envelopes_task = thread_task::reference(generator);
@@ -135,7 +135,7 @@ void sensor_pair::update_eigenverbs(double initial_time, sensor_model* sensor)
         }
 
         if ( _src_eigenverbs.get() != NULL && _rcv_eigenverbs.get() != NULL ) {
-            run_envelope_generator();
+            run_envelope_generator(initial_time);
         }
 	}
 }

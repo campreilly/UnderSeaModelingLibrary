@@ -141,7 +141,25 @@ fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(const 
         sensor_pair* pair_data = pair;
         if ( pair_data != NULL ) {
             fathometer_model::reference fathometer = pair_data->fathometer();
-            if ( fathometer.get() != NULL ) {
+            if ( fathometer.get() != NULL )
+            {
+                if (pair_data->multistatic()) {
+                    double prev_range = fathometer.get()->slant_range();
+                    double curr_range = pair_data->source()->position().distance(
+                                                pair_data->receiver()->position());
+                    double range_diff = curr_range - prev_range;
+                    if ( abs( range_diff) > 0.0) {
+                        // sensor moved dead reckon
+                        // average speed of sound for the first (direct) fathometer
+                        double avg_speed = prev_range/fathometer.get()->initial_time();
+                        double delta_time = range_diff/avg_speed;
+                        // local copy
+                        fathometer_model* new_fathometer = fathometer.get()->clone();
+                        new_fathometer->dead_reckon(delta_time, curr_range, prev_range);
+                        // Make new shared pointer
+                        fathometer = fathometer_model::reference(new_fathometer);
+                    }
+                }
                 fathometers.push_back(fathometer.get());
             }
         }
@@ -152,7 +170,8 @@ fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(const 
 /**
  * Writes the fathometers provided
  */
-void sensor_pair_manager::write_fathometers(fathometer_model::fathometer_package fathometers, const char* filename)
+void sensor_pair_manager::write_fathometers(
+    fathometer_model::fathometer_package fathometers, const char* filename)
 {
     NcFile* nc_file = new NcFile(filename, NcFile::Replace);
     nc_file->add_att("Conventions", "COARDS");
@@ -200,7 +219,7 @@ void sensor_pair_manager::write_fathometers(fathometer_model::fathometer_package
   
     BOOST_FOREACH(fathometer_model* fathometer, fathometers)
     {    
-        // wite base attributes
+        // write base attributes
 
         fathometer_index_var->set_cur(index);
         fathometer_index_var->put(&index, 1);
@@ -328,6 +347,24 @@ envelope_collection::envelope_package sensor_pair_manager::get_envelopes(const s
         if ( pair_data != NULL ) {
             envelope_collection::reference collection = pair_data->envelopes();
             if ( collection.get() != NULL ) {
+                if (pair_data->multistatic()) {
+                    double prev_range = collection.get()->slant_range();
+                    double curr_range = pair_data->source()->position().distance(
+                                                pair_data->receiver()->position());
+                    double range_diff = curr_range - prev_range;
+                    if ( abs( range_diff) > 0.0) {
+                        // sensor moved dead reckon
+                        // average speed of sound for the first fathometer
+                        double avg_speed = prev_range/collection.get()->initial_time();
+                        double delta_time = range_diff/avg_speed;
+                        // local copy
+                        //collection = envelope_collection::reference(new envelope_collection());
+                        envelope_collection* new_collection = collection.get()->clone();
+                        new_collection->dead_reckon(delta_time, curr_range, prev_range);
+                        // Make new shared pointer
+                        collection = envelope_collection::reference(new_collection);
+                    }
+                }
                 envelopes.push_back(collection.get());
             }
         }
