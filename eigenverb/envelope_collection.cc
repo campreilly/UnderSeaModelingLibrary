@@ -91,10 +91,23 @@ envelope_collection::~envelope_collection() {
 envelope_collection* envelope_collection::clone()
 {
     // Deep copy all data
-    envelope_collection* new_collection = NULL;
-
-
-    return new_collection;
+//    envelope_collection* new_collection = new envelope_collection();
+//
+//    new_collection->_source_id = this->_source_id;
+//    new_collection->_source_position = this->_source_position;
+//    new_collection->_receiver_id = this->_receiver_id;
+//    new_collection->_receiver_position = this->_receiver_position;
+//    new_collection->_initial_time = this->_initial_time;
+//    new_collection->_slant_range = this->_slant_range;
+//    new_collection->_distance_from_sensor = this->_distance_from_sensor;
+//    new_collection->_depth_offset_from_sensor = this->_depth_offset_from_sensor;
+//    {
+//        read_lock_guard guard(this->_envelopes_mutex);
+//        //new_collection->_eigenrays = this->_eigenrays;
+//    }
+//
+//    return new_collection;
+    return NULL;
 }
 
 /**

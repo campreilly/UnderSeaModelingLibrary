@@ -158,6 +158,42 @@ public:
     }
 
     /**
+     * Gets the source position.
+     *
+     * @return  The source position
+     */
+    wposition1 source_position() {
+        return _source_position;
+    }
+
+    /**
+     * Sets the source position
+     *
+     * @param  position The source position
+     */
+    void source_position(wposition1 position) {
+        _source_position = position;
+    }
+
+    /**
+     * Gets the receiver position.
+     *
+     * @return  The receiver position.
+     */
+    wposition1 receiver_position() {
+        return _receiver_position;
+    }
+
+    /**
+     * Sets the receiver position.
+     *
+     * @param  position The receiver position.
+     */
+    void receiver_position(wposition1 position) {
+        _receiver_position = position;
+    }
+
+    /**
      * Intensity time series for one combination of parameters.
      *
      * @param azimuth     Receiver azimuth number.
@@ -208,7 +244,7 @@ public:
     /**
      * Updates the envelope data with the parameters provided.
      *
-     * @param delta_time    The time amount to shift the eigenrays
+     * @param delta_time    The time amount to shift the envelopes
      * @param slant_range   The range in meters from the source and receiver.
      * @param prev_range    The previous range in meters for the source and
      *                        receiver at the the start of delta_time.
@@ -221,6 +257,11 @@ public:
     void write_netcdf(const char* filename) const ;
 
 private:
+
+    /*
+     * Default Constructor - Used in clone()
+     */
+    //envelope_collection() {}
 
     /**
      * Frequencies at which the source and receiver eigenverbs overlap (Hz).
@@ -264,16 +305,6 @@ private:
      * The slant range (in meters) of the sensor when the eigenverbs were obtained.
      */
     double _slant_range;
-
-    /**
-     * The distance (in meters) from the sensor when the eigenverbs were obtained.
-     */
-    double _distance_from_sensor;
-
-    /**
-     * The depth offset (in meters) from the sensor when the eigenverbs were obtained.
-     */
-    double _depth_offset_from_sensor;
 
     /** ID for the source sensor  */
     sensor_model::id_type _source_id;

@@ -45,9 +45,8 @@ public:
      */
     fathometer_model(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
                      wposition1 src_pos, wposition1 rcv_pos,  const eigenray_list& list )
-        : _source_id(source_id), _receiver_id(receiver_id), _slant_range(0.0), 
-        _distance_from_sensor(0.0), _depth_offset_from_sensor(0.0),
-        _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
+        :  _source_id(source_id), _receiver_id(receiver_id),
+           _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
     {
         _slant_range = _receiver_position.distance(_source_position);
         // Get first eigenray arrival time
@@ -62,28 +61,45 @@ public:
     {
     }
 
+// TODO - remove unused
+    //    /**
+//     * Clone make a new copy of this fathometer model
+//     *
+//     * @return fathometer_model Pointer to the new copy.
+//     */
+//    fathometer_model* clone()
+//    {
+//        // Deep copy all data
+//        fathometer_model* new_fathometer = new fathometer_model();
+//        new_fathometer->_source_id = this->_source_id;
+//        new_fathometer->_source_position = this->_source_position;
+//        new_fathometer->_receiver_id = this->_receiver_id;
+//        new_fathometer->_receiver_position = this->_receiver_position;
+//        new_fathometer->_initial_time = this->_initial_time;
+//        new_fathometer->_slant_range = this->_slant_range;
+//        new_fathometer->_distance_from_sensor = this->_distance_from_sensor;
+//        new_fathometer->_depth_offset_from_sensor = this->_depth_offset_from_sensor;
+//        {
+//            read_lock_guard guard(_eigenrays_mutex);
+//            new_fathometer->_eigenrays = this->_eigenrays;
+//        }
+//        return new_fathometer;
+//    }
+
     /**
-     * Clone make a new copy of this fathometer model
-     *
-     * @return fathometer_model Pointer to the new copy.
+     * Gets the initial_time value.
+     * @return  The initial_time.
      */
-    fathometer_model* clone()
-    {
-        // Deep copy all data
-        fathometer_model* new_fathometer = new fathometer_model();
-        new_fathometer->_source_id = this->_source_id;
-        new_fathometer->_source_position = this->_source_position;
-        new_fathometer->_receiver_id = this->_receiver_id;
-        new_fathometer->_receiver_position = this->_receiver_position;
-        new_fathometer->_initial_time = this->_initial_time;
-        new_fathometer->_slant_range = this->_slant_range;
-        new_fathometer->_distance_from_sensor = this->_distance_from_sensor;
-        new_fathometer->_depth_offset_from_sensor = this->_depth_offset_from_sensor;
-        {
-            read_lock_guard guard(_eigenrays_mutex);
-            new_fathometer->_eigenrays = this->_eigenrays;
-        }
-        return new_fathometer;
+    double initial_time() {
+        return _initial_time;
+    }
+
+    /**
+     * Gets the slant_range.
+     * @return  The slant_range.
+     */
+    double slant_range() {
+        return _slant_range;
     }
 
     /**
@@ -100,70 +116,6 @@ public:
      */
     sensor_model::id_type receiver_id() {
         return _receiver_id;
-    }
-
-    /**
-     * Sets the slant_range.
-     * @param  slant_range The slant_range.
-     */
-    void slant_range(double slant_range) {
-        _slant_range = slant_range;
-    }
-
-    /**
-     * Gets the slant_range.
-     * @return  The slant_range. 
-     */
-    double slant_range() {
-        return _slant_range;
-    }
-
-    /**
-     * Sets the distance_from_sensor.
-     * @param  distance_from_sensor The distance_from_sensor.
-     */
-    void distance_from_sensor(double distance_from_sensor) {
-        _distance_from_sensor = distance_from_sensor;
-    }
-
-    /**
-     * Gets the distance_from_sensor.
-     * @return  The distance_from_sensor.
-     */
-    double distance_from_sensor() {
-        return _distance_from_sensor;
-    }
-
-    /**
-     * Sets the depth_offset_from_sensor.
-     * @param  depth_offset The depth_offset_from_sensor.
-     */
-    void depth_offset(double depth_offset) {
-        _depth_offset_from_sensor = depth_offset;
-    }
-
-    /**
-     * Gets the depth_offset_from_sensor.
-     * @return  The depth_offset_from_sensor.
-     */
-    double depth_offset() {
-        return _depth_offset_from_sensor;
-    }
-
-    /**
-     * Sets the initial_time value.
-     * @param  The initial_time value.
-     */
-    void initial_time(double value) {
-        _initial_time = value;
-    }
-
-    /**
-     * Gets the initial_time value.
-     * @return  The initial_time.
-     */
-    double initial_time() {
-        return _initial_time;
     }
 
     /**
@@ -350,6 +302,16 @@ private:
 
     fathometer_model() {};
 
+   /**
+    * The time of arrival of the fastest eigenray.
+    */
+    double _initial_time;
+
+    /**
+     * The slant range (in meters) of the sensor when the eigenrays were obtained.
+     */
+    double _slant_range;
+
     /**
      * The source sensor id
      */
@@ -359,26 +321,6 @@ private:
      * The receiver sensor id
      */
     sensor_model::id_type _receiver_id;
-
-    /**
-     * The slant range (in meters) of the sensor when the eigenrays were obtained.
-     */
-    double _slant_range;
-
-    /**
-     * The distance (in meters) from the sensor when the eigenrays were obtained.
-     */
-    double _distance_from_sensor;
-
-    /**
-     * The depth offset (in meters) from the sensor when the eigenrays were obtained.
-     */
-    double _depth_offset_from_sensor;
-
-    /**
-    * The time of arrival of the fastest eigenray.
-    */
-    double _initial_time;
 
     /**
      * The position of the source sensor when the eigenrays were obtained.
