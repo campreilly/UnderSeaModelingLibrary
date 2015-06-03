@@ -230,9 +230,9 @@ envelope_collection::envelope_package sensor_pair_manager::get_envelopes(const s
                         // average speed of sound for the first fathometer
                         double avg_speed = prev_range/collection.get()->initial_time();
                         double delta_time = range_diff/avg_speed;
-                        // Get a clone of current collection
-                        envelope_collection* new_collection = collection.get()->clone();
-                        new_collection->dead_reckon(delta_time, curr_range, prev_range);
+                        // Get a clone of current and dead_reckon collection
+                        envelope_collection* new_collection =
+                            collection->dead_reckon(delta_time, curr_range, prev_range);
                         // update to new positions
                         new_collection->source_position(curr_src_pos);
                         new_collection->receiver_position(curr_rcv_pos);

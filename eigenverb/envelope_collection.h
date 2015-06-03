@@ -84,19 +84,16 @@ public:
      */
     ~envelope_collection();
 
-    /**
-     * Clone make a new deep copy of this envelope_collection
-     *
-     * @return  envelope_collection  Pointer to the new copy.
-     */
-    envelope_collection* clone();
-
-   /** ID of the the source sensor used to generate results. */
+   /**
+    * ID of the the source sensor used to generate results.
+    */
     sensor_model::id_type source_id() const {
         return _source_id;
     }
 
-    /** ID of the the receiver sensor used to generate results. */
+    /**
+     * ID of the the receiver sensor used to generate results.
+     */
     sensor_model::id_type receiver_id() const {
         return _receiver_id;
     }
@@ -211,6 +208,24 @@ public:
     }
 
     /**
+     * Sets the intensity time series for one combination of parameters.
+     *
+     * @param intensities Matrix of
+     * @param azimuth     Receiver azimuth number.
+     * @param src_beam    Source beam number.
+     * @param rcv_beam    Receiver beam number
+     * @return            Reverberation intensity at each point the time series.
+     *                      Each row represents a specific envelope frequency.
+     *                      Each column represents a specific travel time.
+     */
+    void envelope( matrix< double >& intensities,
+        size_t azimuth, size_t src_beam, size_t rcv_beam ) const
+    {
+        write_lock_guard guard(_envelopes_mutex);
+        *_envelopes[azimuth][src_beam][rcv_beam] = intensities;
+    }
+
+    /**
      * Adds the intensity contribution for a single combination of source
      * and receiver eigenverbs.  Loops over source and receiver beams to
      * apply beam pattern to each contribution.
@@ -242,14 +257,17 @@ public:
             const vector<double>& scatter, double xs2, double ys2 ) ;
 
     /**
-     * Updates the envelope data with the parameters provided.
+     * Creates a clone of the current envelope_collection
+     * then dead_reckon's the envelope data with the parameters provided.
      *
      * @param delta_time    The time amount to shift the envelopes
      * @param slant_range   The range in meters from the source and receiver.
      * @param prev_range    The previous range in meters for the source and
      *                        receiver at the the start of delta_time.
+     * @return envelope_collection pointer to newly dead_reckoned envelope_collection
      */
-    void dead_reckon(double delta_time, double slant_range, double prev_range);
+    envelope_collection* dead_reckon(double delta_time,
+                                    double slant_range, double prev_range);
 
     /**
      * Writes the envelope data to disk
@@ -257,11 +275,6 @@ public:
     void write_netcdf(const char* filename) const ;
 
 private:
-
-    /*
-     * Default Constructor - Used in clone()
-     */
-    //envelope_collection() {}
 
     /**
      * Frequencies at which the source and receiver eigenverbs overlap (Hz).
@@ -276,6 +289,11 @@ private:
     const seq_vector* _travel_time ;
 
     /**
+     * Length of time in seconds the reverb is to be calculated (sec)
+     */
+    double _reverb_duration ;
+
+    /**
      * Duration of the transmitted pulse (sec).
      * Defines the temporal resolution of the envelope.
      */
@@ -287,13 +305,19 @@ private:
      */
     double _threshold ;
 
-    /** Number of receiver azimuths in result. */
+    /**
+     * Number of receiver azimuths in result.
+     */
     size_t _num_azimuths;
 
-    /** Number of source beams in result. */
+    /**
+     * Number of source beams in result.
+     */
     size_t _num_src_beams;
 
-    /** Number of receiver beams in result. */
+    /**
+     * Number of receiver beams in result.
+     */
     size_t _num_rcv_beams;
 
     /**
@@ -306,10 +330,14 @@ private:
      */
     double _slant_range;
 
-    /** ID for the source sensor  */
+    /**
+     * ID for the source sensor
+     */
     sensor_model::id_type _source_id;
 
-    /** ID for the sensor sensor  */
+    /**
+     * ID for the sensor sensor
+     */
     sensor_model::id_type _receiver_id;
 
     /**

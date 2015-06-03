@@ -5,6 +5,7 @@
  */
 #include <usml/eigenverb/envelope_collection.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/foreach.hpp>
 #include <netcdfcpp.h>
 
 using namespace usml::eigenverb;
@@ -31,6 +32,7 @@ envelope_collection::envelope_collection(
 ) :
 	_envelope_freq(envelope_freq->clone()),
 	_travel_time( travel_time->clip(0.0,reverb_duration) ),
+	_reverb_duration(reverb_duration),
 	_pulse_length(pulse_length),
 	_threshold( threshold ),
 	_num_azimuths(num_azimuths),
@@ -86,31 +88,6 @@ envelope_collection::~envelope_collection() {
 }
 
 /**
- * Clone
- */
-envelope_collection* envelope_collection::clone()
-{
-    // Deep copy all data
-//    envelope_collection* new_collection = new envelope_collection();
-//
-//    new_collection->_source_id = this->_source_id;
-//    new_collection->_source_position = this->_source_position;
-//    new_collection->_receiver_id = this->_receiver_id;
-//    new_collection->_receiver_position = this->_receiver_position;
-//    new_collection->_initial_time = this->_initial_time;
-//    new_collection->_slant_range = this->_slant_range;
-//    new_collection->_distance_from_sensor = this->_distance_from_sensor;
-//    new_collection->_depth_offset_from_sensor = this->_depth_offset_from_sensor;
-//    {
-//        read_lock_guard guard(this->_envelopes_mutex);
-//        //new_collection->_eigenrays = this->_eigenrays;
-//    }
-//
-//    return new_collection;
-    return NULL;
-}
-
-/**
  * Adds the intensity contribution for a single combination of source
  * and receiver eigenverbs.
  */
@@ -138,23 +115,59 @@ void envelope_collection::add_contribution(
 /**
  * Updates the envelope_collection data with the parameters provided.
  */
-void envelope_collection::dead_reckon(double delta_time, double slant_range,
-                                                            double prev_range) {
+envelope_collection* envelope_collection::dead_reckon(double delta_time,
+                                    double slant_range, double prev_range) {
+    // Deep copy all data
+    envelope_collection* new_collection = new envelope_collection(
+        this->_envelope_freq->clone(),
+        this->_envelope_model.src_freq_first(),
+        this->_travel_time->clone(),
+        this->_reverb_duration,
+        this->_pulse_length,
+        this->_threshold,
+        this->_num_azimuths,
+        this->_num_src_beams,
+        this->_num_rcv_beams,
+        this->_initial_time,
+        this->_source_id,
+        this->_receiver_id,
+        this->_source_position,
+        this->_receiver_position );
 
     // Set new slant_range
-    _slant_range = slant_range;
+    new_collection->_slant_range = slant_range;
 
-    write_lock_guard guard(_envelopes_mutex);
+    // Shift the time series
+    delete new_collection->_travel_time;
+    boost::numeric::ublas::vector<double> temp_data = (*_travel_time);
+    temp_data = temp_data + delta_time;
+    new_collection->_travel_time = new seq_data( temp_data );
 
-    // TODO dead_reckon envelopes
-//    BOOST_FOREACH ( envelope lope, _envelopes) {
-//
-//        lope.time = lope.time + delta_time;
-//        for (int i = 0; i < lope.frequencies->size(); ++i) {
-//            lope.intensity[i] = lope.intensity[i] +
-//                (20*log10(prev_range)) - (20*log10(_slant_range));
-//        }
-//    }
+    { // Scope for lock
+
+        // Perform copy and intensity update
+        double gain = prev_range / slant_range ;
+        gain *= gain ;
+
+        read_lock_guard guard(this->_envelopes_mutex);
+        // Copy "this" envelopes to new_collection
+        matrix<double>**** pa = new_collection->_envelopes;
+        for (size_t a = 0; a < _num_azimuths; ++a, ++pa)
+        {
+            matrix<double>*** ps = *pa;
+            for (size_t s = 0; s < _num_src_beams; ++s, ++ps)
+            {
+                matrix<double>** pr = *ps;
+                for (size_t r = 0; r < _num_rcv_beams; ++r, ++pr)
+                {
+                    (**pr) = this->envelope(a, s, r);
+                    (**pr) *= gain;
+                }
+            }
+        }
+    }
+
+    return new_collection;
 }
 
 /**

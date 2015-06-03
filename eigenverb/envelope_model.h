@@ -72,6 +72,14 @@ private:
     ~envelope_model() ;
 
     /**
+     * Gets the index of the first source frequency that overlaps receiver (Hz).
+     * Used to map source eigenverbs onto envelope_freq values.
+     */
+    const size_t src_freq_first() {
+        return _src_freq_first;
+    }
+
+    /**
      * Computes the intensity for a single combination of source and receiver
      * eigenverbs.  Assumes that the source and receiver eigenverbs
      * have been interpolated onto the sensor_pair's frequency domain before

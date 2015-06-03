@@ -15,7 +15,8 @@ using namespace usml::sensors ;
 /**
  * Updates the fathometer data with the parameters provided.
  */
-void fathometer_collection::dead_reckon(double delta_time, double slant_range, double prev_range) {
+void fathometer_collection::dead_reckon(double delta_time,
+                                    double slant_range, double prev_range) {
 
     // Set new slant_range
     _slant_range = slant_range;
