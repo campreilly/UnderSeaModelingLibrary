@@ -194,7 +194,7 @@ private:
     	cout << "== wait for results ==" << endl ;
 
     	sensor_pair_manager* sp_manager = sensor_pair_manager::instance() ;
-        fathometer_model::fathometer_package fathometers ;
+        fathometer_collection::fathometer_package fathometers ;
 
         // Build query for fathometers
         sensor_data sensor;
@@ -230,14 +230,14 @@ private:
         }
 	}
 
-	void write_fathometers( fathometer_model::fathometer_package& fathometers ) {
+	void write_fathometers( fathometer_collection::fathometer_package& fathometers ) {
 
 	    std::string ncname_fathometers = USML_STUDIES_DIR "/reverberation/fathometer_";
-        fathometer_model::fathometer_package::iterator iter_fathometers;
+        fathometer_collection::fathometer_package::iterator iter_fathometers;
         for ( iter_fathometers = fathometers.begin();
             iter_fathometers != fathometers.end(); ++iter_fathometers )
         {
-            fathometer_model* model = ( *iter_fathometers );
+            fathometer_collection* model = ( *iter_fathometers );
             sensor_model::id_type src_id = model->source_id();
             sensor_model::id_type rcv_id = model->receiver_id();
             std::stringstream ss ;

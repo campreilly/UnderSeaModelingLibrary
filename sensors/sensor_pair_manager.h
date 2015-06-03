@@ -10,7 +10,7 @@
 #include <usml/sensors/sensor_pair.h>
 #include <usml/sensors/sensor_data.h>
 #include <usml/sensors/sensor_map_template.h>
-#include <usml/sensors/fathometer_model.h>
+#include <usml/sensors/fathometer_collection.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/smart_ptr.h>
 
@@ -59,19 +59,19 @@ public:
     /**
      * Gets the fathometers for the list of sensors requested.
      * @param sensors   Contains sensor_data_list.
-     * @return fathometer_model::fathometer_package contains a collection of fathometer_model pointers
+     * @return fathometer_collection::fathometer_package contains a collection of fathometer_collection pointers
      */
-    fathometer_model::fathometer_package get_fathometers(const sensor_data_list &sensors);
+    fathometer_collection::fathometer_package get_fathometers(const sensor_data_list &sensors);
 
     /**
      * Writes the fathometers provided to a NetCDF file.
-     * @param fathometers The fathometer_model::fathometer_package contains
-     *                    a collection of fathometer_model pointers
+     * @param fathometers The fathometer_collection::fathometer_package contains
+     *                    a collection of fathometer_collection pointers
      * @param filename    The name of the file to write the fathometers.
      *
      * Write fathometers data to a netCDF file using a ragged
      * array structure. This ragged array concept (see reference) stores
-     * the fathometer_model data in a one dimensional list.
+     * the fathometer_collection data in a one dimensional list.
      *
      * This ragged array concept is used to define the intensity, phase,
      * source_de, source_az, target_de, target_az, surface, bottom, and
@@ -199,12 +199,14 @@ public:
      * and Format for Self-Describing, Portable Data NetCDF", Version 3.6.3,
      * Section 3.4, 7 June 2008.
      */
-    void write_fathometers(fathometer_model::fathometer_package fathometers, const char* filename);
+    void write_fathometers(fathometer_collection::fathometer_package fathometers,
+                                                          const char* filename);
 
     /**
      * Gets the envelopes for the list of sensors requested.
-     * @param sensors   Contains a sensor_data_list.
-     * @return envelope_collection::envelope_package contains a collection of envelope_collection pointers
+     * @param   sensors   Contains a sensor_data_list.
+     * @return  envelope_collection::envelope_package contains a collection of
+     *            envelope_collection pointers
      */
     envelope_collection::envelope_package get_envelopes(const sensor_data_list &sensors);
 

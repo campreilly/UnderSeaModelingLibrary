@@ -1,6 +1,6 @@
 /**
- * @file fathometer_model.h
- * Container for one fathometer_model instance.
+ * @file fathometer_collection.h
+ * Container for one fathometer_collection instance.
  */
 #pragma once
 
@@ -17,22 +17,22 @@ using namespace eigenverb;
 /// @{
 
 /**
- * Container for one fathometer_model instance.
+ * Container for one fathometer_collection instance.
  * On construction takes in all source and receiver data and eigenrays
  */
-class USML_DECLSPEC fathometer_model
+class USML_DECLSPEC fathometer_collection
 {
 public:
 
     /**
-     * Data type used handle a collection of fathometer_model pointers.
+     * Data type used handle a group of fathometer_collection pointers.
      */
-    typedef std::vector<fathometer_model*> fathometer_package;
+    typedef std::vector<fathometer_collection*> fathometer_package;
 
     /**
-     * Data type used for reference to a fathometer_model.
+     * Data type used for reference to a fathometer_collection.
      */
-    typedef shared_ptr<fathometer_model> reference;
+    typedef shared_ptr<fathometer_collection> reference;
 
     /**
      * Construct from all data required.
@@ -43,7 +43,7 @@ public:
      * @param    rcv_pos        The receiver position when eigenrays were obtained.
      * @param    list           The list of eigenrays.
      */
-    fathometer_model(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
+    fathometer_collection(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
                      wposition1 src_pos, wposition1 rcv_pos,  const eigenray_list& list )
         :  _source_id(source_id), _receiver_id(receiver_id),
            _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
@@ -57,7 +57,7 @@ public:
     /**
      * Destructor
      */
-    ~fathometer_model()
+    ~fathometer_collection()
     {
     }
 
@@ -65,12 +65,12 @@ public:
     //    /**
 //     * Clone make a new copy of this fathometer model
 //     *
-//     * @return fathometer_model Pointer to the new copy.
+//     * @return fathometer_collection Pointer to the new copy.
 //     */
-//    fathometer_model* clone()
+//    fathometer_collection* clone()
 //    {
 //        // Deep copy all data
-//        fathometer_model* new_fathometer = new fathometer_model();
+//        fathometer_collection* new_fathometer = new fathometer_collection();
 //        new_fathometer->_source_id = this->_source_id;
 //        new_fathometer->_source_position = this->_source_position;
 //        new_fathometer->_receiver_id = this->_receiver_id;
@@ -151,7 +151,7 @@ public:
     }
 
     /**
-     * Gets the eigenray_list for this fathometer_model.
+     * Gets the eigenray_list for this fathometer_collection.
      * @return  eigenray_list
      */
     eigenray_list eigenrays() {
@@ -170,9 +170,9 @@ public:
     void dead_reckon(double delta_time, double slant_range, double prev_range);
 
     /**
-     * Write fathometer_model data to a netCDF file using a ragged
+     * Write fathometer_collection data to a netCDF file using a ragged
      * array structure. This ragged array concept (see reference) stores
-     * the fathometer_model data in a one dimensional list.
+     * the fathometer_collection data in a one dimensional list.
      *
      * This ragged array concept is used to define the intensity, phase,
      * source_de, source_az, target_de, target_az, surface, bottom, and
@@ -300,7 +300,7 @@ public:
 
 private:
 
-    fathometer_model() {};
+    fathometer_collection() {};
 
    /**
     * The time of arrival of the fastest eigenray.

@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_CASE(pairs_test)
     }
 
     // Test find_pair through get_fathometers
-    fathometer_model::fathometer_package fathometers = 
+    fathometer_collection::fathometer_package fathometers =
         sensor_pair_manager::instance()->get_fathometers(query);
 
     // Expect zero fathometer for this test!

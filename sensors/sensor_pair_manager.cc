@@ -127,20 +127,20 @@ std::set<std::string> sensor_pair_manager::find_pairs(const sensor_data_list &se
 /**
  * Gets the fathometers for sensors in the sensor_data_list.
  */
-fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(const sensor_data_list &sensors)
+fathometer_collection::fathometer_package sensor_pair_manager::get_fathometers(const sensor_data_list &sensors)
 {
     sensor_pair* pair;
     read_lock_guard guard(_manager_mutex);
 
     std::set<std::string> keys = find_pairs(sensors);
-    fathometer_model::fathometer_package fathometers;
+    fathometer_collection::fathometer_package fathometers;
     fathometers.reserve(keys.size());
     BOOST_FOREACH(std::string s, keys)
     {
         pair = _map.find(s);
         sensor_pair* pair_data = pair;
         if ( pair_data != NULL ) {
-            fathometer_model::reference fathometer = pair_data->fathometer();
+            fathometer_collection::reference fathometer = pair_data->fathometer();
             if ( fathometer.get() != NULL )
             {
                 if (pair_data->multistatic()) {
@@ -170,7 +170,7 @@ fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(const 
                         double avg_speed = prev_range/fathometer.get()->initial_time();
                         double delta_time = range_diff/avg_speed;
                         // Make/copy new shared pointer
-                        fathometer = fathometer_model::reference(fathometer.get());
+                        fathometer = fathometer_collection::reference(fathometer.get());
                         // Update eigenrays
                         fathometer->dead_reckon(delta_time, curr_range, prev_range);
                         // update to new positions
@@ -556,7 +556,7 @@ bool sensor_pair_manager::frequencies_overlap(const seq_vector* src_freq,
  * Writes the fathometers provided
  */
 void sensor_pair_manager::write_fathometers(
-    fathometer_model::fathometer_package fathometers, const char* filename)
+    fathometer_collection::fathometer_package fathometers, const char* filename)
 {
     NcFile* nc_file = new NcFile(filename, NcFile::Replace);
     nc_file->add_att("Conventions", "COARDS");
@@ -566,13 +566,12 @@ void sensor_pair_manager::write_fathometers(
     NcDim *fathometer_dim = nc_file->add_dim("fathometers", ( long ) fathometers.size());
     NcVar *fathometer_index_var = nc_file->add_var("fathometer_index", ncLong, fathometer_dim);
 
-    // fathometer_model attributes
+    // fathometer_collection attributes
 
     NcVar *source_id = nc_file->add_var("source_id", ncInt);
     NcVar *receiver_id = nc_file->add_var("receiver_id", ncInt);
+    NcVar *initial_time = nc_file->add_var("initial_time", ncDouble);
     NcVar *slant_range = nc_file->add_var("slant_range", ncDouble);
-    NcVar *distance_from_sensor = nc_file->add_var("distance_from_sensor", ncDouble);
-    NcVar *depth_offset = nc_file->add_var("depth_offset", ncDouble);
 
     // coordinates
 
@@ -602,7 +601,7 @@ void sensor_pair_manager::write_fathometers(
     double v;
     int index = 0; // current index number
 
-    BOOST_FOREACH(fathometer_model* fathometer, fathometers)
+    BOOST_FOREACH(fathometer_collection* fathometer, fathometers)
     {
         // write base attributes
 
@@ -611,9 +610,8 @@ void sensor_pair_manager::write_fathometers(
         item = fathometer->source_id(); source_id->put(&item);
         item = fathometer->receiver_id(); receiver_id->put(&item);
 
-        v = fathometer->slant_range();  slant_range->put(&v);
-        v = fathometer->distance_from_sensor();  distance_from_sensor->put(&v);
-        v = fathometer->depth_offset();  depth_offset->put(&v);
+        v = fathometer->initial_time();  initial_time->put(&v);
+        v = fathometer->slant_range();   slant_range->put(&v);
 
         // write source parameters
 

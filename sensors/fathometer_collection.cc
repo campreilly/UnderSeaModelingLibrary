@@ -1,9 +1,9 @@
 /**
- * @file fathometer_model.cc
- * Container for one fathometer_model instance.
+ * @file fathometer_collection.cc
+ * Container for one fathometer_collection instance.
  */
 
-#include <usml/sensors/fathometer_model.h>
+#include <usml/sensors/fathometer_collection.h>
 #include <boost/foreach.hpp>
 
 #include <netcdfcpp.h>
@@ -15,14 +15,10 @@ using namespace usml::sensors ;
 /**
  * Updates the fathometer data with the parameters provided.
  */
-void fathometer_model::dead_reckon(double delta_time, double slant_range, double prev_range) {
+void fathometer_collection::dead_reckon(double delta_time, double slant_range, double prev_range) {
 
     // Set new slant_range
     _slant_range = slant_range;
-
-    // Set new _distance_from_sensor - TODO
-
-    // Set new _depth_offset_from_sensor - TODO
 
     write_lock_guard guard(_eigenrays_mutex);
 
@@ -37,9 +33,9 @@ void fathometer_model::dead_reckon(double delta_time, double slant_range, double
 }
 
 /**
- * Write fathometer_model data to to netCDF file.
+ * Write fathometer_collection data to to netCDF file.
  */
-void fathometer_model::write_netcdf( const char* filename, const char* long_name )
+void fathometer_collection::write_netcdf( const char* filename, const char* long_name )
 {
     NcFile* nc_file = new NcFile(filename, NcFile::Replace);
     if (long_name) {
@@ -62,13 +58,12 @@ void fathometer_model::write_netcdf( const char* filename, const char* long_name
     NcVar *freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
     NcDim *eigenray_dim = nc_file->add_dim("eigenrays", ( long ) _eigenrays.size());
    
-    // fathometer_model attributes
+    // fathometer_collection attributes
 
     NcVar *source_id = nc_file->add_var("source_id", ncShort);
     NcVar *receiver_id = nc_file->add_var("receiver_id", ncShort);
+    NcVar *initial_time = nc_file->add_var("initial_time", ncDouble);
     NcVar *slant_range = nc_file->add_var("slant_range", ncDouble);
-    NcVar *distance_from_sensor = nc_file->add_var("distance_from_sensor", ncDouble);
-    NcVar *depth_offset = nc_file->add_var("depth_offset", ncDouble);
 
     // coordinates
 
@@ -133,9 +128,8 @@ void fathometer_model::write_netcdf( const char* filename, const char* long_name
     item = _source_id; source_id->put(&item, 1);
     item = _receiver_id; receiver_id->put(&item, 1); 
 
-    v = _slant_range;  slant_range->put(&v, 1);
-    v = _distance_from_sensor;  distance_from_sensor->put(&v, 1);
-    v = _depth_offset_from_sensor;  depth_offset->put(&v, 1);
+    v = _initial_time;  initial_time->put(&v, 1);
+    v = _slant_range;   slant_range->put(&v, 1);
 
     // write source parameters
 

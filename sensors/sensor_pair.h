@@ -7,7 +7,7 @@
 #include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_listener.h>
 #include <usml/sensors/xmitRcvModeType.h>
-#include <usml/sensors/fathometer_model.h>
+#include <usml/sensors/fathometer_collection.h>
 #include <usml/waveq3d/eigenray_collection.h>
 #include <usml/eigenverb/envelope_listener.h>
 #include <usml/eigenverb/envelope_collection.h>
@@ -125,9 +125,9 @@ public:
 
     /**
      * Gets the shared_ptr to last fathometer update for this sensor_pair.
-     * @return  fathometer_model shared_ptr
+     * @return  fathometer_collection shared_ptr
      */
-     fathometer_model::reference fathometer() {
+     fathometer_collection::reference fathometer() {
          read_lock_guard guard(_fathometer_mutex);
          return _fathometer;
      }
@@ -199,7 +199,7 @@ private:
     /**
      * Fathometer that connects source and receiver locations.
      */
-    fathometer_model::reference _fathometer;
+    fathometer_collection::reference _fathometer;
 
     /**
      * Mutex that locks sensor_pair during fathometer updates.

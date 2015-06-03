@@ -107,7 +107,7 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensor_id, eigenray_li
             new_eigenray_list = *list;
         }
         // Note new memory location for eigenrays is create here
-        _fathometer = fathometer_model::reference ( new fathometer_model(
+        _fathometer = fathometer_collection::reference ( new fathometer_collection(
             _source->sensorID(),_receiver->sensorID(), _source->position(),
             _receiver->position(), new_eigenray_list));
     }

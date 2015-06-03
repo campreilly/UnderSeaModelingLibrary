@@ -144,10 +144,6 @@ void envelope_collection::dead_reckon(double delta_time, double slant_range,
     // Set new slant_range
     _slant_range = slant_range;
 
-    // Set new _distance_from_sensor - TODO
-
-    // Set new _depth_offset_from_sensor - TODO
-
     write_lock_guard guard(_envelopes_mutex);
 
     // TODO dead_reckon envelopes
