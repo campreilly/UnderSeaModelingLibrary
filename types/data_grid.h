@@ -11,6 +11,7 @@
 #include <usml/types/wposition.h>
 #include <usml/types/wvector.h>
 #include <usml/types/seq_vector.h>
+#include <usml/types/data_grid_functors.h>
 
 using namespace usml::ublas;
 
@@ -568,7 +569,7 @@ class USML_DLLEXPORT data_grid {
             // compute derivative in this dimension
 
             if (deriv_vec) {
-                deriv = 0.0;
+                initialize<DATA_TYPE>::zero(deriv, result);
                 deriv_vec[dim] = deriv;
                 if (dim > 0) deriv_vec[dim - 1] = da;
             }
@@ -609,8 +610,8 @@ class USML_DLLEXPORT data_grid {
 
             // compute field value in this dimension
 
-            const DATA_TYPE h = (DATA_TYPE) ax->increment(k) ;
-            const DATA_TYPE u = (location[dim] - (*ax)(k)) / h ;
+            const double h = ax->increment(k) ;
+            const double u = (location[dim] - (*ax)(k)) / h ;
             result = a * (1.0 - u) + b * u;
 
             // compute derivative in this dimension and prior dimension
@@ -696,7 +697,8 @@ class USML_DLLEXPORT data_grid {
         {
             DATA_TYPE result ;
             DATA_TYPE y0, y1, y2, y3 ;             // dim-1 values at k-1, k, k+1, k+2
-            DATA_TYPE dy0=0, dy1=0, dy2=0, dy3=0 ;        // dim-1 derivs at k-1, k, k+1, k+2
+            DATA_TYPE dy0, dy1, dy2, dy3 ;        // dim-1 derivs at k-1, k, k+1, k+2
+            initialize<DATA_TYPE>::zero(dy0, dy1, dy2, dy3) ;     // prevent valgrind from complaining
             const size_t kmin = 1u ;                      // at endpt if k-1 < 0
             const size_t kmax = _axis[dim]->size()-3u ; // at endpt if k+2 > N-1
 
@@ -735,16 +737,16 @@ class USML_DLLEXPORT data_grid {
 
             // compute difference values used frequently in computation
 
-            const DATA_TYPE h0 = (DATA_TYPE) ax->increment(k - 1);     // interval from k-1 to k
-            const DATA_TYPE h1 = (DATA_TYPE) ax->increment(k);           // interval from k to k+1
-            const DATA_TYPE h2 = (DATA_TYPE) ax->increment(k + 1);     // interval from k+1 to k+2
-            const DATA_TYPE h1_2 = h1 * h1;                // k to k+1 interval squared
-            const DATA_TYPE h1_3 = h1_2 * h1;               // k to k+1 interval cubed
+            const double h0 = ax->increment(k - 1);     // interval from k-1 to k
+            const double h1 = ax->increment(k);           // interval from k to k+1
+            const double h2 = ax->increment(k + 1);     // interval from k+1 to k+2
+            const double h1_2 = h1 * h1;                // k to k+1 interval squared
+            const double h1_3 = h1_2 * h1;               // k to k+1 interval cubed
 
-            const DATA_TYPE s = location[dim]-(*ax)(k);    // local variable
-            const DATA_TYPE s_2 = s * s, s_3 = s_2 * s;    // s squared and cubed
-            const DATA_TYPE sh_minus = s - h1;
-            const DATA_TYPE sh_term = 3.0 * h1 * s_2 - 2.0 * s_3;
+            const double s = location[dim]-(*ax)(k);    // local variable
+            const double s_2 = s * s, s_3 = s_2 * s;    // s squared and cubed
+            const double sh_minus = s - h1;
+            const double sh_term = 3.0 * h1 * s_2 - 2.0 * s_3;
 
             // compute first divided differences (forward derivative)
             // for both the values, and their derivatives
@@ -753,8 +755,10 @@ class USML_DLLEXPORT data_grid {
             const DATA_TYPE deriv1 = (y2 - y1) / h1;     // fwd deriv from k to k+1
             const DATA_TYPE deriv2 = (y3 - y2) / h2;     // fwd deriv from k+1 to k+2
 
-            DATA_TYPE dderiv0=0.0, dderiv1=0.0, dderiv2=0.0 ;
-            if (deriv_vec) {                // fwd deriv of dim-1 derivatives
+            DATA_TYPE dderiv0, dderiv1, dderiv2 ;
+            initialize<DATA_TYPE>::zero(dderiv0, dderiv1, dderiv2, y1) ;  // prevent valgrind from complaining
+            bool dvec = (deriv_vec != NULL) ;
+            if (dvec) {                // fwd deriv of dim-1 derivatives
                 dderiv0 = (dy1 - dy0) / h0;
                 dderiv1 = (dy2 - dy1) / h1;
                 dderiv2 = (dy3 - dy2) / h2;
@@ -766,39 +770,28 @@ class USML_DLLEXPORT data_grid {
             // set it zero at local maxima or minima
             // deriv0 * deriv1 condition guards against division by zero
 
-            DATA_TYPE slope1=0.0, dslope1=0.0;
+            DATA_TYPE slope1, dslope1 ;
+            initialize<DATA_TYPE>::zero(slope1, dslope1, y1) ;
 
             // when not at an end-point, slope1 is the harmonic, weighted
             // average of deriv0 and deriv1.
 
             if ( k >= kmin ) {
-                const DATA_TYPE w0 = 2.0 * h1 + h0;
-                const DATA_TYPE w1 = h1 + 2.0 * h0;
-                if ( deriv0 * deriv1 > 0.0 ) {
-                    slope1 = (w0 + w1) / ( w0 / deriv0 + w1 / deriv1 );
-                }
-                if ( deriv_vec != NULL && dderiv0 * dderiv1 > 0.0 ) {
-                    dslope1 = (w0 + w1) / ( w0 / dderiv0 + w1 / dderiv1 );
-                }
+                const double w0 = 2.0 * h1 + h0 ;
+                const double w1 = h1 + 2.0 * h0 ;
+                derivative<DATA_TYPE>::compute(
+                    deriv0, deriv1, dderiv0, dderiv1,
+                    w0, w1, dvec, slope1, dslope1) ;
 
             // at left end-point, use Matlab end-point formula with slope limits
             // note that the deriv0 value is bogus values when this is true
 
             } else {
                 slope1 = ( (2.0+h1+h2) * deriv1 - h1 * deriv2 ) / (h1+h2) ;
-                if ( slope1 * deriv1 < 0.0 ) {
-                    slope1 = 0.0 ;
-                } else if ( (deriv1*deriv2 < 0.0) && (abs(slope1) > abs(3.0*deriv1)) ) {
-                    slope1 = 3.0*deriv1 ;
-                }
-                if ( deriv_vec ) {
-                    dslope1 = ( (2.0+h1+h2) * dderiv1 - h1 * dderiv2 ) / (h1+h2) ;
-                    if ( dslope1 * dderiv1 < 0.0 ) {
-                        dslope1 = 0.0 ;
-                    } else if ( (dderiv1*dderiv2 < 0.0) && (abs(dslope1) > abs(3.0*dderiv1)) ) {
-                        dslope1 = 3.0*dderiv1 ;
-                    }
-                }
+                dslope1 = ( (2.0+h1+h2) * dderiv1 - h1 * dderiv2 ) / (h1+h2) ;
+                end_point_derivative<DATA_TYPE>::compute(
+                    deriv1, deriv2, dderiv1, dderiv2,
+                    dvec, slope1, dslope1) ;
             }
 
             //*************
@@ -807,39 +800,28 @@ class USML_DLLEXPORT data_grid {
             // set it zero at local maxima or minima
             // deriv1 * deriv2 condition guards against division by zero
 
-            DATA_TYPE slope2=0.0, dslope2=0.0;
+            DATA_TYPE slope2, dslope2 ;
+            initialize<DATA_TYPE>::zero(slope2, dslope2, y1) ;
 
             // when not at an end-point, slope2 is the harmonic, weighted
             // average of deriv1 and deriv2.
 
             if ( k <= kmax ) {
-                const DATA_TYPE w1 = 2.0 * h1 + h0;
-                const DATA_TYPE w2 = h1 + 2.0 * h0;
-                if ( deriv1 * deriv2 > 0.0 ) {
-                    slope2 = (w1 + w2) / ( w1 / deriv1 + w2 / deriv2 );
-                }
-                if ( deriv_vec != NULL && dderiv1 * dderiv2 > 0.0 ) {
-                    dslope2 = (w1 + w2) / ( w1 / dderiv1 + w2 / dderiv2 );
-                }
+                const double w1 = 2.0 * h1 + h0 ;
+                const double w2 = h1 + 2.0 * h0 ;
+                derivative<DATA_TYPE>::compute(
+                    deriv1, deriv2, dderiv1, dderiv2,
+                    w1, w2, dvec, slope2, dslope2) ;
 
             // at right end-point, use Matlab end-point formula with slope limits
             // note that the deriv2 value is bogus values when this is true
 
             } else {        // otherwise, compute harmonic weighted average
                 slope2 = ( (2.0+h1+h2) * deriv1 - h1 * deriv0 ) / (h1+h0) ;
-                if ( slope2 * deriv1 < 0.0 ) {
-                    slope2 = 0.0 ;
-                } else if ( (deriv1*deriv0 < 0.0) && (abs(slope2) > abs(3.0*deriv1)) ) {
-                    slope2 = 3.0*deriv1 ;
-                }
-                if ( deriv_vec ) {
-                    dslope2 = ( (2.0+h1+h2) * dderiv1 - h1 * dderiv0 ) / (h1+h0) ;
-                    if ( dslope2 * dderiv1 < 0.0 ) {
-                        dslope2 = 0.0 ;
-                    } else if ( (dderiv1*dderiv0 < 0.0) && (abs(dslope2) > abs(3.0*dderiv1)) ) {
-                        dslope2 = 3.0*dderiv1 ;
-                    }
-                }
+                dslope2 = ( (2.0+h1+h2) * dderiv1 - h1 * dderiv0 ) / (h1+h0) ;
+                end_point_derivative<DATA_TYPE>::compute(
+                    deriv1, deriv0, dderiv1, dderiv0,
+                    dvec, slope2, dslope2) ;
             }
 
             // compute interpolation value in this dimension
@@ -852,9 +834,12 @@ class USML_DLLEXPORT data_grid {
             // compute derivative in this dimension
             // assume linear change of slope across interval
 
-            if (deriv_vec) {
-                const DATA_TYPE u = s / h1;
-                deriv = slope1 * (1.0 - u) + slope2 * u;
+            if (dvec) {
+                DATA_TYPE u, one_minus_u ;
+                double v = s/h1 ;
+                initialize<DATA_TYPE>::value(u, slope1, v) ;
+                initialize<DATA_TYPE>::value(one_minus_u, slope1, (1.0-v)) ;
+                deriv = slope1 * one_minus_u + slope2 * u;
                 deriv_vec[dim] = deriv ;
                 if (dim > 0) {
                     deriv_vec[dim-1] = dy2 * sh_term / h1_3
