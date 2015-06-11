@@ -32,6 +32,7 @@ BOOST_AUTO_TEST_CASE( omni_pattern_test ) {
     vector<double> freq( 1, 900.0 ) ;
     beam_pattern_omni omni ;
     vector<double> r(3,0) ;
+    r(0) = 1.0 ;
     orientation orient( 0, 0, 0, r ) ;
 
     vector<double> level( freq.size(), 0.0 ) ;
@@ -46,7 +47,7 @@ BOOST_AUTO_TEST_CASE( omni_pattern_test ) {
         }
     }
 
-    total = 10.0 * log10( (4.0*M_PI) / total ) ;
+    total = 10.0 * log10( 4.0*M_PI / total ) ;
     omni.directivity_index( freq, &level ) ;
     cout << "Directivity index: " << total << endl ;
     BOOST_CHECK_SMALL( level(0)-total, 0.02 ) ;
@@ -89,17 +90,17 @@ BOOST_AUTO_TEST_CASE( sine_pattern_test ) {
             sine.beam_level( de_rad, az_rad, orient, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
-            total += abs(level(0))*cos(de_rad)*dr*dr ;
+            total += level(0)*cos(de_rad)*dr*dr ;
             if( (az==360-_p && de==-_t) || (az==(180-_p) && de==_t) )
                 BOOST_CHECK_CLOSE( abs(level(0)), 1.0, 0.2 ) ;
         }
         of << endl ;
     }
-    total = 10.0*log10( (4*M_PI) / total ) ;
+    total = 10.0*log10( 4*M_PI / total ) ;
     sine.directivity_index( freq, &level ) ;
     cout << "Directivity index" << endl ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
-    BOOST_CHECK_CLOSE( level(0), total, 1.0 ) ;
+    BOOST_CHECK_CLOSE( level(0), total, 0.5 ) ;
 }
 
 /**
@@ -117,7 +118,8 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
     cout << "=== beam_pattern_test/cosine_pattern_test ===" << endl ;
     const char* csvname = USML_TEST_DIR "/sensors/test/beam_pattern_cosine.csv" ;
     vector<double> freq( 1, 900.0 ) ;
-    beam_pattern_cosine cosine ;
+    double l = -10.0 ;
+    beam_pattern_cosine cosine(l) ;
 
     int pitch = 21 ;
     int heading = 57 ;
@@ -125,8 +127,8 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
     double dr = M_PI / 180.0 ;
     orientation orient( pitch, heading, roll, cosine.reference_axis() ) ;
 
-    int _t = orient.theta()/dr ;
-    int _p = orient.phi()/dr ;
+//    int _t = orient.theta()/dr ;
+//    int _p = orient.phi()/dr ;
     std::ofstream of( csvname ) ;
     cout << "Saving beam data to " << csvname << endl ;
     vector<double> level( freq.size(), 0.0 ) ;
@@ -138,17 +140,19 @@ BOOST_AUTO_TEST_CASE( cosine_pattern_test ) {
             cosine.beam_level( de_rad, az_rad, orient, freq, &level ) ;
             of << level(0) ;
             if( de!=90 ) of << "," ;
-            total += abs(level(0))*cos(de_rad)*dr*dr ;
-            if( (az==(180-_p) && de==_t-90) || (az==(360-_p) && de==90-_t) )
-                BOOST_CHECK_CLOSE( abs(level(0)), 1.0, 0.2 ) ;
+            total += level(0)*cos(de_rad)*dr*dr ;
         }
         of << endl ;
     }
-    total = 10.0*log10( (4*M_PI) / total ) ;
+    orient.update_orientation( 0.0, 0.0, 0.0 ) ;
+    cosine.beam_level( 0.0, 63.6*dr, orient, freq, &level ) ;
+    BOOST_CHECK_CLOSE( abs(level(0)), 0.5, 0.5 ) ;
+
+    total = 10.0*log10( 4*M_PI / total ) ;
     cosine.directivity_index( freq, &level ) ;
     cout << "Directivity index" << endl ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
-    BOOST_CHECK_CLOSE( level(0), total, 1.0 ) ;
+    BOOST_CHECK_CLOSE( level(0), total, 0.5 ) ;
 }
 
 /**
@@ -227,7 +231,7 @@ BOOST_AUTO_TEST_CASE( vertical_array_test ) {
     array.directivity_index( freq, &level ) ;
     cout << "Directivity index" << endl ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
-    BOOST_CHECK_CLOSE( level(0), total, 1.0 ) ;
+    BOOST_CHECK_CLOSE( level(0), total, 0.5 ) ;
 }
 
 /**
@@ -307,7 +311,7 @@ BOOST_AUTO_TEST_CASE( horizontal_array_test ) {
     array.directivity_index( freq, &level ) ;
     cout << "Directivity index" << endl ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
-    BOOST_CHECK_CLOSE( level(0), total, 1.0 ) ;
+    BOOST_CHECK_CLOSE( level(0), total, 0.5 ) ;
 }
 
 /**
@@ -386,7 +390,7 @@ BOOST_AUTO_TEST_CASE( solid_pattern_test ) {
     total = 10.0*log10( (4*M_PI)/total ) ;
     solid.directivity_index( freq, &level ) ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
-    BOOST_CHECK_CLOSE( level(0), total, 1.5 ) ;
+    BOOST_CHECK_CLOSE( level(0), total, 0.5 ) ;
 }
 
 
@@ -426,7 +430,7 @@ BOOST_AUTO_TEST_CASE( multi_pattern_test ) {
         }
         of << endl ;
     }
-    total = 10.0*log10( (4*M_PI) / total ) ;
+    total = 10.0*log10( 4*M_PI / total ) ;
     multi.directivity_index( freq, &level ) ;
     cout << "Directivity index" << endl ;
     cout << "analytic: " << level(0) << "\napproximation: " << total << endl ;
@@ -458,7 +462,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_1d_test ) {
         data[i] = tmp_data[i] ;
     }
 
-    grid_type test_grid( axes, data, grid_type::LINEAR_UNITS ) ;
+    grid_type test_grid( axes, data, grid_type::POWER_UNITS ) ;
     orientation orient ;
     cout << "frequencies: " << freq << endl ;
 
@@ -516,7 +520,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
         data[i] = tmp_data[i] ;
     }
 
-    grid_type test_grid( axes, data, grid_type::LINEAR_UNITS ) ;
+    grid_type test_grid( axes, data, grid_type::POWER_UNITS ) ;
     orientation orient ;
     cout << "frequencies: " << freq << endl ;
 
@@ -585,7 +589,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_3d_test ) {
         data[i] = v/RAND_MAX ;
     }
 
-    grid_type test_grid( axes, data, grid_type::LINEAR_UNITS ) ;
+    grid_type test_grid( axes, data, grid_type::POWER_UNITS ) ;
     orientation orient ;
     cout << "frequencies: " << freq << endl ;
 

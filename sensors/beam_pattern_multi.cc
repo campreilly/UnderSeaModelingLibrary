@@ -55,12 +55,10 @@ void beam_pattern_multi::directivity_index(
 {
     write_lock_guard(_mutex) ;
     vector<double> tmp( frequencies.size(), 1.0 ) ;
-    noalias(*level) = vector<double>( frequencies.size(), 1.0 ) ;
+    noalias(*level) = vector<double>( frequencies.size(), 0.0 ) ;
     BOOST_FOREACH( beam_pattern_model* b, _beam_list )
     {
         b->directivity_index( frequencies, &tmp ) ;
-        tmp = pow( 10.0, tmp ) ;
-        *level = element_prod( *level, tmp ) ;
+        *level += tmp ;
     }
-    *level = 10.0 * log10( *level ) ;
 }

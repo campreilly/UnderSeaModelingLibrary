@@ -36,6 +36,16 @@ using namespace usml::threads;
  * and when the noise is isotropic, the array gain reduces to the
  * directivity index.
  *
+ * Directivity index of an array is computed as follows:
+ * \f[
+ *      DI = 10.0 * log_{10}\left[ \frac{4\pi}{g(f)} \right]
+ * \f]
+ * where
+ * \f[
+ *      g(f) = \int^{2\pi}_0\int^{\pi}_0
+ *          b(\theta,\phi,f,\theta_0,\phi_0)sin\theta\,d\theta\,d\phi
+ * \f]
+ *
  * @xref R.J. Urick, Principles of Underwater Sound, 3rd Edition,
  * (1983), p. 42.
  *
@@ -118,7 +128,7 @@ public:
      * @param az            Azimuthal angle (rad)
      * @param orient        Orientation of the array
      * @param frequencies   List of frequencies to compute beam level for
-     * @param level         Beam level for each frequency (linear units)
+     * @param level         Beam level for each frequency (squared linear units)
      */
     virtual void beam_level( double de, double az,
                              orientation& orient,
