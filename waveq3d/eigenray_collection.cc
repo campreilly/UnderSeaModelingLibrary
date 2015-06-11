@@ -60,9 +60,11 @@ void eigenray_collection::sum_eigenrays( bool coherent ) {
 
                 double time = 0.0 ;
                 double source_de = 0.0 ;
-                double source_az = 0.0 ;
+                double source_az_x = 0.0 ; // East/West component
+                double source_az_y = 0.0 ; // North/South component
                 double target_de = 0.0 ;
-                double target_az = 0.0 ;
+                double target_az_x = 0.0 ; // East/West component
+                double target_az_y = 0.0 ; // North/South component
                 int surface = -1 ;
                 int bottom = -1 ;
                 int caustic = -1 ;
@@ -99,9 +101,11 @@ void eigenray_collection::sum_eigenrays( bool coherent ) {
                             wgt += a ;
                             time += a * ray.time ;
                             source_de += a * ray.source_de ;
-                            source_az += a * ray.source_az ;
+                            source_az_x += a * sin(to_radians(ray.source_az)) ;
+                            source_az_y += a * cos(to_radians(ray.source_az)) ;
                             target_de += a * ray.target_de ;
-                            target_az += a * ray.target_az ;
+                            target_az_x += a * sin(to_radians(ray.target_az)) ;
+                            target_az_y += a * cos(to_radians(ray.target_az)) ;
                             if ( a > max_a ) {
                                 max_a = a ;
                                 surface = ray.surface ;
@@ -120,9 +124,9 @@ void eigenray_collection::sum_eigenrays( bool coherent ) {
 
                 loss->time = time / wgt ;
                 loss->source_de = source_de / wgt ;
-                loss->source_az = source_az / wgt ;
+                loss->source_az = 90.0 - to_degrees(atan2(source_az_y, source_az_x)) ;
                 loss->target_de = target_de / wgt ;
-                loss->target_az = target_az / wgt ;
+                loss->target_az = 90.0 - to_degrees(atan2(target_az_y, target_az_x)) ;
                 loss->surface = surface ;
                 loss->bottom = bottom ;
                 loss->caustic = caustic ;
@@ -134,9 +138,11 @@ void eigenray_collection::sum_eigenrays( bool coherent ) {
 
                 double time = 0.0 ;
                 double source_de = 0.0 ;
-                double source_az = 0.0 ;
+                double source_az_x = 0.0 ; // East/West component
+                double source_az_y = 0.0 ; // North/South component
                 double target_de = 0.0 ;
-                double target_az = 0.0 ;
+                double target_az_x = 0.0 ; // East/West component
+                double target_az_y = 0.0 ; // North/South component
                 int surface = -1 ;
                 int bottom = -1 ;
                 int caustic = -1 ;
@@ -169,9 +175,11 @@ void eigenray_collection::sum_eigenrays( bool coherent ) {
                             wgt += a ;
                             time += a * ray.time ;
                             source_de += a * ray.source_de ;
-                            source_az += a * ray.source_az ;
+                            source_az_x += a * sin(to_radians(ray.source_az)) ;
+                            source_az_y += a * cos(to_radians(ray.source_az)) ;
                             target_de += a * ray.target_de ;
-                            target_az += a * ray.target_az ;
+                            target_az_x += a * sin(to_radians(ray.target_az)) ;
+                            target_az_y += a * cos(to_radians(ray.target_az)) ;
                             if ( a > max_a ) {
                                 max_a = a ;
                                 surface = ray.surface ;
@@ -190,9 +198,9 @@ void eigenray_collection::sum_eigenrays( bool coherent ) {
 
                 loss->time = time / wgt ;
                 loss->source_de = source_de / wgt ;
-                loss->source_az = source_az / wgt ;
+                loss->source_az = 90.0 - to_degrees(atan2(source_az_y, source_az_x)) ;
                 loss->target_de = target_de / wgt ;
-                loss->target_az = target_az / wgt ;
+                loss->target_az = 90.0 - to_degrees(atan2(target_az_y, target_az_x)) ;
                 loss->surface = surface ;
                 loss->bottom = bottom ;
                 loss->caustic = caustic ;
