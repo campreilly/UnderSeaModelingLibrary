@@ -1,14 +1,17 @@
 /**
  * @example studies/dead_reckoning/dead_reckon_test.cc
  */
+
 #include <usml/ocean/boundary_flat.h>
 #include <usml/ocean/ocean_shared.h>
 #include <usml/sensors/beams.h>
 #include <usml/sensors/sensors.h>
 #include <usml/eigenverb/wavefront_generator.h>
 #include <list>
-#include <boost/progress.hpp>
+#include <sys/time.h>
+#include <boost/timer.hpp>
 #include <boost/foreach.hpp>
+
 
 using namespace usml::sensors ;
 using namespace usml::eigenverb ;
@@ -103,12 +106,12 @@ private:
 	void define_sensor_characteristics() {
 		cout << "== define sensor characteristics ==" << endl;
 		sensor_params::id_type paramsID = 10;
-		bool multistatic = false;
+		bool multistatic = true;
 		vector<double> source_level(1, 200.0);
 
 		// ParamsID = 10
         // Source frequencies 2.0K, 5.3K, 8.6K, 11.9 K
-        seq_linear source_frequencies(2000.0, 33000, 4);
+        seq_linear source_frequencies(2000.0, 3300.0, 4);
 
         beam_pattern_model::id_type omni = 0;
         std::list<beam_pattern_model::id_type> source_beams;
@@ -132,8 +135,9 @@ private:
 		std::list<beam_pattern_model::id_type> receiver_beams;
 		receiver_beams.push_back(omni);
 
+		paramsID = 13;
 		receiver_params::reference receiver(
-            new receiver_params(13,
+            new receiver_params(paramsID,
             10.0, 50000.0,  // min, max active freq
             receiver_frequencies, receiver_beams, multistatic));
 		receiver_params_map::instance()->insert(receiver->paramsID(), receiver);
@@ -149,7 +153,7 @@ private:
 		cout << "== deploy source instance ==" << endl;
 		sensor_model::id_type sensorID = 3;
 		sensor_params::id_type paramsID = 10;
-		wposition1 source_pos(55.0, 149.4, -15.24003);
+		wposition1 source_pos(54.955, 149.0, -15.24003);         // 5km from receiver
 		orientation orient(0.0, 0.0);	 // default orientation
 
 		sensor_manager::instance()->add_sensor(sensorID, paramsID, "Fast Moving Target");
@@ -161,7 +165,7 @@ private:
         /*************************** TIME STEP ********************************/
         wavefront_generator::time_step = 0.1;
         wavefront_generator::extra_rays = 4;
-        //wavefront_generator::number_de = 181;             // For comparsion to eigenverb_demo.m
+        //wavefront_generator::number_de = 181;
         //wavefront_generator::max_bottom = 0;              // Max number of bottom bounces.
         //wavefront_generator::max_surface = 0;             // Max number of surface bounces.
 
@@ -182,8 +186,6 @@ private:
 		sensor_manager::instance()->update_sensor(sensorID, receiver_pos, orient);
 	}
 
-
-
 	/**
 	 * Wait for the reverberation model to compute results.
 	 *
@@ -197,54 +199,81 @@ private:
         fathometer_collection::fathometer_package fathometers ;
 
         // Build query for fathometers
+        sensor_data_map query;
         sensor_data sensor;
     	orientation orient(0.0, 0.0);  // default orientation
-    	double longitude = 149.4;      // Starting longitude
-    	double movement = 0.001;
-        sensor_data_list query;
 
-        // wait for results
-        sleep(4);
+    	// Insert Receiver
+    	sensor._sensorID = 1; // ADAR
+    	sensor._mode = usml::sensors::RECEIVER;
+    	sensor._orient = orient;
+    	wposition1 pos(55.0, 149.0, -1.0);
+        sensor._position = pos;
 
-        boost::timer timer ;
+    	std::pair<sensor_model::id_type, sensor_data> pair;
+    	pair.first = sensor._sensorID;
+    	pair.second = sensor;
+    	query.insert(pair);
 
-        while (true){
+    	// Set up source data
+    	sensor._sensorID = 3; // Fast moving target
+		sensor._mode = usml::sensors::SOURCE;
+		sensor._orient = orient;
 
-            wposition1 pos(55.0, longitude, 15.24003);
+    	double latitude = 54.955;      // Starting longitude set earlier
+    	double movement = 0.009;	   // 1 km latitude, velocity equivalent of 20 knots = ~ 97.297 sec/km
 
-            sensor._sensorID = 3; // Fast moving target
-            sensor._mode = usml::sensors::SOURCE;
+    	int request_id = 0;
+        boost::timer timer;
+        // Sleep enough for Waveq3d to run under debugger - 6.5 sec
+        boost::this_thread::sleep(boost::posix_time::milliseconds(6800));
+
+        while (true) {
+
+        	request_id++;
+        	// Only run three times
+        	if ( request_id >= 4 ) break;
+
+        	// Update source position
+            wposition1 pos(latitude, 149.0, -15.24003);
             sensor._position = pos;
-            sensor._orient = orient;
-            query.push_back(sensor);
+            pair.first = sensor._sensorID;
+            pair.second = sensor;
+            query.insert(pair);
 
-            fathometers = sp_manager->get_fathometers(query);
-
-            longitude = longitude - movement;
+            cout << " Fathometer Request ID = " << request_id << endl;
+            fathometers = sp_manager->get_fathometers(const_cast<sensor_data_map&>(query));
 
             if ( fathometers.size() > 0 ) {
-                write_fathometers(fathometers);
+                write_fathometers(fathometers, request_id);
             }
 
-            cout << "waited for " << timer.elapsed() << " secs" << endl ;
+            query.erase(sensor._sensorID);
+
+			// Reposition for velocity equivalent of 20 knots = ~ 97.297 sec/km
+			latitude = latitude + movement;
         }
+        cout << "== wait completed for fathometers ==" << endl ;
+        cout << "== run matlab dead_reckon_compare.m to verify results ==" << endl ;
 	}
 
-	void write_fathometers( fathometer_collection::fathometer_package& fathometers ) {
+	void write_fathometers( fathometer_collection::fathometer_package& fathometers, int request_id ) {
 
-	    std::string ncname_fathometers = USML_STUDIES_DIR "/reverberation/fathometer_";
+	    std::string ncname_fathometers = USML_STUDIES_DIR "/dead_reckoning/fathometer_";
         fathometer_collection::fathometer_package::iterator iter_fathometers;
         for ( iter_fathometers = fathometers.begin();
             iter_fathometers != fathometers.end(); ++iter_fathometers )
         {
-            fathometer_collection* model = ( *iter_fathometers );
-            sensor_model::id_type src_id = model->source_id();
-            sensor_model::id_type rcv_id = model->receiver_id();
+            fathometer_collection* collection = ( *iter_fathometers );
+            sensor_model::id_type src_id = collection->source_id();
+            sensor_model::id_type rcv_id = collection->receiver_id();
             std::stringstream ss ;
-            ss << "src_" << src_id << "_rcv_" << rcv_id;
+            ss << "src_" << src_id << "_rcv_" << rcv_id << "_request_" << request_id ;
             ncname_fathometers += ss.str();
             ncname_fathometers += ".nc";
-            model->write_netcdf(ncname_fathometers.c_str());
+            collection->write_netcdf(ncname_fathometers.c_str());
+
+            cout << "Wrote fathometers to " << ncname_fathometers << endl ;
         }
     }
 };

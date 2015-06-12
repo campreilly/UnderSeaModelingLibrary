@@ -59,7 +59,7 @@ void sensor_pair_manager::reset() {
 /**
  * Finds all the keys in the _map that are in the sensor_data_list
  */
-std::set<std::string> sensor_pair_manager::find_pairs(const sensor_data_list &sensors)
+std::set<std::string> sensor_pair_manager::find_pairs(const sensor_data_map &sensors)
 {   
     std::set<std::string> hash_keys;
     std::set<sensor_model::id_type> source_ids;
@@ -72,10 +72,12 @@ std::set<std::string> sensor_pair_manager::find_pairs(const sensor_data_list &se
     xmitRcvModeType mode;
     sensor_model::id_type sensorID;
     
-    BOOST_FOREACH(sensor, sensors)
+    std::pair<sensor_model::id_type,sensor_data> map_pair;
+
+    BOOST_FOREACH(map_pair, sensors)
     {
-        sensorID = sensor._sensorID;
-        mode = sensor._mode;
+        sensorID = map_pair.second._sensorID;
+        mode = map_pair.second._mode;
       
         // Only add keys if the sensorID already exist in its respected list
         switch ( mode )
@@ -127,12 +129,12 @@ std::set<std::string> sensor_pair_manager::find_pairs(const sensor_data_list &se
 /**
  * Gets the fathometers for sensors in the sensor_data_list.
  */
-fathometer_collection::fathometer_package sensor_pair_manager::get_fathometers(const sensor_data_list &sensors)
+fathometer_collection::fathometer_package sensor_pair_manager::get_fathometers(const sensor_data_map& sensors)
 {
     sensor_pair* pair;
     read_lock_guard guard(_manager_mutex);
 
-    std::set<std::string> keys = find_pairs(sensors);
+    std::set<std::string> keys = find_pairs(const_cast<sensor_data_map&>(sensors));
     fathometer_collection::fathometer_package fathometers;
     fathometers.reserve(keys.size());
     BOOST_FOREACH(std::string s, keys)
@@ -144,39 +146,25 @@ fathometer_collection::fathometer_package sensor_pair_manager::get_fathometers(c
             if ( fathometer.get() != NULL )
             {
                 if (pair_data->multistatic()) {
-                    double prev_range = fathometer.get()->slant_range();
-                    // Get new locations if changed
-                    sensor_model::id_type sourceID = pair_data->source()->sensorID();
-                    sensor_model::id_type receiverID = pair_data->receiver()->sensorID();
-                    // Assume no change
-                    wposition1 curr_src_pos = pair_data->source()->position();
-                    wposition1 curr_rcv_pos = pair_data->receiver()->position();
-                    // if source/receiver is in sensors list get current position
-                    // else use initial value
-                    BOOST_FOREACH(sensor_data sensor, sensors) {
-                        // Some what inefficient however normally not many sensors in list
-                        if (sensor._sensorID ==  sourceID ) {
-                                curr_src_pos = sensor._position;
-                        }
-                        if (sensor._sensorID ==  receiverID ) {
-                                curr_rcv_pos = sensor._position;
-                        }
-                    }
-                    double curr_range = curr_src_pos.distance(curr_rcv_pos);
-                    double range_diff = curr_range - prev_range;
-                    if ( abs( range_diff) > 0.0) {
-                        // sensor moved dead reckon
-                        // average speed of sound for the first (direct) fathometer
-                        double avg_speed = prev_range/fathometer.get()->initial_time();
-                        double delta_time = range_diff/avg_speed;
-                        // Make/copy new shared pointer
-                        fathometer = fathometer_collection::reference(fathometer.get());
-                        // Update eigenrays
-                        fathometer->dead_reckon(delta_time, curr_range, prev_range);
-                        // update to new positions
-                        fathometer->source_position(curr_src_pos);
-                        fathometer->receiver_position(curr_rcv_pos);
-                    }
+                	// if source/receiver is in sensors list get current position
+                	// else use initial value
+                	wposition1 curr_src_pos;
+                	sensor_data_map::const_iterator map_iter;
+                	map_iter = sensors.find(pair_data->source()->sensorID());
+					if (map_iter != sensors.end()) {
+						curr_src_pos = map_iter->second._position;
+					} else {
+						curr_src_pos = pair_data->source()->position();
+					}
+					wposition1 curr_rcv_pos;
+					map_iter = sensors.find(pair_data->receiver()->sensorID());
+					if (map_iter != sensors.end()) {
+						curr_rcv_pos = map_iter->second._position;
+					} else {
+						curr_rcv_pos = pair_data->receiver()->position();
+					}
+
+					pair_data->dead_reckon_fathometer(curr_src_pos, curr_rcv_pos);
                 }
                 fathometers.push_back(fathometer.get());
             }
@@ -188,7 +176,7 @@ fathometer_collection::fathometer_package sensor_pair_manager::get_fathometers(c
 /**
  * Gets the envelopes for the sensors in the sensor_data_list requested.
  */
-envelope_collection::envelope_package sensor_pair_manager::get_envelopes(const sensor_data_list &sensors)
+envelope_collection::envelope_package sensor_pair_manager::get_envelopes(const sensor_data_map &sensors)
 {
     sensor_pair* pair;
     read_lock_guard guard(_manager_mutex);
@@ -204,41 +192,25 @@ envelope_collection::envelope_package sensor_pair_manager::get_envelopes(const s
             envelope_collection::reference collection = pair_data->envelopes();
             if ( collection.get() != NULL ) {
                 if (pair_data->multistatic()) {
-                    double prev_range = collection.get()->slant_range();
-                    // Get new locations if changed
-                    sensor_model::id_type sourceID = pair_data->source()->sensorID();
-                    sensor_model::id_type receiverID = pair_data->receiver()->sensorID();
-                    // Assume no change
-                    wposition1 curr_src_pos = pair_data->source()->position();
-                    wposition1 curr_rcv_pos = pair_data->receiver()->position();
+                	// if source/receiver is in sensors list get current position
+                	// else use initial value
+                	wposition1 curr_src_pos;
+					sensor_data_map::const_iterator map_iter;
+					map_iter = sensors.find(pair_data->source()->sensorID());
+					if (map_iter != sensors.end()) {
+						curr_src_pos = map_iter->second._position;
+					} else {
+						curr_src_pos = pair_data->source()->position();
+					}
+					wposition1 curr_rcv_pos;
+					map_iter = sensors.find(pair_data->receiver()->sensorID());
+					if (map_iter != sensors.end()) {
+						curr_rcv_pos = map_iter->second._position;
+					} else {
+						curr_rcv_pos = pair_data->receiver()->position();
+					}
 
-                    // if source/receiver is in sensors list get current position
-                    // else use initial value
-                    BOOST_FOREACH(sensor_data sensor, sensors) {
-                        // Some what inefficient however normally not many sensors in list
-                        if (sensor._sensorID ==  sourceID ) {
-                                curr_src_pos = sensor._position;
-                        }
-                        if (sensor._sensorID ==  receiverID ) {
-                                curr_rcv_pos = sensor._position;
-                        }
-                    }
-                    double curr_range = curr_src_pos.distance(curr_rcv_pos);
-                    double range_diff = curr_range - prev_range;
-                    if ( abs( range_diff) > 0.0) {
-                        // sensor moved dead reckon
-                        // average speed of sound for the first fathometer
-                        double avg_speed = prev_range/collection.get()->initial_time();
-                        double delta_time = range_diff/avg_speed;
-                        // Get a clone of current and dead_reckon collection
-                        envelope_collection* new_collection =
-                            collection->dead_reckon(delta_time, curr_range, prev_range);
-                        // update to new positions
-                        new_collection->source_position(curr_src_pos);
-                        new_collection->receiver_position(curr_rcv_pos);
-                        // Make new shared pointer
-                        collection = envelope_collection::reference(new_collection);
-                    }
+					pair_data->dead_reckon_envelopes(curr_src_pos, curr_rcv_pos);
                 }
                 envelopes.push_back(collection.get());
             }

@@ -17,17 +17,17 @@ using namespace usml::sensors ;
  */
 void fathometer_collection::dead_reckon(double delta_time,
                                     double slant_range, double prev_range) {
-
     // Set new slant_range
     _slant_range = slant_range;
 
     write_lock_guard guard(_eigenrays_mutex);
 
-    BOOST_FOREACH ( eigenray ray, _eigenrays) {
+    eigenray_list::iterator iter;
+    for (iter = _eigenrays.begin(); iter != _eigenrays.end(); ++iter) {
 
-        ray.time = ray.time + delta_time;
-        for (int i = 0; i < ray.frequencies->size(); ++i) {
-            ray.intensity[i] = ray.intensity[i] +
+        iter->time = iter->time + delta_time;
+        for (int i = 0; i < iter->frequencies->size(); ++i) {
+        	iter->intensity[i] = iter->intensity[i] +
                 (20*log10(prev_range)) - (20*log10(_slant_range));
         }
     }
@@ -38,12 +38,14 @@ void fathometer_collection::dead_reckon(double delta_time,
  */
 void fathometer_collection::write_netcdf( const char* filename, const char* long_name )
 {
+
     NcFile* nc_file = new NcFile(filename, NcFile::Replace);
     if (long_name) {
         nc_file->add_att("long_name", long_name);
     }
     nc_file->add_att("Conventions", "COARDS");
 
+    //read_lock_guard guard(_eigenrays_mutex);
     if ( _eigenrays.size() == 0 ) {
         nc_file->add_att("Eigenrays", "None Found");
         // close file
@@ -86,6 +88,8 @@ void fathometer_collection::write_netcdf( const char* filename, const char* long
     NcVar *surface_var = nc_file->add_var("surface", ncShort, eigenray_dim);
     NcVar *bottom_var = nc_file->add_var("bottom", ncShort, eigenray_dim);
     NcVar *caustic_var = nc_file->add_var("caustic", ncShort, eigenray_dim);
+    NcVar *upper_var = nc_file->add_var("upper", ncShort, eigenray_dim);
+    NcVar *lower_var = nc_file->add_var("lower", ncShort, eigenray_dim);
 
     // units
 
@@ -117,6 +121,8 @@ void fathometer_collection::write_netcdf( const char* filename, const char* long
     surface_var->add_att("units", "count");
     bottom_var->add_att("units", "count");
     caustic_var->add_att("units", "count");
+    upper_var->add_att("units", "count");
+    lower_var->add_att("units", "count");
 
     int item;
     double v;
@@ -158,6 +164,8 @@ void fathometer_collection::write_netcdf( const char* filename, const char* long
         surface_var->set_cur(record);
         bottom_var->set_cur(record);
         caustic_var->set_cur(record);
+        upper_var->set_cur(record);
+        lower_var->set_cur(record);
         ++record;
 
         intensity_var->put(ray.intensity.data().begin(), 1, num_frequencies);
@@ -170,6 +178,8 @@ void fathometer_collection::write_netcdf( const char* filename, const char* long
         surface_var->put(&( ray.surface ), 1);
         bottom_var->put(&( ray.bottom ), 1);
         caustic_var->put(&( ray.caustic ), 1);
+        upper_var->put(&( ray.caustic ), 1);
+        lower_var->put(&( ray.caustic ), 1);
 
     } // loop over # of eigenrays
 

@@ -58,10 +58,10 @@ public:
 
     /**
      * Gets the fathometers for the list of sensors requested.
-     * @param sensors   Contains sensor_data_list.
+     * @param sensors   Contains sensor_data_map.
      * @return fathometer_collection::fathometer_package contains a collection of fathometer_collection pointers
      */
-    fathometer_collection::fathometer_package get_fathometers(const sensor_data_list &sensors);
+    fathometer_collection::fathometer_package get_fathometers(const sensor_data_map &sensors);
 
     /**
      * Writes the fathometers provided to a NetCDF file.
@@ -204,11 +204,11 @@ public:
 
     /**
      * Gets the envelopes for the list of sensors requested.
-     * @param   sensors   Contains a sensor_data_list.
+     * @param   sensors   Contains a sensor_data_map.
      * @return  envelope_collection::envelope_package contains a collection of
      *            envelope_collection pointers
      */
-    envelope_collection::envelope_package get_envelopes(const sensor_data_list &sensors);
+    envelope_collection::envelope_package get_envelopes(const sensor_data_map &sensors);
 
 protected:
 
@@ -293,7 +293,7 @@ private:
     void remove_multistatic_receiver(sensor_model* receiver);
 
    /**
-    * Utility to generate a hash key for the sensor_pair _map
+    * Utility to generate a hash key for the sensor_pair_map
     * @param    src_id   The source id used to generate the hash_key
     * @param    rcv_id   The receiver id used to generate the hash_key
     * @return   string   containing the generated hash_key.
@@ -309,10 +309,10 @@ private:
     /**
      * Utility to find the sensor_pair keys that are provided in the 
      * sensor_query_map parameter.
-     * @param    sensors Contains a sensor_data_list of sensorID and modes that needs to be found
+     * @param    sensors Contains a sensor_data_map of sensorID and modes that needs to be found
      * @return   list of hash keys in the _map.
      */
-    std::set<std::string> find_pairs(const sensor_data_list &sensors);
+    std::set<std::string> find_pairs(const sensor_data_map &sensors);
 
     /**
      * Utility to determine if two frequency ranges overlap

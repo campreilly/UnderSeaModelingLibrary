@@ -196,29 +196,32 @@ BOOST_AUTO_TEST_CASE(pairs_test)
      cout << "Updated sensor 9's roll by 15 deg" << endl ;
      sensor_manager::instance()->update_sensor( 9, pos, orient ) ;
 
-    sensor_data_list query;
-    for ( int i = 0; i < sizeof(sensors_remaining) / sizeof(sensor_model::id_type); ++i ) {
-        sensor_data sensor;
-        sensor._sensorID = sensors_remaining[i];
-        sensor._mode = sensor_mode[i];
-        query.push_back(sensor);
-    }
+     std::pair<sensor_model::id_type, sensor_data> map_data;
+     sensor_data_map query;
+     for ( int i = 0; i < sizeof(sensors_remaining) / sizeof(sensor_model::id_type); ++i ) {
+    	 sensor_data sensor;
+    	 sensor._sensorID = sensors_remaining[i];
+    	 sensor._mode = sensor_mode[i];
+    	 map_data.first = sensor._sensorID;
+    	 map_data.second = sensor;
+    	 query.insert(map_data);
+     }
 
-    // Test find_pair through get_fathometers
-    fathometer_collection::fathometer_package fathometers =
+     // Test find_pair through get_fathometers
+     fathometer_collection::fathometer_package fathometers =
         sensor_pair_manager::instance()->get_fathometers(query);
 
-    // Expect zero fathometer for this test!
-    BOOST_CHECK_EQUAL(fathometers.size(), 0);
-    //cout << "=== pairs_test: fathometers return size " << fathometers.size() << endl;
+     // Expect zero fathometer for this test!
+     BOOST_CHECK_EQUAL(fathometers.size(), 0);
+     //cout << "=== pairs_test: fathometers return size " << fathometers.size() << endl;
 
-    // Clean up all singleton to prevent use by other tests!
-    source_params_map::reset();
-    receiver_params_map::reset();
-    beam_pattern_map::reset();
-    sensor_pair_manager::reset();
-    sensor_manager::reset();
-    
+     // Clean up all singleton to prevent use by other tests!
+     source_params_map::reset();
+     receiver_params_map::reset();
+     beam_pattern_map::reset();
+     sensor_pair_manager::reset();
+     sensor_manager::reset();
+
 } // end pairs_test
 
 BOOST_AUTO_TEST_SUITE_END()

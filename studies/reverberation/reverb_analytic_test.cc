@@ -196,7 +196,8 @@ private:
     	xmitRcvModeType sensor_modes[] = {usml::sensors::BOTH};
 
         // Build a query
-        sensor_data_list query;
+    	std::pair<sensor_model::id_type, sensor_data> map_data;
+        sensor_data_map query;
         for ( int i = 0; i < sizeof(sensor_ids) / sizeof(sensor_model::id_type); ++i ) {
             sensor_data sensor;
             wposition1 pos(0.0, 0.0);		// default location on ocean surface
@@ -205,7 +206,9 @@ private:
             sensor._mode = sensor_modes[i];
             sensor._position = pos;
             sensor._orient = orient;
-            query.push_back(sensor);
+            map_data.first = sensor._sensorID;
+            map_data.second = sensor;
+            query.insert(map_data);
         }
 
         // wait for results

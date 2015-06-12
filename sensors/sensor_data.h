@@ -44,9 +44,9 @@ namespace sensors {
 };
 
 /*
- * List of sensor_data structs used to request reverberation envelopes or fathometers
+ * Map of sensor_data structs used to request reverberation envelopes or fathometers
  */
-typedef std::list<sensor_data> sensor_data_list;
+typedef std::map<sensor_model::id_type, sensor_data> sensor_data_map;
 
 /// @}
 } // end of namespace sensors

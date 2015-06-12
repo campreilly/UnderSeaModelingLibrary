@@ -61,31 +61,6 @@ public:
     {
     }
 
-// TODO - remove unused
-    //    /**
-//     * Clone make a new copy of this fathometer model
-//     *
-//     * @return fathometer_collection Pointer to the new copy.
-//     */
-//    fathometer_collection* clone()
-//    {
-//        // Deep copy all data
-//        fathometer_collection* new_fathometer = new fathometer_collection();
-//        new_fathometer->_source_id = this->_source_id;
-//        new_fathometer->_source_position = this->_source_position;
-//        new_fathometer->_receiver_id = this->_receiver_id;
-//        new_fathometer->_receiver_position = this->_receiver_position;
-//        new_fathometer->_initial_time = this->_initial_time;
-//        new_fathometer->_slant_range = this->_slant_range;
-//        new_fathometer->_distance_from_sensor = this->_distance_from_sensor;
-//        new_fathometer->_depth_offset_from_sensor = this->_depth_offset_from_sensor;
-//        {
-//            read_lock_guard guard(_eigenrays_mutex);
-//            new_fathometer->_eigenrays = this->_eigenrays;
-//        }
-//        return new_fathometer;
-//    }
-
     /**
      * Gets the initial_time value.
      * @return  The initial_time.
@@ -93,6 +68,14 @@ public:
     double initial_time() {
         return _initial_time;
     }
+
+    /**
+	 * Sets the initial_time value.
+	 * @param  The initial_time.
+	 */
+	void initial_time(double initial_time) {
+		_initial_time = initial_time;
+	}
 
     /**
      * Gets the slant_range.

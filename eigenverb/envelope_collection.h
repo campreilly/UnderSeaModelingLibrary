@@ -144,9 +144,20 @@ public:
         return _num_rcv_beams;
     }
 
-    /** Start time offset. */
+    /**
+     * Get start time offset.
+     * @return the initial start time offset.
+     */
     double initial_time() const {
         return _initial_time;
+    }
+
+    /**
+     *  Set the start time offset.
+     *  @param the initial start time offset.
+     */
+    void initial_time(double initial_time){
+    	_initial_time = initial_time;
     }
 
     /** Range from source to receiver . */
@@ -257,17 +268,15 @@ public:
             const vector<double>& scatter, double xs2, double ys2 ) ;
 
     /**
-     * Creates a clone of the current envelope_collection
-     * then dead_reckon's the envelope data with the parameters provided.
+     * Updates the current envelope_collection
+     * via dead_reckoning with the parameters provided.
      *
      * @param delta_time    The time amount to shift the envelopes
      * @param slant_range   The range in meters from the source and receiver.
      * @param prev_range    The previous range in meters for the source and
      *                        receiver at the the start of delta_time.
-     * @return envelope_collection pointer to newly dead_reckoned envelope_collection
      */
-    envelope_collection* dead_reckon(double delta_time,
-                                    double slant_range, double prev_range);
+    void dead_reckon(double delta_time, double slant_range, double prev_range);
 
     /**
      * Writes the envelope data to disk
