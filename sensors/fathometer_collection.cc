@@ -27,8 +27,8 @@ void fathometer_collection::dead_reckon(double delta_time,
 
         iter->time = iter->time + delta_time;
         for (int i = 0; i < iter->frequencies->size(); ++i) {
-        	iter->intensity[i] = iter->intensity[i] +
-                (20*log10(prev_range)) - (20*log10(_slant_range));
+        	iter->intensity[i] = iter->intensity[i] -
+                (20*log10(prev_range)) + (20*log10(_slant_range));
         }
     }
 }

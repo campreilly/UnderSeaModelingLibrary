@@ -95,7 +95,7 @@ private:
 	 * source strength:     200 dB
 	 * pulse length:		250 msec
 	 * reverb duration:		7.0 sec
-	 * transmit frequency:  3 KHz
+	 * transmit frequency:  2k - 12k Hz
 	 * src beam pattern:    omni directional
 	 * rcv beam pattern: 	omni directional
 	 * </pre>
@@ -153,7 +153,7 @@ private:
 		cout << "== deploy source instance ==" << endl;
 		sensor_model::id_type sensorID = 3;
 		sensor_params::id_type paramsID = 10;
-		wposition1 source_pos(54.955, 149.0, -15.24003);         // 5km from receiver
+		wposition1 source_pos(54.955, 149.0, -15.240);         // 5km from receiver
 		orientation orient(0.0, 0.0);	 // default orientation
 
 		sensor_manager::instance()->add_sensor(sensorID, paramsID, "Fast Moving Target");
@@ -235,7 +235,7 @@ private:
         	if ( request_id >= 4 ) break;
 
         	// Update source position
-            wposition1 pos(latitude, 149.0, -15.24003);
+            wposition1 pos(latitude, 149.0, -15.240);
             sensor._position = pos;
             pair.first = sensor._sensorID;
             pair.second = sensor;

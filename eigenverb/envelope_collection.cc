@@ -129,7 +129,7 @@ void envelope_collection::dead_reckon(double delta_time,
     { // Scope for lock
 
         // Perform copy and intensity update
-        double gain = prev_range / slant_range ;
+        double gain = slant_range/prev_range;
         gain *= gain ;
 
         write_lock_guard guard(this->_envelopes_mutex);

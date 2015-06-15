@@ -15,8 +15,8 @@
 #include <iomanip>
 
 //#define DEBUG_EIGENRAYS_DETAIL
-#define DEBUG_EIGENRAYS
-#define DEBUG_EIGENVERBS
+//#define DEBUG_EIGENRAYS
+//#define DEBUG_EIGENVERBS
 
 using namespace usml::waveq3d ;
 
