@@ -32,13 +32,13 @@ public:
     /**
      * Pure virtual method to add an eigenverb for the object that implements it.
      *  @param  verb      - eigenverb data to add to list of eigenverbs.
-     *  @param  interface - Interface number for the interface that generated
+     *  @param  interface_num - Interface number for the interface that generated
      *                      for this eigenverb.  See the eigenverb_collection
      *                      class header for documentation on interpreting
      *                      this number. For some layers, you can also use the
      *                      eigenverb::interface_type.
      */
-    virtual void add_eigenverb(const eigenverb& verb, size_t interface) = 0;
+    virtual void add_eigenverb(const eigenverb& verb, size_t interface_num) = 0;
 
 protected:
 

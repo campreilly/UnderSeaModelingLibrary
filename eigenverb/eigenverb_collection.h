@@ -65,13 +65,13 @@ public:
      * Provides access to eigenverbs for a specific combination
      * of azimuth and interface.
      *
-     * @param interface    Interface number of the desired list of eigenverbs.
+     * @param interface_num    Interface number of the desired list of eigenverbs.
      *                     See the class header for documentation on interpreting
      *                     this number.  For some layers, you can also use the
      *                     eigenverb::interface_type.
      */
-    const eigenverb_list& eigenverbs(size_t interface) const {
-        return _collection[interface];
+    const eigenverb_list& eigenverbs(size_t interface_num) const {
+        return _collection[interface_num];
     }
 
     /**
@@ -79,13 +79,13 @@ public:
      * contribution and stores the copy in its collection.
      *
      * @param verb      Eigenverb to add to the eigenverb_collection.
-     * @param interface    Interface number of the desired list of eigenverbs.
+     * @param interface_num    Interface number of the desired list of eigenverbs.
      *                     See the class header for documentation on interpreting
      *                     this number. For some layers, you can also use the
      *                     eigenverb::interface_type.
      */
-    void add_eigenverb(const eigenverb& verb, size_t interface) {
-        _collection[interface].push_back(verb);
+    void add_eigenverb(const eigenverb& verb, size_t interface_num) {
+        _collection[interface_num].push_back(verb);
     }
 
     /**
@@ -171,11 +171,11 @@ public:
      * </pre>
      *
      * @param filename  Filename used to store this data.
-     * @param interface    Interface number of the desired list of eigenverbs.
+     * @param interface_num    Interface number of the desired list of eigenverbs.
      *                     See the class header for documentation interpreting
      *                     this number.
      */
-    void write_netcdf(const char* filename, size_t interface) const;
+    void write_netcdf(const char* filename, size_t interface_num) const;
 
 private:
 
