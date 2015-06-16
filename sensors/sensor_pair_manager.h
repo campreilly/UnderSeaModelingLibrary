@@ -8,8 +8,9 @@
 
 #include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_pair.h>
+#include <usml/sensors/sensor_data.h>
 #include <usml/sensors/sensor_map_template.h>
-#include <usml/sensors/fathometer_model.h>
+#include <usml/sensors/fathometer_collection.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/smart_ptr.h>
 
@@ -35,8 +36,8 @@ class USML_DECLSPEC sensor_pair_manager {
 public:
 
     // Data type used to query the a random group of sensorID's and mode's
-    typedef std::map<sensor_model::id_type, xmitRcvModeType> sensor_query_map ;
-    typedef std::pair<sensor_model::id_type, xmitRcvModeType> query_type ;
+    //typedef std::map<sensor_model::id_type, xmitRcvModeType> sensor_query_map ;
+    //typedef std::pair<sensor_model::id_type, xmitRcvModeType> query_type ;
 
     /**
      * Singleton Constructor - Creates sensor_pair_manager instance just once.
@@ -57,20 +58,20 @@ public:
 
     /**
      * Gets the fathometers for the list of sensors requested.
-     * @param sensors contains sensor_query_map sensorID, and sensor xmitRcvModeType
-     * @return fathometer_model::fathometer_package contains a collection of fathometer_model pointers
+     * @param sensors   Contains sensor_data_map.
+     * @return fathometer_collection::fathometer_package contains a collection of fathometer_collection pointers
      */
-    fathometer_model::fathometer_package get_fathometers(const sensor_query_map sensors);
+    fathometer_collection::fathometer_package get_fathometers(const sensor_data_map &sensors);
 
     /**
      * Writes the fathometers provided to a NetCDF file.
-     * @param fathometers The fathometer_model::fathometer_package contains
-     *                    a collection of fathometer_model pointers
+     * @param fathometers The fathometer_collection::fathometer_package contains
+     *                    a collection of fathometer_collection pointers
      * @param filename    The name of the file to write the fathometers.
      *
      * Write fathometers data to a netCDF file using a ragged
      * array structure. This ragged array concept (see reference) stores
-     * the fathometer_model data in a one dimensional list.
+     * the fathometer_collection data in a one dimensional list.
      *
      * This ragged array concept is used to define the intensity, phase,
      * source_de, source_az, target_de, target_az, surface, bottom, and
@@ -198,14 +199,16 @@ public:
      * and Format for Self-Describing, Portable Data NetCDF", Version 3.6.3,
      * Section 3.4, 7 June 2008.
      */
-    void write_fathometers(fathometer_model::fathometer_package fathometers, const char* filename);
+    void write_fathometers(fathometer_collection::fathometer_package fathometers,
+                                                          const char* filename);
 
     /**
      * Gets the envelopes for the list of sensors requested.
-     * @param sensors   Contains sensor_query_map sensorID, and sensor xmitRcvModeType.
-     * @return envelope_collection::envelope_package contains a collection of envelope_collection pointers
+     * @param   sensors   Contains a sensor_data_map.
+     * @return  envelope_collection::envelope_package contains a collection of
+     *            envelope_collection pointers
      */
-    envelope_collection::envelope_package get_envelopes(sensor_query_map sensors);
+    envelope_collection::envelope_package get_envelopes(const sensor_data_map &sensors);
 
 protected:
 
@@ -290,7 +293,7 @@ private:
     void remove_multistatic_receiver(sensor_model* receiver);
 
    /**
-    * Utility to generate a hash key for the sensor_pair _map
+    * Utility to generate a hash key for the sensor_pair_map
     * @param    src_id   The source id used to generate the hash_key
     * @param    rcv_id   The receiver id used to generate the hash_key
     * @return   string   containing the generated hash_key.
@@ -306,10 +309,10 @@ private:
     /**
      * Utility to find the sensor_pair keys that are provided in the 
      * sensor_query_map parameter.
-     * @param    sensors Map of sensorID and modes that needs to be found
-     * @return   list of hash keys in the _map of found sensor_query
+     * @param    sensors Contains a sensor_data_map of sensorID and modes that needs to be found
+     * @return   list of hash keys in the _map.
      */
-    std::set<std::string> find_pairs(sensor_query_map& sensors);
+    std::set<std::string> find_pairs(const sensor_data_map &sensors);
 
     /**
      * Utility to determine if two frequency ranges overlap

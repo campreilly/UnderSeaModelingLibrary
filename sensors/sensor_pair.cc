@@ -14,13 +14,11 @@ using namespace usml::waveq3d;
 /**
  * Utility to run the envelope_generator
  */
-void sensor_pair::run_envelope_generator() {
-
+void sensor_pair::run_envelope_generator(double initial_time) {
 
     #ifdef USML_DEBUG
         cout << "sensor_pair: run_envelope_generator " << endl ;
     #endif
-
 
     // Kill any currently running task
     if ( _envelopes_task.get() != 0 ) {
@@ -29,7 +27,7 @@ void sensor_pair::run_envelope_generator() {
 
     // Create the envelope_generator
     envelope_generator* generator = new envelope_generator (
-		this, _src_freq_first, wavefront_generator::number_az );
+		this, initial_time, _src_freq_first, wavefront_generator::number_az );
 
     // Make envelope_generator a _envelopes_task, with use of shared_ptr
     _envelopes_task = thread_task::reference(generator);
@@ -60,12 +58,12 @@ void sensor_pair::compute_frequencies() {
 /**
  * Notification that new eigenray data is ready.
  */
-void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_list* list)
+void sensor_pair::update_fathometer(sensor_model::id_type sensor_id, eigenray_list* list)
 {
     write_lock_guard guard(_fathometer_mutex);
     #ifdef USML_DEBUG
         cout << "sensor_pair: update_fathometer("
-             << sensorID << ")" << endl ;
+            << sensor_id << ")" << endl;
     #endif
    
     if ( list != NULL ) {
@@ -73,7 +71,7 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
 
         // If sensor that made this call is the _receiver of this pair
         //    then Swap de's, and az's
-        if (sensorID == _receiver->sensorID()) {
+        if ( sensor_id == _receiver->sensorID() ) {
             BOOST_FOREACH(eigenray ray, *list) {
                 std::swap(ray.source_de, ray.target_de);
                 std::swap(ray.source_az, ray.target_az);
@@ -108,8 +106,8 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
             // Just use original
             new_eigenray_list = *list;
         }
-        // Note new memory location for eigenrays is create here
-        _fathometer = fathometer_model::reference ( new fathometer_model(
+        // Note new memory location for eigenrays is created here
+        _fathometer = fathometer_collection::reference ( new fathometer_collection(
             _source->sensorID(),_receiver->sensorID(), _source->position(),
             _receiver->position(), new_eigenray_list));
     }
@@ -118,7 +116,7 @@ void sensor_pair::update_fathometer(sensor_model::id_type sensorID, eigenray_lis
 /**
  * Updates the eigenverb_collection
  */
-void sensor_pair::update_eigenverbs(sensor_model* sensor)
+void sensor_pair::update_eigenverbs(double initial_time, sensor_model* sensor)
 {
 	if (sensor != NULL) {
 
@@ -136,7 +134,9 @@ void sensor_pair::update_eigenverbs(sensor_model* sensor)
             _rcv_eigenverbs = sensor->eigenverbs();
         }
 
-        run_envelope_generator();
+        if ( _src_eigenverbs.get() != NULL && _rcv_eigenverbs.get() != NULL ) {
+            run_envelope_generator(initial_time);
+        }
 	}
 }
 
@@ -170,5 +170,55 @@ const sensor_model* sensor_pair::sensor_complement(const sensor_model* sensor) c
 		}
 	} else {
 		return NULL;
+	}
+}
+
+/**
+ * Performs the dead reckoning on the fathometer at the new source and receiver positions.
+ */
+void sensor_pair::dead_reckon_fathometer(wposition1 src_pos, wposition1 rcv_pos) {
+
+	write_lock_guard guard(_pair_mutex);
+
+	double prev_range = _fathometer->slant_range();
+	double curr_range = src_pos.distance(rcv_pos);
+	double range_diff = curr_range - prev_range;
+
+	if ( abs( range_diff) > 0.0) {
+		// sensor moved so dead reckon
+		// average speed of sound for the first (direct) fathometer
+		double avg_speed = prev_range/_fathometer->initial_time();
+		double delta_time = range_diff/avg_speed;
+		double curr_initial_time = _fathometer->initial_time() + delta_time;
+		// Update eigenrays
+		_fathometer->dead_reckon(delta_time, curr_range, prev_range);
+		// update to new time and positions
+		_fathometer->initial_time(curr_initial_time);
+		_fathometer->source_position(src_pos);
+		_fathometer->receiver_position(rcv_pos);
+	}
+}
+
+/**
+ * Performs the dead reckoning on the envelopes at the new source and receiver positions.
+ */
+void sensor_pair::dead_reckon_envelopes(wposition1 src_pos, wposition1 rcv_pos) {
+
+	write_lock_guard guard(_pair_mutex);
+
+	double prev_range = _envelopes->slant_range();
+	double curr_range = src_pos.distance(rcv_pos);
+	double range_diff = curr_range - prev_range;
+	if ( abs( range_diff) > 0.0) {
+		// sensor moved dead reckon
+		// average speed of sound for the first fathometer
+		double avg_speed = prev_range/_envelopes->initial_time();
+		double delta_time = range_diff/avg_speed;
+		double curr_initial_time = _envelopes->initial_time() + delta_time;
+		_envelopes->dead_reckon(delta_time, curr_range, prev_range);
+		// update to new time and positions
+		_envelopes->initial_time(curr_initial_time);
+		_envelopes->source_position(src_pos);
+		_envelopes->receiver_position(rcv_pos);
 	}
 }

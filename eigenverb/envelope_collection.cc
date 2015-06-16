@@ -5,6 +5,7 @@
  */
 #include <usml/eigenverb/envelope_collection.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/foreach.hpp>
 #include <netcdfcpp.h>
 
 using namespace usml::eigenverb;
@@ -23,20 +24,31 @@ envelope_collection::envelope_collection(
 	size_t num_azimuths,
 	size_t num_src_beams,
 	size_t num_rcv_beams,
+	double initial_time,
 	sensor_model::id_type source_id,
-    sensor_model::id_type receiver_id
+    sensor_model::id_type receiver_id,
+    wposition1 src_position,
+    wposition1 rcv_position
 ) :
 	_envelope_freq(envelope_freq->clone()),
 	_travel_time( travel_time->clip(0.0,reverb_duration) ),
+	_reverb_duration(reverb_duration),
 	_pulse_length(pulse_length),
 	_threshold( threshold ),
 	_num_azimuths(num_azimuths),
 	_num_src_beams(num_src_beams),
 	_num_rcv_beams(num_rcv_beams),
+	_initial_time(initial_time),
 	_source_id(source_id),
 	_receiver_id(receiver_id),
-	_envelope_model( _envelope_freq, src_freq_first, _travel_time, _pulse_length, _threshold)
+	_source_position(src_position),
+	_receiver_position(rcv_position),
+	_envelope_model( _envelope_freq, src_freq_first, _travel_time,
+	                        _initial_time, _pulse_length, _threshold)
 {
+    // Store range from source to receiver when eigenverbs were obtained.
+    _slant_range = _receiver_position.distance(_source_position);
+
 	_envelopes = new matrix<double>***[_num_azimuths];
 	matrix<double>**** pa = _envelopes;
 	for (size_t a = 0; a < _num_azimuths; ++a, ++pa) {
@@ -98,6 +110,45 @@ void envelope_collection::add_contribution(
 			}
 		}
 	}
+}
+
+/**
+ * Updates the envelope_collection data with the parameters provided.
+ */
+void envelope_collection::dead_reckon(double delta_time,
+                                    double slant_range, double prev_range) {
+    // Set new slant_range
+    _slant_range = slant_range;
+
+    // Shift the time series
+    delete _travel_time;
+    boost::numeric::ublas::vector<double> temp_data = (*_travel_time);
+    temp_data = temp_data + delta_time;
+    _travel_time = new seq_data( temp_data );
+
+    { // Scope for lock
+
+        // Perform copy and intensity update
+        double gain = slant_range/prev_range;
+        gain *= gain ;
+
+        write_lock_guard guard(this->_envelopes_mutex);
+        // Copy "this" envelopes to new_collection
+        matrix<double>**** pa = _envelopes;
+        for (size_t a = 0; a < _num_azimuths; ++a, ++pa)
+        {
+            matrix<double>*** ps = *pa;
+            for (size_t s = 0; s < _num_src_beams; ++s, ++ps)
+            {
+                matrix<double>** pr = *ps;
+                for (size_t r = 0; r < _num_rcv_beams; ++r, ++pr)
+                {
+                    (**pr) = this->envelope(a, s, r);
+                    (**pr) *= gain;
+                }
+            }
+        }
+    }
 }
 
 /**

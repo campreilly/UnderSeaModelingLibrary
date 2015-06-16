@@ -42,30 +42,42 @@ private:
     /**
      * Reserve the memory used to store the results of this calculation.
      *
-     * @param envelope_freq        Frequencies at which the source and receiver
+     * @param envelope_freq      Frequencies at which the source and receiver
      *                             eigenverbs overlap (Hz).  Frequencies at which
      *                             envelope will be computed.
-     * @param src_freq_first    Index of the first source frequency that
+     * @param src_freq_first     Index of the first source frequency that
      *                             overlaps receiver (Hz).  Used to map
      *                             source eigenverbs onto envelope_freq values.
      * @param travel_time        Times at which the sensor_pair's
      *                             reverberation envelopes are computed (Hz).
-     * @param pulse_length        Duration of the transmitted pulse (sec).
+     * @param initial_time       Time offset from which to compute intensity
+     *
+     * @param pulse_length       Duration of the transmitted pulse (sec).
      *                             Defines the temporal resolution of the envelope.
-     * @param threshold            Minimum intensity level for valid reverberation
+     * @param threshold          Minimum intensity level for valid reverberation
      *                             contributions (linear units).
      */
     envelope_model(
         const seq_vector* envelope_freq,
         size_t src_freq_first,
         const seq_vector* travel_time,
-        double pulse_length, double threshold
+        double initial_time,
+        double pulse_length,
+        double threshold
     ) ;
 
     /**
      * Default constructor.
      */
     ~envelope_model() ;
+
+    /**
+     * Gets the index of the first source frequency that overlaps receiver (Hz).
+     * Used to map source eigenverbs onto envelope_freq values.
+     */
+    const size_t src_freq_first() {
+        return _src_freq_first;
+    }
 
     /**
      * Computes the intensity for a single combination of source and receiver
@@ -168,8 +180,13 @@ private:
     seq_vector* _travel_time ;
 
     /**
+     * Time offset from which to compute intensity (sec).
+     */
+    const double _initial_time ;
+
+    /**
      * Duration of the transmitted pulse (sec).
-     * Defines the temporaal resolution of the envelope calculation.
+     * Defines the temporal resolution of the envelope calculation.
      */
     const double _pulse_length ;
 
