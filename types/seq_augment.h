@@ -61,7 +61,7 @@ protected:
 
         double first = (*origin)[0] ;
         _value = _index_data = first ;
-        size_t half = floor(num_rays/2)+1 ;
+        size_t half = floor((double)num_rays/2)+1 ;
         double spacing = origin->increment(0) / half ;
         _data[0] = first ;
         for(size_t i=1; i<half+1; ++i) {

@@ -195,7 +195,7 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 
     double angle = M_PI / 6.0 ;
     double depth = 1000.0 ;
-    double range = sqrt(3) * depth / ( 1852.0 * 60.0 );
+    double range = sqrt(3.0) * depth / ( 1852.0 * 60.0 );
 
 	// build a simple eigenverb
 
@@ -297,7 +297,7 @@ BOOST_AUTO_TEST_CASE( envelope_interpolate ) {
 
     double angle = M_PI / 6.0 ;
     double depth = 1000.0 ;
-    double range = sqrt(3) * depth / ( 1852.0 * 60.0 );
+    double range = sqrt(3.0) * depth / ( 1852.0 * 60.0 );
 
 	// build a simple source eigenverb
 

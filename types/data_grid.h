@@ -697,7 +697,7 @@ class USML_DLLEXPORT data_grid {
         {
             DATA_TYPE result ;
             DATA_TYPE y0, y1, y2, y3 ;             // dim-1 values at k-1, k, k+1, k+2
-            DATA_TYPE dy0, dy1, dy2, dy3 ;        // dim-1 derivs at k-1, k, k+1, k+2
+            DATA_TYPE dy0, dy1, dy2, dy3 ;         // dim-1 derivs at k-1, k, k+1, k+2
             initialize<DATA_TYPE>::zero(dy0, dy1, dy2, dy3) ;     // prevent valgrind from complaining
             const size_t kmin = 1u ;                      // at endpt if k-1 < 0
             const size_t kmax = _axis[dim]->size()-3u ; // at endpt if k+2 > N-1

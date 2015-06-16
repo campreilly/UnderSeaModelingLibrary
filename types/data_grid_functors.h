@@ -191,26 +191,24 @@ template<typename T>
 struct USML_DLLEXPORT initialize {
     typedef T  argument_type ;
     typedef std::size_t    size_type ;
-    static void zero( argument_type& a1, const argument_type s )
+    static void zero( argument_type& a1 )
     {
         a1 = argument_type(0) ;
     }
-    static void zero( argument_type& a1, argument_type& a2,
-                      const argument_type s )
+    static void zero( argument_type& a1, argument_type& a2 )
     {
         a1 = argument_type(0) ;
         a2 = argument_type(0) ;
     }
     static void zero( argument_type& a1, argument_type& a2,
-                      argument_type& a3, const argument_type s )
+                      argument_type& a3 )
     {
         a1 = argument_type(0) ;
         a2 = argument_type(0) ;
         a3 = argument_type(0) ;
     }
     static void zero( argument_type& a1, argument_type& a2,
-                      argument_type& a3, argument_type& a4,
-                      const argument_type s )
+                      argument_type& a3, argument_type& a4 )
     {
         a1 = argument_type(0) ;
         a2 = argument_type(0) ;
