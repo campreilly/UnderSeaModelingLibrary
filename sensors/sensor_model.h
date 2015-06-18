@@ -159,22 +159,6 @@ public:
     void update_sensor(const wposition1& position,
             const orientation& orient, bool force_update = false);
 
-    // TODO - Remove
-    ///**
-    // * Asynchronous update of eigenray data from the wavefront task.
-    // * Passes this data onto all sensor listeners.
-    // * Blocks until update is complete.
-    // * @param eigenrays Shared pointer to an eigenray_collection.
-    // */
-    //virtual void update_eigenrays( eigenray_collection::reference& eigenrays ) ;
-    ///**
-    //* Asynchronous update of eigenverbs data from the wavefront task.
-    //* Passes this data onto all sensor listeners.
-    //* Blocks until update is complete.
-    //* @param eigenverbs Shared pointer to an eigenverb_collection.
-    //*/
-    //virtual void update_eigenverbs(eigenverb_collection::reference& eigenverbs);
-
     /**
      * Last set of eigenverbs computed for this sensor.
      * Blocks during updates from the wavefront task.

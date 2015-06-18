@@ -189,7 +189,7 @@ private:
 	/**
 	 * Wait for the reverberation model to compute results.
 	 *
-	 * Retrieve fathometers from sensor_pair_manager.
+	 * Retrieve fathometers and envelopes from sensor_pair_manager.
 	 */
 	void wait_for_results() {
 
@@ -197,6 +197,8 @@ private:
 
     	sensor_pair_manager* sp_manager = sensor_pair_manager::instance() ;
         fathometer_collection::fathometer_package fathometers ;
+        // TODO: add when envelopes are ready
+        // envelope_collection::envelope_package envelopes ;
 
         // Build query for fathometers
         sensor_data_map query;
@@ -241,12 +243,18 @@ private:
             pair.second = sensor;
             query.insert(pair);
 
-            cout << " Fathometer Request ID = " << request_id << endl;
+            cout << " Request ID = " << request_id << endl;
             fathometers = sp_manager->get_fathometers(const_cast<sensor_data_map&>(query));
 
             if ( fathometers.size() > 0 ) {
                 write_fathometers(fathometers, request_id);
             }
+
+            // TODO: add when envelopes are ready
+//            envelopes = sp_manager->get_envelopes(const_cast<sensor_data_map&>(query));
+//            if ( envelopes.size() > 0 ) {
+//            	write_envelopes(envelopes, request_id);
+//            }
 
             query.erase(sensor._sensorID);
 
@@ -276,6 +284,26 @@ private:
             cout << "Wrote fathometers to " << ncname_fathometers << endl ;
         }
     }
+
+	void write_envelopes( envelope_collection::envelope_package& envelopes, int request_id ) {
+
+		std::string ncname_envelopes = USML_STUDIES_DIR "/dead_reckoning/envelope_";
+		envelope_collection::envelope_package::iterator iter_envelopes;
+		for ( iter_envelopes = envelopes.begin();
+			iter_envelopes != envelopes.end(); ++iter_envelopes )
+		{
+			envelope_collection* collection = ( *iter_envelopes );
+			sensor_model::id_type src_id = collection->source_id();
+			sensor_model::id_type rcv_id = collection->receiver_id();
+			std::stringstream ss ;
+			ss << "src_" << src_id << "_rcv_" << rcv_id << "_request_" << request_id ;
+			ncname_envelopes += ss.str();
+			ncname_envelopes += ".nc";
+			collection->write_netcdf(ncname_envelopes.c_str());
+
+			cout << "Wrote envelopes to " << ncname_envelopes << endl ;
+		}
+	}
 };
 
 /**

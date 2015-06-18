@@ -110,61 +110,6 @@ void sensor_model::update_sensor(const wposition1& position,
 	run_wave_generator();
 }
 
-// TODO remove
-///**
-// * Asynchronous update of eigenrays data from the wavefront task.
-// */
-//void sensor_model::update_eigenrays(eigenray_collection::reference& eigenrays)
-//{
-//    // Don't allow updates to _sensor_listeners
-//	write_lock_guard guard(_sensor_listeners_mutex);
-//	#ifdef USML_DEBUG
-//		cout << "sensor_model: update_eigenrays(" << _sensorID << ")" << endl ;
-//	#endif
-//	{   // Scope for lock on _eigenray_collection
-//        write_lock_guard guard(_eigenrays_mutex);
-//	    _eigenray_collection = eigenrays;
-//	}
-//	BOOST_FOREACH( sensor_listener* listener, _sensor_listeners ) {
-//	    // Get complement sensor
-//	    const sensor_model* complement = listener->sensor_complement(this);
-//        // Find complement's sensorID's index in target_id_map
-//        std::map<sensor_model::id_type,int>::const_iterator iter =
-//                            _target_id_map.find(complement->sensorID());
-//        // Make sure it found the complement's sensorID
-//        if (iter != _target_id_map.end()) {
-//            read_lock_guard guard(_eigenrays_mutex);
-//            int row = iter->second;
-//            // Get eigenray_list for listener, ie sensor_pair
-//            // Get complement's row's eigenray_list
-//            eigenray_list* list = _eigenray_collection->eigenrays(row, 0);
-//             // Send out eigenray_list to listener
-//            listener->update_fathometer(_sensorID, list);
-//        }
-//	}
-//}
-//
-///**
-//* Asynchronous update of eigenverbs data from the wavefront task.
-//* Passes this data onto all sensor listeners.
-//* Blocks until update is complete.
-//*/
-//void sensor_model::update_eigenverbs(eigenverb_collection::reference& eigenverbs) {
-//    // Don't allow updates to _sensor_listeners
-//    write_lock_guard guard(_sensor_listeners_mutex);
-//
-//#ifdef USML_DEBUG
-//    cout << "sensor_model: update_eigenverbs(" << _sensorID << ")" << endl;
-//#endif
-//    {   // Scope for lock on _eigenverb_collection
-//        write_lock_guard guard(_eigenverbs_mutex);
-//        _eigenverb_collection = eigenverbs;
-//    }
-//    BOOST_FOREACH(sensor_listener* listener, _sensor_listeners) {
-//        listener->update_eigenverbs(this);
-//    }
-//}
-
 /**
  * Last set of eigenverbs computed for this sensor.
  */
