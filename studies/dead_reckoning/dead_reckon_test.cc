@@ -8,7 +8,7 @@
 #include <usml/sensors/sensors.h>
 #include <usml/eigenverb/wavefront_generator.h>
 #include <list>
-#include <sys/time.h>
+//#include <sys/time.h>
 #include <boost/timer.hpp>
 #include <boost/foreach.hpp>
 
