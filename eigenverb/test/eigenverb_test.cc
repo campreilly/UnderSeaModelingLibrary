@@ -239,8 +239,11 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 		1, 				// num_azimuths
 		1, 				// num_src_beams
 		1,   			// num_rcv_beams
+		0.0,            // initial_time - fill the api
 		1,              // source_id - fill the api
-		1 );            // reciever_id - fill the api
+		1,              // receiver_id - fill the api
+		wposition1(0.0,0.0),   // src_pos - fill the api
+	    wposition1(0.0,0.0) ); // rcv_pos - fill the api
 
     delete travel_time;
 
@@ -383,8 +386,11 @@ BOOST_AUTO_TEST_CASE( envelope_interpolate ) {
 		1, 				// num_azimuths
 		1, 				// num_src_beams
 		1,              // num_rcv_beams
-		1,              // source_id - fill the api
-		1 ) ;           // reciever_id - fill the api
+		0.0,            // initial_time - fill the api
+        1,              // source_id - fill the api
+        1,              // receiver_id - fill the api
+        wposition1(0.0,0.0),   // src_pos - fill the api
+        wposition1(0.0,0.0) ); // rcv_pos - fill the api
 
     delete travel_time;
 

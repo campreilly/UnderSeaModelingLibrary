@@ -1,6 +1,6 @@
 /**
- * @file fathometer_model.h
- * Container for one fathometer_model instance.
+ * @file fathometer_collection.h
+ * Container for one fathometer_collection instance.
  */
 #pragma once
 
@@ -17,22 +17,22 @@ using namespace eigenverb;
 /// @{
 
 /**
- * Container for one fathometer_model instance.
+ * Container for one fathometer_collection instance.
  * On construction takes in all source and receiver data and eigenrays
  */
-class USML_DECLSPEC fathometer_model
+class USML_DECLSPEC fathometer_collection
 {
 public:
 
     /**
-     * Data type used handle a collection of fathometer_model pointers.
+     * Data type used handle a group of fathometer_collection pointers.
      */
-    typedef std::vector<fathometer_model*> fathometer_package;
+    typedef std::vector<fathometer_collection*> fathometer_package;
 
     /**
-     * Data type used for reference to a fathometer_model.
+     * Data type used for reference to a fathometer_collection.
      */
-    typedef shared_ptr<fathometer_model> reference;
+    typedef shared_ptr<fathometer_collection> reference;
 
     /**
      * Construct from all data required.
@@ -43,18 +43,46 @@ public:
      * @param    rcv_pos        The receiver position when eigenrays were obtained.
      * @param    list           The list of eigenrays.
      */
-    fathometer_model(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
-                     wposition1 src_pos, wposition1 rcv_pos, const eigenray_list& list )
-        : _source_id(source_id), _receiver_id(receiver_id), _slant_range(0.0), 
-        _distance_from_sensor(0.0), _depth_offset_from_sensor(0.0),
-        _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
-     {}
+    fathometer_collection(sensor_model::id_type source_id, sensor_model::id_type receiver_id,
+                     wposition1 src_pos, wposition1 rcv_pos,  const eigenray_list& list )
+        :  _source_id(source_id), _receiver_id(receiver_id),
+           _source_position(src_pos), _receiver_position(rcv_pos), _eigenrays(list)
+    {
+        _slant_range = _receiver_position.distance(_source_position);
+        // Get first eigenray arrival time
+        std::list<eigenray>::const_iterator ray_iter = _eigenrays.begin();
+        _initial_time = ray_iter->time;
+    }
 
     /**
      * Destructor
      */
-    ~fathometer_model()
+    ~fathometer_collection()
     {
+    }
+
+    /**
+     * Gets the initial_time value.
+     * @return  The initial_time.
+     */
+    double initial_time() {
+        return _initial_time;
+    }
+
+    /**
+	 * Sets the initial_time value.
+	 * @param  The initial_time.
+	 */
+	void initial_time(double initial_time) {
+		_initial_time = initial_time;
+	}
+
+    /**
+     * Gets the slant_range.
+     * @return  The slant_range.
+     */
+    double slant_range() {
+        return _slant_range;
     }
 
     /**
@@ -66,75 +94,11 @@ public:
     }
 
     /**
-     * Sets the source sensor id.
-     * @param  source_id The source sensor id.
-     */
-    void source_id(sensor_model::id_type source_id) {
-        _source_id = source_id;
-    }
-
-    /**
      * Gets the receiver sensor id.
      * @return  The receiver sensor id.
      */
     sensor_model::id_type receiver_id() {
         return _receiver_id;
-    }
-
-    /**
-     * Sets the receiver sensor id.
-     * @param  receiver_id The receiver sensor id.
-     */
-    void receiver_id(sensor_model::id_type receiver_id) {
-        _receiver_id = receiver_id;
-    }
-
-    /**
-     * Sets the slant_range.
-     * @param  slant_range The slant_range.
-     */
-    void slant_range(double slant_range) {
-        _slant_range = slant_range;
-    }
-
-    /**
-     * Gets the slant_range.
-     * @return  The slant_range. 
-     */
-    double slant_range() {
-        return _slant_range;
-    }
-
-    /**
-     * Sets the distance_from_sensor.
-     * @param  distance_from_sensor The distance_from_sensor.
-     */
-    void distance_from_sensor(double distance_from_sensor) {
-        _distance_from_sensor = distance_from_sensor;
-    }
-
-    /**
-     * Gets the distance_from_sensor.
-     * @return  The distance_from_sensor.
-     */
-    double distance_from_sensor() {
-        return _distance_from_sensor;
-    }
-
-    /**
-     * Sets the depth_offset_from_sensor.
-     * @param  depth_offset The depth_offset_from_sensor.
-     */
-    void depth_offset(double depth_offset) {
-        _depth_offset_from_sensor = depth_offset;
-    }
-
-    /**
-     * Gets the depth_offset_from_sensor.
-     * @return  The depth_offset_from_sensor.
-     */
-    double depth_offset() {
-        return _depth_offset_from_sensor;
     }
 
     /**
@@ -162,15 +126,15 @@ public:
     }
 
     /**
-    * Sets the receiver position.
-    * @param  position The receiver position.
-    */
+     * Sets the receiver position.
+     * @param  position The receiver position.
+     */
     void receiver_position(wposition1 position) {
         _receiver_position = position;
     }
 
     /**
-     * Gets the eigenray_list for this fathometer_model.
+     * Gets the eigenray_list for this fathometer_collection.
      * @return  eigenray_list
      */
     eigenray_list eigenrays() {
@@ -179,18 +143,19 @@ public:
     }
 
     /**
-     * Sets the eigenray_list for this fathometer_model.
-     * @param  list The list of eigenrays.
+     * Updates the fathometer data with the parameters provided.
+     *
+     * @param delta_time    The time amount to shift the eigenrays
+     * @param slant_range   The range in meters from the source and receiver.
+     * @param prev_range    The previous range in meters from the source and
+     *                      receiver at the start of delta_time.
      */
-    void eigenrays(eigenray_list list) {
-         write_lock_guard guard(_eigenrays_mutex);
-         _eigenrays = list;
-    }
+    void dead_reckon(double delta_time, double slant_range, double prev_range);
 
     /**
-     * Write fathometer_model data to a netCDF file using a ragged
+     * Write fathometer_collection data to a netCDF file using a ragged
      * array structure. This ragged array concept (see reference) stores
-     * the fathometer_model data in a one dimensional list.
+     * the fathometer_collection data in a one dimensional list.
      *
      * This ragged array concept is used to define the intensity, phase,
      * source_de, source_az, target_de, target_az, surface, bottom, and
@@ -265,6 +230,8 @@ public:
      *      distance_from_sensor = 0 ;
      *
      *      depth_offset = 0 ;
+     *      
+     *      initial_time = 0.253437554251589;
      *
      *      source_latitude = 0 ;
      *
@@ -316,7 +283,17 @@ public:
 
 private:
 
-    fathometer_model() {};
+    fathometer_collection() {};
+
+   /**
+    * The time of arrival of the fastest eigenray.
+    */
+    double _initial_time;
+
+    /**
+     * The slant range (in meters) of the sensor when the eigenrays were obtained.
+     */
+    double _slant_range;
 
     /**
      * The source sensor id
@@ -329,27 +306,12 @@ private:
     sensor_model::id_type _receiver_id;
 
     /**
-     * The slant range (in meters) of the sensor when the eigenrays where obtained.
-     */
-    double _slant_range;
-
-    /**
-     * The distance (in meters) from the sensor when the eigenrays where obtained.
-     */
-    double _distance_from_sensor;
-
-    /**
-     * The depth offset (in meters) from the sensor when the eigenrays where obtained.
-     */
-    double _depth_offset_from_sensor;
-
-    /**
-     * The position of the source sensor when the eigenrays where obtained.
+     * The position of the source sensor when the eigenrays were obtained.
      */
     wposition1 _source_position;
 
     /**
-     * The position of the receiver sensor when the eigenrays where obtained.
+     * The position of the receiver sensor when the eigenrays were obtained.
      */
     wposition1 _receiver_position;
 

@@ -183,7 +183,7 @@ private:
     	cout << "== wait for results ==" << endl ;
 
     	sensor_pair_manager* sp_manager = sensor_pair_manager::instance() ;
-        fathometer_model::fathometer_package fathometers ;
+        fathometer_collection::fathometer_package fathometers ;
         envelope_collection::envelope_package envelopes ;
 
     	// Build query for fathometers
@@ -196,9 +196,19 @@ private:
     	xmitRcvModeType sensor_modes[] = {usml::sensors::BOTH};
 
         // Build a query
-        sensor_pair_manager::sensor_query_map query;
+    	std::pair<sensor_model::id_type, sensor_data> map_data;
+        sensor_data_map query;
         for ( int i = 0; i < sizeof(sensor_ids) / sizeof(sensor_model::id_type); ++i ) {
-            query.insert(std::pair<sensor_model::id_type, xmitRcvModeType>(sensor_ids[i], sensor_modes[i]));
+            sensor_data sensor;
+            wposition1 pos(0.0, 0.0);		// default location on ocean surface
+            orientation orient(0.0, 0.0);	// default orientation
+            sensor._sensorID = sensor_ids[i];
+            sensor._mode = sensor_modes[i];
+            sensor._position = pos;
+            sensor._orient = orient;
+            map_data.first = sensor._sensorID;
+            map_data.second = sensor;
+            query.insert(map_data);
         }
 
         // wait for results
@@ -207,9 +217,8 @@ private:
         double start_time = timer.elapsed();
 
         while ( true ) {
-
             fathometers = sp_manager->get_fathometers(query);
-            //envelopes = sp_manager->get_envelopes(query);
+            // envelopes = sp_manager->get_envelopes(query);
 
             // TODO - Uncomment after debugging
             //if ( fathometers.size() > 0 && envelopes.size() > 0 ) break ;
@@ -224,11 +233,11 @@ private:
         cout << "waited for " << timer.elapsed() << " secs" << endl ;
 
         std::string ncname_fathometers = USML_STUDIES_DIR "/reverberation/fathometer_";
-        fathometer_model::fathometer_package::iterator iter_fathometers;
+        fathometer_collection::fathometer_package::iterator iter_fathometers;
         for ( iter_fathometers = fathometers.begin();
             iter_fathometers != fathometers.end(); ++iter_fathometers )
         {
-            fathometer_model* model = ( *iter_fathometers );
+            fathometer_collection* model = ( *iter_fathometers );
             sensor_model::id_type src_id = model->source_id();
             sensor_model::id_type rcv_id = model->receiver_id();
             std::stringstream ss ;

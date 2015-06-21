@@ -57,9 +57,9 @@ void sensor_pair_manager::reset() {
 }
 
 /**
- * Finds all the keys in the _map that are in the sensor_query_map
+ * Finds all the keys in the _map that are in the sensor_data_list
  */
-std::set<std::string> sensor_pair_manager::find_pairs(sensor_query_map& sensors)
+std::set<std::string> sensor_pair_manager::find_pairs(const sensor_data_map &sensors)
 {   
     std::set<std::string> hash_keys;
     std::set<sensor_model::id_type> source_ids;
@@ -68,13 +68,16 @@ std::set<std::string> sensor_pair_manager::find_pairs(sensor_query_map& sensors)
 
     // Create a source_keys list and a receiver_key list 
     // of the requested items
+    sensor_data sensor;
     xmitRcvModeType mode;
     sensor_model::id_type sensorID;
-    std::pair<sensor_model::id_type, xmitRcvModeType> p;
-    BOOST_FOREACH(p, sensors)
+    
+    std::pair<sensor_model::id_type,sensor_data> map_pair;
+
+    BOOST_FOREACH(map_pair, sensors)
     {
-        sensorID = p.first;
-        mode = p.second;
+        sensorID = map_pair.second._sensorID;
+        mode = map_pair.second._mode;
       
         // Only add keys if the sensorID already exist in its respected list
         switch ( mode )
@@ -124,23 +127,45 @@ std::set<std::string> sensor_pair_manager::find_pairs(sensor_query_map& sensors)
 }
 
 /**
- * Gets the fathometers for the query of sensors provided
+ * Gets the fathometers for sensors in the sensor_data_list.
  */
-fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(sensor_query_map sensors)
+fathometer_collection::fathometer_package sensor_pair_manager::get_fathometers(const sensor_data_map& sensors)
 {
     sensor_pair* pair;
     read_lock_guard guard(_manager_mutex);
 
-    std::set<std::string> keys = find_pairs(sensors);
-    fathometer_model::fathometer_package fathometers;
+    std::set<std::string> keys = find_pairs(const_cast<sensor_data_map&>(sensors));
+    fathometer_collection::fathometer_package fathometers;
     fathometers.reserve(keys.size());
     BOOST_FOREACH(std::string s, keys)
     {
         pair = _map.find(s);
         sensor_pair* pair_data = pair;
         if ( pair_data != NULL ) {
-            fathometer_model::reference fathometer = pair_data->fathometer();
-            if ( fathometer.get() != NULL ) {
+            fathometer_collection::reference fathometer = pair_data->fathometer();
+            if ( fathometer.get() != NULL )
+            {
+                if (pair_data->multistatic()) {
+                	// if source/receiver is in sensors list get current position
+                	// else use initial value
+                	wposition1 curr_src_pos;
+                	sensor_data_map::const_iterator map_iter;
+                	map_iter = sensors.find(pair_data->source()->sensorID());
+					if (map_iter != sensors.end()) {
+						curr_src_pos = map_iter->second._position;
+					} else {
+						curr_src_pos = pair_data->source()->position();
+					}
+					wposition1 curr_rcv_pos;
+					map_iter = sensors.find(pair_data->receiver()->sensorID());
+					if (map_iter != sensors.end()) {
+						curr_rcv_pos = map_iter->second._position;
+					} else {
+						curr_rcv_pos = pair_data->receiver()->position();
+					}
+
+					pair_data->dead_reckon_fathometer(curr_src_pos, curr_rcv_pos);
+                }
                 fathometers.push_back(fathometer.get());
             }
         }
@@ -149,170 +174,9 @@ fathometer_model::fathometer_package sensor_pair_manager::get_fathometers(sensor
 }
 
 /**
- * Writes the fathometers provided
+ * Gets the envelopes for the sensors in the sensor_data_list requested.
  */
-void sensor_pair_manager::write_fathometers(fathometer_model::fathometer_package fathometers, const char* filename)
-{
-    NcFile* nc_file = new NcFile(filename, NcFile::Replace);
-    nc_file->add_att("Conventions", "COARDS");
-
-    // dimensions
-
-    NcDim *fathometer_dim = nc_file->add_dim("fathometers", ( long ) fathometers.size());
-    NcVar *fathometer_index_var = nc_file->add_var("fathometer_index", ncLong, fathometer_dim);
-
-    // fathometer_model attributes
-
-    NcVar *source_id = nc_file->add_var("source_id", ncInt);
-    NcVar *receiver_id = nc_file->add_var("receiver_id", ncInt);
-    NcVar *slant_range = nc_file->add_var("slant_range", ncDouble);
-    NcVar *distance_from_sensor = nc_file->add_var("distance_from_sensor", ncDouble);
-    NcVar *depth_offset = nc_file->add_var("depth_offset", ncDouble);
-
-    // coordinates
-
-    NcVar *src_lat_var = nc_file->add_var("source_latitude", ncDouble);
-    NcVar *src_lng_var = nc_file->add_var("source_longitude", ncDouble);
-    NcVar *src_alt_var = nc_file->add_var("source_altitude", ncDouble);
-
-    NcVar *rcv_lat_var = nc_file->add_var("receiver_latitude", ncDouble);
-    NcVar *rcv_lng_var = nc_file->add_var("receiver_longitude", ncDouble);
-    NcVar *rcv_alt_var = nc_file->add_var("receiver_altitude", ncDouble);
-
-    // units
-
-    fathometer_index_var->add_att("units", "count");
-
-    src_lat_var->add_att("units", "degrees_north");
-    src_lng_var->add_att("units", "degrees_east");
-    src_alt_var->add_att("units", "meters");
-    src_alt_var->add_att("positive", "up");
-    
-    rcv_lat_var->add_att("units", "degrees_north");
-    rcv_lng_var->add_att("units", "degrees_east");
-    rcv_alt_var->add_att("units", "meters");
-    rcv_alt_var->add_att("positive", "up");
-    
-    int item;
-    double v;
-    int index = 0; // current index number
-  
-    BOOST_FOREACH(fathometer_model* fathometer, fathometers)
-    {    
-        // wite base attributes
-
-        fathometer_index_var->set_cur(index);
-        fathometer_index_var->put(&index, 1);
-        item = fathometer->source_id(); source_id->put(&item);
-        item = fathometer->receiver_id(); receiver_id->put(&item);
-
-        v = fathometer->slant_range();  slant_range->put(&v);
-        v = fathometer->distance_from_sensor();  distance_from_sensor->put(&v);
-        v = fathometer->depth_offset();  depth_offset->put(&v);
-        
-        // write source parameters
-
-        v = fathometer->source_position().latitude();    src_lat_var->put(&v);
-        v = fathometer->source_position().longitude();   src_lng_var->put(&v);
-        v = fathometer->source_position().altitude();    src_alt_var->put(&v);
-
-        // write receiver parameters
-
-        v = fathometer->receiver_position().latitude();    rcv_lat_var->put(&v);
-        v = fathometer->receiver_position().longitude();   rcv_lng_var->put(&v);
-        v = fathometer->receiver_position().altitude();    rcv_alt_var->put(&v);
-        
-
-        // Get the eigenray list for current fathometer
-        eigenray_list eigenrays = fathometer->eigenrays();
-       
-        long num_eigenrays = ( long ) eigenrays.size();
-        long num_frequencies = ( long ) eigenrays.begin()->frequencies->size();
-
-        // dimensions
-        NcDim *eigenray_dim = nc_file->add_dim("eigenrays", num_eigenrays);
-        NcVar *eigenray_num_var = nc_file->add_var("eigenray_num", ncLong, eigenray_dim);
-        NcDim *freq_dim = nc_file->add_dim("frequency", num_frequencies);
-        NcVar *freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
-
-        NcVar *intensity_var = nc_file->add_var("intensity", ncDouble, eigenray_dim, freq_dim);
-        NcVar *phase_var = nc_file->add_var("phase", ncDouble, eigenray_dim, freq_dim);
-        NcVar *time_var = nc_file->add_var("travel_time", ncDouble, eigenray_dim);
-        NcVar *source_de_var = nc_file->add_var("source_de", ncDouble, eigenray_dim);
-        NcVar *source_az_var = nc_file->add_var("source_az", ncDouble, eigenray_dim);
-        NcVar *target_de_var = nc_file->add_var("target_de", ncDouble, eigenray_dim);
-        NcVar *target_az_var = nc_file->add_var("target_az", ncDouble, eigenray_dim);
-        NcVar *surface_var = nc_file->add_var("surface", ncShort, eigenray_dim);
-        NcVar *bottom_var = nc_file->add_var("bottom", ncShort, eigenray_dim);
-        NcVar *caustic_var = nc_file->add_var("caustic", ncShort, eigenray_dim);
-
-        eigenray_num_var->add_att("units", "count");
-
-        intensity_var->add_att("units", "dB");
-        phase_var->add_att("units", "radians");
-        time_var->add_att("units", "seconds");
-
-        source_de_var->add_att("units", "degrees");
-        source_de_var->add_att("positive", "up");
-        source_az_var->add_att("units", "degrees_true");
-        source_az_var->add_att("positive", "clockwise");
-
-        target_de_var->add_att("units", "degrees");
-        target_de_var->add_att("positive", "up");
-        target_az_var->add_att("units", "degrees_true");
-        target_az_var->add_att("positive", "clockwise");
-
-        surface_var->add_att("units", "count");
-        bottom_var->add_att("units", "count");
-        caustic_var->add_att("units", "count");
-        
-        // write eigenrays  
-        
-        freq_var->put(eigenrays.begin()->frequencies->data().begin(), num_frequencies);
-
-        int record = 0; // current record number
-        BOOST_FOREACH(eigenray ray, eigenrays)
-        {
-            // set record number for each eigenray data element
-
-            eigenray_num_var->set_cur(record);
-            intensity_var->set_cur(record);
-            phase_var->set_cur(record);
-            time_var->set_cur(record);
-            source_de_var->set_cur(record);
-            source_az_var->set_cur(record);
-            target_de_var->set_cur(record);
-            target_az_var->set_cur(record);
-            surface_var->set_cur(record);
-            bottom_var->set_cur(record);
-            caustic_var->set_cur(record);
-            eigenray_num_var->put(&record, 1);
-            ++record;
-  
-            intensity_var->put(ray.intensity.data().begin(), 1, num_frequencies);
-            phase_var->put(ray.phase.data().begin(), 1, num_frequencies);
-            time_var->put(&(ray.time), 1);
-            source_de_var->put(&(ray.source_de), 1);
-            source_az_var->put(&(ray.source_az), 1);
-            target_de_var->put(&(ray.target_de), 1);
-            target_az_var->put(&(ray.target_az), 1);
-            surface_var->put(&(ray.surface), 1);
-            bottom_var->put(&(ray.bottom), 1);
-            caustic_var->put(&(ray.caustic), 1); 
-            
-        } // loop over all eigenrays
-        ++index;
-    } // loop over all fathometers
-
-    // close file
-
-    delete nc_file; // destructor frees all netCDF temp variables
-}
-
-/**
- * Gets the envelopes for the sensor receiver_id requested.
- */
-envelope_collection::envelope_package sensor_pair_manager::get_envelopes(sensor_query_map sensors)
+envelope_collection::envelope_package sensor_pair_manager::get_envelopes(const sensor_data_map &sensors)
 {
     sensor_pair* pair;
     read_lock_guard guard(_manager_mutex);
@@ -327,6 +191,27 @@ envelope_collection::envelope_package sensor_pair_manager::get_envelopes(sensor_
         if ( pair_data != NULL ) {
             envelope_collection::reference collection = pair_data->envelopes();
             if ( collection.get() != NULL ) {
+                if (pair_data->multistatic()) {
+                	// if source/receiver is in sensors list get current position
+                	// else use initial value
+                	wposition1 curr_src_pos;
+					sensor_data_map::const_iterator map_iter;
+					map_iter = sensors.find(pair_data->source()->sensorID());
+					if (map_iter != sensors.end()) {
+						curr_src_pos = map_iter->second._position;
+					} else {
+						curr_src_pos = pair_data->source()->position();
+					}
+					wposition1 curr_rcv_pos;
+					map_iter = sensors.find(pair_data->receiver()->sensorID());
+					if (map_iter != sensors.end()) {
+						curr_rcv_pos = map_iter->second._position;
+					} else {
+						curr_rcv_pos = pair_data->receiver()->position();
+					}
+
+					pair_data->dead_reckon_envelopes(curr_src_pos, curr_rcv_pos);
+                }
                 envelopes.push_back(collection.get());
             }
         }
@@ -622,10 +507,7 @@ bool sensor_pair_manager::frequencies_overlap(const seq_vector* src_freq,
     double src_min = *( src_freq->data().begin() );
     double src_max = *( src_freq->data().end() - 1 );
 
-    //// Get receiver min and max
-    //double rcv_min = *( rcv_freq->data().begin() );
-    //double rcv_max = *( rcv_freq->data().end() - 1 );
-
+    // Get receiver min and max
     bool overlap = src_min <= rcv_max &&  rcv_min <= src_max;
     
     #ifdef NOOP
@@ -638,3 +520,164 @@ bool sensor_pair_manager::frequencies_overlap(const seq_vector* src_freq,
 
     return overlap;
 }
+
+/**
+ * Writes the fathometers provided
+ */
+void sensor_pair_manager::write_fathometers(
+    fathometer_collection::fathometer_package fathometers, const char* filename)
+{
+    NcFile* nc_file = new NcFile(filename, NcFile::Replace);
+    nc_file->add_att("Conventions", "COARDS");
+
+    // dimensions
+
+    NcDim *fathometer_dim = nc_file->add_dim("fathometers", ( long ) fathometers.size());
+    NcVar *fathometer_index_var = nc_file->add_var("fathometer_index", ncLong, fathometer_dim);
+
+    // fathometer_collection attributes
+
+    NcVar *source_id = nc_file->add_var("source_id", ncInt);
+    NcVar *receiver_id = nc_file->add_var("receiver_id", ncInt);
+    NcVar *initial_time = nc_file->add_var("initial_time", ncDouble);
+    NcVar *slant_range = nc_file->add_var("slant_range", ncDouble);
+
+    // coordinates
+
+    NcVar *src_lat_var = nc_file->add_var("source_latitude", ncDouble);
+    NcVar *src_lng_var = nc_file->add_var("source_longitude", ncDouble);
+    NcVar *src_alt_var = nc_file->add_var("source_altitude", ncDouble);
+
+    NcVar *rcv_lat_var = nc_file->add_var("receiver_latitude", ncDouble);
+    NcVar *rcv_lng_var = nc_file->add_var("receiver_longitude", ncDouble);
+    NcVar *rcv_alt_var = nc_file->add_var("receiver_altitude", ncDouble);
+
+    // units
+
+    fathometer_index_var->add_att("units", "count");
+
+    src_lat_var->add_att("units", "degrees_north");
+    src_lng_var->add_att("units", "degrees_east");
+    src_alt_var->add_att("units", "meters");
+    src_alt_var->add_att("positive", "up");
+
+    rcv_lat_var->add_att("units", "degrees_north");
+    rcv_lng_var->add_att("units", "degrees_east");
+    rcv_alt_var->add_att("units", "meters");
+    rcv_alt_var->add_att("positive", "up");
+
+    int item;
+    double v;
+    int index = 0; // current index number
+
+    BOOST_FOREACH(fathometer_collection* fathometer, fathometers)
+    {
+        // write base attributes
+
+        fathometer_index_var->set_cur(index);
+        fathometer_index_var->put(&index, 1);
+        item = fathometer->source_id(); source_id->put(&item);
+        item = fathometer->receiver_id(); receiver_id->put(&item);
+
+        v = fathometer->initial_time();  initial_time->put(&v);
+        v = fathometer->slant_range();   slant_range->put(&v);
+
+        // write source parameters
+
+        v = fathometer->source_position().latitude();    src_lat_var->put(&v);
+        v = fathometer->source_position().longitude();   src_lng_var->put(&v);
+        v = fathometer->source_position().altitude();    src_alt_var->put(&v);
+
+        // write receiver parameters
+
+        v = fathometer->receiver_position().latitude();    rcv_lat_var->put(&v);
+        v = fathometer->receiver_position().longitude();   rcv_lng_var->put(&v);
+        v = fathometer->receiver_position().altitude();    rcv_alt_var->put(&v);
+
+
+        // Get the eigenray list for current fathometer
+        eigenray_list eigenrays = fathometer->eigenrays();
+
+        long num_eigenrays = ( long ) eigenrays.size();
+        long num_frequencies = ( long ) eigenrays.begin()->frequencies->size();
+
+        // dimensions
+        NcDim *eigenray_dim = nc_file->add_dim("eigenrays", num_eigenrays);
+        NcVar *eigenray_num_var = nc_file->add_var("eigenray_num", ncLong, eigenray_dim);
+        NcDim *freq_dim = nc_file->add_dim("frequency", num_frequencies);
+        NcVar *freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
+
+        NcVar *intensity_var = nc_file->add_var("intensity", ncDouble, eigenray_dim, freq_dim);
+        NcVar *phase_var = nc_file->add_var("phase", ncDouble, eigenray_dim, freq_dim);
+        NcVar *time_var = nc_file->add_var("travel_time", ncDouble, eigenray_dim);
+        NcVar *source_de_var = nc_file->add_var("source_de", ncDouble, eigenray_dim);
+        NcVar *source_az_var = nc_file->add_var("source_az", ncDouble, eigenray_dim);
+        NcVar *target_de_var = nc_file->add_var("target_de", ncDouble, eigenray_dim);
+        NcVar *target_az_var = nc_file->add_var("target_az", ncDouble, eigenray_dim);
+        NcVar *surface_var = nc_file->add_var("surface", ncShort, eigenray_dim);
+        NcVar *bottom_var = nc_file->add_var("bottom", ncShort, eigenray_dim);
+        NcVar *caustic_var = nc_file->add_var("caustic", ncShort, eigenray_dim);
+
+        eigenray_num_var->add_att("units", "count");
+
+        intensity_var->add_att("units", "dB");
+        phase_var->add_att("units", "radians");
+        time_var->add_att("units", "seconds");
+
+        source_de_var->add_att("units", "degrees");
+        source_de_var->add_att("positive", "up");
+        source_az_var->add_att("units", "degrees_true");
+        source_az_var->add_att("positive", "clockwise");
+
+        target_de_var->add_att("units", "degrees");
+        target_de_var->add_att("positive", "up");
+        target_az_var->add_att("units", "degrees_true");
+        target_az_var->add_att("positive", "clockwise");
+
+        surface_var->add_att("units", "count");
+        bottom_var->add_att("units", "count");
+        caustic_var->add_att("units", "count");
+
+        // write eigenrays
+
+        freq_var->put(eigenrays.begin()->frequencies->data().begin(), num_frequencies);
+
+        int record = 0; // current record number
+        BOOST_FOREACH(eigenray ray, eigenrays)
+        {
+            // set record number for each eigenray data element
+
+            eigenray_num_var->set_cur(record);
+            intensity_var->set_cur(record);
+            phase_var->set_cur(record);
+            time_var->set_cur(record);
+            source_de_var->set_cur(record);
+            source_az_var->set_cur(record);
+            target_de_var->set_cur(record);
+            target_az_var->set_cur(record);
+            surface_var->set_cur(record);
+            bottom_var->set_cur(record);
+            caustic_var->set_cur(record);
+            eigenray_num_var->put(&record, 1);
+            ++record;
+
+            intensity_var->put(ray.intensity.data().begin(), 1, num_frequencies);
+            phase_var->put(ray.phase.data().begin(), 1, num_frequencies);
+            time_var->put(&(ray.time), 1);
+            source_de_var->put(&(ray.source_de), 1);
+            source_az_var->put(&(ray.source_az), 1);
+            target_de_var->put(&(ray.target_de), 1);
+            target_az_var->put(&(ray.target_az), 1);
+            surface_var->put(&(ray.surface), 1);
+            bottom_var->put(&(ray.bottom), 1);
+            caustic_var->put(&(ray.caustic), 1);
+
+        } // loop over all eigenrays
+        ++index;
+    } // loop over all fathometers
+
+    // close file
+
+    delete nc_file; // destructor frees all netCDF temp variables
+}
+

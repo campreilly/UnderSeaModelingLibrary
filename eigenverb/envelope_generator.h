@@ -58,6 +58,7 @@ public:
      * Constructor - Initialize model parameters and reserve memory.
      *
      * @param sensor_pair       Pointer to the sensor_pair that instantiated this class
+     * @param initial_time      Start time offset to used calculate the envelope data.
      * @param src_freq_first    Index of the first intersecting frequency of the
      *                          source frequencies seq_vector.  Used to map
      *                          source eigenverbs onto envelope_freq values.
@@ -66,6 +67,7 @@ public:
 
     envelope_generator(
     	sensor_pair* sensor_pair,
+    	double initial_time,
         size_t src_freq_first,
         size_t num_azimuths ) ;
 
@@ -194,6 +196,9 @@ private:
 
     /** Set to true when this task complete. */
     bool _done;
+
+    /** Start time offset used to calculate envelope data. */
+    double _initial_time;
 
     /** Ocean data to use for the envelope calculation. */
     shared_ptr<ocean_model> _ocean;

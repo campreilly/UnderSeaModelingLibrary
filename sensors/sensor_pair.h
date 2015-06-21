@@ -4,10 +4,11 @@
  */
 #pragma once
 
+#include <boost/thread.hpp>
 #include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_listener.h>
 #include <usml/sensors/xmitRcvModeType.h>
-#include <usml/sensors/fathometer_model.h>
+#include <usml/sensors/fathometer_collection.h>
 #include <usml/waveq3d/eigenray_collection.h>
 #include <usml/eigenverb/envelope_listener.h>
 #include <usml/eigenverb/envelope_collection.h>
@@ -36,7 +37,7 @@ public:
      * Construct from references to source and receiver.
      * The source and receiver will be equal for monostatic sensors.
      *
-     * @param    source        Pointer to the source for this pair.
+     * @param    source      Pointer to the source for this pair.
      * @param    receiver    Pointer to the receiver for this pair.
      */
     sensor_pair(sensor_model* source, sensor_model* receiver)
@@ -96,17 +97,18 @@ public:
     /**
      * Notification that new fathometer data is ready.
      *
-     * @param  sensorID     The ID of the sensor that issued the notification.
-     * @param  list         Pointer std::list of eigenrays.
+     * @param   sensor_id       The ID of the sensor that issued the notification.
+     * @param   list            Pointer std::list of eigenrays.
      */
-    virtual void update_fathometer(sensor_model::id_type sensorID, eigenray_list* list) ;
+    virtual void update_fathometer(sensor_model::id_type sensor_id, eigenray_list* list) ;
 
     /**
      * Notification that new eigenverb data is ready.
      *
-     * @param    sensor    Pointer to sensor that issued the notification.
+     * @param   initial_time    The time of arrival of the fastest eigenray for this pair.
+     * @param   sensor          Pointer to sensor that issued the notification.
      */
-    virtual void update_eigenverbs(sensor_model* sensor) ;
+    virtual void update_eigenverbs(double initial_time, sensor_model* sensor) ;
 
     /**
      * Notification that new envelope data is ready.
@@ -124,9 +126,9 @@ public:
 
     /**
      * Gets the shared_ptr to last fathometer update for this sensor_pair.
-     * @return  fathometer_model shared_ptr
+     * @return  fathometer_collection shared_ptr
      */
-     fathometer_model::reference fathometer() {
+     fathometer_collection::reference fathometer() {
          read_lock_guard guard(_fathometer_mutex);
          return _fathometer;
      }
@@ -140,6 +142,20 @@ public:
          return _envelopes;
      }
 
+     /**
+      * Performs the dead reckoning on the fathometer at the new source and receiver positions
+      * @param  src_pos wposition1 source data
+      * @param  rcv_pos wposition1 receiver data
+      */
+     void dead_reckon_fathometer(wposition1 src_pos, wposition1 rcv_pos);
+
+     /**
+	  * Performs the dead reckoning on the envelopes at the new source and receiver positions
+	  * @param  src_pos wposition1 source data
+	  * @param  rcv_pos wposition1 receiver data
+	  */
+	 void dead_reckon_envelopes(wposition1 src_pos, wposition1 rcv_pos);
+
 private:
 
      /**
@@ -149,8 +165,11 @@ private:
 
     /**
      * Utility to run the envelope_generator
+     *
+     * @param initial_time  Start time offset for use to calculate the envelope
+     *                      data.
      */
-    void run_envelope_generator();
+    void run_envelope_generator(double initial_time);
 
     /**
      * Utility to build the intersecting frequencies of a sensor_pair.
@@ -188,6 +207,11 @@ private:
     const seq_vector* _frequencies;
 
     /**
+	 * Mutex that locks for all the sensor_pair data.
+	 */
+	mutable read_write_lock _pair_mutex;
+
+    /**
      * Mutex that locks sensor_pair during complement lookups.
      */
     mutable read_write_lock _complements_mutex ;
@@ -195,7 +219,7 @@ private:
     /**
      * Fathometer that connects source and receiver locations.
      */
-    fathometer_model::reference _fathometer;
+    fathometer_collection::reference _fathometer;
 
     /**
      * Mutex that locks sensor_pair during fathometer updates.

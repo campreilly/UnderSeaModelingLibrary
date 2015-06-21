@@ -34,10 +34,12 @@ unique_ptr<const seq_vector> envelope_generator::_travel_time( new seq_linear(0.
  */
 envelope_generator::envelope_generator(
 	sensor_pair* sensor_pair,
+	double initial_time,
 	size_t src_freq_first,
 	size_t num_azimuths
 ):
     _done(false),
+    _initial_time(initial_time),
     _ocean( ocean_shared::current() ),
     _sensor_pair(sensor_pair),
     _src_eigenverbs(sensor_pair->source()->eigenverbs()),
@@ -69,8 +71,11 @@ envelope_generator::envelope_generator(
         num_azimuths,
         _src_beam_list.size(),
         _rcv_beam_list.size(),
+        _initial_time,
         _sensor_pair->source()->sensorID(),
-        _sensor_pair->receiver()->sensorID() ) ) ;
+        _sensor_pair->receiver()->sensorID(),
+        _sensor_pair->source()->position(),
+        _sensor_pair->receiver()->position() ) ) ;
 }
 
 /**
@@ -90,6 +95,7 @@ envelope_generator::envelope_generator(
         eigenverb_collection::reference rcv_eigenverbs
 ):
     _done(false),
+    _initial_time(0.0),
     _ocean( ocean_shared::current() ),
     _sensor_pair(NULL),
     _src_eigenverbs(src_eigenverbs),
@@ -108,8 +114,11 @@ envelope_generator::envelope_generator(
         num_azimuths,
         num_src_beams,
         num_rcv_beams,
+        0.0, // initial_time
         1, // Place holder for testing
-        1 ) ) ; // Place holder for testing
+        1,
+        wposition1(0.0,0.0),
+        wposition1(0.0,0.0) ) ) ; // Place holder for testing
 }
 
 /**
