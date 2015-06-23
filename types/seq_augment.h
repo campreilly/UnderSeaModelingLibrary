@@ -61,15 +61,16 @@ protected:
 
         double first = (*origin)[0] ;
         _value = _index_data = first ;
-        size_t half = floor((double)num_rays/2)+1 ;
+        size_t half = (size_t) floor(num_rays/2.0) + 1 ;
         double spacing = origin->increment(0) / half ;
+
         _data[0] = first ;
         for(size_t i=1; i<half+1; ++i) {
             _data[i] = _data[i-1] + spacing ;
         }
-        double* d = _data.begin()+half+1 ;
-        double* od = origin->data().begin() ;
-        memcpy(d, (od+2), sizeof(double)*(size_old-2) ) ;
+        for( size_t i=half+1, j=2; j < size_old-1 ; ++i, ++j ) {
+            _data[i] = (*origin)[j] ;
+        }
         for(size_t i=size_old-2+half; i<size-1; ++i) {
             _data[i] = _data[i-1] + spacing ;
         }
@@ -78,7 +79,7 @@ protected:
         for(size_t i=1; i<size; ++i) {
             _increment[i-1] = _data[i] - _data[i-1] ;
         }
-        _increment[_max_index] = _data[_max_index] - _data[_max_index-1] ;
+        _increment[_max_index] = _data[_max_index] - _data[_max_index-1] ;        
     }
 
 };
