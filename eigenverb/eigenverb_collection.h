@@ -4,16 +4,30 @@
  */
 #pragma once
 
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/geometries/box.hpp>
+#include <boost/geometry/index/rtree.hpp>
 #include <usml/eigenverb/eigenverb.h>
 #include <usml/eigenverb/eigenverb_listener.h>
-//#include <usml/types/quadtree.h>
+
 
 using namespace usml::types;
+using namespace boost::geometry;
+
+namespace bg = boost::geometry;
+namespace bgi = boost::geometry::index;
 
 namespace usml {
 namespace eigenverb {
 
-//typedef quadtree_type<eigenverb,100>::points   eigenverb_tree ;
+typedef bg::model::point<double, 2, bg::cs::cartesian > point;
+
+typedef bg::model::box<point> box;
+
+typedef std::pair<box, eigenverb_list::iterator> value_pair;
+
+typedef bgi::rtree<value_pair, bgi::rstar<16,4> > rtree_type;
 
 /**
  * Collection of eigenverbs in the form of a vector of eigenverbs_lists.
@@ -45,7 +59,10 @@ public:
      * @param num_volumes    Number of volume scattering layers in the ocean.
      */
     eigenverb_collection(size_t num_volumes) :
-            _collection((1 + num_volumes) * 2) {
+    		_rtrees((1 + num_volumes) * 2),
+            _collection((1 + num_volumes) * 2)
+    {
+    	rtrees_ready = false;
     }
 
     /*
@@ -78,15 +95,47 @@ public:
      * Adds a new eigenverb to this collection.  Make a copy of the new
      * contribution and stores the copy in its collection.
      *
-     * @param verb      Eigenverb to add to the eigenverb_collection.
-     * @param interface    Interface number of the desired list of eigenverbs.
+     * @param verb        Eigenverb to add to the eigenverb_collection.
+     * @param interface   Interface number of the desired list of eigenverbs.
      *                     See the class header for documentation on interpreting
      *                     this number. For some layers, you can also use the
      *                     eigenverb::interface_type.
      */
     void add_eigenverb(const eigenverb& verb, size_t interface) {
-        _collection[interface].push_back(verb);
+
+    	// Add to collection
+    	eigenverb_list::iterator iter;
+        iter = _collection[interface].insert(_collection[interface].end(), verb);
+
+        bool tree = false;
+        if (tree) {
+
+			box b = build_box(verb);
+
+			// insert value_pair into rtree
+			_rtrees[interface].insert(std::make_pair(b, iter));
+        }
     }
+
+    /**
+     * Queries the RTree for this collection of eigenverbs at the interface and the
+     * spatial box specified the rcv_eigenverb.
+     * Results are return via the third parameter.
+     *
+     * @param interface		Interface number of the desired list of eigenverbs.
+     *                     		See the class header for documentation on interpreting
+     *                     		this number. For some layers, you can also use the
+     *                     		eigenverb::interface_type.
+     * @param eigenverb		Eigenverb which to covert to a spatial box that
+     * 							is used as the query for the rtree.
+     * @param result_s		This is the result set of value_pairs in and std::vector
+     */
+    void query_rtree(int interface, eigenverb verb, std::vector<value_pair>& result_s);
+
+    /**
+     * Generates the rtrees for this collection of eigenverbs.
+     */
+    void generate_rtrees();
 
     /**
      * Writes the eigenverbs for an individual interface to a netcdf file.
@@ -177,13 +226,43 @@ public:
      */
     void write_netcdf(const char* filename, size_t interface) const;
 
+    /**
+     * Reads the eigenverbs for a single interface from a netcdf file.
+     *
+     * @param filename  	Filename used to store this data.
+     * @param interface     Interface number of the desired list of eigenverbs.
+     *                      See the class header for documentation interpreting
+     *                      this number.
+     * @return              eigenverb_list for the interface.
+     */
+    eigenverb_list read_netcdf(const char* filename, size_t interface);
+
 private:
 
     /**
+	 * Builds a box to insert in an rtree and/or to query the rtree.
+	 *
+	 * @param  eigenverb	Eigenverb which to covert to a box.
+	 * @param  sigma		Integer amount to scale up the size of the box.
+	 */
+	box build_box(eigenverb verb, int sigma = 1);
+
+	/**
+	 * Boolean to determine if the rtree have all ready been generated.
+	 */
+    bool rtrees_ready;
+    /**
+     * Static value for scaling latitudes for rtrees.
+     */
+    static double latitude_scaler;
+
+    /**
+     * RTrees - one for each interface.
+     */
+    std::vector<rtree_type> _rtrees;
+
+    /**
      * Collection of eigenverbs.
-     *
-     * TODO Use an quadtree instead of a std::list to store the eigenverbs,
-     *      We hope this will improve the speed of envelope calculations.
      */
     std::vector<eigenverb_list> _collection;
 };
