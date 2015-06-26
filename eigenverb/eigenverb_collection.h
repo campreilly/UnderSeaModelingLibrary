@@ -59,10 +59,10 @@ public:
      * @param num_volumes    Number of volume scattering layers in the ocean.
      */
     eigenverb_collection(size_t num_volumes) :
-    		_rtrees((1 + num_volumes) * 2),
+            _rtrees((1 + num_volumes) * 2),
             _collection((1 + num_volumes) * 2)
     {
-    	rtrees_ready = false;
+        rtrees_ready = false;
     }
 
     /*
@@ -103,17 +103,17 @@ public:
      */
     void add_eigenverb(const eigenverb& verb, size_t interface) {
 
-    	// Add to collection
-    	eigenverb_list::iterator iter;
+        // Add to collection
+        eigenverb_list::iterator iter;
         iter = _collection[interface].insert(_collection[interface].end(), verb);
 
         bool tree = false;
         if (tree) {
 
-			box b = build_box(verb);
+            box b = build_box(verb);
 
-			// insert value_pair into rtree
-			_rtrees[interface].insert(std::make_pair(b, iter));
+            // insert value_pair into rtree
+            _rtrees[interface].insert(std::make_pair(b, iter));
         }
     }
 
@@ -122,13 +122,13 @@ public:
      * spatial box specified the rcv_eigenverb.
      * Results are return via the third parameter.
      *
-     * @param interface		Interface number of the desired list of eigenverbs.
-     *                     		See the class header for documentation on interpreting
-     *                     		this number. For some layers, you can also use the
-     *                     		eigenverb::interface_type.
-     * @param eigenverb		Eigenverb which to covert to a spatial box that
-     * 							is used as the query for the rtree.
-     * @param result_s		This is the result set of value_pairs in and std::vector
+     * @param interface        Interface number of the desired list of eigenverbs.
+     *                             See the class header for documentation on interpreting
+     *                             this number. For some layers, you can also use the
+     *                             eigenverb::interface_type.
+     * @param eigenverb        Eigenverb which to covert to a spatial box that
+     *                             is used as the query for the rtree.
+     * @param result_s        This is the result set of value_pairs in and std::vector
      */
     void query_rtree(int interface, eigenverb verb, std::vector<value_pair>& result_s);
 
@@ -229,7 +229,7 @@ public:
     /**
      * Reads the eigenverbs for a single interface from a netcdf file.
      *
-     * @param filename  	Filename used to store this data.
+     * @param filename      Filename used to store this data.
      * @param interface     Interface number of the desired list of eigenverbs.
      *                      See the class header for documentation interpreting
      *                      this number.
@@ -240,16 +240,16 @@ public:
 private:
 
     /**
-	 * Builds a box to insert in an rtree and/or to query the rtree.
-	 *
-	 * @param  eigenverb	Eigenverb which to covert to a box.
-	 * @param  sigma		Integer amount to scale up the size of the box.
-	 */
-	box build_box(eigenverb verb, int sigma = 1);
+     * Builds a box to insert in an rtree and/or to query the rtree.
+     *
+     * @param  eigenverb    Eigenverb which to covert to a box.
+     * @param  sigma        Integer amount to scale up the size of the box.
+     */
+    box build_box(eigenverb verb, int sigma = 1);
 
-	/**
-	 * Boolean to determine if the rtree have all ready been generated.
-	 */
+    /**
+     * Boolean to determine if the rtree have all ready been generated.
+     */
     bool rtrees_ready;
     /**
      * Static value for scaling latitudes for rtrees.

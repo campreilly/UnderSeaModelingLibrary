@@ -157,7 +157,7 @@ public:
      *  @param the initial start time offset.
      */
     void initial_time(double initial_time){
-    	_initial_time = initial_time;
+        _initial_time = initial_time;
     }
 
     /** Range from source to receiver . */
