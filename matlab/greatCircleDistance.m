@@ -1,4 +1,4 @@
-function d = greatCircleDistance(phi_s, lambda_s, phi_f, lambda_f, r)
+function [d,b] = greatCircleDistance(phi_s, lambda_s, phi_f, lambda_f, r)
 % compute the great circle distance given lat and long for two points
 % optionally, a fifth parameter (r) can be specified. If this paramter
 % isn't specified it's assumed to be the mean radius of the earth. The
@@ -19,6 +19,7 @@ function d = greatCircleDistance(phi_s, lambda_s, phi_f, lambda_f, r)
 %
 % OUTPUT:
 % d        = great circle distance from standpoint to forepoint
+% b        = great circle bearing from standpoint to forepoint
 %
 % See http://en.wikipedia.org/wiki/Great-circle_distance
 
@@ -48,13 +49,27 @@ if isstruct(lambda_f) || (length(lambda_f) > 1 && ~isstruct(lambda_f))
 end
 
 % Compute Delta lambda (delta longitude)
-Delta_lambda = lambda_f - lambda_s;
+Delta_lambda = lambda_f - lambda_s ;
 
 % Compute Delta sigma (central angle)
 Delta_sigma = atan2(sqrt((cos(phi_f)*sin(Delta_lambda))^2 + (cos(phi_s)*sin(phi_f) - sin(phi_s)*cos(phi_f)*cos(Delta_lambda))^2), ...
     sin(phi_s)*sin(phi_f) + cos(phi_s)*cos(phi_f)*cos(Delta_lambda));
 
 d = r*Delta_sigma;
+
+% Compute bearing if requested
+if ( nargout > 1 )
+    if ( abs(Delta_sigma) < 1e-10 ) 
+        b = 0 ;
+    else
+        b = ( sin(phi_f) - sin(phi_s)  *cos(Delta_sigma) ) ...
+          / ( sin(Delta_sigma) * cos(phi_s) ) ;
+        b = acos( min(1.0,max(-1.0,b)) ) ;
+        if sin(Delta_lambda) > 0
+            b = 2*pi - b ;
+        end
+    end
+end
 
 function r = dms2r(dms)
 

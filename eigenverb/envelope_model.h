@@ -99,7 +99,7 @@ private:
      * @param ys2            Square of the relative distance from the
      *                         receiver to the target along the direction
      *                         of the receiver's width.
-     * @return                False if reverberation energy below threshold.
+     * @return                False if reverberation power below threshold.
      */
     bool compute_intensity(
             const eigenverb& src_verb, const eigenverb& rcv_verb,
@@ -119,8 +119,8 @@ private:
 private:
 
     /**
-     * Compute the total energy and duration of the overlap between
-     * two eigenverbs. Implements the analytic solution for energy of
+     * Compute the total power and duration of the overlap between
+     * two eigenverbs. Implements the analytic solution for power of
      * the bistatic reverberation contribution from eqn. (28) ans (29)
      * in the paper.  Computes the duration from eqn. (45) and (33).
      *
@@ -137,7 +137,7 @@ private:
      * @param ys2            Square of the relative distance from the
      *                         receiver to the target along the direction
      *                         of the receiver's width.
-     * @return                False if energy below threshold.
+     * @return                False if power below threshold.
      */
     bool compute_overlap(
             const eigenverb& src_verb, const eigenverb& rcv_verb,
@@ -145,7 +145,7 @@ private:
 
     /**
      * Computes Gaussian time series contribution given delay, duration, and
-     * total energy.  Implements equation (6) from the paper.  Replaces the
+     * total power.  Implements equation (6) from the paper.  Replaces the
      * values previously held by the _intensity member variable.
      *
      * In an effort to speed up the calculation of the Gaussian, this
@@ -191,40 +191,33 @@ private:
     const double _pulse_length ;
 
     /**
-     * Minimum energy level for valid reverberation contributions
-     * (linear units).  Note that this is converted from intensity units
-     * in the constructor.
+     * Minimum intensity level for valid reverberation contributions
+     * (linear units).
      */
     const double _threshold ;
 
     /**
-     * Reverberation intensity at each point the time series.
+     * Workspace for storing total power of eigenverb overlap,
+     * as a function of envelope frequency (linear units).
+     * Used to pass the results of the compute_overlap() method
+     * to the compute_time_serie() method.
+     */
+    vector<double> _power ;
+
+    /**
+     * Workspace for storing duration result of eigenverb overlap (sec).
+     * Used to pass the results of the compute_overlap() method
+     * to the compute_time_serie() method.
+     */
+    double _duration ;
+
+    /**
+     * Computed reverberation intensity at each point the time series.
      * Each row represents a specific envelope frequency.
      * Each column represents a specific travel time.
+     * Used to pass results back to the caller.
      */
     matrix< double > _intensity;
-
-    /**
-     * Workspace for storing total energy of eigenverb overlap,
-     * as a function of envelope frequency (linear units).
-     */
-    vector<double> _energy ;
-
-    /**
-     * Workspace for storing duration result of eigenverb overlap,
-     * as a function of envelope frequency (sec).
-     */
-    vector<double> _duration ;
-
-    /**
-     * Workspace for storing intensity as a function of time (linear units).
-     * The Gaussian contributions from each eigenverb overlap are added
-     * to this object, and then this object is copied into the appropriate
-     * row of the _intensity object.
-     * Making is a member variable prevents us from having to
-     * rebuilt it for each calculation.
-     */
-    vector<double> _level ;
 };
 
 }   // end of namespace eigenverb

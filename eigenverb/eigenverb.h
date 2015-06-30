@@ -63,35 +63,38 @@ struct eigenverb {
     /**
      * Fraction of total source level that reaches the ensonfied patch
      * (linear units).  Computed as fraction of solid angle for this ray
-     * at launch, times the boundary and attenuation losses along this path.
-     * This is a function of frequency because the boundary and attenuation
-     * losses are functions of frequency.
+     * at launch, times the boundary and attenuation losses along this path,
+     * and divided by the sine of the grazing angle.  The power is a function
+     * of frequency because the boundary and attenuation losses are
+     * functions of frequency.
      */
-    vector<double> energy ;
+    vector<double> power ;
 
-    /**
-     * Squared length of the eigenverb as a function of frequency (meter^2).
-     * This defines the D/E projection of the Gaussian beam onto
-     * the interface.  It includes the spreading model's estimates
-     * of beam width, overlap, and frequency dependent spreading.
-     *
-     * This value is stored as a square because it only appears in the
-     * reverberation equation as a square.
-     */
-    vector<double> length2 ;
+	/**
+  	 * Length of the D/E projection of the Gaussian beam onto
+	 * the interface (meters).
+	 */
+	double length;
 
-    /**
-     * Squared width of the eigenverb as a function of frequency (meter^2).
-     * This defines the AZ projection of the Gaussian beam onto
-     * the interface.  It includes the spreading model's estimates
-     * of beam width, overlap, and frequency dependent spreading.
-     *
-     * This value is stored as a square because it only appears in the
-     * reverberation equation as a square.
-     */
-    vector<double> width2 ;
+	/**
+	 * Length of the eigenverb, stored as a square,
+	 * because it is so frequently used that way.
+	 */
+	double length2;
 
-    /**
+	/**
+	 * Width of the AZ projection of the Gaussian beam onto
+	 * the interface (meter).
+	 */
+	double width;
+
+	/**
+	 * Width of the eigenverb, stored as a square,
+	 * because it is so frequently used that way.
+	 */
+	double width2;
+
+	/**
      * Location of impact with the interface.
      */
     wposition1 position ;

@@ -49,9 +49,7 @@ public:
 private:
     size_t _freq_size ;
     const seq_vector* _new_freq ;
-    data_grid<double,1>* _energy_interp ;
-    data_grid<double,1>*_length2_interp ;
-    data_grid<double,1>*_width2_interp ;
+    data_grid<double,1>* _power_interp ;
 };
 
 /// @}

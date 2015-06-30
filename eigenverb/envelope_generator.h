@@ -55,6 +55,13 @@ public:
     static double intensity_threshold;
 
     /**
+     * Maximum distance between the peaks of the source and receiver eigenverbs.
+     * Specified as a ratio of distances relative to the receiver
+     * eigenverb's length and width. Defaults to 6.0.
+     */
+    static double distance_threshold;
+
+    /**
      * Constructor - Initialize model parameters and reserve memory.
      *
      * @param sensor_pair       Pointer to the sensor_pair that instantiated this class
@@ -70,39 +77,6 @@ public:
     	double initial_time,
         size_t src_freq_first,
         size_t num_azimuths ) ;
-
-    /**
-     * Constructor for test - Initialize model parameters and reserve memory.
-     *
-     * @param envelope_freq     Frequencies at which the source and receiver
-     *                          eigenverbs overlap (Hz).  Frequencies at which
-     *                          envelope will be computed.
-     * @param src_freq_first    Index of the first intersecting frequency of the
-     *                          source frequencies seq_vector.  Used to map
-     *                          source eigenverbs onto envelope_freq values.
-     * @param receiver_freq     Frequencies at which receiver eigenverbs were
-     *                          generated (Hz).  Used to interpolate receiver
-     *                          eigenverbs onto envelope_freq values.
-     * @param reverb_duration   Length of time in seconds the reverb is to be
-     *                          calculated.
-     * @param pulse_length      Duration of the transmitted pulse (sec).
-     * @param num_azimuths      Number of receiver azimuths in result.
-     * @param num_src_beams     Number of source beams in result.
-     * @param num_rcv_beams     Number of receiver beams in result.
-     * @param src_eigenverbs    Shared pointer to the source's eigenverbs.
-     * @param rcv_eigenverbs    Shared pointer to the receiver's eigenverbs.
-     */
-    envelope_generator(
-        const seq_vector* envelope_freq,
-        size_t src_freq_first,
-        const seq_vector* receiver_freq,
-        double reverb_duration,
-        double pulse_length,
-        size_t num_azimuths,
-        size_t num_src_beams,
-        size_t num_rcv_beams,
-        eigenverb_collection::reference src_eigenverbs,
-        eigenverb_collection::reference rcv_eigenverbs) ;
 
     /**
      * Virtual destructor

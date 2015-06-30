@@ -6,6 +6,7 @@
 
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/wave_front.h>
+#include <usml/waveq3d/wave_thresholds.h>
 #include <usml/waveq3d/eigenray_notifier.h>
 #include <usml/eigenverb/eigenverb_notifier.h>
 #include <usml/eigenverb/eigenverb_collection.h>
@@ -60,7 +61,11 @@ class spreading_hybrid_gaussian ;
  * @xref S.M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
-class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_notifier {
+class USML_DECLSPEC wave_queue :
+	public eigenray_notifier,
+	public eigenverb_notifier,
+	public wave_thresholds
+{
 
     friend class reflection_model ;
     friend class spreading_ray ;
@@ -250,66 +255,6 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
     }
 
     /**
-     * The value of the intensity threshold in dB.
-     * Any eigenray or eigenverb with an intensity value that are weaker
-     * than this threshold is not sent the listeners.
-     */
-	inline void intensity_threshold(double dThreshold) {
-
-	    // Convert to absolute value for later comparison
-	    // with the positive ray.intensity value.
-		_intensity_threshold = abs(dThreshold);
-	}
-
-    /**
-     * The value of the intensity threshold in dB.
-     * Any eigenray or eigenverb with an intensity value that are weaker
-     * than this threshold is not sent the listeners.
-     * Defaults to -300 dB.
-     */
-	inline double intensity_threshold() {
-		return _intensity_threshold;
-	}
-
-    /**
-     * The maximum number of bottom bounces.
-     * Any eigenray or eigenverb with more than this number
-     * of bottom bounces is not sent the listeners.
-     */
-    inline void max_bottom( int max ) {
-    	_max_bottom = max ;
-    }
-
-    /**
-     * The maximum number of bottom bounces.
-     * Any eigenray or eigenverb with more than this number
-     * of bottom bounces is not sent the listeners.
-     * Defaults to 999.
-     */
-    inline int max_bottom() const {
-    	return _max_bottom ;
-    }
-
-    /**
-     * The maximum number of surface bounces.
-     * Any eigenray or eigenverb with more than this number
-     * of surface bounces is not sent the listeners.
-     */
-    inline void max_surface( int max ) {
-    	_max_surface = max ;
-    }
-
-    /**
-     * The maximum number of surface bounces.
-     * Any eigenray or eigenverb with more than this number
-     * of surface bounces is not sent the listeners.
-     * Defaults to 999.
-     */
-    inline int max_surface() const {
-    	return _max_surface ;
-    }
-
-    /**
      * Optional identification number for this wavefront calculation.
      * This can be used to correlate results to a specific wavefront when
      * concurrent wavefronts are used.  The scheme for defining this ID
@@ -430,30 +375,6 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      * Supports either classic ray theory or Hybrid Gaussian Beams.
      */
     spreading_model* _spreading_model ;
-
-    /**
-     * The value of the intensity threshold in dB.
-     * Any eigenray or eigenverb with an intensity value that are weaker
-     * than this threshold is not sent the listeners.
-     * Defaults to -300 dB
-     */
-    double _intensity_threshold;
-
-    /**
-     * The maximum number of bottom bounces.
-     * Any eigenray or eigenverb with more than this number
-     * of bottom bounces is not sent the listeners.
-     * Defaults to 999.
-     */
-    int _max_bottom ;
-
-    /**
-     * The maximum number of surface bounces.
-     * Any eigenray or eigenverb with more than this number
-     * of surface bounces is not sent the listeners.
-     * Defaults to 999.
-     */
-    int _max_surface ;
 
     /**
      * Circular queue of wavefront elements needed by the
@@ -767,16 +688,77 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
         wposition1* position, wvector1* ndirection, double* speed ) const ;
 
     /**
-     * Constructs an eigenverb from the data provided. If the eigenverb meets
-     * the intensity threshold, the eigenverb is passed to the collision
+     * Constructs an eigenverb from a collision with a boundary_model
+     * or volume_model.  Uses the height and width of the beam at the
+     * point of collision to estimate the length and width of the
+     * eigerverb projection onto the interface.  Computes the initial
+     * area, height, and width for the part of the wavefront centered
+     * around each ray, using the increment halfway to next and
+     * previous ray. These definitions support arbitrary ray spacing.
+     * \f[
+     * 		A_{n,m} = \int_{\varphi_{m-1/2}}^{\varphi_{m+1/2}}
+     * 				  \int_{\mu_{n-1/2}}^{\mu_{n+1/2}}
+     * 				  \cos{\mu} \; d\mu \; d\varphi
+     * 			= \left[ \sin{ \mu_{n+1/2} } - \sin{ \mu_{n-1/2} } \right]
+     *   		  \left[ \varphi_{m+1/2} - \varphi_{m-1/2} \right]
+     * \f]\f[
+     * 		\Delta\mu_{n,m} = \mu_{n+1/2} - \mu_{n-1/2}
+     * \f]\f[
+     * 		\Delta\varphi_{n,m} = \frac{ A_{n,m} }{ \Delta\mu_{n,m} }
+     *			= \frac{ \sin{ \mu_{n+1/2} } - \sin{ \mu_{n-1/2} } }
+     *			  {  \mu_{n+1/2} - \mu_{n-1/2} }
+     * 			  \left[ \varphi_{m+1/2} - \varphi_{m-1/2} \right]
+     * \f]\f[
+     * 		\mu_{n+1/2} = \mu_{n,m} + 1/2 \; \delta\mu_{n}
+     * \f]\f[
+     * 		\mu_{n-1/2} = \mu_{n,m} - 1/2 \; \delta\mu_{n-1}
+     * \f]\f[
+     * 		\varphi_{n+1/2} = \varphi_{n,m} + 1/2 \; \delta\varphi_{m}
+     * \f]\f[
+     * 		\varphi_{n-1/2} = \varphi_{n,m} - 1/2 \; \delta\varphi_{m-1}
+     * \f]
+     * where:
+     * 		- \f$ \mu_{n,m} \f$ = D/E launch angle for this ray;
+     * 		- \f$ \varphi_{n,m} \f$ = AZ launch angle for this ray;
+     * 		- \f$ \delta\mu_{n} \f$ = ray spacing in D/E direction;
+     * 		- \f$ \delta\varphi_{m} \f$ = ray spacing in AZ direction.
+     * 		- \f$ A_{n,m} \f$ = surface area for this ray at 1 meter from source;
+     * 		- \f$ \Delta\mu_{n,m} \f$ = average height of this surface area;
+     * 		- \f$ \Delta\varphi_{n,m} \f$ = average width of this surface area;
+     *
+     * The eigenverb is the projection of a Gaussian intensity profile onto
+     * the interface. This implementation computes the length and width of the
+     * eigenverb, assuming that the change is proportional to path length.
+     * \f[
+     * 		L_{n,m,k} = \ell_k \; \Delta\mu_{n,m} / \sin{ \gamma_k }
+     * \f]\f[
+     * 		W_{n,m,k} = \ell_k \; \Delta\varphi_{n,m}
+     * \f]\f[
+     * 		P_{n,m,k} = \alpha_{n,m} \; A_{n,m} / \sin{ \gamma_k }
+     * \f]
+     * where:
+     *		- k = collision number;
+     *		- \f$ L_{n,m,k} \f$ = Length of eigenverb along the interface;
+     *		- \f$ W_{n,m,k} \f$ = Width of eigenverb along the interface;
+     *		- \f$ P_{n,m,k} \f$ = Total power in eigenverb integrated over interface.
+     *
+     * If the eigenverb meets the intensity threshold, the eigenverb is passed to the collision
      * listener who then calls its collector to save the eigenverb.
      *
-     * Exits immediately if:
+     * Because this can be an expensive calculation, it includes logic to
+     * exits immediately if any of the following conditions are met.
+     *
      * - An eigenverb listener has not yet been defined.
+     * - The number of surface, bottom, caustic, upper, lower bounces
+     *   exceeds the current threshold.
      * - The wave has not started to propagate.
      * - The grazing angle is less than 1e-6 radians.
      * - The last azimuth of the fan overlaps the first azimuth.
-     * - The launch D/E angle is greater +/- 89.9 degrees.
+     * - The launch D/E angle is greater +/- 89.9 degrees.  This excludes
+     *   the region where initial area covered by ray is close to zero.
+     *
+     * It will also exit prematurely if the power is below
+     * the eigenverb threshold.
      *
      * @param de            D/E angle index number.
      * @param az            AZ angle index number.

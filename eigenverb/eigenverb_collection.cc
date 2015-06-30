@@ -57,9 +57,9 @@ void eigenverb_collection::write_netcdf(
 
 		NcVar* time_var = nc_file->add_var("travel_time", ncDouble, eigenverb_dim);
 		NcVar* freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
-		NcVar* energy_var = nc_file->add_var("energy", ncDouble, eigenverb_dim, freq_dim);
-		NcVar* length_var = nc_file->add_var("length", ncDouble, eigenverb_dim, freq_dim);
-		NcVar* width_var = nc_file->add_var("width", ncDouble, eigenverb_dim, freq_dim);
+		NcVar* power_var = nc_file->add_var("power", ncDouble, eigenverb_dim, freq_dim);
+		NcVar* length_var = nc_file->add_var("length", ncDouble, eigenverb_dim);
+		NcVar* width_var = nc_file->add_var("width", ncDouble, eigenverb_dim);
 		NcVar* lat_var = nc_file->add_var("latitude", ncDouble, eigenverb_dim);
 		NcVar* lng_var = nc_file->add_var("longitude", ncDouble, eigenverb_dim);
 		NcVar* alt_var = nc_file->add_var("altitude", ncDouble, eigenverb_dim) ;
@@ -80,7 +80,7 @@ void eigenverb_collection::write_netcdf(
 
 		time_var->add_att("units", "seconds");
 		freq_var->add_att("units", "hertz");
-		energy_var->add_att("units", "dB");
+		power_var->add_att("units", "dB");
 		length_var->add_att("units", "meters");
 		width_var->add_att("units", "meters");
 		lat_var->add_att("units", "degrees_north");
@@ -113,7 +113,7 @@ void eigenverb_collection::write_netcdf(
 			// sets current index
 
 			time_var->set_cur(record);
-			energy_var->set_cur(record);
+			power_var->set_cur(record);
 			length_var->set_cur(record);
 			width_var->set_cur(record);
 			lat_var->set_cur(record);
@@ -133,21 +133,16 @@ void eigenverb_collection::write_netcdf(
 			lower_var->set_cur(record);
 			++record ;
 
-			// translate units
-
-			vector<double> energy = 10.0*log10(max(verb.energy, 1e-30));
-			vector<double> length = sqrt(verb.length2);
-			vector<double> width = sqrt(verb.width2);
-
 			// inserts data
 
 			double v ;
 			long i ;
 			time_var->put(&verb.time, 1);
 
-			energy_var->put(energy.data().begin(), 1, (long) verb.frequencies->size());
-			length_var->put(length.data().begin(), 1, (long) verb.frequencies->size());
-			width_var->put(width.data().begin(), 1, (long) verb.frequencies->size());
+			vector<double> power = 10.0*log10(max(verb.power, 1e-30));
+			power_var->put(power.data().begin(), 1, (long) verb.frequencies->size());
+			v = sqrt(verb.length2); length_var->put(&v, 1);
+			v = sqrt(verb.width2); width_var->put(&v, 1);
 			v = verb.position.latitude(); lat_var->put(&v, 1);
 			v = verb.position.longitude(); lng_var->put(&v, 1);
 			v = verb.position.altitude(); alt_var->put(&v, 1);

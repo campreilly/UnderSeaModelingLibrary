@@ -122,7 +122,7 @@ public:
     }
 
     /**
-     * Minimum energy level for valid reverberation contributions
+     * Minimum power level for valid reverberation contributions
      * (linear units).
      */
     double threshold() const {
@@ -170,7 +170,7 @@ public:
      *
      * @return  The source position
      */
-    wposition1 source_position() {
+    wposition1 source_position() const {
         return _source_position;
     }
 
@@ -188,7 +188,7 @@ public:
      *
      * @return  The receiver position.
      */
-    wposition1 receiver_position() {
+    wposition1 receiver_position() const {
         return _receiver_position;
     }
 
@@ -300,34 +300,34 @@ private:
     /**
      * Length of time in seconds the reverb is to be calculated (sec)
      */
-    double _reverb_duration ;
+    const double _reverb_duration ;
 
     /**
      * Duration of the transmitted pulse (sec).
      * Defines the temporal resolution of the envelope.
      */
-    double _pulse_length ;
+    const double _pulse_length ;
 
     /**
-     * Minimum energy level for valid reverberation contributions
+     * Minimum power level for valid reverberation contributions
      * (linear units).
      */
-    double _threshold ;
+    const double _threshold ;
 
     /**
      * Number of receiver azimuths in result.
      */
-    size_t _num_azimuths;
+    const size_t _num_azimuths;
 
     /**
      * Number of source beams in result.
      */
-    size_t _num_src_beams;
+    const size_t _num_src_beams;
 
     /**
      * Number of receiver beams in result.
      */
-    size_t _num_rcv_beams;
+    const size_t _num_rcv_beams;
 
     /**
      * The time of arrival of the fastest eigenray when eigenverbs were obtained.
@@ -342,12 +342,12 @@ private:
     /**
      * ID for the source sensor
      */
-    sensor_model::id_type _source_id;
+    const sensor_model::id_type _source_id;
 
     /**
      * ID for the sensor sensor
      */
-    sensor_model::id_type _receiver_id;
+    const sensor_model::id_type _receiver_id;
 
     /**
      * The position of the source sensor when the eigenverbs were obtained.
