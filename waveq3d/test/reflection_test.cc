@@ -23,7 +23,7 @@ using namespace usml::waveq3d ;
  * @{
  */
 
-//@todo reflect_flat_test disabled until reverb model delivered
+// TODO: reflect_flat_test disabled until reverb model delivered
 
 /**
  * Monitor callbacks from reflection model.

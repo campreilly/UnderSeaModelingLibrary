@@ -8,6 +8,7 @@
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/index/rtree.hpp>
+#include <usml/threads/threads.h>
 #include <usml/eigenverb/eigenverb.h>
 #include <usml/eigenverb/eigenverb_listener.h>
 
@@ -25,7 +26,7 @@ typedef bg::model::point<double, 2, bg::cs::cartesian > point;
 
 typedef bg::model::box<point> box;
 
-typedef std::pair<box, eigenverb_list::iterator> value_pair;
+typedef std::pair<point, eigenverb_list::iterator> value_pair;
 
 typedef bgi::rtree<value_pair, bgi::rstar<16,4> > rtree_type;
 
@@ -106,15 +107,6 @@ public:
         // Add to collection
         eigenverb_list::iterator iter;
         iter = _collection[interface].insert(_collection[interface].end(), verb);
-
-        bool tree = false;
-        if (tree) {
-
-            box b = build_box(verb);
-
-            // insert value_pair into rtree
-            _rtrees[interface].insert(std::make_pair(b, iter));
-        }
     }
 
     /**
@@ -134,6 +126,14 @@ public:
 
     /**
      * Generates the rtrees for this collection of eigenverbs.
+     * The eigenverb_collection for the source eigenverbs generates rtrees one
+     * for each collection interface. The rtrees are created with the dual
+     * Iterator constructor, which uses the RTree Packing Algorithm
+     * to provide the fastest insertion of the data and the fastest querying.
+     * A std::list is first populated with a "collection_pair"'s. A
+     * collection_pair is a std::pair type that consit of a point (lat, lon)
+     * and the eigenverb_list::iterator of the eigenverb_collection.
+     * See http://www.boost.org/doc/libs/1_58_0/libs/geometry/doc/html/geometry/spatial_indexes/introduction.html
      */
     void generate_rtrees();
 
@@ -240,12 +240,18 @@ public:
 private:
 
     /**
+     * Mutex to that locks eigenverb_collection during _rtree creation
+     * and querys.
+     */
+    mutable read_write_lock _rtree_mutex ;
+
+    /**
      * Builds a box to insert in an rtree and/or to query the rtree.
      *
      * @param  eigenverb    Eigenverb which to covert to a box.
      * @param  sigma        Integer amount to scale up the size of the box.
      */
-    box build_box(eigenverb verb, int sigma = 1);
+    box build_box(eigenverb verb, float sigma = 1);
 
     /**
      * Boolean to determine if the rtree have all ready been generated.

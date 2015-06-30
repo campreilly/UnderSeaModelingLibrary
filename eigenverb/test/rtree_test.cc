@@ -40,7 +40,7 @@ bgi::rtree<value_pair, bgi::rstar<16,4> > rtree;
 BOOST_AUTO_TEST_CASE( rtree_basic ) {
 	
 	cout << "=== rtree_test: rtree_basic ===" << endl;
-	const char* ncname = "../usml/eigenverb/test/eigenverb_basic_";
+	const char* ncname = USML_TEST_DIR "/eigenverb/test/eigenverb_basic_";
 
 	int interfaces = 4;
 	eigenverb_collection collection(interfaces);

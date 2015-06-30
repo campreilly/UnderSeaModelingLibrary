@@ -2,10 +2,10 @@
  * @file eigenverb_collection.cc
  */
 
+#include <boost/foreach.hpp>
 #include <usml/types/seq_data.h>
 #include <usml/eigenverb/eigenverb_collection.h>
 #include <netcdfcpp.h>
-#include <boost/foreach.hpp>
 
 using namespace usml::types ;
 using namespace usml::eigenverb ;
@@ -17,7 +17,7 @@ double eigenverb_collection::latitude_scaler = (60.0*1852.0);
 /**
  * Builds a box to insert in an rtree and to query the rtree
  */
-box eigenverb_collection::build_box(eigenverb verb, int sigma)
+box eigenverb_collection::build_box(eigenverb verb, float sigma)
 {
 	double q;
 	double latitude;
@@ -46,10 +46,11 @@ box eigenverb_collection::build_box(eigenverb verb, int sigma)
 void eigenverb_collection::query_rtree(int interface, eigenverb verb,
 											  std::vector<value_pair>& result_s)
 {
-	int scaling = 1;
+    read_lock_guard guard(_rtree_mutex);
+	float scaling = 1.0;
 	box query_box = build_box(verb, scaling);
-	_rtrees[interface].query(bgi::overlaps(query_box),
-								std::back_inserter(result_s));
+	_rtrees[interface].query(bgi::within(query_box),
+	                              std::back_inserter(result_s));
 }
 /**
  * Generates the rtrees for this collection of eigenverbs.
@@ -58,20 +59,27 @@ void eigenverb_collection::generate_rtrees() {
 
 	if (rtrees_ready) return;
 
+	write_lock_guard guard(_rtree_mutex);
+
+	// Use local pair to package in rtree
+	std::list<value_pair> collection_pair;
+
 	eigenverb verb;
 	eigenverb_list::iterator iter;
 
 	for (int n = 0; n < num_interfaces(); ++n){
-		// Add to rtree
+
 		for (iter = _collection[n].begin(); iter != _collection[n].end(); ++iter ) {
 
 			verb = *iter;
 
-			box b = build_box(verb);
-
-			// insert value_pair into rtree
-			_rtrees[n].insert(std::make_pair(b, iter));
+			collection_pair.push_back(
+			        std::make_pair(point(verb.position.latitude(),
+			                verb.position.longitude()), iter));
 		}
+		// Use Packed constructor of rtree for fastest insertion
+		_rtrees[n] = rtree_type(collection_pair.begin(), collection_pair.end());
+		collection_pair.clear();
 	}
 	rtrees_ready = true;
 }
