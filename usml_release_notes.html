@@ -5,7 +5,19 @@
   </head>
   <body>
     <h1>Under Sea Modeling Library (USML) Release Notes</h1>
-    
+    <h2>Release 1.0.1 - July 2015</h2>
+	<ul>
+	<li>Bugs</li>
+	<ul>
+	    <li>Resolved Issue #226. data_grid_svp failed to set intrep_type when interp_type(2) != GRID_INTREP_LINEAR. data_grid_svp will now sets interp_type(2) to GRID_INTREP_LINEAR.
+		<li>Resolved Issue #205. randgen::seed(0) does not produce repeatable sequences. The function call for seeding the random numbers, the randgen_tests now produce duplicate random results between runs, as intended.	
+	</ul>
+	<li>Enhancements</li>
+	<ul>
+		<li>Added upper and lower vertex counts to eigenray structure.
+	</ul>
+	</ul>
+	
     <h2>Release 1.0.0 - May 2015</h2>
     <ul>
 	<li>Bugs</li>
