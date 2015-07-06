@@ -1011,7 +1011,6 @@ void wave_queue::build_eigenverb(
     double speed, const wposition1& position,
     const wvector1& ndirection, size_t type )
 {
-//	if ( source_az(az) != 0 || type != 0 ) return ;	// TODO remove after debugging
 	grazing = abs(grazing) ;
 	if (!has_eigenverb_listeners()
 			|| above_bounce_threshold(_curr, de, az)

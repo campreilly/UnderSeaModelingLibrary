@@ -112,7 +112,6 @@ struct eigenverb {
 
     /**
      * The sound speed at the point of impact (m/s).
-     * TODO Populate sound speed in eigenverb.
      */
     double sound_speed ;
 

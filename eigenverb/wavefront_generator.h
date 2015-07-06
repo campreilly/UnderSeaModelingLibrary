@@ -41,6 +41,7 @@ using namespace usml::types ;
  * <pre>
  *  wavefront_generator::number_de = 181;              // Number of depression/elevation indices
  *  wavefront_generator::number_az = 18;               // Number of azimuthal indices
+ *  wavefront_generator::extra_rays = 4;               // Number of extra rays for fathometers
  *  wavefront_generator::time_maximum = 90.0;          // Max run time seconds
  *  wavefront_generator::time_step = 0.01;             // Step time i seconds
  *  wavefront_generator::intensity_threshold = -300.0; // dB  Eigenray with intensity values below this are discarded.
@@ -54,7 +55,7 @@ class USML_DECLSPEC wavefront_generator : public thread_task
     public:
 
     /**
-     * Constructor
+     * Construct wavefront generator from the data items needed to run WaveQ3D.
      *
      *  @param ocean shared pointer to the ocean_model required by the wave_queue
      *  @param source_position wposition1 type that contains the lat, lon, alt
@@ -88,7 +89,6 @@ class USML_DECLSPEC wavefront_generator : public thread_task
     }
 
     /**
-     * Overloads of the thread_task run method.
      * Executes the WaveQ3D propagation model.
      */
     virtual void run();
@@ -102,27 +102,27 @@ class USML_DECLSPEC wavefront_generator : public thread_task
     }
 
     /**
-     * Default Number of depression/elevation angles to use in WaveQ3D wavefront.
+     * Number of depression/elevation angles to use in WaveQ3D wavefront.
      */
     static int number_de;
 
     /**
-     * Default Number of AZ angles to use in WaveQ3D wavefront
+     * Number of AZ angles to use in WaveQ3D wavefront
      */
     static int number_az;
 
     /**
-     * Default Number of extra DE rays for the WaveQ3D wavefront
+     * Number of extra DE rays near vertical for fathometer accuracy.
      */
     static int extra_rays;
 
-     /**
-     * Default Maximum time (sec) to propagate WaveQ3D wavefront.
+    /**
+     * Maximum time (sec) to propagate WaveQ3D wavefront.
      */
     static double time_maximum;
 
     /**
-     * Default Maximum time (sec) to propagate WaveQ3D wavefront.
+     * Maximum time (sec) to propagate WaveQ3D wavefront.
      */
     static double time_step;
 

@@ -152,7 +152,7 @@ private:
      * @param amplitude     Change in ray strength in dB (output).
      * @return true when any scattering strength is less than threshold
      */
-    bool scattering( size_t interface_num, const wposition1& location,
+    void scattering( size_t interface_num, const wposition1& location,
             const seq_vector& frequencies, double de_incident,
             double de_scattered, double az_incident, double az_scattered,
             vector<double>* amplitude);

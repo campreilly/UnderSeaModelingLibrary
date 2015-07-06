@@ -135,30 +135,27 @@ void envelope_generator::run() {
 			    const double xs2 = xs * xs ;
 			    if ( abs(xs) > distance_threshold * rcv_verb.width ) continue ;
 
-//TODO Add scattering strength and beam level back into envelope
-//
-//				// compute interface scattering strength
-//			    // continue if scattering strength does not meet threshold
-//
-//				scattering( interface,
-//					 rcv_verb.position, *freq,
-//					 src_verb.grazing, rcv_verb.grazing,
-//					 src_verb.direction, rcv_verb.direction,
-//					 &scatter )  ;
-//
-//				// compute beam levels
-//
-//				src_beam = beam_gain(_src_beam_list, freq, src_verb.source_de,
-//					src_verb.source_az, _sensor_pair->source()->orient());
-//				rcv_beam = beam_gain(_rcv_beam_list, freq, rcv_verb.source_de,
-//					rcv_verb.source_az, _sensor_pair->receiver()->orient());
+				// compute interface scattering strength
+			    // continue if scattering strength does not meet threshold
+
+				scattering( interface,
+					 rcv_verb.position, *freq,
+					 src_verb.grazing, rcv_verb.grazing,
+					 src_verb.direction, rcv_verb.direction,
+					 &scatter )  ;
+
+				// compute beam levels
+
+				src_beam = beam_gain(_src_beam_list, freq, src_verb.source_de,
+					src_verb.source_az, _sensor_pair->source()->orient());
+				rcv_beam = beam_gain(_rcv_beam_list, freq, rcv_verb.source_de,
+					rcv_verb.source_az, _sensor_pair->receiver()->orient());
 
 				// create envelope contribution
 
 				_envelopes->add_contribution( src_verb, rcv_verb,
 						src_beam, rcv_beam, scatter, xs2, ys2 ) ;
 			}
-			break ; // TODO remove after debugging
 		}
 	}
 	this->notify_envelope_listeners(_envelopes) ;
@@ -171,42 +168,22 @@ matrix<double> envelope_generator::beam_gain(
     sensor_params::beam_pattern_list beam_list,
     const seq_vector* freq, double de_rad, double az_rad, orientation orient)
 {
-    // beam_level requires ublas vector
-    const vector<double> frequencies = *freq;
-
+    const vector<double> frequencies = *freq;	// beam_level requires ublas vector
     matrix<double> beam_matrix( freq->size(), beam_list.size() ) ;
-
     vector<double> level( freq->size(), 0.0 ) ;
-
     BOOST_FOREACH( beam_pattern_model::id_type id, beam_list) {
-
         beam_pattern_model::reference bp = beam_pattern_map::instance()->find(id);
         bp->beam_level(de_rad, az_rad, orient, frequencies, &level ) ;
 
         std::copy(level.begin(), level.end(), beam_matrix.begin1());
     }
-
-    // TODO Remove debugging output
-#ifdef NOTUSML_DEBUG
-
-    typedef boost::numeric::ublas::matrix<double> matrix;
-
-    for(matrix::iterator1 it1 = beam_matrix.begin1(); it1 != beam_matrix.end1(); ++it1) {
-        for(matrix::iterator2 it2 = it1.begin(); it2 !=it1.end(); ++it2) {
-            std::cout << "(" << it2.index1() << "," << it2.index2() << ") = " << *it2;
-        }
-        cout << endl;
-    }
-
-#endif
-
     return beam_matrix;
 }
 
 /**
  * Computes the broadband scattering strength for a specific interface.
  */
-bool envelope_generator::scattering( size_t interface, const wposition1& location,
+void envelope_generator::scattering( size_t interface, const wposition1& location,
 		const seq_vector& frequencies, double de_incident,
 		double de_scattered, double az_incident, double az_scattered,
 		vector<double>* amplitude)
@@ -229,13 +206,4 @@ bool envelope_generator::scattering( size_t interface, const wposition1& locatio
 				amplitude) ;
 		break;
 	}
-
-	// TODO Check for threshold
-//	BOOST_FOREACH (double amp, *amplitude) {
-//	    if (amp <= intensity_threshold ) {
-//	        return true;
-//	    }
-//	}
-	// Threshold not met
-	return true;
 }
