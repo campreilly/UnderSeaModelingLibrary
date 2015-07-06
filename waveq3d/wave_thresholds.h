@@ -27,56 +27,56 @@ class USML_DECLSPEC wave_thresholds {
 
   public:
 
-	/**
-	 * Set thresholds to default values that a designed to let almost
-	 * everything through. The intensity_threshold and eigenverb_threshold
-	 * default to -300 dB. The maximum number of bottom, surface, caustic,
-	 * upper, and lower default to 999.
-	 */
-	wave_thresholds() :
-		_intensity_threshold(300.0),
-		_eigenverb_threshold(1e-30),
-		_max_bottom(999),
-		_max_surface(999),
-		_max_caustic(999),
-		_max_upper(999),
-		_max_lower(999)
-	{
-	}
+    /**
+     * Set thresholds to default values that a designed to let almost
+     * everything through. The intensity_threshold and eigenverb_threshold
+     * default to -300 dB. The maximum number of bottom, surface, caustic,
+     * upper, and lower default to 999.
+     */
+    wave_thresholds() :
+        _intensity_threshold(300.0),
+        _eigenverb_threshold(1e-30),
+        _max_bottom(999),
+        _max_surface(999),
+        _max_caustic(999),
+        _max_upper(999),
+        _max_lower(999)
+    {
+    }
 
     /**
      * The value of the eigenray intensity threshold in dB.
      * Any eigenray with an intensity value that is weaker
      * than this threshold is not sent the eigenray listeners.
      * Stored as a positive value in dB for later comparison
-	 * with the positive eigenray.intensity value.
+     * with the positive eigenray.intensity value.
      */
-	inline void intensity_threshold(double max) {
-		_intensity_threshold = abs(max);
-	}
+    inline void intensity_threshold(double max) {
+        _intensity_threshold = abs(max);
+    }
 
     /**
      * The value of the eigenray intensity threshold in dB.
      * Any eigenray with an intensity value that is weaker
      * than this threshold is not sent the eigenray listeners.
      */
-	inline double intensity_threshold() {
-		return -_intensity_threshold;
-	}
+    inline double intensity_threshold() {
+        return -_intensity_threshold;
+    }
 
     /**
      * Test a list of eigenray.intensity values against the intensity threshold.
      *
-     * @param  intensities	List of intensities for use by BOOST_FOREACH().
-     * 						Assumed to be positive loss values in dB units.
+     * @param  intensities    List of intensities for use by BOOST_FOREACH().
+     *                         Assumed to be positive loss values in dB units.
      * @return false is there are no values above this threshold.
      */
-	template<class T> bool above_intensity_threshold( T intensities ) {
-		BOOST_FOREACH( double level, intensities ) {
-			if ( level < _intensity_threshold ) return true ;
-		}
-		return false ;
-	}
+    template<class T> bool above_intensity_threshold( T intensities ) {
+        BOOST_FOREACH( double level, intensities ) {
+            if ( level < _intensity_threshold ) return true ;
+        }
+        return false ;
+    }
 
     /**
      * The value of the eigenverb power threshold in dB.
@@ -85,32 +85,32 @@ class USML_DECLSPEC wave_thresholds {
      * Stored in linear units as a value between zero and one
      * for later comparison with the verb.power value.
      */
-	inline void eigenverb_threshold(double max) {
-		_eigenverb_threshold = pow(10.0,-0.1*abs(max)) ;
-	}
+    inline void eigenverb_threshold(double max) {
+        _eigenverb_threshold = pow(10.0,-0.1*abs(max)) ;
+    }
 
     /**
      * The value of the eigenverb power threshold in dB.
      * Any eigenray with a power value that is weaker
      * than this threshold is not sent the eigenray listeners.
      */
-	inline double eigenverb_threshold() {
-		return 10.0 * log10(_eigenverb_threshold) ;
-	}
+    inline double eigenverb_threshold() {
+        return 10.0 * log10(_eigenverb_threshold) ;
+    }
 
     /**
      * Test a list of eigenverb.power values against the eigenverb threshold.
      * Both values are assumed to be in linear units as a value between zero and one.
      *
-     * @param  power	List of powers for use by BOOST_FOREACH().
+     * @param  power    List of powers for use by BOOST_FOREACH().
      * @return false is there are no values above this threshold.
      */
-	template<class T> bool above_eigenverb_threshold( T power ) {
-		BOOST_FOREACH( double level, power ) {
-			if ( level >= _eigenverb_threshold ) return true ;
-		}
-		return false ;
-	}
+    template<class T> bool above_eigenverb_threshold( T power ) {
+        BOOST_FOREACH( double level, power ) {
+            if ( level >= _eigenverb_threshold ) return true ;
+        }
+        return false ;
+    }
 
     /**
      * The maximum number of bottom bounces.
@@ -119,7 +119,7 @@ class USML_DECLSPEC wave_thresholds {
      * Defaults to 999.
      */
     inline int max_bottom() const {
-    	return _max_bottom ;
+        return _max_bottom ;
     }
 
     /**
@@ -128,7 +128,7 @@ class USML_DECLSPEC wave_thresholds {
      * of bottom bounces is not sent the listeners.
      */
     inline void max_bottom( int max ) {
-    	_max_bottom = max ;
+        _max_bottom = max ;
     }
 
     /**
@@ -138,7 +138,7 @@ class USML_DECLSPEC wave_thresholds {
      * Defaults to 999.
      */
     inline int max_surface() const {
-    	return _max_surface ;
+        return _max_surface ;
     }
 
     /**
@@ -147,7 +147,7 @@ class USML_DECLSPEC wave_thresholds {
      * of surface bounces is not sent the listeners.
      */
     inline void max_surface( int max ) {
-    	_max_surface = max ;
+        _max_surface = max ;
     }
 
     /**
@@ -157,7 +157,7 @@ class USML_DECLSPEC wave_thresholds {
      * Defaults to 999.
      */
     inline int max_caustic() const {
-    	return _max_caustic ;
+        return _max_caustic ;
     }
 
     /**
@@ -166,7 +166,7 @@ class USML_DECLSPEC wave_thresholds {
      * of caustic turning points is not sent the listeners.
      */
     inline void max_caustic( int max ) {
-    	_max_caustic = max ;
+        _max_caustic = max ;
     }
 
     /**
@@ -176,7 +176,7 @@ class USML_DECLSPEC wave_thresholds {
      * Defaults to 999.
      */
     inline int max_upper() const {
-    	return _max_upper ;
+        return _max_upper ;
     }
 
     /**
@@ -185,7 +185,7 @@ class USML_DECLSPEC wave_thresholds {
      * of upper vertices is not sent the listeners.
      */
     inline void max_upper( int max ) {
-    	_max_upper = max ;
+        _max_upper = max ;
     }
 
     /**
@@ -195,26 +195,26 @@ class USML_DECLSPEC wave_thresholds {
      * Defaults to 999.
      */
     inline int max_lower() const {
-    	return _max_lower ;
+        return _max_lower ;
     }
 
     /**
      * Test the number of bounces in wave_front ray path against thresholds.
      *
-     * @param  wave		The wave_front ray path to be tested.
-     * @param  de		Index number of D/E angle to test.
-     * @param  az		Index number of AZ angle to test.
+     * @param  wave        The wave_front ray path to be tested.
+     * @param  de        Index number of D/E angle to test.
+     * @param  az        Index number of AZ angle to test.
      * @return false is there are no values above this threshold.
      */
-	inline bool above_bounce_threshold(
-			const wave_front* wave, size_t de, size_t az )
-	{
-		return  wave->bottom(de,az) > _max_bottom ||
-				wave->surface(de,az) > _max_surface ||
-				wave->caustic(de,az) > _max_caustic ||
-				wave->upper(de,az) > _max_upper ||
-				wave->lower(de,az) > _max_lower ;
-	}
+    inline bool above_bounce_threshold(
+            const wave_front* wave, size_t de, size_t az )
+    {
+        return  wave->bottom(de,az) > _max_bottom ||
+                wave->surface(de,az) > _max_surface ||
+                wave->caustic(de,az) > _max_caustic ||
+                wave->upper(de,az) > _max_upper ||
+                wave->lower(de,az) > _max_lower ;
+    }
 
   private:
 
@@ -222,7 +222,7 @@ class USML_DECLSPEC wave_thresholds {
      * Any eigenray with a transmission loss intensity larger than
      * than this threshold is not sent the eigenray listeners.
      * Stored as a positive value in dB for later comparison
-	 * with the positive eigenray.intensity value.
+     * with the positive eigenray.intensity value.
      */
     double _intensity_threshold;
 

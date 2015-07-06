@@ -62,9 +62,9 @@ class spreading_hybrid_gaussian ;
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
 class USML_DECLSPEC wave_queue :
-	public eigenray_notifier,
-	public eigenverb_notifier,
-	public wave_thresholds
+    public eigenray_notifier,
+    public eigenverb_notifier,
+    public wave_thresholds
 {
 
     friend class reflection_model ;
@@ -696,51 +696,51 @@ class USML_DECLSPEC wave_queue :
      * around each ray, using the increment halfway to next and
      * previous ray. These definitions support arbitrary ray spacing.
      * \f[
-     * 		A_{n,m} = \int_{\varphi_{m-1/2}}^{\varphi_{m+1/2}}
-     * 				  \int_{\mu_{n-1/2}}^{\mu_{n+1/2}}
-     * 				  \cos{\mu} \; d\mu \; d\varphi
-     * 			= \left[ \sin{ \mu_{n+1/2} } - \sin{ \mu_{n-1/2} } \right]
-     *   		  \left[ \varphi_{m+1/2} - \varphi_{m-1/2} \right]
+     *         A_{n,m} = \int_{\varphi_{m-1/2}}^{\varphi_{m+1/2}}
+     *                   \int_{\mu_{n-1/2}}^{\mu_{n+1/2}}
+     *                   \cos{\mu} \; d\mu \; d\varphi
+     *             = \left[ \sin{ \mu_{n+1/2} } - \sin{ \mu_{n-1/2} } \right]
+     *             \left[ \varphi_{m+1/2} - \varphi_{m-1/2} \right]
      * \f]\f[
-     * 		\Delta\mu_{n,m} = \mu_{n+1/2} - \mu_{n-1/2}
+     *         \Delta\mu_{n,m} = \mu_{n+1/2} - \mu_{n-1/2}
      * \f]\f[
-     * 		\Delta\varphi_{n,m} = \frac{ A_{n,m} }{ \Delta\mu_{n,m} }
-     *			= \frac{ \sin{ \mu_{n+1/2} } - \sin{ \mu_{n-1/2} } }
-     *			  {  \mu_{n+1/2} - \mu_{n-1/2} }
-     * 			  \left[ \varphi_{m+1/2} - \varphi_{m-1/2} \right]
+     *         \Delta\varphi_{n,m} = \frac{ A_{n,m} }{ \Delta\mu_{n,m} }
+     *            = \frac{ \sin{ \mu_{n+1/2} } - \sin{ \mu_{n-1/2} } }
+     *              {  \mu_{n+1/2} - \mu_{n-1/2} }
+     *               \left[ \varphi_{m+1/2} - \varphi_{m-1/2} \right]
      * \f]\f[
-     * 		\mu_{n+1/2} = \mu_{n,m} + 1/2 \; \delta\mu_{n}
+     *         \mu_{n+1/2} = \mu_{n,m} + 1/2 \; \delta\mu_{n}
      * \f]\f[
-     * 		\mu_{n-1/2} = \mu_{n,m} - 1/2 \; \delta\mu_{n-1}
+     *         \mu_{n-1/2} = \mu_{n,m} - 1/2 \; \delta\mu_{n-1}
      * \f]\f[
-     * 		\varphi_{n+1/2} = \varphi_{n,m} + 1/2 \; \delta\varphi_{m}
+     *         \varphi_{n+1/2} = \varphi_{n,m} + 1/2 \; \delta\varphi_{m}
      * \f]\f[
-     * 		\varphi_{n-1/2} = \varphi_{n,m} - 1/2 \; \delta\varphi_{m-1}
+     *         \varphi_{n-1/2} = \varphi_{n,m} - 1/2 \; \delta\varphi_{m-1}
      * \f]
      * where:
-     * 		- \f$ \mu_{n,m} \f$ = D/E launch angle for this ray;
-     * 		- \f$ \varphi_{n,m} \f$ = AZ launch angle for this ray;
-     * 		- \f$ \delta\mu_{n} \f$ = ray spacing in D/E direction;
-     * 		- \f$ \delta\varphi_{m} \f$ = ray spacing in AZ direction.
-     * 		- \f$ A_{n,m} \f$ = surface area for this ray at 1 meter from source;
-     * 		- \f$ \Delta\mu_{n,m} \f$ = average height of this surface area;
-     * 		- \f$ \Delta\varphi_{n,m} \f$ = average width of this surface area;
+     *         - \f$ \mu_{n,m} \f$ = D/E launch angle for this ray;
+     *         - \f$ \varphi_{n,m} \f$ = AZ launch angle for this ray;
+     *         - \f$ \delta\mu_{n} \f$ = ray spacing in D/E direction;
+     *         - \f$ \delta\varphi_{m} \f$ = ray spacing in AZ direction.
+     *         - \f$ A_{n,m} \f$ = surface area for this ray at 1 meter from source;
+     *         - \f$ \Delta\mu_{n,m} \f$ = average height of this surface area;
+     *         - \f$ \Delta\varphi_{n,m} \f$ = average width of this surface area;
      *
      * The eigenverb is the projection of a Gaussian intensity profile onto
      * the interface. This implementation computes the length and width of the
      * eigenverb, assuming that the change is proportional to path length.
      * \f[
-     * 		L_{n,m,k} = \ell_k \; \Delta\mu_{n,m} / \sin{ \gamma_k }
+     *         L_{n,m,k} = \ell_k \; \Delta\mu_{n,m} / \sin{ \gamma_k }
      * \f]\f[
-     * 		W_{n,m,k} = \ell_k \; \Delta\varphi_{n,m}
+     *         W_{n,m,k} = \ell_k \; \Delta\varphi_{n,m}
      * \f]\f[
-     * 		P_{n,m,k} = \alpha_{n,m} \; A_{n,m} / \sin{ \gamma_k }
+     *         P_{n,m,k} = \alpha_{n,m} \; A_{n,m} / \sin{ \gamma_k }
      * \f]
      * where:
-     *		- k = collision number;
-     *		- \f$ L_{n,m,k} \f$ = Length of eigenverb along the interface;
-     *		- \f$ W_{n,m,k} \f$ = Width of eigenverb along the interface;
-     *		- \f$ P_{n,m,k} \f$ = Total power in eigenverb integrated over interface.
+     *        - k = collision number;
+     *        - \f$ L_{n,m,k} \f$ = Length of eigenverb along the interface;
+     *        - \f$ W_{n,m,k} \f$ = Width of eigenverb along the interface;
+     *        - \f$ P_{n,m,k} \f$ = Total power in eigenverb integrated over interface.
      *
      * If the eigenverb meets the intensity threshold, the eigenverb is passed to the collision
      * listener who then calls its collector to save the eigenverb.

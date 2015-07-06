@@ -70,31 +70,31 @@ struct eigenverb {
      */
     vector<double> power ;
 
-	/**
-  	 * Length of the D/E projection of the Gaussian beam onto
-	 * the interface (meters).
-	 */
-	double length;
+    /**
+       * Length of the D/E projection of the Gaussian beam onto
+     * the interface (meters).
+     */
+    double length;
 
-	/**
-	 * Length of the eigenverb, stored as a square,
-	 * because it is so frequently used that way.
-	 */
-	double length2;
+    /**
+     * Length of the eigenverb, stored as a square,
+     * because it is so frequently used that way.
+     */
+    double length2;
 
-	/**
-	 * Width of the AZ projection of the Gaussian beam onto
-	 * the interface (meter).
-	 */
-	double width;
+    /**
+     * Width of the AZ projection of the Gaussian beam onto
+     * the interface (meter).
+     */
+    double width;
 
-	/**
-	 * Width of the eigenverb, stored as a square,
-	 * because it is so frequently used that way.
-	 */
-	double width2;
+    /**
+     * Width of the eigenverb, stored as a square,
+     * because it is so frequently used that way.
+     */
+    double width2;
 
-	/**
+    /**
      * Location of impact with the interface.
      */
     wposition1 position ;
