@@ -254,12 +254,12 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      * Any eigenray or eigenverb with an intensity value that are weaker
      * than this threshold is not sent the listeners.
      */
-	inline void intensity_threshold(double dThreshold) {
+    inline void intensity_threshold(double dThreshold) {
 
-	    // Convert to absolute value for later comparison
-	    // with the positive ray.intensity value.
-		_intensity_threshold = abs(dThreshold);
-	}
+        // Convert to absolute value for later comparison
+        // with the positive ray.intensity value.
+        _intensity_threshold = abs(dThreshold);
+    }
 
     /**
      * The value of the intensity threshold in dB.
@@ -267,9 +267,9 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      * than this threshold is not sent the listeners.
      * Defaults to -300 dB.
      */
-	inline double intensity_threshold() {
-		return _intensity_threshold;
-	}
+    inline double intensity_threshold() {
+        return _intensity_threshold;
+    }
 
     /**
      * The maximum number of bottom bounces.
@@ -277,7 +277,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      * of bottom bounces is not sent the listeners.
      */
     inline void max_bottom( int max ) {
-    	_max_bottom = max ;
+        _max_bottom = max ;
     }
 
     /**
@@ -287,7 +287,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      * Defaults to 999.
      */
     inline int max_bottom() const {
-    	return _max_bottom ;
+        return _max_bottom ;
     }
 
     /**
@@ -296,7 +296,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      * of surface bounces is not sent the listeners.
      */
     inline void max_surface( int max ) {
-    	_max_surface = max ;
+        _max_surface = max ;
     }
 
     /**
@@ -306,7 +306,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier, public eigenverb_noti
      * Defaults to 999.
      */
     inline int max_surface() const {
-    	return _max_surface ;
+        return _max_surface ;
     }
 
     /**

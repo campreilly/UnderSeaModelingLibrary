@@ -150,11 +150,11 @@ public:
      void dead_reckon_fathometer(wposition1 src_pos, wposition1 rcv_pos);
 
      /**
-	  * Performs the dead reckoning on the envelopes at the new source and receiver positions
-	  * @param  src_pos wposition1 source data
-	  * @param  rcv_pos wposition1 receiver data
-	  */
-	 void dead_reckon_envelopes(wposition1 src_pos, wposition1 rcv_pos);
+      * Performs the dead reckoning on the envelopes at the new source and receiver positions
+      * @param  src_pos wposition1 source data
+      * @param  rcv_pos wposition1 receiver data
+      */
+     void dead_reckon_envelopes(wposition1 src_pos, wposition1 rcv_pos);
 
 private:
 
@@ -207,9 +207,9 @@ private:
     const seq_vector* _frequencies;
 
     /**
-	 * Mutex that locks for all the sensor_pair data.
-	 */
-	mutable read_write_lock _pair_mutex;
+     * Mutex that locks for all the sensor_pair data.
+     */
+    mutable read_write_lock _pair_mutex;
 
     /**
      * Mutex that locks sensor_pair during complement lookups.

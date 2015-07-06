@@ -138,11 +138,16 @@ void sensor_model::update_wavefront_data(eigenray_collection::reference& eigenra
     {   // Scope for lock on _eigenverb_collection
         write_lock_guard guard(_eigenverbs_mutex);
         _eigenverb_collection = eigenverbs;
+        // For Source_eigenverbs generate rtrees to quickly query for overlaps
+        if (_source.get() != NULL) {
+        	_eigenverb_collection->generate_rtrees();
+        }
     }
 
     // Store first ray arrival time for update_eigenverbs
     double first_ray_arrival_time = 0.0;
 
+    // For each sensor_pair
     BOOST_FOREACH(sensor_listener* listener, _sensor_listeners) {
         // Get complement sensor
         const sensor_model* complement = listener->sensor_complement(this);

@@ -145,33 +145,38 @@ void envelope_generator::run() {
 
 	// loop through eigenrays for each interface
 
-	for ( size_t interface_num=0 ; interface_num < _rcv_eigenverbs->num_interfaces() ; ++interface_num) {
+	for ( size_t interface=0 ; interface < _rcv_eigenverbs->num_interfaces() ; ++interface) {
 
 #ifdef USML_DEBUG
        
         // record rcv eigenverbs for each interface to their own disk file
         const char* rcv_ncname = "rcv_eigenverbs_";
         std::ostringstream rcv_filename;
-        rcv_filename << rcv_ncname << interface_num << ".nc";
-        _rcv_eigenverbs->write_netcdf(rcv_filename.str().c_str(), interface_num);
+        rcv_filename << rcv_ncname << interface << ".nc";
+        _rcv_eigenverbs->write_netcdf(rcv_filename.str().c_str(), interface);
 
         // record src eigenverbs for each interface to their own disk file
         const char* src_ncname = "src_eigenverbs_";
         std::ostringstream src_filename ;
-        src_filename << src_ncname << interface_num << ".nc" ;
-        _src_eigenverbs->write_netcdf( src_filename.str().c_str(),interface_num) ;
+        src_filename << src_ncname << interface << ".nc" ;
+        _src_eigenverbs->write_netcdf( src_filename.str().c_str(),interface) ;
 
 #endif
-		BOOST_FOREACH( eigenverb verb, _rcv_eigenverbs->eigenverbs(interface_num) ) {
+
+		BOOST_FOREACH( eigenverb verb, _rcv_eigenverbs->eigenverbs(interface) ) {
 			_eigenverb_interpolator.interpolate(verb,&rcv_verb) ;
-			BOOST_FOREACH( eigenverb src_verb, _src_eigenverbs->eigenverbs(interface_num) ) {
+
+			// Cull eigenverbs down with rtree.query
+			std::vector<value_pair> result_s;
+			_src_eigenverbs->query_rtree(interface, rcv_verb, result_s);
+
+			BOOST_FOREACH( value_pair const& vp, result_s ) {
+
+				eigenverb src_verb = *(vp.second);
 
 				// determine the range and bearing between the projected Gaussians
 				// normalize bearing to min distance between angles
 				// skip this combo if source peak more than 3 beam width away
-				//
-				// TODO Use quadtree to make searching through source
-				//      eigenverbs faster.
 
 			    double bearing ;
 			    const double range = rcv_verb.position.gc_range( src_verb.position, &bearing ) ;
@@ -191,7 +196,7 @@ void envelope_generator::run() {
 
 				// compute interface scattering strength
 			    // continue if does not meet threshold
-				if ( scattering( interface_num,
+				if ( scattering( interface,
 					 rcv_verb.position, *freq,
 					 src_verb.grazing, rcv_verb.grazing,
 					 src_verb.direction, rcv_verb.direction,
@@ -238,7 +243,7 @@ matrix<double> envelope_generator::beam_gain(
     }
 
     // TODO Remove debugging output
-#ifdef USML_DEBUG
+#ifdef NOTUSML_DEBUG
 
     typedef boost::numeric::ublas::matrix<double> matrix;
 
@@ -257,12 +262,12 @@ matrix<double> envelope_generator::beam_gain(
 /**
  * Computes the broadband scattering strength for a specific interface.
  */
-bool envelope_generator::scattering( size_t interface_num, const wposition1& location,
+bool envelope_generator::scattering( size_t interface, const wposition1& location,
 		const seq_vector& frequencies, double de_incident,
 		double de_scattered, double az_incident, double az_scattered,
 		vector<double>* amplitude)
 {
-	switch ( interface_num ) {
+	switch ( interface ) {
 	case eigenverb::BOTTOM:
 		_ocean->bottom().scattering(location,frequencies,
 				de_incident,de_scattered,az_incident,az_scattered,
@@ -274,7 +279,7 @@ bool envelope_generator::scattering( size_t interface_num, const wposition1& loc
 				amplitude) ;
 		break;
 	default:
-		size_t layer = (size_t) floor( (interface_num-2.0)/2.0 ) ;
+		size_t layer = (size_t) floor( (interface-2.0)/2.0 ) ;
 		_ocean->volume( layer ).scattering(location,frequencies,
 				de_incident,de_scattered,az_incident,az_scattered,
 				amplitude) ;

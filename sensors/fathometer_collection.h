@@ -70,12 +70,12 @@ public:
     }
 
     /**
-	 * Sets the initial_time value.
-	 * @param  The initial_time.
-	 */
-	void initial_time(double initial_time) {
-		_initial_time = initial_time;
-	}
+     * Sets the initial_time value.
+     * @param  The initial_time.
+     */
+    void initial_time(double initial_time) {
+        _initial_time = initial_time;
+    }
 
     /**
      * Gets the slant_range.
