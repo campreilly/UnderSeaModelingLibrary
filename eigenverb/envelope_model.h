@@ -42,20 +42,19 @@ private:
     /**
      * Reserve the memory used to store the results of this calculation.
      *
-     * @param envelope_freq      Frequencies at which the source and receiver
-     *                             eigenverbs overlap (Hz).  Frequencies at which
-     *                             envelope will be computed.
-     * @param src_freq_first     Index of the first source frequency that
-     *                             overlaps receiver (Hz).  Used to map
-     *                             source eigenverbs onto envelope_freq values.
-     * @param travel_time        Times at which the sensor_pair's
-     *                             reverberation envelopes are computed (Hz).
-     * @param initial_time       Time offset from which to compute intensity
-     *
-     * @param pulse_length       Duration of the transmitted pulse (sec).
-     *                             Defines the temporal resolution of the envelope.
-     * @param threshold          Minimum intensity level for valid reverberation
-     *                             contributions (linear units).
+     * @param envelope_freq		Frequencies at which the source and receiver
+     *                          eigenverbs overlap (Hz).  Frequencies at which
+     *                          envelope will be computed.
+     * @param src_freq_first    Index of the first source frequency that
+     *                          overlaps receiver (Hz).  Used to map
+     *                          source eigenverbs onto envelope_freq values.
+     * @param travel_time       Times at which the sensor_pair's
+     *                          reverberation envelopes are computed (Hz).
+     * @param initial_time      Time offset from which to compute intensity
+     * @param pulse_length      Duration of the transmitted pulse (sec).
+     *                          Defines the temporal resolution of the envelope.
+     * @param threshold         Minimum intensity level for valid reverberation
+     *                          contributions (linear units).
      */
     envelope_model(
         const seq_vector* envelope_freq,
@@ -87,19 +86,19 @@ private:
      * has computed the scattering coefficient; which saves this
      * class from having to know anything about the ocean.
      *
-     * @param src_verb        Eigenverb contribution from the source
-     *                         at the original source frequencies.
-     * @param rcv_verb        Eigenverb contribution from the receiver
-     *                         interpolated onto the envelope frequencies.
-     * @param scatter        Scattering strength coefficient for this
-     *                         combination of eigenverbs (ratio).
-     * @param xs2            Square of the relative distance from the
-     *                         receiver to the target along the direction
-     *                         of the receiver's length.
-     * @param ys2            Square of the relative distance from the
-     *                         receiver to the target along the direction
-     *                         of the receiver's width.
-     * @return                False if reverberation power below threshold.
+     * @param src_verb	Eigenverb contribution from the source
+     *                  at the original source frequencies.
+     * @param rcv_verb  Eigenverb contribution from the receiver
+     *                  interpolated onto the envelope frequencies.
+     * @param scatter   Scattering strength coefficient for this
+     *                  combination of eigenverbs (ratio).
+     * @param xs2       Square of the relative distance from the
+     *                  receiver to the target along the direction
+     *                  of the receiver's length.
+     * @param ys2       Square of the relative distance from the
+     *                  receiver to the target along the direction
+     *                  of the receiver's width.
+     * @return          False if reverberation power below threshold.
      */
     bool compute_intensity(
             const eigenverb& src_verb, const eigenverb& rcv_verb,
@@ -124,20 +123,20 @@ private:
      * the bistatic reverberation contribution from eqn. (28) ans (29)
      * in the paper.  Computes the duration from eqn. (45) and (33).
      *
-     * @param src_verb        Eigenverb contribution from the source,
-     *                         at the original source frequencies.
-     * @param rcv_verb        Eigenverb contribution from the receiver,
-     *                         interpolated onto the envelope frequencies.
-     * @param scatter        Scattering strength coefficient for this
-     *                         combination of eigenverbs,
-     *                         as a function of envelope frequency (ratio).
-     * @param xs2            Square of the relative distance from the
-     *                         receiver to the target along the direction
-     *                         of the receiver's length.
-     * @param ys2            Square of the relative distance from the
-     *                         receiver to the target along the direction
-     *                         of the receiver's width.
-     * @return                False if power below threshold.
+     * @param src_verb		Eigenverb contribution from the source,
+     *                      at the original source frequencies.
+     * @param rcv_verb      Eigenverb contribution from the receiver,
+     *                      interpolated onto the envelope frequencies.
+     * @param scatter       Scattering strength coefficient for this
+     *                      combination of eigenverbs,
+     *                      as a function of envelope frequency (ratio).
+     * @param xs2           Square of the relative distance from the
+     *                      receiver to the target along the direction
+     *                      of the receiver's length.
+     * @param ys2           Square of the relative distance from the
+     *                      receiver to the target along the direction
+     *                      of the receiver's width.
+     * @return              False if power below threshold.
      */
     bool compute_overlap(
             const eigenverb& src_verb, const eigenverb& rcv_verb,
@@ -153,8 +152,8 @@ private:
      * portion of the time series within +/- five (5) times the duration
      * of each pulse.
      *
-     * @param src_verb_time        One way travel time for source eigenverb.
-     * @param rcv_verb_time        One way travel time for receiver eigenverb.
+     * @param src_verb_time		One way travel time for source eigenverb.
+     * @param rcv_verb_time     One way travel time for receiver eigenverb.
      */
     void compute_time_series( double src_verb_time, double rcv_verb_time ) ;
 
@@ -197,10 +196,21 @@ private:
     const double _threshold ;
 
     /**
+     * Workspace for storing a single eigenverb overlap contribution
+     * as a function of two way travel time. Used to build the intensity
+     * for an individual frequency in the compute_time_serie() method.
+     * Building this as a member variable allows the allocation of memory
+     * to be re-used across eigenverb pairs.
+     */
+    vector<double> _level ;
+
+    /**
      * Workspace for storing total power of eigenverb overlap,
      * as a function of envelope frequency (linear units).
      * Used to pass the results of the compute_overlap() method
      * to the compute_time_serie() method.
+     * Building this as a member variable allows the allocation of memory
+     * to be re-used across eigenverb pairs.
      */
     vector<double> _power ;
 
@@ -208,6 +218,8 @@ private:
      * Workspace for storing duration result of eigenverb overlap (sec).
      * Used to pass the results of the compute_overlap() method
      * to the compute_time_serie() method.
+     * Building this as a member variable allows the allocation of memory
+     * to be re-used across eigenverb pairs.
      */
     double _duration ;
 
@@ -216,6 +228,8 @@ private:
      * Each row represents a specific envelope frequency.
      * Each column represents a specific travel time.
      * Used to pass results back to the caller.
+     * Building this as a member variable allows the allocation of memory
+     * to be re-used across eigenverb pairs.
      */
     matrix< double > _intensity;
 };

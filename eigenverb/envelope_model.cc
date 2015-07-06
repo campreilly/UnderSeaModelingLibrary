@@ -11,7 +11,6 @@
 using namespace usml::eigenverb;
 
 //#define DEBUG_ENVELOPE
-//#define ENVELOPE_WINDOW
 
 /**
  * Reserve the memory used to store the results of this calculation.
@@ -30,6 +29,7 @@ envelope_model::envelope_model(
 	_initial_time(initial_time),
 	_pulse_length(pulse_length),
 	_threshold(threshold),
+	_level(travel_time->size()),
 	_power(envelope_freq->size()),
 	_duration(envelope_freq->size()),
 	_intensity(envelope_freq->size(), travel_time->size())
@@ -189,8 +189,8 @@ void envelope_model::compute_time_series(
 
 		// compute the peak time and intensity
 
-		double delay = src_verb_time + rcv_verb_time + _duration;
-		double scale = _power[f] / _duration;
+		const double delay = src_verb_time + rcv_verb_time + _duration - _initial_time;
+		const double scale = _power[f] / _duration;
 
 		// compute Gaussian intensity as a function of time
 		//
@@ -198,26 +198,17 @@ void envelope_model::compute_time_series(
 
 		matrix_row< matrix<double> > intensity( _intensity, f ) ;
 
-		#ifdef ENVELOPE_WINDOW
+		// use uBLAS vector proxies to only compute the portion of the
+		// time series within +/- five (5) times the duration
+		// speeds up the computation by over a factor of 3
 
-			// use uBLAS vector proxies to only compute the portion of the
-			// time series within +/- five (5) times the duration
-
-			_level.clear() ;
-			size_t first = _travel_time->find_index(delay - 5.0 * _duration[f]);
-			size_t last = _travel_time->find_index(delay + 5.0 * _duration[f]) + 1;
-			range window(first, last);
-			vector_range< seq_vector > time(*_travel_time, window);
-			vector_range< vector<double> > level(_level, window);
-			level = scale * exp(-0.5 * abs2((time - delay) / _duration[f]));
-			intensity = _level ;
-
-		#else
-
-			// compute intensity at all times
-
-			intensity = scale * exp(-0.5 * abs2(
-					(*_travel_time + _initial_time - delay) / _duration));
-		#endif
+		_level.clear() ;
+		size_t first = _travel_time->find_index(delay - 5.0 * _duration);
+		size_t last = _travel_time->find_index(delay + 5.0 * _duration) + 1;
+		range window(first, last);
+		vector_range< seq_vector > time(*_travel_time, window);
+		vector_range< vector<double> > level(_level, window);
+		level = scale * exp(-0.5 * abs2((time - delay) / _duration)) ;
+		intensity = _level ;
 	}
 }
