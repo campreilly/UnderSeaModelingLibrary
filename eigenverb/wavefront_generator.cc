@@ -71,10 +71,12 @@ void wavefront_generator::run() {
 	// create listener to store eigenrays
 
 	eigenray_collection::reference eigenrays ;
-	eigenrays.reset( new eigenray_collection(
-		*_frequencies, _source_position,
-		de, az, _time_step, _target_positions) ) ;
-	wave.add_eigenray_listener(eigenrays.get());
+	if ( _target_positions ) {
+		eigenrays.reset( new eigenray_collection(
+			*_frequencies, _source_position,
+			de, az, _time_step, _target_positions) ) ;
+		wave.add_eigenray_listener(eigenrays.get());
+	}
 
 	// create listener to store eigenverbs
 
@@ -91,7 +93,7 @@ void wavefront_generator::run() {
 			return;
 		}
 	}
-	eigenrays->sum_eigenrays();
+	if ( eigenrays != NULL ) eigenrays->sum_eigenrays();
 
 	// distribute eigenrays and eigenverbs to sensor pairs
 
