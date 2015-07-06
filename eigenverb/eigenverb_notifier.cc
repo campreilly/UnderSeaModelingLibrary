@@ -24,9 +24,9 @@ void eigenverb_notifier::remove_eigenverb_listener(eigenverb_listener* listener)
 /**
  * Distribute an eigenverb updates to all listeners.
  */
-void eigenverb_notifier::notify_eigenverb_listeners( const eigenverb& verb, size_t interface ) {
+void eigenverb_notifier::notify_eigenverb_listeners( const eigenverb& verb, size_t interface_num ) {
 	BOOST_FOREACH( eigenverb_listener* listener, _listeners ) {
-		listener->add_eigenverb(verb, interface) ;
+		listener->add_eigenverb(verb, interface_num) ;
 	}
 }
 

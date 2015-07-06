@@ -73,8 +73,8 @@ public:
      */
 
     envelope_generator(
-    	sensor_pair* sensor_pair,
-    	double initial_time,
+        sensor_pair* sensor_pair,
+        double initial_time,
         size_t src_freq_first,
         size_t num_azimuths ) ;
 
@@ -140,7 +140,7 @@ private:
     /**
      * Computes the broadband scattering strength for a specific interface.
      *
-     * @param interface        Interface number of ocean component that is doing
+     * @param interface_num        Interface number of ocean component that is doing
      *                         the scattering. See the eigenverb class header
      *                         for documentation on interpreting this number.
      * @param location      Location at which to compute attenuation.
@@ -152,7 +152,7 @@ private:
      * @param amplitude     Change in ray strength in dB (output).
      * @return true when any scattering strength is less than threshold
      */
-    bool scattering( size_t interface, const wposition1& location,
+    bool scattering( size_t interface_num, const wposition1& location,
             const seq_vector& frequencies, double de_incident,
             double de_scattered, double az_incident, double az_scattered,
             vector<double>* amplitude);

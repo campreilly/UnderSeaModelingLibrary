@@ -32,7 +32,7 @@ public:
     /**
      * Distribute an eigenverb updates to all listeners.
      */
-    void notify_eigenverb_listeners( const eigenverb& verb, size_t interface) ;
+    void notify_eigenverb_listeners( const eigenverb& verb, size_t interface_num) ;
 
     /**
      * Determines if any listeners exist

@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE( quadtree_points ) {
     srand(1) ;
     size_t N = 1000000 ;
     cout << "Populating the quadtree..." ;
-    for(size_t i=0; i<N; ++i) {
+    for(int i=0; i<N; ++i) {
         p.x = rand() % 5000 * std::pow( -1.0, i ) ;
         p.y = rand() % 5000 * std::pow( -1.0, i ) ;
         if( b.x <= p.x && p.x <= (b.x+b.width) ) {

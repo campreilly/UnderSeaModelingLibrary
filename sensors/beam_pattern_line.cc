@@ -92,5 +92,5 @@ void beam_pattern_line::directivity_index(
         di += element_div( (_n-p)*(sin(p*steer_plus)+sin(p*steer_minus)),
                                            (p*2.0*_omega*frequencies) ) ;
     }
-    noalias(*level) = 10.0*log10( _n ) - 10.0*log10( 1.0 + (1.0/_n)*di ) ;
+    noalias(*level) = 10.0*log10( (double) _n ) - 10.0*log10( 1.0 + (1.0/_n)*di ) ;
 }

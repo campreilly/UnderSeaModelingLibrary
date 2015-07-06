@@ -34,6 +34,8 @@ orientation::orientation(
  * Tilt angle/direction constructor
  */
 orientation::orientation( double angle, double direction )
+    : _heading(0.0), _pitch(0.0), _roll(0.0),
+      _axis(3,0)
 {
     compute_orientation(angle,direction) ;
 }

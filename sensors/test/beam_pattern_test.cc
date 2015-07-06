@@ -508,7 +508,7 @@ BOOST_AUTO_TEST_CASE( grid_pattern_2d_test ) {
                                 0.61, 0.75, 0.5, 0.75, 0.97,
                                 0.53, 0.75, 0.5, 0.75, 0.53 } ;
     int N = sizeof(tmp_data)/sizeof(double) ;
-    int n = sqrt(N) ;
+    int n = sqrt((double)N) ;
     seq_linear* frequencies = new seq_linear( 100.0, 100.0, n ) ;
     vector<double> freq = *frequencies ;
     seq_vector* de = new seq_linear( to_radians(-2.0), to_radians(1.0), n ) ;

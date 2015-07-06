@@ -103,12 +103,19 @@ void envelope_generator::run() {
 
 	// loop through eigenrays for each interface
 
-//	for ( size_t interface=0 ; interface < _rcv_eigenverbs->num_interfaces() ; ++interface) {
-	for ( size_t interface=0 ; interface < 1 ; ++interface) {
+	for ( size_t interface=0 ; interface < _rcv_eigenverbs->num_interfaces() ; ++interface) {
+//	for ( size_t interface=0 ; interface < 1 ; ++interface) {
 
 		BOOST_FOREACH( eigenverb verb, _rcv_eigenverbs->eigenverbs(interface) ) {
 			_eigenverb_interpolator.interpolate(verb,&rcv_verb) ;
-			BOOST_FOREACH( eigenverb src_verb, _src_eigenverbs->eigenverbs(interface) ) {
+
+			// Cull eigenverbs down with rtree.query
+			std::vector<value_pair> result_s;
+			_src_eigenverbs->query_rtree(interface, rcv_verb, result_s);
+
+			BOOST_FOREACH( value_pair const& vp, result_s ) {
+
+				eigenverb src_verb = *(vp.second);
 
 				// determine relative range and bearing between the projected Gaussians
 				// skip this combo if source peak too far away
@@ -180,7 +187,7 @@ matrix<double> envelope_generator::beam_gain(
     }
 
     // TODO Remove debugging output
-#ifdef USML_DEBUG
+#ifdef NOTUSML_DEBUG
 
     typedef boost::numeric::ublas::matrix<double> matrix;
 
