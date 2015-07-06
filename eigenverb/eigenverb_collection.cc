@@ -43,7 +43,7 @@ box eigenverb_collection::build_box(eigenverb verb, int sigma)
  * spatial box specified the rcv_eigenverb.
  * Results are return via the third parameter.
  */
-void eigenverb_collection::query_rtree(int interface, eigenverb verb,
+void eigenverb_collection::query_rtree(size_t interface, eigenverb verb,
 											  std::vector<value_pair>& result_s)
 {
 	int scaling = 1;

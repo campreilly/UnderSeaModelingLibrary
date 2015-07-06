@@ -130,7 +130,7 @@ public:
      *                             is used as the query for the rtree.
      * @param result_s        This is the result set of value_pairs in and std::vector
      */
-    void query_rtree(int interface, eigenverb verb, std::vector<value_pair>& result_s);
+	void query_rtree(size_t interface, eigenverb verb, std::vector<value_pair>& result_s);
 
     /**
      * Generates the rtrees for this collection of eigenverbs.
