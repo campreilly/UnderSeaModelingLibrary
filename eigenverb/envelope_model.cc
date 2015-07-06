@@ -182,8 +182,7 @@ bool envelope_model::compute_overlap(
     noalias(_energy) = element_div(
     		TWO_PI * src_verb_energy * rcv_verb.energy * scatter,
 			sqrt( det_sr ) ) ;
-    cout << "det_sr=" << det_sr
- 		 << " energy=" << _energy << endl ;
+    // cout << "det_sr=" << det_sr << " energy=" << _energy << endl ;
 
     // TODO Remove debugging
     //BOOST_FOREACH( double level, _energy ) {
@@ -226,9 +225,10 @@ bool envelope_model::compute_overlap(
     // TODO Remove after debugged
     // cout << "src_prod=" << src_prod
     //      << " kappa=" << kappa << endl;
+
     BOOST_FOREACH( double value, kappa ) {
         if (value < 0.0) {
-             cout    << "*** Kappa less than zero ***" << endl ;
+            // cout    << "*** Kappa less than zero ***" << endl ;
             return false;
         }
     }
@@ -236,8 +236,9 @@ bool envelope_model::compute_overlap(
 
     _energy = element_prod( _energy, exp( -0.25*element_div(kappa,det_sr) ) ) ;
 
+#ifdef DEBUG_ENVELOPE
     cout << " energy = " << _energy << endl ;
-
+#endif
     // TODO Remove debugging
     //BOOST_FOREACH( double level, _energy ) {
     //    if ( level > 1.0 ) {
