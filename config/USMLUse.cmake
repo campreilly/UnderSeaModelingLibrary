@@ -23,6 +23,8 @@ if( MSVC )
 	   -D_WIN32_WINNT=0x0501
         -D_CRT_SECURE_NO_WARNINGS
         -wd4244 -wd4996 -wd4018 -wd4251 )
+    add_definitions(                # workaround for error in
+        -wd4005 )			    # boost::geometry 1.58
     if ( BUILD_SHARED_LIBS )
         add_definitions( -DUSML_DYN_LINK )
     endif ( BUILD_SHARED_LIBS )
