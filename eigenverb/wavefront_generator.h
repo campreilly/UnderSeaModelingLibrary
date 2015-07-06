@@ -44,7 +44,7 @@ using namespace usml::types ;
  *  wavefront_generator::time_maximum = 90.0;          // Max run time seconds
  *  wavefront_generator::time_step = 0.01;             // Step time i seconds
  *  wavefront_generator::intensity_threshold = -300.0; // dB  Eigenray with intensity values below this are discarded.
- *  wavefront_generator::max_bottom = 999; 			   // Max number of bottom bounces.
+ *  wavefront_generator::max_bottom = 999;             // Max number of bottom bounces.
  *  wavefront_generator::max_surface = 999;            // Max number of surface bounces.
  * </pre>
  */

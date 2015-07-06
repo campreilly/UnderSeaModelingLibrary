@@ -438,6 +438,112 @@ BOOST_AUTO_TEST_CASE( envelope_interpolate ) {
 	}
 }
 
+/**
+ * Test the ability to insert source eigenverbs generated from eigenverb_basic
+ * test into a boost rtree and query them with an expected result.
+ *      - All four volume interfaces are inserted into one rtree.
+ *          Production code uses one rtree per interface.
+ *      - This test uses points as the keys as they are faster to create than boxes
+ *      - This test bulk inserts a collection_pairs std::list into the rtree
+ *          constructor with iterator arguments.
+ */
+
+using namespace boost::geometry;
+
+namespace bg = boost::geometry;
+namespace bgi = boost::geometry::index;
+
+typedef bg::model::point<double, 2, bg::cs::cartesian > point;
+
+typedef bg::model::box<point> box;
+
+typedef std::pair<point, eigenverb_list::iterator> value_pair;
+
+typedef bgi::rtree<value_pair, bgi::rstar<16,4> > rtree_type;
+
+BOOST_AUTO_TEST_CASE( rtree_basic ) {
+
+    cout << "=== eigenverb_test: rtree_basic ===" << endl;
+    const char* ncname = USML_TEST_DIR "/eigenverb/test/eigenverb_basic_";
+
+    int interfaces = 4;
+    eigenverb_collection collection(interfaces);
+    eigenverb_list eigenverbs;
+    eigenverb verb;
+
+    // Use local pairs to package in rtree
+    std::list<value_pair> collection_pairs;
+    eigenverb_list::iterator iter;
+
+    int i = 0;
+    // Read eigenverbs for each interface from their own disk file
+    for ( int n=0 ; n < interfaces ; ++n ) {
+        std::stringstream filename ;
+        filename << ncname << n << ".nc" ;
+        eigenverbs = collection.read_netcdf( filename.str().c_str(),n) ;
+
+        // get eigenverb values
+        for (iter = eigenverbs.begin(); iter != eigenverbs.end(); ++iter ) {
+
+            verb = *iter;
+            collection_pairs.push_back(
+                            std::make_pair(point(verb.position.latitude(),
+                            verb.position.longitude()), iter));
+            ++i;
+        }
+    }
+
+    // Use Packed constructor of rtree for fastest insertion
+    rtree_type rtree = rtree_type(collection_pairs.begin(), collection_pairs.end());
+
+    // Test query box creation
+    double q = 0.0;
+    double delta_lat = 0.0;
+    double delta_long = 0.0;
+    double latitude = 0.0;
+    double longitude = 0.0;
+
+    // meters/degree  60 nmiles/degree * 1852 meters/nmiles
+    double lat_scaler = (60.0*1852.0);
+
+    // Use receiver eigenverbs lat, long, length and width
+    // to create a bounding box.
+    double rcv_verb_length2 = 8000.0; // meters squared
+    double rcv_verb_width2 = 8000.0; // meters squared
+    double rcv_verb_latitude = 45.0;  // North
+    double rcv_verb_longitude = -45.0;// East
+
+    q = sqrt(max(rcv_verb_length2, rcv_verb_width2));
+    latitude = rcv_verb_latitude;
+    longitude = rcv_verb_longitude;
+    delta_lat = q/lat_scaler;
+    delta_long = q/(lat_scaler * cos(to_radians(latitude)));
+
+    // create a box, first point bottom left, second point upper right
+    box query_box(point( latitude - delta_lat, longitude - delta_long),
+                point(latitude + delta_lat, longitude + delta_long));
+
+    std::cout << "spatial query box:" << std::endl;
+    std::cout << bg::wkt<box>(query_box) << std::endl;
+
+    std::vector<value_pair> result_s;
+    rtree.query(bgi::within(query_box), std::back_inserter(result_s));
+
+    // display results
+    std::cout << "spatial query result:" << std::endl;
+    BOOST_CHECK_EQUAL(result_s.size(), 4);
+    if (result_s.size() != 0) {
+        BOOST_FOREACH(value_pair const& v, result_s)
+                std::cout << bg::wkt<point>(v.first) << std::endl;
+        cout << " Found " << result_s.size() << " results from " << i << " eigenverbs" << endl;
+    } else {
+        cout << " No results found " << endl;
+    }
+
+    std::cout << "=== rtree_basic: test completed! ===" << std::endl;
+
+}
+
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()

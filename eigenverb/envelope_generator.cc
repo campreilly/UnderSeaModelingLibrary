@@ -162,16 +162,21 @@ void envelope_generator::run() {
         _src_eigenverbs->write_netcdf( src_filename.str().c_str(),interface) ;
 
 #endif
+
 		BOOST_FOREACH( eigenverb verb, _rcv_eigenverbs->eigenverbs(interface) ) {
 			_eigenverb_interpolator.interpolate(verb,&rcv_verb) ;
-			BOOST_FOREACH( eigenverb src_verb, _src_eigenverbs->eigenverbs(interface) ) {
+
+			// Cull eigenverbs down with rtree.query
+			std::vector<value_pair> result_s;
+			_src_eigenverbs->query_rtree(interface, rcv_verb, result_s);
+
+			BOOST_FOREACH( value_pair const& vp, result_s ) {
+
+				eigenverb src_verb = *(vp.second);
 
 				// determine the range and bearing between the projected Gaussians
 				// normalize bearing to min distance between angles
 				// skip this combo if source peak more than 3 beam width away
-				//
-				// TODO Use quadtree to make searching through source
-				//      eigenverbs faster.
 
 			    double bearing ;
 			    const double range = rcv_verb.position.gc_range( src_verb.position, &bearing ) ;
@@ -238,7 +243,7 @@ matrix<double> envelope_generator::beam_gain(
     }
 
     // TODO Remove debugging output
-#ifdef USML_DEBUG
+#ifdef NOTUSML_DEBUG
 
     typedef boost::numeric::ublas::matrix<double> matrix;
 

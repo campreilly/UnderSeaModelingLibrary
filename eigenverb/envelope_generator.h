@@ -66,8 +66,8 @@ public:
      */
 
     envelope_generator(
-    	sensor_pair* sensor_pair,
-    	double initial_time,
+        sensor_pair* sensor_pair,
+        double initial_time,
         size_t src_freq_first,
         size_t num_azimuths ) ;
 

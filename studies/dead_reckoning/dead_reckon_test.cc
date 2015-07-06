@@ -8,7 +8,6 @@
 #include <usml/sensors/sensors.h>
 #include <usml/eigenverb/wavefront_generator.h>
 #include <list>
-#include <sys/time.h>
 #include <boost/timer.hpp>
 #include <boost/foreach.hpp>
 
@@ -197,8 +196,7 @@ private:
 
     	sensor_pair_manager* sp_manager = sensor_pair_manager::instance() ;
         fathometer_collection::fathometer_package fathometers ;
-        // TODO: add when envelopes are ready
-        // envelope_collection::envelope_package envelopes ;
+        envelope_collection::envelope_package envelopes ;
 
         // Build query for fathometers
         sensor_data_map query;
@@ -226,7 +224,6 @@ private:
     	double movement = 0.009;	   // 1 km latitude, velocity equivalent of 20 knots = ~ 97.297 sec/km
 
     	int request_id = 0;
-        boost::timer timer;
         // Sleep enough for Waveq3d to run under debugger - 6.5 sec
         boost::this_thread::sleep(boost::posix_time::milliseconds(6800));
 
@@ -243,18 +240,12 @@ private:
             pair.second = sensor;
             query.insert(pair);
 
-            cout << " Request ID = " << request_id << endl;
+//            cout << " Fathometers Request ID = " << request_id << endl;
             fathometers = sp_manager->get_fathometers(const_cast<sensor_data_map&>(query));
 
             if ( fathometers.size() > 0 ) {
                 write_fathometers(fathometers, request_id);
             }
-
-            // TODO: add when envelopes are ready
-//            envelopes = sp_manager->get_envelopes(const_cast<sensor_data_map&>(query));
-//            if ( envelopes.size() > 0 ) {
-//            	write_envelopes(envelopes, request_id);
-//            }
 
             query.erase(sensor._sensorID);
 
@@ -263,6 +254,22 @@ private:
         }
         cout << "== wait completed for fathometers ==" << endl ;
         cout << "== run matlab dead_reckon_compare.m to verify results ==" << endl ;
+
+        cout << "== wait for envelopes started ==" << endl ;
+        boost::timer timer;
+        request_id = 0;
+        envelopes = sp_manager->get_envelopes(const_cast<sensor_data_map&>(query));
+#ifdef USML_DEBUG
+        double t_time = 250.0;
+#else
+        double t_time = 6.0;
+#endif
+        while ( timer.elapsed() < t_time ) {
+            if ( envelopes.size() > 0 ) {
+                write_envelopes(envelopes, request_id);
+            }
+	    }
+        cout << "== wait for envelopes completed time elapsed " << timer.elapsed() << " ==" << endl ;
 	}
 
 	void write_fathometers( fathometer_collection::fathometer_package& fathometers, int request_id ) {
@@ -281,7 +288,7 @@ private:
             ncname_fathometers += ".nc";
             collection->write_netcdf(ncname_fathometers.c_str());
 
-            cout << "Wrote fathometers to " << ncname_fathometers << endl ;
+//            cout << "Wrote fathometers to " << ncname_fathometers << endl ;
         }
     }
 
