@@ -88,12 +88,12 @@ void eigenverb_collection::generate_rtrees() {
  * Writes the eigenverbs for an individual interface to a netcdf file.
  */
 void eigenverb_collection::write_netcdf(
-	const char* filename, size_t interface) const
+	const char* filename, size_t interface_num) const
 {
 	NcFile* nc_file = new NcFile(filename, NcFile::Replace);
-	const eigenverb_list& curr = _collection[interface];
+	const eigenverb_list& curr = _collection[interface_num];
 
-	switch ( interface ) {
+	switch ( interface_num ) {
 	case eigenverb::BOTTOM:
 		nc_file->add_att("long_name", "bottom eigenverbs");
 		break;
@@ -110,7 +110,7 @@ void eigenverb_collection::write_netcdf(
 		break;
 	default:
 		{
-			size_t layer = interface - eigenverb::VOLUME_UPPER ;
+			size_t layer = interface_num - eigenverb::VOLUME_UPPER ;
 			size_t side = layer % 2 ;
 			layer = ( layer / 2 ) + 1 ;
 			std::ostringstream oss;

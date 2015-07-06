@@ -96,17 +96,14 @@ public:
      * Adds a new eigenverb to this collection.  Make a copy of the new
      * contribution and stores the copy in its collection.
      *
-     * @param verb        Eigenverb to add to the eigenverb_collection.
-     * @param interface   Interface number of the desired list of eigenverbs.
+     * @param verb      Eigenverb to add to the eigenverb_collection.
+     * @param interface_num    Interface number of the desired list of eigenverbs.
      *                     See the class header for documentation on interpreting
      *                     this number. For some layers, you can also use the
      *                     eigenverb::interface_type.
      */
-    void add_eigenverb(const eigenverb& verb, size_t interface) {
-
-        // Add to collection
-        eigenverb_list::iterator iter;
-        iter = _collection[interface].insert(_collection[interface].end(), verb);
+    void add_eigenverb(const eigenverb& verb, size_t interface_num) {
+        _collection[interface_num].push_back(verb);
     }
 
     /**
