@@ -5,7 +5,76 @@
   </head>
   <body>
     <h1>Under Sea Modeling Library (USML) Release Notes</h1>
-    
+
+    <h2>Development Release 2.0.0dr1 - July 2015</h2>
+    <ul>
+    <li>Bugs</li>
+    <ul>
+      <li>Re-work the implementation of seq_vector and it sub-classes to allow better in ublas expressions. Fixes issues #95 and #66.
+      <li>Fixed logic error on netcdf_coards #173
+      <li>Fix memory leak in eigenray_test suite #186
+      <li>Fix boundary_lock call to scattering #210
+      <li>Fix Visual Studio 2010 compilation errors #224
+    </ul>
+    <li>Enhancements</li>
+    <ul>
+      <li>New modules to implement Eigenverb reverberation model
+      <ul>
+        <li>sensors - defines characteristics of sensors and sensor pairs
+        <li>threads - defines thread pool and mutex locking routines
+        <li>eigenverb - Gaussian beam projection of rays onto interfaces
+      </ul>
+      <li>Model improvements
+      <ul>
+        <li>Create ocean_shared class to share ocean data between threads.
+        <li>Create volumne_lock class to allow access by multiple simultaneous threads.
+        <li>Update design of seq_vector to allow them to be used as uBLAS vectors.
+        <li>Automate vector_test and matrix_test so that tester does not have to
+            visually inspect the results.
+        <li>Replace reverberation elements wave_queue class with equivalents from eigenverb module.
+        <li>Break wave_queue thresholds into their own class.
+        <li>Add the ability to interpolate eigenverbs across frequencies.
+        <li>Separate eigenverb_listener notifications into their own class.
+        <li>Have spreading_hybrid_gaussian class computee init_area for use by eigenverb.
+            It used to be that only spreading_ray did this.
+        <li>Add the ability to augment rays fans near the vertical to improve the accuracy
+            of fathometer calculations.
+      </ul>
+      <li>API Changes made to improve consistency with coding standards
+      <ul>
+        <li>eigenverbs_shared_ptr -> eigenverb_collection::reference
+        <li>envelopes_shared_ptr -> envelope_collection::reference
+        <li>proploss -> eigenray_collection
+        <li>proploss_ptr -> eigenray_collection::reference
+        <li>eigenrayListener ->	eigenray_listener
+        <li>addEigenrayListener() -> add_eigenray_listener()
+        <li>removeEigenrayListener() -> remove_eigenray_listener()
+        <li>checkEigenrayListeners() -> check_eigenray_listeners()
+        <li>notifyEigenrayListeners() -> notify_eigenray_listeners()
+        <li>setIntensityThreshold() -> intensity_threshold()
+        <li>getIntensityThreshold() -> intensity_threshold
+        <li>_eigenrayListenerVec -> eigenray_listeners
+        <li>addEigenray -> add_eigenray
+        <li>checkEigenrays -> check_eigenrays
+        <li>wave_queue::getID() and setID() -> runID()
+      </ul>
+      <li>Build process improvements
+      <ul>
+        <li>Add support for creating installation materials (*.prm, *.msi) using CPack.
+        <li>Allow optimization level zero -O0 during debug.
+        <li>Use SYSTEM option in the include_directories() method for Boost and netCDF.
+            Allows gcc in Linux to ignore warnings in Boost and NetCDF includes.
+            Does not impact Visual Studion in Windows.
+        <li>Add windows options -D_WIN32_WINNT=0x0501 and -wd4005 to silence Boost warnings.
+      </ul>
+      <li>Matlab improvements
+      <ul>
+        <li>Add routines for loading eigenverbs, fathometers, envelopes.
+        <li>Allow greatCircleDistance() to compute both range and bearing.  
+            Create unit test for greatCircleDistance().
+      </ul>
+    </ul>
+
     <h2>Release 1.0.0 - May 2015</h2>
     <ul>
 	<li>Bugs</li>
