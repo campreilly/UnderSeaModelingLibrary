@@ -136,13 +136,13 @@ void envelope_generator::run() {
 			    if ( abs(xs) > distance_threshold * rcv_verb.width ) continue ;
 
 				// compute interface scattering strength
-			    // continue if scattering strength does not meet threshold
+			    // skip this combo if scattering strength is trivial
 
-				scattering( interface,
+				if ( ! scattering( interface,
 					 rcv_verb.position, *freq,
 					 src_verb.grazing, rcv_verb.grazing,
 					 src_verb.direction, rcv_verb.direction,
-					 &scatter )  ;
+					 &scatter ) ) continue ;
 
 				// compute beam levels
 
@@ -183,7 +183,7 @@ matrix<double> envelope_generator::beam_gain(
 /**
  * Computes the broadband scattering strength for a specific interface.
  */
-void envelope_generator::scattering( size_t interface, const wposition1& location,
+bool envelope_generator::scattering( size_t interface, const wposition1& location,
 		const seq_vector& frequencies, double de_incident,
 		double de_scattered, double az_incident, double az_scattered,
 		vector<double>* amplitude)
@@ -206,4 +206,13 @@ void envelope_generator::scattering( size_t interface, const wposition1& locatio
 				amplitude) ;
 		break;
 	}
+
+	// check to see that scattering strenght is not trivial
+
+	BOOST_FOREACH (double amp, *amplitude){
+        if (amp >= intensity_threshold ) {
+            return true;
+        }
+    }
+    return true;
 }

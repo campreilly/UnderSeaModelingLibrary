@@ -134,15 +134,19 @@ private:
      * @param az_rad    Azimuthal incident angle  (radians).
      * @param orient    orientation
      */
-    matrix<double> beam_gain(sensor_params::beam_pattern_list beam_list,
-    const seq_vector* freq, double de_rad, double az_rad, orientation orient);
+    matrix<double> beam_gain( sensor_params::beam_pattern_list beam_list,
+            const seq_vector* freq, double de_rad, double az_rad,
+            orientation orient);
 
     /**
      * Computes the broadband scattering strength for a specific interface.
+     * Checks that the scattering strength is greater than the
+     * intensity_threshold.  This check allows the model to skip interfaces
+     * with trivial scattering strengths.
      *
-     * @param interface_num        Interface number of ocean component that is doing
-     *                         the scattering. See the eigenverb class header
-     *                         for documentation on interpreting this number.
+     * @param interface_num Interface number of ocean component that is doing
+     *                      the scattering. See the eigenverb class header
+     *                      for documentation on interpreting this number.
      * @param location      Location at which to compute attenuation.
      * @param frequencies   Frequencies over which to compute loss. (Hz)
      * @param de_incident   Depression incident angle (radians).
@@ -150,9 +154,9 @@ private:
      * @param az_incident   Azimuthal incident angle (radians).
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Change in ray strength in dB (output).
-     * @return true when any scattering strength is less than threshold
+     * @return              True if any scattering strength is above the threshold.
      */
-    void scattering( size_t interface_num, const wposition1& location,
+    bool scattering( size_t interface_num, const wposition1& location,
             const seq_vector& frequencies, double de_incident,
             double de_scattered, double az_incident, double az_scattered,
             vector<double>* amplitude);
