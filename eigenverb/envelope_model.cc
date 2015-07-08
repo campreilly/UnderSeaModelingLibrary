@@ -101,7 +101,6 @@ bool envelope_model::compute_overlap(
 	const double sin2alpha = sin(2.0 * alpha);
 
 	// define subset of frequency dependent terms in source
-    //
     // Although the use of const_cast<> allows us to ignore the read-only
     // nature of src_verb, we are *very careful* to not write anything to it.
 
@@ -121,7 +120,6 @@ bool envelope_model::compute_overlap(
 
     // compute the scaling of the exponential
     // equations (26) and (28) from the paper
-	// TODO find source of mystery scaling factors (0.25 * 0.5)
 
     double det_sr = 0.5 * ( 2.0 * ( src_prod + rcv_prod )
     		+ ( src_sum * rcv_sum ) - ( src_diff * rcv_diff ) * cos2alpha ) ;
@@ -193,8 +191,6 @@ void envelope_model::compute_time_series(
 		const double scale = _power[f] / _duration;
 
 		// compute Gaussian intensity as a function of time
-		//
-		// TODO Test to see if using uBLAS vector proxies to limit computation is faster (issue #189)
 
 		matrix_row< matrix<double> > intensity( _intensity, f ) ;
 

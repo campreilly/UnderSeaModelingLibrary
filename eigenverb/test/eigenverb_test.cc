@@ -94,8 +94,8 @@ BOOST_AUTO_TEST_CASE( eigenverb_basic ) {
     const char* ncname = USML_TEST_DIR "/eigenverb/test/eigenverb_basic_";
     const double time_max = 3.5;
     const double depth = 1000.0 ;
-	const double de_spacing = 5.0 ;
-	const double az_spacing = 10.0 ;
+    const double de_spacing = 5.0 ;
+    const double az_spacing = 10.0 ;
 
     // initialize propagation model
 
@@ -448,7 +448,6 @@ BOOST_AUTO_TEST_CASE( envelope_basic ) {
 	// - divides total energy by duration to estimate peak
 	// - note that (Ls2+Lr2)*(Ws2+Wr2) = 2 Ls2 Ws2 when s=r
 	// - includes extra 4 pi in denominator, based on Matlab results
-	// TODO find source of mystery scaling factors (0.25 * 0.5)
 
 	double factor = cos(angle) / c0 ;
 	double sigma2 = verb.length2 / 2.0 ;
@@ -596,7 +595,6 @@ BOOST_AUTO_TEST_CASE( envelope_interpolate ) {
 	// - divides total energy by duration to estimate peak
 	// - note that (Ls2+Lr2)*(Ws2+Wr2) = 2 Ls2 Ws2 when s=r
 	// - includes extra 4 pi in denominator, based on Matlab results
-	// TODO find source of mystery scaling factors (0.25 * 0.5)
 
 	double factor = cos(angle) / c0 ;
 	double sigma2 = src_verb.length2 / 2.0 ;

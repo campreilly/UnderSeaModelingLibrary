@@ -23,7 +23,7 @@ double envelope_generator::intensity_threshold = -300.0 ;
 double envelope_generator::distance_threshold = 6.0 ;
 
 /**
- * The _mutex for the singleton sensor_manager.
+ * The mutex for static properties.
  */
 read_write_lock envelope_generator::_property_mutex;
 
@@ -104,7 +104,6 @@ void envelope_generator::run() {
 	// loop through eigenrays for each interface
 
 	for ( size_t interface=0 ; interface < _rcv_eigenverbs->num_interfaces() ; ++interface) {
-//	for ( size_t interface=0 ; interface < 1 ; ++interface) {
 
 		BOOST_FOREACH( eigenverb verb, _rcv_eigenverbs->eigenverbs(interface) ) {
 			_eigenverb_interpolator.interpolate(verb,&rcv_verb) ;
