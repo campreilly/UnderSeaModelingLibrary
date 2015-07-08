@@ -273,8 +273,7 @@ void eigenverb_collection::write_netcdf(
 /**
  * Reads the eigenverbs for a single interface from a netcdf file.
  */
-eigenverb_list eigenverb_collection::read_netcdf(const char* filename,
-		size_t interface) {
+eigenverb_list eigenverb_collection::read_netcdf(const char* filename) {
 	// return data
 	eigenverb_list eigenverbs;
 	// Open file
@@ -282,23 +281,6 @@ eigenverb_list eigenverb_collection::read_netcdf(const char* filename,
 
 	if (!nc_file->is_valid()) {
 		cout << "Could not open file!" << endl;
-		return eigenverbs;
-	}
-
-	NcAtt* long_name_att = nc_file->get_att("long_name");
-	char* long_name;
-	long_name = long_name_att->as_string(0);
-	delete long_name_att;
-
-	if (strcmp(long_name, "bottom eigenverbs") == 0) {
-		interface = eigenverb::BOTTOM;
-	} else if (strcmp(long_name, "surface eigenverbs") == 0) {
-		interface = eigenverb::SURFACE;
-	} else if (strcmp(long_name, "upper volume eigenverbs") == 0) {
-		interface = eigenverb::VOLUME_UPPER;
-	} else if (strcmp(long_name, "upper volume eigenverbs") == 0) {
-		interface = eigenverb::VOLUME_LOWER;
-	} else {
 		return eigenverbs;
 	}
 

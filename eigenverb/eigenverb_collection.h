@@ -226,13 +226,11 @@ public:
     /**
      * Reads the eigenverbs for a single interface from a netcdf file.
      *
-     * @param filename      Filename used to store this data.
-     * @param interface     Interface number of the desired list of eigenverbs.
-     *                      See the class header for documentation interpreting
-     *                      this number.
+     * @param filename      Filename used to retrive this data.
+     *
      * @return              eigenverb_list for the interface.
      */
-    eigenverb_list read_netcdf(const char* filename, size_t interface);
+    eigenverb_list read_netcdf(const char* filename);
 
 private:
 

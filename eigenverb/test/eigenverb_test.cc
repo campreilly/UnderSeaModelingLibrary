@@ -653,7 +653,7 @@ BOOST_AUTO_TEST_CASE( rtree_basic ) {
     for ( int n=0 ; n < interfaces ; ++n ) {
         std::stringstream filename ;
         filename << ncname << n << ".nc" ;
-        eigenverbs = collection.read_netcdf( filename.str().c_str(),n) ;
+        eigenverbs = collection.read_netcdf( filename.str().c_str()) ;
 
         // get eigenverb values
         for (iter = eigenverbs.begin(); iter != eigenverbs.end(); ++iter ) {
@@ -681,12 +681,12 @@ BOOST_AUTO_TEST_CASE( rtree_basic ) {
 
     // Use receiver eigenverbs lat, long, length and width
     // to create a bounding box.
-    double rcv_verb_length2 = 8000.0; // meters squared
-    double rcv_verb_width2 = 8000.0; // meters squared
+    double rcv_verb_length = 200.0; // meters
+    double rcv_verb_width = 200.0; // meters
     double rcv_verb_latitude = 45.0;  // North
     double rcv_verb_longitude = -45.0;// East
 
-    q = sqrt(max(rcv_verb_length2, rcv_verb_width2));
+    q = max(rcv_verb_length, rcv_verb_width);
     latitude = rcv_verb_latitude;
     longitude = rcv_verb_longitude;
     delta_lat = q/lat_scaler;
@@ -704,7 +704,7 @@ BOOST_AUTO_TEST_CASE( rtree_basic ) {
 
     // display results
     std::cout << "spatial query result:" << std::endl;
-    BOOST_CHECK_EQUAL(result_s.size(), 4);
+    BOOST_CHECK_EQUAL(result_s.size(), 121);
     if (result_s.size() != 0) {
         BOOST_FOREACH(value_pair const& v, result_s)
                 std::cout << bg::wkt<point>(v.first) << std::endl;
