@@ -53,10 +53,6 @@ wave_queue::wave_queue(
         const double az_last = abs((*_source_az)(_source_az->size()-1)) ;
         _az_boundary = ( fmod(az_first+360.0, 360.0) == fmod(az_last+360.0, 360.0) ) ;
     }
-
-    _intensity_threshold = 300.0 ; //In dB
-    _max_bottom = 999 ;
-    _max_surface = 999 ;
     if ( _targets ) {
         _targets_sin_theta = sin( _targets->theta() ) ;
     }
@@ -295,7 +291,8 @@ void wave_queue::detect_caustics( size_t de, size_t az ) {
  * Detect volume boundary reflections for reverberation contributions
  */
 void wave_queue::detect_volume_scattering(size_t de, size_t az) {
-	if ( !has_eigenverb_listeners() ) return;
+	if ( ! has_eigenverb_listeners() ) return;
+	if ( above_bounce_threshold( _curr, de, az ) ) return ;
 	std::size_t n = _ocean.num_volume();
 	for (std::size_t i = 0; i < n; ++i) {
 		volume_model& layer = _ocean.volume(i);
@@ -462,8 +459,7 @@ void wave_queue::build_eigenray(
    size_t de, size_t az,
    double distance2[3][3][3] )
 {
-    if( _max_bottom < _curr->bottom(de,az) ) return ;
-    if( _max_surface < _curr->surface(de,az) ) return ;
+	if ( above_bounce_threshold( _curr, de, az ) ) return ;
     #ifdef DEBUG_EIGENRAYS_DETAIL
         //cout << "*** wave_queue::step: time=" << time() << endl ;
         wposition1 tgt( *(_curr->targets), t1, t2 ) ;
@@ -578,22 +574,9 @@ void wave_queue::build_eigenray(
             + _curr->attenuation(de,az) * dt ;
     }
 
-    // Determine if intensity is weaker than the _intensity_threshold.
-    // Note ray.intensity is a positive value.
-    // Thus if ray.intensity at any frequency is less than the _intensity_threshold
-    // complete the ray build and send to listeners; discard otherwise.
+    // determine if intensity is weaker than the intensity threshold.
 
-    bool bKeepRay = false ;
-    for ( size_t i = 0; i < ray.intensity.size(); ++i) {
-        if ( ray.intensity(i) < _intensity_threshold  ) {
-            bKeepRay = true ;
-            break ;
-        }
-    }
-
-    if (!bKeepRay) {
-        return ;
-    }
+    if ( ! above_intensity_threshold( ray.intensity ) ) return ;
 
     // estimate target D/E angle using 2nd order vector Taylor series
     // re-uses "distance2" variable to store D/E angles
@@ -1020,33 +1003,75 @@ void wave_queue::collision_location(
 }
 
 /**
- * Builds the eigenverb used in reverberation calculations
+ * Constructs an eigenverb from a collision with a boundary_model
+ * or volume_model.
  */
 void wave_queue::build_eigenverb(
     size_t de, size_t az, double dt, double grazing,
     double speed, const wposition1& position,
     const wvector1& ndirection, size_t type )
 {
-    if ( !has_eigenverb_listeners() ) return;
-    if( _max_bottom < _curr->bottom(de,az) ) return ;
-    if( _max_surface < _curr->surface(de,az) ) return ;
 	grazing = abs(grazing) ;
-	if ( _time <= 0.0 || grazing < 1e-6 ) return ;
-	if ( this->_az_boundary && az == this->_max_az ) return;
-    if ( abs(source_de(de)) > 89.9 ) return;
+	if (!has_eigenverb_listeners()
+			|| above_bounce_threshold(_curr, de, az)
+			|| _time <= 0.0 || grazing < 1e-6
+			|| (this->_az_boundary && az == this->_max_az)
+			|| abs(source_de(de)) > 89.9)
+		return;
 	#ifdef DEBUG_EIGENVERBS
-    	cout << "wave_queue::build_eigenverb() " << endl ;
+		cout << "wave_queue::build_eigenverb() " << endl ;
 	#endif
 
-	// initialize eigenverb
+	// compute size of area centered on ray
+	//   - use inc halfway to next and prev ray for arbitrary ray spacing
+	//   - wrap az-1 around to end of sequence if az=0 and _az_boundary
+    //   - otherwise assumes seq_vector::increment() handles end points
+	//   - compute average height and width such that area = height * width
+
+	const double de_angle = to_radians((*_source_de)(de)) ;
+	const double de_plus  = de_angle + 0.5 * to_radians(_source_de->increment(de)) ;
+	const double de_minus = de_angle - 0.5 * to_radians(_source_de->increment(de-1)) ;
+
+	const double az_angle = to_radians((*_source_az)(az)) ;
+	const double az_plus  = az_angle + 0.5 * to_radians(_source_az->increment(az)) ;
+	const size_t az_index = ( az == 0 && _az_boundary ) ? _max_az : az ;
+	const double az_minus = az_angle - 0.5 * to_radians(_source_az->increment(az_index-1)) ;
+
+	const double area = (sin(de_plus) - sin(de_minus)) * (az_plus - az_minus);
+	const double de_delta = de_plus - de_minus ;	// average height
+	const double az_delta = area / de_delta ;		// average width
+
+	// compute the length and width of the eigenverb
+	//   - assumes change in height and width proportional to path length
+	//   - projects Gaussian beam onto the interface
+
+	const double path_length = curr()->path_length(de,az)
+				+ curr()->sound_speed(de,az) * dt ;
+	const double sin_grazing = sin(grazing);
 
     usml::eigenverb::eigenverb verb ;
-    const size_t num_freq = _frequencies->size() ;
+	verb.length = path_length * de_delta / sin_grazing ;
+	verb.width = path_length * az_delta ;
+	verb.length2 = verb.length * verb.length ;	// compute length squared
+	verb.width2 = verb.width * verb.width ;		// compute width squared
+
+    // compute the frequency dependent total power in this eigenverb
+    //    - using attenuation along the path and initial size of beam
+	//	  - assuming that curr()->attenuation(de,az) in positive value in dB
+
+	verb.power = pow(10.0,-0.1*curr()->attenuation(de, az))
+			   * area / sin_grazing ;
+	if ( ! above_eigenverb_threshold( verb.power ) ) return ;
+
+	// compute the eigenverb direction in local tangent plane
+
+	double d,a=0.0;
+	ndirection.direction(&d,&a) ;
+	verb.direction = to_radians(a) ;
+
+	// initialize simple eigenverb fields
 
 	verb.time = _time + dt ;
-    verb.energy = vector<double>(num_freq, 1e-30) ;
-    verb.length2 = vector<double>(num_freq) ;
-    verb.width2 = vector<double>(num_freq) ;
 	verb.grazing = grazing ;
 	verb.sound_speed = speed ;
 	verb.position = position ;
@@ -1061,58 +1086,20 @@ void wave_queue::build_eigenverb(
 	verb.upper = _curr->upper(de,az) ;
 	verb.lower = _curr->lower(de,az) ;
 
-    // compute total energy in this eigenverb
-    // using reflection/absorption loss along the path
-    // and fraction of total energy at source
-
-	if( _spreading_model ) {
-        verb.energy = pow( 10.0, -0.1 * curr()->attenuation(de,az) )
-            * _spreading_model->init_area(de,az) / (4*M_PI) ;
-        if ( verb.energy(0) <= 1e-10 ) return ;
-	}
-
-    // compute the frequency dependent beam widths in DE and AZ
-    //    - multiplies the width by the spreading model's overlap factor
-    //    - sum squared distance with square of spreading factor
-    //    - projects beam onto interface using grazing angle
-
-	vector<double> spreading = TWO_PI * speed / (*verb.frequencies);
-	const double sg = sin(grazing);
-	const double overlap = 2.0 ;
-	const double path_length = curr()->path_length(de,az)
-			+ curr()->sound_speed(de,az) * dt ;
-
-	const double de_width = overlap * path_length
-			* to_radians( _source_de->increment(de) ) ;
-	noalias(verb.length2) = (spreading*spreading + de_width * de_width)
-			/ (sg * sg);
-
-	const double az_width = overlap * path_length
-			* to_radians( _source_az->increment(az) )
-			* cos( to_radians((*_source_de)(de)) ) ;
-	noalias(verb.width2) = spreading*spreading + az_width * az_width;
-
-	// compute the eigenverb direction
-
-	double d,a=0.0;
-	ndirection.direction(&d,&a) ;			// direction in local tangent plane
-	verb.direction = to_radians(a) ;
-
-	// add the eigenverb to the collection
+	// notify eigenverb listeners of this change
 
 	#ifdef DEBUG_EIGENVERBS
-		cout << "\ttype " << type << " t=" << verb.time
+		cout << "\ttype " << type
+			<< " t=" << verb.time
 			<< " de=" << to_degrees(verb.source_de)
 			<< " az=" << to_degrees(verb.source_az)
 			<< " direction=" << to_degrees(verb.direction)
 			<< " grazing=" << to_degrees(verb.grazing) << endl
-			<< "\tenergy="	<< 10.0 * log10(verb.energy)
+			<< "\tpower="	<< 10.0 * log10(verb.power)
 			<< " length=" << sqrt(verb.length2)
 			<< " width=" << sqrt(verb.width2) << endl
 			<< "\tsurface="	<< verb.surface << " bottom=" << verb.bottom
 			<< " caustic=" << verb.caustic << endl;
 	#endif
-
 	notify_eigenverb_listeners(verb, type) ;
-//	cout << "wave_queue::build_eigenverb() - done " << endl ;
 }

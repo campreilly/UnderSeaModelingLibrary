@@ -106,7 +106,6 @@ void envelope_collection::add_contribution(
 					matrix_row< matrix<double> > envelope(*_envelopes[azimuth][s][r], f);
 					envelope += src_beam(f, s) * rcv_beam(f, r) * intensity;
 				}
-				//cout << "_envelopes=" << *_envelopes[azimuth][s][r] << endl;
 			}
 		}
 	}
@@ -157,9 +156,6 @@ void envelope_collection::dead_reckon(double delta_time,
 void envelope_collection::write_netcdf(const char* filename) const {
 	NcFile* nc_file = new NcFile(filename, NcFile::Replace);
 
-	nc_file->add_att("pulse_length", _pulse_length ) ;
-	nc_file->add_att("threshold", _threshold ) ;
-
 	// dimensions
 
 	NcDim* azimuth_dim = nc_file->add_dim("azimuth", (long) _num_azimuths ) ;
@@ -170,6 +166,9 @@ void envelope_collection::write_netcdf(const char* filename) const {
 
 	// variables
 
+	NcVar* pulse_length_var = nc_file->add_var("pulse_length", ncDouble );
+	NcVar* threshold_var = nc_file->add_var("threshold", ncDouble );
+	NcVar* initial_time_var = nc_file->add_var("initial_time", ncDouble );
 	NcVar* freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
 	NcVar* time_var = nc_file->add_var("travel_time", ncDouble, time_dim);
 	NcVar* envelopes_var = nc_file->add_var("intensity", ncDouble,
@@ -177,12 +176,18 @@ void envelope_collection::write_netcdf(const char* filename) const {
 
 	// units
 
+	pulse_length_var->add_att("units", "seconds");
+	threshold_var->add_att("units", "dB");
+	initial_time_var->add_att("units", "seconds");
 	time_var->add_att("units", "seconds");
 	freq_var->add_att("units", "hertz");
 	envelopes_var->add_att("units", "dB");
 
 	// data
 
+	pulse_length_var->put( &_pulse_length ) ;
+	threshold_var->put( &_threshold ) ;
+	initial_time_var->put( &_initial_time ) ;
 	freq_var->put( _envelope_freq->data().begin(), (long) _envelope_freq->size());
 	time_var->put( _travel_time->data().begin(), (long) _travel_time->size());
 

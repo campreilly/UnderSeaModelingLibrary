@@ -18,17 +18,17 @@ eigenray_collection::eigenray_collection(
     const seq_vector& source_de,
     const seq_vector& source_az,
     double time_step,
-    const wposition* targets )
-        :
-        _targets( targets ),
-        _frequencies(frequencies.clone()),
-        _source_pos(source_pos),
-        _source_de (source_de.clone()),
-        _source_az (source_az.clone()),
-        _time_step(time_step),
-        _eigenrays( size1(), size2() ),
-        _num_eigenrays(0),
-        _loss( size1(), size2() )
+    const wposition* targets
+	) :
+	_targets( targets ),
+	_frequencies(frequencies.clone()),
+	_source_pos(source_pos),
+	_source_de (source_de.clone()),
+	_source_az (source_az.clone()),
+	_time_step(time_step),
+	_eigenrays( size1(), size2() ),
+	_num_eigenrays(0),
+	_loss( size1(), size2() )
 {
 	initialize();
 }
@@ -54,7 +54,10 @@ void eigenray_collection::initialize()
  * Compute propagation loss summed over all eigenrays.
  */
 void eigenray_collection::sum_eigenrays( bool coherent ) {
-    if( coherent ) {                                                             /// coherent signal summation
+
+	/// coherent signal summation
+
+    if( coherent ) {
         for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
             for ( size_t t2=0 ; t2 < _targets->size2() ; ++t2 ) {
 
@@ -132,7 +135,10 @@ void eigenray_collection::sum_eigenrays( bool coherent ) {
                 loss->caustic = caustic ;
             } // end target size2
         } // end target size1
-    } else {                                                                    /// incoherent signal summation
+
+    /// incoherent signal summation
+
+    } else {
         for ( size_t t1=0 ; t1 < _targets->size1() ; ++t1 ) {
             for ( size_t t2=0 ; t2 < _targets->size2() ; ++t2 ) {
 
@@ -167,7 +173,7 @@ void eigenray_collection::sum_eigenrays( bool coherent ) {
 
                             // complex pressure
 
-                            const double a = pow( 10.0, ray.intensity(f) / -10.0 ) ;        // pressure squared
+                            const double a = pow( 10.0, ray.intensity(f) / -10.0 ) ; // pressure squared
                             phasor += a ;
 
                             // other eigenray terms

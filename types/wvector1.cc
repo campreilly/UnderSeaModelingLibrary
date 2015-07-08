@@ -170,28 +170,13 @@ double wvector1::area(const wvector1& p2, const wvector1& p3,
     double c = p2.distance(p3);
     const double area1 = 0.25 * sqrt((a + b + c) * (b + c - a) * (c + a - b)
             * (a + b - c));
-    /*
-     cout << "p2-p1=(" << (p2.rho()-rho()) << "," << (p2.theta()-theta())  << "," << (p2.phi()-phi()) << ")" << endl
-     << "p3-p1=(" << (p3.rho()-rho()) << "," << (p3.theta()-theta())  << "," << (p3.phi()-phi()) << ")" << endl
-     << "p3-p2=(" << (p3.rho()-p2.rho()) << "," << (p3.theta()-p2.theta())  << "," << (p3.phi()-p2.phi()) << ")" << endl
-     << "p4-p1=(" << (p4.rho()-rho()) << "," << (p4.theta()-theta())  << "," << (p4.phi()-phi()) << ")" << endl
-     << "p3-p4=(" << (p3.rho()-p4.rho()) << "," << (p3.theta()-p4.theta())  << "," << (p3.phi()-p4.phi()) << ")" << endl
-     << " d12=" << a
-     << " d13=" << b
-     << " d23=" << c ;
-     */
+
     // compute area of triangle (this,p3,p4)
 
     a = distance(p4);
     c = p4.distance(p3);
     const double area2 = 0.25 * sqrt((a + b + c) * (b + c - a) * (c + a - b)
             * (a + b - c));
-    /*
-     cout << " d14=" << a
-     << " d43=" << c
-     << " area1=" << area1
-     << " area2=" << area2
-     << endl ;
-     */
+
     return area1 + area2;
 }

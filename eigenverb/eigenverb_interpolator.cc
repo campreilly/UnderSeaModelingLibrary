@@ -15,18 +15,14 @@ eigenverb_interpolator::eigenverb_interpolator(
 	_new_freq = new_freq;
 	const seq_vector* ax[1] = { freq };
 	_freq_size = freq->size();
-	_energy_interp = new data_grid<double, 1>(ax);
-	_length2_interp = new data_grid<double, 1>(ax);
-	_width2_interp = new data_grid<double, 1>(ax);
+	_power_interp = new data_grid<double, 1>(ax);
 }
 
 /**
  * Destroy interpolating data_grid objects.
  */
 eigenverb_interpolator::~eigenverb_interpolator() {
-	delete _energy_interp;
-	delete _length2_interp;
-	delete _width2_interp;
+	delete _power_interp;
 }
 
 /**
@@ -39,13 +35,13 @@ void eigenverb_interpolator::interpolate(
 
 	for (size_t f = 0; f < _freq_size; ++f) {
 		size_t index[1] = { f };
-		_energy_interp->data(index, verb.energy[f]);
-		_length2_interp->data(index, verb.length2[f]);
-		_width2_interp->data(index, verb.width2[f]);
+		_power_interp->data(index, verb.power[f]);
 	}
 
 	// copy terms that are not frequency dependent
 
+	new_verb->length2 = verb.length2 ;
+	new_verb->width2 = verb.width2 ;
 	new_verb->time = verb.time ;
 	new_verb->position = verb.position ;
 	new_verb->direction = verb.direction ;
@@ -63,8 +59,6 @@ void eigenverb_interpolator::interpolate(
 
 	for (size_t f = 0; f < _new_freq->size(); ++f) {
 		double location[1] = { (*_new_freq)[f] };
-		new_verb->energy[f] = _energy_interp->interpolate(location);
-		new_verb->length2[f] = _length2_interp->interpolate(location);
-		new_verb->width2[f] = _width2_interp->interpolate(location);
+		new_verb->power[f] = _power_interp->interpolate(location);
 	}
 }

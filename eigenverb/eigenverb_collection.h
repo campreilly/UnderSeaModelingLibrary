@@ -119,7 +119,7 @@ public:
      *                             is used as the query for the rtree.
      * @param result_s        This is the result set of value_pairs in and std::vector
      */
-	void query_rtree(size_t interface, eigenverb verb, std::vector<value_pair>& result_s);
+    void query_rtree(size_t interface, eigenverb verb, std::vector<value_pair>& result_s);
 
     /**
      * Generates the rtrees for this collection of eigenverbs.
@@ -137,7 +137,7 @@ public:
     /**
      * Writes the eigenverbs for an individual interface to a netcdf file.
      * There are separate variables for each eigenverb component,
-     * and each eigenverb add a row to that variable.  The energy,
+     * and each eigenverb add a row to that variable.  The power,
      * length, and width variables have a column for each frequency.
      *
      * An example of the file format is given below.
@@ -151,8 +151,8 @@ public:
      *                 travel_time:units = "seconds" ;
      *         double frequency(frequency) ;
      *                 frequency:units = "hertz" ;
-     *         double energy(eigenverbs, frequency) ;
-     *                 energy:units = "linear" ;
+     *         double power(eigenverbs, frequency) ;
+     *                 power:units = "linear" ;
      *         double length(eigenverbs, frequency) ;
      *                 length:units = "meters" ;
      *         double width(eigenverbs, frequency) ;
@@ -204,7 +204,7 @@ public:
      *
      *  frequency = 2000, 4000 ;
      *
-     *  energy =
+     *  power =
      *   7.37605571805747e-05, 7.37605571805747e-05,
      *   7.37605571805747e-05, 7.37605571805747e-05,
      *   etc...
@@ -226,13 +226,11 @@ public:
     /**
      * Reads the eigenverbs for a single interface from a netcdf file.
      *
-     * @param filename      Filename used to store this data.
-     * @param interface     Interface number of the desired list of eigenverbs.
-     *                      See the class header for documentation interpreting
-     *                      this number.
+     * @param filename      Filename used to retrive this data.
+     *
      * @return              eigenverb_list for the interface.
      */
-    eigenverb_list read_netcdf(const char* filename, size_t interface);
+    eigenverb_list read_netcdf(const char* filename);
 
 private:
 
@@ -254,6 +252,7 @@ private:
      * Boolean to determine if the rtree have all ready been generated.
      */
     bool rtrees_ready;
+
     /**
      * Static value for scaling latitudes for rtrees.
      */
