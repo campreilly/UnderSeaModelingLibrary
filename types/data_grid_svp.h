@@ -54,14 +54,9 @@ class USML_DECLSPEC data_grid_svp: public data_grid<double, 3> {
             double slope_1, slope_2;
 
 
-            if (interp_type(0) != GRID_INTERP_PCHIP) {
-                interp_type(0, GRID_INTERP_PCHIP);
-            }
-            if ((interp_type(1) != GRID_INTERP_LINEAR)
-                    || (interp_type(1) != GRID_INTERP_LINEAR)) {
-                interp_type(1, GRID_INTERP_LINEAR);
-                interp_type(2, GRID_INTERP_LINEAR);
-            }
+			interp_type(0, GRID_INTERP_PCHIP);
+			interp_type(1, GRID_INTERP_LINEAR);
+			interp_type(2, GRID_INTERP_LINEAR);
             derv_z = new double**[_kzmax + 1u];
             for (int i = 0; i < _kzmax + 1u; ++i) {
                 derv_z[i] = new double*[_kxmax + 1u];

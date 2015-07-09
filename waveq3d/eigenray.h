@@ -90,6 +90,7 @@ struct eigenray {
      * Number of lower vertices encountered along this path.
      */
     int lower ;
+
 };
 
 /**
