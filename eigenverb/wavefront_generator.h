@@ -157,7 +157,7 @@ private:
      */
     wavefront_generator();
 
-     /** Mutex to lock multiple properties at once. */
+    /** Mutex to lock multiple properties at once. */
     read_write_lock _lock ;
 
     /** Set to true when WaveQ3D propagation model task complete. */
@@ -201,7 +201,7 @@ private:
     /** Shared Pointer to the OceanModel. */
     shared_ptr<ocean_model> _ocean;
 
-    /** Pointer to the sensor_listener. */
+    /** Pointer to the wavefront_listener. */
     wavefront_listener* _wavefront_listener;
 };
 

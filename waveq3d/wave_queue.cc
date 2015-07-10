@@ -537,13 +537,8 @@ void wave_queue::build_eigenray(
     ray.surface     = _curr->surface(de,az) ;
     ray.bottom      = _curr->bottom(de,az) ;
     ray.caustic     = _curr->caustic(de,az) ;
-<<<<<<< HEAD
-    ray.upper     	= _curr->upper(de,az) ;
-    ray.lower     	= _curr->lower(de,az) ;
-=======
     ray.upper       = _curr->upper(de,az) ;
     ray.lower       = _curr->lower(de,az) ;
->>>>>>> refs/remotes/origin/release1.0
     ray.phase       = _curr->phase(de,az) ;
 
     // compute spreading components of intensity
