@@ -21,33 +21,33 @@ using namespace usml::waveq3d;
  * Writes wavefronts to simple_wedge_wavefront.nc and eigenrays to simple_wedge_eigenray.
  */
 int main(int argc, char* argv[]) {
-    const double slope = to_radians(20.0) ;	  // bottom slope (rad)
-	  const double deg2m = 1852.0 * 60.0 ;
-	  const double range = 4000.0 / deg2m ;		  // source range along ocean surface (deg)
-	  const double depth = 10.0 / deg2m ;		    // source depth (m)
-	  const double cross_max = 4000.0 / deg2m ;  // maximum cross range (deg)
-	  const double cross_inc = 1000.0 / deg2m ;	// cross range increment (deg)
-	  const double time_step = 0.05 ;				    // propagation time step (sec)
-	  const double time_max = 4.0 ;		          // maximum propagation time (sec)
-    const char* nc_wavefront = USML_STUDIES_DIR "/simple_wedge/simple_wedge_wavefront.nc";
-    const char* nc_eigenray = USML_STUDIES_DIR "/simple_wedge/simple_wedge_eigenray.nc";
+	const double slope = to_radians(-2.86) ;	// bottom slope (rad)
+	const double deg2m = 1852.0 * 60.0 ;		// convert lat/long to meters
+	const double range = 4000.0 / deg2m ; 		// source range along ocean surface (deg)
+	const double depth = -100.0 ;				// source depth (m)
+	const double cross_max = 4000.0 / deg2m ; 	// maximum cross range (deg)
+	const double cross_inc = 1000.0 / deg2m ; 	// cross range increment (deg)
+	const double time_step = 0.01 ;				// propagation time step (sec)
+	const double time_max = 3.0 ;				// maximum propagation time (sec)
+	const char* nc_wavefront = USML_STUDIES_DIR "/simple_wedge/simple_wedge_wavefront.nc";
+	const char* nc_eigenray = USML_STUDIES_DIR "/simple_wedge/simple_wedge_eigenray.nc";
 
     // define ocean characteristics
 
-    profile_model* profile = new profile_linear(1500.0);
-    profile->attenuation(new attenuation_constant(0.0));
+    profile_model* profile = new profile_linear(
+    		1500.0, new attenuation_constant(0.0) );
     boundary_model* surface = new boundary_flat();
     boundary_model* bottom = new boundary_slope(
-    		wposition1(0.0,0.0), 0.0, -slope, 0.0,
-    		new reflect_loss_constant(1.0) );
+    		wposition1(0.0,0.0), 0.0, slope, 0.0,
+    		new reflect_loss_constant(0.0) );
     ocean_model ocean(surface, bottom, profile);
 
     // define source characteristics
 
     seq_linear freq( 2000.0, 1.0, 1 ) ;	// 2000 Hz
-    wposition1 source( range, 0.0, -depth ) ;
+    wposition1 source( range, 0.0, depth ) ;
     seq_rayfan de( -90.0, 90.0, 181 ) ;
-    seq_linear az( 0.0, 15.0, 180.0 ) ;
+    seq_linear az( 88.0, 0.1, 140.0 ) ;
 
     // define receiver characteristics
 
@@ -80,5 +80,6 @@ int main(int argc, char* argv[]) {
     cout << "writing eigenrays to " << nc_eigenray << endl;
     loss.write_netcdf(nc_eigenray);
 
+    cout << "test complete" << endl ;
     return 0;
 }
