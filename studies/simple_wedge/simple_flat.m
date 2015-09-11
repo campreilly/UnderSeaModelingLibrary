@@ -50,7 +50,7 @@ for n = -nmax:nmax          % loop over number of bottom bounces
         % compute complex pressure contribution
 
         pressure = pressure + ...
-            (-1)^m * exp( 1i * wave_number .* R ) ./ R ;
+            abs( (-1)^m * exp( 1i * wave_number .* R ) ./ R ).^2;
     end
 end
 

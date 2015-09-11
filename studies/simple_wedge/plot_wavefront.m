@@ -14,17 +14,17 @@ wlat = squeeze(wavefront.latitude(:,:,az_index)) * deg2km ;
 wlng = squeeze(wavefront.longitude(:,:,az_index)) * deg2km ;
 walt = squeeze(wavefront.altitude(:,:,az_index))  ;
 
-xtarget  = 1:1:4 ;
-ytarget = 4 * ones(size(xtarget)) ;
+xtarget  = 0.1:0.1:5 ;
+ytarget = zeros(size(xtarget)) ;
 ztarget = -100.0 * ones(size(xtarget)) ;
 
 figure;
-plot3( wlng, wlat, walt, ...
+plot3( wlng, wlat, walt, 'k-', ...
        xtarget, ytarget, ztarget, 'ko' ) ;
 xlabel('Cross Slope Range (km)');
 ylabel('Down Slope Range (km)');
 zlabel('Depth (m)');
-view(0,0);
+view(0,90);
 
 %% plot horizontal slice through wavefront at DE=-10 launch angle
 
@@ -34,9 +34,21 @@ wlat = squeeze(wavefront.latitude(:,de_index,:)) * deg2km ;
 walt = squeeze(wavefront.altitude(:,de_index,:)) ;
 
 figure;
-plot3( wlng, wlat, walt, ...
+[p,m] = min(abs( wavefront.source_az - 135 )) ;
+plot3( wlng(:,m), wlat(:,m), walt(:,m), 'k-') ;
+xlabel('Cross Slope Range (km)');
+ylabel('Down Slope Range (km)');
+zlabel('Depth (m)');
+view(-50,75);
+
+figure;
+m = 1:20:length(wlng(1,:));
+n = length(wlng(:,1)):-10:0 ;
+plot3( wlng(:,m), wlat(:,m), walt(:,m), 'k-', ...
+       wlng(n,m)', wlat(n,m)', walt(n,m)', 'k:', ...
        xtarget, ytarget, ztarget, 'ko' ) ;
 xlabel('Cross Slope Range (km)');
 ylabel('Down Slope Range (km)');
 zlabel('Depth (m)');
 view(0,90);
+

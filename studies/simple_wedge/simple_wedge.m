@@ -65,7 +65,7 @@ for n = -nmax:nmax          % loop over number of bottom bounces
 
             % compute complex pressure contribution
             
-            contribution = (-1).^m * exp( 1i * wave_number .* R ) ./ R ;
+            contribution = abs( (-1).^m * exp( 1i * wave_number .* R ) ./ R ).^2 ;
             pressure = pressure + contribution ;
             
             % add contribution to eigenray list
@@ -74,7 +74,7 @@ for n = -nmax:nmax          % loop over number of bottom bounces
                 n_list = n .* pones ; n_list = n_list(:) ;
                 m_list = m .* pones ; m_list = m_list(:) ;
                 table = [ n_list m_list range_list angle_list/d2r cross_list ...
-                    R(:) theta(:)/d2r phi(:)/d2r 20*log10(abs(contribution(:))) ] ;
+                    R(:) theta(:)/d2r phi(:)/d2r 10*log10(abs(contribution(:))) ] ;
                 eigenrays = [ eigenrays ; table ] ;
             end
         end
