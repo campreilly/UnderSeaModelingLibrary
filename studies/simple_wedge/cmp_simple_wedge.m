@@ -32,22 +32,23 @@ angle_wedge = 2.86 * pi / 180.0 ;   % wedge angle (ASA value)
 range_src = sqrt(4000^2+100^2) ;    % source slant range from apex (ASA value)
 angle_src = angle_wedge / 2.0 ;     % source half way to bottom (ASA value)
 range_rcv = range_src ;             % receiver angle matches source
-cross_rcv = 100:100:5000 ;          % distance across slope
+cross_rcv = 100:100:50000 ;          % distance across slope
 angle_rcv = angle_src ;             % receiver angle matches source
+coherent  = false ;
 
 %% compute wedge transmission loss
 
 [ pressure, eigenrays ] = simple_wedge( wave_number, angle_wedge, ...
-    range_rcv, angle_rcv, cross_rcv, range_src, angle_src, 5 ) ;
+    range_rcv, angle_rcv, cross_rcv, range_src, angle_src, coherent ) ;
 wedge = 10 * log10( abs(pressure) ) ;
 eigenrays(:,1:2) = abs( eigenrays(:,1:2) ) ;
 eigenrays(:,6) = eigenrays(:,6) / sound_speed ;
 csvwrite('cmp_simple_wedge.csv',eigenrays) ;
 
-%% compute flat bottom transmission loss with 20logR removed
+%% compute flat bottom transmission loss
 
 pressure = simple_flat( wave_number, angle_wedge, ...
-    range_rcv, angle_rcv, cross_rcv, range_src, angle_src  ) ;
+    range_rcv, angle_rcv, cross_rcv, range_src, angle_src, coherent ) ;
 flat = 10 * log10( abs(pressure) ) ;
 
 %% load WaveQ3D results
@@ -82,9 +83,9 @@ h = plot( cross_rcv/1e3, flat, 'k:', ...
           wq_range/1e3, wq_level, 'k-', ...
           'LineWidth', 1 ) ;
 grid;
-xlabel('Range (km)');
-ylabel('Transmission Loss (dB)');
+xlabel('Cross Slope Range (km)');
+ylabel('Incoherent Transmission Loss (dB)');
 title(sprintf('%.0f Hz cross-slope',freq));
-% set(gca,'YLim',[-70 -40]);
-set(gca,'XLim',[0 5]);
+set(gca,'YLim',[-80 -40]);
+set(gca,'XLim',[0 50]);
 legend('Flat Bottom','2.86^o Wedge','WaveQ3D')

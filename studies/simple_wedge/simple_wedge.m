@@ -14,22 +14,31 @@
 %                 vertical source/origin plane (m)
 % * range_src   = slant range of source from the wedge apex (m)
 % * angle_src   = angle of source image down from the ocean surface (rad)
+% * coherent    = compute coherent results if true, incoherent if false
+%                 (optional)
 % * nmax        = maximum number of bottom bounces (optional)
 %
 %% Outputs
 %
-% * pressure    = complex pressure at each receiver
-%
-function [ pressure, eigenrays ] = simple_wedge( wave_number, angle_wedge, ...
-    range_rcv, angle_rcv, cross_rcv, range_src, angle_src, nmax )
+% * intensity   = acoustic intensity at each receiver
+% * eigenrays   = eigenray table for storage in *.csv file
+%%
+function [ intensity, eigenrays ] = simple_wedge( wave_number, angle_wedge, ...
+    range_rcv, angle_rcv, cross_rcv, range_src, angle_src, coherent, nmax )
 
-% define maximum number of bottom bounces
+%% define coherence of solution
 
 if ( nargin < 8 )
+    coherent = true ;
+end
+
+%% define maximum number of bottom bounces
+
+if ( nargin < 9 )
     nmax = ceil( pi / angle_wedge ) ;
 end
 
-% allocate memory for output
+%% allocate memory for output
 
 d2r = pi / 180 ;
 pressure = zeros(size( range_rcv .* angle_rcv .* cross_rcv )) ;
@@ -41,7 +50,7 @@ if ( nargout >= 2 )
     eigenrays = [] ;
 end
 
-% loop through contributions for each source image
+%% loop through contributions for each source image
 
 for n = -nmax:nmax          % loop over number of bottom bounces
     for m = (n-1):n         % loop over number of surface bounces
@@ -65,7 +74,10 @@ for n = -nmax:nmax          % loop over number of bottom bounces
 
             % compute complex pressure contribution
             
-            contribution = abs( (-1).^m * exp( 1i * wave_number .* R ) ./ R ).^2 ;
+            contribution = (-1).^m * exp( 1i * wave_number .* R ) ./ R ;
+            if ( ~coherent ) 
+                contribution = abs(contribution).^2 ;
+            end
             pressure = pressure + contribution ;
             
             % add contribution to eigenray list
@@ -74,11 +86,19 @@ for n = -nmax:nmax          % loop over number of bottom bounces
                 n_list = n .* pones ; n_list = n_list(:) ;
                 m_list = m .* pones ; m_list = m_list(:) ;
                 table = [ n_list m_list range_list angle_list/d2r cross_list ...
-                    R(:) theta(:)/d2r phi(:)/d2r 10*log10(abs(contribution(:))) ] ;
+                    R(:) theta(:)/d2r phi(:)/d2r -20*log10(R(:)) ] ;
                 eigenrays = [ eigenrays ; table ] ;
             end
         end
     end
+end
+
+%% convert pressure to intensity
+
+if ( coherent ) 
+    intensity = abs(pressure).^2 ;
+else
+    intensity = pressure ;
 end
 
 end

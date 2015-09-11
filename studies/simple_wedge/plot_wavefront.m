@@ -40,15 +40,21 @@ xlabel('Cross Slope Range (km)');
 ylabel('Down Slope Range (km)');
 zlabel('Depth (m)');
 view(-50,75);
+% set(gca,'XLim',[0 8]);
+% set(gca,'YLim',[-4 0]);
 
 figure;
 m = 1:20:length(wlng(1,:));
 n = length(wlng(:,1)):-10:0 ;
-plot3( wlng(:,m), wlat(:,m), walt(:,m), 'k-', ...
+h = plot3( wlng(:,m), wlat(:,m), walt(:,m), 'k-', ...
        wlng(n,m)', wlat(n,m)', walt(n,m)', 'k:', ...
        xtarget, ytarget, ztarget, 'ko' ) ;
 xlabel('Cross Slope Range (km)');
 ylabel('Down Slope Range (km)');
 zlabel('Depth (m)');
 view(0,90);
+% set(gca,'XLim',[0 8]);
+% set(gca,'YLim',[-4 4]);
+entries = [ h(1) h(1+length(m)) h(1+length(m)+length(n)) ] ;
+legend(entries,'ray paths','wavefronts','receivers','Location','NorthWest');
 
