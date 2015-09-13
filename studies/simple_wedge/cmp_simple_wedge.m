@@ -28,11 +28,11 @@ clear ; close all
 freq = 2000 ;                       % frequency in Hz (Pedersen)
 sound_speed = 1500 ;                % speed of sound in water (ASA value)
 wave_number = 2 * pi * freq / sound_speed ;
-angle_wedge = 2.86 * pi / 180.0 ;   % wedge angle (ASA value)
-range_src = sqrt(4000^2+100^2) ;    % source slant range from apex (ASA value)
+angle_wedge = 21.0375 * pi/180.0 ;  % wedge angle (ASA value)
+range_src = sqrt(520^2+100^2) ;     % source slant range from apex (ASA value)
 angle_src = angle_wedge / 2.0 ;     % source half way to bottom (ASA value)
 range_rcv = range_src ;             % receiver angle matches source
-cross_rcv = 100:100:50000 ;          % distance across slope
+cross_rcv = 10:10:4000 ;            % distance across slope
 angle_rcv = angle_src ;             % receiver angle matches source
 coherent  = false ;
 
@@ -82,10 +82,14 @@ h = plot( cross_rcv/1e3, flat, 'k:', ...
           cross_rcv/1e3, wedge, 'k-.', ...
           wq_range/1e3, wq_level, 'k-', ...
           'LineWidth', 1 ) ;
+% h = plot( cross_rcv/1e3, flat, ...
+%           cross_rcv/1e3, wedge, ...
+%           wq_range/1e3, wq_level, ...
+%           'LineWidth', 1 ) ;
 grid;
 xlabel('Cross Slope Range (km)');
 ylabel('Incoherent Transmission Loss (dB)');
-title(sprintf('%.0f Hz cross-slope',freq));
-set(gca,'YLim',[-80 -40]);
-set(gca,'XLim',[0 50]);
-legend('Flat Bottom','2.86^o Wedge','WaveQ3D')
+title(sprintf('%.0f Hz',freq));
+set(gca,'YLim',[-70 -30]);
+set(gca,'XLim',[0 4]);
+legend('Flat Bottom','21^o Wedge','WaveQ3D')
