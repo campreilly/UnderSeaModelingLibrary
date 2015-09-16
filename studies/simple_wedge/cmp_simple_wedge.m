@@ -28,11 +28,13 @@ clear ; close all
 freq = 2000 ;                       % frequency in Hz (Pedersen)
 sound_speed = 1500 ;                % speed of sound in water (ASA value)
 wave_number = 2 * pi * freq / sound_speed ;
-angle_wedge = 21.0375 * pi/180.0 ;  % wedge angle (ASA value)
-range_src = sqrt(520^2+100^2) ;     % source slant range from apex (ASA value)
-angle_src = angle_wedge / 2.0 ;     % source half way to bottom (ASA value)
+angle_wedge = 21.0 * pi/180.0 ;     % wedge angle (radians)
+range_src = 520.0 ;                 % source horz range from apex (m)
+depth_src = 100 ;                   % source depth below surface
+range_src = sqrt(range_src^2+depth_src^2) ; % slant range from apex (m)
+angle_src = atan(depth_src/range_src) ;     % source angle from surface
 range_rcv = range_src ;             % receiver angle matches source
-cross_rcv = 10:10:4000 ;            % distance across slope
+cross_rcv = 10:10:10000 ;            % distance across slope
 angle_rcv = angle_src ;             % receiver angle matches source
 coherent  = false ;
 
@@ -78,18 +80,18 @@ csvwrite('simple_wedge_eigenray.csv',table) ;
 %% plot results
 
 figure;
-h = plot( cross_rcv/1e3, flat, 'k:', ...
-          cross_rcv/1e3, wedge, 'k-.', ...
-          wq_range/1e3, wq_level, 'k-', ...
-          'LineWidth', 1 ) ;
-% h = plot( cross_rcv/1e3, flat, ...
-%           cross_rcv/1e3, wedge, ...
-%           wq_range/1e3, wq_level, ...
+% h = plot( cross_rcv/1e3, flat, 'k:', ...
+%           cross_rcv/1e3, wedge, 'k-.', ...
+%           wq_range/1e3, wq_level, 'k-', ...
 %           'LineWidth', 1 ) ;
+h = plot( cross_rcv/1e3, flat, ...
+          cross_rcv/1e3, wedge, ...
+          wq_range/1e3, wq_level, ...
+          'LineWidth', 1 ) ;
 grid;
 xlabel('Cross Slope Range (km)');
 ylabel('Incoherent Transmission Loss (dB)');
-title(sprintf('%.0f Hz',freq));
+title(sprintf('%.0f Hz %.2f^o wedge',freq,angle_wedge*180/pi));
 set(gca,'YLim',[-70 -30]);
-set(gca,'XLim',[0 4]);
-legend('Flat Bottom','21^o Wedge','WaveQ3D')
+set(gca,'XLim',[0 5]);
+legend('Flat Bottom','3-D Wedge','WaveQ3D')
