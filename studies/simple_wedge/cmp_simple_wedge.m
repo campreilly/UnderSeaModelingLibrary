@@ -98,7 +98,7 @@ h = plot( cross_rcv/1e3, flat, 'k:', ...
 grid;
 xlabel('Cross Slope Range (km)');
 ylabel('Transmission Loss (dB)');
-title(sprintf('%.0f Hz %.2f^o wedge',freq,angle_wedge*180/pi));
+% title(sprintf('%.0f Hz %.2f^o wedge',freq,angle_wedge*180/pi));
 set(gca,'YLim',[-70 -30]);
 set(gca,'XLim',[0 5]);
-legend('Flat Bottom','3-D Wedge','CASS/GRAB','WaveQ3D')
+legend('Flat Bottom','3-D Wedge','GRAB','New')
