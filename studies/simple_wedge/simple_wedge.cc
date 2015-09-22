@@ -13,22 +13,23 @@ using namespace usml::waveq3d;
  * <pre>
  * profile:     constant 1500 m/s, no attenuation, round earth
  * surface:     no reflection loss
- * bottom:      2.86 degree slope, north is down, no reflection loss
- * source:      2000 Hz, 4000 meter from apex, halfway down water column
- * receiver:    0-30 km across slope, same down range as source
+ * bottom:      21 degree slope, 200 meter deep at source,
+ *              north is down, no reflection loss
+ * source:      2000 Hz, 100 m down
+ * receiver:    0-4 km across slope, same down range as source
  * </pre>
  *
  * Writes wavefronts to simple_wedge_wavefront.nc and eigenrays to simple_wedge_eigenray.
  */
 int main(int argc, char* argv[]) {
-    const double slope = to_radians(-2.86) ;    // bottom slope (rad)
+    const double slope = to_radians(-21.0) ;    // bottom slope (rad)
     const double deg2m = 1852.0 * 60.0 ;        // convert lat/long to meters
     const double depth = -100.0 ;               // source depth (m)
-    const double cross_inc = 100.0 / deg2m ;     // cross range increment (deg)
-    const double cross_min = 100.0 / deg2m ;    // minimum cross range (deg)
-    const double cross_max = 50000.0 / deg2m ;   // maximum cross range (deg)
-    const double time_step = 0.05 ;             // propagation time step (sec)
-    const double time_max = 35.0 ;             // maximum propagation time (sec)
+    const double cross_inc = 10.0 / deg2m ;     // cross range increment (deg)
+    const double cross_min = 50.0 / deg2m ;     // minimum cross range (deg)
+    const double cross_max = 10000.0 / deg2m ;  // maximum cross range (deg)
+    const double time_step = 0.01 ;             // propagation time step (sec)
+    const double time_max = 7.0 ;               // maximum propagation time (sec)
     const char* nc_wavefront = USML_STUDIES_DIR "/simple_wedge/simple_wedge_wavefront.nc";
     const char* nc_eigenray = USML_STUDIES_DIR "/simple_wedge/simple_wedge_eigenray.nc";
 
@@ -36,7 +37,6 @@ int main(int argc, char* argv[]) {
 
     profile_model* profile = new profile_linear(
             1500.0, new attenuation_constant(0.0) );
-    profile->flat_earth(true);
     boundary_model* surface = new boundary_flat();
     boundary_model* bottom = new boundary_slope(
             wposition1(0.0,0.0), 200.0, slope, 0.0,
@@ -47,8 +47,8 @@ int main(int argc, char* argv[]) {
 
     seq_linear freq(2000.0, 1.0, 1); // 2000 Hz
     wposition1 source(0.0, 0.0, depth);
-    seq_rayfan de(-90.0, 90.0, 181);
-    seq_linear az(75.0, 5.0, 179.0);
+    seq_linear de(-90.0, 1.0, 90.0);
+    seq_linear az(75.0, 1.0, 179.0);
 
     // define receiver characteristics
 
