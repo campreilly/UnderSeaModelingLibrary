@@ -9,7 +9,9 @@ clear all ; close all
 % Note that reflect_loss_rayleigh() does not implement the weak, depth 
 % dependent, shear in slit, sand, and gravel.  
 
-[data,desc] = xlsread('rayleigh_sediments.csv');
+sheet=importdata('rayleigh_sediments.csv',',');
+data = sheet.data ;
+desc = sheet.colheaders ;
 N = length(data(1,:)) ;
 figure ;
 h = plot( data(:,1), data(:,2:N), 'LineWidth', 1.5 ) ;
@@ -30,7 +32,9 @@ print -djpeg rayleigh_sediments.jpg
 
 % case a is loss vs compression speed (d=2, a=0.5)
 
-[data,desc] = xlsread('rayleigh_test_a.csv');
+sheet=importdata('rayleigh_test_a.csv',',');
+data = sheet.data ;
+desc = sheet.colheaders ;
 N = length(data(1,:)) ;
 figure ;
 h = plot( data(:,1), data(:,2:N), 'LineWidth', 1.5 ) ;
@@ -45,7 +49,9 @@ print -djpeg rayleigh_test_a.jpg
 
 % case b is loss vs attenuation (d=2, cp=1600)
 
-[data,desc] = xlsread('rayleigh_test_b.csv');
+sheet=importdata('rayleigh_test_b.csv',',');
+data = sheet.data ;
+desc = sheet.colheaders ;
 N = length(data(1,:)) ;
 figure ;
 h = plot( data(:,1), data(:,2:N), 'LineWidth', 1.5 ) ;
@@ -60,7 +66,9 @@ print -djpeg rayleigh_test_b.jpg
 
 % case c is loss vs density (cp=1600, a=0.5)
 
-[data,desc] = xlsread('rayleigh_test_c.csv');
+sheet=importdata('rayleigh_test_c.csv',',');
+data = sheet.data ;
+desc = sheet.colheaders ;
 N = length(data(1,:)) ;
 figure ;
 h = plot( data(:,1), data(:,2:N), 'LineWidth', 1.5 ) ;
@@ -75,7 +83,9 @@ print -djpeg rayleigh_test_c.jpg
 
 % case d is loss vs shear speed (d=2, cp=1600, a=0.5)
 
-[data,desc] = xlsread('rayleigh_test_d.csv');
+sheet=importdata('rayleigh_test_d.csv',',');
+data = sheet.data ;
+desc = sheet.colheaders ;
 N = length(data(1,:)) ;
 figure ;
 h = plot( data(:,1), data(:,2:N), 'LineWidth', 1.5 ) ;

@@ -16,7 +16,8 @@ xscale = [range(1) range(end)] ;
 
 % compare propagation loss data to FFP
 
-[data,desc] = xlsread('ffp_n2deep.csv');
+sheet=importdata('ffp_n2deep.csv',',');
+data = sheet ;
 ffp = interp1( data(:,1)'/1e3, data(:,2)', range )' ;
 n = find( ~isnan(ffp) ) ;
 rms = [
@@ -31,7 +32,7 @@ a = corrcoef( ffp(n), loss_0500.intensity(n) ) ; cross(3,1) = a(1,2).^2 ;
 a = corrcoef( ffp(n), loss_0250.intensity(n) ) ; cross(4,1) = a(1,2).^2 ;
 a = corrcoef( ffp(n), loss_0125.intensity(n) ) ; cross(5,1) = a(1,2).^2 ;
 table = [ rms cross*100 ] 
-clear data desc
+clear data
 
 % compare coherent TL estimates for all D/E increments
 

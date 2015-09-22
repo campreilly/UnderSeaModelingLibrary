@@ -20,7 +20,8 @@ clear all ; close all
 % propagate up a flat slope
 % creates a 2 degree increase in grazing angle for each reflection
 
-[data,desc] = xlsread('reflect_slope_test.csv');
+sheet=importdata('reflect_slope_test.csv',',');
+data = sheet.data ;
 dt = ( data(2,1) - data(1,1) ) * 1000.0 ;
 
 figure ;
@@ -33,7 +34,8 @@ print -deps reflect_slope_test
 
 % propagate over a gridded bottom
 
-[data,desc] = xlsread('reflect_grid_test.csv');
+sheet=importdata('reflect_grid_test.csv',',');
+data = sheet.data ;
 dt = ( data(2,1) - data(1,1) ) * 1000.0 ;
 
 figure ;

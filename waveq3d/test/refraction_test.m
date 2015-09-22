@@ -4,7 +4,10 @@ clear ; close all
 
 % plot great circle paths
 
-[data,desc] = xlsread('refraction_great_circle.csv');
+sheet=importdata('refraction_great_circle.csv',',');
+data = sheet.data ;
+desc = sheet.colheaders ;
+
 [N,M]=size(data);
 n=2:4:M; 
 m=3:4:M;
@@ -25,7 +28,9 @@ print -deps refraction_great_circle.eps
 % Compare the model's ray refraction accuracy to the 
 % analytic solution for a linear profile. 
 
-[data,desc] = xlsread('refraction_linear.csv');
+sheet=importdata('refraction_linear.csv',',');
+data = sheet.data ;
+
 dt = ( data(2,1) - data(1,1) ) * 1000.0 ;
 R = data(1,2) + 1000 ;
 range = data(:,6) / 1e3 ;
@@ -47,7 +52,9 @@ print -deps refraction_linear.eps
 % Compare the model's ray refraction accuracy to the 
 % analytic solution for a n^2 linear profile. 
 
-[data,desc] = xlsread('refraction_n2_linear.csv');
+sheet=importdata('refraction_n2_linear.csv',',');
+data = sheet.data ;
+
 dt = ( data(2,1) - data(1,1) ) * 1000.0 ;
 R = data(1,2) + 1000 ;
 range = data(:,6) / 1e3 ;
@@ -96,7 +103,8 @@ print -deps refraction_munk_range_wave.eps
 % load Munk error spreadsheet and plot errors
 
 clear
-[data,desc] = xlsread('refraction_munk_range.csv');
+sheet=importdata('refraction_munk_range.csv',',');
+data = sheet.data ;
 [N,M]=size(data);
 
 [p,n] = max(abs(data(:,5))) ;
@@ -156,7 +164,8 @@ print -deps refraction_pedersen_range_wave.eps
 % load Pedersen error spreadsheet and plot errors
 
 clear
-[data,desc] = xlsread('refraction_pedersen_range.csv');
+sheet=importdata('refraction_pedersen_range.csv',',');
+data = sheet.data ;
 [N,M]=size(data);
 
 [p,n] = max(abs(data(:,5))) ;
