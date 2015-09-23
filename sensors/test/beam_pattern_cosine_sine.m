@@ -65,7 +65,8 @@ ylabel('North(+)/South(-)') ;
 zlabel('Up') ;
 grid on ;
 title(sprintf('Cosine Beam Pattern, DI: %f', DI_cosine)) ;
-data = xlsread('beam_pattern_cosine.csv');
+
+data=importdata('beam_pattern_cosine.csv',',');
 db = 20.0 * log10( abs(data) ) ;
 db = db + 30 ;
 m = find( db < 0 ) ;
@@ -148,7 +149,7 @@ zlabel('z') ;
 grid on ;
 title(sprintf('Sine Beam Pattern, DI: %f', DI_sine)) ;
 
-data = xlsread('beam_pattern_sine.csv');
+data=importdata('beam_pattern_sine.csv',',');
 db = 20.0 * log10( abs(data) ) ;
 db = db + 30 ;
 m = find( db < 0 ) ;

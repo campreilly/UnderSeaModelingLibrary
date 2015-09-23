@@ -1,7 +1,8 @@
 close all ; clear all ;
 
 %% Matlab implementation
-[param, desc] = xlsread('solid_pattern_parameters.csv') ;
+sheet=importdata('solid_pattern_parameters.csv',',');
+param = sheet.data ;
 pitch = param(1) ;
 heading = param(2) ;
 roll = param(3) ;
@@ -70,7 +71,7 @@ title({'Beam Pattern: Solid Angle', ...
 
    
 %% Solid angle plot
-data1 = xlsread('beam_pattern_solid.csv') ;
+data1=importdata('beam_pattern_solid.csv',',');
 
 db1 = 20.0 * log10( abs(data1) ) ;
 db1 = db1 + 30 ;

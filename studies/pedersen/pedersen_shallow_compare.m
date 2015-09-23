@@ -2,7 +2,7 @@
 % for Pedersen shallow source test.
 %
 disp('*** pedersen_shallow_compare ***');
-clear all;
+clear;
 close all;
 earth_radius = 6378101.030201019 ; % earth radius at 45 deg north
 d2r = pi / 180 ;        % converts degrees to radians
@@ -21,10 +21,11 @@ surface_index = find( ~isnan(analytic.surface.travel_time) ) ;
 
 % load propagation loss data from FFP
 
-[data,desc] = xlsread('ffp_n2shallow.csv');
+sheet=importdata('ffp_n2shallow.csv',',');
+data = sheet ;
 ffp.range = data(:,1)'/1e3 ;
 ffp.intensity = data(:,2)' ;
-clear data desc
+clear data
 
 % load eigenray data from GRAB
 % separate into surface and upper vertex paths
@@ -102,11 +103,11 @@ figure(2) ;
 % compare intensity estimates
 
 n = find( grab.direct.range <= max_range ) ;
-[ bias, dev, detcoef, lag ] = tl_stats( ...
+[ bias, dev, detcoef ] = tl_stats( ...
     plr.direct.range, plr.direct.intensity, ...
     grab.direct.range(n), grab.direct.intensity(n) ) ;
-fprintf('Direct: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
-    bias, dev, detcoef, lag ) ;
+fprintf('Direct: bias = %.2f dB dev = %.2f dB detcoef = %.1f%%\n',...
+    bias, dev, detcoef ) ;
 
 figure(1) ;
 subplot(2,2,1) ;
@@ -120,11 +121,11 @@ set(gca,'XLim',xscale)
 set(gca,'YLim',[-90 -50])
 
 n = find( grab.surface.range <= max_range ) ;
-[ bias, dev, detcoef, lag ] = tl_stats( ...
+[ bias, dev, detcoef ] = tl_stats( ...
     plr.surface.range, plr.surface.intensity, ...
     grab.surface.range(n), grab.surface.intensity(n) ) ;
-fprintf('Surface: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
-    bias, dev, detcoef, lag ) ;
+fprintf('Surface: bias = %.2f dB dev = %.2f dB detcoef = %.1f%%\n',...
+    bias, dev, detcoef ) ;
 
 figure(2) ;
 subplot(2,2,1) ;
@@ -274,17 +275,17 @@ print -deps pedersen_shallow_compare2.eps
 % compare coherent TL estimates from all three models
 
 n = find( ffp.range <= max_range ) ;
-[ bias, dev, detcoef, lag ] = tl_stats( ...
+[ bias, dev, detcoef ] = tl_stats( ...
     grab.pressure.range, grab.pressure.level, ...
     ffp.range(n), ffp.intensity(n) ) ;
-fprintf('GRAB: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
-    bias, dev, detcoef, lag ) ;
+fprintf('GRAB: bias = %.2f dB dev = %.2f dB detcoef = %.1f%%\n',...
+    bias, dev, detcoef ) ;
 
-[ bias, dev, detcoef, lag ] = tl_stats( ...
+[ bias, dev, detcoef ] = tl_stats( ...
     range, -plr.proploss.intensity, ...
     ffp.range(n), ffp.intensity(n) ) ;
-fprintf('WaveQ3D: bias = %.2f dB dev = %.2f dB detcoef = %.1f%% lag = %.4f m\n',...
-    bias, dev, detcoef, lag ) ;
+fprintf('WaveQ3D: bias = %.2f dB dev = %.2f dB detcoef = %.1f%%\n',...
+    bias, dev, detcoef ) ;
 
 figure(3) ;
 plot( range, -plr.proploss.intensity, '-', ...

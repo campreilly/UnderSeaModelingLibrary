@@ -12,13 +12,14 @@ clear all ; close all
 %      - N^2 Linear Profile
 %      - Catenary Profile
 
-[data,desc] = xlsread('profile_test.csv');
+sheet=importdata('profile_test.csv',',');
+data = sheet.data ;
+desc = sheet.colheaders ;
 N = length(data(1,:)) ;
 depth = data(:,1) ;
 n = 2:2:N ;
 figure ;
-h = plot( data(:,n), depth, 'LineWidth', 1.5 ) ;
-set( h(3), 'LineStyle', 'o', 'MarkerSize', 4, 'MarkerFaceColor', [ 1.0 0.0 0.0 ] ) ;
+h = plot( data(:,n), depth, 'o-', 'LineWidth', 2 ) ;
 grid ; 
 xlabel('Sound Speed (m/s)')
 ylabel('Depth (m)')
@@ -30,8 +31,7 @@ print -djpeg profile_test_speed.jpg
 
 m = 3:2:N ;
 figure ;
-h = plot( data(:,m), depth, 'LineWidth', 1.5 ) ;
-set( h(3), 'LineStyle', 'o', 'MarkerSize', 4, 'MarkerFaceColor', [ 1.0 0.0 0.0 ] ) ;
+h = plot( data(:,m), depth, 'o-', 'LineWidth', 2 ) ;
 grid ; 
 xlabel('Speed Gradient (m/s)')
 ylabel('Depth (m)')
@@ -49,7 +49,10 @@ print -djpeg profile_test_grad.jpg
 % 
 % Generate errors if values differ by more that 1E-3 percent.
 
-[data,desc] = xlsread('mackenzie_test.csv');
+sheet=importdata('mackenzie_test.csv',',');
+data = sheet.data ;
+desc = sheet.colheaders ;
+
 N = length(data(1,:)) ;
 depth = -data(:,1) ;
 

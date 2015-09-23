@@ -2,7 +2,8 @@
 
 close all ; %clear all ;
 
-[param, desc] = xlsread('vertical_array_parameters.csv') ;
+sheet=importdata('vertical_array_parameters.csv',',');
+param = sheet.data ;
 sound_speed = param(1) ;
 spacing = param(2) ;
 N = param(3) ;
@@ -14,7 +15,7 @@ freq = param(8:end) ;
 ax = [0,0,1] ;
 line_pattern( sound_speed, spacing, N, pitch, heading, roll, steering, freq, ax ) ;
 
-data = xlsread('vertical_array_beam_pattern.csv') ;
+data=importdata('vertical_array_beam_pattern.csv',',');
 
 db = 10.0 * log10( abs(data) ) ;
 % db = flip(db,2) ;

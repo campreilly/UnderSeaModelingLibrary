@@ -1,7 +1,7 @@
 %%
 % TL_STATS  Analyzes the differences between two transmission loss models.
 %
-% [bias,err,detcoef,lag] = tl_stats(range1,level1,range2,level2,threshold) 
+% [bias,err,detcoef] = tl_stats(range1,level1,range2,level2,threshold) 
 %
 % The model to be tested is level1, in dB, as a function of range1. The
 % model to be tested against is level2, in dB, as a function of range2.
@@ -30,14 +30,12 @@
 % matlab's xcov() and cov() functions for this calculation, we must make
 % sure that they all use the normalization.
 %
-%                 [ xcov(L1,L2) / (N-1) ]^2
-%       detcoef = ------------------------- * 100%
-%                       cov(L1) cov(L2)
+%                   cov(L1,L2)^2
+%       detcoef = ----------------- * 100%
+%                  cov(L1) cov(L2)
 %
-% The lag indicates the offset, in the same units as range2, of how far
-% level1 is ahead of level2.
-%
-function [ bias, dev, detcoef, lag ] = tl_stats( ...
+
+function [ bias, dev, detcoef ] = tl_stats( ...
     range1, level1, range2, level2, threshold ) 
 
 N = length(range2) ;
@@ -57,9 +55,8 @@ dL = level1 - level2 ;
 
 bias = mean( dL ) ;
 dev = sqrt( mean( dL.^2 ) - bias^2 ) ;
-detcoef = 100.0 * xcov(level2,level1).^2 ...
-        / ( cov(level2) * cov(level1) * (N-1).^2 ) ;
-[detcoef,lag] = max( detcoef ) ;
-lag = -(lag-N) * dr ;
+detcoef = 100.0 * cov(level2,level1).^2 ...
+        / ( cov(level2) * cov(level1) ) ;
+detcoef = detcoef(1,2) ;
 
 end

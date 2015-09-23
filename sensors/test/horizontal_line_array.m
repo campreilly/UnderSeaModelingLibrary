@@ -3,7 +3,8 @@
 close all ; clear all ;
 
 dr = pi/180 ;
-[param, desc] = xlsread('horizontal_array_parameters.csv') ;
+sheet=importdata('horizontal_array_parameters.csv',',');
+param = sheet.data ;
 sound_speed = param(1) ;
 spacing = param(2) ;
 N = param(3) ;
@@ -15,7 +16,7 @@ freq = param(8:end) ;
 ax = [0,1,0] ;
 line_pattern( sound_speed, spacing, N, pitch, heading, roll, steering+pi/2, freq, ax ) ;
 
-data = xlsread('horizontal_array_beam_pattern.csv') ;
+data=importdata('horizontal_array_beam_pattern.csv',',');
 m = find( data > 1 | isnan(data) ) ;
 data(m) = 0 ;
 db = 10.0 * log10( abs(data) ) ;
