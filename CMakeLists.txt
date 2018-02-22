@@ -21,7 +21,7 @@
 # the install process.
 #
 cmake_minimum_required( VERSION 2.6 )
-project( usml CXX )
+project( usml C CXX )
 
 ######################################################################
 # setup USML
@@ -73,7 +73,8 @@ endif( MSVC )
 
 set( TARGET usml )
 add_library( ${TARGET} ${HEADERS} ${SOURCES} )
-target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} )
+target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} 
+                       ${CMAKE_THREAD_LIBS_INIT} )
 set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION}
                        DEBUG_POSTFIX "_d")
 

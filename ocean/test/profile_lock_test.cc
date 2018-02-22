@@ -178,10 +178,6 @@ class mackenzie_tester : public tester_base
     // The test method is a replica of the profile_test/compute_mackenzie_test.
     virtual void test()
     {
-        size_t index[3];
-        index[1] = 0;
-        index[2] = 0;
-
         matrix<double> speed(1, 1);
         wposition location(1, 1);
         location.latitude(0, 0, 18.5);
@@ -190,7 +186,6 @@ class mackenzie_tester : public tester_base
 
         for (size_t d = 0; d < _temp->axis(0)->size(); ++d)
         {
-            index[0] = d;
             location.rho(0, 0, (*_temp->axis(0))(d));
 
             _lockableProfile->sound_speed(location, &speed, &gradient);

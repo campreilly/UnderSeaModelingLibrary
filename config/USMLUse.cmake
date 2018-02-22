@@ -134,3 +134,9 @@ endif( NOT MSVC )
 
 find_package( NetCDF 3.6 MODULE REQUIRED )
 find_program( NETCDF_NCKS ncks )
+
+######################################################################
+# POSIX thread libraries
+
+find_package(Threads REQUIRED)
+
