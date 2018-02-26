@@ -20,11 +20,12 @@ if( MSVC )
     add_definitions( -MP )          # multi-processor compilation
     add_definitions( -D_USE_MATH_DEFINES ) # symbols like M_PI
     add_definitions(                # quiet some harmless warning
-	   -D_WIN32_WINNT=0x0501
+	-D_WIN32_WINNT=0x0501
         -D_CRT_SECURE_NO_WARNINGS
         -wd4244 -wd4996 -wd4018 -wd4251 )
     add_definitions(                # workaround for error in
-        -wd4005 )			    # boost::geometry 1.58
+        -wd4005 )		    # boost::geometry 1.58
+    add_definitions( -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE )
     if ( BUILD_SHARED_LIBS )
         add_definitions( -DUSML_DYN_LINK )
     endif ( BUILD_SHARED_LIBS )
@@ -68,23 +69,15 @@ set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSML_DEBUG" )
 # the FindBoost script is executed.
 
 set( Boost_DEBUG OFF )
-set( Boost_NO_BOOST_CMAKE ON ) # work-around for error in Boost 1.41 
 
-if ( BUILD_SHARED_LIBS )
+if ( BUILD_SHARED_LIBS AND NOT MSVC )
     set( Boost_USE_STATIC_LIBS OFF )
     add_definitions( -DBOOST_ALL_DYN_LINK )
     set( BOOST_REALPATH ON )	# use version suffix in *.so name
-else ( BUILD_SHARED_LIBS )
+else ( )
     set( Boost_USE_STATIC_LIBS ON )
-endif ( BUILD_SHARED_LIBS )
+endif ( )
 
-set( Boost_REALPATH ON )	# use version suffix in *.so name
-
-set(Boost_ADDITIONAL_VERSIONS
-	"1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" 
-	"1.52" "1.52.0" "1.53" "1.53.0" "1.55" "1.55.0"
-	"1.56" "1.56.0" "1.57" "1.57.0"
-)
 if( MSVC )
     find_package( Boost 1.41 REQUIRED COMPONENTS
         unit_test_framework	# for usml_test.exe

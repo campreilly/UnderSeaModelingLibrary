@@ -35,13 +35,17 @@
 
     We've tested this process with:
     <ul>
-	<li> 64-bit CentOS 6.6 with gcc 4.4.7 
+	<li> 64-bit CentOS 7 with gcc 4.8.5
+	<li> CMake 3.6.3
+    <li> Boost 1.66.0
+	<li> NetCDF C 4.3.3.1 and C++ 4.2
+	<li> Git GUI 1.8.3.1
     </ul>
-    The steps that follow are the process we used to setup USML for a 64-bit CentOS 6 development environment.
+    The steps that follow are the process we used to setup USML for a 64-bit CentOS 7 development environment.
     We expect your environment to be a little different, but this should get you started.
     Since CentOS is derived from Red Hat Enterprise Linux, 
     (see <a href="http://community.redhat.com/centos-faq">http://community.redhat.com/centos-faq</a>)
-    we expect this process to work identically in RHEL6.
+    we expect this process to work identically in RHEL7.
     <ul>
     <li> Download the source code distribution for USML
 	<ul>
@@ -54,76 +58,44 @@
 	     where #.#.# is the version number to be installed.  
 	     In this example, we'll extract them to <code>~/Projects</code>, and this
 	     creates a home directory called <code>~/Projects/usml</code>
-	<li> The USML build process absolutely requires the home directory 
+	<li> The USML build process <b>absolutely</b> requires the home directory 
 	     to be named <code>usml</code>.  If you are extracting the code from another
 	     source, such as GitHub, make sure to rename the home directory <code>usml</code>.
 	</ul>
 	<p>
-     <li> Install CMake GUI 2.8 and NetCDF Development 4.1 RPMs from the CentOS yum servers
+     <li> Install CMake GUI, NetCDF Development, and Git GUI RPMs from the CentOS yum servers
 	<pre>
-	sudo yum install cmake-gui netcdf-devel
+	sudo yum install epel-release (to add EPEL repository to yum config)
+	sudo yum install cmake3-gui (to install CMake 3.6.3)
+	sudo yum install netcdf-cxx-devel netcdf-devel nco (to install NetCDF C 4.3.3.1 and C++ 4.2)
+	sudo yum install git-gui gitk (to install Git GUI 1.8.3.1 tools)
 	</pre>
-     <li>If you do not have access to the CentOS yum servers, you can find the needed RPMs from the following sites:
 	<ul>
-	<li> <code>cmake-2.8.8-4.el6.x86_64.rpm</code> and <code>cmake-gui-2.8.8-4-el6.x86_64.rpm</code>
-		from <a href="http://packages.atrpms.net/dist/el6/cmake">http://packages.atrpms.net/dist/el6/cmake</a>
-<li> <code>netcdf-4.1.2-1.el6.rf.i686.rpm</code> and <code>netcdf-devel-4.1.2-1.el6.rf.i686.rpm</code>
-		from <a href="http://pkgs.repoforge.org/netcdf">http://pkgs.repoforge.org/netcdf</a>
-	<li> <code>libssh2-1.4.2-1.el6.i686.rpm</code>, <code>libidn-1.18-2.el6.i686.rpm</code>, and 
-	     <code>libcurl-7.19.7-37.el6_5.3.i686.rpm</code>
-		from <a href="http://mirror.centos.org/centos-6/6.6/os/i386/Packages/">http://mirror.centos.org/centos-6/6.6/os/i386/Packages</a>
+     <li>If you do not have access to the CentOS yum servers, you can find the needed RPMs from the <a href="https://centos.pkgs.org">https://centos.pkgs.org</a> site.
 	</ul>
 	<p>
-     <li> Download and install the source code distribution for NCO 3.9.9
+    <li> Install Boost library from source code.
 	<ul>
-      <li> This library provides the NCKS utility that we use in many of our NetCDF regression tests.
-	<li> We used the source code distribution called <code>nco-3.9.9.tar.gz</code> from 
-	     <a href="http://nco.sourceforge.net/src/">http://nco.sourceforge.net/src/</a> 
-	<li> To install this software in <code>/usr/local</code>
+	<li> We tested this with the distribution called <code>boost_1_66_0.tar.gz</code> from 
+	     <a href="http://www.boost.org">http://www.boost.org</a> and the
+	     install instructions from <a href="http://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html">
+	    http://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html</a>.
+  	     To install this software in <code>/usr/local</code>, these instructions boil down to:
+	<ul>
+    <li>Download boost_1_66_0.tar.gz from http://www.boost.org to /usr/local/distrib
+    <li>Open a normal terminal window
 	<pre>
-	cd path/to/nco-3.9.9
-	./configure
-	make
-	sudo make install
+    cd /usr/local
+    tar -xvf distrib/boost_1_66_0.tar.gz
+    cd boost_1_66_0
+    ./bootstrap.sh (to configure gcc options)
+    ./b2 (to compile Boost libraries for static and dynamic)
+    sudo ./b2 install (to install boost libraries)
 	</pre>
+    <li>You should see boost libraries in /usr/local/include and /usr/local/lib directories.
 	</ul>
-    <li> Install Boost library from RPM or source.
-	<ul>
-	<li>You can install Boost 1.41 RPMs from the CentOS yum servers, if it is not installed already.
-	<pre>
-	sudo yum install boost-devel boost-static
-	</pre>
-	<li> Or, you can download newer Boost versions as source code.
-	     We tested this with the distribution called <code>boost_1_57_0.tar.gz</code> from 
-	     <a href="http://sourceforge.net/projects/boost/files/boost/1.57.0">
-	     http://sourceforge.net/projects/boost/files/boost/1.57.0</a> and the
-	     install instructions from <a href="http://www.boost.org/doc/libs/1_57_0/more/getting_started/unix-variants.html">
-	     http://www.boost.org/doc/libs/1_57_0/more/getting_started/unix-variants.html</a>.
-  	     To install this software in <code>/usr/local</code>, these instructions boil down to
-	<pre>
-	cd path/to/boost_1_57_0
-	./bootstrap.sh
-	b2
-	sudo b2 install
-	</pre>
-    <li> There is a bug in the Boost uBLAS library that vector and matrix 
-	     scaling using <code>operator/()</code>.  
-	<ul>
-	<li> To see the corrected version of this code, please search for the 
-	     symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the <code>vector_expression.hpp</code> 
-	     and <code>matrix_expression.hpp</code> files in the <code>usml/config</code> directory.
-	<li> In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
-	     just above it. 
-	<li> Those using Boost 1.41 through 1.56 can just replace the original files with the
-	     ones from the <code>usml/config</code> directory.  
-	<li> Boost 1.57 fixed the problem in 
-	     <code>vector_expression.hpp</code>, but requires replacing <code>matrix_expression.hpp</code>
-	     with the file <code>usml/config/matrix_expression_1_57.hpp</code>.</li>
-	</ul>
-
-	<li> The pedantic option does not work with Boost 1.52. There are several cases where
-	     this specific version of Boost uses C++0x features, like long long value, that
-	     are not supported by c++98.  Turning off the pedantic option works around this issue.
+    <li> There is a bug in the Boost uBLAS library that vector and matrix scaling using 
+	    <code>operator/()</code> in Boost versions prior to 1.58.
 	<li> Some versions of Boost, using gcc at -O0 optimization levels, fail to properly chain multiple 
 	     boost::ublas operations into a single evaluation.  When this happens, the result is 
 	     equal to the first operation.  For this reason, we recommend using -O1 as the
@@ -143,7 +115,7 @@
 	     should be correct for most installations.
 	<li> Hit the <code>Configure</code> button a second time, even if you have not changed any
 	     options.  Hit the <code>Generate</code> button to create makefiles for your system.
-	     At this point, you can close the cmake-gui tool.
+	 <li> At this point, you can close the cmake-gui tool.
 	</ul>
 	<p>
     <li>Run the <code>make</code> utility from <code>~/Projects/usml-build</code> directory to compile both
@@ -200,11 +172,13 @@
 
     We've tested this process using Windows 7 with:
     <ul>
-	<li> 32-bit Visual Studio 2010 Express
-	<li> 32-bit and 64-bit Visual Studio 2013 Professional and Community versions (msvc 12.0)
-
+	<li> 64-bit Visual Studio 2017 Community Edition
+	<lI> CMake 3.11.0-rc1
+    <li> Boost 1.66.0
+	<li> NetCDF C 4.6.0
+	<li> Git GUI 2.16.1.4
     </ul>
-    The steps that follow are the process we used to setup USML for a 32-bit Visual Studio 2010 development environment.
+    The steps that follow are the process we used to setup USML for a 64-bit Visual Studio 2017 development environment.
     We expect your environment to be a little different, but this should get you started.
     <ul>
     <li> Download the source code distribution for USML
@@ -218,61 +192,58 @@
 	     where #.#.# is the version number to be installed.  
 	     In this example, we extracted them to <code>C:\Projects</code>, and this
 	     created a directory called <code>C:\Projects\usml</code>
-	 <li> The USML build process absolutely requires the home directory          
+	 <li> The USML build process <b>absolutely</b> requires the home directory          
               to be named <code>usml</code>.  If you are extracting the code from another
               source, such as GitHub, make sure to rename the home directory to <code>usml</code>.
 	</ul>
-    <li> Download the binary distribution for CMake 3.1.0
+    <li> Download the binary distribution for CMake 3.11.0-rc1
 	<ul>
-	<li> We used the Win32 installer called <code>cmake-3.1.0-win32-x86.exe</code>, 
+    <li> CMake has some trouble resolving the Boost dependencie under Windows, and only the latest CMake builds
+            will work with the last Boost builds.
+            <ul>
+            <li> Boost 1.63 requires CMake 3.7 or newer
+            <li> Boost 1.64 requires CMake 3.8 or newer
+            <li> Boost 1.65 and 1.65.1 require CMake 3.9.3 or newer
+            <li> Boost 1.66 is supported by CMake 3.11 or newer
+            </ul>
+	<li> We used the Windows win64-x64 installer called <code>cmake-3.11.0-rc1-win64-x64.msi</code>, 
 	     from <a href="http://www.cmake.org/download">http://www.cmake.org/download</a>.
 	<li> Running this installer deposits the software
-	     in the <code>C:\Program Files (x86)\CMake</code> directory by default.
+	     in the <code>C:\Program Files\CMake</code> directory by default.
 	</ul>
-    <li> Download the pre-built Windows binaries for Boost 1.57
+    <li> Install Boost library from source code.
 	<ul>
-	<li> We used the Win32 installer called <code>boost_1_57_0-msvc-10.0-32.exe</code> from 
-	     <a href="http://sourceforge.net/projects/boost/files/boost-binaries">
-	     http://sourceforge.net/projects/boost/files/boost-binaries</a>.
-		<ul>
-		<li>Note the ’10.0’ refers to Visual Studio 10, select appropriately. 
-		</ul>
-	<li> Running this installer deposits the software in the 
-	     <code>C:\local\boost_1_57_0</code> directory by default.
-        <li> There is a bug in the Boost uBLAS library that vector and matrix 
-	     scaling using <code>operator/()</code>.  
-	    <ul>
-	    <li> To see the corrected version of this code, please search for the 
-	     symbol BOOST_UBLAS_CHECK_DIVISION_TYPE in the <code>vector_expression.hpp</code> 
-	     and <code>matrix_expression.hpp</code> files in the <code>usml/config</code> directory.
-	    <li> In each case, the operator/() should be using the enable_if<> macros just like the operator*() 
-	     just above it. 
-	    <li> Those using Boost 1.41 through 1.56 can just replace the original files with the
-	     ones from the <code>usml/config</code> directory.  
-	    <li> Boost 1.57 fixed the problem in 
-	     <code>vector_expression.hpp</code>, but requires replacing <code>matrix_expression.hpp</code>
-	     with the file <code>usml/config/matrix_expression_1_57.hpp</code>.</li>
-	    </ul>
+	<li> We tested this with the distribution called <code>boost_1_66_0.tar.gz</code> from 
+	     <a href="http://www.boost.org">http://www.boost.org</a> and the
+	     install instructions from <a href="http://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html">
+	    http://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html</a>.
+  	     To install this software in <code>/usr/local</code>, these instructions boil down to:
+    <li>Download boost_1_66_0.zip from http://www.boost.org and unzip it into a local building area such as C:\Projects directory.
+    <li>Open a Windows command window
+	<pre>
+    cd \Projects\boost_1_66_0
+    bootstrap (to configure Visual Studio options)
+    b2 (to compile Boost static libraries for Release and Debug)
+    b2 install (to install boost libraries into C:\Boost)
+	</pre>
+    <li>You should see boost libraries in C:\Boost\include and C:\Boost\lib directories.
 	</ul>
-    <li> Download the pre-built Windows binaries for NetCDF-C 4.3.2,
+    <li> Download the pre-built Windows binaries for NetCDF-C 4.6.0,
 	<ul>
-	<li> We used the Win32 installer called <code>netCDF4.3.2-NC4-32.exe</code> from 
+	<li> We used the Win32 installer called <code>netCDF4.6.0-NC4-DAP-64.exe</code> from 
 	     <a href="http://www.unidata.ucar.edu/software/netcdf/docs/winbin.html">
 	     http://www.unidata.ucar.edu/software/netcdf/docs/winbin.html</a>
 	<li> Running this installer deposits the software in the 
-	     <code>C:\Program Files (x86)\netCDF 4.3.2</code> directory by default.
+	     <code>C:\Program Files\netCDF 4.6.0</code> directory by default.
 	</ul>
-    <li> Add Boost, NetCDF, and USML environment variables
+    <li> Add NetCDF and USML environment variables
 	<ul>
 	<li> Right click on Computer, select Properties <code>-></code> Advanced system settings <code>-></code> Environment Variables.
-	<li> Create new user variable <code>BOOST_ROOT = C:\local\boost_1_57_0</code>.
-	<li> Create new user variable <code>BOOST_LIBRARY_DIR = %BOOST_ROOT%\lib32-msvc-10.0</code>.
-	<li> Create new user variable <code>NETCDF_DIR = C:\Program Files (x86)\netCDF 4.3.2</code>.
-	<li> Create new user variable <code>NETCDF_PATH = %NETCDF_DIR%\bin;%NETCDF_DIR%\deps\w32\bin</code>.
+	<li> Create new user variable <code>NETCDF_DIR=C:\Program Files\netCDF 4.6.0 </code> or equivalent.
 	<li> Create new user variable <code>USML_DIR</code> for the USML installation directory.
 	     We used <code>C:\local\usml</code> to avoid permission problems installing libraries
-             into <code>Program Files</code>,
-	<li> Finally, add <code>%BOOST_LIBRARY_DIR%;%NETCDF_PATH%;%USML_DIR%\lib</code> to the <code>Path</code> variable.
+          into <code>Program Files</code>,
+	<li> Finally, add <code>%BOOST_LIBRARY_DIR%;%NETCDF_DIR%\bin;%USML_DIR%\lib</code> to the <code>Path</code> variable.
 	</ul>
     <li> Use cmake-gui to generate Visual Studio project
 	<ul>
