@@ -715,11 +715,11 @@ template<> struct math_traits<complex<float> >
     }
     static inline value_type pow(const_reference t, int e)
     {
-        return std::pow(t, e);
+        return std::complex<float>(std::pow(t, e));
     }
     static inline value_type pow(const_reference t, const_reference e)
     {
-        return std::pow(t, e);
+        return std::complex<float>(std::pow(t, e));
     }
 
     //*********************************************************
@@ -727,11 +727,11 @@ template<> struct math_traits<complex<float> >
 
     static inline value_type pow(const_reference t, real_type e)
     {
-        return std::pow(t, e);
+        return std::complex<float>(std::pow(t, e));
     }
     static inline value_type pow(real_type t, const_reference e)
     {
-        return std::pow(t, e);
+        return std::complex<float>(std::pow(t, e));
     }
 
 };
