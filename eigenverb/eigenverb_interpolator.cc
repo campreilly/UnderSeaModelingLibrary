@@ -40,6 +40,12 @@ void eigenverb_interpolator::interpolate(
 
 	// copy terms that are not frequency dependent
 
+	new_verb->length = verb.length;
+	new_verb->width = verb.width;
+	new_verb->source_de = verb.source_de;
+	new_verb->source_az = verb.source_az;
+	new_verb->caustic = verb.caustic;
+	
 	new_verb->length2 = verb.length2 ;
 	new_verb->width2 = verb.width2 ;
 	new_verb->time = verb.time ;
