@@ -51,7 +51,7 @@ class USML_DECLSPEC eigenverb_collection : public eigenverb_listener {
     typedef bgm::box<point> box;
 
     /// Eigenverb paired with its geographic coordinate.
-    typedef std::pair<box, eigenverb_model::csptr> pair;
+    typedef std::pair<point, eigenverb_model::csptr> pair;
 
     /// Spatial index for eigenverbs in geographic coordinates.
     typedef bgi::rtree<pair, bgi::rstar<8> > tree;

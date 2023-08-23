@@ -6,6 +6,29 @@
   <body>
     <h1>Under Sea Modeling Library (USML) Release Notes</h1>
 
+    <h2>Release 1.0.1 - July 2015</h2>
+    <ul>
+    <li>Migrate code to C++17 standard</li>
+    <ul>
+        <li>Replace Boost shared pointers and thread utilities with C++17 equivalents.
+        <li>Use clang-tidy to automatically migrate code to C++17 best practices.
+        <li>Use clang-format to reformat code to follow Google coding standards.
+        <li>Use Eclipse "organize includes" to make dependencies explicit.
+    </ul>
+    <li>Enhancements</li>
+    <ul>
+        <li>Replace seq_data with immutable algorithms.
+        <li>Make ocean objects immutible and replace memory management scheme with constant shared pointers.
+        <li>Rework beampatterns, platforms, sensors, eigenrays, eigenverbs, bistatic pairs to better fit C++17 best practices.
+        <li>Add doxygen build target to CMake build scripts.
+    </ul>
+    <li>Bugs</li>
+    <ul>
+        <li>Resolved Issue #254. Use points instead of boxes to lookup eigenverbs in eigenverb_collection.
+        <li>Fix problems with CR/LF line endings.     
+    </ul>
+    </ul>
+
     <h2>Development Release 2.0.0dr1 - July 2015</h2>
     <ul>
     <li>Bugs</li>
