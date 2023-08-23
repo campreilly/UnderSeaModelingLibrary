@@ -5,14 +5,15 @@
 #pragma once
 
 #include <netcdfcpp.h>
-#include <usml/ublas/ublas.h>
-#include <usml/types/types.h>
+#include <usml/types/gen_grid.h>
+#include <usml/types/wposition.h>
+#include <usml/usml_config.h>
 
 namespace usml {
 namespace netcdf {
 
-using namespace usml::ublas ;
-using namespace usml::types ;
+using namespace usml::ublas;
+using namespace usml::types;
 
 /// @ingroup netcdf_files
 /// @{
@@ -30,7 +31,7 @@ using namespace usml::types ;
  *
  * The variables to be loaded are deduced by their dimensionality.
  * The first variable to have 2 dimensions is assumed to be depth.
- * Negative depth values in netCDF file are taken to be underwater.
+ * Negative depth values in netCDF file are taken to be under water.
  * Assumes that the dataset supports the COARDS conventions for
  * the standardization of NetCDF files.
  *
@@ -50,16 +51,14 @@ using namespace usml::types ;
  *   of odd minutes of latitude and longitude.
  * - ETOPO5 5-minute gridded elevations/bathymetry for the world.
  */
-class USML_DECLSPEC netcdf_bathy : public data_grid<double,2> {
-
-  public:
-
+class USML_DECLSPEC netcdf_bathy : public gen_grid<2> {
+   public:
     /**
      * Load bathymetry from disk. Western hemisphere longitude can be
      * expressed either as negative values or values above 180 degrees.
      * Output longitudes use the same western hemisphere convention as
-     * input values.  Exceptions to this logic happen in areas that span
-     * longitudes 0 and 180.  Areas that span longitude 0 should use negative
+     * input values. Exceptions to this logic happen in areas that span
+     * longitudes 0 and 180. Areas that span longitude 0 should use negative
      * values for west and positive values for east. Areas that span
      * longitude 180 should use positive values for both east and west.
      *
@@ -71,15 +70,13 @@ class USML_DECLSPEC netcdf_bathy : public data_grid<double,2> {
      * @param  earth_radius Local earth radius of curvature (meters).
      *                      Set to zero if you want to make depths
      *                      relative to earth's surface.
-     * @throws                std:invalid_argument on invalid name or path of bathymetry file.
+     * @throws                std:invalid_argument on invalid name or path of
+     * bathymetry file.
      */
-    netcdf_bathy(
-        const char* filename,
-        double south, double north, double west, double east,
-        double earth_radius=wposition::earth_radius ) ;
+    netcdf_bathy(const char *filename, double south, double north, double west,
+                 double east, double earth_radius = wposition::earth_radius);
 
-  private:
-
+   private:
     /**
      * Deduces the variables to be loaded based on their dimensionality.
      * The first variable to have 2 dimensions is assumed to be depth.
@@ -91,9 +88,9 @@ class USML_DECLSPEC netcdf_bathy : public data_grid<double,2> {
      * @param  longitude    NetCDF variable for longitude (output).
      * @param  altitude     NetCDF variable for altitude (output).
      */
-     void decode_filetype(
-        NcFile& file, NcVar **latitude, NcVar **longitude, NcVar **altitude ) ;
-} ;
+    static void decode_filetype(NcFile &file, NcVar **latitude,
+                                NcVar **longitude, NcVar **altitude);
+};
 
 /// @}
 }  // end of namespace netcdf

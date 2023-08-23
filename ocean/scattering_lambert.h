@@ -9,8 +9,8 @@
 namespace usml {
 namespace ocean {
 
-using namespace usml::ublas ;
-using namespace usml::types ;
+using namespace usml::ublas;
+using namespace usml::types;
 
 using boost::numeric::ublas::vector;
 
@@ -41,9 +41,7 @@ using boost::numeric::ublas::vector;
  * Sound in Deep Water," J. Acoust. Soc. Am. 33:1596 (1961).
  */
 class USML_DECLSPEC scattering_lambert : public scattering_model {
-
-public:
-
+   public:
     /**
      * Initializes scattering strength model with a Mackenzie coefficient.
      * Defaults to a value of the scattering strength coefficient
@@ -51,8 +49,7 @@ public:
      *
      * @param    bss        Bottom scattering strength coefficient (dB)
      */
-    scattering_lambert( double bss = -27.0 ) :
-        _coeff(pow(10.0,bss/10.0)) {}
+    scattering_lambert(double bss = -27.0) : _coeff(pow(10.0, bss / 10.0)) {}
 
     /**
      * Computes the broadband scattering strength for a single location.
@@ -65,13 +62,14 @@ public:
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
-    virtual void scattering( const wposition1& location,
-        const seq_vector& frequencies, double de_incident, double de_scattered,
-        double az_incident, double az_scattered, vector<double>* amplitude )
-    {
-        noalias(*amplitude) = scalar_vector<double>( frequencies.size(),
-                abs( _coeff * sin( de_incident ) * sin( de_scattered ) ) ) ;
-                // fast assignment of scalar to vector
+    void scattering(const wposition1& location, seq_vector::csptr frequencies,
+                    double de_incident, double de_scattered, double az_incident,
+                    double az_scattered,
+                    vector<double>* amplitude) const override {
+        noalias(*amplitude) = scalar_vector<double>(
+            frequencies->size(),
+            abs(_coeff * sin(de_incident) * sin(de_scattered)));
+        // fast assignment of scalar to vector
     }
 
     /**
@@ -89,28 +87,26 @@ public:
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
-    virtual void scattering( const wposition& location,
-        const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
-        double az_incident, matrix<double> az_scattered,
-        matrix< vector<double> >* amplitude )
-    {
-        for (size_t n = 0; n < location.size1 (); ++n ) {
-            for (size_t m = 0; m < location.size2 (); ++ m) {
-                (*amplitude).operator()(n,m) = scalar_vector<double>(
-                    frequencies.size(),
-                    abs( _coeff * sin(de_incident) * sin(de_scattered(n,m)) ) ) ;
+    void scattering(const wposition& location, seq_vector::csptr frequencies,
+                    double de_incident, matrix<double> de_scattered,
+                    double az_incident, matrix<double> az_scattered,
+                    matrix<vector<double> >* amplitude) const override {
+        for (size_t n = 0; n < location.size1(); ++n) {
+            for (size_t m = 0; m < location.size2(); ++m) {
+                (*amplitude).operator()(n, m) = scalar_vector<double>(
+                    frequencies->size(),
+                    abs(_coeff * sin(de_incident) * sin(de_scattered(n, m))));
             }
         }
     }
 
-private:
-
+   private:
     /**
      * Bottom scattering strength coefficient in linear units.
      */
-    double _coeff ;
+    double _coeff;
 };
 
 /// @}
-}   // end of namespace ocean
-}   // end of namespace usml
+}  // end of namespace ocean
+}  // end of namespace usml

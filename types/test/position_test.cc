@@ -219,7 +219,8 @@ BOOST_AUTO_TEST_CASE( gc_range_test ) {
     wposition1 jfk( 40.0 + 38.0/60.0, -(73.0 + 47.0/60.0) ) ;
     wposition1 lax( 33.0 + 57.0/60.0, -(118.0 + 24.0/60.0) ) ;
 
-    double range, bearing ;
+    double range;
+    double bearing ;
     range = lax.gc_range( jfk, &bearing ) ;
 
     cout << "LAX to JFK: range = " << (range/wposition::earth_radius) << " rad bearing = " << bearing << " rad" << endl ;

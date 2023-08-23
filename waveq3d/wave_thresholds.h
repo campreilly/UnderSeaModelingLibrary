@@ -4,8 +4,12 @@
  */
 #pragma once
 
+#include <usml/usml_config.h>
 #include <usml/waveq3d/wave_front.h>
-#include <boost/foreach.hpp>
+
+#include <boost/numeric/ublas/matrix.hpp>
+#include <cmath>
+#include <cstddef>
 
 namespace usml {
 namespace waveq3d {
@@ -24,25 +28,21 @@ namespace waveq3d {
  * all methods can be defined inline.
  */
 class USML_DECLSPEC wave_thresholds {
-
-  public:
-
+   public:
     /**
      * Set thresholds to default values that a designed to let almost
      * everything through. The intensity_threshold and eigenverb_threshold
      * default to -300 dB. The maximum number of bottom, surface, caustic,
      * upper, and lower default to 999.
      */
-    wave_thresholds() :
-        _intensity_threshold(300.0),
-        _eigenverb_threshold(1e-30),
-        _max_bottom(999),
-        _max_surface(999),
-        _max_caustic(999),
-        _max_upper(999),
-        _max_lower(999)
-    {
-    }
+    wave_thresholds()
+        : _intensity_threshold(300.0),
+          _eigenverb_threshold(1e-30),
+          _max_bottom(999),
+          _max_surface(999),
+          _max_caustic(999),
+          _max_upper(999),
+          _max_lower(999) {}
 
     /**
      * The value of the eigenray intensity threshold in dB.
@@ -60,22 +60,21 @@ class USML_DECLSPEC wave_thresholds {
      * Any eigenray with an intensity value that is weaker
      * than this threshold is not sent the eigenray listeners.
      */
-    inline double intensity_threshold() {
-        return -_intensity_threshold;
-    }
+    inline double intensity_threshold() { return -_intensity_threshold; }
 
     /**
      * Test a list of eigenray.intensity values against the intensity threshold.
      *
-     * @param  intensities    List of intensities for use by BOOST_FOREACH().
-     *                         Assumed to be positive loss values in dB units.
+     * @param  intensities    List of intensities to loop over.
+     *                        Assumed to be positive loss values in dB units.
      * @return false is there are no values above this threshold.
      */
-    template<class T> bool above_intensity_threshold( T intensities ) {
-        BOOST_FOREACH( double level, intensities ) {
-            if ( level < _intensity_threshold ) return true ;
+    template <class T>
+    bool above_intensity_threshold(T intensities) {
+        for (double level : intensities) {
+            if (level < _intensity_threshold) return true;
         }
-        return false ;
+        return false;
     }
 
     /**
@@ -86,7 +85,7 @@ class USML_DECLSPEC wave_thresholds {
      * for later comparison with the verb.power value.
      */
     inline void eigenverb_threshold(double max) {
-        _eigenverb_threshold = pow(10.0,-0.1*abs(max)) ;
+        _eigenverb_threshold = pow(10.0, -0.1 * abs(max));
     }
 
     /**
@@ -95,21 +94,23 @@ class USML_DECLSPEC wave_thresholds {
      * than this threshold is not sent the eigenray listeners.
      */
     inline double eigenverb_threshold() {
-        return 10.0 * log10(_eigenverb_threshold) ;
+        return 10.0 * log10(_eigenverb_threshold);
     }
 
     /**
      * Test a list of eigenverb.power values against the eigenverb threshold.
-     * Both values are assumed to be in linear units as a value between zero and one.
+     * Both values are assumed to be in linear units as a value between zero and
+     * one.
      *
-     * @param  power    List of powers for use by BOOST_FOREACH().
+     * @param  power    List of powers to loop over.
      * @return false is there are no values above this threshold.
      */
-    template<class T> bool above_eigenverb_threshold( T power ) {
-        BOOST_FOREACH( double level, power ) {
-            if ( level >= _eigenverb_threshold ) return true ;
+    template <class T>
+    bool above_eigenverb_threshold(T power) {
+        for (double level : power) {
+            if (level >= _eigenverb_threshold) return true;
         }
-        return false ;
+        return false;
     }
 
     /**
@@ -118,18 +119,14 @@ class USML_DECLSPEC wave_thresholds {
      * of bottom bounces is not sent the listeners.
      * Defaults to 999.
      */
-    inline int max_bottom() const {
-        return _max_bottom ;
-    }
+    inline int max_bottom() const { return _max_bottom; }
 
     /**
      * The maximum number of bottom bounces.
      * Any eigenray or eigenverb with more than this number
      * of bottom bounces is not sent the listeners.
      */
-    inline void max_bottom( int max ) {
-        _max_bottom = max ;
-    }
+    inline void max_bottom(int max) { _max_bottom = max; }
 
     /**
      * The maximum number of surface bounces.
@@ -137,18 +134,14 @@ class USML_DECLSPEC wave_thresholds {
      * of surface bounces is not sent the listeners.
      * Defaults to 999.
      */
-    inline int max_surface() const {
-        return _max_surface ;
-    }
+    inline int max_surface() const { return _max_surface; }
 
     /**
      * The maximum number of surface bounces.
      * Any eigenray or eigenverb with more than this number
      * of surface bounces is not sent the listeners.
      */
-    inline void max_surface( int max ) {
-        _max_surface = max ;
-    }
+    inline void max_surface(int max) { _max_surface = max; }
 
     /**
      * The maximum number of caustic turning points.
@@ -156,18 +149,14 @@ class USML_DECLSPEC wave_thresholds {
      * of caustic turning points is not sent the listeners.
      * Defaults to 999.
      */
-    inline int max_caustic() const {
-        return _max_caustic ;
-    }
+    inline int max_caustic() const { return _max_caustic; }
 
     /**
      * The maximum number of caustic turning points.
      * Any eigenray or eigenverb with more than this number
      * of caustic turning points is not sent the listeners.
      */
-    inline void max_caustic( int max ) {
-        _max_caustic = max ;
-    }
+    inline void max_caustic(int max) { _max_caustic = max; }
 
     /**
      * The maximum number of upper vertices.
@@ -175,18 +164,14 @@ class USML_DECLSPEC wave_thresholds {
      * of caustic turning points is not sent the listeners.
      * Defaults to 999.
      */
-    inline int max_upper() const {
-        return _max_upper ;
-    }
+    inline int max_upper() const { return _max_upper; }
 
     /**
      * The maximum number of upper vertices.
      * Any eigenray or eigenverb with more than this number
      * of upper vertices is not sent the listeners.
      */
-    inline void max_upper( int max ) {
-        _max_upper = max ;
-    }
+    inline void max_upper(int max) { _max_upper = max; }
 
     /**
      * The maximum number of lower vertices.
@@ -194,9 +179,7 @@ class USML_DECLSPEC wave_thresholds {
      * of lower vertices is not sent the listeners.
      * Defaults to 999.
      */
-    inline int max_lower() const {
-        return _max_lower ;
-    }
+    inline int max_lower() const { return _max_lower; }
 
     /**
      * Test the number of bounces in wave_front ray path against thresholds.
@@ -206,18 +189,16 @@ class USML_DECLSPEC wave_thresholds {
      * @param  az        Index number of AZ angle to test.
      * @return false is there are no values above this threshold.
      */
-    inline bool above_bounce_threshold(
-            const wave_front* wave, size_t de, size_t az )
-    {
-        return  wave->bottom(de,az) > _max_bottom ||
-                wave->surface(de,az) > _max_surface ||
-                wave->caustic(de,az) > _max_caustic ||
-                wave->upper(de,az) > _max_upper ||
-                wave->lower(de,az) > _max_lower ;
+    inline bool above_bounce_threshold(const wave_front* wave, size_t de,
+                                       size_t az) {
+        return wave->bottom(de, az) > _max_bottom ||
+               wave->surface(de, az) > _max_surface ||
+               wave->caustic(de, az) > _max_caustic ||
+               wave->upper(de, az) > _max_upper ||
+               wave->lower(de, az) > _max_lower;
     }
 
-  private:
-
+   private:
     /**
      * Any eigenray with a transmission loss intensity larger than
      * than this threshold is not sent the eigenray listeners.
@@ -239,36 +220,35 @@ class USML_DECLSPEC wave_thresholds {
      * Any eigenray or eigenverb with more than this number
      * of bottom bounces is not sent the listeners.
      */
-    int _max_bottom ;
+    int _max_bottom;
 
     /**
      * The maximum number of surface bounces.
      * Any eigenray or eigenverb with more than this number
      * of surface bounces is not sent the listeners.
      */
-    int _max_surface ;
+    int _max_surface;
 
     /**
      * The maximum number of caustic turning points.
      * Any eigenray or eigenverb with more than this number
      * of caustic turning points is not sent the listeners.
      */
-    int _max_caustic ;
+    int _max_caustic;
 
     /**
      * The maximum number of upper vertices.
      * Any eigenray or eigenverb with more than this number
      * of upper vertices is not sent the listeners.
      */
-    int _max_upper ;
+    int _max_upper;
 
     /**
      * The maximum number of lower vertices.
      * Any eigenray or eigenverb with more than this number
      * of lower vertices is not sent the listeners.
      */
-    int _max_lower ;
-
+    int _max_lower;
 };
 
 /// @}

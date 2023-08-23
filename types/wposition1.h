@@ -138,7 +138,7 @@ public:
 
     /**
      * Computes the great circle range and bearing between two
-     * latitude/longtiude positions along the Earth's surface.
+     * latitude/longitude positions along the Earth's surface.
      *
      * @xref E. Williams, "Aviation Formulary V1.43",
      * http://williams.best.vwh.net/avform.htm , July 2010.
@@ -147,7 +147,7 @@ public:
      * @param  bearing      True bearing to the new point (radians, optional).
      * @return              Distance to the new point along the Earth's surface (meters).
      */
-    double gc_range( const wposition1& location, double* bearing=NULL) const ;
+    double gc_range( const wposition1& location, double* bearing=nullptr) const ;
 
 };
 

@@ -1,130 +1,137 @@
 /**
  * @file reflect_loss_netcdf.cc
- * Models plane wave reflection from a bottom province profile.
+ * Builds rayleigh models for an imported netcdf bottom province file.
  */
 #include <usml/ocean/reflect_loss_netcdf.h>
+#include <usml/types/gen_grid.h>
+
 #include <exception>
 
-using namespace usml::ocean ;
+using namespace usml::ocean;
 
+/**
+ * Loads bottom province data from a netCDF formatted file.
+ */
 reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
-
-	NcFile file( filename ) ;
+    NcFile file(filename);
     if (file.is_valid() == 0) {
-    	throw std::invalid_argument("file not found") ;
+        throw std::invalid_argument("file not found");
     }
-	NcVar *bot_speed = file.get_var("speed_ratio") ;         // bot_speed  : speed ratio of the province
-	NcVar *bot_density = file.get_var("density_ratio") ;     // bot_density  : density ratio of the province
-	NcVar *bot_atten = file.get_var("atten") ;               // bot_atten  : attenuation value for the province
-	NcVar *bot_shear_speed = file.get_var("shear_speed") ;   // bot_shear_speed  : shear speed of the province
-	NcVar *bot_shear_atten = file.get_var("shear_atten") ;   // bot_shear_atten  : shear attenuation of the province
-	NcVar *lon = file.get_var("longitude") ;                 // lat : latitude in degrees
-	NcVar *lat = file.get_var("latitude") ;                  // lon : longitude in degrees
-	NcVar *bot_num = file.get_var("type") ;                  // bot_num  : bottom province map
+    NcVar* bot_speed = file.get_var("speed_ratio");
+    NcVar* bot_density = file.get_var("density_ratio");
+    NcVar* bot_atten = file.get_var("atten");
+    NcVar* bot_shear_speed = file.get_var("shear_speed");
+    NcVar* bot_shear_atten = file.get_var("shear_atten");
+    NcVar* lon = file.get_var("longitude");
+    NcVar* lat = file.get_var("latitude");
+    NcVar* bot_num = file.get_var("type");
 
-    /** Gets the size of the dimensions to be used to create the data grid */
-    int ncid, latid, lonid, types ;
-    long latdim, londim, n_types ;
-    ncid = ncopen(filename, NC_NOWRITE) ;
-	latid = ncdimid(ncid, "latitude") ;
-    ncdiminq(ncid, latid, 0, &latdim) ;
-    lonid = ncdimid(ncid, "longitude") ;
-    ncdiminq(ncid, lonid, 0, &londim) ;
-    types = ncdimid(ncid, "speed_ratio") ;
-    ncdiminq(ncid, types, 0, &n_types) ;
+    // gets the size of the dimensions to be used to create the data grid
 
-    /** Extracts the data for all of the variables from the netcdf file and stores them */
-    double* latitude = new double[latdim] ;
-        lat->get(&latitude[0], latdim) ;
-    double* longitude = new double[londim] ;
-        lon->get(&longitude[0], londim) ;
-    double* type_num = new double[latdim*londim] ;
-        bot_num->get(&type_num[0], latdim, londim) ;
-    double* speed = new double[n_types] ;
-        bot_speed->get(&speed[0], n_types) ;
-    double* density = new double[n_types] ;
-        bot_density->get(&density[0], n_types) ;
-    double* atten = new double[n_types] ;
-        bot_atten->get(&atten[0], n_types) ;
-    double* shearspd = new double[n_types] ;
-        bot_shear_speed->get(&shearspd[0], n_types) ;
-    double* shearatten = new double[n_types] ;
-        bot_shear_atten->get(&shearatten[0], n_types) ;
+    int ncid = ncopen(filename, NC_NOWRITE);
 
-    /** Creates a sequence vector of axes that are passed to the data grid constructor */
-    const seq_vector* axis[2];
-    double latinc = ( latitude[latdim-1] - latitude[0] ) / latdim ;
-    axis[0] = new seq_linear(latitude[0], latinc, int(latdim));
-    double loninc = ( longitude[londim-1] - longitude[0] ) / londim ;
-    axis[1] = new seq_linear(longitude[0], loninc, int(londim));
+    int latid = ncdimid(ncid, "latitude");
+    long latdim;
+    ncdiminq(ncid, latid, nullptr, &latdim);
 
-    /** Creates a data grid with the above assigned axises and populates the grid with the data from the netcdf file */
-    _bottom_grid = new data_grid<double,2>(axis) ;
-    size_t index[2] ;
-    for(int i=0; i<latdim; i++) {
-        for(int j=0; j<londim; j++) {
-            index[0] = i ;
-            index[1] = j ;
-            _bottom_grid->data(index, type_num[i*londim+j]) ;
+    int lonid = ncdimid(ncid, "longitude");
+    long londim;
+    ncdiminq(ncid, lonid, nullptr, &londim);
+
+    int types = ncdimid(ncid, "speed_ratio");
+    long n_types;
+    ncdiminq(ncid, types, nullptr, &n_types);
+
+    // extracts the data for all of the variables from the netcdf file
+
+    auto* latitude = new double[latdim];
+    auto* longitude = new double[londim];
+    auto* type_num = new double[latdim * londim];
+    auto* speed = new double[n_types];
+    auto* density = new double[n_types];
+    auto* atten = new double[n_types];
+    auto* shearspd = new double[n_types];
+    auto* shearatten = new double[n_types];
+
+    lat->get(&latitude[0], latdim);
+    lon->get(&longitude[0], londim);
+    bot_num->get(&type_num[0], latdim, londim);
+    bot_speed->get(&speed[0], n_types);
+    bot_density->get(&density[0], n_types);
+    bot_atten->get(&atten[0], n_types);
+    bot_shear_speed->get(&shearspd[0], n_types);
+    bot_shear_atten->get(&shearatten[0], n_types);
+
+    // creates a sequence vector of axes that are passed to data grid
+
+    seq_vector::csptr axis[2];
+    double latinc = (latitude[latdim - 1] - latitude[0]) / double(latdim);
+    double loninc = (longitude[londim - 1] - longitude[0]) / double(londim);
+    auto* seq_lat = new seq_linear(latitude[0], latinc, int(latdim));
+    auto* seq_lon = new seq_linear(longitude[0], loninc, int(londim));
+    axis[0] = seq_vector::csptr(seq_lat);
+    axis[1] = seq_vector::csptr(seq_lon);
+
+    // creates a data grid and populates the data from the netcdf file
+
+    auto* grid = new gen_grid<2>(axis);
+    size_t index[2];
+    for (int i = 0; i < latdim; i++) {
+        for (int j = 0; j < londim; j++) {
+            index[0] = i;
+            index[1] = j;
+            grid->setdata(index, type_num[i * londim + j]);
         }
     }
+    _bottom_grid = data_grid<2>::csptr(grid);
 
-    /** Set the interpolation type to the nearest neighbor and restrict extrapolation */
-    for(int i=0; i<2; i++){
-        _bottom_grid->interp_type(i, GRID_INTERP_NEAREST) ;
-        _bottom_grid->edge_limit(i, true) ;
+    // set the interpolation type to the nearest neighbor and restrict extrap
+
+    for (int i = 0; i < 2; i++) {
+        grid->interp_type(i, interp_enum::nearest);
+        grid->edge_limit(i, true);
     }
 
-    /** Builds a vector of reflect_loss_rayleigh values for all bottom province numbers */
-    for(int i=0; i<int(n_types); i++) {
-        _rayleigh.push_back( new reflect_loss_rayleigh(
-                density[i], speed[i], atten[i], shearspd[i], shearatten[i] ) ) ;
+    // builds a vector of reflect_loss_rayleigh for all bottom province numbers
+
+    for (int i = 0; i < int(n_types); i++) {
+        auto* model = new reflect_loss_rayleigh(density[i], speed[i], atten[i],
+                                                shearspd[i], shearatten[i]);
+        _loss_model.push_back(reflect_loss_model::csptr(model));
     }
 
-    ncclose( ncid ) ;
-    delete axis[0] ;
-    delete axis[1] ;
-	delete[] latitude ;
-	delete[] longitude ;
-	delete[] speed ;
-	delete[] density ;
-	delete[] atten ;
-	delete[] shearspd ;
-	delete[] shearatten ;
-	delete[] type_num ;
-
+    ncclose(ncid);
+    delete[] latitude;
+    delete[] longitude;
+    delete[] speed;
+    delete[] density;
+    delete[] atten;
+    delete[] shearspd;
+    delete[] shearatten;
+    delete[] type_num;
 }
 
-/** Gets a rayleigh reflection loss value for the bottom province number
- * at a specific location then computes the broadband reflection loss and phase change.
+/**
+ * Gets a Rayleigh reflection loss value for the bottom province number
+ * at a specific location then computes the broadband reflection loss and phase
+ * change.
  *
  * @param location      Location at which to compute attenuation.
  * @param frequencies   Frequencies over which to compute loss. (Hz)
  * @param angle         Reflection angle relative to the normal (radians).
  * @param amplitude     Change in ray strength in dB (output).
  * @param phase         Change in ray phase in radians (output).
- *                      Phase change not computed if this is NULL.
+ *                      Phase change not computed if this is nullptr.
  */
-void reflect_loss_netcdf::reflect_loss(
-    const wposition1& location,
-    const seq_vector& frequencies, double angle,
-    vector<double>* amplitude, vector<double>* phase) {
-
+void reflect_loss_netcdf::reflect_loss(const wposition1& location,
+                                       seq_vector::csptr frequencies,
+                                       double angle, vector<double>* amplitude,
+                                       vector<double>* phase) const {
     double loc[2];
-    loc[0] = location.latitude() ;
-    loc[1] = location.longitude() ;
+    loc[0] = location.latitude();
+    loc[1] = location.longitude();
 
-    size_t type = _bottom_grid->interpolate(loc) ;
-    _rayleigh[type]->reflect_loss(location, frequencies, angle, amplitude, phase ) ;
-}
-
-/**
- * Iterates over the rayleigh reflection loss values
- * and deletes them.
- */
-reflect_loss_netcdf::~reflect_loss_netcdf() {
-	for(std::vector<reflect_loss_rayleigh*>::iterator iter =_rayleigh.begin(); iter != _rayleigh.end(); iter++) {
-        delete *iter;
-	}
-	delete _bottom_grid ;
+    auto type = (size_t) _bottom_grid->interpolate(loc);
+    _loss_model[type]->reflect_loss(location, frequencies, angle, amplitude,
+                                    phase);
 }

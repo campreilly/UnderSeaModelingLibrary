@@ -4,13 +4,22 @@
  */
 #pragma once
 
+#include <usml/types/wposition1.h>
+#include <usml/ublas/vector_math.h>
+#include <usml/usml_config.h>
 #include <usml/waveq3d/spreading_model.h>
+
+#include <boost/numeric/ublas/expression_types.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/vector_expression.hpp>
+#include <cstddef>
 
 namespace usml {
 namespace waveq3d {
 
-using namespace usml::ocean ;
-class reverberation_model ;
+using namespace usml::ocean;
+class reverberation_model;
 
 /**
  * @internal
@@ -42,37 +51,36 @@ class reverberation_model ;
  * J. Acoust. Soc. Am. 100 (3), 1421-1431, (Sept 1996).
  */
 class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
+    friend class wave_queue;
+    friend class wave_queue_reverb;
+    friend class reverberation_model;
 
-    friend class wave_queue ;
-    friend class wave_queue_reverb ;
-    friend class reverberation_model ;
-
-  private:
-
+   private:
     /** Normalization in depression/elevation direction. */
-    vector<double> _norm_de ;
+    vector<double> _norm_de;
 
     /** Normalization in azimuthal direction. */
-    matrix<double> _norm_az ;
+    matrix<double> _norm_az;
 
     /** Combination of cell width and spreading. (temp workspace) */
-    vector<double> _beam_width ;
+    vector<double> _beam_width;
 
     /** Intensity contribution in D/E direction. (temp workspace) */
-    vector<double> _intensity_de ;
+    vector<double> _intensity_de;
 
     /** Intensity contribution in azimuthal direction. (temp workspace) */
-    vector<double> _intensity_az ;
+    vector<double> _intensity_az;
 
-    /** Tracks the rays that have already made contributions to the intensity **/
-    matrix<bool> _duplicate ;
+    /** Tracks the rays that have already made contributions to the intensity
+     * **/
+    matrix<bool> _duplicate;
 
     /**
      * Number of wavelengths that each Gaussian beam can be expected
      * spread into neighboring beams.  Equivalent to the
      * \f$ 2 \pi \lambda \f$ minimum width term in the GRAB model.
      */
-    static const double SPREADING_WIDTH ; // 2 pi
+    static const double SPREADING_WIDTH;  // 2 pi
 
     /**
      * Minimum percentage that each Gaussian beam can be expected
@@ -80,17 +88,16 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * the summation across Gaussian beams can have non-physical "ripples"
      * in it.  Follow the GRAB example of 50% overlap.
      */
-    static const double OVERLAP ; // 2.0
+    static const double OVERLAP;  // 2.0
 
     /**
      * Limits the extent of the search for Gaussian beam contributions.
      * Iteration stops when new contribution makes less than a 0.01 dB
      * contribution to the overall result.
      */
-    static const double THRESHOLD ; // 1.002305238
+    static const double THRESHOLD;  // 1.002305238
 
-  protected:
-
+   protected:
     /**
      * Normalize each wavefront cell by the surface area it takes up
      * one meter from source.
@@ -107,7 +114,7 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      *
      * @param wave          Wavefront object associated with this model.
      */
-    spreading_hybrid_gaussian( wave_queue& wave ) ;
+    spreading_hybrid_gaussian(wave_queue& wave);
 
     /**
      * Virtual destructor
@@ -138,11 +145,11 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * @xref Weisstein, Eric W. "Convolution." From MathWorld--A Wolfram Web
      * Resource. http://mathworld.wolfram.com/Convolution.html
      */
-    inline vector<double> gaussian(double d,double w,double A) {
-        _beam_width = _spread + OVERLAP * OVERLAP * w * w ; // sum of squares
-        return element_div(
-            exp( (-0.5*d*d) / _beam_width ),
-            sqrt(_beam_width) ) * A ;
+    inline vector<double> gaussian(double d, double w, double A) {
+        _beam_width = _spread + OVERLAP * OVERLAP * w * w;  // sum of squares
+        return element_div(exp((-0.5 * d * d) / _beam_width),
+                           sqrt(_beam_width)) *
+               A;
     }
 
     /**
@@ -158,9 +165,10 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * @param  distance     Offsets in distance units.
      * @return              Intensity of ray at this point.
      */
-    virtual const vector<double>& intensity(
-        const wposition1& location, size_t de, size_t az,
-        const vector<double>& offset, const vector<double>& distance ) ;
+    virtual const vector<double>& intensity(const wposition1& location,
+                                            size_t de, size_t az,
+                                            const vector<double>& offset,
+                                            const vector<double>& distance);
 
     /**
      * Interpolate the half-width of a cell in the D/E direction.
@@ -175,8 +183,7 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * @param   offset      Offsets in time, DE, and AZ at collision.
      * @return              Half-width of cell in the DE direction.
      */
-    virtual double width_de(
-        size_t de, size_t az, const vector<double>& offset ) ;
+    virtual double width_de(size_t de, size_t az, const vector<double>& offset);
 
     /**
      * Interpolate the half-width of a cell in the AZ direction.
@@ -191,11 +198,9 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * @param   offset      Offsets in time, DE, and AZ at collision.
      * @return              Half-width of cell in the AZ direction.
      */
-    virtual double width_az(
-        size_t de, size_t az, const vector<double>& offset ) ;
+    virtual double width_az(size_t de, size_t az, const vector<double>& offset);
 
-  private:
-
+   private:
     /**
      * Summation of Gaussian beam contributions from all cells in
      * the D/E direction.  Iteration stops when lowest frequency contribution
@@ -205,10 +210,9 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * @param  az           AZ index of contributing cell.
      * @param  offset       Offsets in time, DE, and AZ at collision.
      * @param  distance     Offsets in distance units.
-     * @return              Intensity of ray at this point.
      */
-    void intensity_de( size_t de, size_t az,
-        const vector<double>& offset, const vector<double>& distance ) ;
+    void intensity_de(size_t de, size_t az, const vector<double>& offset,
+                      const vector<double>& distance);
 
     /**
      * Summation of Gaussian beam contributions from all cells in
@@ -219,12 +223,10 @@ class USML_DECLSPEC spreading_hybrid_gaussian : public spreading_model {
      * @param  az           AZ index of contributing cell.
      * @param  offset       Offsets in time, DE, and AZ at collision.
      * @param  distance     Offsets in distance units.
-     * @return              Intensity of ray at this point.
      */
-    void intensity_az( size_t de, size_t az,
-        const vector<double>& offset, const vector<double>& distance ) ;
-
-} ;
+    void intensity_az(size_t de, size_t az, const vector<double>& offset,
+                      const vector<double>& distance);
+};
 
 }  // end of namespace waveq3d
 }  // end of namespace usml

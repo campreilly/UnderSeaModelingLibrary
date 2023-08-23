@@ -5,3 +5,5 @@
 /reflect_loss_srflos_test.cc
 /reflect_loss_srflos_test.m
 /srflos_grid_test.cdl
+/ambient_noise_curve_results.csv
+!/ambient_noise_truth.csv

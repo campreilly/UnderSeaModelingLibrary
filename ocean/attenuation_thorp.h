@@ -5,17 +5,23 @@
 #pragma once
 
 #include <usml/ocean/attenuation_model.h>
+#include <usml/types/seq_vector.h>
+#include <usml/types/wposition.h>
+#include <usml/usml_config.h>
+
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
 
 namespace usml {
 namespace ocean {
 
-using boost::numeric::ublas::vector;
+using namespace usml::types;
 
 /// @ingroup profiles
 /// @{
 
 /**
- * Models attenuation loss using the Thorp's model.
+ * Models attenuation loss using Thorp's model.
  * <pre>
  *      attenuation (dB/km) =
  *            0.0033 + F2* ( 3.0e-4 + 44.0/(4100.0 + F2)
@@ -48,18 +54,11 @@ using boost::numeric::ublas::vector;
  * and Chemical Equilibrium," J. Acoust. Soc. Am. 30:442 (1973).
  */
 class USML_DECLSPEC attenuation_thorp : public attenuation_model {
-
-  public:
-
+   public:
     /**
      * Default initializes does nothing.
      */
-    attenuation_thorp(){}
-
-    /**
-     * Virtual destructor
-     */
-    virtual ~attenuation_thorp() {}
+    attenuation_thorp() {}
 
     /**
      * Computes the broadband absorption loss of sea water.
@@ -69,13 +68,10 @@ class USML_DECLSPEC attenuation_thorp : public attenuation_model {
      * @param distance      Distance traveled through the water (meters).
      * @param attenuation   Absorption loss of sea water in dB (output).
      */
-    virtual void attenuation(
-        const wposition& location,
-        const seq_vector& frequencies,
-        const matrix<double>& distance,
-        matrix< vector<double> >* attenuation ) ;
-
-} ;
+    void attenuation(const wposition& location, seq_vector::csptr frequencies,
+                     const matrix<double>& distance,
+                     matrix<vector<double> >* attenuation) const override;
+};
 
 /// @}
 }  // end of namespace ocean

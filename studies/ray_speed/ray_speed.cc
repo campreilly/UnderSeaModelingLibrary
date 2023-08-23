@@ -16,150 +16,113 @@
  *      - AZ: [0,360] in 5.0 deg steps
  *
  */
-#include <usml/waveq3d/waveq3d.h>
-#include <usml/netcdf/netcdf_files.h>
-#include <fstream>
-#include <iomanip>
-#include <boost/progress.hpp>
 
-using namespace usml::waveq3d ;
-using namespace usml::netcdf ;
-using namespace usml::ocean ;
+#include <usml/netcdf/netcdf_bathy.h>
+#include <usml/netcdf/netcdf_woa.h>
+#include <usml/ocean/boundary_flat.h>
+#include <usml/ocean/boundary_grid.h>
+#include <usml/ocean/boundary_model.h>
+#include <usml/ocean/data_grid_mackenzie.h>
+#include <usml/ocean/ocean_model.h>
+#include <usml/ocean/profile_grid.h>
+#include <usml/ocean/profile_model.h>
+#include <usml/types/data_grid.h>
+#include <usml/types/seq_linear.h>
+#include <usml/types/seq_log.h>
+#include <usml/types/seq_rayfan.h>
+#include <usml/types/seq_vector.h>
+#include <usml/types/wposition.h>
+#include <usml/types/wposition1.h>
+#include <usml/types/wvector.h>
+#include <usml/ublas/randgen.h>
+#include <usml/waveq3d/wave_queue.h>
+
+#include <boost/timer/timer.hpp>
+#include <usml/eigenrays/eigenray_collection.h>
+#include <cstddef>
+#include <cstdlib>
+#include <iostream>
+
+using namespace usml::waveq3d;
+using namespace usml::netcdf;
+using namespace usml::ocean;
 
 /**
  * Command line interface.
  */
-int main( int argc, char* argv[] ) {
-    cout << "=== ray_speed ===" << endl ;
+int main(int argc, char* argv[]) {
+    cout << "=== ray_speed ===" << endl;
 
-    int num_targets = 100 ;
-    if ( argc > 1 ) {
-        num_targets = atoi( argv[1] ) ;
+    int num_targets = 100;
+    if (argc > 1) {
+        num_targets = atoi(argv[1]);
     }
 
     // define scenario parameters
 
-    int month = 12 ;		// december
-    const double lat1 = 30.0 ;  // entire Mediterranean Sea
-    const double lat2 = 46.0 ;
-    const double lng1 = -8.0 ;
-    const double lng2 = 37.0 ;
-    wposition::compute_earth_radius( (lat1+lat2)/2.0 ) ;
+    int month = 12;            // December
+    const double lat1 = 30.0;  // entire Mediterranean Sea
+    const double lat2 = 46.0;
+    const double lng1 = -8.0;
+    const double lng2 = 37.0;
 
-    wposition1 pos( 36.0, 16.0, -10.0 ) ;
-    seq_rayfan de( -90.0, 90.0, 181 ) ;
-    seq_linear az( 0.0, 15.0, 360.0 ) ;
-    const double time_max = 60.0 ;
-    const double time_step = 0.100 ;
-
-    seq_log freq( 3000.0, 1.0, 1 ) ;
-
-    #ifdef USML_DEBUG
-        const char* csvname = USML_STUDIES_DIR "/ray_speed/ray_speed_eigenray.csv";
-        const char* ncname = USML_STUDIES_DIR "/ray_speed/ray_speed_eigenray.nc";
-        const char* ncname_wave = USML_STUDIES_DIR "/ray_speed/ray_speed_eigenray_wave.nc";
-    #endif
+    wposition1 pos(36.0, 16.0, -10.0);
+    seq_vector::csptr de(new seq_rayfan(-90.0, 90.0, 181));
+    seq_vector::csptr az(new seq_linear(0.0, 15.0, 360.0));
+    const double time_max = 60.0;
+    const double time_step = 0.100;
+    seq_vector::csptr freq(new seq_log(3000.0, 1.0, 1));
 
     // build sound velocity profile from World Ocean Atlas data
 
-    cout << "load temperature & salinity data from World Ocean Atlas" << endl ;
-    netcdf_woa* temperature = new netcdf_woa(
-	USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
-	USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
-        month, lat1, lat2, lng1, lng2 ) ;
-    netcdf_woa* salinity = new netcdf_woa(
-	USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
-	USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc",
-        month, lat1, lat2, lng1, lng2 ) ;
-
-    data_grid<double,3>* ssp = data_grid_mackenzie::construct( temperature, salinity ) ;
-    data_grid_svp* fast_ssp = new data_grid_svp(ssp) ;
-    profile_model* profile = new profile_grid_fast( fast_ssp ) ;
-//    attenuation_model* attn = new attenuation_constant(0.0);
-//    profile->attenuation(attn);
+    cout << "load temperature & salinity data from World Ocean Atlas" << endl;
+    data_grid<3>::csptr temperature(
+        new netcdf_woa(USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
+                       USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
+                       month, lat1, lat2, lng1, lng2));
+    data_grid<3>::csptr salinity(
+        new netcdf_woa(USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
+                       USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc", month,
+                       lat1, lat2, lng1, lng2));
+    data_grid<3>::csptr ssp(new data_grid_mackenzie(temperature, salinity));
+    profile_grid<3>::csptr profile(new profile_grid<3>(ssp));
 
     // load bathymetry from ETOPO1 database
 
-    data_grid<double,2>* grid = new netcdf_bathy( USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
-        lat1, lat2, lng1, lng2 );
-    data_grid_bathy* fast_grid = new data_grid_bathy(grid) ;
-    cout << "load bathymetry from ETOPO1 database" << endl ;
-    boundary_model* bottom = new boundary_grid_fast( fast_grid ) ;
+    cout << "load bathymetry from ETOPO1 database" << endl;
+    data_grid<2>::csptr grid(
+        new netcdf_bathy(USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+                         lat1, lat2, lng1, lng2));
+    boundary_grid<2>::csptr bottom(new boundary_grid<2>(grid));
 
     // combine sound speed and bathymetry into ocean model
 
-    boundary_model* surface = new boundary_flat() ;
-    ocean_model ocean( surface, bottom, profile ) ;
+    boundary_model::csptr surface(new boundary_flat());
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
 
     // initialize eigenray_collection targets and wavefront
 
-    cout << "initialize " << num_targets << " targets" << endl ;
-    randgen::seed(0) ;  // fix the initial seed
-    wposition target( num_targets, 1, pos.latitude(), pos.longitude(), pos.altitude() ) ;
-    for ( size_t n=0 ; n < target.size1() ; ++n ) {
-        target.latitude(  n, 0, pos.latitude() + randgen::uniform() - 0.5 ) ;
-        target.longitude( n, 0, pos.longitude() + randgen::uniform() - 0.5 ) ;
+    cout << "initialize " << num_targets << " targets" << endl;
+    randgen random;
+    random.seed(0);  // fix the initial seed
+    wposition targets(num_targets, 1, pos.latitude(), pos.longitude(),
+                      pos.altitude());
+    for (size_t n = 0; n < targets.size1(); ++n) {
+        targets.latitude(n, 0, pos.latitude() + random.uniform() - 0.5);
+        targets.longitude(n, 0, pos.longitude() + random.uniform() - 0.5);
     }
-
-    eigenray_collection loss(freq, pos, de, az, time_step, &target);
-	wave_queue wave( ocean, freq, pos, de, az, time_step, &target ) ;
-	wave.add_eigenray_listener(&loss) ;
+    eigenray_collection eigenrays(freq, pos, &targets);
+    wave_queue wave(ocean, freq, pos, de, az, time_step, &targets);
+    wave.add_eigenray_listener(&eigenrays);
 
     // propagate wavefront
 
-    #ifdef USML_DEBUG
-        cout << "writing wavefronts to " << ncname_wave << endl;
-
-        wave.init_netcdf( ncname_wave );
-        wave.save_netcdf();
-    #endif
-
-    cout << "propagate wavefronts for " << time_max << " secs" << endl ;
+    cout << "propagate wavefronts for " << time_max << " secs" << endl;
     {
-        boost::progress_timer timer ;
-        while ( wave.time() < time_max ) {
-            wave.step() ;
-		#ifdef USML_DEBUG
-			wave.save_netcdf();
-		#endif
-		}
-    }
-
-    #ifdef USML_DEBUG
-        wave.close_netcdf();
-
-        // compute coherent propagation loss and write eigenrays to disk
-
-        loss.sum_eigenrays();
-        cout << "writing eigenray_collection to " << ncname << endl;
-        loss.write_netcdf(ncname,"WQ3Deigenray test");
-
-        // save results to spreadsheet and compare to analytic results
-
-        cout << "writing tables to " << csvname << endl;
-        std::ofstream os(csvname);
-        os << "time,intensity,phase,s_de,s_az,t_de,t_az,srf,btm,cst"
-        << endl;
-        os << std::setprecision(18);
-        cout << std::setprecision(18);
-
-        const eigenray_list *raylist = loss.eigenrays(0,0);
-        int n=0;
-        for ( eigenray_list::const_iterator iter = raylist->begin();
-                iter != raylist->end(); ++n, ++iter )
-        {
-            const eigenray &ray = *iter ;
-            os << ray.time
-               << "," << ray.intensity(0)
-               << "," << ray.phase(0)
-               << "," << ray.source_de
-               << "," << ray.source_az
-               << "," << ray.target_de
-               << "," << ray.target_az
-               << "," << ray.surface
-               << "," << ray.bottom
-               << "," << ray.caustic
-               << endl;
+        boost::timer::auto_cpu_timer timer(3, "%w secs");
+        while (wave.time() < time_max) {
+            wave.step();
         }
-    #endif
+    }
+    cout << endl;
 }

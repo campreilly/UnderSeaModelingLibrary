@@ -52,19 +52,15 @@ using boost::numeric::ublas::vector;
  * @xref C. Eckart, “The scattering of sound from the sea surface,”
  * J. Acoust. Soc. Am. 25, 560–570 (1953).
  */
-class USML_DECLSPEC reflect_loss_eckart: public reflect_loss_model {
-
-public:
-
+class USML_DECLSPEC reflect_loss_eckart : public reflect_loss_model {
+   public:
     /**
      * Initializes ocean surface reflection loss using Eckart's model.
      *
      * @param wind_speed    Wind_speed used to develop rough seas (m/s)
      */
-    reflect_loss_eckart( double wind_speed ) :
-        _wind_speed2( wind_speed * wind_speed )
-    {
-    }
+    reflect_loss_eckart(double wind_speed)
+        : _wind_speed2(wind_speed * wind_speed) {}
 
     /**
      * Computes the broadband reflection loss and phase change.
@@ -74,22 +70,20 @@ public:
      * @param angle         Grazing angle relative to the interface (radians).
      * @param amplitude     Change in ray intensity in dB (output).
      * @param phase         Change in ray phase in radians (output).
-     *                         Hard-coded to a value of PI for this model.
-     *                      Phase change not computed if this is NULL.
+     *                      Hard-coded to a value of PI for this model.
+     *                      Phase change not computed if this is nullptr.
      */
-    virtual void reflect_loss(const wposition1& location,
-            const seq_vector& frequencies, double angle,
-            vector<double>* amplitude, vector<double>* phase = NULL)
-    {
-        noalias(*amplitude) = frequencies ;    // copy sequence into vector
-        *amplitude = 8.6e-9 * abs2( (*amplitude) * _wind_speed2 * sin(angle) );
-        if ( phase ) {
-            noalias(*phase) = scalar_vector<double>( frequencies.size(), M_PI );
+    void reflect_loss(const wposition1& location, seq_vector::csptr frequencies,
+                      double angle, vector<double>* amplitude,
+                      vector<double>* phase = nullptr) const override {
+        noalias(*amplitude) = *frequencies;  // copy sequence into vector
+        *amplitude = 8.6e-9 * abs2((*amplitude) * _wind_speed2 * sin(angle));
+        if (phase) {
+            noalias(*phase) = scalar_vector<double>(frequencies->size(), M_PI);
         }
     }
 
-private:
-
+   private:
     /** Wind speed squared (m/sec)^2. */
     const double _wind_speed2;
 };

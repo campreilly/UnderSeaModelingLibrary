@@ -20,7 +20,7 @@
 # The uninstall target removes the files and directories created by
 # the install process.
 #
-cmake_minimum_required( VERSION 2.6 )
+cmake_minimum_required( VERSION 3.20 )
 project( usml C CXX )
 
 ######################################################################
@@ -30,7 +30,9 @@ file(STRINGS config/VERSION.txt PACKAGE_VERSION)
 message(STATUS "USML version ${PACKAGE_VERSION}" )
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/config" )
 
-set( PACKAGE_MODULES ublas types netcdf ocean sensors eigenverb threads waveq3d)
+set( PACKAGE_MODULES ublas types netcdf ocean threads beampatterns 
+    eigenrays eigenverbs  rvbenv waveq3d managed wavegen platforms transmit biverbs bistatic )
+
 if( MSVC )	# work around for missing netcdf_c++ on windows
     set( PACKAGE_MODULES ${PACKAGE_MODULES} netcdf/msvc )
 endif( MSVC )	
@@ -45,6 +47,11 @@ include_directories(    # ignore warnings in Boost and NetCDF includes
     ${Boost_INCLUDE_DIR}
     ${NETCDF_INCLUDES} )
 
+# ignore BOOST deprecated headers
+
+add_definitions("-DBOOST_ALLOW_DEPRECATED_HEADERS")
+add_definitions("-DBOOST_BIND_GLOBAL_PLACEHOLDERS")
+  
 ######################################################################
 # macro: searches a module list for headers and sources
 
@@ -149,4 +156,42 @@ set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.${CMAKE_SYSTEM_PROCESSOR}")
 include(CPack)
 
+######################################################################
+# Doxygen
+
+option(BUILD_DOC "Build documentation" OFF)
+
+if (BUILD_DOC)
+ set(BUILD_DOC_ALL_OPTION ALL)
+endif (BUILD_DOC)
+
+# check if Doxygen is installed
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    # set input file
+    set(DOXYFILE ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
+    
+	if (UNIX)
+	    add_custom_target( doc_doxygen ${BUILD_DOC_ALL_OPTION}
+	        COMMAND 
+	        	"DOXYGEN_OUT=${CMAKE_CURRENT_SOURCE_DIR}"
+	        	${DOXYGEN_EXECUTABLE} ${DOXYFILE}    	
+	        COMMENT "Generating API documentation with Doxygen"
+	        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	        VERBATIM )
+    endif (UNIX)
+    
+    if (WIN32)
+	    add_custom_target( doc_doxygen ${BUILD_DOC_ALL_OPTION}
+	        COMMAND 
+	        	"set DOXYGEN_OUT=${CMAKE_CURRENT_SOURCE_DIR}" &
+	        	${DOXYGEN_EXECUTABLE} ${DOXYFILE}    	
+	        COMMENT "Generating API documentation with Doxygen"
+	        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	        VERBATIM )
+    endif (WIN32)
+    
+else (DOXYGEN_FOUND)
+  message("Doxygen need to be installed to generate the doxygen documentation")
+endif (DOXYGEN_FOUND)
 

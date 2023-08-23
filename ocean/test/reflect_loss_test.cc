@@ -3,6 +3,7 @@
  */
 #include <boost/test/unit_test.hpp>
 #include <usml/ocean/ocean.h>
+#include <usml/types/types.h>
 #include <fstream>
 
 BOOST_AUTO_TEST_SUITE(reflect_loss_test)
@@ -29,9 +30,9 @@ BOOST_AUTO_TEST_CASE( constant_reflect_loss_test ) {
 
     // compute reflect_loss
 
-    seq_log freq( 10.0, 10.0, 7 ) ;
-    cout << "freq:  " << freq << endl ;
-    vector<double> amplitude( freq.size() ) ;
+    seq_vector::csptr freq( new seq_log(10.0, 10.0, 7 ));
+    cout << "freq:  " << *freq.get() << endl ;
+    vector<double> amplitude( freq->size() ) ;
 
     double value = 3.0 ;
     reflect_loss_constant model( value ) ;
@@ -40,7 +41,7 @@ BOOST_AUTO_TEST_CASE( constant_reflect_loss_test ) {
 
     // check the answer
 
-    for ( size_t f=0 ; f < freq.size() ; ++f ) {
+    for ( size_t f=0 ; f < freq->size() ; ++f ) {
         BOOST_CHECK_CLOSE( amplitude(f), value, 1e-6 ) ;
     }
 }
@@ -63,9 +64,9 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_a ) {
     wposition1 points ;
     points.altitude(-1000.0) ;
 
-    seq_log freq( 10.0, 10.0, 7 ) ;
-    cout << "freq:  " << freq << endl ;
-    vector<double> amplitude( freq.size() ) ;
+    seq_vector::csptr freq( new seq_log(10.0, 10.0, 7 ));
+    cout << "freq:  " << *freq.get() << endl ;
+    vector<double> amplitude( freq->size() ) ;
 
     // test case (a) - variations with sediment sound speed
 
@@ -73,8 +74,8 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_a ) {
     os << "angle,cp=1550,cp=1600,cp=1800" << endl ;
     for ( int angle = 0 ; angle <= 90 ; ++angle ) {
         os << angle ;
-        for ( int n=0 ; n < 3 ; ++n ) {
-            reflect_loss_rayleigh model( 2.0, speed[n]/1500.0, 0.5 ) ;
+        for (double n : speed) {
+            reflect_loss_rayleigh model( 2.0, n/1500.0, 0.5 ) ;
             model.reflect_loss(
                 points, freq, to_radians(angle), &amplitude ) ;
             os << "," << amplitude(0) ;
@@ -101,9 +102,9 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_b ) {
     wposition1 points ;
     points.altitude(-1000.0) ;
 
-    seq_log freq( 10.0, 10.0, 7 ) ;
-    cout << "freq:  " << freq << endl ;
-    vector<double> amplitude( freq.size() ) ;
+    seq_vector::csptr freq( new seq_log(10.0, 10.0, 7 ));
+    cout << "freq:  " << *freq.get() << endl ;
+    vector<double> amplitude( freq->size() ) ;
 
     // test case (a) - variations with sediment attenuation
 
@@ -111,8 +112,8 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_b ) {
     os << "angle,a=1.0,a=0.5,a=0.0" << endl ;
     for ( int angle = 0 ; angle <= 90 ; ++angle ) {
         os << angle ;
-        for ( int n=0 ; n < 3 ; ++n ) {
-            reflect_loss_rayleigh model( 2.0, 1600.0/1500.0, atten[n] ) ;
+        for (double n : atten) {
+            reflect_loss_rayleigh model( 2.0, 1600.0/1500.0, n ) ;
             model.reflect_loss(
                 points, freq, to_radians(angle), &amplitude ) ;
             os << "," << amplitude(0) ;
@@ -139,9 +140,9 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_c ) {
     wposition1 points ;
     points.altitude(-1000.0) ;
 
-    seq_log freq( 10.0, 10.0, 7 ) ;
-    cout << "freq:  " << freq << endl ;
-    vector<double> amplitude( freq.size() ) ;
+    seq_vector::csptr freq( new seq_log(10.0, 10.0, 7 ));
+    cout << "freq:  " << *freq.get() << endl ;
+    vector<double> amplitude( freq->size() ) ;
 
     // test case (c) - variations with density
 
@@ -149,8 +150,8 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_c ) {
     os << "angle,d=1.5,d=2.0,d=2.5" << endl ;
     for ( int angle = 0 ; angle <= 90 ; ++angle ) {
         os << angle ;
-        for ( int n=0 ; n < 3 ; ++n ) {
-            reflect_loss_rayleigh model( density[n], 1600.0/1500.0, 0.5 ) ;
+        for (double n : density) {
+            reflect_loss_rayleigh model( n, 1600.0/1500.0, 0.5 ) ;
             model.reflect_loss(
                 points, freq, to_radians(angle), &amplitude ) ;
             os << "," << amplitude(0) ;
@@ -181,9 +182,9 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_d ) {
     wposition1 points ;
     points.altitude(-1000.0) ;
 
-    seq_log freq( 10.0, 10.0, 7 ) ;
-    cout << "freq:  " << freq << endl ;
-    vector<double> amplitude( freq.size() ) ;
+    seq_vector::csptr freq( new seq_log(10.0, 10.0, 7 ));
+    cout << "freq:  " << *freq.get() << endl ;
+    vector<double> amplitude( freq->size() ) ;
 
     // test case (d) - variations with shear speed
 
@@ -191,9 +192,9 @@ BOOST_AUTO_TEST_CASE( rayleigh_test_d ) {
     os << "angle,cs=0.0,cs=200,cs=400,cs=600" << endl ;
     for ( int angle = 0 ; angle <= 90 ; ++angle ) {
         os << angle ;
-        for ( int n=0 ; n < 4 ; ++n ) {
+        for (double n : shear) {
             reflect_loss_rayleigh model(
-                2.0, 1600.0/1500.0, 0.0, shear[n]/1500.0 ) ;
+                2.0, 1600.0/1500.0, 0.0, n/1500.0 ) ;
             model.reflect_loss(
                 points, freq, to_radians(angle), &amplitude ) ;
             os << "," << amplitude(0) ;
@@ -217,28 +218,28 @@ BOOST_AUTO_TEST_CASE( plot_rayleigh_sediments ) {
     wposition1 points ;
     points.altitude(-1000.0) ;
 
-    seq_log freq( 10.0, 10.0, 7 ) ;
-    cout << "freq:  " << freq << endl ;
-    vector<double> amplitude( freq.size() ) ;
+    seq_vector::csptr freq( new seq_log(10.0, 10.0, 7 ));
+    cout << "freq:  " << *freq.get() << endl ;
+    vector<double> amplitude( freq->size() ) ;
 
     // test case (a) - variations with sediment sound speed
 
-    static reflect_loss_rayleigh::bottom_type_enum sediment[] = {
-        reflect_loss_rayleigh::CLAY,
-        reflect_loss_rayleigh::SILT,
-        reflect_loss_rayleigh::SAND,
-        reflect_loss_rayleigh::GRAVEL,
-        reflect_loss_rayleigh::MORAINE,
-        reflect_loss_rayleigh::CHALK,
-        reflect_loss_rayleigh::LIMESTONE,
-        reflect_loss_rayleigh::BASALT
-    } ;
+    static bottom_type_enum sediment[] = {
+        bottom_type_enum::clay,
+        bottom_type_enum::silt,
+        bottom_type_enum::sand,
+        bottom_type_enum::gravel,
+        bottom_type_enum::moraine,
+        bottom_type_enum::chalk,
+        bottom_type_enum::limestone,
+        bottom_type_enum::basalt
+    };
 
     os << "angle,clay,silt,sand,gravel,moraine,chalk,limestone,basalt" << endl ;
     for ( int angle = 0 ; angle <= 90 ; ++angle ) {
         os << angle ;
-        for ( int n=0 ; n < 8 ; ++n ) {
-            reflect_loss_rayleigh model( sediment[n] ) ;
+        for (auto bottom_type : sediment) {
+            reflect_loss_rayleigh model( bottom_type ) ;
             model.reflect_loss(
                 points, freq, to_radians(angle), &amplitude ) ;
             os << "," << amplitude(0) ;
@@ -256,9 +257,9 @@ BOOST_AUTO_TEST_CASE( reflect_loss_netcdf_test ) {
 	cout << " === reflection_loss_test: reflection_loss_netcdf bottom type file === " << endl;
 	reflect_loss_netcdf netcdf( USML_DATA_DIR "/bottom_province/sediment_test.nc" ) ;
 
-    seq_linear frequency(1000.0, 1000.0, 0.01) ;
+    seq_vector::csptr frequency( new seq_linear(1000.0, 1000.0, 0.01) );
     double angle = M_PI_2 ;
-    vector<double> amplitude( frequency.size() ) ;
+    vector<double> amplitude( frequency->size() ) ;
 
     double limestone = 3.672875 ;
     double sand = 10.166660 ;
@@ -336,10 +337,10 @@ BOOST_AUTO_TEST_CASE( reflect_loss_eckart_test ) {
     // simple values for points and distance
 
     wposition1 points ;
-    seq_log freqA( 1000.0, 1.0, 1 ) ;
-    seq_log freqB( 3150.0, 1.0, 1 ) ;
-    seq_log freqC( 5000.0, 1.0, 1 ) ;
-    vector<double> amplitude( freqA.size() ) ;
+    seq_vector::csptr freqA( new seq_log(1000.0, 1.0, 1));
+    seq_vector::csptr freqB( new seq_log(3150.0, 1.0, 1));
+    seq_vector::csptr freqC( new seq_log(5000.0, 1.0, 1));
+    vector<double> amplitude( freqA->size() ) ;
 
     // variations with wind speed and frequency
 
@@ -353,19 +354,23 @@ BOOST_AUTO_TEST_CASE( reflect_loss_eckart_test ) {
 
         trackQ.reflect_loss( points, freqB, to_radians(angle), &amplitude ) ;
         os << "," << amplitude(0) ;
-        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 1.15, 1.0 );
+        if ( angle >= 10.0 ) { BOOST_CHECK_CLOSE(amplitude(0), 1.15, 1.0 );
+}
 
         trackQ.reflect_loss( points, freqC, to_radians(angle), &amplitude ) ;
         os << "," << amplitude(0) ;
-        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 2.90, 1.0 );
+        if ( angle >= 10.0 ) { BOOST_CHECK_CLOSE(amplitude(0), 2.90, 1.0 );
+}
 
         trackO.reflect_loss( points, freqA, to_radians(angle), &amplitude ) ;
         os << "," << amplitude(0) ;
-        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 11.15, 1.0 );
+        if ( angle >= 10.0 ) { BOOST_CHECK_CLOSE(amplitude(0), 11.15, 1.0 );
+}
 
         trackO.reflect_loss( points, freqC, to_radians(angle), &amplitude ) ;
         os << "," << amplitude(0) << endl ;
-        if ( angle >= 10.0 ) BOOST_CHECK_CLOSE(amplitude(0), 278.76, 1.0 );
+        if ( angle >= 10.0 ) { BOOST_CHECK_CLOSE(amplitude(0), 278.76, 1.0 );
+}
     }
 }
 
@@ -396,10 +401,10 @@ BOOST_AUTO_TEST_CASE( reflect_loss_beckmann_test ) {
     // simple values for points and distance
 
     wposition1 points ;
-    seq_log freqA( 1000.0, 1.0, 1 ) ;
-    seq_log freqB( 3150.0, 1.0, 1 ) ;
-    seq_log freqC( 5000.0, 1.0, 1 ) ;
-    vector<double> amplitude( freqA.size() ) ;
+    seq_vector::csptr freqA( new seq_log(1000.0, 1.0, 1));
+    seq_vector::csptr freqB( new seq_log(3150.0, 1.0, 1));
+    seq_vector::csptr freqC( new seq_log(5000.0, 1.0, 1));
+    vector<double> amplitude( freqA->size() ) ;
 
     // variations with wind speed and frequency
 

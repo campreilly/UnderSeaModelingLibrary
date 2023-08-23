@@ -12,7 +12,7 @@ path_name = [
 
 %% load individual eigenrays for WaveQ3D model and analytic solution
 
-[ plr.proploss, plr.eigenrays ] = load_proploss('eigenray_lloyds1.nc');
+[ plr.proploss, plr.eigenrays ] = load_proploss('eigenray_lloyds.nc');
 [ analytic.proploss, analytic.eigenrays ] = load_proploss('eigenray_lloyds_analytic.nc');
 latitude = plr.proploss.latitude(:,1)'-45 ;
 altitude = plr.proploss.altitude(1,:) ;

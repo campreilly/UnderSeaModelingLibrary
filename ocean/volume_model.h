@@ -23,11 +23,28 @@ using boost::numeric::ublas::vector;
  * the full distance from the bottom to the top of the layer.
  */
 class USML_DECLSPEC volume_model : public scattering_model {
+   public:
+    /// Shared pointer to constant version of this class.
+    typedef std::shared_ptr<const volume_model> csptr;
 
-    //**************************************************
-    // depth model
+    /**
+     * Initialize reflection loss components for a boundary.
+     *
+     * @param scatter        Reverberation scattering strength model
+     */
+    volume_model(scattering_model::csptr scatter = nullptr)
+        : _scattering(scatter) {
+        if (scatter) {
+            _scattering = scatter;
+        } else {
+            _scattering = scattering_model::csptr(new scattering_constant());
+        }
+    }
 
-  public:
+    /**
+     * Virtual destructor
+     */
+    virtual ~volume_model() {}
 
     /**
      * Compute the depth of the layer and it's thickness at
@@ -35,11 +52,12 @@ class USML_DECLSPEC volume_model : public scattering_model {
      * between ray paths and the volume scattering layer.
      *
      * @param location      Location at which to compute boundary.
-     * @param rho           Depth of layer center in spherical earth coords (output).
+     * @param rho           Depth of layer center in spherical earth coords
+     * (output).
      * @param thickness     Layer thickness (output).
      */
-    virtual void depth( const wposition& location,
-        matrix<double>* rho, matrix<double>* thickness=NULL ) = 0 ;
+    virtual void depth(const wposition& location, matrix<double>* rho,
+                       matrix<double>* thickness = nullptr) const = 0;
 
     /**
      * Compute the depth of the layer and it's thickness at
@@ -47,11 +65,12 @@ class USML_DECLSPEC volume_model : public scattering_model {
      * for individual collisions with volume scattering layer.
      *
      * @param location      Location at which to compute boundary.
-     * @param rho           Depth of layer center in spherical earth coords (output).
+     * @param rho           Depth of layer center in spherical earth coords
+     * (output).
      * @param thickness     Layer thickness (output).
      */
-    virtual void depth( const wposition1& location,
-        double* rho, double* thickness=NULL ) = 0 ;
+    virtual void depth(const wposition1& location, double* rho,
+                       double* thickness = nullptr) const = 0;
 
     //**************************************************
     // reverberation scattering strength model
@@ -61,9 +80,8 @@ class USML_DECLSPEC volume_model : public scattering_model {
      *
      * @param scattering    Scattering model for this layer.
      */
-    void scattering( scattering_model* scattering ) {
-        if( _scattering ) delete _scattering ;
-        _scattering = scattering ;
+    void scattering(scattering_model::csptr scattering) {
+        _scattering = scattering;
     }
 
     /**
@@ -77,13 +95,13 @@ class USML_DECLSPEC volume_model : public scattering_model {
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Change in ray strength in dB (output).
      */
-    virtual void scattering( const wposition1& location,
-        const seq_vector& frequencies, double de_incident, double de_scattered,
-        double az_incident, double az_scattered, vector<double>* amplitude )
-    {
-        _scattering->scattering( location,
-                frequencies, de_incident, de_scattered,
-                az_incident, az_scattered, amplitude ) ;
+    void scattering(const wposition1& location, seq_vector::csptr frequencies,
+                    double de_incident, double de_scattered, double az_incident,
+                    double az_scattered,
+                    vector<double>* amplitude) const override {
+        _scattering->scattering(location, frequencies, de_incident,
+                                de_scattered, az_incident, az_scattered,
+                                amplitude);
     }
 
     /**
@@ -101,45 +119,18 @@ class USML_DECLSPEC volume_model : public scattering_model {
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
-    virtual void scattering( const wposition& location,
-        const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
-        double az_incident, matrix<double> az_scattered, matrix< vector<double> >* amplitude )
-    {
-        _scattering->scattering( location,
-                frequencies, de_incident, de_scattered,
-                az_incident, az_scattered, amplitude ) ;
+    void scattering(const wposition& location, seq_vector::csptr frequencies,
+                    double de_incident, matrix<double> de_scattered,
+                    double az_incident, matrix<double> az_scattered,
+                    matrix<vector<double> >* amplitude) const override {
+        _scattering->scattering(location, frequencies, de_incident,
+                                de_scattered, az_incident, az_scattered,
+                                amplitude);
     }
 
-    //**************************************************
-    // initialization
-
-    /**
-     * Initialize reflection loss components for a boundary.
-     *
-     * @param scatter        Reverberation scattering strength model
-     */
-    volume_model( scattering_model* scatter=NULL ) :
-        _scattering( scatter )
-    {
-        if ( scatter ) {
-            _scattering = scatter ;
-        } else {
-            _scattering = new scattering_constant() ;
-        }
-    }
-
-    /**
-     * Delete reflection loss model.
-     */
-    virtual ~volume_model() {
-        if ( _scattering ) delete _scattering ;
-    }
-
-  private:
-
+   private:
     /** Reference to the scattering strength model **/
-    scattering_model* _scattering ;
-
+    scattering_model::csptr _scattering;
 };
 
 /// @}

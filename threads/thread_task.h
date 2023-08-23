@@ -5,16 +5,16 @@
 #pragma once
 
 #include <usml/usml_config.h>
-#include <usml/threads/smart_ptr.h>
+
+#include <atomic>
 #include <cstddef>
+#include <memory>
 
 namespace usml {
 namespace threads {
 
-using std::size_t ;
-
 /** Forward references. */
-class thread_pool ;
+class thread_pool;
 
 /// @ingroup threads
 /// @{
@@ -40,20 +40,19 @@ class thread_pool ;
  * This prevents uncaught exceptions from crashing the thread_pool.
  */
 class USML_DECLSPEC thread_task {
+    friend class thread_pool;
 
-    friend class thread_pool ;
-
-public:
-
-    // Boost self type shared_ptr
-    typedef shared_ptr<thread_task> reference;
+   public:
+    /// Shared reference to this task.
+    typedef std::shared_ptr<thread_task> ref;
 
     /**
      * Default constructor, assigns a new id to this task.
      * Creates a sequential task ID number for each new task as it is created.
      * Task IDs wrap around back to zero at the max size of size_t.
+     * Increments the number of active tasks when the task is created.
      */
-    thread_task() ;
+    thread_task();
 
     /**
      * Virtual destructor.
@@ -65,58 +64,50 @@ public:
      * Sequential number assigned when the task is created.
      * Used mostly in debugging.  Should not be over-ridden by sub-classes.
      */
-    size_t id() const {
-        return _id ;
-    }
+    std::size_t id() const { return _id; }
 
     /**
      * Sub-classes overload this operator with the task to be executed.
      * Tasks should terminate, as soon as possible, when #_abort is true.
      * Sub-classes are responsible for catching their own exceptions.
      */
-    virtual void run() = 0 ;
+    virtual void run() = 0;
 
-   /**
-    * Gets the current number of active tasks in the
-    * @return number of active tasks
-    */
-    static size_t num_active() {
-        return _num_active;
-    }
-   
+    /**
+     * Gets the current number of active tasks in the
+     * @return number of active tasks
+     */
+    static std::size_t num_active() { return _num_active; }
+
     /**
      * Indicate that task needs to abort itself.  Sets a protected member
      * variable called #_abort.  Tasks should terminate the execution of their
      * run() method, as soon as possible, when #_abort is true.
      */
-    void abort() {
-        _abort  = true ;
-    }
+    void abort() { _abort = true; }
 
- protected:
-
+   protected:
     /** Indication that task needs to abort. */
-    bool _abort ;
+    bool _abort;
 
- private:
-
+   private:
     /**
      * Safely initiates a task in the thread pool.
      * Traps uncaught exceptions to prevent thread_pool from crashing.
+     * Decrements the number of active tasks when the task is finished.
      */
-    void start() ;
+    void start();
 
-    /** Next identification number to be assigned to a task. */
-    static size_t _id_next ;
+    /// Next identification number to be assigned to a task.
+    static std::atomic<std::size_t> _id_next;
 
-    /** Keep track of the total number of active task */
-    static size_t _num_active;
+    /// Keep track of the total number of active task.
+    static std::atomic<std::size_t> _num_active;
 
-     /** Automatically assigned identification number for this task. */
-    size_t _id ;
+    /// Automatically assigned identification number for this task.
+    std::size_t _id;
 };
 
 /// @}
-} // end of namespace threads
-} // end of namespace usml
-
+}  // end of namespace threads
+}  // end of namespace usml

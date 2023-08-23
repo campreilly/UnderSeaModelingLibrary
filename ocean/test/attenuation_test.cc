@@ -32,10 +32,10 @@ BOOST_AUTO_TEST_CASE( constant_attenuation_test ) {
 
     // compute attenuation
 
-    seq_log freq(10.0, 10.0, 7);
-    cout << "freq:  " << freq << endl;
+    seq_vector::csptr freq(new seq_log(10.0, 10.0, 7));
+    cout << "freq:  " << *freq.get() << endl;
     matrix < vector<double> > atten(1, 1);
-    atten(0, 0).resize(freq.size());
+    atten(0, 0).resize(freq->size());
 
     attenuation_constant model(1e-6);
     model.attenuation(points, freq, distance, &atten);
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE( constant_attenuation_test ) {
     // check the answer
 
     double value = 0.01;
-    for (size_t f = 0; f < freq.size(); ++f) {
+    for (size_t f = 0; f < freq->size(); ++f) {
         BOOST_CHECK_CLOSE(atten(0, 0)(f), value, 1e-6);
         value *= 10.0;
     }
@@ -70,9 +70,9 @@ BOOST_AUTO_TEST_CASE( thorp_test_a ) {
 
     // compute attenuation
 
-    seq_log freq(10.0, 2.0, 14);
+    seq_vector::csptr freq( new  seq_log(10.0, 2.0, 14));
     matrix < vector<double> > atten(1, 1);
-    atten(0, 0).resize(freq.size());
+    atten(0, 0).resize(freq->size());
 
     attenuation_thorp model;
     model.attenuation(points, freq, distance, &atten);
@@ -83,9 +83,9 @@ BOOST_AUTO_TEST_CASE( thorp_test_a ) {
             0.01125, 0.03615, 0.08538, 0.16469, 0.38326, 1.19919, 4.16885,
             12.81169, 27.26378 };
 
-    for (size_t f = 0; f < freq.size(); ++f) {
-        cout << freq(f) << "\t" << atten(0, 0)(f) << endl;
-        if (freq(f) > 400.0) {
+    for (size_t f = 0; f < freq->size(); ++f) {
+        cout << (*freq)(f) << "\t" << atten(0, 0)(f) << endl;
+        if ((*freq)(f) > 400.0) {
             BOOST_CHECK_CLOSE(atten(0, 0)(f), gsm_thorp[f], 20.0);
         }
     }
@@ -108,9 +108,9 @@ BOOST_AUTO_TEST_CASE( thorp_test_b ) {
 
     // compute attenuation
 
-    seq_log freq(10.0, pow(2.0,0.1), 1e7);
+    seq_vector::csptr freq( new seq_log(10.0, pow(2.0,0.1), 1e7));
     matrix < vector<double> > atten(1, 1);
-    atten(0, 0).resize(freq.size());
+    atten(0, 0).resize(freq->size());
 
     attenuation_thorp model;
     model.attenuation(points, freq, distance, &atten);
@@ -120,8 +120,8 @@ BOOST_AUTO_TEST_CASE( thorp_test_b ) {
     cout << "writing tables to " << name << endl ;
 
     os << "freq,atten" << endl ;
-    for (size_t f = 0; f < freq.size(); ++f) {
-        os << freq(f) << "," << atten(0, 0)(f) << endl ;
+    for (size_t f = 0; f < freq->size(); ++f) {
+        os << (*freq)(f) << "," << atten(0, 0)(f) << endl ;
     }
 }
 

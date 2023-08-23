@@ -22,16 +22,11 @@
  * axis index appropriate given a floating point axis value.
  * These axes are implemented as read-only, monotonic sequence of values.
  *
- * @defgroup min_grid Numerical Minimization
+ * @defgroup bvector Body Coordinates
  * @ingroup types
  *
- * These components define support for N-dimensional algorithms for
- * numerical minimization.  The min_grid has a seq_vector
- * axes in each dimension, and the field is defined at each point in this grid.
- * The gridded values are used to search for the axis offsets that would
- * result in a local minimum in the interpolated field.  This algorithm assumes
- * that only a single local minimum for the interpolated field exists in
- * the neighborhood around the minimum in the gridded field.
+ * Vector relative to body along the aircraft principal axes and
+ * body orientation.
  *
  * @defgroup types_test Regression Tests
  * @ingroup types
@@ -52,5 +47,9 @@
 #include <usml/types/seq_augment.h>
 
 #include <usml/types/data_grid.h>
+#include <usml/types/gen_grid.h>
 #include <usml/types/data_grid_bathy.h>
 #include <usml/types/data_grid_svp.h>
+
+#include <usml/types/bvector.h>
+#include <usml/types/orientation.h>

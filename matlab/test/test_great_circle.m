@@ -15,8 +15,8 @@ end
 % bearing = 1.150035 radians = 66 deg
 %
 function LAX_to_JFK
-    lat1=0.592539; lon1=2.066470;   % LAX location in radians
-    lat2=0.709186; lon2=1.287762;   % JFK location in radians
+    lat1=0.592539; lon1=-2.066470;   % LAX location in radians
+    lat2=0.709186; lon2=-1.287762;   % JFK location in radians
     [range,bearing] = greatCircleDistance( lat1, lon1, lat2, lon2, 1.0 ) ;
     if ( abs(range-0.623585) > 5e-6 )
         error('incorrect range from LAX to JFK');
@@ -34,15 +34,14 @@ end
 % bearing =  4.779726 radians = 274 deg
 %
 function JFK_to_LAX
-    earth_radius = 6371000.0 ;
-    lat1=0.709186; lon1=1.287762;   % JFK location in radians
-    lat2=0.592539; lon2=2.066470;   % LAX location in radians
+    lat1=0.709186; lon1=-1.287762;   % JFK location in radians
+    lat2=0.592539; lon2=-2.066470;   % LAX location in radians
     format long
     [range,bearing] = greatCircleDistance( lat1, lon1, lat2, lon2, 1.0 ) ;
     if ( abs(range-0.623585) > 5e-6 )
         error('incorrect range from JFK to LAX');
     end
-    if ( abs(bearing- 4.779726) > 5e-6 )
+    if ( abs(bearing-4.779726) > 5e-6 )
         error('incorrect bearing from JFK to LAX');
     end
 end

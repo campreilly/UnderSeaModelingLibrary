@@ -12,7 +12,6 @@
 #include <usml/eigenverb/wavefront_generator.h>
 #include <list>
 #include <boost/progress.hpp>
-#include <boost/foreach.hpp>
 
 BOOST_AUTO_TEST_SUITE(reverb_extra_test)
 
@@ -40,7 +39,7 @@ static const double c0 = 1500.0;           // constant sound speed
  * The primary motivation for this test is to generate an envelope netCDF
  * file that can be used to support off-line comparisons to the
  * eigenverb_demo.m scenario.  It also serves as a standalone prototype
- * for the calculations in the envelope_generator::run() method.
+ * for the calculations in the rvbenv_generator::run() method.
  *
  * This test artificially limits its processing to downward D/E launch
  * angles and receivers AZ launch angles to zero to match the conditions
@@ -66,7 +65,7 @@ BOOST_AUTO_TEST_CASE( envelope_analytic ) {
 	boundary_model* surface = new boundary_flat();
 	surface->scattering( new scattering_lambert(-37.0)  ) ;
 
-	reflect_loss_model* bottom_loss = new reflect_loss_rayleigh(reflect_loss_rayleigh::SAND) ;
+	reflect_loss_model* bottom_loss = new reflect_loss_rayleigh(bottom_type_enum::sand) ;
 	boundary_model* bottom = new boundary_flat(depth,bottom_loss);
 	bottom->scattering( new scattering_lambert()  ) ;
 
@@ -105,10 +104,10 @@ BOOST_AUTO_TEST_CASE( envelope_analytic ) {
     	eigenverbs->write_netcdf( filename.str().c_str(),n) ;
     }
 
-	// construct an envelope_collection
+	// construct an rvbenv_collection
 
-	const seq_vector* travel_time = new seq_linear(0.0,0.001,70.0) ;
-	envelope_collection envelopes(
+	seq_vector::csptr  travel_time = new seq_linear(0.0,0.001,70.0) ;
+	rvbenv_collection envelopes(
 		&freq,			// envelope_freq
 		0,				// src_freq_first
 		travel_time,	// travel_time, cloned by model
@@ -118,7 +117,7 @@ BOOST_AUTO_TEST_CASE( envelope_analytic ) {
 		az.size(), 		// num_azimuths
 		1, 				// num_src_beams
 		1,              // num_rcv_beams
-		2.0*depth/c0,   // initial_time = first fathometer
+		2.0*depth/c0,   // initial_time = first dirpath
         1,              // source_id - fill the api
         1,              // receiver_id - fill the api
         wposition1(src_lat, src_lng),   // src_pos - fill the api
@@ -137,10 +136,10 @@ BOOST_AUTO_TEST_CASE( envelope_analytic ) {
 		boost::progress_timer timer ;
 		double distance_threshold = 6.0 ;
 		for ( size_t interface_num=0 ; interface_num < 1 ; ++interface_num) {
-			BOOST_FOREACH( eigenverb rcv_verb, eigenverbs->eigenverbs(interface_num) ) {
+			for( eigenverb rcv_verb: eigenverbs->eigenverbs(interface_num) ) {
 //				cout << "rcv_verb #" << n++ << endl ;
 				if ( abs(rcv_verb.source_az) > 1e-6 ) continue ; // just for this test
-				BOOST_FOREACH( eigenverb src_verb, eigenverbs->eigenverbs(interface_num) ) {
+				for( eigenverb src_verb: eigenverbs->eigenverbs(interface_num) ) {
 
 					// determine relative range and bearing between the projected Gaussians
 					// skip this combo if source peak too far away
@@ -184,7 +183,5 @@ BOOST_AUTO_TEST_CASE( envelope_analytic ) {
 
     delete eigenverbs ;
 }
-
-/// @}
 
 BOOST_AUTO_TEST_SUITE_END()

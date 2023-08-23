@@ -11,4 +11,8 @@ The data in these directories are taken from open sources including:
   Procedures, Data Sources and Analysis. NOAA Technical Memorandum NESDIS 
   NGDC-24, 19 pp, March 2009. 
 
+* National Geophysical Data Center, 1999. 
+  U.S. Coastal Relief Model (CRM)
+  National Geophysical Data Center, NOAA.
+  
 It is included here to support model testing.

@@ -7,7 +7,7 @@
  * @defgroup threads_test Regression Tests
  * @ingroup threads
  *
- * Regression tests for the types package
+ * Regression tests for the threads package
  */
 #pragma once
 
@@ -15,4 +15,3 @@
 #include <usml/threads/thread_pool.h>
 #include <usml/threads/thread_task.h>
 #include <usml/threads/read_write_lock.h>
-#include <usml/threads/smart_ptr.h>

@@ -1,3 +1,4 @@
+
 /**
  * @file pedersen_test.cc
  *
@@ -49,24 +50,51 @@
  * New York, 1994) pp. 162-166.
  */
 #define BOOST_TEST_MAIN
+#include <cstddef>
+#include <usml/eigenrays/eigenray_model.h>
+#include <usml/eigenrays/eigenray_collection.h>
+#include <usml/ocean/attenuation_constant.h>
+#include <usml/ocean/attenuation_model.h>
+#include <usml/ocean/boundary_flat.h>
+#include <usml/ocean/boundary_model.h>
+#include <usml/ocean/ocean_model.h>
+#include <usml/ocean/profile_model.h>
+#include <usml/ocean/profile_n2.h>
+#include <usml/types/seq_linear.h>
+#include <usml/types/seq_log.h>
+#include <usml/types/seq_rayfan.h>
+#include <usml/types/seq_vector.h>
+#include <usml/types/wposition.h>
+#include <usml/types/wposition1.h>
+#include <usml/types/wvector.h>
+#include <usml/ublas/math_traits.h>
+#include <usml/usml_config.h>
+#include <usml/waveq3d/wave_front.h>
+#include <usml/waveq3d/wave_queue.h>
+
+#include <algorithm>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
 #include <boost/test/unit_test.hpp>
-#include <usml/waveq3d/waveq3d.h>
-#include <iostream>
-#include <iomanip>
+#include <cmath>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <memory>
 
 BOOST_AUTO_TEST_SUITE(pedersen_test)
 
 using namespace boost::unit_test;
+using namespace usml::eigenrays;
 using namespace usml::waveq3d;
 
 // Define analysis parameter constants.
 
-static const double FREQ = 2000 ;   // Hz
-static const double C0 = 1550.0 ;   // sound speed at surface (m/s)
-static const double G0 = 1.2 ;      // speed gradient at surface (1/s)
-static const double LAT_SOURCE = 45.0;  // source latitude (deg)
-static const double LNG_SOURCE = -45.0; // source longitude (deg)
+static const double FREQ = 2000;         // Hz
+static const double C0 = 1550.0;         // sound speed at surface (m/s)
+static const double G0 = 1.2;            // speed gradient at surface (1/s)
+static const double LAT_SOURCE = 45.0;   // source latitude (deg)
+static const double LNG_SOURCE = -45.0;  // source longitude (deg)
 
 /**
  * Construct the ocean model from its constituant parts.
@@ -79,17 +107,19 @@ static const double LNG_SOURCE = -45.0; // source longitude (deg)
  * @return  Dynamically allocated ocean model.
  *          Calling routine responsible for cleanup.
  */
-ocean_model* build_ocean() {
+ocean_model::csptr build_ocean() {
     wposition::compute_earth_radius(LAT_SOURCE);
 
-    attenuation_model* attn = new attenuation_constant(0.0);
-    profile_model* profile = new profile_n2( C0, G0, attn );
+    attenuation_model::csptr attn(new attenuation_constant(0.0));
+    profile_model *profile = new profile_n2(C0, G0, attn);
     profile->flat_earth(true);
+    profile_model::csptr profile_csptr(profile);
 
-    boundary_model* surface = new boundary_flat();
-    boundary_model* bottom = new boundary_flat(30000.0);
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(30000.0));
 
-    return new ocean_model(surface, bottom, profile);
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile_csptr));
+    return ocean;
 }
 
 /**
@@ -106,115 +136,119 @@ ocean_model* build_ocean() {
  * @param   ncfile          File used to store wavefront history
  * @param   csvfile         File used to store model/theory comparisons
  */
-void analyze_raytrace(
-    double source_depth, const seq_vector& de,
-    double time_min, double time_inc, double time_max,
-    double time_threshold, double range_threshold, double de_threshold,
-    const char* ncfile, const char* csvfile )
-{
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+void analyze_raytrace(double source_depth, const seq_vector::csptr& de,
+                      double time_min, double time_inc, double time_max,
+                      double time_threshold, double range_threshold,
+                      double de_threshold, const char *ncfile,
+                      const char *csvfile) {
     // initialize source information
 
-    ocean_model* ocean = build_ocean() ;
-    seq_log freq( FREQ, 1.0, 1 ) ;
-    wposition1 pos( LAT_SOURCE, LNG_SOURCE, source_depth );
-    seq_linear az(0.0,1.0,1);       // only 1 ray needed for ray trace
+    ocean_model::csptr ocean = build_ocean();
+    seq_vector::csptr freq(new seq_log(FREQ, 1.0, 1));
+    wposition1 pos(LAT_SOURCE, LNG_SOURCE, source_depth);
+    seq_vector::csptr az(
+        new seq_linear(0.0, 1.0, 1));  // only 1 ray needed for ray trace
 
     // compute the ray trace and store wavefronts to disk
 
-    wave_queue wave( *ocean, freq, pos, de, az, time_inc );
+    wave_queue wave(ocean, freq, pos, de, az, time_inc);
     cout << "writing wavefronts to " << ncfile << endl;
-    wave.init_netcdf(ncfile); // open a log file for wavefront data
-    wave.save_netcdf();     // write initial ray data to log file
+    wave.init_netcdf(ncfile);  // open a log file for wavefront data
+    wave.save_netcdf();        // write initial ray data to log file
 
     cout << "writing spreadsheets to " << csvfile << endl;
     std::ofstream os(csvfile);
     os << "DElaunch,Tmodel,Ttheory,Rmodel,Rtheory,DEmodel,DEtheory" << endl;
     os << std::setprecision(18);
-    const double Cs = wave.curr()->sound_speed(0,0) ; // sound speed at source
-    const double b = G0 * 2 / (C0*C0*C0) ;
+    const double Cs = wave.curr()->sound_speed(0, 0);  // sound speed at source
+    const double b = G0 * 2 / (C0 * C0 * C0);
 
-    double time_max_error = 0.0 ;
-    double range_max_error = 0.0 ;
-    double de_max_error = 0.0 ;
+    double time_max_error = 0.0;
+    double range_max_error = 0.0;
+    double de_max_error = 0.0;
 
-    while ( wave.time() < time_max ) {
-        wave.step();        // propagate by one time step
-        wave.save_netcdf(); // write ray data to log file
+    while (wave.time() < time_max) {
+        wave.step();         // propagate by one time step
+        wave.save_netcdf();  // write ray data to log file
 
         // compare to the analytic results once all the rays are heading down
 
-        if ( wave.time() >= time_min  ) {
-            for ( size_t d=0 ; d < wave.num_de() ; ++d ) {
-
+        if (wave.time() >= time_min) {
+            for (size_t d = 0; d < wave.num_de(); ++d) {
                 // find Cm = speed at which each ray becomes horizonal
 
-                const double As = -to_radians(wave.source_de(d)); // angle at source
-                const double Cm = Cs / cos(As) ;    // Pedersen's ray parameter
+                const double As =
+                    -to_radians(wave.source_de(d));  // angle at source
+                const double Cm = Cs / cos(As);      // Pedersen's ray parameter
 
                 // find A0 = the angle at which this ray will hit the surface
                 // Pedersen eq. 9: cos(A0) = C0/Cm
 
-                const int surface = wave.curr()->surface(d,0) ;
-                const double A0 = (surface==0) ? NAN : acos(min(1.0,C0/Cm)) ;
+                const int surface = wave.curr()->surface(d, 0);
+                const double A0 =
+                    (surface == 0) ? NAN : acos(min(1.0, C0 / Cm));
 
                 // find Ah = the angle at the target location
                 // Pedersen eq. 9: cos(Ah) = Ch/Cm
 
-                const double Ch = wave.curr()->sound_speed(d,0) ;
-                const double Ah = acos(Ch/Cm) ;
+                const double Ch = wave.curr()->sound_speed(d, 0);
+                const double Ah = acos(Ch / Cm);
 
-                wvector1 ndir( wave.curr()->ndirection, d, 0 ) ;
-                double DEmodel, AZmodel ;
-                ndir.direction( &DEmodel, &AZmodel ) ;
+                wvector1 ndir(wave.curr()->ndirection, d, 0);
+                double DEmodel;
+                double AZmodel;
+                ndir.direction(&DEmodel, &AZmodel);
 
                 // find R = horizontal range to the ray at the target location
                 // Pedersen eq. 11: R=2/(b Cm^2)[tan(Ah)-tan(As)-2 tan(A0)]
 
                 const double tanAh = tan(Ah);
                 const double tanAs = tan(As);
-                const double tanA0 = (surface==0) ? 0.0 : tan(A0);
+                const double tanA0 = (surface == 0) ? 0.0 : tan(A0);
 
-                const double R = (2/(b*Cm*Cm)) * ( tanAh - tanAs - 2*tanA0 ) ;
+                const double R =
+                    (2 / (b * Cm * Cm)) * (tanAh - tanAs - 2 * tanA0);
 
-                const double Rmodel = wposition::earth_radius * to_radians(
-                    wave.curr()->position.latitude(d,0) - LAT_SOURCE ) ;
+                const double Rmodel =
+                    wposition::earth_radius *
+                    to_radians(wave.curr()->position.latitude(d, 0) -
+                               LAT_SOURCE);
 
                 // find T = travel time to the ray at the target location
                 // Pedersen eq. 12:
                 // R = 2/(3b Cm^3)[tan^3(Ah)-tan^3(As)-2tan^3(A0)] + R/Cm
 
-                const double T = (2/(3*b*Cm*Cm*Cm))
-                    * ( tanAh*tanAh*tanAh - tanAs*tanAs*tanAs
-                      - 2*tanA0*tanA0*tanA0 ) + R / Cm ;
+                const double T =
+                    (2 / (3 * b * Cm * Cm * Cm)) *
+                        (tanAh * tanAh * tanAh - tanAs * tanAs * tanAs -
+                         2 * tanA0 * tanA0 * tanA0) +
+                    R / Cm;
 
                 // write the results to a spreadsheet
 
-                os << -to_degrees(As)
-                   << "," << wave.time() << "," << T
-                   << "," << Rmodel << "," << R
-                   << "," << DEmodel << "," << -to_degrees(Ah)
-                   << endl ;
+                os << -to_degrees(As) << "," << wave.time() << "," << T << ","
+                   << Rmodel << "," << R << "," << DEmodel << ","
+                   << -to_degrees(Ah) << endl;
 
-                const double time_error = wave.time()-T ;
-                const double range_error = Rmodel-R ;
-                const double de_error = DEmodel+to_degrees(Ah) ;
-                time_max_error = max( time_max_error, abs(time_error) ) ;
-                range_max_error = max( range_max_error, abs(range_error) ) ;
-                de_max_error = max( de_max_error, abs(de_error) ) ;
-                BOOST_CHECK_SMALL( time_error, time_threshold ) ;
-                BOOST_CHECK_SMALL( range_error, range_threshold ) ;
-                BOOST_CHECK_SMALL( de_error, de_threshold ) ;
+                const double time_error = wave.time() - T;
+                const double range_error = Rmodel - R;
+                const double de_error = DEmodel + to_degrees(Ah);
+                time_max_error = max(time_max_error, abs(time_error));
+                range_max_error = max(range_max_error, abs(range_error));
+                de_max_error = max(de_max_error, abs(de_error));
+                BOOST_CHECK_SMALL(time_error, time_threshold);
+                BOOST_CHECK_SMALL(range_error, range_threshold);
+                BOOST_CHECK_SMALL(de_error, de_threshold);
             }
         }
     }
 
     // clean up and exit
 
-    wave.close_netcdf(); // close log file for wavefront data
-    delete ocean ;
+    wave.close_netcdf();  // close log file for wavefront data
     cout << "max errors: time=" << time_max_error
-         << " range=" << range_max_error
-         << " de=" << de_max_error << endl ;
+         << " range=" << range_max_error << " de=" << de_max_error << endl;
 }
 
 /**
@@ -228,14 +262,13 @@ void analyze_raytrace(
  * analytic results by more than 3 millisecs in time, 5.0 meters in range,
  * or 0.2 degrees in angle.
  */
-BOOST_AUTO_TEST_CASE( pedersen_shallow_raytrace ) {
-    cout << "=== pedersen_shallow_raytrace ===" << endl ;
-    seq_linear de( 0.0, 0.02, 25.00 ) ;
-    analyze_raytrace( -75.0, de,
-        0.30, 0.01, 0.85,
-        0.003, 5.0, 0.2,
-        USML_STUDIES_DIR "/pedersen/pedersen_shallow_raytrace.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_shallow_raytrace.csv" ) ;
+BOOST_AUTO_TEST_CASE(pedersen_shallow_raytrace) {
+    cout << "=== pedersen_test: pedersen_shallow_raytrace ===" << endl;
+    seq_vector::csptr de(new seq_linear(0.0, 0.02, 25.00));
+    analyze_raytrace(-75.0, de, 0.30, 0.01, 0.85, 0.003, 5.0, 0.2,
+                     USML_STUDIES_DIR "/pedersen/pedersen_shallow_raytrace.nc",
+                     USML_STUDIES_DIR
+                     "/pedersen/pedersen_shallow_raytrace.csv");
 }
 
 /**
@@ -249,14 +282,12 @@ BOOST_AUTO_TEST_CASE( pedersen_shallow_raytrace ) {
  * analytic results by more than 8 millisecs in time, 10 meters in range,
  * or 0.02 degrees in angle.
  */
-BOOST_AUTO_TEST_CASE( pedersen_deep_raytrace ) {
-    cout << "=== pedersen_deep_raytrace ===" << endl ;
-    seq_linear de( 20.00, 0.2, 60.00 ) ;
-    analyze_raytrace( -1000.0, de,
-        2.0, 0.01, 3.5,
-        0.008, 10.0, 0.03,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_raytrace.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_raytrace.csv" ) ;
+BOOST_AUTO_TEST_CASE(pedersen_deep_raytrace) {
+    cout << "=== pedersen_test: pedersen_deep_raytrace ===" << endl;
+    seq_vector::csptr de(new seq_linear(20.00, 0.2, 60.00));
+    analyze_raytrace(-1000.0, de, 2.0, 0.01, 3.5, 0.008, 10.0, 0.03,
+                     USML_STUDIES_DIR "/pedersen/pedersen_deep_raytrace.nc",
+                     USML_STUDIES_DIR "/pedersen/pedersen_deep_raytrace.csv");
 }
 
 /**
@@ -272,43 +303,39 @@ BOOST_AUTO_TEST_CASE( pedersen_deep_raytrace ) {
  * @param   ncfile          File used to store eigenrays
  * @param   csvfile         File used to store model/theory comparisons
  */
-void analyze_proploss(
-    const seq_vector& de, double source_depth, double target_depth,
-    const seq_vector& target_range, double time_inc, double time_max,
-
-    const char* ncfile, const char* csvfile )
-{
+void analyze_proploss(const seq_vector::csptr& de, double source_depth,
+                      double target_depth, const seq_vector::csptr& target_range,
+                      double time_step, double time_max, const char *ncfile,
+                      const char *csvfile) {
     // initialize source information
 
-    ocean_model* ocean = build_ocean() ;
-    seq_log freq( FREQ, 1.0, 1 ) ;
-    wposition1 pos( LAT_SOURCE, LNG_SOURCE, source_depth );
-    seq_linear az(-4.0,1.0,4.0);
+    ocean_model::csptr ocean = build_ocean();
+    seq_vector::csptr freq(new seq_log(FREQ, 1.0, 1));
+    wposition1 pos(LAT_SOURCE, LNG_SOURCE, source_depth);
+    seq_vector::csptr az(new seq_linear(-4.0, 1.0, 4.0));
 
     // build a series of targets at different ranges
 
-    wposition target(target_range.size(),1,LAT_SOURCE,LNG_SOURCE,target_depth);
-    for (size_t n = 0; n < target.size1(); ++n) {
-        const double angle = target_range[n] / wposition::earth_radius ;
-        target.latitude( n, 0, LAT_SOURCE + to_degrees(angle) );
+    wposition targets(target_range->size(), 1, LAT_SOURCE, LNG_SOURCE,
+                      target_depth);
+    for (size_t n = 0; n < targets.size1(); ++n) {
+        const double angle = (*target_range)[n] / wposition::earth_radius;
+        targets.latitude(n, 0, LAT_SOURCE + to_degrees(angle));
     }
 
-    eigenray_collection loss(freq, pos, de, az, time_inc, &target);
-
-    wave_queue wave( *ocean, freq, pos, de, az, time_inc, &target ) ;
-
-    // adding eigenray_collection listener
-    wave.add_eigenray_listener(&loss);
+    eigenray_collection eigenrays(freq, pos, &targets);
+    wave_queue wave(ocean, freq, pos, de, az, time_step, &targets);
+    wave.add_eigenray_listener(&eigenrays);
 
     // compute the eigenray_collection and store eigenrays to disk
 
     cout << "propagate wavefronts" << endl;
-    while ( wave.time() < time_max ) {
-        wave.step();        // propagate by one time step
+    while (wave.time() < time_max) {
+        wave.step();  // propagate by one time step
     }
-    loss.sum_eigenrays();
+    eigenrays.sum_eigenrays();
     cout << "writing eigenrays to " << ncfile << endl;
-    loss.write_netcdf(ncfile);
+    eigenrays.write_netcdf(ncfile);
 
     // save results to spreadsheet for post-test analysis
 
@@ -317,54 +344,47 @@ void analyze_proploss(
     os << "range,model,first,second" << endl;
     os << std::setprecision(18);
 
-    vector<double> tl_model(target.size1());
-    for (size_t n = 0; n < target.size1(); ++n) {
-        double tl_model = -loss.total(n,0)->intensity(0);
-        os << target_range[n] << "," << tl_model ;
-
-        const eigenray_list* raylist = loss.eigenrays(n, 0);
-        for (eigenray_list::const_iterator iter = raylist->begin();
-                iter != raylist->end(); ++iter) {
-            const eigenray &ray = *iter;
-            os << "," << (-ray.intensity(0));
+    vector<double> tl_model(targets.size1());
+    for (size_t n = 0; n < targets.size1(); ++n) {
+        double tl_model = -eigenrays.total(n, 0).intensity(0);
+        os << (*target_range)[n] << "," << tl_model;
+        for (const eigenray_model::csptr& ray : eigenrays.eigenrays(0, 0)) {
+            os << "," << (-ray->intensity(0));
         }
         os << endl;
     }
-
-    // clean up and exit
-
-    delete ocean ;
 }
 
 /**
- * Tests the accuracy of the eigenray_collection model against the analytic solution for
- * the shallow source, N^2 linear test case developed by Pedersen and Gordon.
- * The source is located at a depth of 75 meters. Receivers have a depth of
- * 75 meters and ranges from 500 to 1000 yds. Uses rays from 0 to 30 degrees at
- * a very a tight 0.025 deg spacing.  Such tight spacing is needed to capture
- * the portion of the surface reflected path just inside of the critical ray.
+ * Tests the accuracy of the eigenray_collection model against the analytic
+ * solution for the shallow source, N^2 linear test case developed by Pedersen
+ * and Gordon. The source is located at a depth of 75 meters. Receivers have a
+ * depth of 75 meters and ranges from 500 to 1000 yds. Uses rays from 0 to 30
+ * degrees at a very a tight 0.025 deg spacing.  Such tight spacing is needed to
+ * capture the portion of the surface reflected path just inside of the critical
+ * ray.
  *
  * This configuration tests the model's ability to produce accurate propagation
  * loss, phase, travel times, and eigneray angles at the edge of a shadow zone.
  * Eigenrays are written out in both netCDF and CSV format so that they can be
  * compared to other models off-line.
  */
-BOOST_AUTO_TEST_CASE( pedersen_shallow_proploss ) {
-    cout << "=== pedersen_shallow_proploss ===" << endl ;
-    seq_linear ranges(500.0,1.0,1000.0) ;
-    seq_linear de( 0.0, 0.025, 25.0 ) ;
-    analyze_proploss( de, -75.0, -75.0, ranges,
-        0.01, 0.85,
-        USML_STUDIES_DIR "/pedersen/pedersen_shallow_proploss.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_shallow_proploss.csv" ) ;
+BOOST_AUTO_TEST_CASE(pedersen_shallow_proploss) {
+    cout << "=== pedersen_shallow_proploss ===" << endl;
+    seq_vector::csptr ranges(new seq_linear(500.0, 1.0, 1000.0));
+    seq_vector::csptr de(new seq_linear(0.0, 0.025, 25.0));
+    analyze_proploss(de, -75.0, -75.0, ranges, 0.01, 0.85,
+                     USML_STUDIES_DIR "/pedersen/pedersen_shallow_proploss.nc",
+                     USML_STUDIES_DIR
+                     "/pedersen/pedersen_shallow_proploss.csv");
 }
 
 /**
- * Tests the accuracy of the eigenray_collection model against the analytic solution for
- * the deep source, N^2 linear test case developed by Pedersen and Gordon.
- * The source is located at a depth of 1000 meters. Receivers have a depth of
- * 800 meters and ranges from 3000 to 3120 meters. Uses rays from 20
- * to 60 degrees at a 0.25 deg spacing.
+ * Tests the accuracy of the eigenray_collection model against the analytic
+ * solution for the deep source, N^2 linear test case developed by Pedersen and
+ * Gordon. The source is located at a depth of 1000 meters. Receivers have a
+ * depth of 800 meters and ranges from 3000 to 3120 meters. Uses rays from 20 to
+ * 60 degrees at a 0.25 deg spacing.
  *
  * We found that tangent spaced beams did not work very well for this
  * scenario.  Several combinations of parameters lead to artifacts in the
@@ -378,22 +398,21 @@ BOOST_AUTO_TEST_CASE( pedersen_shallow_proploss ) {
  * out in both netCDF and CSV format so that they can be  compared to other
  * models off-line.
  */
-BOOST_AUTO_TEST_CASE( pedersen_deep_proploss ) {
-    cout << "=== pedersen_deep_proploss ===" << endl ;
-    seq_linear ranges(3000.0,0.25,3120.0) ;
-    seq_linear de( 20.0, 0.25, 60.0 ) ;
-    analyze_proploss( de, -1000.0, -800.0, ranges,
-        0.01, 3.5,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.csv" ) ;
+BOOST_AUTO_TEST_CASE(pedersen_deep_proploss) {
+    cout << "=== pedersen_deep_proploss ===" << endl;
+    seq_vector::csptr ranges(new seq_linear(3000.0, 0.25, 3120.0));
+    seq_vector::csptr de(new seq_linear(20.0, 0.25, 60.0));
+    analyze_proploss(de, -1000.0, -800.0, ranges, 0.01, 3.5,
+                     USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.nc",
+                     USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.csv");
 }
 
 /**
- * Tests the sensitivity of the eigenray_collection model the D/E angular resolution
- * near the caustic. The source is located at a depth of 1000 yds. Receivers
- * have a depth of 800 yds and ranges from 3100 to 3180 yds. Uses a ray fan
- * from +40 to +51 degrees with increments of 0.025, 0.05, 0.10, and 0.20
- * degrees. This configuration test the models sensitivity to ray spacing
+ * Tests the sensitivity of the eigenray_collection model the D/E angular
+ * resolution near the caustic. The source is located at a depth of 1000 yds.
+ * Receivers have a depth of 800 yds and ranges from 3100 to 3180 yds. Uses a
+ * ray fan from +40 to +51 degrees with increments of 0.025, 0.05, 0.10, and
+ * 0.20 degrees. This configuration test the models sensitivity to ray spacing
  * near the caustic.
  *
  * The N^2 linear test case developed by Pedersen and Gordon was specifically
@@ -402,36 +421,39 @@ BOOST_AUTO_TEST_CASE( pedersen_deep_proploss ) {
  * varient, because the profile below 200 meters is more extreme than those
  * found in the real world.
  */
-BOOST_AUTO_TEST_CASE( pedersen_deep_sensitivity ) {
-    cout << "=== pedersen_deep_sensitivity ===" << endl ;
-    seq_linear ranges(3000.0,0.25,3120.0) ;
+BOOST_AUTO_TEST_CASE(pedersen_deep_sensitivity) {
+    cout << "=== pedersen_deep_sensitivity ===" << endl;
+    seq_vector::csptr ranges(new seq_linear(3000.0, 0.25, 3120.0));
 
-    seq_rayfan de( -90.0, 90.0, 181, 51.21 ) ;
-    analyze_proploss( de, -1000, -800.0, ranges, 0.01, 3.5,
+    seq_vector::csptr de(new seq_linear(-90.0, 90.0, 181, true));
+    analyze_proploss(
+        de, -1000, -800.0, ranges, 0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_tan.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_tan.csv" ) ;
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_tan.csv");
 
-    seq_linear de1000( 40.00, 0.100, 60.00 ) ;
-    analyze_proploss( de1000, -1000, -800.0, ranges, 0.01, 3.5,
+    seq_vector::csptr de1000(new seq_linear(40.00, 0.100, 60.00));
+    analyze_proploss(
+        de1000, -1000, -800.0, ranges, 0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_1000.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_1000.csv" ) ;
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_1000.csv");
 
-    seq_linear de0500( 40.00, 0.05000, 60.00 ) ;
-    analyze_proploss( de0500, -1000, -800.0, ranges, 0.01, 3.5,
+    seq_vector::csptr de0500(new seq_linear(40.00, 0.05000, 60.00));
+    analyze_proploss(
+        de0500, -1000, -800.0, ranges, 0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0500.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0500.csv" ) ;
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0500.csv");
 
-    seq_linear de0250( 40.00, 0.0250, 60.00 ) ;
-    analyze_proploss( de0250, -1000, -800.0, ranges, 0.01, 3.5,
+    seq_vector::csptr de0250(new seq_linear(40.00, 0.0250, 60.00));
+    analyze_proploss(
+        de0250, -1000, -800.0, ranges, 0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0250.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0250.csv" ) ;
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0250.csv");
 
-    seq_linear de0125( 40.00, 0.0125, 60.00 ) ;
-    analyze_proploss( de0125, -1000, -800.0, ranges, 0.01, 3.5,
+    seq_vector::csptr de0125(new seq_linear(40.00, 0.0125, 60.00));
+    analyze_proploss(
+        de0125, -1000, -800.0, ranges, 0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0125.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0125.csv" ) ;
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0125.csv");
 }
-
-/// @}
 
 BOOST_AUTO_TEST_SUITE_END()

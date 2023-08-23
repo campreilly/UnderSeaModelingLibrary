@@ -21,18 +21,16 @@ using boost::numeric::ublas::vector;
  * Models reverberation scattering strength as a constant factor that
  * is independent of grazing angle and frequency.
  */
-class USML_DECLSPEC scattering_constant: public scattering_model {
-
-public:
-
+class USML_DECLSPEC scattering_constant : public scattering_model {
+   public:
     /**
      * Initialize model with a constant factors.
      *
      * @param amplitude     Reverberation scattering strength (dB).
      *                         Provided in dB but converted to ratio internally.
      */
-    scattering_constant( double amplitude=-300.0 ) :
-        _amplitude( pow(10.0,amplitude/10.0) ) {}
+    scattering_constant(double amplitude = -300.0)
+        : _amplitude(pow(10.0, amplitude / 10.0)) {}
 
     /**
      * Computes the broadband scattering strength for a single location.
@@ -45,13 +43,13 @@ public:
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
-    virtual void scattering(const wposition1& location,
-            const seq_vector& frequencies, double de_incident,
-            double de_scattered, double az_incident, double az_scattered,
-            vector<double>* amplitude)
-    {
-        noalias(*amplitude) = scalar_vector<double>( frequencies.size(), _amplitude );
-            // fast assignment of scalar to vector
+    void scattering(const wposition1& location, seq_vector::csptr frequencies,
+                    double de_incident, double de_scattered, double az_incident,
+                    double az_scattered,
+                    vector<double>* amplitude) const override {
+        noalias(*amplitude) =
+            scalar_vector<double>(frequencies->size(), _amplitude);
+        // fast assignment of scalar to vector
     }
 
     /**
@@ -69,25 +67,21 @@ public:
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
-    virtual void scattering( const wposition& location,
-        const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
-        double az_incident, matrix<double> az_scattered,
-        matrix< vector<double> >* amplitude )
-    {
-            // fast assignment of scalar to vector of matrices
-        noalias(*amplitude) = scalar_matrix< vector<double> >(
-                location.size1(), location.size2(),
-                scalar_vector<double>( frequencies.size(), _amplitude ) );
-            // fast assignment of scalar to matrix of vectors
+    void scattering(const wposition& location, seq_vector::csptr frequencies,
+                    double de_incident, matrix<double> de_scattered,
+                    double az_incident, matrix<double> az_scattered,
+                    matrix<vector<double> >* amplitude) const override {
+        noalias(*amplitude) = scalar_matrix<vector<double> >(
+            location.size1(), location.size2(),
+            scalar_vector<double>(frequencies->size(), _amplitude));
+        // fast assignment of scalar to matrix of vectors
     }
 
-private:
-
+   private:
     /** Holds the reverberation scattering strength ratio. */
-    double _amplitude ;
-
+    double _amplitude;
 };
 
 /// @}
-}    // end of namespace ocean
-}   // end of namespace usml
+}  // end of namespace ocean
+}  // end of namespace usml

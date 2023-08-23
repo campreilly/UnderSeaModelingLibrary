@@ -47,6 +47,6 @@
  */
 #pragma once
 
-#include <usml/ublas/vector_math.h>
 #include <usml/ublas/matrix_math.h>
 #include <usml/ublas/randgen.h>
+#include <usml/ublas/vector_math.h>

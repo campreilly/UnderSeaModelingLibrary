@@ -7,7 +7,6 @@
 #include <usml/eigenverb/wavefront_generator.h>
 #include <list>
 #include <boost/progress.hpp>
-#include <boost/foreach.hpp>
 
 using namespace usml::sensors;
 using namespace usml::eigenverb;
@@ -84,7 +83,7 @@ private:
 
         boundary_model* btm = new boundary_flat(200.0);
         btm->reflect_loss(
-                new reflect_loss_rayleigh(reflect_loss_rayleigh::SAND));
+                new reflect_loss_rayleigh(bottom_type_enum::sand));
         btm->scattering(new scattering_lambert());
         boundary_lock* bottom = new boundary_lock(btm);
 
@@ -189,26 +188,26 @@ private:
             query[sensor._sensorID] = sensor ;
         }
 
-        // write fathometer data to netCDF file
+        // write dirpath data to netCDF file
 
-        fathometer_collection::fathometer_package fathometers =
-                sp_manager->get_fathometers(query);
-        const std::string ncname_fathometers = USML_STUDIES_DIR "/reverberation/fathometer_";
-        BOOST_FOREACH( fathometer_collection* model, fathometers ) {
+        dirpath_collection::dirpath_package dirpaths =
+                sp_manager->get_dirpaths(query);
+        const std::string ncname_dirpaths = USML_STUDIES_DIR "/reverberation/dirpath_";
+        for( dirpath_collection* model: dirpaths ) {
             sensor_model::id_type src_id = model->source_id();
             sensor_model::id_type rcv_id = model->receiver_id();
             std::stringstream ss;
-            ss << ncname_fathometers << "src_" << src_id << "_rcv_" << rcv_id << ".nc" ;
+            ss << ncname_dirpaths << "src_" << src_id << "_rcv_" << rcv_id << ".nc" ;
             cout << "write to " << ss.str().c_str() << endl ;
             model->write_netcdf( ss.str().c_str() );
         }
 
         // write envelope data to netCDF file
 
-        envelope_collection::envelope_package envelopes =
+        rvbenv_collection::envelope_package envelopes =
                 sp_manager->get_envelopes(query);
         const std::string ncname_envelopes = USML_STUDIES_DIR "/reverberation/envelopes_";
-        BOOST_FOREACH( envelope_collection* collection, envelopes ) {
+        for( rvbenv_collection* collection: envelopes ) {
             sensor_model::id_type src_id = collection->source_id();
             sensor_model::id_type rcv_id = collection->receiver_id();
             std::stringstream ss;

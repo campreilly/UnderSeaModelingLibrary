@@ -4,13 +4,17 @@
  */
 #pragma once
 
-#include <usml/threads/thread_pool.h>
 #include <usml/threads/read_write_lock.h>
-#include <boost/thread/thread.hpp>
-#include <boost/asio.hpp>
+#include <usml/usml_config.h>
+
+#include <memory>
+#include <thread>
 
 namespace usml {
 namespace threads {
+
+// forward class reference
+class thread_pool;
 
 /// @ingroup threads
 /// @{
@@ -37,8 +41,10 @@ public:
 
     /**
      * Reset the thread_controller singleton unique pointer to empty.
+     *
+     * @param num_threads Number of threads used next time controller is initialized.
      */
-    static void reset();
+    static void reset(unsigned num_threads = std::thread::hardware_concurrency());
 
 private:
 
@@ -48,26 +54,14 @@ private:
      */
     static unsigned _num_threads ;
 
-    /**
-     * Reference to the thread_pool owned by this singleton.
-     */
-    static unique_ptr<thread_pool> _instance ;
+     /// Reference to the thread_pool owned by this singleton.
+    static std::unique_ptr<thread_pool> _instance ;
 
-    /**
-     * Mutex to lock creation of instance.
-     */
+    /// Mutex to lock creation of instance.
     static read_write_lock _instance_mutex ;
 
-    /**
-     * Hide constructors to prevent incorrect use of singleton.
-     */
+    /// Hide default constructor to prevent incorrect use of singleton.
     thread_controller() {}
-
-    /**
-     * Hide Destructor to prevent incorrect use of singleton.
-     */
-    ~thread_controller() {}
-
 };
 
 /// @}

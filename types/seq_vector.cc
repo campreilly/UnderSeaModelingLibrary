@@ -2,109 +2,105 @@
  * @file seq_vector.cc
  * A read-only, monotonic sequence of values.
  */
-#include <usml/types/seq_vector.h>
 
-#include <boost/foreach.hpp>
 #include <usml/types/seq_data.h>
 #include <usml/types/seq_linear.h>
 #include <usml/types/seq_log.h>
+#include <usml/types/seq_vector.h>
+
+#include <boost/numeric/ublas/storage.hpp>
+#include <cstdlib>
 
 using namespace usml::types;
 
 /**
- * Clips the current seq_vector based on the intersection of the min
- * and max values provided. Creates and returns new seq_vector using
- * the build_best method. Caller is responsible to delete the returned
- * pointer.
+ * Search for a value in this sequence. If the value is outside of the
+ * legal range, the index for the nearest endpoint will be returned.
+ *
+ * @param   value       Value of the element to find.
+ * @return              Index of the value that is closest.
  */
-seq_vector::self_type* seq_vector::clip(double min, double max) const {
-
-    size_t index = 0;
-    double* data = new double[size()];
-    BOOST_FOREACH(double value, *this) {
-        if ( ( value >= min ) && ( value <= max ) ) {
-            data[index] = value;
-             ++index;
-        }
+seq_vector::size_type seq_vector::find_nearest(value_type value) const {
+    size_type n = find_index(value);
+    if (abs(_data[n + 1] - value) <= abs(_data[n] - value)) {
+        n = n + 1;
     }
-    self_type* seq = build_best(data, index);
-    delete[] data;
-    return seq;
+    return n;
 }
 
 /**
- * Builds the best seq_vector pointer from seq_data, seq_linear or seq_log
+ * constructs clipped sequence from the current seq_vector::csptr
+ */
+seq_vector::csptr seq_vector::clip(double min, double max) const {
+    size_t index = 0;
+    std::vector<value_type> data(size());
+    for (double value : *this) {
+        if ((value >= min) && (value <= max)) {
+            data[index] = value;
+            ++index;
+        }
+    }
+    return build_best(data.data(), index);
+}
+
+/**
+ * Builds the best seq_vector::csptr
  * based on the contents of the array.
  */
-seq_vector::self_type* seq_vector::build_best(double* data, size_t count) {
-
+seq_vector::csptr seq_vector::build_best(const double* data, size_t count) {
     bool isLinear = true;
     bool isLog = true;
-   
-    const int N = ( int ) count;
+
+    const int N = (int)count;
     double p1 = data[0];
     double minValue = p1;
     double maxValue = p1;
 
-    if ( N > 1 ) {
+    if (N > 1) {
         double p2 = data[1];
         maxValue = p2;
-        for ( int n = 2; n < N; ++n ) {
+        for (size_t n = 2; n < N; ++n) {
             double p3 = data[n];
             maxValue = p3;
-            if ( abs(( ( p3 - p2 ) - ( p2 - p1 ) ) / p2) > 1E-4 ) {
+            if (p2 != 0.0 && abs(((p3 - p2) - (p2 - p1)) / p2) > 1E-4) {
                 isLinear = false;
             }
-            if ( p1 == 0.0 || p2 == 0.0 ||
-                abs(( p3 / p2 ) - ( p2 / p1 )) > 1E-5 ) {
+            if (p1 != 0.0 && p2 != 0.0 && abs((p3 / p2) - (p2 / p1)) > 1E-5) {
                 isLog = false;
             }
-            if ( !( isLinear || isLog ) ) break;
             p1 = p2;
             p2 = p3;
         }
     }
 
-    // build a new seq_vector sub type
-    if ( isLinear ) {
-        return new seq_linear(minValue, ( maxValue - minValue ) / ( N - 1 ), N);
+    // build a new sequence vector
+
+    const seq_vector* seq;
+    if (N < 2) {
+        seq = new seq_linear(minValue, 1.0, 1);
+    } else if (isLinear) {
+        seq = new seq_linear(minValue, (maxValue - minValue) / (N - 1), N);
+    } else if (isLog) {
+        seq = new seq_log(minValue, (maxValue / minValue) / (N - 1), N);
+    } else {
+        seq = new seq_data(data, count);
     }
-    else if ( isLog ) {
-        return new seq_log(minValue, ( maxValue / minValue ) / ( N - 1 ), N);
-    }
-    return new seq_data(data, count);
+    return seq_vector::csptr(seq);
 }
 
 /**
- * Builds the best seq_vector pointer from seq_data, seq_linear or seq_log
- * based on the contents of the ublas vector.
+ * Builds the best seq_vector::csptr
+ * based on the contents of a ublas vector.
  */
-seq_vector::self_type* seq_vector::build_best(boost::numeric::ublas::vector<double> data) {
- 
-    double* data_array = new double[data.size()-1];
-    size_t index = 0;
-    BOOST_FOREACH(double value, data) {
-        data_array[index] = value;
-         ++index;
-    }
-    self_type* seq = build_best(data_array, index);
-    delete[] data_array;
-    return seq;
+seq_vector::csptr seq_vector::build_best(
+    const boost::numeric::ublas::vector<double>& data) {
+    return build_best(data.data().begin(), data.size());
 }
 
 /**
- * Builds the best seq_vector pointer from seq_data, seq_linear or seq_log
+ * Builds the best seq_vector::csptr
  * based on the contents of the std::vector.
  */
-seq_vector::self_type* seq_vector::build_best(std::vector<double> data) {
-
-    double* data_array = new double[data.size()-1];
-    size_t index = 0;
-    BOOST_FOREACH(double value, data) {
-        data_array[index] = value;
-        ++index;
-    }
-    self_type* seq = build_best(data_array, index);
-    delete[] data_array;
-    return seq;
+seq_vector::csptr seq_vector::build_best(const std::vector<double>& data) {
+    return build_best(data.data(), data.size());
 }

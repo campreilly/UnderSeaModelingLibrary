@@ -1,9 +1,21 @@
 /**
  * @example ocean/test/boundary_test.cc
  */
+#include <usml/netcdf/netcdf_bathy.h>
+#include <usml/ocean/ascii_arc_bathy.h>
+#include <usml/ocean/boundary_flat.h>
+#include <usml/ocean/boundary_grid.h>
+#include <usml/ocean/boundary_model.h>
+#include <usml/ocean/boundary_slope.h>
+#include <usml/ocean/ocean_model.h>
+#include <usml/ocean/profile_linear.h>
+#include <usml/ocean/profile_model.h>
+#include <usml/ocean/scattering_lambert.h>
+#include <usml/ocean/volume_flat.h>
+#include <usml/ocean/volume_model.h>
+#include <usml/types/types.h>
+
 #include <boost/test/unit_test.hpp>
-#include <usml/netcdf/netcdf_files.h>
-#include <usml/ocean/ocean.h>
 #include <fstream>
 
 BOOST_AUTO_TEST_SUITE(boundary_test)
@@ -11,6 +23,7 @@ BOOST_AUTO_TEST_SUITE(boundary_test)
 using namespace boost::unit_test;
 using namespace usml::netcdf;
 using namespace usml::ocean;
+using namespace usml::types;
 
 /**
  * @ingroup ocean_test
@@ -22,7 +35,7 @@ using namespace usml::ocean;
  * the boundary_flat model.
  * Generate errors if values differ by more that 1E-6 percent.
  */
-BOOST_AUTO_TEST_CASE( flat_boundary_test ) {
+BOOST_AUTO_TEST_CASE(flat_boundary_test) {
     cout << "=== boundary_test: flat_boundary_test ===" << endl;
 
     // simple values for points and depth
@@ -56,21 +69,21 @@ BOOST_AUTO_TEST_CASE( flat_boundary_test ) {
  * surface, and the surface bending down to the reach the bottom.
  * Generate errors if values differ by more that 1E-6 percent.
  */
-BOOST_AUTO_TEST_CASE( sloped_boundary_test ) {
+BOOST_AUTO_TEST_CASE(sloped_boundary_test) {
     cout << "=== boundary_test: sloped_boundary_test ===" << endl;
 
     wposition::compute_earth_radius(0.0);
     const double dlat = 1.0;
     const double d0 = 1000.0;
-    const double slope = d0 / (to_radians(dlat)
-            * (wposition::earth_radius - d0));
+    const double slope =
+        d0 / (to_radians(dlat) * (wposition::earth_radius - d0));
     const double alpha = atan(slope);
 
     // simple values for points and depth
 
     wposition1 reference;
     wposition1 points;
-    points.latitude(dlat); // define field point 60 nmi north of reference
+    points.latitude(dlat);  // define field point 60 nmi north of reference
 
     double depth;
     wvector1 normal;
@@ -164,11 +177,15 @@ BOOST_AUTO_TEST_CASE( sloped_boundary_test ) {
  * is lost on the accuracy in depth.
  *
  */
-BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
+BOOST_AUTO_TEST_CASE(etopo_boundary_test) {
     cout << "=== boundary_test: etopo_boundary_test ===" << endl;
-    boundary_grid<double, 2> model( new netcdf_bathy(
-    	USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
-	36.0, 36.2, 15.85, 16.0, wposition::earth_radius));
+    auto* grid =
+        new netcdf_bathy(USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+                         36.0, 36.2, 15.85, 16.0, wposition::earth_radius);
+    grid->interp_type(0, interp_enum::pchip);
+    grid->interp_type(1, interp_enum::pchip);
+    data_grid<2>::csptr reference(grid);
+    boundary_grid<2> model(reference);
 
     // simple values for points and depth
 
@@ -184,26 +201,28 @@ BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
 
     // check the answer
 
-    cout << "Location:     lat=" << points.latitude() << " long="
-            << points.longitude() << endl << "World Coords: theta="
-            << points.theta() << " phi=" << points.phi() << endl
-            << "Depth:        " << wposition::earth_radius - depth << endl
-            << "Normal:       theta=" << normal.theta() << " phi="
-            << normal.phi() << endl << "Slope:        theta=" << to_degrees(
-            -asin(normal.theta())) << " phi="
-            << to_degrees(-asin(normal.phi())) << " deg" << endl;
+    cout << "Location:     lat=" << points.latitude()
+         << " long=" << points.longitude() << endl
+         << "World Coords: theta=" << points.theta() << " phi=" << points.phi()
+         << endl
+         << "Depth:        " << wposition::earth_radius - depth << endl
+         << "Normal:       theta=" << normal.theta() << " phi=" << normal.phi()
+         << endl
+         << "Slope:        theta=" << to_degrees(-asin(normal.theta()))
+         << " phi=" << to_degrees(-asin(normal.phi())) << " deg" << endl;
 
-    #ifdef __FAST_MATH__
-        const double depth_accuracy = 0.005 ;
-        const double normal_accuracy = 2e-4 ;
-    #else
-        const double depth_accuracy = 5e-4 ;
-        const double normal_accuracy = 2e-4 ;
-    #endif
+#ifdef __FAST_MATH__
+    const double depth_accuracy = 0.005;
+    const double normal_accuracy = 2e-4;
+#else
+    const double depth_accuracy = 5e-4;
+    const double normal_accuracy = 2e-4;
+#endif
 
-    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 3671.1557116601616, depth_accuracy );
-    BOOST_CHECK( abs(normal.theta()) < normal_accuracy );
-    BOOST_CHECK( abs(normal.phi() - 0.012764948465248139) < normal_accuracy );
+    BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 3671.1557116601616,
+                      depth_accuracy);
+    BOOST_CHECK(abs(normal.theta()) < normal_accuracy);
+    BOOST_CHECK(abs(normal.phi() - 0.012764948465248139) < normal_accuracy);
 }
 
 /**
@@ -213,72 +232,92 @@ BOOST_AUTO_TEST_CASE( etopo_boundary_test ) {
  * the data is oriented correctly as it is read in.  Errors on the order 3 cm
  * are introduced by the conversion from earth spherical coordinates and back.
  */
-BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
+BOOST_AUTO_TEST_CASE(ascii_arc_test) {
     cout << "=== boundary_test: ascii_arc_test ===" << endl;
+    cout << "reading " << USML_DATA_DIR << "/arcascii/small_crm.asc" << endl;
 
     // test interpolation of the raw grid
 
-    ascii_arc_bathy* grid = new ascii_arc_bathy(
-          USML_DATA_DIR "/arcascii/small_crm.asc" );
-        //USML_TEST_DIR "/ocean/test/ascii_arc_test.asc" ) ;
+    auto grid = data_grid<2>::sptr(
+        new ascii_arc_bathy(USML_DATA_DIR "/arcascii/small_crm.asc"));
 
-    BOOST_CHECK_EQUAL( grid->axis(0)->size(), 241 );              //rows
-    BOOST_CHECK_EQUAL( grid->axis(1)->size(), 241 );              //columns
+    BOOST_CHECK_EQUAL(grid->axis(0).size(), 241);  // rows
+    BOOST_CHECK_EQUAL(grid->axis(1).size(), 241);  // columns
 
-    size_t index[2] ;
-    index[0]=0; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 684.0, 1e-6);
-    index[0]=240; index[1]=0; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 622.0, 1e-6);
-    index[0]=0; index[1]=240; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 771.0, 1e-6);
-    index[0]=240; index[1]=240; BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 747.0, 1e-6);
+    size_t index[2];
+    index[0] = 0;
+    index[1] = 0;
+    BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 684.0, 1e-6);
+    index[0] = 240;
+    index[1] = 0;
+    BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 622.0, 1e-6);
+    index[0] = 0;
+    index[1] = 240;
+    BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 771.0, 1e-6);
+    index[0] = 240;
+    index[1] = 240;
+    BOOST_CHECK_CLOSE(wposition::earth_radius - grid->data(index), 747.0, 1e-6);
 
     // test implementation as a boundary model
 
-    grid->interp_type(0,GRID_INTERP_PCHIP);
-    grid->interp_type(1,GRID_INTERP_PCHIP);
-    std::ofstream before( USML_TEST_DIR
-    		"/ocean/test/usml_ascii_arc_interp_before_boundary_grid.csv") ;
-    for(int i=0; i<grid->axis(0)->size(); ++i) {
-        before << to_latitude((*(grid->axis(0)))[i]) << ",";
-        for(int j=0; j<grid->axis(1)->size(); ++j) {
+    grid->interp_type(0, interp_enum::pchip);
+    grid->interp_type(1, interp_enum::pchip);
+    std::ofstream before(
+        USML_TEST_DIR
+        "/ocean/test/usml_ascii_arc_interp_before_boundary_grid.csv");
+    for (int i = 0; i < grid->axis(0).size(); ++i) {
+        before << to_latitude(grid->axis(0)[i]) << ",";
+        for (int j = 0; j < grid->axis(1).size(); ++j) {
             double location[2];
-            location[0] = (*(grid->axis(0)))[i];
-            location[1] = (*(grid->axis(1)))[j];
-            before << wposition::earth_radius - grid->interpolate(location) << ",";
+            location[0] = grid->axis(0)[i];
+            location[1] = grid->axis(1)[j];
+            before << wposition::earth_radius - grid->interpolate(location)
+                   << ",";
         }
         before << endl;
     }
-    for ( int k=0 ; k < grid->axis(1)->size() ; ++k ) {
-        if(k==0) {before << ",";}
-        before << to_degrees((*(grid->axis(1)))[k]) << ",";
-        if(k==grid->axis(1)->size()) {before << endl;}
+    for (int k = 0; k < grid->axis(1).size(); ++k) {
+        if (k == 0) {
+            before << ",";
+        }
+        before << to_degrees(grid->axis(1)[k]) << ",";
+        if (k == grid->axis(1).size()) {
+            before << endl;
+        }
     }
 
-    boundary_grid<double,2> bottom(grid) ;
-    std::ofstream after( USML_TEST_DIR
-    		"/ocean/test/usml_ascii_arc_interp_after_boundary_grid.csv");
-    for(int i=0; i<grid->axis(0)->size(); ++i) {
-        after << to_latitude((*(grid->axis(0)))[i]) << ",";
-        for(int j=0; j<grid->axis(1)->size(); ++j) {
+    boundary_grid<2> bottom(grid);
+    std::ofstream after(
+        USML_TEST_DIR
+        "/ocean/test/usml_ascii_arc_interp_after_boundary_grid.csv");
+    for (int i = 0; i < grid->axis(0).size(); ++i) {
+        after << to_latitude(grid->axis(0)[i]) << ",";
+        for (int j = 0; j < grid->axis(1).size(); ++j) {
             double depth;
-            wposition1 location( to_latitude((*(grid->axis(0)))[i]), to_degrees((*(grid->axis(1)))[j]) );
+            wposition1 location(to_latitude(grid->axis(0)[i]),
+                                to_degrees(grid->axis(1)[j]));
             bottom.height(location, &depth);
             after << wposition::earth_radius - depth << ",";
         }
         after << endl;
     }
-    for ( int k=0 ; k < grid->axis(1)->size() ; ++k ) {
-        if(k==0) {after << ",";}
-        after << to_degrees((*(grid->axis(1)))[k]) << ",";
-        if(k==grid->axis(1)->size()) {after << endl;}
+    for (int k = 0; k < grid->axis(1).size(); ++k) {
+        if (k == 0) {
+            after << ",";
+        }
+        after << to_degrees(grid->axis(1)[k]) << ",";
+        if (k == grid->axis(1).size()) {
+            after << endl;
+        }
     }
 
-    wposition1 location( 29.4361, -79.7862 ) ;
-    double depth ;
-    bottom.height( location, &depth ) ;
+    wposition1 location(29.4361, -79.7862);
+    double depth;
+    bottom.height(location, &depth);
     BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 700.0, 0.3);
 
-    wposition1 location2( 29.4402, -79.8853 ) ;
-    bottom.height( location2, &depth ) ;
+    wposition1 location2(29.4402, -79.8853);
+    bottom.height(location2, &depth);
     BOOST_CHECK_CLOSE(wposition::earth_radius - depth, 681.0, 0.3);
 }
 
@@ -286,52 +325,54 @@ BOOST_AUTO_TEST_CASE( ascii_arc_test ) {
  * Computes the broad spectrum scattering strength from a flat
  * boundary interface, using lambert's law.
  */
-BOOST_AUTO_TEST_CASE( scattering_strength_test ) {
+BOOST_AUTO_TEST_CASE(scattering_strength_test) {
     cout << "=== boundary_test: scattering_strength_test ===" << endl;
 
-    const wposition1 pos ;
-    const seq_linear freq( 100.0, 0.0, 1 ) ;
-    vector<double> amplitude( freq.size() ) ;
-    vector<double> phase( freq.size() ) ;
-    scattering_model* s = new scattering_lambert() ;
-    const double de_scattered = M_PI / 4.0 ;
+    const wposition1 pos;
+    seq_vector::csptr freq(new seq_linear(100.0, 0.0, 1));
+    vector<double> amplitude(freq->size());
+    vector<double> phase(freq->size());
+    scattering_lambert model;
+    const double de_scattered = M_PI / 4.0;
 
-    const char* csv_name = USML_TEST_DIR "/ocean/test/scattering_lambert_test.csv" ;
-    std::ofstream os(csv_name) ;
-    cout << "writing tables to " << csv_name << endl ;
-    os << "de_incident,de_scattered,amp" << endl ;
-    for(int i=0; i<90; ++i) {
-        double de_incident = i * M_PI / 180.0 ;
-        s->scattering( pos, freq, de_incident, de_scattered, 0.0, 0.0, &amplitude ) ;
-        os << de_incident << ","
-           << de_scattered << ","
-           << amplitude(0) << endl ;
+    const char* csv_name =
+        USML_TEST_DIR "/ocean/test/scattering_lambert_test.csv";
+    std::ofstream os(csv_name);
+    cout << "writing tables to " << csv_name << endl;
+    os << "de_incident,de_scattered,amp" << endl;
+    for (int i = 0; i < 90; ++i) {
+        double de_incident = i * M_PI / 180.0;
+        model.scattering(pos, freq, de_incident, de_scattered, 0.0, 0.0,
+                         &amplitude);
+        os << de_incident << "," << de_scattered << "," << amplitude(0) << endl;
     }
-    delete s ;
 }
 
 /**
  * Test the basics of creating an ocean volume layer,
  */
-BOOST_AUTO_TEST_CASE( ocean_volume_test ) {
+BOOST_AUTO_TEST_CASE(ocean_volume_test) {
     cout << "=== boundary_test: ocean_volume_test ===" << endl;
 
-    ocean_model ocean1(
-		new boundary_flat(),
-		new boundary_flat(2000.0),
-		new profile_linear() ) ;
-    ocean1.add_volume( new volume_flat( 1000.0, 10.0, -30.0 ) ) ;
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(2000.0));
+    profile_model::csptr profile(new profile_linear());
+    volume_model::csptr volume(new volume_flat(1000.0, 10.0, -30.0));
 
-    wposition1 location(0.0,0.0) ;
-    double depth, thickness ;
-    ocean1.volume(0).depth( location, &depth, &thickness ) ;
-    BOOST_CHECK_CLOSE(depth, wposition::earth_radius-1000.0, 1e-6);
+    ocean_model ocean1(surface, bottom, profile);
+    ocean1.add_volume(volume);
+
+    wposition1 location(0.0, 0.0);
+    double depth;
+    double thickness;
+    ocean1.volume(0)->depth(location, &depth, &thickness);
+    BOOST_CHECK_CLOSE(depth, wposition::earth_radius - 1000.0, 1e-6);
     BOOST_CHECK_CLOSE(thickness, 10.0, 1e-6);
 
-    seq_linear frequencies(10.0,10.0,3) ;
-    boost::numeric::ublas::vector<double> amplitude( frequencies.size() ) ;
-    ocean1.volume(0).scattering( location, frequencies,
-    		0.0, 0.0, 0.0, 0.0, &amplitude ) ;
+    seq_vector::csptr frequencies(new seq_linear(10.0, 10.0, 3));
+    boost::numeric::ublas::vector<double> amplitude(frequencies->size());
+    ocean1.volume(0)->scattering(location, frequencies, 0.0, 0.0, 0.0, 0.0,
+                                 &amplitude);
     BOOST_CHECK_CLOSE(amplitude(2), 1E-3, 1e-6);
 }
 

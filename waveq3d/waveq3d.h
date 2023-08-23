@@ -88,7 +88,5 @@
  */
 #pragma once
 
-#include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/wave_front.h>
-#include <usml/waveq3d/eigenray.h>
-#include <usml/waveq3d/eigenray_collection.h>
+#include <usml/waveq3d/wave_queue.h>

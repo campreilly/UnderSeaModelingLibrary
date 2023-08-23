@@ -15,10 +15,24 @@ using boost::numeric::ublas::vector;
 /// @{
 
 /**
- * Models bottom loss from a flat fluid-solid interface. Includes the effects of both compression and shear waves in the bottom.
- * This model is only used for bottom reflection.
- * Note that the Rayleigh model is frequency independent because
- * all of the frequency terms cancel out.
+ * Bottom types supported by reflect_loss_rayleigh table lookup feature.
+ */
+enum class bottom_type_enum {
+    clay,
+    silt,
+    sand,
+    gravel,
+    moraine,
+    chalk,
+    limestone,
+    basalt
+};
+
+/**
+ * Models bottom loss from a flat fluid-solid interface. Includes the effects of
+ * both compression and shear waves in the bottom. This model is only used for
+ * bottom reflection. Note that the Rayleigh model is frequency independent
+ * because all of the frequency terms cancel out.
  *
  * The effect of attenuation is incorporated into the model as
  * a complex component of the sound speed:
@@ -81,126 +95,114 @@ using boost::numeric::ublas::vector;
  * "Computational Ocean Acoustics", pp. 35-49.
  */
 class USML_DECLSPEC reflect_loss_rayleigh : public reflect_loss_model {
+   public:
+    /**
+     * Initialize model with a generic bottom type.  Uses an internal
+     * lookup table to convert into impedance mis-match factors.
+     *
+     * @param type          Generic bottom for table lookup of
+     *                      impedance mis-match factors.
+     */
+    reflect_loss_rayleigh(bottom_type_enum type);
 
-    public:
+    /**
+     * Initialize model with a generic bottom type as integer
+     * representation.  Uses an internal lookup table to convert
+     * into impedance mis-match factors.
+     *
+     * @param type          Integer representation of generic bottom type.
+     */
+    reflect_loss_rayleigh(size_t type);
 
-        /** Bottom types supported by table lookup feature. */
-        typedef enum {
-            CLAY, SILT, SAND, GRAVEL, MORAINE, CHALK, LIMESTONE, BASALT
-        } bottom_type_enum ;
+    /**
+     * Initialize model with impedance mis-match factors.  Defined in terms
+     * of ratios to match commonly used databases.
+     *
+     * @param density       Ratio of bottom density to water density
+     *                      Water density is assumed to be 1000 kg/m^3.
+     * @param speed         Ratio of compressional sound speed in the bottom to
+     *                      the sound speed in water. The sound speed in water
+     *                      is assumed to be 1500 m/s.
+     * @param att_bottom    Compressional wave attenuation in bottom
+     *                      (dB/wavelength).  No attenuation if this is zero.
+     * @param speed_shear   Ratio of shear wave sound speed in the bottom to
+     *                      the sound speed in water.
+     * @param att_shear     Shear wave attenuation in bottom (dB/wavelength).
+     */
+    reflect_loss_rayleigh(double density, double speed, double att_bottom = 0.0,
+                          double speed_shear = 0.0, double att_shear = 0.0);
 
+    /**
+     * Computes the broadband reflection loss and phase change for a
+     * single location.
+     *
+     * @param location      Location at which to compute attenuation.
+     * @param frequencies   Frequencies over which to compute loss. (Hz)
+     * @param angle         Reflection angle relative to the normal (radians).
+     * @param amplitude     Change in ray strength in dB (output).
+     * @param phase         Change in ray phase in radians (output).
+     *                      Phase change not computed if this is nullptr.
+     */
+    void reflect_loss(const wposition1& location, seq_vector::csptr frequencies,
+                      double angle, vector<double>* amplitude,
+                      vector<double>* phase = nullptr) const override;
 
-        /**
-         * Initialize model with a generic bottom type.  Uses an internal
-         * lookup table to convert into impedance mis-match factors.
-         *
-         * @param type          Generic bottom for table lookup of
-         *                      impedance mis-match factors.
-         */
-        reflect_loss_rayleigh( bottom_type_enum type ) ;
+   private:
+    /**
+     * Computes the impedance for compression or shear waves with attenuation.
+     * Includes the Snell's Law computation of transmitted angle.
+     *
+     * @param density       Ratio of bottom density to water density
+     *                      Water density is assumed to be 1000 kg/m^3.
+     * @param speed         Ratio of compressional sound speed in the bottom to
+     *                      the sound speed in water. The sound speed in water
+     *                      is assumed to be 1500 m/s.
+     * @param attenuation   Compressional wave attenuation in bottom
+     *                      (dB/wavelength).  No attenuation if this is zero.
+     * @param angle         Reflection angle relative to the normal (radians).
+     * @param cosA          Returns the cosine of the transmitted angle
+     *                      computed using Snell's Law.
+     * @param shear         Treat impendance for shear instances as special
+     *                      cases.
+     */
+    complex<double> impedance(double density, double speed, double attenuation,
+                              double angle, complex<double>* cosA,
+                              bool shear) const;
 
-        /**
-         * Initialize model with a generic bottom type as integer
-         * representation.  Uses an internal lookup table to convert
-         * into impedance mis-match factors.
-         *
-         * @param type          Integer representation of generic bottom type.
-         */
-        reflect_loss_rayleigh( size_t type ) ;
+    /** Bottom types lookup table. */
+    static struct bottom_type_table {
+        bottom_type_enum type;
+        double density;
+        double speed;
+        double att_bottom;
+        double speed_shear;
+        double att_shear;
+    } lookup[];
 
-        /**
-         * Initialize model with impedance mis-match factors.  Defined in terms
-         * of ratios to match commonly used databases.
-         *
-         * @param density       Ratio of bottom density to water density
-         *                      Water density is assumed to be 1000 kg/m^3.
-         * @param speed         Ratio of compressional sound speed in the bottom to
-         *                      the sound speed in water. The sound speed in water
-         *                      is assumed to be 1500 m/s.
-         * @param att_bottom    Compressional wave attenuation in bottom
-         *                      (dB/wavelength).  No attenuation if this is zero.
-         * @param speed_shear   Ratio of shear wave sound speed in the bottom to
-         *                      the sound speed in water.
-         * @param att_shear     Shear wave attenuation in bottom (dB/wavelength).
-         */
-        reflect_loss_rayleigh(
-            double density, double speed, double att_bottom=0.0,
-            double speed_shear=0.0, double att_shear=0.0 ) ;
+    //**************************************************
+    // impedance mis-match factors
 
-        /**
-         * Computes the broadband reflection loss and phase change for a
-         * single location.
-         *
-         * @param location      Location at which to compute attenuation.
-         * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param angle         Reflection angle relative to the normal (radians).
-         * @param amplitude     Change in ray strength in dB (output).
-         * @param phase         Change in ray phase in radians (output).
-         *                      Phase change not computed if this is NULL.
-         */
-        virtual void reflect_loss(
-            const wposition1& location,
-            const seq_vector& frequencies, double angle,
-            vector<double>* amplitude, vector<double>* phase=NULL ) ;
+    /** Density of water (kg/m^3). */
+    const double _density_water;
 
-    private:
+    /** Speed of sound in water (m/s). */
+    const double _speed_water;
 
-        /**
-         * Computes the impedance for compression or shear waves with attenuation.
-         * Includes the Snell's Law computation of transmitted angle.
-         *
-         * @param density       Ratio of bottom density to water density
-         *                      Water density is assumed to be 1000 kg/m^3.
-         * @param speed         Ratio of compressional sound speed in the bottom to
-         *                      the sound speed in water. The sound speed in water
-         *                      is assumed to be 1500 m/s.
-         * @param attenuation   Compressional wave attenuation in bottom
-         *                      (dB/wavelength).  No attenuation if this is zero.
-         * @param angle         Reflection angle relative to the normal (radians).
-         * @param cosA          Returns the cosine of the transmitted angle
-         *                      computed using Snell's Law.
-         * @param shear         Treat impendance for shear instances as special
-         *                      cases.
-         */
-        complex<double> impedance(
-            double density, double speed, double attenuation, double angle,
-            complex< double >* cosA, bool shear ) ;
+    /** Bottom density (kg/m^3). */
+    const double _density_bottom;
 
-        /** Bottom types lookup table. */
-        static struct bottom_type_table {
-            bottom_type_enum type ;
-            double density ;
-            double speed ;
-            double att_bottom ;
-            double speed_shear ;
-            double att_shear ;
-        } lookup[] ;
+    /** Compressional speed of sound in bottom (m/s). */
+    const double _speed_bottom;
 
-        //**************************************************
-        // impedance mis-match factors
+    /** Compressional wave attenuation in bottom (nepers/wavelength). */
+    const double _att_bottom;
 
-        /** Density of water (kg/m^3). */
-        const double _density_water ;
+    /** Shear speed of sound in bottom (m/s). */
+    const double _speed_shear;
 
-        /** Speed of sound in water (m/s). */
-        const double _speed_water ;
-
-        /** Bottom density (kg/m^3). */
-        const double _density_bottom ;
-
-        /** Compressional speed of sound in bottom (m/s). */
-        const double _speed_bottom ;
-
-        /** Compressional wave attenuation in bottom (nepers/wavelength). */
-        const double _att_bottom ;
-
-        /** Shear speed of sound in bottom (m/s). */
-        const double _speed_shear ;
-
-        /** Shear wave attenuation in bottom (nepers/wavelength). */
-        const double _att_shear ;
-
-} ;
+    /** Shear wave attenuation in bottom (nepers/wavelength). */
+    const double _att_shear;
+};
 
 /// @}
 }  // end of namespace ocean

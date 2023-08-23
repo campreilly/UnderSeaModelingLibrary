@@ -21,13 +21,10 @@ namespace ocean {
  *       RL_{high} = -20 \: log_{10} \left( \sqrt{1-v_3} \right)
  * \f]\f[
  *       v_3 = max \left( \frac{1}{2} sin \theta, \left[ 1 -
- *       \frac{ exp(-a \theta^2 / 4 ) }{ \sqrt{ \pi a \theta^2 } } \right] sin \theta
- *       \right)
- * \f]
- * where
- *         \f$ a = \frac{1}{ 2 ( 0.003 + 5.1x10^{-3} w ) } \f$,
+ *       \frac{ exp(-a \theta^2 / 4 ) }{ \sqrt{ \pi a \theta^2 } } \right] sin
+ * \theta \right) \f] where \f$ a = \frac{1}{ 2 ( 0.003 + 5.1x10^{-3} w ) } \f$,
  *         \f$ w \f$ = wind speed (m/sec), and
-*         \f$ v_3 \f$ is limited to a 0.99 value.
+ *         \f$ v_3 \f$ is limited to a 0.99 value.
  * Note that the high frequency component is frequency independent.
  * The low frequency component is given by:
  * \f[
@@ -44,20 +41,15 @@ namespace ocean {
  * ocean surface," Proceedings of ACOUSTICS 2009, Australian Acoustical Society,
  * 23-25 November 2009, Adelaide, Australia.
  */
-class USML_DECLSPEC reflect_loss_beckmann: public reflect_loss_model {
-
-public:
-
+class USML_DECLSPEC reflect_loss_beckmann : public reflect_loss_model {
+   public:
     /**
      * Initializes ocean surface reflection loss using using
      * Beckmann-Spizzichino model.
      *
      * @param wind_speed    Wind_speed used to develop rough seas (m/s).
      */
-    reflect_loss_beckmann( double wind_speed ) :
-        _wind_speed( wind_speed )
-    {
-    }
+    reflect_loss_beckmann(double wind_speed) : _wind_speed(wind_speed) {}
 
     /**
      * Computes the broadband reflection loss and phase change.
@@ -68,14 +60,13 @@ public:
      * @param amplitude     Change in ray intensity in dB (output).
      * @param phase         Change in ray phase in radians (output).
      *                         Hard-coded to a value of PI for this model.
-     *                      Phase change not computed if this is NULL.
+     *                      Phase change not computed if this is nullptr.
      */
-    virtual void reflect_loss(const wposition1& location,
-            const seq_vector& frequencies, double angle,
-            vector<double>* amplitude, vector<double>* phase = NULL) ;
+    void reflect_loss(const wposition1& location, seq_vector::csptr frequencies,
+                      double angle, vector<double>* amplitude,
+                      vector<double>* phase = nullptr) const override;
 
-private:
-
+   private:
     /** Wind speed (m/sec). */
     const double _wind_speed;
 };

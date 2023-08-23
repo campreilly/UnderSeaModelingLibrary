@@ -4,11 +4,11 @@
  */
 #pragma once
 
-/**
+/*
  * Setup Windows DLL export/import prefixes in USML_DECLSPEC.
  * USML_DYN_LINK if shared libraries enabled.
  * CMake automatically defines usml_EXPORT when compiling shared libraries.
-*/
+ */
 #if defined(_MSC_VER) && defined(USML_DYN_LINK)
     #ifdef usml_EXPORTS
         #define USML_DECLSPEC __declspec(dllexport)
@@ -21,7 +21,8 @@
     #define USML_DLLEXPORT 
 #endif
 
-/* To prevent Eclipse from finding errors on string concatenation
+/*
+ * Prevent Eclipse from finding errors on string concatenation
  * for compile line -D defined macros, when searching for semantic errors.
  */
 #ifndef USML_TEST_DIR
@@ -30,4 +31,8 @@
 
 #ifndef USML_DATA_DIR
 #define USML_DATA_DIR ""
+#endif
+
+#ifndef USML_STUDIES_DIR
+#define USML_STUDIES_DIR ""
 #endif

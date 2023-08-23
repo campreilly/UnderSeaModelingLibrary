@@ -4,15 +4,15 @@
  */
 #pragma once
 
+#include <usml/types/wposition1.h>
+#include <usml/usml_config.h>
 #include <usml/waveq3d/wave_queue.h>
-#include <usml/eigenverb/eigenverb_collection.h>
+#include <usml/waveq3d/wave_front.h>
+
+#include <cstddef>
 
 namespace usml {
 namespace waveq3d {
-
-using namespace usml::ocean ;
-using namespace usml::eigenverb ;
-class wave_queue ;      // forward reference for friend declaration
 
 /**
  * @internal
@@ -44,15 +44,12 @@ class wave_queue ;      // forward reference for friend declaration
  * @xref S. M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
-class USML_DECLSPEC reflection_model
-{
+class USML_DECLSPEC reflection_model {
+    friend class wave_queue;
 
-    friend class wave_queue ;
-
-  private:
-
+   private:
     /** Wavefront object associated with this model. */
-    wave_queue& _wave ;
+    wave_queue& _wave;
 
     /**
      * If the water is too shallow, bottom_reflection() uses a horizontal
@@ -67,7 +64,7 @@ class USML_DECLSPEC reflection_model
      * step of the wavefront.  This value 1/5 the length of a typical
      * time step (1500*dt).
      */
-    const double TOO_SHALLOW ;
+    const double TOO_SHALLOW;
 
     /**
      * The assumption that the surface normal is constant across the time step
@@ -80,15 +77,13 @@ class USML_DECLSPEC reflection_model
      * grazing angle of about 0.23 degrees.  We assume that this value is
      * much lower than the uncertainty in the gridded bathymetry slope.
      */
-    static const double MIN_REFLECT ;
+    static const double MIN_REFLECT;
 
     /**
      * Hide default constructor to prohibit use by non-friends.
      */
-    reflection_model( wave_queue& wave )
-        : _wave( wave ),
-          TOO_SHALLOW( 300.0 * wave._time_step )
-        {}
+    reflection_model(wave_queue& wave)
+        : _wave(wave), TOO_SHALLOW(300.0 * wave._time_step) {}
 
     virtual ~reflection_model() {}
 
@@ -126,7 +121,8 @@ class USML_DECLSPEC reflection_model
      * will include an erroneous reflection in which both the current and
      * next location are below the bottom.  This implement uses the height
      * differential between the current and next rays to refine the dot product
-     * \f$ \frac{d\vec{r}}{d\tau} \bullet \hat{n} \f$ when this becomes a problem.
+     * \f$ \frac{d\vec{r}}{d\tau} \bullet \hat{n} \f$ when this becomes a
+     * problem.
      *
      * For near-miss instances, please refer to the section on MIN_REFLECT.
      *
@@ -136,7 +132,7 @@ class USML_DECLSPEC reflection_model
      * @return                  True for an actual reflection,
      *                          False for a near-miss.
      */
-    bool bottom_reflection( size_t de, size_t az, double depth ) ;
+    bool bottom_reflection(size_t de, size_t az, double depth);
 
     /**
      * Reflect a single acoustic ray from the ocean surface.
@@ -172,7 +168,7 @@ class USML_DECLSPEC reflection_model
      * @return              True for an actual reflection,
      *                      False for a near-miss.
      */
-    bool surface_reflection( size_t de, size_t az ) ;
+    bool surface_reflection(size_t de, size_t az);
 
     /**
      * Re-initialize an individual ray after reflection.
@@ -182,15 +178,15 @@ class USML_DECLSPEC reflection_model
      *
      * @param de            D/E angle index number of reflected ray.
      * @param az            AZ angle index number of reflected ray.
-     * @param dtime         The distance (in time) from the "current"
+     * @param time_water    The distance (in time) from the "current"
      *                      wavefront to the boundary collision.
      * @param position      Position of the reflection.
      * @param direction     Direction (un-normalized) after reflection.
      * @param speed         Speed of sound at the point of reflection.
      */
-    void reflection_reinit(
-        size_t de, size_t az, double dtime,
-        const wposition1& position, const wvector1& direction, double speed ) ;
+    void reflection_reinit(size_t de, size_t az, double time_water,
+                           const wposition1& position,
+                           const wvector1& direction, double speed);
 
     /**
      * Copy new wave element data into the destination wavefront.
@@ -202,11 +198,9 @@ class USML_DECLSPEC reflection_model
      * @param az            AZ angle index number of reflected ray.
      * @param results       Wave element data with new information.
      */
-    static void reflection_copy(
-        wave_front* element, size_t de, size_t az,
-        wave_front& results ) ;
-
-} ;
+    static void reflection_copy(wave_front* element, size_t de, size_t az,
+                                wave_front& results);
+};
 
 }  // end of namespace waveq3d
 }  // end of namespace usml

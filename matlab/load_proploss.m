@@ -15,6 +15,7 @@
 %       latitude            target latitudes (degrees_north)
 %       longitude           target longitudes (degrees_east)
 %       altitude            target altitudes (meters)
+%	targetID	    target identification number (0 if unknown)
 %       intensity           transmission loss (dB)
 %       phase               path phase adjustment (rad)
 %       travel_time         path travel time (secs).
@@ -51,20 +52,27 @@ latitude = rays.VarArray(8).Data ;
 longitude = rays.VarArray(9).Data ;
 altitude = rays.VarArray(10).Data ;
 
-proploss_index = 1 + rays.VarArray(11).Data ;
-eigenray_index = 1 + rays.VarArray(12).Data ;
-eigenray_num = rays.VarArray(13).Data ;
+offset=10;
+targetID = zeros(size(latitude));
+if length(rays.VarArray) > 23
+    offset=11;
+    targetID = rays.VarArray(offset).Data ;
+end
 
-intensity = rays.VarArray(14).Data(proploss_index,:) ;
-phase = rays.VarArray(15).Data(proploss_index,:) ;
-travel_time = rays.VarArray(16).Data(proploss_index) ;
-source_de = rays.VarArray(17).Data(proploss_index) ;
-source_az = rays.VarArray(18).Data(proploss_index) ;
-target_de = rays.VarArray(19).Data(proploss_index) ;
-target_az = rays.VarArray(20).Data(proploss_index) ;
-surface = rays.VarArray(21).Data(proploss_index) ;
-bottom = rays.VarArray(22).Data(proploss_index) ;
-caustic = rays.VarArray(23).Data(proploss_index) ;
+proploss_index = 1 + rays.VarArray(offset+1).Data ;
+eigenray_index = 1 + rays.VarArray(offset+2).Data ;
+eigenray_num = rays.VarArray(offset+3).Data ;
+
+intensity = rays.VarArray(offset+4).Data(proploss_index,:) ;
+phase = rays.VarArray(offset+5).Data(proploss_index,:) ;
+travel_time = rays.VarArray(offset+6).Data(proploss_index) ;
+source_de = rays.VarArray(offset+7).Data(proploss_index) ;
+source_az = rays.VarArray(offset+8).Data(proploss_index) ;
+target_de = rays.VarArray(offset+9).Data(proploss_index) ;
+target_az = rays.VarArray(offset+10).Data(proploss_index) ;
+surface = rays.VarArray(offset+11).Data(proploss_index) ;
+bottom = rays.VarArray(offset+12).Data(proploss_index) ;
+caustic = rays.VarArray(offset+13).Data(proploss_index) ;
 
 % translate scenario and the summed transmission loss data into structure
 
@@ -79,6 +87,7 @@ proploss = struct( ...
     'latitude', latitude, ...
     'longitude', longitude, ...
     'altitude', altitude, ...
+    'targetID', targetID, ...
     'intensity', intensity, ...
     'phase', phase, ...
     'travel_time', travel_time, ...
@@ -97,16 +106,16 @@ if ( nargout >= 2 )
     for n=1:N
         for m=1:M
             index = (1:eigenray_num(n,m)) + eigenray_index(n,m) - 1 ;
-            intensity = rays.VarArray(14).Data(index,:) ;
-            phase = rays.VarArray(15).Data(index,:) ;
-            travel_time = rays.VarArray(16).Data(index) ;
-            source_de = rays.VarArray(17).Data(index) ;
-            source_az = rays.VarArray(18).Data(index) ;
-            target_de = rays.VarArray(19).Data(index) ;
-            target_az = rays.VarArray(20).Data(index) ;
-            surface = rays.VarArray(21).Data(index) ;
-            bottom = rays.VarArray(22).Data(index) ;
-            caustic = rays.VarArray(23).Data(index) ;
+            intensity = rays.VarArray(offset+4).Data(index,:) ;
+            phase = rays.VarArray(offset+5).Data(index,:) ;
+            travel_time = rays.VarArray(offset+6).Data(index) ;
+            source_de = rays.VarArray(offset+7).Data(index) ;
+            source_az = rays.VarArray(offset+8).Data(index) ;
+            target_de = rays.VarArray(offset+9).Data(index) ;
+            target_az = rays.VarArray(offset+10).Data(index) ;
+            surface = rays.VarArray(offset+11).Data(index) ;
+            bottom = rays.VarArray(offset+12).Data(index) ;
+            caustic = rays.VarArray(offset+13).Data(index) ;
 
             eigenrays(n,m) = struct( ...
                 'intensity', intensity, ...

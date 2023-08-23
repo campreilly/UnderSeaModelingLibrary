@@ -4,12 +4,17 @@
  */
 #pragma once
 
+#include <usml/types/wposition1.h>
+#include <usml/usml_config.h>
 #include <usml/waveq3d/spreading_model.h>
+
+#include <boost/numeric/ublas/vector.hpp>
+#include <cstddef>
 
 namespace usml {
 namespace waveq3d {
 
-using namespace usml::ocean ;
+using namespace usml::ocean;
 
 /**
  * @internal
@@ -30,19 +35,16 @@ using namespace usml::ocean ;
  *      - \f$ c_0           \f$ = initial speed of sound
  */
 class USML_DECLSPEC spreading_ray : public spreading_model {
+    friend class wave_queue;
+    friend class wave_queue_reverb;
 
-    friend class wave_queue ;
-    friend class wave_queue_reverb ;
-
-  private:
-
+   private:
     /**
      * Initial speed of sound.
      */
-    double _init_sound_speed ;
+    double _init_sound_speed;
 
-  protected:
-
+   protected:
     /**
      * Estimate initial ensonfied area between rays at radius of 1 meter.
      *
@@ -59,7 +61,7 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
      *
      * @param wave          Wavefront object associated with this model.
      */
-    spreading_ray( wave_queue& wave ) ;
+    spreading_ray(wave_queue& wave);
 
     /**
      * Virtual destructor
@@ -85,9 +87,10 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
      * @param  distance     Offsets in distance units.
      * @return              Intensity of ray at this point.
      */
-    virtual const vector<double>& intensity(
-        const wposition1& location, size_t de, size_t az,
-        const vector<double>& offset, const vector<double>& distance ) ;
+    virtual const vector<double>& intensity(const wposition1& location,
+                                            size_t de, size_t az,
+                                            const vector<double>& offset,
+                                            const vector<double>& distance);
 
     /**
      * Compute the harmonic mean of the distance between the position
@@ -99,8 +102,7 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
      * @param   offset      (Not used in this calculation)
      * @return              Half-width of cell in the DE direction.
      */
-    virtual double width_de(
-        size_t de, size_t az, const vector<double>& offset ) ;
+    virtual double width_de(size_t de, size_t az, const vector<double>& offset);
 
     /**
      * Compute the harmonic mean of the distance between the position
@@ -112,10 +114,8 @@ class USML_DECLSPEC spreading_ray : public spreading_model {
      * @param   offset      (Not used in this calculation)
      * @return              Half-width of cell in the AZ direction.
      */
-    virtual double width_az(
-        size_t de, size_t az, const vector<double>& offset ) ;
-
-} ;
+    virtual double width_az(size_t de, size_t az, const vector<double>& offset);
+};
 
 }  // end of namespace waveq3d
 }  // end of namespace usml

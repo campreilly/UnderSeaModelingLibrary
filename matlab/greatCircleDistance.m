@@ -65,7 +65,7 @@ if ( nargout > 1 )
         b = ( sin(phi_f) - sin(phi_s)  *cos(Delta_sigma) ) ...
           / ( sin(Delta_sigma) * cos(phi_s) ) ;
         b = acos( min(1.0,max(-1.0,b)) ) ;
-        if sin(Delta_lambda) > 0
+        if sin(Delta_lambda) < 0
             b = 2*pi - b ;
         end
     end

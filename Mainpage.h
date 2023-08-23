@@ -12,8 +12,12 @@ that computes acoustic transmission loss in the ocean using
 Hybrid Gaussian Beams in Spherical/Time Coordinates.
 At this time, most of the other modules provide support to WaveQ3D.
 
+<h2>USML Package Dependencies</h2>
+
+\diafile usml_packages.dia
+
 <h2>Style Guide</h2>
-This library adopts the coding style used by Boost and the 
+This library adopts the coding style used by Boost, Google, and the 
 C++ standard library:
 
    - class names are lower case with underscores between words
@@ -25,7 +29,7 @@ This library supports the following additions that go beyond
 the Boost style elements:
 
    - classes, attributes, and methods are documented with 
-     JavaDoc compatible comments in the code.
+     JavaDoc compatible Doxygen comments in the code.
 
 Example:
 
@@ -39,8 +43,8 @@ Example:
     public:
 
         /**
-        * Constructor - Create the my_simple_class
-        */
+         * Constructor - Create the my_simple_class.
+         */
         my_simple_class(int input_val) :
             _special_value (0.0)    {
 
@@ -49,8 +53,8 @@ Example:
         }
 
         /**
-        * Default Constructor - Create the my_simple_class with all members defaulted
-        */
+         * Default Constructor - Create the my_simple_class with all members defaulted.
+         */
         my_simple_class() :
             _special_value (0.0),
             _value(0)   {
@@ -59,7 +63,7 @@ Example:
         /**
          * Get or retrieve the current value.
          *
-         * @return         copy of the current value
+         * @return         Copy of the current value.
          */
         int value() {
             return _value ;
@@ -68,7 +72,7 @@ Example:
         /**
          * Set or define the current value.
          *
-         * @param  v       new value to store
+         * @param  v       New value to store.
          */
         void value( int v ) {
             _value = v ;
@@ -76,12 +80,12 @@ Example:
 
     protected:
 
-        /* Storage for the special value */
+        /// Storage for the special value.
         double  _special_value ;
 
     private:
 
-        /* Storage for the value. */
+        /// Storage for the value.
         int _value ;
 
     } ;

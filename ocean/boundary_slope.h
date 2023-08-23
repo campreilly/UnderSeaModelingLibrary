@@ -5,6 +5,11 @@
 #pragma once
 
 #include <usml/ocean/boundary_model.h>
+#include <usml/types/wposition.h>
+#include <usml/types/wposition1.h>
+#include <usml/usml_config.h>
+
+#include <boost/numeric/ublas/matrix.hpp>
 
 namespace usml {
 namespace ocean {
@@ -32,50 +37,7 @@ namespace ocean {
  *   - \f$ \rho_{calc}  \f$ = calculated height (meters) at new location.
  */
 class USML_DECLSPEC boundary_slope : public boundary_model {
-
-    //**************************************************
-    // height model
-
-  private:
-
-    /** Location at which initial depth and slope are specified. */
-    const wposition1& _location ;
-
-    /** Surface height in spherical earth coords. */
-    const double _height ;
-
-    /** Surface normal. */
-    wvector1 _normal ;
-
-  public:
-
-    /**
-     * Compute the height of the boundary and it's surface normal at
-     * a series of locations.
-     *
-     * @param location      Location at which to compute boundary.
-     * @param rho           Surface height in spherical earth coords (output).
-     * @param normal        Unit normal relative to location (output).
-     * @param quick_interp  Determines if you want a fast nearest or pchip interp
-     */
-    virtual void height( const wposition& location,
-        matrix<double>* rho, wvector* normal=NULL, bool quick_interp=false ) ;
-
-    /**
-     * Compute the height of the boundary and it's surface normal at
-     * a single location.  Often used during reflection processing.
-     *
-     * @param location      Location at which to compute boundary.
-     * @param rho           Surface height in spherical earth coords (output).
-     * @param normal        Unit normal relative to location (output).
-     * @param quick_interp  Determines if you want a fast nearest or pchip interp
-     */
-    virtual void height( const wposition1& location,
-        double* rho, wvector1* normal=NULL, bool quick_interp=false ) ;
-
-    //**************************************************
-    // initialization
-
+   public:
     /**
      * Initialize depth and reflection loss components for a boundary.
      *
@@ -88,14 +50,42 @@ class USML_DECLSPEC boundary_slope : public boundary_model {
      *                      define the water surface and any other depths
      *                      define the ocean bottom. Use perfect surface or
      *                      bottom reflection if no model specified.
-     *                      The boundary_model takes over ownship of this
-     *                      reference and deletes it as part of its
-     *                      destructor.
      */
-    boundary_slope( const wposition1& location,
-        double depth, double lat_slope, double lng_slope=0.0,
-        reflect_loss_model* reflect_loss=NULL ) ;
+    boundary_slope(const wposition1& location, double depth, double lat_slope,
+                   double lng_slope = 0.0,
+                   reflect_loss_model::csptr reflect_loss = nullptr);
 
+    /**
+     * Compute the height of the boundary and it's surface normal at
+     * a series of locations.
+     *
+     * @param location      Location at which to compute boundary.
+     * @param rho           Surface height in spherical earth coords (output).
+     * @param normal        Unit normal relative to location (output).
+     */
+    void height(const wposition& location, matrix<double>* rho,
+                wvector* normal = nullptr) const override;
+
+    /**
+     * Compute the height of the boundary and it's surface normal at
+     * a single location.  Often used during reflection processing.
+     *
+     * @param location      Location at which to compute boundary.
+     * @param rho           Surface height in spherical earth coords (output).
+     * @param normal        Unit normal relative to location (output).
+     */
+    void height(const wposition1& location, double* rho,
+                wvector1* normal = nullptr) const override;
+
+   private:
+    /** Location at which initial depth and slope are specified. */
+    const wposition1& _location;
+
+    /** Surface height in spherical earth coords. */
+    const double _height;
+
+    /** Surface normal. */
+    wvector1 _normal;
 };
 
 /// @}
