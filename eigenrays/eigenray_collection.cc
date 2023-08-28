@@ -101,7 +101,7 @@ void eigenray_collection::add_eigenray(size_t t1, size_t t2,
                                        eigenray_model::csptr ray, size_t /*runID*/) {
     _eigenrays(t1, t2).push_back(ray);
     auto old_initial = _initial_time(t1, t2);
-    auto new_initial = ray->time;
+    auto new_initial = ray->travel_time;
     if (old_initial <= 0.0 || old_initial > new_initial) {
         _initial_time(t1, t2) = new_initial;
     }
@@ -142,7 +142,7 @@ void eigenray_collection::sum_eigenrays(bool coherent) {
                     double a =
                         pow(10.0, ray->intensity(f) / -20.0);  // pressure
                     if (coherent) {
-                        double p = TWO_PI * (*_frequencies)(f)*ray->time +
+                        double p = TWO_PI * (*_frequencies)(f)*ray->travel_time +
                                    ray->phase(f);
                         p = fmod(p, TWO_PI);  // large phases bad for cos,sin
                         std::complex<double> value(a * cos(p), a * sin(p));
@@ -155,7 +155,7 @@ void eigenray_collection::sum_eigenrays(bool coherent) {
 
                     a *= a;  // scale by the pressure squared
                     wgt += a;
-                    time += a * ray->time;
+                    time += a * ray->travel_time;
                     source_de += a * ray->source_de;
                     source_az_x += a * sin(to_radians(ray->source_az));
                     source_az_y += a * cos(to_radians(ray->source_az));
@@ -178,7 +178,7 @@ void eigenray_collection::sum_eigenrays(bool coherent) {
 
             // weighted average of other eigenray terms
 
-            total.time = time / wgt;
+            total.travel_time = time / wgt;
             total.source_de = source_de / wgt;
             total.source_az =
                 90.0 - to_degrees(atan2(source_az_y, source_az_x));
@@ -348,7 +348,7 @@ void eigenray_collection::write_netcdf(const char *filename,
                     const eigenray_model *ray = &_total(t1, t2);
                     intensity_var->put(ray->intensity.data().begin(), 1, num_freqs);
                     phase_var->put(ray->phase.data().begin(), 1, num_freqs);
-                    time_var->put(&ray->time, 1);
+                    time_var->put(&ray->travel_time, 1);
                     source_de_var->put(&ray->source_de, 1);
                     source_az_var->put(&ray->source_az, 1);
                     target_de_var->put(&ray->target_de, 1);
@@ -365,7 +365,7 @@ void eigenray_collection::write_netcdf(const char *filename,
                     eigenray_model::csptr ray = *iter++;
                     intensity_var->put(ray->intensity.data().begin(), 1, num_freqs);
                     phase_var->put(ray->phase.data().begin(), 1, num_freqs);
-                    time_var->put(&ray->time, 1);
+                    time_var->put(&ray->travel_time, 1);
                     source_de_var->put(&ray->source_de, 1);
                     source_az_var->put(&ray->source_az, 1);
                     target_de_var->put(&ray->target_de, 1);
@@ -450,7 +450,7 @@ eigenray_list eigenray_collection::dead_reckon_one(
 
         const double dr =
             (dir[0] * raydir[0] + dir[1] * raydir[1] + dir[2] * raydir[2]);
-        new_ray->time = ray->time + dr / sound_speed;
+        new_ray->travel_time = ray->travel_time + dr / sound_speed;
 
         // compute change in intensity along ray path
         // approximating TL = 20*log10(r) + alpha * r + b
@@ -458,7 +458,7 @@ eigenray_list eigenray_collection::dead_reckon_one(
         matrix<double> distance(1, 1);
         matrix<vector<double> > atten(1, 1);
         atten(0, 0).resize(ray->frequencies->size());
-        const double r1 = ray->time * sound_speed;
+        const double r1 = ray->travel_time * sound_speed;
         const double r2 = r1 + dr;
 
         for (int f = 0; f < ray->frequencies->size(); ++f) {

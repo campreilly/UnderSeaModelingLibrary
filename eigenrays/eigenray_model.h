@@ -34,7 +34,7 @@ struct eigenray_model {
     /**
      * Time of arrival for this acoustic path (sec).
      */
-    double time{0.0};
+    double travel_time{0.0};
 
     /**
      * Frequencies over which propagation was computed (Hz).

@@ -37,7 +37,7 @@ static eigenverb_model::csptr create_eigenverb(
     double horz_range = depth / tan(grazing);
 
     verb->sound_speed = 1500.0;
-    verb->time = slant_range / verb->sound_speed;
+    verb->travel_time = slant_range / verb->sound_speed;
     verb->frequencies = frequencies;
     verb->power = vector<double>(frequencies->size(), 1.0);
     verb->length = 0.5 * slant_range * to_radians(de_spacing) / sin(grazing);

@@ -98,6 +98,84 @@ class USML_DECLSPEC biverb_collection {
      * There are separate variables for each biverb component,
      * and each biverb add a row to that variable.  The power,
      * length, and width variables have a column for each frequency.
+     * netcdf biverbs_test {
+     * dimensions:
+     * 	eigenverbs = 36 ;
+     * 	frequencies = 1 ;
+     * variables:
+     * 	double travel_time(eigenverbs) ;
+     * 		travel_time:units = "seconds" ;
+     * 	double frequencies(frequencies) ;
+     * 		frequencies:units = "hertz" ;
+     * 	double power(eigenverbs, frequencies) ;
+     * 		power:units = "dB" ;
+     * 	double duration(eigenverbs) ;
+     * 		duration:units = "s" ;
+     * 	short de_index(eigenverbs) ;
+     * 		de_index:units = "count" ;
+     * 	short az_index(eigenverbs) ;
+     * 		az_index:units = "count" ;
+     * 	double source_de(eigenverbs) ;
+     * 		source_de:units = "degrees" ;
+     * 		source_de:positive = "up" ;
+     * 	double source_az(eigenverbs) ;
+     * 		source_az:units = "degrees_true" ;
+     * 		source_az:positive = "clockwise" ;
+     * 	short source_surface(eigenverbs) ;
+     * 		source_surface:units = "count" ;
+     * 	short source_bottom(eigenverbs) ;
+     * 		source_bottom:units = "count" ;
+     * 	short source_caustic(eigenverbs) ;
+     * 		source_caustic:units = "count" ;
+     * 	short source_upper(eigenverbs) ;
+     * 		source_upper:units = "count" ;
+     * 	short source_lower(eigenverbs) ;
+     * 		source_lower:units = "count" ;
+     * 	double receiver_de(eigenverbs) ;
+     * 		receiver_de:units = "degrees" ;
+     * 		receiver_de:positive = "up" ;
+     * 	double receiver_az(eigenverbs) ;
+     * 		receiver_az:units = "degrees_true" ;
+     * 		receiver_az:positive = "clockwise" ;
+     * 	short receiver_surface(eigenverbs) ;
+     * 		receiver_surface:units = "count" ;
+     * 	short receiver_bottom(eigenverbs) ;
+     * 		receiver_bottom:units = "count" ;
+     * 	short receiver_caustic(eigenverbs) ;
+     * 		receiver_caustic:units = "count" ;
+     * 	short receiver_upper(eigenverbs) ;
+     * 		receiver_upper:units = "count" ;
+     * 	short receiver_lower(eigenverbs) ;
+     * 		receiver_lower:units = "count" ;
+     *
+     * // global attributes:
+     * 		:long_name = "bottom eigenverbs" ;
+     * data:
+     *
+     *  travel_time = 1.35390214918099, 1.38640292290777, 1.41890369663455, ...
+     *  frequencies = 3000 ;
+     *  power =
+     *   -300,
+     *   -300,
+     *   -300, ...
+     *  duration = 0.00368280251827329, 0.00758528506165655, 0.00796693311, ...
+     *  de_index = 0, 1, 1, 0, 1, 2, 0, 1, 2, 0, 3, 1, 2, 3, 0, 1, 4, 2, ...
+     *  az_index = 5, 5, 5, 5, 1, 8, 9, 5, 8, 5, 8, 1, 8, 8, 9, 1, 9, 9, ...
+     *  source_de = 50, 50, 50, 70, 20, 80, 90, 60, 80, 80, 80, 60, 80, ...
+     *  source_az = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+     *  source_surface = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+     *  source_bottom = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+     *  source_caustic = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+     *  source_upper = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+     *  source_lower = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+     *  receiver_de = -80, -70, -70, -80, -70, -60, -80, -70, -60, -80, ...
+     *  receiver_az = 50, 50, 50, 50, 10, 80, 90, 50, 80, 50, 80, 10, ...
+     *  receiver_surface = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+     *  receiver_bottom = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+     *  receiver_caustic = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+     *  receiver_upper = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+     *  receiver_lower = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+     * }
      */
     void write_netcdf(const char* filename, size_t interface) const;
 

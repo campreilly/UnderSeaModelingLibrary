@@ -99,12 +99,12 @@ void rvbenv_collection::add_biverb(const biverb_model::csptr& verb,
                                    const matrix<double>& rcv_beam) {
     const auto num_freqs = _freqs->size();
     const auto duration = verb->duration;
-    const auto delay = verb->time + verb->duration;
+    const auto delay = verb->travel_time + verb->duration;
 
     // find range of time indices to update
 
-    size_t first = _times->find_index(verb->time - 5.0 * duration);
-    size_t last = _times->find_index(verb->time + 5.0 * duration) + 1;
+    size_t first = _times->find_index(verb->travel_time - 5.0 * duration);
+    size_t last = _times->find_index(verb->travel_time + 5.0 * duration) + 1;
     range window(first, last);
     vector<double> vtimes = *_times;
     vector_range<vector<double> > time(vtimes, window);

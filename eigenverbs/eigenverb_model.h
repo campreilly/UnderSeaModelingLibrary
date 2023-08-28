@@ -49,7 +49,7 @@ struct eigenverb_model {
     /**
      * One way travel time for this path (sec).
      */
-    double time;
+    double travel_time;
 
     /**
      * Frequencies of the wavefront (Hz)

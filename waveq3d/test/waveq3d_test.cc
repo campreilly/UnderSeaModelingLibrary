@@ -117,7 +117,7 @@ BOOST_AUTO_TEST_CASE(dead_reckon) {
 
     auto theory = eigenrays.eigenrays(0, 1).begin();
     for (const auto &ray : eigen_reckon) {
-        BOOST_CHECK_SMALL(ray->time - (*theory)->time, 0.01);
+        BOOST_CHECK_SMALL(ray->travel_time - (*theory)->travel_time, 0.01);
         BOOST_CHECK_SMALL(ray->source_de - (*theory)->source_de, 1.0);
         BOOST_CHECK_SMALL(ray->source_az - (*theory)->source_az, 1.0);
         BOOST_CHECK_SMALL(ray->target_de - (*theory)->target_de, 1.0);
@@ -286,7 +286,7 @@ BOOST_AUTO_TEST_CASE(eigenverb_accuracy) {
                  << "\tL=" << verb->length << " theory=" << verb_length
                  << "\tW=" << verb->width << " theory=" << verb_width
                  << endl;
-            BOOST_CHECK_SMALL(verb->time - time, 1e-3);
+            BOOST_CHECK_SMALL(verb->travel_time - time, 1e-3);
             BOOST_CHECK_SMALL(verb->grazing - grazing, 1e-6);
             BOOST_CHECK_SMALL(verb->direction - verb->source_az, 1e-6);
             BOOST_CHECK_SMALL(verb->length - verb_length, 0.1);
@@ -418,7 +418,7 @@ BOOST_AUTO_TEST_CASE(eigenverb_demo) {
                  << "\tL=" << verb->length << " theory=" << verb_length
                  << "\tW=" << verb->width << " theory=" << verb_width
                  << endl;
-            BOOST_CHECK_SMALL(verb->time - time, 1e-3);
+            BOOST_CHECK_SMALL(verb->travel_time - time, 1e-3);
             BOOST_CHECK_SMALL(verb->grazing - grazing, 1e-6);
             BOOST_CHECK_SMALL(verb->direction - verb->source_az, 1e-6);
             BOOST_CHECK_SMALL(verb->length - verb_length, 0.1);

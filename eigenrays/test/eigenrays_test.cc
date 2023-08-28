@@ -28,7 +28,7 @@ class USML_DECLSPEC eigenray_factory : public eigenray_notifier {
      */
     void create_eigenray(const seq_vector::csptr& frequencies) {
         auto* ray = new eigenray_model();
-        ray->time = 0.0;
+        ray->travel_time = 0.0;
         ray->source_de = 0.0;
         ray->source_az = 0.0;
         ray->target_de = 0.0;

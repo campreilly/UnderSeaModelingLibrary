@@ -566,7 +566,7 @@ void wave_queue::build_eigenray(size_t t1, size_t t2, size_t de, size_t az,
     // build basic eigenray products
 
     auto* ray = new eigenray_model();
-    ray->time = _time + offset(0);
+    ray->travel_time = _time + offset(0);
     ray->source_de = (*_source_de)(de) + offset(1);
     ray->source_az = (*_source_az)(az) + offset(2);
     ray->frequencies = _frequencies;
@@ -690,7 +690,7 @@ void wave_queue::build_eigenray(size_t t1, size_t t2, size_t de, size_t az,
     #ifdef DEBUG_EIGENRAYS
         cout << "wave_queue::build_eigenray() " << endl
              << "\ttarget(" << t1 << "," << t2 << "):" << endl
-             << "\tt=" << ray->time << " inten=" << ray->intensity
+             << "\tt=" << ray->travel_time << " inten=" << ray->intensity
              << " de=" << ray->source_de << " az=" << ray->source_az << endl
              << "\tsurface=" << ray->surface << " bottom=" << ray->bottom
              << " caustic=" << ray->caustic << endl;
@@ -1131,7 +1131,7 @@ void wave_queue::build_eigenverb(size_t de, size_t az, double dt,
 
     // initialize simple eigenverb fields
 
-    verb->time = _time + dt;
+    verb->travel_time = _time + dt;
     verb->grazing = grazing;
     verb->sound_speed = speed;
     verb->position = position;
@@ -1149,7 +1149,7 @@ void wave_queue::build_eigenverb(size_t de, size_t az, double dt,
     // notify eigenverb listeners of this change
 
 #ifdef DEBUG_EIGENVERBS
-    cout << "\ttype " << type << " t=" << verb->time
+    cout << "\ttype " << type << " t=" << verb->travel_time
          << " de=" << to_degrees(verb->source_de)
          << " az=" << to_degrees(verb->source_az)
          << " direction=" << to_degrees(verb->direction)

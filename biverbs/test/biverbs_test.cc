@@ -11,8 +11,8 @@
 #include <usml/eigenverbs/eigenverb_model.h>
 #include <usml/managed/managed_obj.h>
 #include <usml/ocean/ocean.h>
-#include <usml/platforms/platform_model.h>
 #include <usml/platforms/platform_manager.h>
+#include <usml/platforms/platform_model.h>
 #include <usml/platforms/test/simple_sonobuoy.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_task.h>
@@ -82,7 +82,7 @@ static eigenverb_model::csptr create_eigenverb(
     double horz_range = depth / tan(grazing);
 
     verb->sound_speed = 1500.0;
-    verb->time = slant_range / verb->sound_speed;
+    verb->travel_time = slant_range / verb->sound_speed;
     verb->frequencies = frequencies;
     verb->power = vector<double>(frequencies->size(), 1.0);
     verb->length = 0.5 * slant_range * to_radians(de_spacing) / sin(grazing);
@@ -117,8 +117,7 @@ static eigenverb_model::csptr create_eigenverb(
 BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     cout << "=== biverbs_test: update_wavefront_data ===" << endl;
 
-    const char* ncname1 = USML_TEST_DIR "/biverbs/test/create_biverbs.nc";
-    const char* ncname2 = USML_TEST_DIR "/biverbs/test/find_biverbs.nc";
+    const char* ncname = USML_TEST_DIR "/biverbs/test/biverbs_test.nc";
 
     build_ocean();
     seq_vector::csptr frequencies(new seq_linear(3000.0, 1.0, 1));
@@ -160,9 +159,11 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
 
     // extract biverbs and count entries in collection
 
-    //    biverb_list verb_list = collection.biverbs(eigenverb_model::BOTTOM);
-    //    BOOST_CHECK_EQUAL(verb_list.size(), 8);
-    //    BOOST_CHECK_EQUAL(collection.size(eigenverb_model::BOTTOM), 8);
+    auto collection = pair->biverbs();
+    biverb_list verb_list = collection->biverbs(eigenverb_model::BOTTOM);
+    BOOST_CHECK_EQUAL(verb_list.size(), 36);
+    BOOST_CHECK_EQUAL(collection->size(eigenverb_model::BOTTOM), 36);
+    collection->write_netcdf(ncname, eigenverb_model::BOTTOM);
 
     bistatic_manager::reset();
     thread_controller::reset();

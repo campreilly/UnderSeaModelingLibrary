@@ -38,7 +38,7 @@ struct biverb_model {
     /**
      * Two way travel time for this path (sec).
      */
-    double time;
+    double travel_time;
 
     /**
      * Frequencies of the wavefront (Hz)
@@ -117,6 +117,31 @@ struct biverb_model {
      * Number of lower vertices encountered along source path.
      */
     int source_lower;
+
+    /**
+     * Number of interactions with the surface boundary along receiver path.
+     */
+    int receiver_surface;
+
+    /**
+     * Number of interactions with the bottom boundary along receiver path.
+     */
+    int receiver_bottom;
+
+    /**
+     * Number of caustics encountered along receiver path.
+     */
+    int receiver_caustic;
+
+    /**
+     * Number of upper vertices encountered along receiver path.
+     */
+    int receiver_upper;
+
+    /**
+     * Number of lower vertices encountered along receiver path.
+     */
+    int receiver_lower;
 };
 
 /*

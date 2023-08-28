@@ -226,7 +226,7 @@ void eigenverb_collection::write_netcdf(const char* filename,
 
             double v;
             long i;
-            time_var->put(&verb->time, 1);
+            time_var->put(&verb->travel_time, 1);
 
             vector<double> power = 10.0 * log10(max(verb->power, 1e-30));
             power_var->put(power.data().begin(), 1,
@@ -345,7 +345,7 @@ void eigenverb_collection::read_netcdf(const char* filename, size_t interface) {
         double v;
         long i;
         time_var->get(&v, 1);
-        verb->time = v;
+        verb->travel_time = v;
         verb->frequencies = frequencies;
 
         power_var->get(data, 1, num_freq);
