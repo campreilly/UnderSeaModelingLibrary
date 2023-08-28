@@ -97,7 +97,7 @@ static const double LAT_SOURCE = 45.0;   // source latitude (deg)
 static const double LNG_SOURCE = -45.0;  // source longitude (deg)
 
 /**
- * Construct the ocean model from its constituant parts.
+ * Construct the ocean model from its constituent parts.
  *
  * - N^2 Linear Profile on a Flat Earth
  * - No Attenuation

@@ -15,21 +15,30 @@ using namespace usml::platforms;
 using namespace usml::threads;
 
 /**
- * Host velocity in world coordinates.
+ * Get all of the motion parameters, locked by a common mutex.
  */
-vector<double> platform_model::host_velocity() const {
-    const platform_model* platform = this;
-    while (platform->_host != nullptr) {
-        platform = platform->_host;
+void platform_model::get_motion(time_t* time, wposition1* position,
+                                orientation* orient, double* speed) const {
+    read_lock_guard guard(mutex());
+    if (time != nullptr) {
+        *time = _time;
     }
-    return platform->_orient.front() * platform->_speed;
+    if (position != nullptr) {
+        *position = _position;
+    }
+    if (orient != nullptr) {
+        *orient = _orient;
+    }
+    if (speed != nullptr) {
+        *speed = _speed;
+    }
 }
 
 /**
  * Updates the position and orientation of platform and its children.
  * Just locks object before calling private update_platform() function.
  */
-//NOLINTNEXTLINE(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
 void platform_model::update(time_t time, const wposition1& pos,
                             const orientation& orient, double speed,
                             update_type_enum update_type) {
@@ -41,7 +50,7 @@ void platform_model::update(time_t time, const wposition1& pos,
  * Use the current speed to update the position of the platform.
  */
 void platform_model::update(time_t time, update_type_enum update_type) {
-    write_lock_guard guard(_mutex);
+    write_lock_guard guard(mutex());
 
     // compute relative offset from heading, speed, and elasped time
 
@@ -69,8 +78,8 @@ void platform_model::update(time_t time, update_type_enum update_type) {
 platform_model::key_type platform_model::add_child(
     const platform_model::sptr& child, const bvector& pos,
     const orientation& orient) {
-    write_lock_guard guard(_mutex);
-    _linkage_manager.add(std::make_shared<linkage>(this, child, pos, orient));
+    write_lock_guard guard(mutex());
+    _child_manager.add(std::make_shared<linkage>(this, child, pos, orient));
     update_internals(_time, _position, _orient, _speed, NO_UPDATE);
     return child->keyID();
 }
@@ -79,17 +88,17 @@ platform_model::key_type platform_model::add_child(
  * Removes an existing child from the host.
  */
 bool platform_model::remove_child(platform_model::key_type keyID) {
-    write_lock_guard guard(_mutex);
-    return _linkage_manager.remove(keyID);
+    write_lock_guard guard(mutex());
+    return _child_manager.remove(keyID);
 }
 
 /**
  * Creates a temporary list of children attached to this platform.
  */
 std::list<platform_model::sptr> platform_model::children() {
-    read_lock_guard guard(_mutex);
+    read_lock_guard guard(mutex());
     std::list<platform_model::sptr> list;
-    std::list<linkage::sptr> attached_list = _linkage_manager.list();
+    std::list<linkage::sptr> attached_list = _child_manager.list();
     for (const auto& link : attached_list) {
         list.push_back(link->child);
     }
@@ -99,10 +108,12 @@ std::list<platform_model::sptr> platform_model::children() {
 /**
  * Updates the internal state of this platform and its children.
  */
-//NOLINTNEXTLINE(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
 void platform_model::update_internals(time_t time, const wposition1& pos,
                                       const orientation& orient, double speed,
                                       update_type_enum update_type) {
+    write_lock_guard guard(mutex());
+
     // update motion of host
 
     _time = time;
@@ -112,7 +123,7 @@ void platform_model::update_internals(time_t time, const wposition1& pos,
 
     // update motion of children
 
-    std::list<linkage::sptr> attached_list = _linkage_manager.list();
+    std::list<linkage::sptr> child_list = _child_manager.list();
     const double rho = _position.rho();
     const double theta = _position.theta();
     const double r_sin_theta = rho * sin(theta);
@@ -120,12 +131,12 @@ void platform_model::update_internals(time_t time, const wposition1& pos,
     bvector offset;
     wposition1 posit;
     orientation ori;
-    for (const auto& link : attached_list) {
-        offset.rotate(_orient, link->position);
+    for (const auto& child : child_list) {
+        offset.rotate(_orient, child->position);
         posit.rho(rho + offset.up());
         posit.theta(theta - offset.front() / rho);
         posit.phi(phi + offset.right() / r_sin_theta);
-        ori.rotate(_orient, link->orient);
-        link->child->update(time, posit, ori, speed, update_type);
+        ori.rotate(_orient, child->orient);
+        child->child->update(time, posit, ori, speed, update_type);
     }
 }

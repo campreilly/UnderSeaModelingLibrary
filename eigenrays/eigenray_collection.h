@@ -38,14 +38,6 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
     typedef std::shared_ptr<const eigenray_collection> csptr;
 
     /**
-     * Initialize the acoustic propagation effects associated
-     * with each target.
-     *
-     * @param targets      Grid of targets to ensonify.
-     */
-    eigenray_collection(const wposition *targets);
-
-    /**
      * Initialize with references to wave front information.
      *
      * @param frequencies   Frequencies over which to compute loss (Hz).
@@ -56,7 +48,7 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
      */
     eigenray_collection(seq_vector::csptr frequencies,
                         const wposition1 &source_pos,
-                        const wposition *target_pos, int source_id = 0,
+                        const wposition *target_pos=nullptr, int source_id = 0,
                         const matrix<int> &target_ids = matrix<int>());
 
     /**

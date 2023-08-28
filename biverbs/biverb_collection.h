@@ -5,6 +5,7 @@
 #pragma once
 
 #include <usml/biverbs/biverb_model.h>
+#include <usml/eigenverbs/eigenverb_model.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/usml_config.h>
 
@@ -16,6 +17,7 @@
 namespace usml {
 namespace biverbs {
 
+using namespace usml::eigenverbs;
 using namespace usml::types;
 using namespace usml::threads;
 
@@ -49,7 +51,7 @@ class USML_DECLSPEC biverb_collection {
      *
      * @param num_volumes    Number of volume scattering layers in the ocean.
      */
-    biverb_collection(size_t num_volumes)
+    biverb_collection(size_t num_volumes=0)
         : _collection((1 + num_volumes) * 2) {}
 
     /**
@@ -78,14 +80,18 @@ class USML_DECLSPEC biverb_collection {
     biverb_list biverbs(size_t interface) const;
 
     /**
-     * Adds a new biverb to this collection.
+     * Constructs a new bistatic eigenverb and adds it to this collection. Note
+     * that passing the scattering strength as an argument allows the same
+     * memory to be reused by all combinations of source and receiver eigenverb.
      *
-     * @param verb      Bistatic eigenverb to add to the biverb_collection.
+     * @param src_verb	Source eigenverb to be processed.
+     * @param rcv_verb	Receiver eigenverb to be processed.
+     * @param scatter	Scattering strength vs. frequency.
      * @param interface Interface number for this addition.
-     *                  See the class header for documentation on interpreting
-     *                  this number.
      */
-    void add_biverb(const biverb_model::csptr& verb, size_t interface);
+    void add_biverb(const eigenverb_model::csptr& src_verb,
+                    const eigenverb_model::csptr& rcv_verb,
+                    const vector<double>& scatter, size_t interface);
 
     /**
      * Writes the biverbs for an individual interface to a netcdf file.

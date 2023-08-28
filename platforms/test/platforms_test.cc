@@ -8,6 +8,7 @@
 
 using namespace boost::unit_test;
 using namespace usml::platforms;
+using namespace usml::platforms::test;
 
 /** Tolerance for value comparisons */
 const double tol = 1e-10;

@@ -51,7 +51,7 @@ class test_object_listener : public update_listener<test_object> {
 };
 
 /**
- * @ingroup bistatic_test
+ * @ingroup managed_test
  * @{
  */
 

@@ -47,7 +47,7 @@ struct biverb_model {
 
     /**
      * Combined power of the source eigenverb, receiver eigenverb, and
-     * scattering strength of the interface.
+     * scattering strength of the interface as function of frequency.
      */
     vector<double> power;
 

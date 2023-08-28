@@ -109,10 +109,10 @@ void bistatic_manager::remove_sensor(const sensor_model::sptr& sensor,
 /**
  * Search all pairs for ones that have this sensor as a source.
  */
-std::list<bistatic_pair::sptr> bistatic_manager::find_source(
+bistatic_list bistatic_manager::find_source(
     sensor_model::key_type keyID) {
     read_lock_guard guard(_mutex);
-    std::list<bistatic_pair::sptr> pair_list;
+    bistatic_list pair_list;
     for (int receiverID : _rcv_list) {
         auto hash_key = bistatic_pair::generate_hash_key(keyID, receiverID);
         auto pair = find(hash_key);
@@ -126,10 +126,10 @@ std::list<bistatic_pair::sptr> bistatic_manager::find_source(
 /**
  * Search all pairs for ones that have this sensor as a receiver.
  */
-std::list<bistatic_pair::sptr> bistatic_manager::find_receiver(
+bistatic_list bistatic_manager::find_receiver(
     sensor_model::key_type keyID) {
     read_lock_guard guard(_mutex);
-    std::list<bistatic_pair::sptr> pair_list;
+    bistatic_list pair_list;
     for (int sourceID : _src_list) {
         auto hash_key = bistatic_pair::generate_hash_key(sourceID, keyID);
         auto pair = find(hash_key);

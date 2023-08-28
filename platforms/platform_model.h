@@ -44,7 +44,7 @@ class platform_model : public managed_obj<int, platform_model>,
     enum update_type_enum {
         TEST_THRESHOLD = 0,  ///< Check thresholds before updating.
         FORCE_UPDATE = 1,    ///< Forces update without checking thresholds.
-		NO_UPDATE = 2,  	 ///< Prevents automatic update
+        NO_UPDATE = 2,       ///< Prevents automatic update
     };
 
     /**
@@ -78,29 +78,50 @@ class platform_model : public managed_obj<int, platform_model>,
     /// Prevent access to assignment operator
     platform_model& operator=(const platform_model&) = delete;
 
+    /// Mutex to that locks object during changes.
+    read_write_lock& mutex() const { return _mutex; }
+
     /// Platform that controls the motion of this platform.
-    const platform_model* host() const { return _host; }
+    const platform_model* host() const {
+        read_lock_guard guard(mutex());
+        return _host;
+    }
 
     /// Time of last update.
-    time_t time() const { return _time; }
+    time_t time() const {
+        read_lock_guard guard(mutex());
+        return _time;
+    }
 
     /// Location of the platform in world coordinates.
-    wposition1 position() const { return _position; }
+    wposition1 position() const {
+        read_lock_guard guard(mutex());
+        return _position;
+    }
 
     /// Orientation of the platform in world coordinates.
-    orientation orient() const { return _orient; }
+    orientation orient() const {
+        read_lock_guard guard(mutex());
+        return _orient;
+    }
 
-    /// Platform speed (m/s).
-    double speed() const { return _speed; }
+    /// Platform speed in world coordinates (m/s).
+    double speed() const {
+        read_lock_guard guard(mutex());
+        return _speed;
+    }
 
     /**
-     * Host velocity in world coordinates. Traverses up the chain of hosts until
-     * it finds a platform without a host. Then it combines the front() member
-     * of the orientation with the speed to compute the velocity.
+     * Get all of the motion parameters, locked by a common mutex.
      *
-     * @return	Host velocity in world coordinates.
+     * @param time 		Time of last update.
+     * @param position 	Location of the platform in world coordinates.
+     * @param orient 	Orientation of the platform in world coords.
+     * @param speed		Platform speed (m/s).
      */
-    vector<double> host_velocity() const;
+    void get_motion(time_t* time = nullptr, wposition1* position = nullptr,
+                    orientation* orient = nullptr,
+                    double* speed = nullptr) const;
 
     /**
      * Updates the position and orientation of platform and its children.
@@ -151,9 +172,6 @@ class platform_model : public managed_obj<int, platform_model>,
     std::list<platform_model::sptr> children();
 
    protected:
-    /// Mutex to that locks object during changes.
-    mutable read_write_lock _mutex;
-
     /**
      * Updates the internal state of this platform and its children. Can be
      * overloaded by derived classes who wish to perform additional calculations
@@ -206,8 +224,11 @@ class platform_model : public managed_obj<int, platform_model>,
         const orientation orient;
     };
 
+    /// Mutex to that locks object during changes.
+    mutable read_write_lock _mutex;
+
     /// Container for location and orientation of platforms on platform.
-    manager_template<linkage> _linkage_manager;
+    manager_template<linkage> _child_manager;
 
     /// Platform that controls the motion of this platform.
     const platform_model* _host{nullptr};

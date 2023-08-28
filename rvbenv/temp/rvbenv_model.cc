@@ -34,11 +34,9 @@ using namespace usml::ublas;
  * Initialize model from arguments passed to rvbenv_collection.
  */
 rvbenv_model::rvbenv_model(const seq_vector::csptr& envelope_freq,
-                           const seq_vector::csptr& travel_time,
-                           double threshold)
+                           const seq_vector::csptr& travel_time)
     : _envelope_freq(envelope_freq),
       _travel_time(travel_time),
-      _threshold(threshold),
       _level(travel_time->size()),
       _power(envelope_freq->size()),
       _intensity(envelope_freq->size(), travel_time->size()) {}
@@ -47,17 +45,12 @@ rvbenv_model::rvbenv_model(const seq_vector::csptr& envelope_freq,
  * Computes the intensity for a single combination of source and receiver
  * eigenverbs.
  */
-bool rvbenv_model::compute_intensity(const eigenverb_model::csptr& src_verb,
+bool rvbenv_model::add_intensity(const eigenverb_model::csptr& src_verb,
                                      const eigenverb_model::csptr& rcv_verb,
                                      const vector<double>& scatter, double xs2,
                                      double ys2) {
-    bool ok = compute_overlap(src_verb, rcv_verb, scatter, xs2, ys2);
-    if (!ok) {
-        return false;
-    }
-
+    compute_overlap(src_verb, rcv_verb, scatter, xs2, ys2);
     compute_time_series(src_verb->time, rcv_verb->time);
-    return true;
 }
 
 /**
@@ -146,7 +139,7 @@ bool rvbenv_model::compute_overlap(const eigenverb_model::csptr& src_verb,
                  2.0 / rcv_width2) /
                 det_sr;
 
-    // combine duration of the overlap with pulse length
+    // compute duration of the overlap
     // equation (33) from the paper
 
     const double factor = cos(rcv_verb->grazing) / rcv_verb->sound_speed;
@@ -156,15 +149,6 @@ bool rvbenv_model::compute_overlap(const eigenverb_model::csptr& src_verb,
          << " duration=" << _duration << " power=" << (10.0 * log10(_power))
          << endl;
 #endif
-
-    // check threshold to avoid calculations for weak signals
-
-    for (double level : _power) {  // NOLINT(readability-use-anyofallof)
-        if (level / _duration > _threshold) {
-            return true;
-        }
-    }
-    return false;
 }
 
 /**

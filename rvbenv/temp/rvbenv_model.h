@@ -59,7 +59,7 @@ class USML_DECLSPEC rvbenv_model {
      *                      contributions (linear units).
      */
     rvbenv_model(const seq_vector::csptr& envelope_freq,
-                 const seq_vector::csptr& travel_time, double threshold);
+                 const seq_vector::csptr& travel_time);
 
     /**
      * Computes intensity for a single combination of source and receiver
@@ -81,8 +81,7 @@ class USML_DECLSPEC rvbenv_model {
      *                  of the receiver's width.
      * @return          False if reverberation power below threshold.
      */
-    bool compute_intensity(const eigenverb_model::csptr& src_verb,
-                           const eigenverb_model::csptr& rcv_verb,
+    bool add_intensity(const biverb_model::csptr& verb,
                            const vector<double>& scatter, double xs2,
                            double ys2);
 

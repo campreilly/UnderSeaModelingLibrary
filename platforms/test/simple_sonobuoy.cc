@@ -11,7 +11,7 @@
 
 #include <memory>
 
-using namespace usml::platforms;
+using namespace usml::platforms::test;
 using namespace usml::beampatterns;
 
 /**

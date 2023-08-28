@@ -11,6 +11,7 @@
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/test/unit_test.hpp>
+#include <boost/geometry/geometry.hpp>
 #include <cmath>
 #include <cstddef>
 #include <iomanip>
@@ -423,69 +424,6 @@ BOOST_AUTO_TEST_CASE(eigenverb_demo) {
             BOOST_CHECK_SMALL(verb->length - verb_length, 0.1);
             BOOST_CHECK_SMALL(verb->width - verb_width, 0.5);
         }
-    }
-}
-
-/**
- * Test the ability to find eigenverbs generated from eigenverb_accuracy
- * test into a boost rtree and query them with an expected result.
- */
-BOOST_AUTO_TEST_CASE(find_eigenverbs) {
-    cout << "=== envelope_test: find_eigenverbs ===" << endl;
-    const char *ncname = USML_TEST_DIR "/waveq3d/test/eigenverb_accuracy_";
-
-    // interface to boost::geometry packages
-
-    namespace bg = boost::geometry;
-    namespace bgm = boost::geometry::model;
-    typedef bgm::point<double, 2, bg::cs::cartesian> point;
-    typedef bgm::box<point> box;
-
-    // read eigenverbs for each interface from their own disk file
-
-    int interfaces = 4;
-    eigenverb_collection collection(interfaces);
-    for (size_t n = 0; n < interfaces; ++n) {
-        std::stringstream filename;
-        filename << ncname << n << ".nc";
-        collection.read_netcdf(filename.str().c_str(), n);
-    }
-
-    // use receiver eigenverbs lat, long, length and width
-    // to create a bounding box.
-
-    double rcv_verb_length = 200.0;       // meters
-    double rcv_verb_width = 200.0;        // meters
-    double rcv_verb_latitude = 45.0;      // north
-    double rcv_verb_longitude = -45.0;    // east
-    double lat_scaler = (60.0 * 1852.0);  // meters/degree
-
-    double q = max(rcv_verb_length, rcv_verb_width);
-    double latitude = rcv_verb_latitude;
-    double longitude = rcv_verb_longitude;
-    double delta_lat = q / lat_scaler;
-    double delta_long = q / (lat_scaler * cos(to_radians(latitude)));
-
-    // create a box, first point bottom left, second point upper right
-
-    eigenverb_collection::box query_box(
-        eigenverb_collection::point(latitude - delta_lat,
-                                    longitude - delta_long),
-        eigenverb_collection::point(latitude + delta_lat,
-                                    longitude + delta_long));
-    cout << "spatial query box:" << endl;
-    cout << bg::wkt<box>(query_box) << endl;
-    eigenverb_list found =
-        collection.find_eigenverbs(query_box, eigenverb_model::BOTTOM);
-
-    cout << "spatial found boxes:" << endl;
-    for (const auto &verb : found) {
-        eigenverb_collection::box found_box(
-            eigenverb_collection::point(verb->bounding_box.south,
-                                        verb->bounding_box.west),
-            eigenverb_collection::point(verb->bounding_box.north,
-                                        verb->bounding_box.east));
-        cout << bg::wkt<box>(found_box) << endl;
     }
 }
 

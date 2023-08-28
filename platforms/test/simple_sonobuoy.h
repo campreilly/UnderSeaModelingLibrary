@@ -14,6 +14,10 @@ using namespace usml::platforms;
  * @{
  */
 
+namespace usml {
+namespace platforms {
+namespace test {
+
 /**
  * Simple sonobuoy sensor for testing. Includes three receiver channels for
  * omni, cosine, and sine beams. Also includes single dipole transmit beam.
@@ -39,3 +43,6 @@ class USML_DECLSPEC simple_sonobuoy : public sensor_model {
 };
 
 /// @}
+}  // namespace test
+}  // namespace platforms
+}  // namespace usml

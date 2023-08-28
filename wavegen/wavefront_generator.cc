@@ -14,6 +14,7 @@
 #include <usml/types/wposition.h>
 #include <usml/types/wposition1.h>
 #include <usml/wavegen/wavefront_generator.h>
+#include <usml/wavegen/wavefront_notifier.h>
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/wave_thresholds.h>
 
@@ -41,8 +42,7 @@ wavefront_generator::wavefront_generator(
     seq_vector::csptr de_fan, seq_vector::csptr az_fan, double time_step,
     double time_maximum, double intensity_threshold, int max_bottom,
     int max_surface)
-    : _done(false),
-      _ocean(ocean_shared::current()),
+    : _ocean(ocean_shared::current()),
       _source(source),
       _source_position(source->position()),
       _target_positions(std::move(std::move(target_positions))),
@@ -112,8 +112,9 @@ void wavefront_generator::run() {
 
     // distribute eigenrays and eigenverbs to listeners
 
-    _source->notify_wavefront_listeners(eigenray_collection::csptr(eigenrays),
-                                   eigenverb_collection::csptr(eigenverbs));
     _done = true;
+    _source->notify_wavefront_listeners(
+        _source, eigenray_collection::csptr(eigenrays),
+        eigenverb_collection::csptr(eigenverbs));
     cout << "task #" << id() << " wavefront_generator: done" << endl;
 }

@@ -79,14 +79,6 @@ struct eigenverb_model {
     double width;
 
     /**
-     * Bounding rectangle.
-     * Automatically updated by derived() method.
-     */
-    struct {
-        double north, south, east, west;
-    } bounding_box;
-
-    /**
      * Location of impact with the interface.
      */
     wposition1 position;

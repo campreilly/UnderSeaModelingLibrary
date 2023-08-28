@@ -9,7 +9,11 @@
 #include <usml/threads/read_write_lock.h>
 #include <usml/usml_config.h>
 
-#include <boost/geometry/geometry.hpp>
+#include <boost/geometry/core/cs.hpp>
+#include <boost/geometry/geometries/box.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/index/parameters.hpp>
+#include <boost/geometry/index/rtree.hpp>
 #include <cstddef>
 #include <memory>
 #include <utility>
@@ -38,23 +42,20 @@ namespace bgm = boost::geometry::model;
  *      volume scattering layer, if it exists.
  *    - Subsequent columns provide the upper and lower
  *      interfaces for additional volume scattering layers.
+ *
+ * In addition to structures for storing eigenverbs, it also includes the algorithms
+ * for eigenverb searches and writing eigenverbs to disk.
  */
 class USML_DECLSPEC eigenverb_collection : public eigenverb_listener {
    public:
-    /// Shared const pointer to an eigenverb _collection.
+    /// Shared const pointer to an eigenverb collection.
     typedef std::shared_ptr<const eigenverb_collection> csptr;
 
-    /// Point in geographic coordinates, based on degrees.
-    typedef bgm::point<double, 2, bg::cs::cartesian> point;
-
-    /// Box in geographic coordinates.
-    typedef bgm::box<point> box;
-
-    /// Eigenverb paired with its geographic coordinate.
-    typedef std::pair<point, eigenverb_model::csptr> pair;
-
-    /// Spatial index for eigenverbs in geographic coordinates.
-    typedef bgi::rtree<pair, bgi::rstar<8> > tree;
+    /**
+     * Scale factor for size of search area in find_eigenverbs(). Defaults to
+     * a 3.0 value.
+     */
+    static double search_scale;
 
     /**
      * Construct a collection for a series of interfaces. Creates a minimum
@@ -63,7 +64,7 @@ class USML_DECLSPEC eigenverb_collection : public eigenverb_listener {
      *
      * @param num_volumes    Number of volume scattering layers in the ocean.
      */
-    eigenverb_collection(size_t num_volumes)
+    eigenverb_collection(size_t num_volumes = 0)
         : _collection((1 + num_volumes) * 2) {}
 
     /**
@@ -75,8 +76,6 @@ class USML_DECLSPEC eigenverb_collection : public eigenverb_listener {
      * Number of eigenverbs for a specific interface.
      *
      * @param interface Interface number of the desired list of eigenverbs.
-     *                  See the class header for documentation on interpreting
-     *                  this number.
      */
     size_t size(size_t interface) const {
         return _collection[interface].size();
@@ -86,8 +85,6 @@ class USML_DECLSPEC eigenverb_collection : public eigenverb_listener {
      * Creates list of eigenverbs for a specific interface.
      *
      * @param interface Interface number of the desired list of eigenverbs.
-     *                  See the class header for documentation on interpreting
-     *                  this number.
      */
     eigenverb_list eigenverbs(size_t interface) const;
 
@@ -96,23 +93,21 @@ class USML_DECLSPEC eigenverb_collection : public eigenverb_listener {
      *
      * @param verb      Eigenverb reference to add to the eigenverb_collection.
      * @param interface Interface number for this addition.
-     *                  See the class header for documentation on interpreting
-     *                  this number.
      */
     void add_eigenverb(eigenverb_model::csptr verb, size_t interface);
 
     /**
-     * Finds all of the eigenverbs that intersect the requested area.
-     * Compares the bounding_box of each eigenverb and finds those that
-     * intersect the requested area.
+     * Finds all of the eigenverbs near another eigenverb. Computes a ploygonal
+     * search area that is roughly 3 times as big as the major and minor axes
+     * for the bounding_verb. Then uses an rtree search to find all the
+     * eigenverbs whose positions are inside that search area.
      *
-     * @param box       Area for eigenverb query.
-     * @param interface Interface number for this query.
-     *                  See the class header for documentation on interpreting
-     *                  this number.
-     * @return          List for eigenverbs that overlap this area.
+     * @param bounding_verb		Eigenverb that defines bounding box.
+     * @param interface 		Interface number for this query.
+     * @return          		List for eigenverbs that overlap this
+     * area.
      */
-    eigenverb_list find_eigenverbs(const eigenverb_collection::box& box,
+    eigenverb_list find_eigenverbs(eigenverb_model::csptr bounding_verb,
                                    size_t interface) const;
 
     /**
@@ -231,11 +226,21 @@ class USML_DECLSPEC eigenverb_collection : public eigenverb_listener {
     void read_netcdf(const char* filename, size_t interface);
 
    private:
+    /// Point in geographic coordinates, based on degrees.
+    typedef bgm::point<double, 2, bg::cs::spherical_equatorial<bg::degree>>
+        point;
+
+    /// Eigenverb paired with its geographic coordinate.
+    typedef std::pair<point, eigenverb_model::csptr> pair;
+
+    /// Spatial index for eigenverbs in geographic coordinates.
+    typedef bgi::rtree<pair, bgi::rstar<8>> rtree;
+
     /// Mutex to that locks object during changes.
     mutable read_write_lock _mutex;
 
     /// Spatial index for each interface.
-    std::vector<tree> _collection;
+    std::vector<rtree> _collection;
 };
 
 /// @}

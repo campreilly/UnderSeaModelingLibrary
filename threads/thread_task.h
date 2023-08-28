@@ -86,9 +86,17 @@ class USML_DECLSPEC thread_task {
      */
     void abort() { _abort = true; }
 
+    /**
+     * Set to true when this task complete.
+     */
+    bool done() const { return _done; }
+
    protected:
-    /** Indication that task needs to abort. */
+    /// Indication that task needs to abort.
     bool _abort;
+
+    /// Set to true when this task complete.
+    bool _done{false};
 
    private:
     /**

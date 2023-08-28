@@ -67,6 +67,8 @@ class USML_DECLSPEC ocean_model {
         : _surface(surface), _bottom(bottom), _profile(profile) {
         if (volume) {
             _volume = *volume;
+        } else {
+        	_volume = std::vector<volume_model::csptr>();
         }
     }
 

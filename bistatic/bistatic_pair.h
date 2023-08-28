@@ -5,6 +5,7 @@
 #pragma once
 
 #include <usml/biverbs/biverb_collection.h>
+#include <usml/biverbs/biverb_generator.h>
 #include <usml/eigenrays/eigenray_collection.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
 #include <usml/managed/managed_obj.h>
@@ -14,10 +15,9 @@
 #include <usml/threads/read_write_lock.h>
 #include <usml/usml_config.h>
 #include <usml/wavegen/wavefront_listener.h>
-#include <usml/wavegen/wavefront_notifier.h>
 
+#include <list>
 #include <memory>
-#include <sstream>
 #include <string>
 
 namespace usml {
@@ -41,7 +41,8 @@ using namespace usml::wavegen;
  * blast contributions to the received signal. Eigenverbs are a Gaussian beam
  * projection of an acoustic ray onto a reverberation interface at the point of
  * collision. The biverbs represent the bistatic overlap between the source and
- * receiver eigenverbs for this pair.
+ * receiver eigenverbs for this pair. Notifies bistatic_pair update listeners of
+ * when all of the calculations are complete.
  *
  * To improve the calculation speed for the the case where a single platform has
  * more than one sensor, you can make the host object a sensor_model instead of
@@ -94,6 +95,11 @@ class USML_DECLSPEC bistatic_pair
         return _src_eigenverbs;
     }
 
+    /// Overlap of source and receiver eigenverbs.
+    biverb_collection::csptr biverbs() const {
+        return _biverbs;
+    }
+
     /**
      * Utility to generate a hash key for the bistatic_template
      *
@@ -101,11 +107,7 @@ class USML_DECLSPEC bistatic_pair
      * @param    rcv_id   The receiver id used to generate the hash_key
      * @return   string   containing the generated hash_key.
      */
-    static std::string generate_hash_key(const int src_id, const int rcv_id) {
-        std::stringstream key;
-        key << src_id << '_' << rcv_id;
-        return key.str();
-    }
+    static std::string generate_hash_key(const int src_id, const int rcv_id);
 
     /**
      * Queries for the bistatic pair for the complement of the given sensor.
@@ -132,23 +134,18 @@ class USML_DECLSPEC bistatic_pair
         eigenverb_collection::csptr eigenverbs) override;
 
     /**
-     * Notify listeners that bistatic_pair has been updated.
+     * Notify listeners that this bistatic_pair has been updated.
      *
      * @param object    Reference to the object that has been updated.
      */
-    virtual void notify_update(const bistatic_pair* object) const override {
-    	this->update_notifier<bistatic_pair>::notify_update(object);
-    }
+    virtual void notify_update(const bistatic_pair* object) const override;
 
     /**
      * Update bistatic eigenverbs using results of biverb_generator.
      *
-     * @param  object	Updated bistatic eigenverbs.
+     * @param  object	Updated bistatic eigenverbs collection.
      */
-    virtual void notify_update(const biverb_collection::csptr* object) override {
-        write_lock_guard guard(_mutex);
-        _biverbs = *object;
-    }
+    virtual void notify_update(const biverb_collection::csptr* object) override;
 
    private:
     /// Mutex to that locks pair updates.
@@ -171,9 +168,13 @@ class USML_DECLSPEC bistatic_pair
     /// Interface collisions for wavefront emanating from the receiver.
     eigenverb_collection::csptr _rcv_eigenverbs;
 
-    // List of bistatic eigenverbs for this pair.
+    /// Overlap of source and receiver eigenverbs.
     biverb_collection::csptr _biverbs;
+
+    std::shared_ptr<biverb_generator> _biverb_task;
 };
+
+typedef std::list<bistatic_pair::sptr> bistatic_list;
 
 /// @}
 }  // end of namespace bistatic

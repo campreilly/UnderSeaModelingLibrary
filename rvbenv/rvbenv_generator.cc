@@ -3,221 +3,121 @@
  * Computes reverberation envelopes from eigenverbs.
  */
 
-#include <usml/eigenverbs/eigenverb_collection.h>
-#include <usml/eigenverbs/eigenverb_model.h>
-#include <usml/ocean/boundary_model.h>
-#include <usml/ocean/ocean_model.h>
-#include <usml/ocean/ocean_shared.h>
-#include <usml/ocean/volume_model.h>
-#include <usml/platforms/platform_manager.h>
+#include <usml/beampatterns/bp_model.h>
+#include <usml/bistatic/bistatic_pair.h>
+#include <usml/biverbs/biverb_collection.h>
+#include <usml/managed/update_notifier.h>
+#include <usml/platforms/platform_model.h>
+#include <usml/platforms/sensor_model.h>
 #include <usml/rvbenv/rvbenv_collection.h>
 #include <usml/rvbenv/rvbenv_generator.h>
-#include <usml/types/seq_linear.h>
+#include <usml/threads/thread_task.h>
+#include <usml/types/bvector.h>
+#include <usml/types/orientation.h>
 #include <usml/types/seq_vector.h>
-#include <usml/types/wposition.h>
-#include <usml/types/wposition1.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector.hpp>
-#include <cmath>
 #include <cstddef>
+#include <iostream>
 #include <memory>
-#include <vector>
 
-using namespace usml::eigenverbs;
 using namespace usml::rvbenv;
-using namespace usml::ocean;
-using namespace usml::platforms;
-using namespace usml::types;
 
 /**
- * Minimum intensity level for valid reverberation contributions (dB).
+ * Initialize model parameters with state of bistatic_pair at this time.
  */
-double rvbenv_generator::intensity_threshold = -300.0;
+rvbenv_generator::rvbenv_generator(const bistatic_pair::sptr& pair,
+                                   const seq_vector::csptr& times,
+                                   const seq_vector::csptr& freqs,
+                                   size_t num_azimuths)
+    : _pair(pair), _times(times), _freqs(freqs), _num_azimuths(num_azimuths) {}
 
 /**
- * Maximum distance between the peaks of the source and receiver eigenverbs.
+ * Compute reverberation envelope collection for a bistatic pair.
  */
-double rvbenv_generator::distance_threshold = 6.0;
-
-/**
- * The mutex for static travel_time property.
- */
-read_write_lock rvbenv_generator::_travel_time_mutex;
-
-/**
- * Time axis for reverberation calculation.  Defaults to
- * a linear sequence out to 400 sec with a sampling period of 0.1 sec.
- */
-std::unique_ptr<const seq_vector> rvbenv_generator::_travel_time(
-    new seq_linear(0.0, 0.01, 401));
-
-/**
- * Copies envelope computation parameters from static memory into
- * this specific task.
- */
-rvbenv_generator::rvbenv_generator(bistatic_pair* pair, size_t num_azimuths)
-    : _done(false),
-      _ocean(ocean_shared::current()),
-      _bistatic_pair(pair),
-      _src_eigenverbs(pair->src_eigenverbs()),
-      _rcv_eigenverbs(pair->rcv_eigenverbs()) {
-    // setup travel time property for this particular envelope
-
-    read_lock_guard guard(_travel_time_mutex);
-    seq_vector::csptr time = seq_vector::build_best(
-        travel_time()->data().begin(), travel_time()->size());
-
-    // build structure for rvbenv_collection
-
-    _envelopes = new rvbenv_collection(
-        platform_manager::instance()->frequencies(), time,
-        pow(10.0, intensity_threshold / 10.0), num_azimuths,
-        _src_beam_list.size(), _rcv_beam_list.size(),
-        _bistatic_pair->source()->keyID(), _bistatic_pair->receiver()->keyID(),
-        _bistatic_pair->source()->position(),
-        _bistatic_pair->receiver()->position());
-}
-
-/**
- * Executes the Eigenverb reverberation model.
- */
-// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void rvbenv_generator::run() {
-    // create memory for work products
+    if (_abort) {
+        cout << "task #" << id()
+             << " rvbenv_generator *** aborted before execution ***" << endl;
+        return;
+    }
 
-    seq_vector::csptr freq = _envelopes->envelope_freq();
-    const size_t num_freq = freq->size();
+    // initialize workspace for results
 
-    vector<double> scatter(num_freq, 1.0);
-    matrix<double> src_beam(num_freq, _envelopes->num_src_beams(), 1.0);
-    matrix<double> rcv_beam(num_freq, _envelopes->num_rcv_beams(), 1.0);
+    auto* collection =
+        new rvbenv_collection(_pair, _times, _freqs, _num_azimuths);
+    const auto num_freqs = _freqs->size();
+    const auto num_src_beams = collection->num_src_beams();
+    const auto num_rcv_beams = collection->num_rcv_beams();
 
-    eigenverb_model rcv_verb;
-    rcv_verb.frequencies = freq;
-    rcv_verb.power = vector<double>(num_freq);
+    vector<double> beam_work(num_freqs, 1.0);
+    matrix<double> src_beam(num_freqs, num_src_beams, 1.0);
+    matrix<double> rcv_beam(num_freqs, num_rcv_beams, 1.0);
 
     // loop through eigenverbs for each interface
 
-    for (size_t interface = 0; interface < _rcv_eigenverbs->num_interfaces();
-         ++interface) {
-        for (const auto& rcv_verb : _rcv_eigenverbs->eigenverbs(interface)) {
-            eigenverb_collection::point min_pt(rcv_verb->bounding_box.south,
-                                               rcv_verb->bounding_box.west);
-            eigenverb_collection::point max_pt(rcv_verb->bounding_box.south,
-                                               rcv_verb->bounding_box.west);
-            eigenverb_collection::box box(min_pt, max_pt);
-            eigenverb_list src_eigenverbs =
-                _src_eigenverbs->find_eigenverbs(box, interface);
-
-            for (const auto& src_verb : src_eigenverbs) {
-                // determine relative range and bearing between Gaussians
-                // skip this combo if source peak too far away
-
-                double bearing;
-                const double range =
-                    rcv_verb->position.gc_range(src_verb->position, &bearing);
-                if (range > distance_threshold *
-                                max(rcv_verb->length, rcv_verb->width)) {
-                    continue;
-                }
-
-                if (range < 1e-6) {
-                    bearing = 0;  // fixes bearing = NaN
-                }
-                bearing -= rcv_verb->direction;  // relative bearing
-
-                const double ys = range * cos(bearing);
-                const double ys2 = ys * ys;
-                if (abs(ys) > distance_threshold * rcv_verb->length) {
-                    continue;
-                }
-
-                const double xs = range * sin(bearing);
-                const double xs2 = xs * xs;
-                if (abs(xs) > distance_threshold * rcv_verb->width) {
-                    continue;
-                }
-
-                // compute interface scattering strength
-                // skip this combo if scattering strength is trivial
-
-                _ocean->scattering(interface, rcv_verb->position, freq,
-                                   src_verb->grazing, rcv_verb->grazing,
-                                   src_verb->direction, rcv_verb->direction,
-                                   &scatter);
-                if (std::any_of(scatter.begin(), scatter.end(), [](double v) {
-                        return v > intensity_threshold;
-                    })) {
-                    continue;
-                }
-
-                // compute beam levels
-
-                src_beam =
-                    beam_gain_src(_bistatic_pair->source(), freq,
-                                  src_verb->source_de, src_verb->source_az);
-                rcv_beam =
-                    beam_gain_rcv(_bistatic_pair->receiver(), freq,
-                                  rcv_verb->source_de, rcv_verb->source_az);
-
-                // create envelope contribution
-
-                _envelopes->add_contribution(src_verb, rcv_verb, src_beam,
-                                             rcv_beam, scatter, xs2, ys2);
+    auto num_interfaces = collection->biverbs()->num_interfaces();
+    for (size_t interface = 0; interface < num_interfaces; ++interface) {
+        for (const auto& verb : collection->biverbs()->biverbs(interface)) {
+            beam_gain_src(collection, verb->source_de, verb->source_az,
+                          beam_work, src_beam);
+            beam_gain_rcv(collection, verb->receiver_de, verb->receiver_az,
+                          beam_work, rcv_beam);
+            collection->add_biverb(verb, src_beam, rcv_beam);
+            if (_abort) {
+                cout << "task #" << id()
+                     << " rvbenv_generator *** aborted during execution ***"
+                     << endl;
+                return;
             }
         }
     }
-    _rvbenv_collection = rvbenv_collection::csptr(_envelopes);
-    notify_update(&_rvbenv_collection);
+
+    // notify listeners of results
+
+    _collection = rvbenv_collection::csptr(collection);
+    _done = true;
+    notify_update(&_collection);
 }
 
 /**
- * Computes the beam_gain
+ * Computes the source beam gain for each frequency and beam number.
  */
-matrix<double> rvbenv_generator::beam_gain_src(
-    const sensor_model::sptr& sensor, const seq_vector::csptr& frequencies,
-    double de, double az) {
-    const auto* sensor_ptr = dynamic_cast<const sensor_model*>(sensor.get());
-    auto beam_list = sensor_ptr->src_keys();
-    matrix<double> beam_matrix(frequencies->size(), beam_list.size());
-    vector<double> level(frequencies->size(), 0.0);
-
+void rvbenv_generator::beam_gain_src(const rvbenv_collection* collection,
+                                     double de, double az,
+                                     vector<double>& beam_work,
+                                     matrix<double>& beam) {
+    const sensor_model* source = collection->source();
     bvector arrival(de, az);
-    arrival.rotate(sensor->orient(), arrival);
-
+    arrival.rotate(source->orient(), arrival);
     int beam_number = 0;
-    for (int keyID : beam_list) {
-        bp_model::csptr bp = sensor_ptr->src_beam(keyID);
-        bp->beam_level(arrival, frequencies, &level);
-        matrix_column<matrix<double> > col(beam_matrix, beam_number);
-        col = level;
+    for (auto keyID : source->src_keys()) {
+        bp_model::csptr bp = source->src_beam(keyID);
+        bp->beam_level(arrival, _freqs, &beam_work);
+        matrix_column<matrix<double> > col(beam, beam_number);
+        col = beam_work;
         ++beam_number;
     }
-    return beam_matrix;
 }
 
 /**
- * Computes the beam_gain
+ * Computes the source beam gain for each frequency and beam number.
  */
-matrix<double> rvbenv_generator::beam_gain_rcv(
-    const sensor_model::sptr& sensor, const seq_vector::csptr& frequencies,
-    double de, double az) {
-    const auto* sensor_ptr = dynamic_cast<const sensor_model*>(sensor.get());
-    auto beam_list = sensor_ptr->rcv_keys();
-    matrix<double> beam_matrix(frequencies->size(), beam_list.size());
-    vector<double> level(frequencies->size(), 0.0);
-
+void rvbenv_generator::beam_gain_rcv(const rvbenv_collection* collection,
+                                     double de, double az,
+                                     vector<double>& beam_work,
+                                     matrix<double>& beam) {
+    const sensor_model* receiver = collection->receiver();
     bvector arrival(de, az);
-    arrival.rotate(sensor->orient(), arrival);
-
+    arrival.rotate(receiver->orient(), arrival);
     int beam_number = 0;
-    for (int keyID : beam_list) {
-        bp_model::csptr bp = sensor_ptr->rcv_beam(keyID);
-        bp->beam_level(arrival, frequencies, &level);
-        matrix_column<matrix<double> > col(beam_matrix, beam_number);
-        col = level;
+    for (auto keyID : receiver->rcv_keys()) {
+        bp_model::csptr bp = receiver->rcv_beam(keyID);
+        bp->beam_level(arrival, _freqs, &beam_work);
+        matrix_column<matrix<double> > col(beam, beam_number);
+        col = beam_work;
         ++beam_number;
     }
-    return beam_matrix;
 }

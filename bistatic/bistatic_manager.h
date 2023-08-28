@@ -87,7 +87,7 @@ class USML_DECLSPEC bistatic_manager : public manager_template<bistatic_pair> {
      * @param keyID		ID used to lookup sensor in platform_manager.
      * @return 			List of pairs that include this sensor.
      */
-    std::list<bistatic_pair::sptr> find_source(sensor_model::key_type keyID);
+    bistatic_list find_source(sensor_model::key_type keyID);
 
     /**
      * Search all pairs for ones that have this sensor as a receiver.
@@ -95,7 +95,7 @@ class USML_DECLSPEC bistatic_manager : public manager_template<bistatic_pair> {
      * @param keyID		ID used to lookup sensor in platform_manager.
      * @return 			List of pairs that include this sensor.
      */
-    std::list<bistatic_pair::sptr> find_receiver(sensor_model::key_type keyID);
+    bistatic_list find_receiver(sensor_model::key_type keyID);
 
    private:
     /**

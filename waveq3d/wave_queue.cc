@@ -1146,23 +1146,6 @@ void wave_queue::build_eigenverb(size_t de, size_t az, double dt,
     verb->upper = _curr->upper(de, az);
     verb->lower = _curr->lower(de, az);
 
-    // compute bounding box
-
-    static const double SIGMA = 1.5;
-    static const double SCALE = 1.0 / (60.0 * 1852.0) * SIGMA;
-    const double latitude = verb->position.latitude();
-    const double longitude = verb->position.longitude();
-    const double cosA = abs(cos(verb->direction));
-    const double sinA = abs(sin(verb->direction));
-    const double cosLat = abs(sin(verb->position.theta()));
-    const double delta_lat = std::max(verb->length * cosA, verb->width * sinA) * SCALE;
-    const double delta_long =
-        std::max(verb->length * sinA, verb->width * cosA) * SCALE / cosLat;
-    verb->bounding_box.north = latitude + delta_lat;
-    verb->bounding_box.south = latitude - delta_lat;
-    verb->bounding_box.east = longitude + delta_long;
-    verb->bounding_box.west = longitude - delta_long;
-
     // notify eigenverb listeners of this change
 
 #ifdef DEBUG_EIGENVERBS

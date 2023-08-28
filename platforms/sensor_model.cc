@@ -29,7 +29,7 @@ using namespace usml::wavegen;
  * Add source beam pattern to this sensor.
  */
 size_t sensor_model::src_beam(int keyID, bp_model::csptr pattern) {
-    write_lock_guard guard(_mutex);
+    write_lock_guard guard(mutex());
     _src_beams[keyID] = std::move(pattern);
     return _src_beams.size();
 }
@@ -38,7 +38,7 @@ size_t sensor_model::src_beam(int keyID, bp_model::csptr pattern) {
  * Find reference to specific source beam model.
  */
 bp_model::csptr sensor_model::src_beam(int keyID) const {
-    read_lock_guard guard(_mutex);
+    read_lock_guard guard(mutex());
     bp_model::csptr object = nullptr;
     auto iter = _src_beams.find(keyID);
     if (iter != _src_beams.end()) {
@@ -51,7 +51,7 @@ bp_model::csptr sensor_model::src_beam(int keyID) const {
  * Return a list of all source beam keys.
  */
 std::list<int> sensor_model::src_keys() const {
-    read_lock_guard guard(_mutex);
+    read_lock_guard guard(mutex());
     std::list<int> list;
     for (const auto& beam : _src_beams) {
         list.push_back(beam.first);
@@ -66,7 +66,7 @@ std::list<int> sensor_model::src_keys() const {
  * @param pattern   Reference to bp_model.
  */
 size_t sensor_model::rcv_beam(int keyID, bp_model::csptr pattern) {
-    write_lock_guard guard(_mutex);
+    write_lock_guard guard(mutex());
     _rcv_beams[keyID] = std::move(pattern);
     return _rcv_beams.size();
 }
@@ -75,7 +75,7 @@ size_t sensor_model::rcv_beam(int keyID, bp_model::csptr pattern) {
  * Find reference to specific receiver beam model.
  */
 bp_model::csptr sensor_model::rcv_beam(int keyID) const {
-    read_lock_guard guard(_mutex);
+    read_lock_guard guard(mutex());
     bp_model::csptr object = nullptr;
     auto iter = _rcv_beams.find(keyID);
     if (iter != _rcv_beams.end()) {
@@ -88,24 +88,12 @@ bp_model::csptr sensor_model::rcv_beam(int keyID) const {
  * Return a list of all source beam keys.
  */
 std::list<int> sensor_model::rcv_keys() const {
-    read_lock_guard guard(_mutex);
+    read_lock_guard guard(mutex());
     std::list<int> list;
     for (const auto& beam : _rcv_beams) {
         list.push_back(beam.first);
     }
     return list;
-}
-
-/**
- * Update the eigenrays and eigenverbs for this platform.
- */
-void sensor_model::notify_wavefront_listeners(
-    const eigenray_collection::csptr& eigenrays,
-    const eigenverb_collection::csptr& eigenverbs) {
-    read_lock_guard guard(_mutex);
-    for (wavefront_listener* listener : _listeners) {
-        listener->update_wavefront_data(this, eigenrays, eigenverbs);
-    }
 }
 
 /**
@@ -138,6 +126,14 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
     if (update_acoustics) {
         auto targets = find_targets();
         if (!targets.empty() || _compute_reverb) {
+            // abort previous wavefront generator if it exists
+
+            if (_wavefront_task != nullptr) {
+                _wavefront_task->abort();
+            }
+
+            // launch a new wavefront generator
+
             wposition tpos(targets.size(), 1);
             matrix<int> targetIDs(targets.size(), 1);
 
@@ -151,11 +147,14 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
                 ++count;
             }
             auto frequencies = platform_manager::instance()->frequencies();
-            std::shared_ptr<wavefront_generator> task(new wavefront_generator(
-                this, tpos, targetIDs, frequencies, _de_fan, _az_fan,
-                _time_step, _time_maximum, _intensity_threshold, _max_bottom,
-                _max_surface));
-            thread_controller::instance()->run(task);
+
+            _wavefront_task =
+                std::shared_ptr<wavefront_generator>(new wavefront_generator(
+                    this, tpos, targetIDs, frequencies, _de_fan, _az_fan,
+                    _time_step, _time_maximum, _intensity_threshold,
+                    _max_bottom, _max_surface));
+            thread_controller::instance()->run(_wavefront_task);
+            _wavefront_task.reset();  // destroy background task
         }
     }
 }
@@ -164,6 +163,8 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
  * Get list of acoustic targets near this sensor.
  */
 std::list<platform_model::sptr> sensor_model::find_targets() {
+    read_lock_guard guard(mutex());
+
     double min_range2 = _min_range * _min_range;
     double max_range2 = _max_range * _max_range;
     wposition1 object_pos = position();
