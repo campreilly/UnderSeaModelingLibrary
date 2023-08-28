@@ -125,6 +125,7 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
 
     if (update_acoustics) {
         auto targets = find_targets();
+
         if (!targets.empty() || _compute_reverb) {
             // abort previous wavefront generator if it exists
 
@@ -137,7 +138,7 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
             wposition tpos(targets.size(), 1);
             matrix<int> targetIDs(targets.size(), 1);
 
-            // count the number of
+            // count the number of targets
             size_t count = 0;
             for (const auto& target : targets) {
                 tpos.latitude(count, 0, target->position().latitude());
@@ -163,8 +164,6 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
  * Get list of acoustic targets near this sensor.
  */
 std::list<platform_model::sptr> sensor_model::find_targets() {
-    read_lock_guard guard(mutex());
-
     double min_range2 = _min_range * _min_range;
     double max_range2 = _max_range * _max_range;
     wposition1 object_pos = position();

@@ -42,7 +42,7 @@ void platform_model::get_motion(time_t* time, wposition1* position,
 void platform_model::update(time_t time, const wposition1& pos,
                             const orientation& orient, double speed,
                             update_type_enum update_type) {
-    write_lock_guard guard(_mutex);
+    write_lock_guard guard(mutex());
     return update_internals(time, pos, orient, speed, update_type);
 }
 
@@ -112,7 +112,6 @@ std::list<platform_model::sptr> platform_model::children() {
 void platform_model::update_internals(time_t time, const wposition1& pos,
                                       const orientation& orient, double speed,
                                       update_type_enum update_type) {
-    write_lock_guard guard(mutex());
 
     // update motion of host
 
@@ -131,12 +130,12 @@ void platform_model::update_internals(time_t time, const wposition1& pos,
     bvector offset;
     wposition1 posit;
     orientation ori;
-    for (const auto& child : child_list) {
-        offset.rotate(_orient, child->position);
+    for (const auto& linkage : child_list) {
+        offset.rotate(_orient, linkage->position);
         posit.rho(rho + offset.up());
         posit.theta(theta - offset.front() / rho);
         posit.phi(phi + offset.right() / r_sin_theta);
-        ori.rotate(_orient, child->orient);
-        child->child->update(time, posit, ori, speed, update_type);
+        ori.rotate(_orient, linkage->orient);
+        linkage->child->update(time, posit, ori, speed, update_type);
     }
 }

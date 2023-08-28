@@ -82,73 +82,61 @@ class USML_DECLSPEC sensor_model : public platform_model, public wavefront_notif
 
     /// Minimum range to valid targets (m).
     double min_range() const {
-        read_lock_guard guard(mutex());
         return _min_range;
     }
 
     /// Minimum range to valid targets (m).
     void min_range(double value) {
-        write_lock_guard guard(mutex());
         _min_range = value;
     }
 
     /// Maximum range to valid targets (m).  Set to zero for infinite range.
     double max_range() const {
-        read_lock_guard guard(mutex());
         return _max_range;
     }
 
     /// Maximum range to valid targets (m).  Set to zero for infinite range.
     void max_range(double value) {
-        write_lock_guard guard(mutex());
         _max_range = value;
     }
 
     /// List of depression/elevation angles to use in wavefront calculation.
     seq_vector::csptr de_fan() const {
-        read_lock_guard guard(mutex());
         return _de_fan;
     }
 
     /// List of depression/elevation angles to use in wavefront calculation.
     void de_fan(seq_vector::csptr value) {
-        write_lock_guard guard(mutex());
         _de_fan = value;
     }
 
     /// List of azimuthal angles  to use in wavefront calculation.
     seq_vector::csptr az_fan() const {
-        read_lock_guard guard(mutex());
         return _az_fan;
     }
 
     /// List of azimuthal angles  to use in wavefront calculation.
     void az_fan(seq_vector::csptr value) {
-        write_lock_guard guard(mutex());
         _az_fan = value;
     }
 
     /// Time step between wavefronts (sec).
     double time_step() const {
-        read_lock_guard guard(mutex());
         return _time_step;
     }
 
     /// Time step between wavefronts (sec).
     void time_step(double value) {
-        write_lock_guard guard(mutex());
         _time_step = value;
     }
 
     /// Maximum time to propagate wavefront (sec).
     double time_maximum() const {
-        read_lock_guard guard(mutex());
         return _time_maximum;
     }
 
     /// Maximum time to propagate wavefront (sec).
     void time_maximum(double value) {
-        write_lock_guard guard(mutex());
         _time_maximum = value;
     }
 
@@ -158,13 +146,11 @@ class USML_DECLSPEC sensor_model : public platform_model, public wavefront_notif
      * than this threshold is not sent the listeners.
      */
     double intensity_threshold() const {
-        read_lock_guard guard(mutex());
         return _intensity_threshold;
     }
 
     /// The value of the intensity threshold in dB.
     void intensity_threshold(double value) {
-        write_lock_guard guard(mutex());
         _intensity_threshold = value;
     }
 
@@ -174,13 +160,11 @@ class USML_DECLSPEC sensor_model : public platform_model, public wavefront_notif
      * of bottom bounces is not sent the listeners.
      */
     int max_bottom() const {
-        read_lock_guard guard(mutex());
         return _max_bottom;
     }
 
     /// The maximum number of bottom bounces.
     void max_bottom(int value) {
-        write_lock_guard guard(mutex());
         _max_bottom = value;
     }
 
@@ -190,37 +174,31 @@ class USML_DECLSPEC sensor_model : public platform_model, public wavefront_notif
      * of surface bounces is not sent the listeners.
      */
     int max_surface() const {
-        read_lock_guard guard(mutex());
         return _max_surface;
     }
 
     /// The maximum number of surface bounces.
     void max_surface(int value) {
-        write_lock_guard guard(mutex());
         _max_surface = value;
     }
 
     /// True if eigenverbs computed for this sensor.
     bool compute_reverb() const {
-        read_lock_guard guard(mutex());
         return _compute_reverb;
     }
 
     /// True if eigenverbs computed for this sensor.
     void compute_reverb(bool value) {
-        write_lock_guard guard(mutex());
         _compute_reverb = value;
     }
 
     /// True if platform can receive transmissions from other platforms.
     bool multistatic() const {
-        read_lock_guard guard(mutex());
         return _multistatic;
     }
 
     /// True if platform can receive transmissions from other platforms.
     void multistatic(bool value) {
-        write_lock_guard guard(mutex());
         _multistatic = value;
     }
 

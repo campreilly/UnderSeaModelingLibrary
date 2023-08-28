@@ -83,31 +83,26 @@ class platform_model : public managed_obj<int, platform_model>,
 
     /// Platform that controls the motion of this platform.
     const platform_model* host() const {
-        read_lock_guard guard(mutex());
         return _host;
     }
 
     /// Time of last update.
     time_t time() const {
-        read_lock_guard guard(mutex());
         return _time;
     }
 
     /// Location of the platform in world coordinates.
     wposition1 position() const {
-        read_lock_guard guard(mutex());
         return _position;
     }
 
     /// Orientation of the platform in world coordinates.
     orientation orient() const {
-        read_lock_guard guard(mutex());
         return _orient;
     }
 
     /// Platform speed in world coordinates (m/s).
     double speed() const {
-        read_lock_guard guard(mutex());
         return _speed;
     }
 

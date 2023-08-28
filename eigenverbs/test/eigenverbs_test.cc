@@ -63,11 +63,6 @@ static eigenverb_model::csptr create_eigenverb(
  * eigenverb collection to see if entries can be created and if notifications
  * work properly. Then it uses the find_eigenverbs to find all eigenverbs in the
  * neighborhood of the first entry in the list.
- *
- * For a bounding eigenverb with de/az=(-40,30), the following 9 eigenverbs are
- * judge as being "near" when the size of the overlap is 3: de/az = (-50,20),
- * (-40,20), (-60,30), (-50,30), (-40,30), (-30,30), (-50,40), (-40,40),
- * (-50,50).
  */
 BOOST_AUTO_TEST_CASE(create_eigenverbs) {
     cout << "=== eigenverbs_test: create_eigenverbs ===" << endl;
@@ -116,8 +111,8 @@ BOOST_AUTO_TEST_CASE(create_eigenverbs) {
 
     // ensure that found list is smaller than full list
 
-    BOOST_CHECK_EQUAL(found_list.size(), 6);
-    BOOST_CHECK_EQUAL(found.size(eigenverb_model::BOTTOM), 6);
+    BOOST_CHECK_EQUAL(found_list.size(), 7);
+    BOOST_CHECK_EQUAL(found.size(eigenverb_model::BOTTOM), 7);
 }
 
 /// @}
