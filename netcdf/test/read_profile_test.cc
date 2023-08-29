@@ -296,7 +296,7 @@ BOOST_AUTO_TEST_CASE(nonglobal_database) {
  */
 BOOST_AUTO_TEST_CASE(hycom_file_profile_test) {
     cout << "=== read_profile_test: hycom_file_profile_test ===" << endl;
-    const char* ssp_file = USML_TEST_DIR "/netcdf/test/hycom_ts3z.nc";
+    const char* ssp_file = USML_TEST_DIR "/netcdf/test/hycom_ts3z.nc4";
     cout << "opening " << ssp_file << endl;
     netcdf_profile temperature(ssp_file, 0.0, 25.9, 27.2, -80.1, -78.8, "temp");
 }
