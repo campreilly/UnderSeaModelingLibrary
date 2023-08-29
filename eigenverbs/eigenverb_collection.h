@@ -107,7 +107,7 @@ class USML_DECLSPEC eigenverb_collection : public eigenverb_listener {
      * @return          		List for eigenverbs that overlap this
      * area.
      */
-    eigenverb_list find_eigenverbs(eigenverb_model::csptr bounding_verb,
+    eigenverb_list find_eigenverbs(const eigenverb_model::csptr& bounding_verb,
                                    size_t interface) const;
 
     /**

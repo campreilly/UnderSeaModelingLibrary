@@ -9,14 +9,14 @@
 
 using namespace usml::platforms;
 
+namespace usml {
+namespace platforms {
+namespace test {
+
 /**
  * @ingroup platforms_test
  * @{
  */
-
-namespace usml {
-namespace platforms {
-namespace test {
 
 /**
  * Simple sonobuoy sensor for testing. Includes three receiver channels for

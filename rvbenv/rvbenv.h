@@ -14,6 +14,5 @@
  */
 #pragma once
 
-#include <usml/rvbenv/rvbenv_model.h>
 #include <usml/rvbenv/rvbenv_collection.h>
 #include <usml/rvbenv/rvbenv_generator.h>

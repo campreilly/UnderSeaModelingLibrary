@@ -58,7 +58,7 @@ void eigenverb_collection::add_eigenverb(eigenverb_model::csptr verb,
  * Finds all of the eigenverbs that intersect the requested area.
  */
 eigenverb_list eigenverb_collection::find_eigenverbs(
-    eigenverb_model::csptr bounding_verb, size_t interface) const {
+    const eigenverb_model::csptr& bounding_verb, size_t interface) const {
     read_lock_guard guard(_mutex);
 
     // compute size of search area

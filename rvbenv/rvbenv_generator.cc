@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include <utility>
 
 using namespace usml::rvbenv;
 
@@ -29,10 +30,10 @@ using namespace usml::rvbenv;
  * Initialize model parameters with state of bistatic_pair at this time.
  */
 rvbenv_generator::rvbenv_generator(const bistatic_pair::sptr& pair,
-                                   const seq_vector::csptr& times,
-                                   const seq_vector::csptr& freqs,
+                                   seq_vector::csptr  times,
+                                   seq_vector::csptr  freqs,
                                    size_t num_azimuths)
-    : _pair(pair), _times(times), _freqs(freqs), _num_azimuths(num_azimuths) {}
+    : _pair(pair), _times(std::move(times)), _freqs(std::move(freqs)), _num_azimuths(num_azimuths) {}
 
 /**
  * Compute reverberation envelope collection for a bistatic pair.

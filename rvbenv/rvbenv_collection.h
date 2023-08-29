@@ -51,9 +51,8 @@ class USML_DECLSPEC rvbenv_collection {
      * @param freqs  		Frequencies at which reverb is computed (Hz).
      * @param num_azimuths	Number of receiver azimuths in result.
      */
-    rvbenv_collection(const bistatic_pair::sptr& pair,
-                      const seq_vector::csptr& times,
-                      const seq_vector::csptr& freqs, size_t num_azimuths);
+    rvbenv_collection(const bistatic_pair::sptr& pair, seq_vector::csptr times,
+                      seq_vector::csptr freqs, size_t num_azimuths);
 
     /**
      * Delete dynamic memory in each of the nested dynamic arrays.

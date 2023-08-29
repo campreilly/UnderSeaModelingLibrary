@@ -2,7 +2,7 @@
  * @example biverbs/test/biverbs_test.cc
  */
 
-#include <stddef.h>
+#include <cstddef>
 #include <usml/bistatic/bistatic_manager.h>
 #include <usml/bistatic/bistatic_pair.h>
 #include <usml/biverbs/biverbs.h>

@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <list>
 #include <memory>
+#include <utility>
 
 using namespace usml::bistatic;
 using namespace usml::biverbs;
@@ -31,10 +32,12 @@ using namespace usml::types;
  * Initialize model with data from a bistatic_pair.
  */
 rvbenv_collection::rvbenv_collection(const bistatic_pair::sptr& pair,
-                                     const seq_vector::csptr& times,
-                                     const seq_vector::csptr& freqs,
+                                     seq_vector::csptr times,
+                                     seq_vector::csptr freqs,
                                      size_t num_azimuths)
-    : _times(times), _freqs(freqs), _num_azimuths(num_azimuths) {
+    : _times(std::move(times)),
+      _freqs(std::move(freqs)),
+      _num_azimuths(num_azimuths) {
     // get reference to underlying source and receiver data
 
     _source = dynamic_cast<const sensor_model*>(pair->source().get());

@@ -62,13 +62,9 @@ bistatic_pair::~bistatic_pair() {
 
 /**
  * Utility to generate a hash key for the bistatic_template
- *
- * @param    src_id   The source id used to generate the hash_key
- * @param    rcv_id   The receiver id used to generate the hash_key
- * @return   string   containing the generated hash_key.
  */
-std::string bistatic_pair::generate_hash_key(const int src_id,
-                                             const int rcv_id) {
+std::string bistatic_pair::generate_hash_key(int src_id,
+                                             int rcv_id) {
     std::stringstream key;
     key << src_id << '_' << rcv_id;
     return key.str();
@@ -161,8 +157,7 @@ void bistatic_pair::update_wavefront_data(
 
     // launch a new biverb generator
 
-    _biverb_task =
-        std::shared_ptr<biverb_generator>(new biverb_generator(this));
+    _biverb_task = std::make_shared<biverb_generator>(this);
     thread_controller::instance()->run(_biverb_task);
     _biverb_task.reset();  // destroy background task
 }

@@ -67,3 +67,4 @@ climatological
 hertz
 geodetic
 biverbs
+ensonified
