@@ -38,15 +38,6 @@ class USML_DECLSPEC rvbenv_generator
     : public thread_task,
       public update_notifier<rvbenv_collection::csptr> {
    public:
-    /// Hide default constructor to prevent incorrect use.
-    rvbenv_generator() = delete;
-
-    /// Hide copy constructor to prevent incorrect use.
-    rvbenv_generator(const wavefront_generator&) = delete;
-
-    /// Hide assignment operator to prevent incorrect use.
-    rvbenv_generator& operator=(const wavefront_generator&) = delete;
-
     /**
      * Initialize model with data from a bistatic_pair.
      *

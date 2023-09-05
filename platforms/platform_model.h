@@ -69,14 +69,8 @@ class platform_model : public managed_obj<int, platform_model>,
           _orient(orient),
           _speed(speed) {}
 
-    /// Prevent access to copy constructor
-    platform_model(const platform_model&) = delete;
-
     /// Virtual destructor
     virtual ~platform_model() {}
-
-    /// Prevent access to assignment operator
-    platform_model& operator=(const platform_model&) = delete;
 
     /// Mutex to that locks object during changes.
     read_write_lock& mutex() const { return _mutex; }

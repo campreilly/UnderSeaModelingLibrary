@@ -38,15 +38,6 @@ class USML_DECLSPEC biverb_generator
     : public thread_task,
       public update_notifier<biverb_collection::csptr> {
    public:
-    /// Hide default constructor to prevent incorrect use.
-    biverb_generator() = delete;
-
-    /// Hide copy constructor to prevent incorrect use.
-    biverb_generator(const biverb_generator&) = delete;
-
-    /// Hide assignment operator to prevent incorrect use.
-    biverb_generator& operator=(const biverb_generator&) = delete;
-
     /**
      * Initialize model parameters and reserve memory.
      *

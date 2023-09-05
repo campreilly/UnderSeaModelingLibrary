@@ -39,12 +39,6 @@ class USML_DECLSPEC platform_manager : public manager_template<platform_model> {
      */
     static void reset();
 
-    /// Hide copy constructor to prevent incorrect use of singleton.
-    platform_manager(const platform_manager&) = delete;
-
-    /// Hide assignment operator to prevent incorrect use of singleton.
-    platform_manager& operator=(const platform_manager&) = delete;
-
     /**
      * Adds a new platform to the manager. Creates unique keyID if one not
      * provided. Notifies listeners after the object has been added to this

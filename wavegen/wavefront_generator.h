@@ -41,15 +41,6 @@ using namespace usml::types;
  */
 class USML_DECLSPEC wavefront_generator : public thread_task {
    public:
-    /// Hide default constructor to prevent incorrect use.
-    wavefront_generator() = delete;
-
-    /// Hide copy constructor to prevent incorrect use.
-    wavefront_generator(const wavefront_generator&) = delete;
-
-    /// Hide assignment operator to prevent incorrect use.
-    wavefront_generator& operator=(const wavefront_generator&) = delete;
-
     /**
      * Construct wavefront generator for a specific sensor.
      *
