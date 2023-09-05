@@ -91,7 +91,7 @@ class USML_DECLSPEC rvbenv_generator
                        matrix<double>& beam);
 
     /// Bistatic pair that creates reverberation.
-    const bistatic_pair::sptr& _pair;
+    const bistatic_pair::sptr& _bistatic_pair;
 
     /// Times at which reverb is computed (sec).
     const seq_vector::csptr _times;

@@ -47,6 +47,9 @@ void biverb_generator::run() {
              << " biverb_generator *** aborted before execution ***" << endl;
         return;
     }
+    cout << "task #" << id()
+         << " biverb_generator: src=" << _bistatic_pair->source()->keyID()
+         << " rcv=" << _bistatic_pair->receiver()->keyID() << endl;
 
     // initialize workspace for results
 
@@ -81,4 +84,5 @@ void biverb_generator::run() {
     _collection = biverb_collection::csptr(collection);
     _done = true;
     notify_update(&_collection);
+    cout << "task #" << id() << " biverb_generator: done" << endl;
 }

@@ -73,8 +73,6 @@ void build_ocean() {
 
     data_grid<3>::csptr ssp(new data_grid_mackenzie(temperature, salinity));
     ssp.get()->write_netcdf("ssp.nc");
-
-    // data_grid_svp::csptr fast_ssp(new data_grid_svp(ssp));
     profile_grid<3>::csptr profile(new profile_grid<3>(ssp));
 
     // create shared ocean

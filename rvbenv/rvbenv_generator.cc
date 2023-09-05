@@ -33,7 +33,7 @@ rvbenv_generator::rvbenv_generator(const bistatic_pair::sptr& pair,
                                    seq_vector::csptr  times,
                                    seq_vector::csptr  freqs,
                                    size_t num_azimuths)
-    : _pair(pair), _times(std::move(times)), _freqs(std::move(freqs)), _num_azimuths(num_azimuths) {}
+    : _bistatic_pair(pair), _times(std::move(times)), _freqs(std::move(freqs)), _num_azimuths(num_azimuths) {}
 
 /**
  * Compute reverberation envelope collection for a bistatic pair.
@@ -44,11 +44,16 @@ void rvbenv_generator::run() {
              << " rvbenv_generator *** aborted before execution ***" << endl;
         return;
     }
+    cout << "task #" << id()
+         << " rvbenv_generator *** aborted before execution ***" << endl;
+    cout << "task #" << id()
+         << " rvbenv_generator src=" << _bistatic_pair->source()->keyID()
+         << " rcv=" << _bistatic_pair->receiver()->keyID() << endl;
 
     // initialize workspace for results
 
     auto* collection =
-        new rvbenv_collection(_pair, _times, _freqs, _num_azimuths);
+        new rvbenv_collection(_bistatic_pair, _times, _freqs, _num_azimuths);
     const auto num_freqs = _freqs->size();
     const auto num_src_beams = collection->num_src_beams();
     const auto num_rcv_beams = collection->num_rcv_beams();

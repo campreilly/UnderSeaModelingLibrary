@@ -18,6 +18,8 @@ using namespace usml::biverbs;
 using namespace usml::eigenverbs;
 using namespace usml::platforms;
 
+// #define DEBUG_BIVERB
+
 /**
  * Creates list of biverbs for a specific interface.
  */

@@ -2,7 +2,6 @@
  * @example biverbs/test/biverbs_test.cc
  */
 
-#include <cstddef>
 #include <usml/bistatic/bistatic_manager.h>
 #include <usml/bistatic/bistatic_pair.h>
 #include <usml/biverbs/biverbs.h>
@@ -27,6 +26,7 @@
 #include <boost/test/unit_test.hpp>
 #include <chrono>
 #include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <list>
 #include <memory>
@@ -43,24 +43,17 @@ using namespace usml::platforms;
 
 static const double de_spacing = 10.0;
 static const double az_spacing = 10.0;
+static const double depth = 1000.0;
 
 /**
  * Construct the ocean model from its constituent parts.
- *
- * - N^2 Linear Profile on a Flat Earth
- * - No Attenuation
- * - Default Sea Surface
- * - "Infinitely" deep bottom
- *
- * @return  Dynamically allocated ocean model.
- *          Calling routine responsible for cleanup.
  */
 static ocean_model::csptr build_ocean() {
     attenuation_model::csptr attn(new attenuation_constant(0.0));
     profile_model::csptr profile_csptr(new profile_linear());
 
     boundary_model::csptr surface(new boundary_flat());
-    boundary_model::csptr bottom(new boundary_flat(1000.0));
+    boundary_model::csptr bottom(new boundary_flat(-depth));
 
     ocean_model::csptr ocean(new ocean_model(surface, bottom, profile_csptr));
     ocean_shared::update(ocean);
@@ -68,7 +61,7 @@ static ocean_model::csptr build_ocean() {
 }
 
 /**
- * Build one eigenverb and notify listeners.
+ * Build hardcoded eigenverb and notify listeners.
  */
 static eigenverb_model::csptr create_eigenverb(
     const wposition1 source_pos, double depth, double de, double az,
@@ -109,10 +102,10 @@ static eigenverb_model::csptr create_eigenverb(
  */
 
 /**
- * This test builds eigenverbs on bottom for varying DE and AZ. First it tests
- * eigenverb collection to see if entries can be created and if notifications
- * work properly. Then it uses the find_eigenverbs to find all eigenverbs in the
- * neighborhood of the first entry in the list.
+ * Tests ability to construct bistatic eigenverbs in a background task. Builds
+ * hardcoded eigenverbs on bottom for varying DE and AZ. Launches
+ * update_wavefront_data() background task to compute biverbs. Extract biverbs,
+ * write to disk, and count entries in collection
  */
 BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     cout << "=== biverbs_test: update_wavefront_data ===" << endl;
@@ -123,10 +116,9 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     seq_vector::csptr frequencies(new seq_linear(3000.0, 1.0, 1));
     platform_manager::instance()->frequencies(frequencies);
     wposition1 source_pos(15.0, 35.0, 0.0);
-    double depth = 1000;
     vector<double> scatter(frequencies->size(), 1.0);
 
-    // construct pair in the bistatic manager
+    // construct monostatic sensor pair in the bistatic manager
 
     sensor_model* sensor = new test::simple_sonobuoy(0, "simple_sonobuoy");
     bistatic_manager* bmgr = bistatic_manager::instance();
@@ -134,11 +126,10 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     bistatic_list blist = bmgr->find_source(0);
     bistatic_pair::sptr pair = *(blist.begin());
 
-    // build fake eigenverbs on bottom for varying DE and AZ
+    // build hardcoded eigenverbs on bottom for varying DE and AZ
 
     wposition1 pos1 = sensor->position();
     wposition pos(1, 1, pos1.latitude(), pos1.longitude(), pos1.altitude());
-    auto* ray_collection = new eigenray_collection(frequencies, pos1, &pos);
     auto* verb_collection = new eigenverb_collection(eigenverb_model::BOTTOM);
     for (double az = 0.0; az <= 90.0; az += az_spacing) {
         for (double de = -90.0 + de_spacing; de < 0.0; de += de_spacing) {
@@ -148,8 +139,9 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
         }
     }
 
-    // launch background tasks to compute biverbs
+    // launch update_wavefront_data() background task to compute biverbs
 
+    auto* ray_collection = new eigenray_collection(frequencies, pos1, &pos);
     pair->update_wavefront_data(sensor,
                                 eigenray_collection::csptr(ray_collection),
                                 eigenverb_collection::csptr(verb_collection));
@@ -157,7 +149,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-    // extract biverbs and count entries in collection
+    // extract biverbs, write to disk, and count entries in collection
 
     auto collection = pair->biverbs();
     biverb_list verb_list = collection->biverbs(eigenverb_model::BOTTOM);
@@ -167,6 +159,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
 
     bistatic_manager::reset();
     thread_controller::reset();
+    ocean_shared::reset();
 }
 
 /// @}
