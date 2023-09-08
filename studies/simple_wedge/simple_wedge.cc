@@ -87,7 +87,7 @@ int main(int  /*argc*/, char*  /*argv*/[]) {
 
     // initialize propagation
 
-    eigenray_collection loss(freq, source, &receiver);
+    eigenray_collection loss(freq, source, receiver);
     wave_queue wave(ocean, freq, source, de, az, time_step, &receiver);
     wave.add_eigenray_listener(&loss);
 
@@ -104,7 +104,7 @@ int main(int  /*argc*/, char*  /*argv*/[]) {
 
     // compute coherent propagation loss and write eigenrays to disk
 
-    loss.sum_eigenrays(false);
+    loss.sum_eigenrays();
     cout << "writing eigenrays to " << nc_eigenray << endl;
     loss.write_netcdf(nc_eigenray);
 

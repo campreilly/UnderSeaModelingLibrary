@@ -48,8 +48,7 @@ void biverb_generator::run() {
         return;
     }
     cout << "task #" << id()
-         << " biverb_generator: src=" << _bistatic_pair->source()->keyID()
-         << " rcv=" << _bistatic_pair->receiver()->keyID() << endl;
+         << " biverb_generator: " << _bistatic_pair->description() << endl;
 
     // initialize workspace for results
 

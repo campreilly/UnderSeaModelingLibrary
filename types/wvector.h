@@ -54,6 +54,13 @@ public:
      */
     wvector(size_t rows = 1, size_t cols = 1);
 
+    /**
+     * Constructs a new wvector as a copy of an existing wvector1.
+     *
+     * @param  other        wvector1 to be copied.
+     */
+    wvector(const wvector1& other);
+
     //*********************************
     // Rho property (includes both matrix and indexed accessors)
 

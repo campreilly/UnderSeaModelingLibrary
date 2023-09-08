@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
         target.altitude(n, 0, spot.altitude());
         bearing_inc = bearing_inc + angle;
     }
-    eigenray_collection loss(freq, src_pos, &target);
+    eigenray_collection loss(freq, src_pos, target);
     wave_queue wave(ocean, freq, src_pos, de, az, time_step, &target);
     wave.add_eigenray_listener(&loss);
 

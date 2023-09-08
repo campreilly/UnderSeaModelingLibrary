@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE( envelope_analytic ) {
 		1, 				// num_src_beams
 		1,              // num_rcv_beams
 		2.0*depth/c0,   // initial_time = first dirpath
-        1,              // source_id - fill the api
+        1,              // sourceID - fill the api
         1,              // receiver_id - fill the api
         wposition1(src_lat, src_lng),   // src_pos - fill the api
         wposition1(src_lat, src_lng) ); // rcv_pos - fill the api

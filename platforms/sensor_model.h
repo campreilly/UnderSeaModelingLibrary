@@ -192,13 +192,13 @@ class USML_DECLSPEC sensor_model : public platform_model, public wavefront_notif
         _compute_reverb = value;
     }
 
-    /// True if platform can receive transmissions from other platforms.
-    bool multistatic() const {
+    /// Multi-static group for this sensor (0=none).
+    int multistatic() const {
         return _multistatic;
     }
 
-    /// True if platform can receive transmissions from other platforms.
-    void multistatic(bool value) {
+    /// Multi-static group for this sensor (0=none).
+    void multistatic(int value) {
         _multistatic = value;
     }
 
@@ -337,8 +337,8 @@ class USML_DECLSPEC sensor_model : public platform_model, public wavefront_notif
     /// True if computing reverberation from this sensor.
     bool _compute_reverb{false};
 
-    /// True if sensor can receive transmissions from other sensors.
-    bool _multistatic{false};
+    /// Multi-static group for this sensor (0=none).
+    int _multistatic{0};
 
     /// Source beam patterns
     beam_map_type _src_beams;

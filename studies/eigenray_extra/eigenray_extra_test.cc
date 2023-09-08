@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(eigenray_lloyds) { // NOLINT(readability-function-cognitive
 
     // create wavefront used to create eigenrays
 
-    eigenray_collection loss(freq, pos, &target);
+    eigenray_collection loss(freq, pos, target);
     wave_queue wave(ocean, freq, pos, de, az, time_step, &target);
     wave.add_eigenray_listener(&loss);
 

@@ -1,11 +1,12 @@
 /**
  * @file wposition.h
- * World location in geodetic earth coordinates (latitude, longitude, and altitude).
+ * World location in geodetic earth coordinates (latitude, longitude, and
+ * altitude).
  */
 #pragma once
 
-#include <usml/ublas/ublas.h>
 #include <usml/types/wvector.h>
+#include <usml/ublas/ublas.h>
 
 namespace usml {
 namespace types {
@@ -35,11 +36,8 @@ namespace types {
  * @xref WGS 84 IMPLEMENTATION MANUAL, Version 2.4, 1998.
  *       See http://www.dqts.net/wgs84.htm for more information.
  */
-class USML_DECLSPEC wposition: public wvector
-{
-
-public:
-
+class USML_DECLSPEC wposition : public wvector {
+   public:
     /**
      * Constructs a matrix of wpositions. Initializes each wposition to
      * the surface of the earth at a latitude/longitude of (0,0).
@@ -51,7 +49,7 @@ public:
      * @param  altitude        Initial altitude
      */
     wposition(size_t rows = 1, size_t cols = 1, double latitude = 0.0,
-            double longitude = 0.0, double altitude = 0.0);
+              double longitude = 0.0, double altitude = 0.0);
 
     /**
      * Constructs a new wposition as a copy of an existing wposition.
@@ -59,10 +57,15 @@ public:
      *
      * @param  other        wposition to be copied.
      */
-    wposition(const wvector & other) :
-        wvector(other)
-    {
-    }
+    wposition(const wvector& other) : wvector(other) {}
+
+    /**
+     * Constructs a new wposition as a copy of an existing wposition1.
+     * Accepts either an actual wposition1, or one of its superclasses.
+     *
+     * @param  other        wposition1 to be copied.
+     */
+    wposition(const wvector1& other) : wvector(other) {}
 
     /**
      * Constructs a mesh of lat/long wpositions. Each row of the mesh
@@ -74,11 +77,11 @@ public:
      * @param  longitude    List of longitudes
      * @param  altitude        Initial altitude
      */
-    template<class E1, class E2> inline wposition(
-            const vector_expression<E1>& latitude,
-            const vector_expression<E2>& longitude, double altitude = 0.0) :
-        wvector(latitude().size(), longitude().size())
-    {
+    template <class E1, class E2>
+    inline wposition(const vector_expression<E1>& latitude,
+                     const vector_expression<E2>& longitude,
+                     double altitude = 0.0)
+        : wvector(latitude().size(), longitude().size()) {
         for (int n = 0; n < latitude().size(); ++n) {
             for (int m = 0; m < longitude().size(); ++m) {
                 this->latitude(n, m, latitude()(n));
@@ -134,10 +137,7 @@ public:
      *                  a temporary varible.  The calling routine should
      *                  make a copy of this as soon as possible.
      */
-    inline matrix<double> altitude() const
-    {
-        return rho() - earth_radius;
-    }
+    inline matrix<double> altitude() const { return rho() - earth_radius; }
 
     /**
      * Defines the altitude above the mean sea level.
@@ -146,9 +146,9 @@ public:
      * @param  altitude    Altitude in meters.
      * @param  no_alias Use uBLAS noalias() assignment speed-up if true.
      */
-    template<class E> inline
-    void altitude(const matrix_expression<E>& altitude, bool no_alias = true)
-    {
+    template <class E>
+    inline void altitude(const matrix_expression<E>& altitude,
+                         bool no_alias = true) {
         rho(altitude + earth_radius, no_alias);
     }
 
@@ -160,8 +160,7 @@ public:
      * @param  col        Column index of the element to access.
      * @return            Altitude in meters.
      */
-    inline double altitude(size_t row, size_t col) const
-    {
+    inline double altitude(size_t row, size_t col) const {
         return rho(row, col) - earth_radius;
     }
 
@@ -173,8 +172,7 @@ public:
      * @param  col          Column index of the element to access.
      * @param  altitude     Altitude in meters.
      */
-    inline void altitude(size_t row, size_t col, double altitude)
-    {
+    inline void altitude(size_t row, size_t col, double altitude) {
         rho(row, col, altitude + earth_radius);
     }
 
@@ -189,10 +187,7 @@ public:
      *                  to a temporary varible.  The calling routine should
      *                  make a copy of this as soon as possible.
      */
-    inline matrix<double> latitude() const
-    {
-        return to_latitude(theta());
-    }
+    inline matrix<double> latitude() const { return to_latitude(theta()); }
 
     /**
      * Defines the latitude component of geodetic earth coordinates.
@@ -201,9 +196,9 @@ public:
      * @param  latitude    Latitude component in degrees.
      * @param  no_alias Use uBLAS noalias() assignment speed-up if true.
      */
-    template<class E> inline
-    void latitude(const matrix_expression<E>& latitude, bool no_alias = true)
-    {
+    template <class E>
+    inline void latitude(const matrix_expression<E>& latitude,
+                         bool no_alias = true) {
         theta(to_colatitude(latitude), no_alias);
     }
 
@@ -215,8 +210,7 @@ public:
      * @param  col          Column index of the element to access.
      * @return              Latitude component in degrees.
      */
-    inline double latitude(size_t row, size_t col) const
-    {
+    inline double latitude(size_t row, size_t col) const {
         return to_latitude(theta(row, col));
     }
 
@@ -228,8 +222,7 @@ public:
      * @param  col          Column index of the element to access.
      * @param  latitude        Latitude component in degrees.
      */
-    inline void latitude(size_t row, size_t col, double latitude)
-    {
+    inline void latitude(size_t row, size_t col, double latitude) {
         theta(row, col, to_colatitude(latitude));
     }
 
@@ -244,10 +237,7 @@ public:
      *                  to a temporary varible.  The calling routine should
      *                  make a copy of this as soon as possible.
      */
-    inline matrix<double> longitude() const
-    {
-        return to_degrees(phi());
-    }
+    inline matrix<double> longitude() const { return to_degrees(phi()); }
 
     /**
      * Defines the longitude component of geodetic earth coordinates.
@@ -256,9 +246,9 @@ public:
      * @param  longitude    Longitude component in degrees.
      * @param  no_alias     Use uBLAS noalias() assignment speed-up if true.
      */
-    template<class E> inline
-    void longitude(const matrix_expression<E>& longitude, bool no_alias = true)
-    {
+    template <class E>
+    inline void longitude(const matrix_expression<E>& longitude,
+                          bool no_alias = true) {
         phi(to_radians(longitude), no_alias);
     }
 
@@ -270,8 +260,7 @@ public:
      * @param  col          Column index of the element to access.
      * @return              Longitude component in degrees.
      */
-    inline double longitude(size_t row, size_t col) const
-    {
+    inline double longitude(size_t row, size_t col) const {
         return to_degrees(phi(row, col));
     }
 
@@ -283,13 +272,11 @@ public:
      * @param  col          Column index of the element to access.
      * @param  longitude        Longitude component in degrees.
      */
-    inline void longitude(size_t row, size_t col, double longitude)
-    {
+    inline void longitude(size_t row, size_t col, double longitude) {
         phi(row, col, to_radians(longitude));
     }
-
 };
 
 /// @}
-} // end of ocean namespace
-} // end of usml namespace
+}  // namespace types
+}  // namespace usml

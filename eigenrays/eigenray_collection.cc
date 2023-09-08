@@ -5,6 +5,8 @@
 
 #include <ncvalues.h>
 #include <netcdfcpp.h>
+#include <usml/eigenrays/eigenray_collection.h>
+#include <usml/eigenrays/eigenray_model.h>
 #include <usml/ocean/profile_model.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition.h>
@@ -17,8 +19,6 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/storage.hpp>
 #include <boost/numeric/ublas/vector.hpp>
-#include <usml/eigenrays/eigenray_model.h>
-#include <usml/eigenrays/eigenray_collection.h>
 #include <cmath>
 #include <complex>
 #include <cstddef>
@@ -32,20 +32,22 @@ using namespace usml::eigenrays;
  * Initialize the acoustic propagation effects associated
  * with each target.
  */
-eigenray_collection::eigenray_collection(seq_vector::csptr frequencies,
+eigenray_collection::eigenray_collection(const seq_vector::csptr &frequencies,
                                          const wposition1 &source_pos,
-                                         const wposition *target_pos,
-                                         int source_id,
-                                         const matrix<int> &target_ids)
-    : _source_id(source_id),
-      _target_ids(target_pos->size1(), target_pos->size2()),
+                                         const wposition &target_pos,
+                                         int sourceID,
+                                         const matrix<int> &targetIDs,
+                                         bool coherent)
+    : _sourceID(sourceID),
+      _targetIDs(target_pos.size1(), target_pos.size2()),
       _source_pos(source_pos),
       _target_pos(target_pos),
-      _frequencies(std::move(frequencies)),
-      _eigenrays(target_pos->size1(), target_pos->size2()),
-      _initial_time(target_pos->size1(), target_pos->size2()),
+      _frequencies(frequencies),
+      _eigenrays(target_pos.size1(), target_pos.size2()),
+      _initial_time(target_pos.size1(), target_pos.size2()),
       _num_eigenrays(0),
-      _total(target_pos->size1(), target_pos->size2()) {
+      _total(target_pos.size1(), target_pos.size2()),
+      _coherent(coherent) {
     for (size_t t1 = 0; t1 < size1(); ++t1) {
         for (size_t t2 = 0; t2 < size2(); ++t2) {
             eigenray_model loss;
@@ -55,10 +57,10 @@ eigenray_collection::eigenray_collection(seq_vector::csptr frequencies,
             loss.phase.clear();
             _total(t1, t2) = loss;
             _initial_time(t1, t2) = 0.0;
-            if (target_ids.size1() > 0 && target_ids.size2() > 0) {
-                _target_ids(t1, t2) = target_ids(t1, t2);
+            if (targetIDs.size1() > 0 && targetIDs.size2() > 0) {
+                _targetIDs(t1, t2) = targetIDs(t1, t2);
             } else {
-                _target_ids(t1, t2) = 0;
+                _targetIDs(t1, t2) = 0;
             }
         }
     }
@@ -70,7 +72,7 @@ eigenray_collection::eigenray_collection(seq_vector::csptr frequencies,
 eigenray_list eigenray_collection::find_eigenrays(int targetID) const {
     for (size_t t1 = 0; t1 < size1(); ++t1) {
         for (size_t t2 = 0; t2 < size2(); ++t2) {
-            if (_target_ids(t1, t2) == targetID || targetID == 0) {
+            if (_targetIDs(t1, t2) == targetID || targetID == 0) {
                 return eigenrays(t1, t2);
             }
         }
@@ -84,7 +86,7 @@ eigenray_list eigenray_collection::find_eigenrays(int targetID) const {
 double eigenray_collection::find_initial_time(int targetID) const {
     for (size_t t1 = 0; t1 < size1(); ++t1) {
         for (size_t t2 = 0; t2 < size2(); ++t2) {
-            if (_target_ids(t1, t2) == targetID || targetID == 0) {
+            if (_targetIDs(t1, t2) == targetID || targetID == 0) {
                 return initial_time(t1, t2);
             }
         }
@@ -98,7 +100,8 @@ double eigenray_collection::find_initial_time(int targetID) const {
  * Must be overloaded by sub-classes.
  */
 void eigenray_collection::add_eigenray(size_t t1, size_t t2,
-                                       eigenray_model::csptr ray, size_t /*runID*/) {
+                                       eigenray_model::csptr ray,
+                                       size_t /*runID*/) {
     _eigenrays(t1, t2).push_back(ray);
     auto old_initial = _initial_time(t1, t2);
     auto new_initial = ray->travel_time;
@@ -111,7 +114,7 @@ void eigenray_collection::add_eigenray(size_t t1, size_t t2,
 /**
  * Compute propagation loss summed over all eigenrays.
  */
-void eigenray_collection::sum_eigenrays(bool coherent) {
+void eigenray_collection::sum_eigenrays() {
     for (size_t t1 = 0; t1 < size1(); ++t1) {
         for (size_t t2 = 0; t2 < size2(); ++t2) {
             const eigenray_list &ray_list = eigenrays(t1, t2);
@@ -141,9 +144,10 @@ void eigenray_collection::sum_eigenrays(bool coherent) {
 
                     double a =
                         pow(10.0, ray->intensity(f) / -20.0);  // pressure
-                    if (coherent) {
-                        double p = TWO_PI * (*_frequencies)(f)*ray->travel_time +
-                                   ray->phase(f);
+                    if (_coherent) {
+                        double p =
+                            TWO_PI * (*_frequencies)(f)*ray->travel_time +
+                            ray->phase(f);
                         p = fmod(p, TWO_PI);  // large phases bad for cos,sin
                         std::complex<double> value(a * cos(p), a * sin(p));
                         phasor += value;
@@ -207,19 +211,19 @@ void eigenray_collection::write_netcdf(const char *filename,
     // dimensions
 
     NcDim *freq_dim = nc_file->add_dim("frequency", (long)_frequencies->size());
-    NcDim *row_dim = nc_file->add_dim("rows", (long)_target_pos->size1());
-    NcDim *col_dim = nc_file->add_dim("cols", (long)_target_pos->size2());
+    NcDim *row_dim = nc_file->add_dim("rows", (long)_target_pos.size1());
+    NcDim *col_dim = nc_file->add_dim("cols", (long)_target_pos.size2());
     NcDim *eigenray_dim = nc_file->add_dim(
         "eigenrays", (long)(_num_eigenrays + _total.size1() * _total.size2()));
 
     // coordinates
 
-    NcVar *src_id_var = nc_file->add_var("source_id", ncLong);
+    NcVar *src_id_var = nc_file->add_var("sourceID", ncLong);
     NcVar *src_lat_var = nc_file->add_var("source_latitude", ncDouble);
     NcVar *src_lng_var = nc_file->add_var("source_longitude", ncDouble);
     NcVar *src_alt_var = nc_file->add_var("source_altitude", ncDouble);
 
-    NcVar *target_var = nc_file->add_var("target_id", ncShort, row_dim, col_dim);
+    NcVar *target_var = nc_file->add_var("targetID", ncShort, row_dim, col_dim);
     NcVar *latitude_var = nc_file->add_var("latitude", ncDouble, row_dim, col_dim);
     NcVar *longitude_var = nc_file->add_var("longitude", ncDouble, row_dim, col_dim);
     NcVar *altitude_var = nc_file->add_var("altitude", ncDouble, row_dim, col_dim);
@@ -287,7 +291,7 @@ void eigenray_collection::write_netcdf(const char *filename,
 
     int n;
     double v;
-    n = _source_id;					src_id_var->put(&n);
+    n = _sourceID;					src_id_var->put(&n);
     v = _source_pos.latitude(); 	src_lat_var->put(&v);
     v = _source_pos.longitude();	src_lng_var->put(&v);
     v = _source_pos.altitude(); 	src_alt_var->put(&v);
@@ -297,20 +301,20 @@ void eigenray_collection::write_netcdf(const char *filename,
 
     // write target parameters
 
-    target_var->put(_target_ids.data().begin(),
-    		(long) _target_ids.size1(), (long) _target_ids.size2());
-    const long rows = (long) _target_pos->size1();
-    const long cols = (long) _target_pos->size2();
-    latitude_var->put(_target_pos->latitude().data().begin(), rows, cols);
-    longitude_var->put(_target_pos->longitude().data().begin(), rows, cols);
-    altitude_var->put(_target_pos->altitude().data().begin(), rows, cols);
+    target_var->put(_targetIDs.data().begin(),
+    		(long) _targetIDs.size1(), (long) _targetIDs.size2());
+    const long rows = (long) _target_pos.size1();
+    const long cols = (long) _target_pos.size2();
+    latitude_var->put(_target_pos.latitude().data().begin(), rows, cols);
+    longitude_var->put(_target_pos.longitude().data().begin(), rows, cols);
+    altitude_var->put(_target_pos.altitude().data().begin(), rows, cols);
     initial_time_var->put(_initial_time.data().begin(), rows, cols);
 
     // write propagation loss and eigenrays to disk
 
     int record = 0;  // current record number
-    for (long t1 = 0; t1 < (long)_target_pos->size1(); ++t1) {
-        for (long t2 = 0; t2 < (long)_target_pos->size2(); ++t2) {
+    for (long t1 = 0; t1 < (long)_target_pos.size1(); ++t1) {
+        for (long t2 = 0; t2 < (long)_target_pos.size2(); ++t2) {
             int num = int(_eigenrays(t1, t2).size());
             proploss_index_var->set_cur(t1, t2);
             eigenray_index_var->set_cur(t1, t2);
@@ -395,7 +399,7 @@ eigenray_list eigenray_collection::dead_reckon(
     const wposition1 &target_new, const profile_model::csptr &profile) const {
     eigenray_list eigenrays =
         dead_reckon_one(_eigenrays(t1, t2), _source_pos, source_new, profile);
-    return dead_reckon_one(eigenrays, wposition1(*_target_pos, t1, t2),
+    return dead_reckon_one(eigenrays, wposition1(_target_pos, t1, t2),
                            target_new, profile);
 }
 

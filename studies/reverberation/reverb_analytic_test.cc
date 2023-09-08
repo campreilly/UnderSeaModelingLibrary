@@ -194,7 +194,7 @@ private:
                 sp_manager->get_dirpaths(query);
         const std::string ncname_dirpaths = USML_STUDIES_DIR "/reverberation/dirpath_";
         for( dirpath_collection* model: dirpaths ) {
-            sensor_model::id_type src_id = model->source_id();
+            sensor_model::id_type src_id = model->sourceID();
             sensor_model::id_type rcv_id = model->receiver_id();
             std::stringstream ss;
             ss << ncname_dirpaths << "src_" << src_id << "_rcv_" << rcv_id << ".nc" ;
@@ -208,7 +208,7 @@ private:
                 sp_manager->get_envelopes(query);
         const std::string ncname_envelopes = USML_STUDIES_DIR "/reverberation/envelopes_";
         for( rvbenv_collection* collection: envelopes ) {
-            sensor_model::id_type src_id = collection->source_id();
+            sensor_model::id_type src_id = collection->sourceID();
             sensor_model::id_type rcv_id = collection->receiver_id();
             std::stringstream ss;
             ss << ncname_envelopes << "src_" << src_id << "_rcv_" << rcv_id << ".nc" ;

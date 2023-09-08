@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         targets.latitude(n, 0, pos.latitude() + random.uniform() - 0.5);
         targets.longitude(n, 0, pos.longitude() + random.uniform() - 0.5);
     }
-    eigenray_collection eigenrays(freq, pos, &targets);
+    eigenray_collection eigenrays(freq, pos, targets);
     wave_queue wave(ocean, freq, pos, de, az, time_step, &targets);
     wave.add_eigenray_listener(&eigenrays);
 

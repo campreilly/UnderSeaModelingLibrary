@@ -76,6 +76,11 @@ class USML_DECLSPEC bistatic_pair
      */
     virtual ~bistatic_pair();
 
+    /// Lookup key for this combination of source and receiver
+    std::string hash_key() const {
+        return generate_hash_key(_source->keyID(), _receiver->keyID());
+    }
+
     /// Reference to the source sensor.
     const sensor_model::sptr source() const { return _source; }
 
@@ -96,9 +101,7 @@ class USML_DECLSPEC bistatic_pair
     }
 
     /// Overlap of source and receiver eigenverbs.
-    biverb_collection::csptr biverbs() const {
-        return _biverbs;
-    }
+    biverb_collection::csptr biverbs() const { return _biverbs; }
 
     /**
      * Utility to generate a hash key for the bistatic_template
@@ -122,8 +125,17 @@ class USML_DECLSPEC bistatic_pair
     /**
      * Notify this pair of eigenray and eigenverb changes for one of its
      * sensors. Updates the direct path eigenrays and bistatic eigenverbs for
-     * this pair. Launches a new envelope generator if reverberation can be
-     * computed at this time.
+     * this pair. Launches a new biverb_generator if this bistatic_pair supports
+     * reverberation and if both source and receiver eigenverbs exist once this
+     * update is complete.
+     *
+     * This computation can be triggered by updates from either the source or
+     * receiver object in this bistatic_pair. If this is an update from a
+     * bistatic receiver, then the sense of source and target is reversed for
+     * the calculation of direct path bistatic eigenrays. This reversal is valid
+     * if the eigenrays have source/receiver reciprocity, which they might not
+     * have in complex environments because of accuracy limitations in the
+     * wavefront modeling.
      *
      * @param sensor		Pointer to updated sensor.
      * @param eigenrays		Transmission loss results for this sensor

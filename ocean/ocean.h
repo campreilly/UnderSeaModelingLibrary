@@ -72,6 +72,7 @@
 #include <usml/ocean/data_grid_mackenzie.h>
 #include <usml/ocean/ocean_model.h>
 #include <usml/ocean/ocean_shared.h>
+#include <usml/ocean/ocean_utils.h>
 #include <usml/ocean/profile_catenary.h>
 #include <usml/ocean/profile_grid.h>
 #include <usml/ocean/profile_linear.h>

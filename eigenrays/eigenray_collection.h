@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include <usml/eigenrays/eigenray_listener.h>
+#include <usml/eigenrays/eigenray_model.h>
 #include <usml/ocean/profile_model.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition.h>
@@ -12,8 +14,6 @@
 #include <usml/usml_config.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
-#include <usml/eigenrays/eigenray_model.h>
-#include <usml/eigenrays/eigenray_listener.h>
 #include <cstddef>
 #include <memory>
 
@@ -43,13 +43,15 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
      * @param frequencies   Frequencies over which to compute loss (Hz).
      * @param source_pos    Location of the wavefront source.
      * @param target_pos    Grid of targets to ensonify.
-     * @param source_id 	Value to find source in platform_manager (default=0).
-     * @param target_ids    Optional list of target IDs (default=empty).
+     * @param sourceID 	Value to find source in platform_manager.
+     * @param targetIDs    Optional list of target IDs (default=empty).
+     * @param coherent    	Compute coherent propagation totals if true.
      */
-    eigenray_collection(seq_vector::csptr frequencies,
+    eigenray_collection(const seq_vector::csptr &frequencies,
                         const wposition1 &source_pos,
-                        const wposition *target_pos=nullptr, int source_id = 0,
-                        const matrix<int> &target_ids = matrix<int>());
+                        const wposition &target_pos, int sourceID = 0,
+                        const matrix<int> &targetIDs = matrix<int>(),
+                        bool coherent = true);
 
     /**
      * Virtual destructor.
@@ -60,13 +62,13 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
      * Number of rows in target grid.
      * @return Number of rows.
      */
-    size_t size1() const { return _target_pos->size1(); }
+    size_t size1() const { return _target_pos.size1(); }
 
     /**
      * Number of columns in target grid.
      * @return Number of columns.
      */
-    size_t size2() const { return _target_pos->size2(); }
+    size_t size2() const { return _target_pos.size2(); }
 
     /**
      * Position of a single target in the grid.
@@ -76,11 +78,11 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
      * @return  Position of this target.
      */
     wposition1 position(size_t t1 = 0, size_t t2 = 0) const {
-        return wposition1(*_target_pos, t1, t2);
+        return wposition1(_target_pos, t1, t2);
     }
 
     /// Platform ID number for this source. Set to zero if unknown.
-    int sourceID() const { return _source_id; }
+    int sourceID() const { return _sourceID; }
 
     /**
      * Platform ID number for one target. Set to zero if unknown.
@@ -93,7 +95,7 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
         if (size1() == 0 && size2() == 0) {
             return 0;
         }
-        return _target_ids(t1, t2);
+        return _targetIDs(t1, t2);
     }
 
     /// Frequencies over which propagation is computed (Hz).
@@ -139,7 +141,12 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
      * @param   t2 			Column number of target.
      * @return  Copy of eigenray total for this target.
      */
-    const eigenray_model &total(size_t t1, size_t t2) const { return _total(t1, t2); }
+    const eigenray_model &total(size_t t1, size_t t2) const {
+        return _total(t1, t2);
+    }
+
+    /// Compute coherent propagation totals if true, and incoherent if false.
+    bool coherent() const { return _coherent; }
 
     /**
      * Notifies the observer that a wave front collision has been detected for
@@ -157,11 +164,8 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
                       size_t runID = 0);
     /**
      * Compute propagation loss summed over all eigenrays.
-     *
-     * @param   coherent    Compute coherent propagation loss if true,
-     *                      and incoherent if false.
      */
-    void sum_eigenrays(bool coherent = true);
+    void sum_eigenrays();
 
     /**
      * Write eigenray_collection scenario data to a netCDF file using a ragged
@@ -311,10 +315,10 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
 
    private:
     /// Value to find source in platform_manager. Set to zero if unknown.
-    const int _source_id;
+    const int _sourceID;
 
     /// Value to find targets in platform_manager. Set to zero if unknown.
-    matrix<int> _target_ids;
+    matrix<int> _targetIDs;
 
     /**
      * Location of the wavefront source in spherical earth coordinates.
@@ -323,7 +327,7 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
     const wposition1 _source_pos;
 
     /// Matrix of target positions in world coordinates.
-    const wposition *_target_pos;
+    const wposition _target_pos;
 
     /**
      * Frequencies over which loss was computed (Hz).
@@ -351,6 +355,9 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
      * set to -1.
      */
     matrix<eigenray_model> _total;
+
+    /// Compute coherent propagation totals if true, and incoherent if false.
+    bool _coherent;
 
     /**
      * Adjust eigenrays for small changes in the geometry of a single sensor.

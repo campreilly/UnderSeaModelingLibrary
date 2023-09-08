@@ -68,3 +68,5 @@ hertz
 geodetic
 biverbs
 ensonified
+monostatic
+multistatic

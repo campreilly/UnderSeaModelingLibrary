@@ -62,7 +62,10 @@ class USML_DECLSPEC bistatic_manager : public manager_template<bistatic_pair> {
 
     /**
      * Adds a sensor into the bistatic pair manager. Searches for all other
-     * sensors that can be paired with the new sensor.
+     * sensors that can be paired with the new sensor. Uses the presence or
+     * absence of source and receiver beam patterns to determine if the new
+     * sensor has transmit/receive capabilities. Adds a monostatic pair if the
+     * new sensor can act as both a source and receiver.
      *
      * @param sensor		Reference to the sensor to add.
      * @param listener      Optional update listener for bistatic_pair objects.
@@ -99,8 +102,8 @@ class USML_DECLSPEC bistatic_manager : public manager_template<bistatic_pair> {
 
    private:
     /**
-     * Adds a monostatic sensor pair if the sensor being added is a
-     * monostatic sensor. Called within the bistatic_manager.
+     * Adds a monostatic sensor pair if new sensor being added is both a source
+     * and receiver. Called from bistatic_manager::add_sensor().
      *
      * @param sensor 	Monostatic sensor to be added as a monostatic pair.
      * @param listener	Update listener for bistatic_pair objects.
@@ -109,23 +112,29 @@ class USML_DECLSPEC bistatic_manager : public manager_template<bistatic_pair> {
                              update_listener<bistatic_pair>* listener);
 
     /**
-     * Adds a multistatic source to the pair_manager and makes pairs
-     * with all valid receivers. Called within the bistatic_manager.
+     * Creates bistatic pairs between the new source and all bistatic receivers.
+     * Called from bistatic_manager::add_sensor().
      *
-     * @param source 	Multistatic source to be paired with valid receivers.
-     * @param listener	Update listener for bistatic_pair objects.
+     * @param source 		Multistatic source to be paired with valid
+     * receivers.
+     * @param multistatic 	Multistatic group for this sensor.
+     * @param listener		Update listener for bistatic_pair objects.
      */
     void add_multistatic_source(const sensor_model::sptr& source,
+                                int multistatic,
                                 update_listener<bistatic_pair>* listener);
 
     /**
-     * Add a multistatic receiver to the bistatic_manager and makes pairs
-     * with all valid sources. Called within the bistatic_manager.
+     * Creates bistatic pairs between the new receiver and all bistatic sources.
+     * Called from bistatic_manager::add_sensor().
      *
-     * @param receiver 	Multistatic receiver to be paired with valid sources.
-     * @param listener	Update listener for bistatic_pair objects.
+     * @param receiver 		Multistatic receiver to be paired with valid
+     * sources.
+     * @param multistatic 	Multistatic group for this sensor.
+     * @param listener		Update listener for bistatic_pair objects.
      */
     void add_multistatic_receiver(const sensor_model::sptr& receiver,
+                                  int multistatic,
                                   update_listener<bistatic_pair>* listener);
 
     /**

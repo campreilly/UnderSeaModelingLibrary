@@ -68,20 +68,15 @@ void bistatic_manager::add_sensor(const sensor_model::sptr& sensor,
 
     if (sensor_ptr->is_source() && sensor_ptr->is_receiver()) {
         add_monostatic_pair(sensor, listener);
-        if (sensor_ptr->multistatic()) {
-            if (sensor_ptr->is_source()) {
-                add_multistatic_source(sensor, listener);
-            }
-            if (sensor_ptr->is_receiver()) {
-                add_multistatic_receiver(sensor, listener);
-            }
-        }
-    } else if (sensor_ptr->multistatic()) {
+    }
+
+    int multistatic = sensor_ptr->multistatic();
+    if (multistatic > 0) {
         if (sensor_ptr->is_source()) {
-            add_multistatic_source(sensor, listener);
+            add_multistatic_source(sensor, multistatic, listener);
         }
         if (sensor_ptr->is_receiver()) {
-            add_multistatic_receiver(sensor, listener);
+            add_multistatic_receiver(sensor, multistatic, listener);
         }
     }
 }
@@ -109,8 +104,7 @@ void bistatic_manager::remove_sensor(const sensor_model::sptr& sensor,
 /**
  * Search all pairs for ones that have this sensor as a source.
  */
-bistatic_list bistatic_manager::find_source(
-    sensor_model::key_type keyID) {
+bistatic_list bistatic_manager::find_source(sensor_model::key_type keyID) {
     read_lock_guard guard(_mutex);
     bistatic_list pair_list;
     for (int receiverID : _rcv_list) {
@@ -126,8 +120,7 @@ bistatic_list bistatic_manager::find_source(
 /**
  * Search all pairs for ones that have this sensor as a receiver.
  */
-bistatic_list bistatic_manager::find_receiver(
-    sensor_model::key_type keyID) {
+bistatic_list bistatic_manager::find_receiver(sensor_model::key_type keyID) {
     read_lock_guard guard(_mutex);
     bistatic_list pair_list;
     for (int sourceID : _src_list) {
@@ -141,53 +134,66 @@ bistatic_list bistatic_manager::find_receiver(
 }
 
 /**
- * Utility to build a monostatic pair
+ * Adds a monostatic sensor pair if new sensor being added is both a source
+ * and receiver. Called from bistatic_manager::add_sensor().
  */
 void bistatic_manager::add_monostatic_pair(
     const sensor_model::sptr& sensor,
     update_listener<bistatic_pair>* listener) {
-    bistatic_pair::sptr pair(new bistatic_pair(sensor, sensor));
-    if (listener != nullptr) {
-        pair->add_listener(listener);
+    const auto* sensor_ptr = dynamic_cast<const sensor_model*>(sensor.get());
+    if (sensor_ptr->min_range() < 1e-6) {
+        bistatic_pair::sptr pair(new bistatic_pair(sensor, sensor));
+        if (listener != nullptr) {
+            pair->add_listener(listener);
+        }
+        add(pair);
     }
-    add(pair);
 }
 
 /**
- * Utility to build a multistatic pair with the given sensor being the source
+ * Creates bistatic pairs between the new source and all bistatic receivers.
+ * Called from bistatic_manager::add_sensor().
  */
 void bistatic_manager::add_multistatic_source(
-    const sensor_model::sptr& source,
+    const sensor_model::sptr& source, int multistatic,
     update_listener<bistatic_pair>* listener) {
     auto sourceID = source->keyID();
     for (auto receiverID : _rcv_list) {
         if (sourceID != receiverID) {
             auto receiver = platform_manager::instance()->find(receiverID);
-            bistatic_pair::sptr pair(new bistatic_pair(source, receiver));
-            if (listener != nullptr) {
-                pair->add_listener(listener);
+            const auto* sensor_ptr =
+                dynamic_cast<const sensor_model*>(receiver.get());
+            if (sensor_ptr->multistatic() == multistatic) {
+                bistatic_pair::sptr pair(new bistatic_pair(source, receiver));
+                if (listener != nullptr) {
+                    pair->add_listener(listener);
+                }
+                add(pair);
             }
-            add(pair);
         }
     }
 }
 
 /**
- * Utility to build a multi-static pair with the given sensor being the
- * receiver
+ * Creates bistatic pairs between the new receiver and all bistatic sources.
+ * Called from bistatic_manager::add_sensor().
  */
 void bistatic_manager::add_multistatic_receiver(
-    const sensor_model::sptr& receiver,
+    const sensor_model::sptr& receiver, int multistatic,
     update_listener<bistatic_pair>* listener) {
     auto receiverID = receiver->keyID();
     for (auto sourceID : _src_list) {
         if (sourceID != receiverID) {
             auto source = platform_manager::instance()->find(sourceID);
-            bistatic_pair::sptr pair(new bistatic_pair(source, receiver));
-            if (listener != nullptr) {
-                pair->add_listener(listener);
+            const auto* sensor_ptr =
+                dynamic_cast<const sensor_model*>(source.get());
+            if (sensor_ptr->multistatic() == multistatic) {
+                bistatic_pair::sptr pair(new bistatic_pair(source, receiver));
+                if (listener != nullptr) {
+                    pair->add_listener(listener);
+                }
+                add(pair);
             }
-            add(pair);
         }
     }
 }

@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(create_eigenray) {
     seq_vector::csptr source_de(new seq_linear(-90.0, 5.0, 90.0));
     seq_vector::csptr source_az(new seq_linear(-180.0, 5.0, 180.0));
     wposition targets(1, 1, 12.0, 37.0);
-    eigenray_collection collection(frequencies, source_pos, &targets);
+    eigenray_collection collection(frequencies, source_pos, targets);
 
     // link collection to factory and create entries
 

@@ -49,8 +49,8 @@ static const double c0 = 1500.0;  // constant sound speed
  * are just copied from the 46E location to the 45.99E one. So we expect some
  * errors in the angle estimate.
  *
- * The dead reckoned eigenrays are written to disk without a source_id or any
- * target_ids just to test our ability to leave these as defaults.
+ * The dead reckoned eigenrays are written to disk without a sourceID or any
+ * targetIDs just to test our ability to leave these as defaults.
  */
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 BOOST_AUTO_TEST_CASE(dead_reckon) {
@@ -82,14 +82,14 @@ BOOST_AUTO_TEST_CASE(dead_reckon) {
 
     // test ability to write target id values to disk
 
-    matrix<int> target_ids(1, 2);
-    for (int n = 0; n < target_ids.size2(); n++) {
-        target_ids(0, n) = n + 2;
+    matrix<int> targetIDs(1, 2);
+    for (int n = 0; n < targetIDs.size2(); n++) {
+        targetIDs(0, n) = n + 2;
     }
 
     // propagate wavefronts and collect eigenrays
 
-    eigenray_collection eigenrays(freq, pos, &targets, 1, target_ids);
+    eigenray_collection eigenrays(freq, pos, targets, 1, targetIDs);
     wave_queue wave(ocean, freq, pos, de, az, time_step, &targets);
     wave.add_eigenray_listener(&eigenrays);
     cout << "propagate wavefronts for " << time_max << " secs" << endl;
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(dead_reckon) {
 
     eigenray_list eigen_reckon = eigenrays.dead_reckon(
         0, 0, pos, wposition1(new_targets, 0, 0), profile);
-    eigenray_collection newrays(freq, pos, &new_targets);
+    eigenray_collection newrays(freq, pos, new_targets);
     for (const auto &ray : eigen_reckon) {
         newrays.add_eigenray(0, 0, ray);
     }

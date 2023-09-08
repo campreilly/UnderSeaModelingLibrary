@@ -14,6 +14,15 @@ _rho(rows, cols), _theta(rows, cols), _phi(rows, cols) {
     clear() ;
 }
 
+/**
+ * Constructs a new wvector as a copy of an existing wvector1.
+ */
+wvector::wvector(const wvector1& other) {
+	_rho = scalar_matrix<double>(1, 1, other.rho());
+	_theta = scalar_matrix<double>(1, 1, other.theta());
+	_phi = scalar_matrix<double>(1, 1, other.phi());
+}
+
 //*********************************
 // utilities
 

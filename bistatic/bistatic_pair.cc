@@ -63,8 +63,7 @@ bistatic_pair::~bistatic_pair() {
 /**
  * Utility to generate a hash key for the bistatic_template
  */
-std::string bistatic_pair::generate_hash_key(int src_id,
-                                             int rcv_id) {
+std::string bistatic_pair::generate_hash_key(int src_id, int rcv_id) {
     std::stringstream key;
     key << src_id << '_' << rcv_id;
     return key.str();
@@ -88,7 +87,6 @@ void bistatic_pair::update_wavefront_data(
     const sensor_model* sensor, eigenray_collection::csptr eigenrays,
     eigenverb_collection::csptr eigenverbs) {
     write_lock_guard guard(_mutex);
-    bool is_receiver = sensor == _receiver.get() && _source != _receiver;
 
     // abort previous biverb generator if it exists
 
@@ -99,17 +97,21 @@ void bistatic_pair::update_wavefront_data(
     // eigenray collection has eigenray list for all targets near this sensor
     // find the eigenray list specific to this pair
 
+    auto sourceID = _source->keyID();
     auto targetID = _receiver->keyID();
-    if (is_receiver) {
+    wposition1 source_pos(_source->position());
+    wposition1 receiver_pos(_receiver->position());
+    eigenray_list raylist = eigenrays->find_eigenrays(targetID);
+
+    // swap source/receiver sense of direct path eigenrays, if needed
+
+    if ( _source != _receiver && sensor->keyID() == _receiver->keyID()) {
+        sourceID = _receiver->keyID();
         targetID = _source->keyID();
-    }
-    auto raylist = eigenrays->find_eigenrays(targetID);
-
-    // swap source/receiver sense of eigenrays, if needed
-
-    if (is_receiver) {
+        source_pos = _receiver->position();
+        receiver_pos = _source->position();
         eigenray_list new_list;
-        for (const auto& ray : raylist) {
+        for (const auto& ray : eigenrays->find_eigenrays(targetID)) {
             auto* copy = new eigenray_model(*ray);
             std::swap(copy->source_de, copy->target_de);
             std::swap(copy->source_az, copy->target_az);
@@ -120,46 +122,41 @@ void bistatic_pair::update_wavefront_data(
 
     // create new collection with just the rays for a single target
 
-    wposition rcv_position(1, 1);
-    rcv_position.rho(0, 0, _receiver->position().rho());
-    rcv_position.theta(0, 0, _receiver->position().theta());
-    rcv_position.phi(0, 0, _receiver->position().phi());
+    matrix<int> receiverID(1, 1);
+    receiverID(0, 0) = targetID;
 
-    matrix<platform_model::key_type> rcv_id(1, 1);
-    rcv_id(0, 0) = _receiver->keyID();
-
-    auto* collection =
-        new eigenray_collection(eigenrays->frequencies(), _source->position(),
-                                &rcv_position, sensor->keyID(), rcv_id);
+    auto* collection = new eigenray_collection(
+        eigenrays->frequencies(), _source->position(), wposition(receiver_pos),
+		sourceID, receiverID, eigenrays->coherent());
     for (const auto& ray : raylist) {
         collection->add_eigenray(0, 0, ray);
     }
-
+    collection->sum_eigenrays();
     _dirpaths = eigenray_collection::csptr(collection);
 
     // update eigenverb contributions
 
     if (_source == _receiver) {
+        _src_eigenverbs = eigenverbs;
         _rcv_eigenverbs = eigenverbs;
-        _src_eigenverbs = _rcv_eigenverbs;
-    } else if (is_receiver) {
+    } else if (sensor->keyID() == _receiver->keyID()) {
         _rcv_eigenverbs = eigenverbs;
     } else {
         _src_eigenverbs = eigenverbs;
     }
 
-    // compute bistatic eigenverbs if source and receiver eigenverbs available
+    // execute notify_update() early if biverbs can't be computed yet
 
     if (_src_eigenverbs == nullptr || _rcv_eigenverbs == nullptr) {
         notify_update(this);
         return;
     }
 
-    // launch a new biverb generator
+    // launch a new bistatic eigenverb generator background task
 
     _biverb_task = std::make_shared<biverb_generator>(this);
     thread_controller::instance()->run(_biverb_task);
-    _biverb_task.reset();  // destroy background task
+    _biverb_task.reset();  // destroy background task shared pointer
 }
 
 /**

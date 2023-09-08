@@ -1,0 +1,157 @@
+/**
+ * @example bistatic/test/bistatic_test.cc
+ */
+
+#include <usml/beampatterns/beampatterns.h>
+#include <usml/bistatic/bistatic.h>
+#include <usml/netcdf/netcdf_files.h>
+#include <usml/ocean/ocean.h>
+#include <usml/platforms/platforms.h>
+
+#include <boost/test/unit_test.hpp>
+
+BOOST_AUTO_TEST_SUITE(bistatic_test)
+
+using namespace boost::unit_test;
+using namespace usml::eigenverbs;
+using namespace usml::eigenrays;
+using namespace usml::netcdf;
+using namespace usml::ocean;
+using namespace usml::platforms;
+using namespace usml::bistatic;
+
+const double south = 34.0;  // Malta Escarpment
+const double north = 38.0;
+const double west = 15.0;
+const double east = 19.0;
+const int month = 8;  // August
+
+/**
+ * Listen for eigenray updates on sensor.
+ */
+class pair_listener : public update_listener<bistatic_pair> {
+   public:
+    /**
+     * Notify listeners of updates to bistatic_pair.
+     *
+     * @param pair  Reference to updated bistatic_pair.
+     */
+    void notify_update(const bistatic_pair* pair) override {
+        cout << "bistatic_test::notify_update " << pair->source()->description()
+             << " -> " << pair->receiver()->description() << endl;
+    }
+};
+pair_listener test_listener;
+
+/**
+ * @ingroup bistatic_test
+ * @{
+ */
+
+/**
+ * Tests the ability to control the production of bistatic_pair objects with the
+ * multistatic(), is_source(), and is_receiver() methods of the sensor_model.
+ * Uses a real world August ocean off the Malta Escarpment around 36:00N and
+ * 17:00E and the following sensors:
+ *
+ * - sensor #1 = south side, monostatic, pairs are 1_1
+ * - sensor #2 = center, pairs are 2_2, 2_3, 2_5
+ * - sensor #3 = north side, source only, pairs are 3_2, 3_3, 3_5,
+ * - sensor #4 = below #3, receiver only
+ * - sensor #5 = east side, pairs are 5_2, 5_4, 5_5
+ *
+ * Sensor #5 is special because the min_range has been set to 1.0 meters.  This means that although
+ *
+ * Tests the ability use a  wavefront_generator, running in the background, to
+ * automatically to compute the bistatic direct path eigenrays (fathometers)
+ * between these sensors. Tests the ability to write dirpath data to netCDF
+ * files.
+ */
+BOOST_AUTO_TEST_CASE(compute_dirpaths) {
+    cout << "=== bistatic_test: compute_dirpaths ===" << endl;
+    const char* ncname = USML_TEST_DIR "/bistatic/test/compute_dirpaths_";
+
+    //    ocean_utils::make_basic(south,north,west,east,month);
+    ocean_utils::make_iso(2000.0);
+    auto* platform_mgr = platform_manager::instance();
+    auto* bistatic_mgr = bistatic_manager::instance();
+    seq_vector::csptr freq(new seq_linear(900.0, 10.0, 1000.0));
+    platform_mgr->frequencies(freq);
+    auto max_time = 10.0;
+
+    // static database of sensor locations (latitude,longitude,altitude)
+
+    // clang-format off
+    static double pos[][3] = {
+		{35.9, 17.0, -100},
+		{36.0, 17.0, -100},
+		{36.1, 17.0, -100},
+		{36.1, 17.0, -500},
+		{36.0, 17.1, -100},
+    };
+    auto num_sites = 5;
+    // clang-format on
+
+    // create platform and bistatic_pair objects.
+
+    for (platform_model::key_type site = 1; site <= num_sites; ++site) {
+        std::ostringstream name;
+        name << "site" << site;
+        const int index = site - 1;
+
+        cout << "add sensor " << name.str() << " (" << pos[index][0] << ","
+             << pos[index][1] << "," << pos[index][2] << ")" << endl;
+        wposition1 position(pos[index][0], pos[index][1], pos[index][2]);
+        auto* sensor = new sensor_model(site, name.str(), 0.0, position);
+        auto platform = platform_model::sptr(sensor);
+
+        auto beam = bp_model::csptr(new bp_omni());
+        sensor->time_maximum(max_time);
+        if (site != 1) {
+            sensor->multistatic(1);
+        }
+        if (site != 3) {
+            sensor->rcv_beam(0, beam);
+        }
+        if (site != 4) {
+            sensor->src_beam(0, beam);
+        }
+        if (site == 5) {
+            sensor->min_range(1.0);
+        }
+
+        platform_mgr->add(platform);
+        bistatic_mgr->add_sensor(platform, &test_listener);
+    }
+
+    // compute acoustics in background for all sensors
+
+    for (auto& platform : platform_mgr->list()) {
+        platform->update(0.0, platform_model::FORCE_UPDATE);
+    }
+    while (thread_task::num_active() > 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    // write direct path collections to disk
+
+    cout << endl << "*** pairs ***" << endl;
+    for (const auto& pair : bistatic_mgr->list()) {
+        cout << pair->description()
+             << " dirpaths=" << pair->dirpaths()->eigenrays().size() << endl;
+        std::ostringstream filename;
+        filename << ncname << pair->hash_key() << ".nc";
+        pair->dirpaths()->write_netcdf(filename.str().c_str());
+    }
+
+    // clean up and exit
+
+    cout << "clean up" << endl;
+    bistatic_manager::reset();
+    platform_manager::reset();
+    ocean_shared::reset();
+    thread_controller::reset();
+}
+
+/// @}
+BOOST_AUTO_TEST_SUITE_END()

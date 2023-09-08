@@ -56,7 +56,7 @@ class USML_DECLSPEC wavefront_generator : public thread_task {
      * @param max_bottom    	The maximum number of bottom bounces.
      * @param max_surface   	The maximum number of surface bounces.
      */
-    wavefront_generator(sensor_model* source, wposition target_positions,
+    wavefront_generator(sensor_model* source, const wposition& target_positions,
                         const matrix<int>& targetIDs,
                         seq_vector::csptr frequencies, seq_vector::csptr de_fan,
                         seq_vector::csptr az_fan, double time_step,

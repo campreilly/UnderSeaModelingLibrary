@@ -37,7 +37,7 @@ using namespace usml::waveq3d;
  * or orientation thresholds.
  */
 wavefront_generator::wavefront_generator(
-    sensor_model* source, wposition target_positions,
+    sensor_model* source, const wposition& target_positions,
     const matrix<int>& targetIDs, seq_vector::csptr frequencies,
     seq_vector::csptr de_fan, seq_vector::csptr az_fan, double time_step,
     double time_maximum, double intensity_threshold, int max_bottom,
@@ -45,7 +45,7 @@ wavefront_generator::wavefront_generator(
     : _ocean(ocean_shared::current()),
       _source(source),
       _source_position(source->position()),
-      _target_positions(std::move(std::move(target_positions))),
+      _target_positions(target_positions),
       _targetIDs(targetIDs),
       _frequencies(std::move(std::move(frequencies))),
       _de_fan(std::move(std::move(de_fan))),
@@ -54,7 +54,8 @@ wavefront_generator::wavefront_generator(
       _time_maximum(time_maximum),
       _intensity_threshold(intensity_threshold),
       _max_bottom(max_bottom),
-      _max_surface(max_surface) {}
+      _max_surface(max_surface) {
+}
 
 /**
  * Executes the WaveQ3D propagation model.
@@ -82,7 +83,7 @@ void wavefront_generator::run() {
     // create listener to store eigenrays, if targets exist
 
     auto* eigenrays = new eigenray_collection(_frequencies, _source_position,
-                                              &_target_positions,
+                                              _target_positions,
                                               _source->keyID(), _targetIDs);
     if (_targetIDs.size1() > 0 && _targetIDs.size2() > 0) {
         wave.add_eigenray_listener(eigenrays);

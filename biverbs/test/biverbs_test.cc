@@ -61,7 +61,7 @@ static ocean_model::csptr build_ocean() {
 }
 
 /**
- * Build hardcoded eigenverb and notify listeners.
+ * Build hard-coded eigenverb and notify listeners.
  */
 static eigenverb_model::csptr create_eigenverb(
     const wposition1 source_pos, double depth, double de, double az,
@@ -103,7 +103,7 @@ static eigenverb_model::csptr create_eigenverb(
 
 /**
  * Tests ability to construct bistatic eigenverbs in a background task. Builds
- * hardcoded eigenverbs on bottom for varying DE and AZ. Launches
+ * hard-coded eigenverbs on bottom for varying DE and AZ. Launches
  * update_wavefront_data() background task to compute biverbs. Extract biverbs,
  * write to disk, and count entries in collection
  */
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
 
     const char* ncname = USML_TEST_DIR "/biverbs/test/biverbs_test.nc";
 
-    build_ocean();
+    ocean_utils::make_iso(depth);
     seq_vector::csptr frequencies(new seq_linear(3000.0, 1.0, 1));
     platform_manager::instance()->frequencies(frequencies);
     wposition1 source_pos(15.0, 35.0, 0.0);
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
 
     // launch update_wavefront_data() background task to compute biverbs
 
-    auto* ray_collection = new eigenray_collection(frequencies, pos1, &pos);
+    auto* ray_collection = new eigenray_collection(frequencies, pos1, pos);
     pair->update_wavefront_data(sensor,
                                 eigenray_collection::csptr(ray_collection),
                                 eigenverb_collection::csptr(verb_collection));

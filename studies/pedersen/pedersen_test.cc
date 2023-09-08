@@ -323,7 +323,7 @@ void analyze_proploss(const seq_vector::csptr& de, double source_depth,
         targets.latitude(n, 0, LAT_SOURCE + to_degrees(angle));
     }
 
-    eigenray_collection eigenrays(freq, pos, &targets);
+    eigenray_collection eigenrays(freq, pos, targets);
     wave_queue wave(ocean, freq, pos, de, az, time_step, &targets);
     wave.add_eigenray_listener(&eigenrays);
 
