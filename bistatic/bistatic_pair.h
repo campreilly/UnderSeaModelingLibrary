@@ -103,6 +103,11 @@ class USML_DECLSPEC bistatic_pair
     /// Overlap of source and receiver eigenverbs.
     biverb_collection::csptr biverbs() const { return _biverbs; }
 
+    /// True if eigenverbs computed for this sensor.
+    bool compute_reverb() const {
+        return _compute_reverb;
+    }
+
     /**
      * Utility to generate a hash key for the bistatic_template
      *
@@ -173,6 +178,9 @@ class USML_DECLSPEC bistatic_pair
 
     /// Direct paths that connect source and receiver locations.
     eigenray_collection::csptr _dirpaths;
+
+    /// True if computing reverberation for this pair.
+    bool _compute_reverb{false};
 
     /// Interface collisions for wavefront emanating from the source.
     eigenverb_collection::csptr _src_eigenverbs;

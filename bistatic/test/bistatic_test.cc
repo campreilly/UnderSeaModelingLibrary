@@ -50,22 +50,31 @@ pair_listener test_listener;
 
 /**
  * Tests the ability to control the production of bistatic_pair objects with the
- * multistatic(), is_source(), and is_receiver() methods of the sensor_model.
- * Uses a real world August ocean off the Malta Escarpment around 36:00N and
- * 17:00E and the following sensors:
+ * multistatic(), is_source(), is_receiver(), and min_range() methods of the
+ * sensor_model. Uses a simple isovelocity ocean with a 2000m depth and the
+ * following sensors:
  *
  * - sensor #1 = south side, monostatic, pairs are 1_1
- * - sensor #2 = center, pairs are 2_2, 2_3, 2_5
- * - sensor #3 = north side, source only, pairs are 3_2, 3_3, 3_5,
+ * - sensor #2 = center, pairs are 2_2, 2_4, 2_5
+ * - sensor #3 = north side, source only, pairs are 3_2, 3_4, 3_5,
  * - sensor #4 = below #3, receiver only
- * - sensor #5 = east side, pairs are 5_2, 5_4, 5_5
+ * - sensor #5 = east side, min range 1m, pairs are 5_2, 5_4
  *
- * Sensor #5 is special because the min_range has been set to 1.0 meters.  This means that although
- *
- * Tests the ability use a  wavefront_generator, running in the background, to
+ * Tests the ability use a wavefront_generator, running in the background, to
  * automatically to compute the bistatic direct path eigenrays (fathometers)
  * between these sensors. Tests the ability to write dirpath data to netCDF
- * files.
+ * files. Tests the ability to exclude reverberation calculations from bistatic
+ * sensor pair processing.
+ *
+ * Test automatically fails if the list of expected bistatic pairs does not
+ * match the list in the documentation above or if any of the bistatic pairs
+ * have less than 5 direct path eigenrays. Previous experiments showed that
+ * monostatic pairs should have about 5 in this environment and that the
+ * bistatic pairs have more. This difference is the result of accuracy limits in
+ * the wavefront generator ray fan for paths near vertical.
+ *
+ * TODO: Compare acoustic paths to analytic solutions to validate number of
+ * paths for each pair.
  */
 BOOST_AUTO_TEST_CASE(compute_dirpaths) {
     cout << "=== bistatic_test: compute_dirpaths ===" << endl;
@@ -89,8 +98,10 @@ BOOST_AUTO_TEST_CASE(compute_dirpaths) {
 		{36.1, 17.0, -500},
 		{36.0, 17.1, -100},
     };
-    auto num_sites = 5;
     // clang-format on
+    auto num_sites = 5;
+    std::string expected_pairs[] = {"1_1", "2_2", "2_4", "2_5", "3_2",
+                                    "3_4", "3_5", "5_2", "5_4"};
 
     // create platform and bistatic_pair objects.
 
@@ -142,6 +153,14 @@ BOOST_AUTO_TEST_CASE(compute_dirpaths) {
         std::ostringstream filename;
         filename << ncname << pair->hash_key() << ".nc";
         pair->dirpaths()->write_netcdf(filename.str().c_str());
+    }
+
+    // check that the rights bistatic pairs created
+
+    int n = 0;
+    for (const auto& pair : bistatic_mgr->list()) {
+        BOOST_CHECK_EQUAL(pair->hash_key(), expected_pairs[n++]);
+        BOOST_CHECK_GE(pair->dirpaths()->eigenrays().size(), 5);
     }
 
     // clean up and exit

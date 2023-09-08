@@ -46,6 +46,7 @@ bistatic_pair::bistatic_pair(const sensor_model::sptr& source,
       _receiver(receiver) {
     auto* source_ptr = dynamic_cast<sensor_model*>(_source.get());
     auto* receiver_ptr = dynamic_cast<sensor_model*>(_receiver.get());
+    _compute_reverb = source_ptr->compute_reverb() && receiver_ptr->compute_reverb();
     source_ptr->add_wavefront_listener(this);
     receiver_ptr->add_wavefront_listener(this);
 }
@@ -133,6 +134,13 @@ void bistatic_pair::update_wavefront_data(
     }
     collection->sum_eigenrays();
     _dirpaths = eigenray_collection::csptr(collection);
+
+    // execute notify_update() early if biverbs never computed
+
+    if (!_compute_reverb) {
+        notify_update(this);
+        return;
+    }
 
     // update eigenverb contributions
 
