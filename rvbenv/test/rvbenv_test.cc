@@ -30,8 +30,6 @@ using namespace usml::rvbenv;
 using namespace usml::types;
 using namespace usml::ublas;
 
-static const double c0 = 1500.0;  // constant sound speed
-
 /**
  * @ingroup rvbenv_test
  * @{

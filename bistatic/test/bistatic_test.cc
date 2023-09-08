@@ -20,12 +20,6 @@ using namespace usml::ocean;
 using namespace usml::platforms;
 using namespace usml::bistatic;
 
-const double south = 34.0;  // Malta Escarpment
-const double north = 38.0;
-const double west = 15.0;
-const double east = 19.0;
-const int month = 8;  // August
-
 /**
  * Listen for eigenray updates on sensor.
  */
@@ -50,9 +44,9 @@ pair_listener test_listener;
 
 /**
  * Tests the ability to control the production of bistatic_pair objects with the
- * multistatic(), is_source(), is_receiver(), and min_range() methods of the
- * sensor_model. Uses a simple isovelocity ocean with a 2000m depth and the
- * following sensors:
+ * multistatic(), is_source(), is_receiver(), min_range(), and compute_reverb()
+ * methods of the sensor_model. Uses a simple isovelocity ocean with a 2000m
+ * depth and the following sensors:
  *
  * - sensor #1 = south side, monostatic, pairs are 1_1
  * - sensor #2 = center, pairs are 2_2, 2_4, 2_5
@@ -63,8 +57,13 @@ pair_listener test_listener;
  * Tests the ability use a wavefront_generator, running in the background, to
  * automatically to compute the bistatic direct path eigenrays (fathometers)
  * between these sensors. Tests the ability to write dirpath data to netCDF
- * files. Tests the ability to exclude reverberation calculations from bistatic
- * sensor pair processing.
+ * files.
+ *
+ * Tests the ability use a biverb_generator, running in the background, to
+ * automatically to compute the bistatic eigenverbs for pairs 2_2 and 2_4. Tests
+ * the ability to exclude reverberation calculations from bistatic sensor pair
+ * processing for all other pairs. Tests the ability to write biverb_model data
+ * to netCDF files.
  *
  * Test automatically fails if the list of expected bistatic pairs does not
  * match the list in the documentation above or if any of the bistatic pairs
@@ -76,9 +75,9 @@ pair_listener test_listener;
  * TODO: Compare acoustic paths to analytic solutions to validate number of
  * paths for each pair.
  */
-BOOST_AUTO_TEST_CASE(compute_dirpaths) {
-    cout << "=== bistatic_test: compute_dirpaths ===" << endl;
-    const char* ncname = USML_TEST_DIR "/bistatic/test/compute_dirpaths_";
+BOOST_AUTO_TEST_CASE(update_wavefront_data) {
+    cout << "=== bistatic_test: update_wavefront_data ===" << endl;
+    const char* ncname = USML_TEST_DIR "/bistatic/test/";
 
     //    ocean_utils::make_basic(south,north,west,east,month);
     ocean_utils::make_iso(2000.0);
@@ -127,6 +126,12 @@ BOOST_AUTO_TEST_CASE(compute_dirpaths) {
         if (site != 4) {
             sensor->src_beam(0, beam);
         }
+        if (site == 2) {
+            sensor->compute_reverb(true);
+        }
+        if (site == 4) {
+            sensor->compute_reverb(true);
+        }
         if (site == 5) {
             sensor->min_range(1.0);
         }
@@ -150,9 +155,16 @@ BOOST_AUTO_TEST_CASE(compute_dirpaths) {
     for (const auto& pair : bistatic_mgr->list()) {
         cout << pair->description()
              << " dirpaths=" << pair->dirpaths()->eigenrays().size() << endl;
-        std::ostringstream filename;
-        filename << ncname << pair->hash_key() << ".nc";
-        pair->dirpaths()->write_netcdf(filename.str().c_str());
+        if ( pair->dirpaths() != nullptr ) {
+			std::ostringstream filename;
+			filename << ncname << "dirpaths_" << pair->hash_key() << ".nc";
+			pair->dirpaths()->write_netcdf(filename.str().c_str());
+        }
+        if ( pair->biverbs() != nullptr ) {
+			std::ostringstream filename;
+			filename << ncname << "biverbs_" << pair->hash_key() << ".nc";
+			pair->biverbs()->write_netcdf(filename.str().c_str(),0);
+        }
     }
 
     // check that the rights bistatic pairs created

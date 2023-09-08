@@ -46,21 +46,6 @@ static const double az_spacing = 10.0;
 static const double depth = 1000.0;
 
 /**
- * Construct the ocean model from its constituent parts.
- */
-static ocean_model::csptr build_ocean() {
-    attenuation_model::csptr attn(new attenuation_constant(0.0));
-    profile_model::csptr profile_csptr(new profile_linear());
-
-    boundary_model::csptr surface(new boundary_flat());
-    boundary_model::csptr bottom(new boundary_flat(-depth));
-
-    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile_csptr));
-    ocean_shared::update(ocean);
-    return ocean;
-}
-
-/**
  * Build hard-coded eigenverb and notify listeners.
  */
 static eigenverb_model::csptr create_eigenverb(
@@ -126,7 +111,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     bistatic_list blist = bmgr->find_source(0);
     bistatic_pair::sptr pair = *(blist.begin());
 
-    // build hardcoded eigenverbs on bottom for varying DE and AZ
+    // build hard-coded eigenverbs on bottom for varying DE and AZ
 
     wposition1 pos1 = sensor->position();
     wposition pos(1, 1, pos1.latitude(), pos1.longitude(), pos1.altitude());

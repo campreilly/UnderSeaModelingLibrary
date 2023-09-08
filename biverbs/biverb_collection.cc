@@ -186,6 +186,7 @@ void biverb_collection::add_biverb(const eigenverb_model::csptr& src_verb,
  */
 void biverb_collection::write_netcdf(const char* filename,
                                      size_t interface) const {
+    read_lock_guard guard(_mutex);
     NcFile nc_file(filename, NcFile::Replace);
 
     switch (interface) {

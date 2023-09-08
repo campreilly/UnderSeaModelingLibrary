@@ -46,10 +46,10 @@ else( CMAKE_COMPILER_IS_GNUCXX )
         set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
     endif()
     set(CMAKE_CXX_STANDARD 17)
-    if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) ) # min optimizations
+    if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) ) # disable optimizations
        add_definitions( -g -O0 )
-    else()                              	# max optimizations
-	   add_definitions( -g -ffast-math -fno-finite-math-only )
+    else()                              	# fast optimizations
+	   add_definitions( -g -Ofast -fno-finite-math-only )
     endif()
     add_definitions( -pthread )
     if ( USML_PEDANTIC )                	# standards compliance
@@ -62,6 +62,7 @@ else( CMAKE_COMPILER_IS_GNUCXX )
             "-clang-analyzer-security.FloatLoopCounter,"
             "-modernize-avoid-c-arrays,"
             "-modernize-use-trailing-return-type,"
+            "-modernize-pass-by-value,"
             "-readability-identifier-length,"
             "-readability-magic-numbers,"
             "-misc-const-correctness")
