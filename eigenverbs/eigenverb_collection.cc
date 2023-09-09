@@ -4,25 +4,25 @@
 
 #include <ncvalues.h>
 #include <netcdfcpp.h>
-#include <usml/eigenrays/eigenrays.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
-#include <usml/threads/read_write_lock.h>
 #include <usml/types/seq_data.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition1.h>
 #include <usml/ublas/math_traits.h>
 #include <usml/ublas/vector_math.h>
 
-#include <boost/geometry/geometry.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
+#include <boost/geometry/index/detail/predicates.hpp>
+#include <boost/geometry/index/predicates.hpp>
+#include <boost/numeric/ublas/storage.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/vector_expression.hpp>
 #include <cmath>
-#include <cstddef>
 #include <iostream>
 #include <iterator>
 #include <list>
-#include <memory>
 #include <sstream>
 #include <string>
-#include <utility>
 
 using namespace usml::eigenverbs;
 

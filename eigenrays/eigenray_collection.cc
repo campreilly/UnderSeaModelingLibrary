@@ -6,25 +6,15 @@
 #include <ncvalues.h>
 #include <netcdfcpp.h>
 #include <usml/eigenrays/eigenray_collection.h>
-#include <usml/eigenrays/eigenray_model.h>
-#include <usml/ocean/profile_model.h>
-#include <usml/types/seq_vector.h>
-#include <usml/types/wposition.h>
-#include <usml/types/wposition1.h>
-#include <usml/types/wvector.h>
 #include <usml/types/wvector1.h>
 #include <usml/ublas/math_traits.h>
 
 #include <algorithm>
-#include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/storage.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <cmath>
 #include <complex>
-#include <cstddef>
 #include <list>
-#include <memory>
-#include <utility>
 
 using namespace usml::eigenrays;
 

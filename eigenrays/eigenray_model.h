@@ -29,7 +29,7 @@ struct eigenray_model {
     eigenray_model() {}
 
     /// Copy constructor.
-    eigenray_model( const eigenray_model& other ) = default;
+    eigenray_model(const eigenray_model& other) = default;
 
     /**
      * Time of arrival for this acoustic path (sec).

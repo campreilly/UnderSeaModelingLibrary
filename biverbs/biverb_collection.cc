@@ -15,8 +15,6 @@
 #include <string>
 
 using namespace usml::biverbs;
-using namespace usml::eigenverbs;
-using namespace usml::sensors;
 
 // #define DEBUG_BIVERB
 

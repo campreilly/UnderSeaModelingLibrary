@@ -69,7 +69,7 @@ class USML_DECLSPEC sensor_pair
      * @param    receiver    Reference to the receiver for this pair.
      */
     sensor_pair(const sensor_model::sptr& source,
-                  const sensor_model::sptr& receiver);
+                const sensor_model::sptr& receiver);
 
     /**
      * Virtual destructor.
@@ -104,9 +104,7 @@ class USML_DECLSPEC sensor_pair
     biverb_collection::csptr biverbs() const { return _biverbs; }
 
     /// True if eigenverbs computed for this sensor.
-    bool compute_reverb() const {
-        return _compute_reverb;
-    }
+    bool compute_reverb() const { return _compute_reverb; }
 
     /**
      * Utility to generate a hash key for the bistatic_template
@@ -197,5 +195,5 @@ class USML_DECLSPEC sensor_pair
 typedef std::list<sensor_pair::sptr> bistatic_list;
 
 /// @}
-}  // end of namespace bistatic
+}  // namespace sensors
 }  // end of namespace usml

@@ -19,8 +19,9 @@ class sensor_pair;
 namespace usml {
 namespace biverbs {
 
-using namespace usml::sensors;
+using namespace usml::eigenverbs;
 using namespace usml::managed;
+using namespace usml::sensors;
 using namespace usml::threads;
 
 /// @ingroup biverbs

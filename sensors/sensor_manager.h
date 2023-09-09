@@ -100,8 +100,8 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
      * @param keyID 	Identification used to find this sensor_model.
      * @return    		nullptr if not found.
      */
-    typename sensor_model::sptr find_sensor(
-        typename sensor_model::key_type keyID) const;
+    static typename sensor_model::sptr find_sensor(
+        typename sensor_model::key_type keyID);
 
     /**
      * Search all pairs for ones that have this sensor as a source.

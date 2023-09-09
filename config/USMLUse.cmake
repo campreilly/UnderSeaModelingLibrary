@@ -74,21 +74,6 @@ else( CMAKE_COMPILER_IS_GNUCXX )
     endif ( NOT BUILD_SHARED_LIBS )
 endif()
 
-# if debug is the build type then add any extra debug flags requires
-set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSML_DEBUG" )
-if( USML_DEBUG_EIGENVERBS )
-	set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_EIGENVERBS" )
-endif()
-if( USML_DEBUG_ENVELOPE )
-	set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_ENVELOPE" )
-endif()
-if( USML_DEBUG_EIGENRAYS )
-	set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_EIGENRAYS" )
-endif()
-if( USML_DEBUG_EIGENRAYS_DETAIL )
-	set ( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_EIGENRAYS_DETAIL" )
-endif()	
-
 ######################################################################
 # Boost C++ utility libraries for ublas and unit_test_framework
 #

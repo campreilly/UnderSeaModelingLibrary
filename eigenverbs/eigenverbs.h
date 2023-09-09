@@ -1,6 +1,6 @@
 /**
  * @file eigenverbs.h
- * Gaussian beam projection of an acoustic ray onto interface.
+ * Gaussian beam projection of an acoustic ray onto a reverberation interface.
  *
  * @defgroup eigenverbs Eigenverbs
  *

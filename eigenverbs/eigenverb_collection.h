@@ -9,11 +9,7 @@
 #include <usml/threads/read_write_lock.h>
 #include <usml/usml_config.h>
 
-#include <boost/geometry/core/cs.hpp>
-#include <boost/geometry/geometries/box.hpp>
-#include <boost/geometry/geometries/point.hpp>
-#include <boost/geometry/index/parameters.hpp>
-#include <boost/geometry/index/rtree.hpp>
+#include <boost/geometry/geometry.hpp>
 #include <cstddef>
 #include <memory>
 #include <utility>

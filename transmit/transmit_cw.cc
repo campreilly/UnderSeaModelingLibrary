@@ -22,7 +22,7 @@ using namespace usml::transmit;
  */
 transmit_cw::transmit_cw(const std::string& type, double duration,
                          double fcenter, double delay, double source_level,
-						 window::type window, double window_param,
+                         window::type window, double window_param,
                          double orderedAZ, double orderedDE, int transmit_mode,
                          double treverb)
     : transmit_model(type, duration, fcenter, 1.0 / duration, delay,
@@ -32,9 +32,8 @@ transmit_cw::transmit_cw(const std::string& type, double duration,
 /**
  * Creates a complex analytic signal for this waveform.
  */
-cdvector transmit_cw::asignal(double fsample, double fband,
-                                              double inphase,
-                                              double* outphase) {
+cdvector transmit_cw::asignal(double fsample, double fband, double inphase,
+                              double* outphase) {
     const int N = int(round(duration * fsample));
     const double T = N / fsample;
     const double omega = TWO_PI * (fcenter - fband);

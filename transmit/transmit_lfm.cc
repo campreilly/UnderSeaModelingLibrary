@@ -22,7 +22,7 @@ using namespace usml::transmit;
  */
 transmit_lfm::transmit_lfm(const std::string& type, double duration,
                            double fcenter, double delay, double source_level,
-						   window::type window, double window_param,
+                           window::type window, double window_param,
                            double orderedAZ, double orderedDE,
                            int transmit_mode, double treverb)
     : transmit_model(type, duration, fcenter, 1.0 / duration, delay,
@@ -32,9 +32,8 @@ transmit_lfm::transmit_lfm(const std::string& type, double duration,
 /**
  * Creates a complex analytic signal for this waveform.
  */
-cdvector transmit_lfm::asignal(double fsample, double fband,
-                                               double inphase,
-                                               double* outphase) {
+cdvector transmit_lfm::asignal(double fsample, double fband, double inphase,
+                               double* outphase) {
     const int N = int(round(duration * fsample));
     const double T = N / fsample;
     const double omega = TWO_PI * (fcenter - 0.5 * bandwidth - fband);
@@ -43,8 +42,8 @@ cdvector transmit_lfm::asignal(double fsample, double fband,
         *outphase = fmod(slope * T * T + omega * T + inphase, TWO_PI);
     }
     vector<double> t = seq_linear(0.0, 1.0 / fsample, N).data();
-    cdvector signal = usml::ublas::asignal(
-        slope * usml::ublas::abs2(t) + omega * t + inphase);
+    cdvector signal = usml::ublas::asignal(slope * usml::ublas::abs2(t) +
+                                           omega * t + inphase);
     add_window(signal);
     return signal;
 }

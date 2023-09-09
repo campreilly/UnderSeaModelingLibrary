@@ -9,6 +9,7 @@
 #include <usml/threads/read_write_lock.h>
 #include <usml/usml_config.h>
 
+#include <boost/numeric/ublas/vector.hpp>
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -18,7 +19,6 @@ namespace usml {
 namespace biverbs {
 
 using namespace usml::eigenverbs;
-using namespace usml::types;
 using namespace usml::threads;
 
 /// @ingroup biverbs
@@ -51,7 +51,7 @@ class USML_DECLSPEC biverb_collection {
      *
      * @param num_volumes    Number of volume scattering layers in the ocean.
      */
-    biverb_collection(size_t num_volumes=0)
+    biverb_collection(size_t num_volumes = 0)
         : _collection((1 + num_volumes) * 2) {}
 
     /**

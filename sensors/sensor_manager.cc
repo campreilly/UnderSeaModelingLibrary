@@ -9,6 +9,7 @@
 
 #include <list>
 #include <memory>
+#include <utility>
 
 using namespace usml::platforms;
 using namespace usml::sensors;
@@ -45,8 +46,7 @@ sensor_manager* sensor_manager::instance() {
 void sensor_manager::reset() {
     write_lock_guard guard(_mutex);
     _instance.reset();
-    auto* pmgr = platform_manager::instance();
-    pmgr->reset();
+    usml::platforms::platform_manager::reset();
 }
 
 /**
@@ -62,7 +62,7 @@ seq_vector::csptr sensor_manager::frequencies() const {
  */
 void sensor_manager::frequencies(seq_vector::csptr freq) {
     write_lock_guard guard(_mutex);
-    _frequencies = freq;
+    _frequencies = std::move(freq);
 }
 
 /**
@@ -131,7 +131,7 @@ void sensor_manager::remove_sensor(const sensor_model::sptr& sensor,
  * Find a specific object in the map.
  */
 typename sensor_model::sptr sensor_manager::find_sensor(
-    typename sensor_model::key_type keyID) const {
+    typename sensor_model::key_type keyID) {
     auto* pmgr = platform_manager::instance();
     return std::dynamic_pointer_cast<sensor_model>(pmgr->find(keyID));
 }

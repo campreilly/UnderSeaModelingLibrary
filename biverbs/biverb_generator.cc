@@ -3,27 +3,21 @@
  * Computes reverberation envelopes from eigenverbs.
  */
 
-#include <usml/biverbs/biverb_collection.h>
 #include <usml/biverbs/biverb_generator.h>
-#include <usml/eigenverbs/eigenverb_collection.h>
 #include <usml/eigenverbs/eigenverb_model.h>
-#include <usml/managed/update_notifier.h>
+#include <usml/managed/managed_obj.h>
 #include <usml/ocean/ocean_model.h>
 #include <usml/ocean/ocean_shared.h>
 #include <usml/sensors/sensor_manager.h>
-#include <usml/threads/thread_task.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/types/seq_vector.h>
 
 #include <boost/numeric/ublas/vector.hpp>
-#include <usml/sensors/sensor_pair.h>
 #include <iostream>
 #include <memory>
+#include <string>
 
-using namespace usml::eigenverbs;
 using namespace usml::biverbs;
-using namespace usml::ocean;
-using namespace usml::sensors;
-using namespace usml::types;
 
 #define DEBUG_BIVERB
 

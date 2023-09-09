@@ -1,6 +1,6 @@
 /**
  * @file eigenverb_model.h
- * Combination of source and receiver eignverbs for a bistatic pair.
+ * Gaussian beam projection of an acoustic ray onto a reverberation interface.
  */
 #pragma once
 
@@ -21,10 +21,10 @@ using namespace usml::types;
 /// @{
 
 /**
- * Combination of source and receiver eignverbs for a bistatic pair. The name is
- * taken from the fact that eigenverbs provide discreet components of the total
- * reverberation in the same way that eigenrays provide discreet components of
- * the total transmission loss.
+ * Gaussian beam projection of an acoustic ray onto a reverberation interface.
+ * The name is taken from the fact that eigenverbs provide discreet components
+ * of the total reverberation in the same way that eigenrays provide discreet
+ * components of the total transmission loss.
  *
  * To avoid conversions during the reverberation envelope generation process,
  * the attributes for direction, grazing, source_de, and source_az are

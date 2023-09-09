@@ -38,13 +38,15 @@ class USML_DECLSPEC transmit_cw : public transmit_model {
      * @param duration      Duration of the transmitted signal (sec).
      * @param fcenter       Center frequency for current modulation scheme (Hz).
      * @param delay         Delay after completion of previous pulse (sec).
-     * @param source_level  Peak intensity of the transmitted pulse (microPa at 1m).
+     * @param source_level  Peak intensity of the transmitted pulse (microPa at
+     * 1m).
      * @param window        Waveform shading window.
      * @param window_param  Waveform shading parameter.
      * @param orderedAZ  	Ordered steering azimuth direction (deg).
      * @param orderedDE  	Ordered steering elevation direction (deg)
      * @param transmit_mode Transmitter beam pattern number to use.
-     * @param treverb  		Override time resolution for reverb calculations.
+     * @param treverb  		Override time resolution for reverb
+     * calculations.
      */
     transmit_cw(const std::string& type, double duration, double fcenter,
                 double delay, double source_level, window::type window,

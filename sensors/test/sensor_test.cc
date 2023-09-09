@@ -6,9 +6,9 @@
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/ocean/ocean.h>
 #include <usml/platforms/platforms.h>
+#include <usml/sensors/sensors.h>
 
 #include <boost/test/unit_test.hpp>
-#include <usml/sensors/sensors.h>
 
 BOOST_AUTO_TEST_SUITE(bistatic_test)
 
@@ -151,15 +151,15 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     for (const auto& pair : sensor_mgr->list()) {
         cout << pair->description()
              << " dirpaths=" << pair->dirpaths()->eigenrays().size() << endl;
-        if ( pair->dirpaths() != nullptr ) {
-			std::ostringstream filename;
-			filename << ncname << "dirpaths_" << pair->hash_key() << ".nc";
-			pair->dirpaths()->write_netcdf(filename.str().c_str());
+        if (pair->dirpaths() != nullptr) {
+            std::ostringstream filename;
+            filename << ncname << "dirpaths_" << pair->hash_key() << ".nc";
+            pair->dirpaths()->write_netcdf(filename.str().c_str());
         }
-        if ( pair->biverbs() != nullptr ) {
-			std::ostringstream filename;
-			filename << ncname << "biverbs_" << pair->hash_key() << ".nc";
-			pair->biverbs()->write_netcdf(filename.str().c_str(),0);
+        if (pair->biverbs() != nullptr) {
+            std::ostringstream filename;
+            filename << ncname << "biverbs_" << pair->hash_key() << ".nc";
+            pair->biverbs()->write_netcdf(filename.str().c_str(), 0);
         }
     }
 
