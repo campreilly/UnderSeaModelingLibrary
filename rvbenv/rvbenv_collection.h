@@ -5,9 +5,9 @@
  */
 #pragma once
 
-#include <usml/bistatic/bistatic_pair.h>
 #include <usml/biverbs/biverb_collection.h>
 #include <usml/biverbs/biverb_model.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/types/orientation.h>
 #include <usml/types/seq_vector.h>
@@ -21,8 +21,8 @@
 namespace usml {
 namespace rvbenv {
 
-using namespace usml::bistatic;
-using namespace usml::eigenverbs;
+using namespace usml::biverbs;
+using namespace usml::sensors;
 using namespace usml::threads;
 using namespace usml::types;
 
@@ -44,14 +44,14 @@ class USML_DECLSPEC rvbenv_collection {
     typedef std::shared_ptr<const rvbenv_collection> csptr;
 
     /**
-     * Initialize model with data from a bistatic_pair.
+     * Initialize model with data from a sensor_pair.
      *
      * @param pair       	Bistatic pair that creates reverberation.
      * @param times 		Times at which reverb is computed (sec).
      * @param freqs  		Frequencies at which reverb is computed (Hz).
      * @param num_azimuths	Number of receiver azimuths in result.
      */
-    rvbenv_collection(const bistatic_pair::sptr& pair, seq_vector::csptr times,
+    rvbenv_collection(const sensor_pair::sptr& pair, seq_vector::csptr times,
                       seq_vector::csptr freqs, size_t num_azimuths);
 
     /**
@@ -87,10 +87,10 @@ class USML_DECLSPEC rvbenv_collection {
     size_t num_rcv_beams() const { return _num_rcv_beams; }
 
     // Reference to source sensor
-    const sensor_model* source() const { return _source; }
+    const sensor_model::sptr source() const { return _source; }
 
     // Reference to receiver sensor
-    const sensor_model* receiver() const { return _receiver; }
+    const sensor_model::sptr receiver() const { return _receiver; }
 
     /// Source position at time that class constructed.
     const wposition1& source_pos() const {
@@ -194,10 +194,10 @@ class USML_DECLSPEC rvbenv_collection {
     size_t _num_rcv_beams;
 
     // Reference to source sensor
-    const sensor_model* _source;
+    sensor_model::sptr _source;
 
     // Reference to source sensor
-    const sensor_model* _receiver;
+    sensor_model::sptr _receiver;
 
     /// Source position at time that class constructed.
     wposition1 _source_pos;

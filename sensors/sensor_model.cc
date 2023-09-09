@@ -8,7 +8,8 @@
 #include <usml/managed/manager_template.h>
 #include <usml/platforms/motion_thresholds.h>
 #include <usml/platforms/platform_manager.h>
-#include <usml/platforms/sensor_model.h>
+#include <usml/sensors/sensor_manager.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_pool.h>
@@ -24,6 +25,7 @@
 #include <utility>
 
 using namespace usml::platforms;
+using namespace usml::sensors;
 using namespace usml::wavegen;
 
 /**
@@ -148,7 +150,7 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
                 targetIDs(count, 0) = target->keyID();
                 ++count;
             }
-            auto frequencies = platform_manager::instance()->frequencies();
+            auto frequencies = sensor_manager::instance()->frequencies();
 
             _wavefront_task = std::make_shared<wavefront_generator>(
                 this, tpos, targetIDs, frequencies, _de_fan, _az_fan,

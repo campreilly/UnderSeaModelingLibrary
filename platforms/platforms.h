@@ -10,11 +10,6 @@
  * platforms. Children's positions and orientations in world coordinates are
  * updated each time that the platform's position or orientation changes.
  *
- * Sensors are platforms that are can automatically compute there own acoustics.
- * Simple sensors can be implemented as objects that control their own motion,
- * or they can be attached to host platforms. Uses update_notifier to notify
- * listeners when eigenray and eigenverb data has changed.
- *
  * @defgroup platforms_test Regression Tests
  * @ingroup platforms
  *
@@ -25,6 +20,3 @@
 #include <usml/platforms/motion_thresholds.h>
 #include <usml/platforms/platform_manager.h>
 #include <usml/platforms/platform_model.h>
-#include <usml/platforms/sensor_model.h>
-#include <usml/wavegen/wavefront_generator.h>
-#include <usml/wavegen/wavefront_listener.h>

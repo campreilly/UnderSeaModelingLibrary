@@ -10,7 +10,7 @@
 #include <usml/usml_config.h>
 
 namespace usml {
-namespace platforms {
+namespace sensors {
 class sensor_model;
 }
 }
@@ -20,7 +20,7 @@ namespace wavegen {
 
 using namespace usml::eigenrays;
 using namespace usml::eigenverbs;
-using namespace usml::platforms;
+using namespace usml::sensors;
 
 /// @ingroup wavegen
 /// @{

@@ -3,7 +3,6 @@
  * Computes reverberation envelopes from eigenverbs.
  */
 
-#include <usml/bistatic/bistatic_pair.h>
 #include <usml/biverbs/biverb_collection.h>
 #include <usml/biverbs/biverb_generator.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
@@ -11,18 +10,19 @@
 #include <usml/managed/update_notifier.h>
 #include <usml/ocean/ocean_model.h>
 #include <usml/ocean/ocean_shared.h>
-#include <usml/platforms/platform_manager.h>
+#include <usml/sensors/sensor_manager.h>
 #include <usml/threads/thread_task.h>
 #include <usml/types/seq_vector.h>
 
 #include <boost/numeric/ublas/vector.hpp>
+#include <usml/sensors/sensor_pair.h>
 #include <iostream>
 #include <memory>
 
 using namespace usml::eigenverbs;
 using namespace usml::biverbs;
 using namespace usml::ocean;
-using namespace usml::platforms;
+using namespace usml::sensors;
 using namespace usml::types;
 
 #define DEBUG_BIVERB
@@ -31,8 +31,8 @@ using namespace usml::types;
  * Copies envelope computation parameters from static memory into
  * this specific task.
  */
-biverb_generator::biverb_generator(bistatic_pair* pair)
-    : _bistatic_pair(pair),
+biverb_generator::biverb_generator(sensor_pair* pair)
+    : _sensor_pair(pair),
       _src_eigenverbs(pair->src_eigenverbs()),
       _rcv_eigenverbs(pair->rcv_eigenverbs()) {
     add_listener(pair);
@@ -48,13 +48,13 @@ void biverb_generator::run() {
         return;
     }
     cout << "task #" << id()
-         << " biverb_generator: " << _bistatic_pair->description() << endl;
+         << " biverb_generator: " << _sensor_pair->description() << endl;
 
     // initialize workspace for results
 
     auto ocean = ocean_shared::current();
-    auto freq = platform_manager::instance()->frequencies();
-    const size_t num_freq = platform_manager::instance()->frequencies()->size();
+    auto freq = sensor_manager::instance()->frequencies();
+    const size_t num_freq = freq->size();
     vector<double> scatter(num_freq, 0.0);
     auto* collection = new biverb_collection(ocean->num_volume());
 

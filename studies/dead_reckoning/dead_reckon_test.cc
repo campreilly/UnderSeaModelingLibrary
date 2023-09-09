@@ -3,12 +3,12 @@
  */
 
 #include <usml/beampatterns/beampatterns.h>
-#include <usml/bistatic/bistatic.h>
 #include <usml/ocean/boundary_flat.h>
 #include <usml/ocean/ocean.h>
 #include <usml/platforms/platforms.h>
 
 #include <boost/timer.hpp>
+#include <usml/sensors/sensors.h>
 #include <list>
 
 using namespace usml::bistatic;
@@ -56,7 +56,7 @@ class USML_DECLSPEC test_sonobuoy : public sensor_model {
  */
 int main(int  /*argc*/, char*  /*argv*/[]) {
     platform_manager* platform_mgr = platform_manager::instance();
-    bistatic_manager* bistatic_mgr = bistatic_manager::instance();
+    sensor_manager* bistatic_mgr = sensor_manager::instance();
 
     // define frequencies for calculation (2.0K, 5.3K, 8.6K, 11.9K)
 

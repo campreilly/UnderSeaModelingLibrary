@@ -1,38 +1,38 @@
 /**
- * @file bistatic_manager.cc
+ * @file sensor_manager.cc
  * Manages the containers for all the bistatic pair's in use by the USML.
  */
 
-#include <usml/bistatic/bistatic_manager.h>
 #include <usml/platforms/platform_manager.h>
+#include <usml/sensors/sensor_manager.h>
 #include <usml/threads/read_write_lock.h>
 
 #include <list>
 #include <memory>
 
-using namespace usml::bistatic;
 using namespace usml::platforms;
+using namespace usml::sensors;
 
 /**
  * Initialization of private static member _instance
  */
-std::unique_ptr<bistatic_manager> bistatic_manager::_instance;
+std::unique_ptr<sensor_manager> sensor_manager::_instance;
 
 /**
- * The _mutex for the singleton bistatic_manager.
+ * The _mutex for the singleton sensor_manager.
  */
-read_write_lock bistatic_manager::_instance_mutex;
+read_write_lock sensor_manager::_mutex;
 
 /**
  * Singleton Constructor - Double Check Locking Pattern DCLP
  */
-bistatic_manager* bistatic_manager::instance() {
-    bistatic_manager* tmp = _instance.get();
+sensor_manager* sensor_manager::instance() {
+    sensor_manager* tmp = _instance.get();
     if (tmp == nullptr) {
-        write_lock_guard guard(_instance_mutex);
+        write_lock_guard guard(_mutex);
         tmp = _instance.get();
         if (tmp == nullptr) {
-            tmp = new bistatic_manager();
+            tmp = new sensor_manager();
             _instance.reset(tmp);
         }
     }
@@ -40,42 +40,64 @@ bistatic_manager* bistatic_manager::instance() {
 }
 
 /**
- * Reset the bistatic_manager instance to empty.
+ * Reset the sensor_manager instance to empty.
  */
-void bistatic_manager::reset() {
-    write_lock_guard guard(_instance_mutex);
+void sensor_manager::reset() {
+    write_lock_guard guard(_mutex);
     _instance.reset();
+    auto* pmgr = platform_manager::instance();
+    pmgr->reset();
+}
+
+/**
+ * Frequencies over which propagation is computed (Hz).
+ */
+seq_vector::csptr sensor_manager::frequencies() const {
+    read_lock_guard guard(_mutex);
+    return _frequencies;
+}
+
+/**
+ * Frequencies over which propagation is computed (Hz).
+ */
+void sensor_manager::frequencies(seq_vector::csptr freq) {
+    write_lock_guard guard(_mutex);
+    _frequencies = freq;
 }
 
 /**
  * Adds a sensor into the bistatic pair manager.
  */
-void bistatic_manager::add_sensor(const sensor_model::sptr& sensor,
-                                  update_listener<bistatic_pair>* listener) {
+void sensor_manager::add_sensor(const sensor_model::sptr& sensor,
+                                update_listener<sensor_pair>* listener) {
     write_lock_guard guard(_mutex);
+
+    // add reference to platform_manager
+
+    auto* pmgr = platform_manager::instance();
+    pmgr->add(sensor);
 
     // add sensor ID to the lists of active sources and receivers
 
-    const auto* sensor_ptr = dynamic_cast<const sensor_model*>(sensor.get());
-    if (sensor_ptr->is_source()) {
+    if (sensor->is_source()) {
         _src_list.insert(sensor->keyID());
     }
-    if (sensor_ptr->is_receiver()) {
+    if (sensor->is_receiver()) {
         _rcv_list.insert(sensor->keyID());
     }
 
     // add pair as required
 
-    if (sensor_ptr->is_source() && sensor_ptr->is_receiver()) {
+    if (sensor->is_source() && sensor->is_receiver()) {
         add_monostatic_pair(sensor, listener);
     }
 
-    int multistatic = sensor_ptr->multistatic();
+    int multistatic = sensor->multistatic();
     if (multistatic > 0) {
-        if (sensor_ptr->is_source()) {
+        if (sensor->is_source()) {
             add_multistatic_source(sensor, multistatic, listener);
         }
-        if (sensor_ptr->is_receiver()) {
+        if (sensor->is_receiver()) {
             add_multistatic_receiver(sensor, multistatic, listener);
         }
     }
@@ -85,8 +107,8 @@ void bistatic_manager::add_sensor(const sensor_model::sptr& sensor,
  * Removes a sensor into the bistatic pair manager. Searches for all pairs that
  * have this sensor as a source or receiver.
  */
-void bistatic_manager::remove_sensor(const sensor_model::sptr& sensor,
-                                     update_listener<bistatic_pair>* listener) {
+void sensor_manager::remove_sensor(const sensor_model::sptr& sensor,
+                                   update_listener<sensor_pair>* listener) {
     write_lock_guard guard(_mutex);
 
     // remove sensor from the lists of active sources and receivers
@@ -99,16 +121,29 @@ void bistatic_manager::remove_sensor(const sensor_model::sptr& sensor,
     remove_monostatic_pair(sensor, listener);
     remove_multistatic_source(sensor, listener);
     remove_multistatic_receiver(sensor, listener);
+
+    // remove reference from platform_manager
+
+    platform_manager::instance()->remove(sensor->keyID());
+}
+
+/**
+ * Find a specific object in the map.
+ */
+typename sensor_model::sptr sensor_manager::find_sensor(
+    typename sensor_model::key_type keyID) const {
+    auto* pmgr = platform_manager::instance();
+    return std::dynamic_pointer_cast<sensor_model>(pmgr->find(keyID));
 }
 
 /**
  * Search all pairs for ones that have this sensor as a source.
  */
-bistatic_list bistatic_manager::find_source(sensor_model::key_type keyID) {
+bistatic_list sensor_manager::find_source(sensor_model::key_type keyID) {
     read_lock_guard guard(_mutex);
     bistatic_list pair_list;
     for (int receiverID : _rcv_list) {
-        auto hash_key = bistatic_pair::generate_hash_key(keyID, receiverID);
+        auto hash_key = sensor_pair::generate_hash_key(keyID, receiverID);
         auto pair = find(hash_key);
         if (pair != nullptr) {
             pair_list.push_back(pair);
@@ -120,11 +155,11 @@ bistatic_list bistatic_manager::find_source(sensor_model::key_type keyID) {
 /**
  * Search all pairs for ones that have this sensor as a receiver.
  */
-bistatic_list bistatic_manager::find_receiver(sensor_model::key_type keyID) {
+bistatic_list sensor_manager::find_receiver(sensor_model::key_type keyID) {
     read_lock_guard guard(_mutex);
     bistatic_list pair_list;
     for (int sourceID : _src_list) {
-        auto hash_key = bistatic_pair::generate_hash_key(sourceID, keyID);
+        auto hash_key = sensor_pair::generate_hash_key(sourceID, keyID);
         auto pair = find(hash_key);
         if (pair != nullptr) {
             pair_list.push_back(pair);
@@ -135,14 +170,12 @@ bistatic_list bistatic_manager::find_receiver(sensor_model::key_type keyID) {
 
 /**
  * Adds a monostatic sensor pair if new sensor being added is both a source
- * and receiver. Called from bistatic_manager::add_sensor().
+ * and receiver. Called from sensor_manager::add_sensor().
  */
-void bistatic_manager::add_monostatic_pair(
-    const sensor_model::sptr& sensor,
-    update_listener<bistatic_pair>* listener) {
-    const auto* sensor_ptr = dynamic_cast<const sensor_model*>(sensor.get());
-    if (sensor_ptr->min_range() < 1e-6) {
-        bistatic_pair::sptr pair(new bistatic_pair(sensor, sensor));
+void sensor_manager::add_monostatic_pair(
+    const sensor_model::sptr& sensor, update_listener<sensor_pair>* listener) {
+    if (sensor->min_range() < 1e-6) {
+        sensor_pair::sptr pair(new sensor_pair(sensor, sensor));
         if (listener != nullptr) {
             pair->add_listener(listener);
         }
@@ -152,19 +185,17 @@ void bistatic_manager::add_monostatic_pair(
 
 /**
  * Creates bistatic pairs between the new source and all bistatic receivers.
- * Called from bistatic_manager::add_sensor().
+ * Called from sensor_manager::add_sensor().
  */
-void bistatic_manager::add_multistatic_source(
+void sensor_manager::add_multistatic_source(
     const sensor_model::sptr& source, int multistatic,
-    update_listener<bistatic_pair>* listener) {
+    update_listener<sensor_pair>* listener) {
     auto sourceID = source->keyID();
     for (auto receiverID : _rcv_list) {
         if (sourceID != receiverID) {
-            auto receiver = platform_manager::instance()->find(receiverID);
-            const auto* sensor_ptr =
-                dynamic_cast<const sensor_model*>(receiver.get());
-            if (sensor_ptr->multistatic() == multistatic) {
-                bistatic_pair::sptr pair(new bistatic_pair(source, receiver));
+            auto receiver = find_sensor(receiverID);
+            if (receiver->multistatic() == multistatic) {
+                sensor_pair::sptr pair(new sensor_pair(source, receiver));
                 if (listener != nullptr) {
                     pair->add_listener(listener);
                 }
@@ -176,19 +207,17 @@ void bistatic_manager::add_multistatic_source(
 
 /**
  * Creates bistatic pairs between the new receiver and all bistatic sources.
- * Called from bistatic_manager::add_sensor().
+ * Called from sensor_manager::add_sensor().
  */
-void bistatic_manager::add_multistatic_receiver(
+void sensor_manager::add_multistatic_receiver(
     const sensor_model::sptr& receiver, int multistatic,
-    update_listener<bistatic_pair>* listener) {
+    update_listener<sensor_pair>* listener) {
     auto receiverID = receiver->keyID();
     for (auto sourceID : _src_list) {
         if (sourceID != receiverID) {
-            auto source = platform_manager::instance()->find(sourceID);
-            const auto* sensor_ptr =
-                dynamic_cast<const sensor_model*>(source.get());
-            if (sensor_ptr->multistatic() == multistatic) {
-                bistatic_pair::sptr pair(new bistatic_pair(source, receiver));
+            auto source = find_sensor(sourceID);
+            if (source->multistatic() == multistatic) {
+                sensor_pair::sptr pair(new sensor_pair(source, receiver));
                 if (listener != nullptr) {
                     pair->add_listener(listener);
                 }
@@ -201,11 +230,10 @@ void bistatic_manager::add_multistatic_receiver(
 /**
  * Utility to remove a monosatic pair
  */
-void bistatic_manager::remove_monostatic_pair(
-    const sensor_model::sptr& sensor,
-    update_listener<bistatic_pair>* listener) {
+void sensor_manager::remove_monostatic_pair(
+    const sensor_model::sptr& sensor, update_listener<sensor_pair>* listener) {
     auto sensorID = sensor->keyID();
-    auto hash_key = bistatic_pair::generate_hash_key(sensorID, sensorID);
+    auto hash_key = sensor_pair::generate_hash_key(sensorID, sensorID);
     auto pair = find(hash_key);
     if (pair != nullptr) {
         remove(hash_key);
@@ -218,15 +246,14 @@ void bistatic_manager::remove_monostatic_pair(
 /**
  * Utility to remove a multistatic pair with the given sensor being the source
  */
-void bistatic_manager::remove_multistatic_source(
-    const sensor_model::sptr& source,
-    update_listener<bistatic_pair>* listener) {
+void sensor_manager::remove_multistatic_source(
+    const sensor_model::sptr& source, update_listener<sensor_pair>* listener) {
     auto sourceID = source->keyID();
     for (auto receiverID : _rcv_list) {
         if (sourceID != receiverID) {
             auto receiver = platform_manager::instance()->find(receiverID);
             auto hash_key =
-                bistatic_pair::generate_hash_key(sourceID, receiverID);
+                sensor_pair::generate_hash_key(sourceID, receiverID);
             auto pair = find(hash_key);
             if (pair != nullptr) {
                 remove(hash_key);
@@ -242,15 +269,15 @@ void bistatic_manager::remove_multistatic_source(
  * Utility to remove a multistatic pair with the given sensor being the
  * receiver
  */
-void bistatic_manager::remove_multistatic_receiver(
+void sensor_manager::remove_multistatic_receiver(
     const sensor_model::sptr& receiver,
-    update_listener<bistatic_pair>* listener) {
+    update_listener<sensor_pair>* listener) {
     auto receiverID = receiver->keyID();
     for (auto sourceID : _rcv_list) {
         if (sourceID != receiverID) {
             auto source = platform_manager::instance()->find(sourceID);
             auto hash_key =
-                bistatic_pair::generate_hash_key(sourceID, receiverID);
+                sensor_pair::generate_hash_key(sourceID, receiverID);
             auto pair = find(hash_key);
             if (pair != nullptr) {
                 remove(hash_key);

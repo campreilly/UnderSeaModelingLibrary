@@ -2,8 +2,6 @@
  * @example biverbs/test/biverbs_test.cc
  */
 
-#include <usml/bistatic/bistatic_manager.h>
-#include <usml/bistatic/bistatic_pair.h>
 #include <usml/biverbs/biverbs.h>
 #include <usml/eigenrays/eigenray_collection.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
@@ -24,6 +22,8 @@
 #include <algorithm>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/test/unit_test.hpp>
+#include <usml/sensors/sensor_manager.h>
+#include <usml/sensors/sensor_pair.h>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
@@ -35,7 +35,7 @@
 BOOST_AUTO_TEST_SUITE(biverbs_test)
 
 using namespace boost::unit_test;
-using namespace usml::bistatic;
+using namespace usml::sensors;
 using namespace usml::biverbs;
 using namespace usml::eigenrays;
 using namespace usml::eigenverbs;
@@ -99,17 +99,17 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
 
     ocean_utils::make_iso(depth);
     seq_vector::csptr frequencies(new seq_linear(3000.0, 1.0, 1));
-    platform_manager::instance()->frequencies(frequencies);
+    sensor_manager::instance()->frequencies(frequencies);
     wposition1 source_pos(15.0, 35.0, 0.0);
     vector<double> scatter(frequencies->size(), 1.0);
 
     // construct monostatic sensor pair in the bistatic manager
 
     sensor_model* sensor = new test::simple_sonobuoy(0, "simple_sonobuoy");
-    bistatic_manager* bmgr = bistatic_manager::instance();
+    sensor_manager* bmgr = sensor_manager::instance();
     bmgr->add_sensor(sensor_model::sptr(sensor));
     bistatic_list blist = bmgr->find_source(0);
-    bistatic_pair::sptr pair = *(blist.begin());
+    sensor_pair::sptr pair = *(blist.begin());
 
     // build hard-coded eigenverbs on bottom for varying DE and AZ
 
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     BOOST_CHECK_EQUAL(collection->size(eigenverb_model::BOTTOM), 36);
     collection->write_netcdf(ncname, eigenverb_model::BOTTOM);
 
-    bistatic_manager::reset();
+    sensor_manager::reset();
     thread_controller::reset();
     ocean_shared::reset();
 }

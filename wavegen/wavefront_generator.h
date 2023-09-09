@@ -15,7 +15,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 
 namespace usml {
-namespace platforms {
+namespace sensors {
 class sensor_model;
 }
 }  // namespace usml
@@ -25,6 +25,7 @@ namespace wavegen {
 
 using namespace usml::ocean;
 using namespace usml::platforms;
+using namespace usml::sensors;
 using namespace usml::threads;
 using namespace usml::types;
 

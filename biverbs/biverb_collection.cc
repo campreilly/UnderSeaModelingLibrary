@@ -6,7 +6,7 @@
 #include <usml/biverbs/biverb_collection.h>
 #include <usml/biverbs/biverb_model.h>
 #include <usml/eigenverbs/eigenverb_model.h>
-#include <usml/platforms/platform_manager.h>
+#include <usml/sensors/sensor_manager.h>
 #include <usml/threads/read_write_lock.h>
 
 #include <cstddef>
@@ -16,7 +16,7 @@
 
 using namespace usml::biverbs;
 using namespace usml::eigenverbs;
-using namespace usml::platforms;
+using namespace usml::sensors;
 
 // #define DEBUG_BIVERB
 
@@ -88,7 +88,7 @@ void biverb_collection::add_biverb(const eigenverb_model::csptr& src_verb,
 
     auto* biverb = new biverb_model();
     biverb->travel_time = src_verb->travel_time + rcv_verb->travel_time;
-    biverb->frequencies = platform_manager::instance()->frequencies();
+    biverb->frequencies = sensor_manager::instance()->frequencies();
     biverb->de_index = rcv_verb->de_index;
     biverb->az_index = rcv_verb->az_index;
 

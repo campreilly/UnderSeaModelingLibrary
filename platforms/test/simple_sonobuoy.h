@@ -4,10 +4,10 @@
  */
 #pragma once
 
-#include <usml/platforms/sensor_model.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/usml_config.h>
 
-using namespace usml::platforms;
+using namespace usml::sensors;
 
 namespace usml {
 namespace platforms {

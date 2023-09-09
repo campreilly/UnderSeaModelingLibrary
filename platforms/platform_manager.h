@@ -51,36 +51,15 @@ class USML_DECLSPEC platform_manager : public manager_template<platform_model> {
     typename platform_model::key_type add(
         const typename platform_model::sptr& platform);
 
-    /**
-     * Frequencies over which propagation is computed (Hz). Making this common
-     * to all the platforms controlled by this manager avoids the problem of
-     * having to compute the frequency overlap between sources and receivers.
-     */
-    seq_vector::csptr frequencies() const {
-        read_lock_guard guard(_singleton_mutex);
-        return _frequencies;
-    }
-
-    /**
-     * Frequencies over which propagation is computed (Hz).
-     */
-    void frequencies(seq_vector::csptr freq) {
-        write_lock_guard guard(_singleton_mutex);
-        _frequencies = freq;
-    }
-
    private:
     /// Reference to singleton.
     static std::unique_ptr<platform_manager> _instance;
 
-    /// Mutex for singleton construction.
-    static read_write_lock _singleton_mutex;
+    /// Mutex for singleton access.
+    static read_write_lock _mutex;
 
     /// Maximum key value that has been inserted into this manager
     platform_model::key_type _max_key;
-
-    /// Frequencies over which propagation is computed (Hz).
-    seq_vector::csptr _frequencies;
 
     /// Hide default constructor to prevent incorrect use of singleton.
     platform_manager() : _max_key(0) {}

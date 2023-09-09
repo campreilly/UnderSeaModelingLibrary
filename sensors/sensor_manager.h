@@ -1,14 +1,15 @@
 /**
- * @file bistatic_manager.h
+ * @file sensor_manager.h
  * Stores and manages the active bistatic pairs in use by the simulation.
  */
 #pragma once
 
 #include <bits/exception.h>
-#include <usml/bistatic/bistatic_pair.h>
 #include <usml/managed/managed_obj.h>
 #include <usml/managed/manager_template.h>
 #include <usml/managed/update_listener.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/usml_config.h>
 
@@ -17,17 +18,11 @@
 #include <set>
 
 namespace usml {
-namespace platforms {
-class sensor_model;
-} /* namespace platforms */
-} /* namespace usml */
-
-namespace usml {
-namespace bistatic {
+namespace sensors {
 
 using namespace usml::platforms;
 
-/// @ingroup bistatic
+/// @ingroup sensors
 /// @{
 
 /**
@@ -35,12 +30,12 @@ using namespace usml::platforms;
  * is_source() and is_receiver() members of the sensor_model class to
  * automatically identify all the cases where added sensors act as the source or
  * receiver in a pair. Sensors must appear in the platform_manager in order for
- * them to operate properly in the bistatic_manager.
+ * them to operate properly in the sensor_manager.
  *
- * Uses the update_pair_notifier interface to pass bistatic_pair updates from
- * individual pairs to those listening to just the bistatic_manager.
+ * Uses the update_pair_notifier interface to pass sensor_pair updates from
+ * individual pairs to those listening to just the sensor_manager.
  */
-class USML_DECLSPEC bistatic_manager : public manager_template<bistatic_pair> {
+class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
    public:
     /// Exception thrown if keyID not found.
     struct missing_key : public std::exception {
@@ -53,12 +48,25 @@ class USML_DECLSPEC bistatic_manager : public manager_template<bistatic_pair> {
      *
      * @return Pointer to the singleton,
      */
-    static bistatic_manager* instance();
+    static sensor_manager* instance();
 
     /**
      * Removes all sensors from the manager and destroys it.
+     * Also destroys the platform_manager as a side effect.
      */
     static void reset();
+
+    /**
+     * Frequencies over which propagation is computed (Hz). Making this common
+     * to all the sensors controlled by this manager avoids the problem of
+     * having to compute the frequency overlap between sources and receivers.
+     */
+    seq_vector::csptr frequencies() const;
+
+    /**
+     * Frequencies over which propagation is computed (Hz).
+     */
+    void frequencies(seq_vector::csptr freq);
 
     /**
      * Adds a sensor into the bistatic pair manager. Searches for all other
@@ -68,21 +76,32 @@ class USML_DECLSPEC bistatic_manager : public manager_template<bistatic_pair> {
      * new sensor can act as both a source and receiver.
      *
      * @param sensor		Reference to the sensor to add.
-     * @param listener      Optional update listener for bistatic_pair objects.
+     * @param listener      Optional update listener for sensor_pair objects.
      * @throw missing_key   If sensor not found in platform_manager.
      */
     void add_sensor(const sensor_model::sptr& sensor,
-                    update_listener<bistatic_pair>* listener = nullptr);
+                    update_listener<sensor_pair>* listener = nullptr);
 
     /**
      * Removes a sensor into the bistatic pair manager. Searches for all
      * pairs that have this sensor as a source or receiver.
      *
      * @param sensor		Reference to the sensor to remove.
-     * @param listener      Optional update listener for bistatic_pair objects.
+     * @param listener      Optional update listener for sensor_pair objects.
      */
     void remove_sensor(const sensor_model::sptr& sensor,
-                       update_listener<bistatic_pair>* listener = nullptr);
+                       update_listener<sensor_pair>* listener = nullptr);
+
+    /**
+     * Find a specific sensor_model in the platform_manager. Manages casting the
+     * shared pointer into a form that supports access to sensor_model
+     * attributes and methods.
+     *
+     * @param keyID 	Identification used to find this sensor_model.
+     * @return    		nullptr if not found.
+     */
+    typename sensor_model::sptr find_sensor(
+        typename sensor_model::key_type keyID) const;
 
     /**
      * Search all pairs for ones that have this sensor as a source.
@@ -103,84 +122,80 @@ class USML_DECLSPEC bistatic_manager : public manager_template<bistatic_pair> {
    private:
     /**
      * Adds a monostatic sensor pair if new sensor being added is both a source
-     * and receiver. Called from bistatic_manager::add_sensor().
+     * and receiver. Called from sensor_manager::add_sensor().
      *
      * @param sensor 	Monostatic sensor to be added as a monostatic pair.
-     * @param listener	Update listener for bistatic_pair objects.
+     * @param listener	Update listener for sensor_pair objects.
      */
     void add_monostatic_pair(const sensor_model::sptr& sensor,
-                             update_listener<bistatic_pair>* listener);
+                             update_listener<sensor_pair>* listener);
 
     /**
      * Creates bistatic pairs between the new source and all bistatic receivers.
-     * Called from bistatic_manager::add_sensor().
+     * Called from sensor_manager::add_sensor().
      *
      * @param source 		Multistatic source to be paired with valid
      * receivers.
      * @param multistatic 	Multistatic group for this sensor.
-     * @param listener		Update listener for bistatic_pair objects.
+     * @param listener		Update listener for sensor_pair objects.
      */
     void add_multistatic_source(const sensor_model::sptr& source,
                                 int multistatic,
-                                update_listener<bistatic_pair>* listener);
+                                update_listener<sensor_pair>* listener);
 
     /**
      * Creates bistatic pairs between the new receiver and all bistatic sources.
-     * Called from bistatic_manager::add_sensor().
+     * Called from sensor_manager::add_sensor().
      *
      * @param receiver 		Multistatic receiver to be paired with valid
      * sources.
      * @param multistatic 	Multistatic group for this sensor.
-     * @param listener		Update listener for bistatic_pair objects.
+     * @param listener		Update listener for sensor_pair objects.
      */
     void add_multistatic_receiver(const sensor_model::sptr& receiver,
                                   int multistatic,
-                                  update_listener<bistatic_pair>* listener);
+                                  update_listener<sensor_pair>* listener);
 
     /**
-     * Removes a monostatic pair from the bistatic_manager. Called
-     * within the bistatic_manager.
+     * Removes a monostatic pair from the sensor_manager. Called
+     * within the sensor_manager.
      *
      * @param sensor 	Monostatic sensor to be removed.
-     * @param listener	Update listener for bistatic_pair objects.
+     * @param listener	Update listener for sensor_pair objects.
      */
     void remove_monostatic_pair(const sensor_model::sptr& sensor,
-                                update_listener<bistatic_pair>* listener);
+                                update_listener<sensor_pair>* listener);
 
     /**
      * Removes all multistatic pairs with the provided source. Called
-     * Within the bistatic_pair_manger.
+     * Within the sensor_pair_manger.
      *
      * @param source 	Multistatic source to be removed.
-     * @param listener	Update listener for bistatic_pair objects.
+     * @param listener	Update listener for sensor_pair objects.
      */
     void remove_multistatic_source(const sensor_model::sptr& source,
-                                   update_listener<bistatic_pair>* listener);
+                                   update_listener<sensor_pair>* listener);
 
     /**
      * Removes all multistatic pairs with he provided receiver. Called
-     * within the bistatic_manager
+     * within the sensor_manager
      *
      * @param receiver 	Multistatic receiver to be removed.
-     * @param listener	Update listener for bistatic_pair objects.
+     * @param listener	Update listener for sensor_pair objects.
      */
     void remove_multistatic_receiver(const sensor_model::sptr& receiver,
-                                     update_listener<bistatic_pair>* listener);
+                                     update_listener<sensor_pair>* listener);
 
     /**
      * The singleton access pointer.
      */
-    static std::unique_ptr<bistatic_manager> _instance;
+    static std::unique_ptr<sensor_manager> _instance;
 
-    /**
-     * The mutex for the singleton pointer.
-     */
-    static read_write_lock _instance_mutex;
+    /// Mutex for singleton access.
+    static read_write_lock _mutex;
 
-    /**
-     * The mutex for the manager.
-     */
-    read_write_lock _mutex;
+    /// Frequencies over which propagation is computed (Hz).
+    seq_vector::csptr _frequencies;
 
     /**
      * List of all active source sensor IDs.  Used by insert() to
@@ -198,5 +213,5 @@ class USML_DECLSPEC bistatic_manager : public manager_template<bistatic_pair> {
 };
 
 /// @}
-}  // namespace bistatic
+}  // namespace sensors
 }  // namespace usml

@@ -5,16 +5,20 @@
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/ocean/ocean.h>
 #include <usml/platforms/platforms.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_manager.h>
+#include <usml/wavegen/wavefront_listener.h>
 
 #include <boost/test/unit_test.hpp>
 
 BOOST_AUTO_TEST_SUITE(platform_update_test)
 
 using namespace boost::unit_test;
-using namespace usml::eigenrays;
 using namespace usml::netcdf;
 using namespace usml::ocean;
 using namespace usml::platforms;
+using namespace usml::sensors;
+using namespace usml::wavegen;
 
 /**
  * Load environmental data for area of operations into shared ocean.
@@ -106,13 +110,13 @@ class sensor_listener : public wavefront_listener {
 BOOST_AUTO_TEST_CASE(propagate_wavefront) {
     cout << "=== platform_update_test: propagate_wavefront ===" << endl;
     build_ocean();
-    platform_manager* platform_mgr = platform_manager::instance();
+    sensor_manager* smgr = sensor_manager::instance();
     sensor_listener listener;
 
     // define frequencies for calculation
 
     seq_vector::csptr freq(new seq_linear(900.0, 10.0, 1000.0));
-    platform_mgr->frequencies(freq);
+    smgr->frequencies(freq);
 
     // static database of sensor locations (latitude,longitude,altitude)
 
@@ -139,7 +143,7 @@ BOOST_AUTO_TEST_CASE(propagate_wavefront) {
         sensor->time_maximum(8.0);
         sensor->compute_reverb(false);
         sensor->add_wavefront_listener(&listener);
-        platform_mgr->add(platform_model::sptr(sensor));
+        smgr->add_sensor(sensor_model::sptr(sensor));
     }
 
     // update acoustics for sensor #2

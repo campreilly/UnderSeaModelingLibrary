@@ -3,6 +3,11 @@
  * Modeling products for links between sources and receivers.
  * @defgroup bistatic Bistatic Sensor Pairs
  *
+ * Sensors are platforms that are can automatically compute there own acoustics.
+ * Simple sensors can be implemented as objects that control their own motion,
+ * or they can be attached to host platforms. Uses update_notifier to notify
+ * listeners when eigenray and eigenverb data has changed.
+ *
  * This package defines the objects that store bistatic eigenray and eigenverb
  * data products. Each eigenray represents a single acoustic path between a
  * source and target. The direct paths are eigenrays that connect this source
@@ -20,5 +25,5 @@
  */
 #pragma once
 
-#include <usml/bistatic/bistatic_manager.h>
-#include <usml/bistatic/bistatic_pair.h>
+#include <usml/sensors/sensor_manager.h>
+#include <usml/sensors/sensor_pair.h>

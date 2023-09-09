@@ -4,13 +4,12 @@
  */
 
 #include <usml/beampatterns/bp_model.h>
-#include <usml/bistatic/bistatic_pair.h>
 #include <usml/biverbs/biverb_collection.h>
 #include <usml/managed/update_notifier.h>
 #include <usml/platforms/platform_model.h>
-#include <usml/platforms/sensor_model.h>
-#include <usml/rvbenv/rvbenv_collection.h>
 #include <usml/rvbenv/rvbenv_generator.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/threads/thread_task.h>
 #include <usml/types/bvector.h>
 #include <usml/types/orientation.h>
@@ -25,15 +24,18 @@
 #include <utility>
 
 using namespace usml::rvbenv;
+using namespace usml::sensors;
+using namespace usml::threads;
+using namespace usml::types;
 
 /**
- * Initialize model parameters with state of bistatic_pair at this time.
+ * Initialize model parameters with state of sensor_pair at this time.
  */
-rvbenv_generator::rvbenv_generator(const bistatic_pair::sptr& pair,
+rvbenv_generator::rvbenv_generator(const sensor_pair::sptr& pair,
                                    seq_vector::csptr  times,
                                    seq_vector::csptr  freqs,
                                    size_t num_azimuths)
-    : _bistatic_pair(pair), _times(std::move(times)), _freqs(std::move(freqs)), _num_azimuths(num_azimuths) {}
+    : _sensor_pair(pair), _times(std::move(times)), _freqs(std::move(freqs)), _num_azimuths(num_azimuths) {}
 
 /**
  * Compute reverberation envelope collection for a bistatic pair.
@@ -47,13 +49,13 @@ void rvbenv_generator::run() {
     cout << "task #" << id()
          << " rvbenv_generator *** aborted before execution ***" << endl;
     cout << "task #" << id()
-         << " rvbenv_generator src=" << _bistatic_pair->source()->keyID()
-         << " rcv=" << _bistatic_pair->receiver()->keyID() << endl;
+         << " rvbenv_generator src=" << _sensor_pair->source()->keyID()
+         << " rcv=" << _sensor_pair->receiver()->keyID() << endl;
 
     // initialize workspace for results
 
     auto* collection =
-        new rvbenv_collection(_bistatic_pair, _times, _freqs, _num_azimuths);
+        new rvbenv_collection(_sensor_pair, _times, _freqs, _num_azimuths);
     const auto num_freqs = _freqs->size();
     const auto num_src_beams = collection->num_src_beams();
     const auto num_rcv_beams = collection->num_rcv_beams();
@@ -95,7 +97,7 @@ void rvbenv_generator::beam_gain_src(const rvbenv_collection* collection,
                                      double de, double az,
                                      vector<double>& beam_work,
                                      matrix<double>& beam) {
-    const sensor_model* source = collection->source();
+    sensor_model::sptr source = collection->source();
     bvector arrival(de, az);
     arrival.rotate(source->orient(), arrival);
     int beam_number = 0;
@@ -115,7 +117,7 @@ void rvbenv_generator::beam_gain_rcv(const rvbenv_collection* collection,
                                      double de, double az,
                                      vector<double>& beam_work,
                                      matrix<double>& beam) {
-    const sensor_model* receiver = collection->receiver();
+    sensor_model::sptr receiver = collection->receiver();
     bvector arrival(de, az);
     arrival.rotate(receiver->orient(), arrival);
     int beam_number = 0;

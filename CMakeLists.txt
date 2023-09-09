@@ -30,8 +30,9 @@ file(STRINGS config/VERSION.txt PACKAGE_VERSION)
 message(STATUS "USML version ${PACKAGE_VERSION}" )
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/config" )
 
-set( PACKAGE_MODULES ublas types netcdf ocean threads beampatterns 
-    eigenrays eigenverbs  rvbenv waveq3d managed wavegen platforms transmit biverbs bistatic )
+set( PACKAGE_MODULES ublas types netcdf ocean threads beampatterns transmit
+    eigenrays eigenverbs biverbs waveq3d wavegen 
+    managed platforms sensors rvbenv)
 
 if( MSVC )	# work around for missing netcdf_c++ on windows
     set( PACKAGE_MODULES ${PACKAGE_MODULES} netcdf/msvc )

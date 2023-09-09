@@ -1,5 +1,5 @@
 /**
- * @file bistatic_pair.h
+ * @file sensor_pair.h
  * Modeling products for a link between source and receiver.
  */
 #pragma once
@@ -11,7 +11,7 @@
 #include <usml/managed/managed_obj.h>
 #include <usml/managed/update_listener.h>
 #include <usml/managed/update_notifier.h>
-#include <usml/platforms/sensor_model.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/usml_config.h>
 #include <usml/wavegen/wavefront_listener.h>
@@ -21,7 +21,7 @@
 #include <string>
 
 namespace usml {
-namespace bistatic {
+namespace sensors {
 
 using namespace usml::eigenrays;
 using namespace usml::eigenverbs;
@@ -30,7 +30,7 @@ using namespace usml::managed;
 using namespace usml::platforms;
 using namespace usml::wavegen;
 
-/// @ingroup bistatic
+/// @ingroup sensors
 /// @{
 
 /**
@@ -41,24 +41,24 @@ using namespace usml::wavegen;
  * blast contributions to the received signal. Eigenverbs are a Gaussian beam
  * projection of an acoustic ray onto a reverberation interface at the point of
  * collision. The biverbs represent the bistatic overlap between the source and
- * receiver eigenverbs for this pair. Notifies bistatic_pair update listeners of
+ * receiver eigenverbs for this pair. Notifies sensor_pair update listeners of
  * when all of the calculations are complete.
  *
  * To improve the calculation speed for the the case where a single platform has
  * more than one sensor, you can make the host object a sensor_model instead of
  * a platform_model. The host is added to the platform_manager, but the child
- * sensors are not. The bistatic_pair references the host the host has all of
+ * sensors are not. The sensor_pair references the host the host has all of
  * the attributes needed to compute acoustics. The direct path eigenrays and
  * bistatic eigenverbs are computed relative to the host position. Small offsets
  * between the mounted sensors and the host are managed using dead reckoning,
  * which is the same technique that we use to account for small updates in
  * platform position between updates.
  */
-class USML_DECLSPEC bistatic_pair
-    : public managed_obj<std::string, bistatic_pair>,
+class USML_DECLSPEC sensor_pair
+    : public managed_obj<std::string, sensor_pair>,
       public wavefront_listener,
       public update_listener<biverb_collection::csptr>,
-      public update_notifier<bistatic_pair> {
+      public update_notifier<sensor_pair> {
    public:
     /**
      * Construct link between source and receiver. Makes this pair an
@@ -68,13 +68,13 @@ class USML_DECLSPEC bistatic_pair
      * @param    source      Reference to the source for this pair.
      * @param    receiver    Reference to the receiver for this pair.
      */
-    bistatic_pair(const sensor_model::sptr& source,
+    sensor_pair(const sensor_model::sptr& source,
                   const sensor_model::sptr& receiver);
 
     /**
      * Virtual destructor.
      */
-    virtual ~bistatic_pair();
+    virtual ~sensor_pair();
 
     /// Lookup key for this combination of source and receiver
     std::string hash_key() const {
@@ -130,12 +130,12 @@ class USML_DECLSPEC bistatic_pair
     /**
      * Notify this pair of eigenray and eigenverb changes for one of its
      * sensors. Updates the direct path eigenrays and bistatic eigenverbs for
-     * this pair. Launches a new biverb_generator if this bistatic_pair supports
+     * this pair. Launches a new biverb_generator if this sensor_pair supports
      * reverberation and if both source and receiver eigenverbs exist once this
      * update is complete.
      *
      * This computation can be triggered by updates from either the source or
-     * receiver object in this bistatic_pair. If this is an update from a
+     * receiver object in this sensor_pair. If this is an update from a
      * bistatic receiver, then the sense of source and target is reversed for
      * the calculation of direct path bistatic eigenrays. This reversal is valid
      * if the eigenrays have source/receiver reciprocity, which they might not
@@ -151,11 +151,11 @@ class USML_DECLSPEC bistatic_pair
         eigenverb_collection::csptr eigenverbs) override;
 
     /**
-     * Notify listeners that this bistatic_pair has been updated.
+     * Notify listeners that this sensor_pair has been updated.
      *
      * @param object    Reference to the object that has been updated.
      */
-    virtual void notify_update(const bistatic_pair* object) const override;
+    virtual void notify_update(const sensor_pair* object) const override;
 
     /**
      * Update bistatic eigenverbs using results of biverb_generator.
@@ -194,7 +194,7 @@ class USML_DECLSPEC bistatic_pair
     std::shared_ptr<biverb_generator> _biverb_task;
 };
 
-typedef std::list<bistatic_pair::sptr> bistatic_list;
+typedef std::list<sensor_pair::sptr> bistatic_list;
 
 /// @}
 }  // end of namespace bistatic

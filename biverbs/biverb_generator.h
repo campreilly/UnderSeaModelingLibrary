@@ -11,15 +11,15 @@
 #include <usml/usml_config.h>
 
 namespace usml {
-namespace bistatic {
-class bistatic_pair;
+namespace sensors {
+class sensor_pair;
 }
 }  // namespace usml
 
 namespace usml {
 namespace biverbs {
 
-using namespace usml::bistatic;
+using namespace usml::sensors;
 using namespace usml::managed;
 using namespace usml::threads;
 
@@ -28,10 +28,10 @@ using namespace usml::threads;
 
 /**
  * Background task to recompute bistatic eigenverbs. Automatically invoked by a
- * bistatic_pair whenever one of the sensors updates its eigenverbs. If an
- * existing biverb_generator is running for this bistatic_pair, that task is
+ * sensor_pair whenever one of the sensors updates its eigenverbs. If an
+ * existing biverb_generator is running for this sensor_pair, that task is
  * aborted before the new background task is created. Results are stored in the
- * bistatic_pair that invoked this background task, unless the task is aborted
+ * sensor_pair that invoked this background task, unless the task is aborted
  * prior to completion.
  */
 class USML_DECLSPEC biverb_generator
@@ -43,7 +43,7 @@ class USML_DECLSPEC biverb_generator
      *
      * @param pair       		Object to notify when complete.
      */
-    biverb_generator(bistatic_pair* pair);
+    biverb_generator(sensor_pair* pair);
 
     /**
      * Virtual destructor
@@ -70,7 +70,7 @@ class USML_DECLSPEC biverb_generator
     /**
      * The sensor pair that instantiated this class
      */
-    bistatic_pair* _bistatic_pair;
+    sensor_pair* _sensor_pair;
 
     /**
      * Interface collisions for wavefront emanating from the source. Stored at

@@ -28,7 +28,7 @@
 #include <string>
 
 namespace usml {
-namespace platforms {
+namespace sensors {
 
 using namespace usml::beampatterns;
 using namespace usml::eigenrays;
@@ -37,7 +37,7 @@ using namespace usml::managed;
 using namespace usml::types;
 using namespace usml::wavegen;
 
-/// @ingroup platforms
+/// @ingroup sensors
 /// @{
 
 /**
@@ -62,8 +62,15 @@ using namespace usml::wavegen;
  * notify listeners when eigenray and eigenverb data has changed. Does not
  * notify listeners when other fields like position and orientation change.
  */
-class USML_DECLSPEC sensor_model : public platform_model, public wavefront_notifier {
+class USML_DECLSPEC sensor_model : public platform_model,
+                                   public wavefront_notifier {
    public:
+    /**
+     * Form of the shared pointer that supports access to sensor_model
+     * attributes and methods.
+     */
+    using sptr = std::shared_ptr<sensor_model>;
+
     /**
      * Initialize location and orientation of the sensor in world coordinates.
      *
@@ -81,126 +88,82 @@ class USML_DECLSPEC sensor_model : public platform_model, public wavefront_notif
         : platform_model(keyID, description, time, pos, orient, speed) {}
 
     /// Minimum range to valid targets (m).
-    double min_range() const {
-        return _min_range;
-    }
+    double min_range() const { return _min_range; }
 
     /// Minimum range to valid targets (m).
-    void min_range(double value) {
-        _min_range = value;
-    }
+    void min_range(double value) { _min_range = value; }
 
     /// Maximum range to valid targets (m).  Set to zero for infinite range.
-    double max_range() const {
-        return _max_range;
-    }
+    double max_range() const { return _max_range; }
 
     /// Maximum range to valid targets (m).  Set to zero for infinite range.
-    void max_range(double value) {
-        _max_range = value;
-    }
+    void max_range(double value) { _max_range = value; }
 
     /// List of depression/elevation angles to use in wavefront calculation.
-    seq_vector::csptr de_fan() const {
-        return _de_fan;
-    }
+    seq_vector::csptr de_fan() const { return _de_fan; }
 
     /// List of depression/elevation angles to use in wavefront calculation.
-    void de_fan(seq_vector::csptr value) {
-        _de_fan = value;
-    }
+    void de_fan(seq_vector::csptr value) { _de_fan = value; }
 
     /// List of azimuthal angles  to use in wavefront calculation.
-    seq_vector::csptr az_fan() const {
-        return _az_fan;
-    }
+    seq_vector::csptr az_fan() const { return _az_fan; }
 
     /// List of azimuthal angles  to use in wavefront calculation.
-    void az_fan(seq_vector::csptr value) {
-        _az_fan = value;
-    }
+    void az_fan(seq_vector::csptr value) { _az_fan = value; }
 
     /// Time step between wavefronts (sec).
-    double time_step() const {
-        return _time_step;
-    }
+    double time_step() const { return _time_step; }
 
     /// Time step between wavefronts (sec).
-    void time_step(double value) {
-        _time_step = value;
-    }
+    void time_step(double value) { _time_step = value; }
 
     /// Maximum time to propagate wavefront (sec).
-    double time_maximum() const {
-        return _time_maximum;
-    }
+    double time_maximum() const { return _time_maximum; }
 
     /// Maximum time to propagate wavefront (sec).
-    void time_maximum(double value) {
-        _time_maximum = value;
-    }
+    void time_maximum(double value) { _time_maximum = value; }
 
     /**
      * The value of the intensity threshold in dB.
      * Any eigenray or eigenverb with an intensity value that are weaker
      * than this threshold is not sent the listeners.
      */
-    double intensity_threshold() const {
-        return _intensity_threshold;
-    }
+    double intensity_threshold() const { return _intensity_threshold; }
 
     /// The value of the intensity threshold in dB.
-    void intensity_threshold(double value) {
-        _intensity_threshold = value;
-    }
+    void intensity_threshold(double value) { _intensity_threshold = value; }
 
     /**
      * The maximum number of bottom bounces.
      * Any eigenray or eigenverb with more than this number
      * of bottom bounces is not sent the listeners.
      */
-    int max_bottom() const {
-        return _max_bottom;
-    }
+    int max_bottom() const { return _max_bottom; }
 
     /// The maximum number of bottom bounces.
-    void max_bottom(int value) {
-        _max_bottom = value;
-    }
+    void max_bottom(int value) { _max_bottom = value; }
 
     /**
      * The maximum number of surface bounces.
      * Any eigenray or eigenverb with more than this number
      * of surface bounces is not sent the listeners.
      */
-    int max_surface() const {
-        return _max_surface;
-    }
+    int max_surface() const { return _max_surface; }
 
     /// The maximum number of surface bounces.
-    void max_surface(int value) {
-        _max_surface = value;
-    }
+    void max_surface(int value) { _max_surface = value; }
 
     /// True if eigenverbs computed for this sensor.
-    bool compute_reverb() const {
-        return _compute_reverb;
-    }
+    bool compute_reverb() const { return _compute_reverb; }
 
     /// True if eigenverbs computed for this sensor.
-    void compute_reverb(bool value) {
-        _compute_reverb = value;
-    }
+    void compute_reverb(bool value) { _compute_reverb = value; }
 
     /// Multi-static group for this sensor (0=none).
-    int multistatic() const {
-        return _multistatic;
-    }
+    int multistatic() const { return _multistatic; }
 
     /// Multi-static group for this sensor (0=none).
-    void multistatic(int value) {
-        _multistatic = value;
-    }
+    void multistatic(int value) { _multistatic = value; }
 
     /**
      * Add source beam pattern to this sensor.
@@ -351,5 +314,5 @@ class USML_DECLSPEC sensor_model : public platform_model, public wavefront_notif
 };
 
 /// @}
-}  // namespace platforms
+}  // namespace sensors
 }  // namespace usml

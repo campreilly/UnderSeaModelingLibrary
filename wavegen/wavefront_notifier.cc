@@ -3,7 +3,6 @@
  * Manage wavefront listeners and distribute wavefront updates.
  */
 
-#include <usml/platforms/sensor_model.h>
 #include <usml/wavegen/wavefront_listener.h>
 #include <usml/wavegen/wavefront_notifier.h>
 

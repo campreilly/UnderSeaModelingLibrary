@@ -8,7 +8,7 @@
 #include <usml/ocean/ocean_model.h>
 #include <usml/ocean/ocean_shared.h>
 #include <usml/platforms/platform_model.h>
-#include <usml/platforms/sensor_model.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/threads/thread_task.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition.h>
@@ -27,6 +27,7 @@ using namespace usml::eigenrays;
 using namespace usml::eigenverbs;
 using namespace usml::ocean;
 using namespace usml::platforms;
+using namespace usml::sensors;
 using namespace usml::threads;
 using namespace usml::types;
 using namespace usml::wavegen;

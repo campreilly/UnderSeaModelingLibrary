@@ -4,11 +4,11 @@
  * receiver azimuth, source beam number, receiver beam number.
  */
 
-#include <usml/bistatic/bistatic_pair.h>
 #include <usml/biverbs/biverb_model.h>
 #include <usml/platforms/platform_model.h>
-#include <usml/platforms/sensor_model.h>
 #include <usml/rvbenv/rvbenv_collection.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/types/seq_vector.h>
 
@@ -21,17 +21,17 @@
 #include <memory>
 #include <utility>
 
-using namespace usml::bistatic;
 using namespace usml::biverbs;
 using namespace usml::platforms;
 using namespace usml::rvbenv;
+using namespace usml::sensors;
 using namespace usml::threads;
 using namespace usml::types;
 
 /**
- * Initialize model with data from a bistatic_pair.
+ * Initialize model with data from a sensor_pair.
  */
-rvbenv_collection::rvbenv_collection(const bistatic_pair::sptr& pair,
+rvbenv_collection::rvbenv_collection(const sensor_pair::sptr& pair,
                                      seq_vector::csptr times,
                                      seq_vector::csptr freqs,
                                      size_t num_azimuths)
@@ -40,8 +40,8 @@ rvbenv_collection::rvbenv_collection(const bistatic_pair::sptr& pair,
       _num_azimuths(num_azimuths) {
     // get reference to underlying source and receiver data
 
-    _source = dynamic_cast<const sensor_model*>(pair->source().get());
-    _receiver = dynamic_cast<const sensor_model*>(pair->receiver().get());
+    _source = pair->source();
+    _receiver = pair->receiver();
 
     read_lock_guard src_guard(_source->mutex());
     read_lock_guard rcv_guard(_receiver->mutex());

@@ -3,12 +3,12 @@
  */
 
 #include <usml/beampatterns/beampatterns.h>
-#include <usml/bistatic/bistatic.h>
 #include <usml/netcdf/netcdf_files.h>
 #include <usml/ocean/ocean.h>
 #include <usml/platforms/platforms.h>
 
 #include <boost/test/unit_test.hpp>
+#include <usml/sensors/sensors.h>
 
 BOOST_AUTO_TEST_SUITE(bistatic_test)
 
@@ -18,19 +18,19 @@ using namespace usml::eigenrays;
 using namespace usml::netcdf;
 using namespace usml::ocean;
 using namespace usml::platforms;
-using namespace usml::bistatic;
+using namespace usml::sensors;
 
 /**
  * Listen for eigenray updates on sensor.
  */
-class pair_listener : public update_listener<bistatic_pair> {
+class pair_listener : public update_listener<sensor_pair> {
    public:
     /**
-     * Notify listeners of updates to bistatic_pair.
+     * Notify listeners of updates to sensor_pair.
      *
-     * @param pair  Reference to updated bistatic_pair.
+     * @param pair  Reference to updated sensor_pair.
      */
-    void notify_update(const bistatic_pair* pair) override {
+    void notify_update(const sensor_pair* pair) override {
         cout << "bistatic_test::notify_update " << pair->source()->description()
              << " -> " << pair->receiver()->description() << endl;
     }
@@ -43,7 +43,7 @@ pair_listener test_listener;
  */
 
 /**
- * Tests the ability to control the production of bistatic_pair objects with the
+ * Tests the ability to control the production of sensor_pair objects with the
  * multistatic(), is_source(), is_receiver(), min_range(), and compute_reverb()
  * methods of the sensor_model. Uses a simple isovelocity ocean with a 2000m
  * depth and the following sensors:
@@ -82,9 +82,9 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     //    ocean_utils::make_basic(south,north,west,east,month);
     ocean_utils::make_iso(2000.0);
     auto* platform_mgr = platform_manager::instance();
-    auto* bistatic_mgr = bistatic_manager::instance();
+    auto* sensor_mgr = sensor_manager::instance();
     seq_vector::csptr freq(new seq_linear(900.0, 10.0, 1000.0));
-    platform_mgr->frequencies(freq);
+    sensor_mgr->frequencies(freq);
     auto max_time = 10.0;
 
     // static database of sensor locations (latitude,longitude,altitude)
@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     std::string expected_pairs[] = {"1_1", "2_2", "2_4", "2_5", "3_2",
                                     "3_4", "3_5", "5_2", "5_4"};
 
-    // create platform and bistatic_pair objects.
+    // create platform and sensor_pair objects.
 
     for (platform_model::key_type site = 1; site <= num_sites; ++site) {
         std::ostringstream name;
@@ -113,8 +113,6 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
              << pos[index][1] << "," << pos[index][2] << ")" << endl;
         wposition1 position(pos[index][0], pos[index][1], pos[index][2]);
         auto* sensor = new sensor_model(site, name.str(), 0.0, position);
-        auto platform = platform_model::sptr(sensor);
-
         auto beam = bp_model::csptr(new bp_omni());
         sensor->time_maximum(max_time);
         if (site != 1) {
@@ -135,9 +133,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
         if (site == 5) {
             sensor->min_range(1.0);
         }
-
-        platform_mgr->add(platform);
-        bistatic_mgr->add_sensor(platform, &test_listener);
+        sensor_mgr->add_sensor(sensor_model::sptr(sensor), &test_listener);
     }
 
     // compute acoustics in background for all sensors
@@ -152,7 +148,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     // write direct path collections to disk
 
     cout << endl << "*** pairs ***" << endl;
-    for (const auto& pair : bistatic_mgr->list()) {
+    for (const auto& pair : sensor_mgr->list()) {
         cout << pair->description()
              << " dirpaths=" << pair->dirpaths()->eigenrays().size() << endl;
         if ( pair->dirpaths() != nullptr ) {
@@ -170,7 +166,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     // check that the rights bistatic pairs created
 
     int n = 0;
-    for (const auto& pair : bistatic_mgr->list()) {
+    for (const auto& pair : sensor_mgr->list()) {
         BOOST_CHECK_EQUAL(pair->hash_key(), expected_pairs[n++]);
         BOOST_CHECK_GE(pair->dirpaths()->eigenrays().size(), 5);
     }
@@ -178,7 +174,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     // clean up and exit
 
     cout << "clean up" << endl;
-    bistatic_manager::reset();
+    sensor_manager::reset();
     platform_manager::reset();
     ocean_shared::reset();
     thread_controller::reset();

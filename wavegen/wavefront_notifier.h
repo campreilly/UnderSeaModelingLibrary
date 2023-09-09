@@ -4,7 +4,6 @@
  */
 #pragma once
 
-#include <usml/platforms/sensor_model.h>
 #include <usml/usml_config.h>
 #include <usml/wavegen/wavefront_listener.h>
 
@@ -13,7 +12,7 @@
 namespace usml {
 namespace wavegen {
 
-using namespace usml::platforms;
+using namespace usml::sensors;
 
 /// @ingroup wavegen
 /// @{

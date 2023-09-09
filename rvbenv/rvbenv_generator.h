@@ -4,9 +4,9 @@
  */
 #pragma once
 
-#include <usml/bistatic/bistatic_pair.h>
 #include <usml/managed/update_notifier.h>
 #include <usml/rvbenv/rvbenv_collection.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/types/seq_vector.h>
 #include <usml/usml_config.h>
 #include <usml/wavegen/wavefront_generator.h>
@@ -18,9 +18,9 @@
 namespace usml {
 namespace rvbenv {
 
-using namespace usml::bistatic;
 using namespace usml::managed;
 using namespace usml::ocean;
+using namespace usml::sensors;
 using namespace usml::threads;
 
 /// @ingroup rvbenv
@@ -39,14 +39,14 @@ class USML_DECLSPEC rvbenv_generator
       public update_notifier<rvbenv_collection::csptr> {
    public:
     /**
-     * Initialize model with data from a bistatic_pair.
+     * Initialize model with data from a sensor_pair.
      *
      * @param pair       	Bistatic pair that creates reverberation.
      * @param times 		Times at which reverb is computed (sec).
      * @param freqs  		Frequencies at which reverb is computed (Hz).
      * @param num_azimuths	Number of receiver azimuths in result.
      */
-    rvbenv_generator(const bistatic_pair::sptr& pair, seq_vector::csptr times,
+    rvbenv_generator(const sensor_pair::sptr& pair, seq_vector::csptr times,
                      seq_vector::csptr freqs, size_t num_azimuths);
 
     /**
@@ -82,7 +82,7 @@ class USML_DECLSPEC rvbenv_generator
                        matrix<double>& beam);
 
     /// Bistatic pair that creates reverberation.
-    const bistatic_pair::sptr& _bistatic_pair;
+    const sensor_pair::sptr& _sensor_pair;
 
     /// Times at which reverb is computed (sec).
     const seq_vector::csptr _times;

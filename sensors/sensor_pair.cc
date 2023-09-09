@@ -1,9 +1,8 @@
 /**
- * @file bistatic_pair.cc
+ * @file sensor_pair.cc
  * Modeling products for a link between source and receiver.
  */
 
-#include <usml/bistatic/bistatic_pair.h>
 #include <usml/biverbs/biverb_collection.h>
 #include <usml/biverbs/biverb_generator.h>
 #include <usml/eigenrays/eigenray_collection.h>
@@ -11,8 +10,8 @@
 #include <usml/eigenverbs/eigenverb_collection.h>
 #include <usml/managed/managed_obj.h>
 #include <usml/managed/update_notifier.h>
-#include <usml/platforms/sensor_model.h>
-#include <usml/threads/read_write_lock.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_pool.h>
 #include <usml/types/seq_vector.h>
@@ -25,46 +24,42 @@
 #include <sstream>
 #include <string>
 
-using namespace usml::bistatic;
 using namespace usml::biverbs;
 using namespace usml::eigenrays;
 using namespace usml::eigenverbs;
 using namespace usml::managed;
 using namespace usml::platforms;
+using namespace usml::sensors;
 using namespace usml::threads;
 using namespace usml::types;
 
 /**
  * Construct link between source and receiver.
  */
-bistatic_pair::bistatic_pair(const sensor_model::sptr& source,
-                             const sensor_model::sptr& receiver)
-    : managed_obj<std::string, bistatic_pair>(
+sensor_pair::sensor_pair(const sensor_model::sptr& source,
+                         const sensor_model::sptr& receiver)
+    : managed_obj<std::string, sensor_pair>(
           generate_hash_key(source->keyID(), receiver->keyID()),
           source->description() + "->" + receiver->description()),
       _source(source),
       _receiver(receiver) {
-    auto* source_ptr = dynamic_cast<sensor_model*>(_source.get());
-    auto* receiver_ptr = dynamic_cast<sensor_model*>(_receiver.get());
-    _compute_reverb = source_ptr->compute_reverb() && receiver_ptr->compute_reverb();
-    source_ptr->add_wavefront_listener(this);
-    receiver_ptr->add_wavefront_listener(this);
+    _compute_reverb = source->compute_reverb() && receiver->compute_reverb();
+    source->add_wavefront_listener(this);
+    receiver->add_wavefront_listener(this);
 }
 
 /**
  * Destroy connections between source and receiver.
  */
-bistatic_pair::~bistatic_pair() {
-    auto* source_ptr = dynamic_cast<sensor_model*>(_source.get());
-    auto* receiver_ptr = dynamic_cast<sensor_model*>(_receiver.get());
-    source_ptr->remove_wavefront_listener(this);
-    receiver_ptr->remove_wavefront_listener(this);
+sensor_pair::~sensor_pair() {
+    source()->remove_wavefront_listener(this);
+    receiver()->remove_wavefront_listener(this);
 }
 
 /**
  * Utility to generate a hash key for the bistatic_template
  */
-std::string bistatic_pair::generate_hash_key(int src_id, int rcv_id) {
+std::string sensor_pair::generate_hash_key(int src_id, int rcv_id) {
     std::stringstream key;
     key << src_id << '_' << rcv_id;
     return key.str();
@@ -73,7 +68,7 @@ std::string bistatic_pair::generate_hash_key(int src_id, int rcv_id) {
 /**
  * Queries for the bistatic pair for the complement of the given sensor.
  */
-sensor_model::sptr bistatic_pair::complement(
+sensor_model::sptr sensor_pair::complement(
     const sensor_model::sptr& sensor) const {
     if (sensor == _source) {
         return _receiver;
@@ -84,7 +79,7 @@ sensor_model::sptr bistatic_pair::complement(
 /**
  * Notify this pair of eigenray and eigenverb changes for one of its sensors.
  */
-void bistatic_pair::update_wavefront_data(
+void sensor_pair::update_wavefront_data(
     const sensor_model* sensor, eigenray_collection::csptr eigenrays,
     eigenverb_collection::csptr eigenverbs) {
     write_lock_guard guard(_mutex);
@@ -106,7 +101,7 @@ void bistatic_pair::update_wavefront_data(
 
     // swap source/receiver sense of direct path eigenrays, if needed
 
-    if ( _source != _receiver && sensor->keyID() == _receiver->keyID()) {
+    if (_source != _receiver && sensor->keyID() == _receiver->keyID()) {
         sourceID = _receiver->keyID();
         targetID = _source->keyID();
         source_pos = _receiver->position();
@@ -128,7 +123,7 @@ void bistatic_pair::update_wavefront_data(
 
     auto* collection = new eigenray_collection(
         eigenrays->frequencies(), _source->position(), wposition(receiver_pos),
-		sourceID, receiverID, eigenrays->coherent());
+        sourceID, receiverID, eigenrays->coherent());
     for (const auto& ray : raylist) {
         collection->add_eigenray(0, 0, ray);
     }
@@ -168,16 +163,16 @@ void bistatic_pair::update_wavefront_data(
 }
 
 /**
- * Notify listeners that this bistatic_pair has been updated.
+ * Notify listeners that this sensor_pair has been updated.
  */
-void bistatic_pair::notify_update(const bistatic_pair* object) const {
-    this->update_notifier<bistatic_pair>::notify_update(object);
+void sensor_pair::notify_update(const sensor_pair* object) const {
+    this->update_notifier<sensor_pair>::notify_update(object);
 }
 
 /**
  * Update bistatic eigenverbs using results of biverb_generator.
  */
-void bistatic_pair::notify_update(const biverb_collection::csptr* object) {
+void sensor_pair::notify_update(const biverb_collection::csptr* object) {
     write_lock_guard guard(_mutex);
     _biverbs = *object;
     notify_update(this);
