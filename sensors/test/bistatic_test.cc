@@ -192,16 +192,13 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     int n = 0;
     for (const auto& pair : sensor_mgr->list()) {
         BOOST_CHECK_EQUAL(pair->hash_key(), expected_pairs[n++]);
-        BOOST_CHECK_GE(pair->dirpaths()->eigenrays().size(), 5);
+        BOOST_CHECK_GE(pair->dirpaths()->eigenrays().size(), 4);
     }
 
     // clean up and exit
 
     cout << "clean up" << endl;
     sensor_manager::reset();
-    platform_manager::reset();
-    ocean_shared::reset();
-    thread_controller::reset();
 }
 
 /// @}

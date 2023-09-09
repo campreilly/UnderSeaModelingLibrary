@@ -12,10 +12,10 @@
 #include <usml/ocean/ocean_shared.h>
 #include <usml/ocean/ocean_utils.h>
 #include <usml/platforms/platform_model.h>
-#include <usml/sensors/test/simple_sonobuoy.h>
 #include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_pair.h>
+#include <usml/sensors/test/simple_sonobuoy.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_task.h>
 #include <usml/types/seq_linear.h>
@@ -92,21 +92,22 @@ static eigenverb_model::csptr create_eigenverb(
  */
 BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     cout << "=== biverbs_test: update_wavefront_data ===" << endl;
-
     const char* ncname = USML_TEST_DIR "/biverbs/test/biverbs_test.nc";
+    sensor_manager* smgr = sensor_manager::instance();
 
     ocean_utils::make_iso(depth);
     seq_vector::csptr frequencies(new seq_linear(3000.0, 1.0, 1));
-    sensor_manager::instance()->frequencies(frequencies);
+    smgr->frequencies(frequencies);
     wposition1 source_pos(15.0, 35.0, 0.0);
     vector<double> scatter(frequencies->size(), 1.0);
 
     // construct monostatic sensor pair in the bistatic manager
 
-    sensor_model* sensor = new test::simple_sonobuoy(0, "simple_sonobuoy");
-    sensor_manager* bmgr = sensor_manager::instance();
-    bmgr->add_sensor(sensor_model::sptr(sensor));
-    bistatic_list blist = bmgr->find_source(0);
+    sensor_model* sensor_ptr = new test::simple_sonobuoy(1, "simple_sonobuoy");
+    sensor_ptr->compute_reverb(true);
+    sensor_model::sptr sensor(sensor_ptr);
+    smgr->add_sensor(sensor);
+    pair_list blist = smgr->find_source(1);
     sensor_pair::sptr pair = *(blist.begin());
 
     // build hard-coded eigenverbs on bottom for varying DE and AZ
@@ -125,7 +126,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     // launch update_wavefront_data() background task to compute biverbs
 
     auto* ray_collection = new eigenray_collection(frequencies, pos1, pos);
-    pair->update_wavefront_data(sensor,
+    pair->update_wavefront_data(sensor.get(),
                                 eigenray_collection::csptr(ray_collection),
                                 eigenverb_collection::csptr(verb_collection));
     while (thread_task::num_active() > 0) {
@@ -141,8 +142,6 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     collection->write_netcdf(ncname, eigenverb_model::BOTTOM);
 
     sensor_manager::reset();
-    thread_controller::reset();
-    ocean_shared::reset();
 }
 
 /// @}

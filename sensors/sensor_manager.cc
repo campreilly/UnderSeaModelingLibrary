@@ -138,9 +138,9 @@ typename sensor_model::sptr sensor_manager::find_sensor(
 /**
  * Search all pairs for ones that have this sensor as a source.
  */
-bistatic_list sensor_manager::find_source(sensor_model::key_type keyID) {
+pair_list sensor_manager::find_source(sensor_model::key_type keyID) {
     read_lock_guard guard(_mutex);
-    bistatic_list pair_list;
+    pair_list pair_list;
     for (int receiverID : _rcv_list) {
         auto hash_key = sensor_pair::generate_hash_key(keyID, receiverID);
         auto pair = find(hash_key);
@@ -154,9 +154,9 @@ bistatic_list sensor_manager::find_source(sensor_model::key_type keyID) {
 /**
  * Search all pairs for ones that have this sensor as a receiver.
  */
-bistatic_list sensor_manager::find_receiver(sensor_model::key_type keyID) {
+pair_list sensor_manager::find_receiver(sensor_model::key_type keyID) {
     read_lock_guard guard(_mutex);
-    bistatic_list pair_list;
+    pair_list pair_list;
     for (int sourceID : _src_list) {
         auto hash_key = sensor_pair::generate_hash_key(sourceID, keyID);
         auto pair = find(hash_key);

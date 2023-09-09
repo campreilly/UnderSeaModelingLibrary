@@ -192,7 +192,7 @@ class USML_DECLSPEC sensor_pair
     std::shared_ptr<biverb_generator> _biverb_task;
 };
 
-typedef std::list<sensor_pair::sptr> bistatic_list;
+typedef std::list<sensor_pair::sptr> pair_list;
 
 /// @}
 }  // namespace sensors

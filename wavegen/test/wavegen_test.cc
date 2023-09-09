@@ -128,7 +128,6 @@ BOOST_AUTO_TEST_CASE(propagate_wavefront) {
 
     cout << "clean up" << endl;
     platform_manager::reset();
-    thread_controller::reset();
 }
 
 /// @}
