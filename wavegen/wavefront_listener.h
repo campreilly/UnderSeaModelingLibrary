@@ -13,7 +13,7 @@ namespace usml {
 namespace sensors {
 class sensor_model;
 }
-}
+}  // namespace usml
 
 namespace usml {
 namespace wavegen {

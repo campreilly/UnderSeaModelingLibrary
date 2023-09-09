@@ -8,7 +8,6 @@
 #include <memory>
 
 using namespace usml::platforms;
-using namespace usml::types;
 
 /** Initializes empty reference to singleton. */
 std::unique_ptr<platform_manager> platform_manager::_instance;

@@ -2,28 +2,30 @@
  * @example biverbs/test/biverbs_test.cc
  */
 
+#include <usml/biverbs/biverb_collection.h>
+#include <usml/biverbs/biverb_model.h>
 #include <usml/biverbs/biverbs.h>
 #include <usml/eigenrays/eigenray_collection.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
 #include <usml/eigenverbs/eigenverb_model.h>
 #include <usml/managed/managed_obj.h>
-#include <usml/ocean/ocean.h>
-#include <usml/platforms/platform_manager.h>
+#include <usml/ocean/ocean_shared.h>
+#include <usml/ocean/ocean_utils.h>
 #include <usml/platforms/platform_model.h>
-#include <usml/platforms/test/simple_sonobuoy.h>
+#include <usml/sensors/test/simple_sonobuoy.h>
+#include <usml/sensors/sensor_manager.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_task.h>
 #include <usml/types/seq_linear.h>
 #include <usml/types/seq_vector.h>
+#include <usml/types/wposition.h>
 #include <usml/types/wposition1.h>
-#include <usml/types/wvector1.h>
 #include <usml/ublas/math_traits.h>
 
-#include <algorithm>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/test/unit_test.hpp>
-#include <usml/sensors/sensor_manager.h>
-#include <usml/sensors/sensor_pair.h>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
@@ -35,11 +37,7 @@
 BOOST_AUTO_TEST_SUITE(biverbs_test)
 
 using namespace boost::unit_test;
-using namespace usml::sensors;
 using namespace usml::biverbs;
-using namespace usml::eigenrays;
-using namespace usml::eigenverbs;
-using namespace usml::platforms;
 
 static const double de_spacing = 10.0;
 static const double az_spacing = 10.0;

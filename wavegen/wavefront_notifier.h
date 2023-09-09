@@ -4,6 +4,9 @@
  */
 #pragma once
 
+#include <usml/eigenrays/eigenray_collection.h>
+#include <usml/eigenverbs/eigenverb_collection.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/usml_config.h>
 #include <usml/wavegen/wavefront_listener.h>
 
@@ -35,9 +38,9 @@ class USML_DECLSPEC wavefront_notifier {
     /**
      * Distribute wavefront updates to all listeners.
      */
-    void notify_wavefront_listeners(const sensor_model* sensor,
-                                    const eigenray_collection::csptr& eigenrays,
-                                    const eigenverb_collection::csptr& eigenverbs);
+    void notify_wavefront_listeners(
+        const sensor_model* sensor, const eigenray_collection::csptr& eigenrays,
+        const eigenverb_collection::csptr& eigenverbs);
 
    private:
     /**

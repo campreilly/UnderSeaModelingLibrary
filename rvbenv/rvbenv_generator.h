@@ -7,9 +7,9 @@
 #include <usml/managed/update_notifier.h>
 #include <usml/rvbenv/rvbenv_collection.h>
 #include <usml/sensors/sensor_pair.h>
+#include <usml/threads/thread_task.h>
 #include <usml/types/seq_vector.h>
 #include <usml/usml_config.h>
-#include <usml/wavegen/wavefront_generator.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
@@ -19,9 +19,9 @@ namespace usml {
 namespace rvbenv {
 
 using namespace usml::managed;
-using namespace usml::ocean;
 using namespace usml::sensors;
 using namespace usml::threads;
+using namespace usml::types;
 
 /// @ingroup rvbenv
 /// @{

@@ -3,39 +3,20 @@
  * Computes reverberation envelopes from eigenverbs.
  */
 
-#include <usml/beampatterns/bp_model.h>
-#include <usml/biverbs/biverb_collection.h>
-#include <usml/managed/update_notifier.h>
-#include <usml/platforms/platform_model.h>
 #include <usml/rvbenv/rvbenv_generator.h>
-#include <usml/sensors/sensor_model.h>
-#include <usml/sensors/sensor_pair.h>
-#include <usml/threads/thread_task.h>
-#include <usml/types/bvector.h>
-#include <usml/types/orientation.h>
-#include <usml/types/seq_vector.h>
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <cstddef>
-#include <iostream>
-#include <memory>
-#include <utility>
 
 using namespace usml::rvbenv;
-using namespace usml::sensors;
-using namespace usml::threads;
-using namespace usml::types;
 
 /**
  * Initialize model parameters with state of sensor_pair at this time.
  */
 rvbenv_generator::rvbenv_generator(const sensor_pair::sptr& pair,
-                                   seq_vector::csptr  times,
-                                   seq_vector::csptr  freqs,
-                                   size_t num_azimuths)
-    : _sensor_pair(pair), _times(std::move(times)), _freqs(std::move(freqs)), _num_azimuths(num_azimuths) {}
+                                   seq_vector::csptr times,
+                                   seq_vector::csptr freqs, size_t num_azimuths)
+    : _sensor_pair(pair),
+      _times(std::move(times)),
+      _freqs(std::move(freqs)),
+      _num_azimuths(num_azimuths) {}
 
 /**
  * Compute reverberation envelope collection for a bistatic pair.

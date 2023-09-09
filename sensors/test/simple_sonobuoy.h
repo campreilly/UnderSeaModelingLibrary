@@ -4,8 +4,13 @@
  */
 #pragma once
 
+#include <bits/types/time_t.h>
 #include <usml/sensors/sensor_model.h>
+#include <usml/types/orientation.h>
+#include <usml/types/wposition1.h>
 #include <usml/usml_config.h>
+
+#include <string>
 
 using namespace usml::sensors;
 

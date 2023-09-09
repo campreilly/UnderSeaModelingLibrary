@@ -5,10 +5,8 @@
 #pragma once
 
 #include <usml/managed/managed_obj.h>
-#include <usml/managed/manager_template.h>
 #include <usml/platforms/platform_model.h>
 #include <usml/threads/read_write_lock.h>
-#include <usml/types/seq_vector.h>
 #include <usml/usml_config.h>
 
 #include <memory>
@@ -16,8 +14,8 @@
 namespace usml {
 namespace platforms {
 
+using namespace usml::managed;
 using namespace usml::threads;
-using namespace usml::types;
 
 /// @ingroup platforms
 /// @{

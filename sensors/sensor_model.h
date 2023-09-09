@@ -1,15 +1,14 @@
 /**
  * @file sensor_model.h
- * Instance of an individual sensor in the simulation.
+ * Sensors are platforms that are can automatically compute there own acoustics.
  */
 #pragma once
 
 #include <bits/types/time_t.h>
 #include <usml/beampatterns/bp_model.h>
-#include <usml/eigenrays/eigenray_collection.h>
-#include <usml/eigenverbs/eigenverb_collection.h>
 #include <usml/managed/managed_obj.h>
 #include <usml/platforms/platform_model.h>
+#include <usml/threads/read_write_lock.h>
 #include <usml/types/orientation.h>
 #include <usml/types/seq_linear.h>
 #include <usml/types/seq_rayfan.h>
@@ -17,23 +16,21 @@
 #include <usml/types/wposition1.h>
 #include <usml/usml_config.h>
 #include <usml/wavegen/wavefront_generator.h>
-#include <usml/wavegen/wavefront_listener.h>
 #include <usml/wavegen/wavefront_notifier.h>
 
 #include <cstddef>
 #include <list>
 #include <map>
 #include <memory>
-#include <set>
 #include <string>
 
 namespace usml {
 namespace sensors {
 
 using namespace usml::beampatterns;
-using namespace usml::eigenrays;
-using namespace usml::eigenverbs;
 using namespace usml::managed;
+using namespace usml::platforms;
+using namespace usml::threads;
 using namespace usml::types;
 using namespace usml::wavegen;
 
@@ -41,10 +38,10 @@ using namespace usml::wavegen;
 /// @{
 
 /**
- * Instance of an individual sensor in the simulation. Simple sensors can be
- * implemented as objects that control their own motion, or they can be attached
- * to host platforms using the add_child() method. Uses mutex to lock queries
- * and updates in multi-threaded environment.
+ * Sensors are platforms that are can automatically compute there own acoustics.
+ * Simple sensors can be implemented as objects that control their own motion,
+ * or they can be attached to host platforms using the add_child() method. Uses
+ * mutex to lock queries and updates in multi-threaded environment.
  *
  * This class also stores the beampattern models used by this sensor. Each
  * beampattern has a keyID and a const shared pointer to the beampattern model

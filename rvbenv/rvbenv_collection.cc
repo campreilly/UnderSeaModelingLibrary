@@ -4,29 +4,22 @@
  * receiver azimuth, source beam number, receiver beam number.
  */
 
-#include <usml/biverbs/biverb_model.h>
 #include <usml/platforms/platform_model.h>
 #include <usml/rvbenv/rvbenv_collection.h>
 #include <usml/sensors/sensor_model.h>
-#include <usml/sensors/sensor_pair.h>
-#include <usml/threads/read_write_lock.h>
-#include <usml/types/seq_vector.h>
+#include <usml/ublas/vector_math.h>
 
-#include <boost/numeric/ublas/matrix.hpp>
+#include <algorithm>
+#include <boost/numeric/ublas/expression_types.hpp>
+#include <boost/numeric/ublas/fwd.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/storage.hpp>
 #include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/vector_expression.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
-#include <cstddef>
 #include <list>
-#include <memory>
-#include <utility>
 
-using namespace usml::biverbs;
-using namespace usml::platforms;
 using namespace usml::rvbenv;
-using namespace usml::sensors;
-using namespace usml::threads;
-using namespace usml::types;
 
 /**
  * Initialize model with data from a sensor_pair.

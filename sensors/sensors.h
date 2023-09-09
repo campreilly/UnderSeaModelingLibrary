@@ -1,7 +1,7 @@
 /**
- * @file bistatic.h
- * Modeling products for links between sources and receivers.
- * @defgroup bistatic Bistatic Sensor Pairs
+ * @file sensors.h
+ * Sensors are platforms that are can automatically compute there own acoustics.
+ * @defgroup sensors Bistatic Sensor Pairs
  *
  * Sensors are platforms that are can automatically compute there own acoustics.
  * Simple sensors can be implemented as objects that control their own motion,
@@ -17,8 +17,8 @@
  * eigenverbs (biverbs) represent the bistatic overlap between the source and
  * receiver eigenverbs for this pair.
  *
- * @defgroup bistatic_test Regression Tests
- * @ingroup bistatic
+ * @defgroup sensors_test Regression Tests
+ * @ingroup sensors
  *
  * Regression tests for the bistatic module.
  *
@@ -26,4 +26,5 @@
 #pragma once
 
 #include <usml/sensors/sensor_manager.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_pair.h>

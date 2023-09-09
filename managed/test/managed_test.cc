@@ -1,11 +1,19 @@
 /**
- * @example managed/test/manager_test.cc
+ * @example managed/test/managed_test.cc
  */
+
 #include <usml/managed/managed.h>
+#include <usml/managed/managed_obj.h>
+#include <usml/managed/manager_listener.h>
+#include <usml/managed/manager_template.h>
+#include <usml/managed/update_listener.h>
+#include <usml/managed/update_notifier.h>
 
 #include <boost/test/unit_test.hpp>
 #include <iostream>
+#include <list>
 #include <memory>
+#include <string>
 
 using namespace boost::unit_test;
 using namespace usml::managed;
@@ -13,7 +21,7 @@ using namespace usml::managed;
 using std::cout;
 using std::endl;
 
-BOOST_AUTO_TEST_SUITE(manager_test)
+BOOST_AUTO_TEST_SUITE(managed_test)
 
 /**
  * Type of object to be managed.

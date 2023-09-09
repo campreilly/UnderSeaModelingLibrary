@@ -23,11 +23,11 @@
 namespace usml {
 namespace sensors {
 
+using namespace usml::biverbs;
 using namespace usml::eigenrays;
 using namespace usml::eigenverbs;
-using namespace usml::biverbs;
 using namespace usml::managed;
-using namespace usml::platforms;
+using namespace usml::threads;
 using namespace usml::wavegen;
 
 /// @ingroup sensors

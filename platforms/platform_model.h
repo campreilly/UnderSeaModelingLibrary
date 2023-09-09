@@ -13,15 +13,15 @@
 #include <usml/types/orientation.h>
 #include <usml/types/wposition1.h>
 
-#include <boost/numeric/ublas/vector.hpp>
 #include <list>
 #include <string>
 
 namespace usml {
 namespace platforms {
 
-using namespace usml::types;
 using namespace usml::managed;
+using namespace usml::threads;
+using namespace usml::types;
 
 /// @ingroup platforms
 /// @{

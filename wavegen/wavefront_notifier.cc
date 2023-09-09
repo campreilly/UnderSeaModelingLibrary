@@ -3,7 +3,9 @@
  * Manage wavefront listeners and distribute wavefront updates.
  */
 
-#include <usml/wavegen/wavefront_listener.h>
+#include <usml/eigenrays/eigenray_collection.h>
+#include <usml/eigenverbs/eigenverb_collection.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/wavegen/wavefront_notifier.h>
 
 using namespace usml::wavegen;

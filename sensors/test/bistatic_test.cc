@@ -1,24 +1,48 @@
 /**
- * @example bistatic/test/bistatic_test.cc
+ * @example sensors/test/bistatic_test.cc
  */
 
-#include <usml/beampatterns/beampatterns.h>
-#include <usml/netcdf/netcdf_files.h>
-#include <usml/ocean/ocean.h>
-#include <usml/platforms/platforms.h>
-#include <usml/sensors/sensors.h>
+#include <usml/beampatterns/bp_model.h>
+#include <usml/beampatterns/bp_omni.h>
+#include <usml/biverbs/biverb_collection.h>
+#include <usml/eigenrays/eigenray_collection.h>
+#include <usml/managed/managed_obj.h>
+#include <usml/managed/manager_template.h>
+#include <usml/managed/update_listener.h>
+#include <usml/ocean/ocean_shared.h>
+#include <usml/ocean/ocean_utils.h>
+#include <usml/platforms/platform_manager.h>
+#include <usml/platforms/platform_model.h>
+#include <usml/sensors/sensor_manager.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_pair.h>
+#include <usml/threads/thread_controller.h>
+#include <usml/threads/thread_task.h>
+#include <usml/types/seq_linear.h>
+#include <usml/types/seq_vector.h>
+#include <usml/types/wposition1.h>
 
 #include <boost/test/unit_test.hpp>
+#include <chrono>
+#include <iostream>
+#include <list>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <thread>
 
 BOOST_AUTO_TEST_SUITE(bistatic_test)
 
 using namespace boost::unit_test;
-using namespace usml::eigenverbs;
+using namespace usml::beampatterns;
+using namespace usml::biverbs;
 using namespace usml::eigenrays;
-using namespace usml::netcdf;
+using namespace usml::managed;
 using namespace usml::ocean;
 using namespace usml::platforms;
 using namespace usml::sensors;
+using namespace usml::threads;
+using namespace usml::types;
 
 /**
  * Listen for eigenray updates on sensor.
@@ -38,7 +62,7 @@ class pair_listener : public update_listener<sensor_pair> {
 pair_listener test_listener;
 
 /**
- * @ingroup bistatic_test
+ * @ingroup sensors_test
  * @{
  */
 
@@ -77,7 +101,7 @@ pair_listener test_listener;
  */
 BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     cout << "=== bistatic_test: update_wavefront_data ===" << endl;
-    const char* ncname = USML_TEST_DIR "/bistatic/test/";
+    const char* ncname = USML_TEST_DIR "/sensors/test/";
 
     //    ocean_utils::make_basic(south,north,west,east,month);
     ocean_utils::make_iso(2000.0);

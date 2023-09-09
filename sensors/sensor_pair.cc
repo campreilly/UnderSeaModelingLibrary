@@ -3,35 +3,20 @@
  * Modeling products for a link between source and receiver.
  */
 
-#include <usml/biverbs/biverb_collection.h>
-#include <usml/biverbs/biverb_generator.h>
-#include <usml/eigenrays/eigenray_collection.h>
 #include <usml/eigenrays/eigenray_model.h>
-#include <usml/eigenverbs/eigenverb_collection.h>
-#include <usml/managed/managed_obj.h>
-#include <usml/managed/update_notifier.h>
-#include <usml/sensors/sensor_model.h>
+#include <usml/platforms/platform_model.h>
 #include <usml/sensors/sensor_pair.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_pool.h>
+#include <usml/threads/thread_task.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition.h>
-#include <usml/types/wvector.h>
+#include <usml/types/wposition1.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
-#include <list>
-#include <memory>
 #include <sstream>
-#include <string>
 
-using namespace usml::biverbs;
-using namespace usml::eigenrays;
-using namespace usml::eigenverbs;
-using namespace usml::managed;
-using namespace usml::platforms;
 using namespace usml::sensors;
-using namespace usml::threads;
-using namespace usml::types;
 
 /**
  * Construct link between source and receiver.

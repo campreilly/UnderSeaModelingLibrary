@@ -24,9 +24,7 @@
 #include <memory>
 #include <utility>
 
-using namespace usml::platforms;
 using namespace usml::sensors;
-using namespace usml::wavegen;
 
 /**
  * Add source beam pattern to this sensor.

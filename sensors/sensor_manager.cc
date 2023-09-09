@@ -11,7 +11,6 @@
 #include <memory>
 #include <utility>
 
-using namespace usml::platforms;
 using namespace usml::sensors;
 
 /**

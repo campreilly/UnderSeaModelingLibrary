@@ -1,69 +1,41 @@
 /**
- * @example wavegen/test/platform_update_test.cc
+ * @example wavegen/test/wavegen_test.cc
  */
 
-#include <usml/netcdf/netcdf_files.h>
-#include <usml/ocean/ocean.h>
-#include <usml/platforms/platforms.h>
-#include <usml/sensors/sensor_model.h>
+#include <usml/eigenrays/eigenray_collection.h>
+#include <usml/eigenverbs/eigenverb_collection.h>
+#include <usml/managed/managed_obj.h>
+#include <usml/managed/manager_template.h>
+#include <usml/ocean/ocean_utils.h>
+#include <usml/platforms/platform_manager.h>
+#include <usml/platforms/platform_model.h>
 #include <usml/sensors/sensor_manager.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/threads/thread_controller.h>
+#include <usml/threads/thread_task.h>
+#include <usml/types/seq_linear.h>
+#include <usml/types/seq_vector.h>
+#include <usml/types/wposition1.h>
 #include <usml/wavegen/wavefront_listener.h>
 
 #include <boost/test/unit_test.hpp>
+#include <chrono>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <thread>
 
-BOOST_AUTO_TEST_SUITE(platform_update_test)
+BOOST_AUTO_TEST_SUITE(wavegen_test)
 
 using namespace boost::unit_test;
-using namespace usml::netcdf;
-using namespace usml::ocean;
-using namespace usml::platforms;
-using namespace usml::sensors;
 using namespace usml::wavegen;
 
-/**
- * Load environmental data for area of operations into shared ocean.
- */
-void build_ocean() {
-    int month = 8;             // August
-    const double lat1 = 34.0;  // Malta Escarpment
-    const double lat2 = 38.0;
-    const double lng1 = 15.0;
-    const double lng2 = 19.0;
-
-    // load bathymetry from ETOPO1 database
-
-    data_grid<2>::csptr grid(
-        new netcdf_bathy(USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
-                         lat1, lat2, lng1, lng2));
-    data_grid_bathy::csptr fast_grid(new data_grid_bathy(grid));
-    cout << "load bathymetry from ETOPO1 database" << endl;
-    boundary_grid<2>::csptr bottom(new boundary_grid<2>(fast_grid));
-
-    // build sound velocity profile from World Ocean Atlas data
-
-    cout << "load temperature & salinity data from World Ocean Atlas" << endl;
-    netcdf_woa::csptr temperature(
-        new netcdf_woa(USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
-                       USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
-                       month, lat1, lat2, lng1, lng2));
-    temperature.get()->write_netcdf("temperature.nc");
-    netcdf_woa::csptr salinity(
-        new netcdf_woa(USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
-                       USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc", month,
-                       lat1, lat2, lng1, lng2));
-    salinity.get()->write_netcdf("salinity.nc");
-
-    data_grid<3>::csptr ssp(new data_grid_mackenzie(temperature, salinity));
-    ssp.get()->write_netcdf("ssp.nc");
-
-    profile_grid<3>::csptr profile(new profile_grid<3>(ssp));
-
-    // create shared ocean
-
-    boundary_model::csptr surface(new boundary_flat());
-    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
-    ocean_shared::update(ocean);
-}
+const int month = 8;        // August
+const double south = 34.0;  // Malta Escarpment
+const double north = 38.0;
+const double west = 15.0;
+const double east = 19.0;
 
 /**
  * Listen for eigenray updates on sensor.
@@ -80,8 +52,7 @@ class sensor_listener : public wavefront_listener {
      */
     void update_wavefront_data(
         const sensor_model* sensor, eigenray_collection::csptr eigenrays,
-        eigenverb_collection::csptr  /*eigenverbs*/) override {
-
+        eigenverb_collection::csptr /*eigenverbs*/) override {
         // write eigenrays to netCDF file
 
         std::string fullname = USML_TEST_DIR "/platforms/test/" +
@@ -108,8 +79,8 @@ class sensor_listener : public wavefront_listener {
  * and if notifications work properly.
  */
 BOOST_AUTO_TEST_CASE(propagate_wavefront) {
-    cout << "=== platform_update_test: propagate_wavefront ===" << endl;
-    build_ocean();
+    cout << "=== wavegen_test: propagate_wavefront ===" << endl;
+    ocean_utils::make_basic(south, north, west, east, month);
     sensor_manager* smgr = sensor_manager::instance();
     sensor_listener listener;
 

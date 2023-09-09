@@ -1,22 +1,23 @@
 /**
- * @example platforms/test/platforms_test.cc
+ * @example platforms/test/sensors_test.cc
  */
-#include <usml/platforms/platforms.h>
-#include <usml/platforms/test/simple_sonobuoy.h>
+#include <usml/platforms/platform_manager.h>
+#include <usml/sensors/sensors.h>
+#include <usml/sensors/test/simple_sonobuoy.h>
 
 #include <boost/test/unit_test.hpp>
 
 using namespace boost::unit_test;
 using namespace usml::platforms;
-using namespace usml::platforms::test;
+using namespace usml::sensors::test;
 
 /** Tolerance for value comparisons */
 const double tol = 1e-10;
 
-BOOST_AUTO_TEST_SUITE(platforms_test)
+BOOST_AUTO_TEST_SUITE(sensors_test)
 
 /**
- * @ingroup platforms_test
+ * @ingroup sensors_test
  * @{
  */
 
@@ -24,7 +25,7 @@ BOOST_AUTO_TEST_SUITE(platforms_test)
  * Test the ability to create a simple sensor.
  */
 BOOST_AUTO_TEST_CASE(create_sensor) {
-    cout << "=== platforms_test: create_sensor ===" << endl;
+    cout << "=== sensors_test: create_sensor ===" << endl;
     simple_sonobuoy sensor(0,"simple_sonobuoy");
     platform_manager::reset();
 }
@@ -38,7 +39,7 @@ BOOST_AUTO_TEST_CASE(create_sensor) {
  * correct location,
  */
 BOOST_AUTO_TEST_CASE(create_platform) {
-    cout << "=== platforms_test: create_platform ===" << endl;
+    cout << "=== sensors_test: create_platform ===" << endl;
 
     platform_manager* platform_mgr = platform_manager::instance();
 

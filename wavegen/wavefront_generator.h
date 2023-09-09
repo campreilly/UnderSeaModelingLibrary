@@ -5,7 +5,6 @@
 #pragma once
 
 #include <usml/ocean/ocean_model.h>
-#include <usml/threads/read_write_lock.h>
 #include <usml/threads/thread_task.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition.h>
@@ -24,7 +23,6 @@ namespace usml {
 namespace wavegen {
 
 using namespace usml::ocean;
-using namespace usml::platforms;
 using namespace usml::sensors;
 using namespace usml::threads;
 using namespace usml::types;

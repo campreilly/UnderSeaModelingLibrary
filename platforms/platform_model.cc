@@ -12,7 +12,6 @@
 #include <memory>
 
 using namespace usml::platforms;
-using namespace usml::threads;
 
 /**
  * Get all of the motion parameters, locked by a common mutex.

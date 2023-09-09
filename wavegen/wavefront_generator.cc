@@ -5,31 +5,17 @@
 
 #include <usml/eigenrays/eigenray_collection.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
-#include <usml/ocean/ocean_model.h>
 #include <usml/ocean/ocean_shared.h>
 #include <usml/platforms/platform_model.h>
 #include <usml/sensors/sensor_model.h>
-#include <usml/threads/thread_task.h>
-#include <usml/types/seq_vector.h>
-#include <usml/types/wposition.h>
-#include <usml/types/wposition1.h>
 #include <usml/wavegen/wavefront_generator.h>
-#include <usml/wavegen/wavefront_notifier.h>
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/wave_thresholds.h>
 
 #include <algorithm>
-#include <boost/numeric/ublas/matrix.hpp>
 #include <iostream>
 #include <memory>
 
-using namespace usml::eigenrays;
-using namespace usml::eigenverbs;
-using namespace usml::ocean;
-using namespace usml::platforms;
-using namespace usml::sensors;
-using namespace usml::threads;
-using namespace usml::types;
 using namespace usml::wavegen;
 using namespace usml::waveq3d;
 
@@ -55,8 +41,7 @@ wavefront_generator::wavefront_generator(
       _time_maximum(time_maximum),
       _intensity_threshold(intensity_threshold),
       _max_bottom(max_bottom),
-      _max_surface(max_surface) {
-}
+      _max_surface(max_surface) {}
 
 /**
  * Executes the WaveQ3D propagation model.

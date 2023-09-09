@@ -5,22 +5,23 @@
 #pragma once
 
 #include <bits/exception.h>
-#include <usml/managed/managed_obj.h>
 #include <usml/managed/manager_template.h>
 #include <usml/managed/update_listener.h>
 #include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_pair.h>
 #include <usml/threads/read_write_lock.h>
+#include <usml/types/seq_vector.h>
 #include <usml/usml_config.h>
 
-#include <list>
 #include <memory>
 #include <set>
 
 namespace usml {
 namespace sensors {
 
-using namespace usml::platforms;
+using namespace usml::managed;
+using namespace usml::threads;
+using namespace usml::types;
 
 /// @ingroup sensors
 /// @{

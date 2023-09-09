@@ -3,13 +3,17 @@
  * Simple sonobuoy sensor for testing.
  */
 
+#include <bits/types/time_t.h>
 #include <usml/beampatterns/bp_line.h>
 #include <usml/beampatterns/bp_model.h>
 #include <usml/beampatterns/bp_omni.h>
 #include <usml/beampatterns/bp_trig.h>
-#include <usml/platforms/test/simple_sonobuoy.h>
+#include <usml/sensors/test/simple_sonobuoy.h>
+#include <usml/types/orientation.h>
+#include <usml/types/wposition1.h>
 
 #include <memory>
+#include <string>
 
 using namespace usml::platforms::test;
 using namespace usml::beampatterns;
