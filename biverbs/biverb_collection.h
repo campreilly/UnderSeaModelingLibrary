@@ -42,7 +42,12 @@ class USML_DECLSPEC biverb_collection {
     typedef std::shared_ptr<const biverb_collection> csptr;
 
     /// Map of biverbs, sorted by time.
-    typedef std::map<double, biverb_model::csptr> map;
+    typedef std::multimap<double, biverb_model::csptr> map;
+
+    /**
+     * Threshold for minimum biverb power.
+     */
+    static double power_threshold;
 
     /**
      * Construct a collection for a series of interfaces. Creates a minimum

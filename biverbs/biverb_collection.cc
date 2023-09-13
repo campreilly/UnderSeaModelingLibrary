@@ -16,7 +16,12 @@
 
 using namespace usml::biverbs;
 
-// #define DEBUG_BIVERB
+#define DEBUG_BIVERB
+
+/**
+ * Threshold for minimum biverb power.
+ */
+double biverb_collection::power_threshold = 1e-20;
 
 /**
  * Creates list of biverbs for a specific interface.
@@ -67,8 +72,7 @@ void biverb_collection::add_biverb(const eigenverb_model::csptr& src_verb,
          << " grazing=" << to_degrees(src_verb->grazing) << endl
          << "\tpower=" << 10.0 * log10(src_verb->power)
          << " length=" << src_verb->length << " width=" << src_verb->width
-         << endl
-         << "\tsurface=" << src_verb->surface << " bottom=" << src_verb->bottom
+         << " surface=" << src_verb->surface << " bottom=" << src_verb->bottom
          << " caustic=" << src_verb->caustic << endl
          << "\trcv_verb"
          << " t=" << rcv_verb->travel_time
@@ -78,20 +82,19 @@ void biverb_collection::add_biverb(const eigenverb_model::csptr& src_verb,
          << " grazing=" << to_degrees(rcv_verb->grazing) << endl
          << "\tpower=" << 10.0 * log10(rcv_verb->power)
          << " length=" << rcv_verb->length << " width=" << rcv_verb->width
-         << endl
-         << "\tsurface=" << rcv_verb->surface << " bottom=" << rcv_verb->bottom
+         << " surface=" << rcv_verb->surface << " bottom=" << rcv_verb->bottom
          << " caustic=" << rcv_verb->caustic << endl;
 #endif
     // copy data from source and receiver eigenverbs
 
     auto* biverb = new biverb_model();
     biverb->travel_time = src_verb->travel_time + rcv_verb->travel_time;
-    biverb->frequencies = sensor_manager::instance()->frequencies();
+    biverb->frequencies = rcv_verb->frequencies;
     biverb->de_index = rcv_verb->de_index;
     biverb->az_index = rcv_verb->az_index;
 
     biverb->source_de = src_verb->source_de;
-    biverb->source_de = src_verb->source_az;
+    biverb->source_az = src_verb->source_az;
 
     biverb->source_surface = src_verb->surface;
     biverb->source_bottom = src_verb->bottom;
@@ -146,12 +149,12 @@ void biverb_collection::add_biverb(const eigenverb_model::csptr& src_verb,
                           2.0 * sqrt(xs2 * ys2) * src_diff * sin2alpha) /
                          det_sr;
 #ifdef DEBUG_BIVERB
-    cout << "\tsrc_verb->power=" << src_verb->power
-         << " rcv_verb->power=" << rcv_verb->power << endl
-         << "\tdet_sr=" << det_sr << " kappa=" << kappa
+    cout << "\tdet_sr=" << det_sr << " kappa=" << kappa
+         << " scatter=" << (10.0 * log10(scatter))
          << " power=" << (10.0 * log10(biverb->power)) << endl;
 #endif
-    biverb->power *= exp(kappa) / sqrt(det_sr);
+    const double overlap_scale = exp(kappa) / sqrt(det_sr);
+    biverb->power *= overlap_scale;
 
     // compute the square of the duration of the overlap
     // equation (41) from the paper
@@ -175,8 +178,10 @@ void biverb_collection::add_biverb(const eigenverb_model::csptr& src_verb,
 
     // add to collection
 
-    auto verb = biverb_model::csptr(biverb);
-    _collection[interface].insert({verb->travel_time, verb});
+    if (norm_inf(biverb->power) >= power_threshold) {
+        auto verb = biverb_model::csptr(biverb);
+        _collection[interface].insert({verb->travel_time, verb});
+    }
 }
 
 /**

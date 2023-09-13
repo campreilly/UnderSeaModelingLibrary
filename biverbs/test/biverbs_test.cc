@@ -2,21 +2,13 @@
  * @example biverbs/test/biverbs_test.cc
  */
 
-#include <usml/biverbs/biverb_collection.h>
 #include <usml/biverbs/biverb_model.h>
 #include <usml/biverbs/biverbs.h>
-#include <usml/eigenrays/eigenray_collection.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
 #include <usml/eigenverbs/eigenverb_model.h>
-#include <usml/managed/managed_obj.h>
-#include <usml/ocean/ocean_shared.h>
 #include <usml/ocean/ocean_utils.h>
-#include <usml/platforms/platform_model.h>
 #include <usml/sensors/sensor_manager.h>
-#include <usml/sensors/sensor_model.h>
-#include <usml/sensors/sensor_pair.h>
 #include <usml/sensors/test/simple_sonobuoy.h>
-#include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_task.h>
 #include <usml/types/seq_linear.h>
 #include <usml/types/seq_vector.h>
@@ -26,13 +18,11 @@
 
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/test/unit_test.hpp>
-#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <iostream>
 #include <list>
 #include <memory>
-#include <thread>
 
 BOOST_AUTO_TEST_SUITE(biverbs_test)
 
@@ -60,7 +50,6 @@ static eigenverb_model::csptr create_eigenverb(
     verb->sound_speed = 1500.0;
     verb->travel_time = slant_range / verb->sound_speed;
     verb->frequencies = frequencies;
-    verb->power = vector<double>(frequencies->size(), 1.0);
     verb->length = 0.5 * slant_range * to_radians(de_spacing) / sin(grazing);
     verb->width = 0.5 * slant_range * to_radians(az_spacing) * cos(grazing);
     verb->position = wposition1(source_pos, horz_range, az_rad);
@@ -76,6 +65,10 @@ static eigenverb_model::csptr create_eigenverb(
     verb->caustic = 0;
     verb->upper = 0;
     verb->lower = 0;
+
+    double power = verb->length * verb->width / (slant_range * slant_range);
+    verb->power = vector<double>(frequencies->size(), power);
+
     return eigenverb_model::csptr(verb);
 }
 
@@ -86,13 +79,16 @@ static eigenverb_model::csptr create_eigenverb(
 
 /**
  * Tests ability to construct bistatic eigenverbs in a background task. Builds
- * hard-coded eigenverbs on bottom for varying DE and AZ. Launches
- * update_wavefront_data() background task to compute biverbs. Extract biverbs,
- * write to disk, and count entries in collection
+ * hard-coded eigenverbs on bottom for 8 different DE and 10 different AZ.
+ * Test automatically fails if eigenverb_collection does not have an eigenverb
+ * for each DE and AZ combination.
+ *
+ * Launches update_wavefront_data() background task to compute biverbs. Extracts
+ * biverbs, writes them to disk, and counts entries in biverbs collection.
  */
 BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     cout << "=== biverbs_test: update_wavefront_data ===" << endl;
-    const char* ncname = USML_TEST_DIR "/biverbs/test/biverbs_test.nc";
+    const char* ncname = USML_TEST_DIR "/biverbs/test/";
     sensor_manager* smgr = sensor_manager::instance();
 
     ocean_utils::make_iso(depth);
@@ -112,8 +108,6 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
 
     // build hard-coded eigenverbs on bottom for varying DE and AZ
 
-    wposition1 pos1 = sensor->position();
-    wposition pos(1, 1, pos1.latitude(), pos1.longitude(), pos1.altitude());
     auto* verb_collection = new eigenverb_collection(eigenverb_model::BOTTOM);
     for (double az = 0.0; az <= 90.0; az += az_spacing) {
         for (double de = -90.0 + de_spacing; de < 0.0; de += de_spacing) {
@@ -122,24 +116,39 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
             verb_collection->add_eigenverb(verb, eigenverb_model::BOTTOM);
         }
     }
+    {
+        std::ostringstream filename;
+        filename << ncname << "eigenverbs.nc";
+        verb_collection->write_netcdf(filename.str().c_str(),
+                                      eigenverb_model::BOTTOM);
+    }
+    eigenverb_list eigenverb_list =
+        verb_collection->eigenverbs(eigenverb_model::BOTTOM);
+    BOOST_CHECK_EQUAL(eigenverb_list.size(), 80);
 
     // launch update_wavefront_data() background task to compute biverbs
+    // using empty eigenray_collection
 
+    wposition1 pos1 = sensor->position();
+    wposition pos(pos1);
     auto* ray_collection = new eigenray_collection(frequencies, pos1, pos);
     pair->update_wavefront_data(sensor.get(),
                                 eigenray_collection::csptr(ray_collection),
                                 eigenverb_collection::csptr(verb_collection));
-    while (thread_task::num_active() > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
+    thread_task::wait();
 
     // extract biverbs, write to disk, and count entries in collection
 
     auto collection = pair->biverbs();
     biverb_list verb_list = collection->biverbs(eigenverb_model::BOTTOM);
-    BOOST_CHECK_EQUAL(verb_list.size(), 36);
-    BOOST_CHECK_EQUAL(collection->size(eigenverb_model::BOTTOM), 36);
-    collection->write_netcdf(ncname, eigenverb_model::BOTTOM);
+    BOOST_CHECK_EQUAL(verb_list.size(), 182);
+    BOOST_CHECK_EQUAL(collection->size(eigenverb_model::BOTTOM), 182);
+    {
+        std::ostringstream filename;
+        filename << ncname << "biverbs_test.nc";
+        collection->write_netcdf(filename.str().c_str(),
+                                 eigenverb_model::BOTTOM);
+    }
 
     sensor_manager::reset();
 }

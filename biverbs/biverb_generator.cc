@@ -1,6 +1,6 @@
 /**
  * @file biverb_generator.cc
- * Computes reverberation envelopes from eigenverbs.
+ * Computes Background task to compute bistatic eigenverbs.
  */
 
 #include <usml/biverbs/biverb_generator.h>

@@ -1,6 +1,6 @@
 /**
  * @file biverb_generator.h
- * Computes reverberation envelopes from eigenverbs.
+ * Background task to compute bistatic eigenverbs.
  */
 #pragma once
 
@@ -28,7 +28,7 @@ using namespace usml::threads;
 /// @{
 
 /**
- * Background task to recompute bistatic eigenverbs. Automatically invoked by a
+ * Background task to compute bistatic eigenverbs. Automatically invoked by a
  * sensor_pair whenever one of the sensors updates its eigenverbs. If an
  * existing biverb_generator is running for this sensor_pair, that task is
  * aborted before the new background task is created. Results are stored in the

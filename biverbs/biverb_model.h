@@ -20,7 +20,7 @@ using namespace usml::types;
 /// @{
 
 /**
- * Combination of source and receiver eignverbs for a bistatic pair.
+ * Combination of source and receiver eigenverbs for a bistatic pair.
  * Pre-computes all of the geometry related elements of eigenverb overlap except
  * the application of the beam patterns. Assumes that the beam patterns many
  * change more quickly than the geometry of the source and receiver to each
