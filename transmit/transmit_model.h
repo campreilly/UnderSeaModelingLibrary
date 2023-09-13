@@ -90,22 +90,17 @@ class USML_DECLSPEC transmit_model {
      * @param type          Display name for waveform type.
      * @param duration      Duration of the transmitted signal (sec).
      * @param fcenter       Center frequency for current modulation scheme (Hz).
-     * @param bandwidth     Frequency bandwidth for current modulation scheme
-     * (Hz).
+     * @param bandwidth     Frequency bandwidth for current modulation (Hz).
      * @param delay         Delay after completion of previous pulse (sec).
-     * @param source_level  Peak intensity of the transmitted pulse (microPa at
-     * 1m).
+     * @param source_level  Peak intensity of pulse (microPa at 1m).
      * @param window_type   Waveform shading window.
      * @param window_param  Waveform shading parameter.
-     * @param orderedAZ  	Ordered steering azimuth relative to host
-     * orientation (deg).
-     * @param orderedDE  	Ordered steering elevation relative to host
-     * orientation (deg)
+     * @param orderedAZ  	Ordered steering azimuth relative to host (deg).
+     * @param orderedDE  	Ordered steering elevation relative to host (deg).
      * @param transmit_mode Transmitter beam pattern number to use.
-     * @param treverb  		Override time resolution for reverb
-     * calculations.
+     * @param treverb  		Override time resolution for reverb calcs.
      */
-    transmit_model(std::string type, double duration, double fcenter,
+    transmit_model(const std::string& type, double duration, double fcenter,
                    double bandwidth, double delay, double source_level,
                    window::type window_type, double window_param,
                    double orderedAZ, double orderedDE, int transmit_mode,

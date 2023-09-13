@@ -25,9 +25,9 @@ ocean_model::csptr ocean_shared::current() {
 /**
  * Update shared ocean with new data.
  */
-void ocean_shared::update(ocean_model::csptr ocean) {
+void ocean_shared::update(const ocean_model::csptr& ocean) {
     write_lock_guard guard(ocean_shared::_mutex);
-    _current = std::move(ocean);
+    _current = ocean;
 }
 
 /**

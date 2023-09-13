@@ -2,14 +2,15 @@
  * @example ocean/test/ambient_test.cc
  */
 
-#include <boost/test/unit_test.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <usml/ocean/ambient_wenz.h>
 #include <usml/ocean/ambient_constant.h>
+#include <usml/ocean/ambient_wenz.h>
 #include <usml/types/seq_log.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition1.h>
 #include <usml/usml_config.h>
+
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -32,28 +33,29 @@ using namespace usml::types;
  * the frequency is matched to a nearest neighbor and that the results are
  * power summed before comparison, but the analytic solutions are not.
  */
-BOOST_AUTO_TEST_CASE( ambient_constant_test ) {
+BOOST_AUTO_TEST_CASE(ambient_constant_test) {
     cout << "=== ambient_wenz_test: generate constant curves ===" << endl;
 
     wposition1 point;
-    seq_vector::csptr frequencies( new seq_log(1.0, pow(10.0, 0.1), 1e6) );
+    seq_vector::csptr frequencies(new seq_log(1.0, pow(10.0, 0.1), 1e6));
     vector<double> noise(frequencies->size());
 
     // open output file and write header
 
-    const char *filename = USML_TEST_DIR "/ocean/test/ambient_constant_test.csv";
+    const char *filename =
+        USML_TEST_DIR "/ocean/test/ambient_constant_test.csv";
     std::ofstream ofile(filename);
-    for( double value : *frequencies ) {
+    for (double value : *frequencies) {
         ofile << value << ",";
     }
     ofile << endl;
 
     // compute ambient noise and save to *.csv file
 
-    double level ;
+    double level;
     ambient_constant model(60.0);
     model.ambient(point, frequencies, &noise);
-    for( double value : noise ) {
+    for (double value : noise) {
         level = 10.0 * log10(value);
         ofile << level << ",";
     }
@@ -75,8 +77,8 @@ BOOST_AUTO_TEST_CASE( ambient_constant_test ) {
  * the frequency is matched to a nearest neighbor and that the results are
  * power summed before comparison, but the analytic solutions are not.
  */
-//NOLINTNEXTLINE(readability-function-cognitive-complexity)
-BOOST_AUTO_TEST_CASE( ambient_wenz_test ) {
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+BOOST_AUTO_TEST_CASE(ambient_wenz_test) {
     cout << "=== ambient_wenz_test: generate wenz curves ===" << endl;
 
     wposition1 point;
@@ -89,7 +91,7 @@ BOOST_AUTO_TEST_CASE( ambient_wenz_test ) {
     const char *filename = USML_TEST_DIR "/ocean/test/ambient_wenz_test.csv";
     std::ofstream ofile(filename);
     ofile << "sea state,ship level,rain rate";
-    for( double value : *frequencies ) {
+    for (double value : *frequencies) {
         ofile << "," << value;
     }
     ofile << endl;
@@ -113,7 +115,7 @@ BOOST_AUTO_TEST_CASE( ambient_wenz_test ) {
 
                 ambient_wenz model(wind_speed, shipping_level, rain_rate);
                 model.ambient(point, frequencies, &noise);
-                for( double value : noise ) {
+                for (double value : noise) {
                     double level = 10.0 * log10(value);
                     ofile << "," << level;
                 }
@@ -122,27 +124,29 @@ BOOST_AUTO_TEST_CASE( ambient_wenz_test ) {
                 // check levels at specific milestones
 
                 if (sea_state == 2 && shipping_level == 5) {
-                	size_t n;
+                    size_t n;
                     double level;
                     if (rain_rate == 0) {
-                        n = frequencies->find_nearest(1.0);   // peak of turbulence
+                        n = frequencies->find_nearest(
+                            1.0);  // peak of turbulence
                         level = 10.0 * log10(noise(n));
                         BOOST_CHECK_SMALL(level - 107.0, 0.1);
 
-                        n = frequencies->find_nearest(30.0);   // peak of shipping
+                        n = frequencies->find_nearest(
+                            30.0);  // peak of shipping
                         level = 10.0 * log10(noise(n));
                         BOOST_CHECK_SMALL(level - 81.0, 0.1);
 
-                        n = frequencies->find_nearest(1e4);    // middle of wind
+                        n = frequencies->find_nearest(1e4);  // middle of wind
                         level = 10.0 * log10(noise(n));
                         BOOST_CHECK_SMALL(level - 40.0, 0.3);
 
-                        n = frequencies->find_nearest(1e6);    // peak of thermal
+                        n = frequencies->find_nearest(1e6);  // peak of thermal
                         level = 10.0 * log10(noise(n));
                         BOOST_CHECK_SMALL(level - 45.0, 0.1);
 
                     } else if (rain_rate == 1) {
-                        n = frequencies->find_nearest(1e3);    // middle of rain
+                        n = frequencies->find_nearest(1e3);  // middle of rain
                         level = 10.0 * log10(noise(n));
                         BOOST_CHECK_SMALL(level - 77.5, 0.1);
                     }

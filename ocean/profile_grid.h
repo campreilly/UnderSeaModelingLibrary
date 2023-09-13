@@ -54,7 +54,7 @@ class profile_grid : public profile_model {
      *                      reference and deletes it as part of its destructor.
      */
     profile_grid(typename data_grid<NUM_DIMS>::csptr speed,
-                 attenuation_model::csptr attmodel = nullptr)
+                 const attenuation_model::csptr& attmodel = nullptr)
         : profile_model(attmodel), _sound_speed(speed) {}
 
     /**

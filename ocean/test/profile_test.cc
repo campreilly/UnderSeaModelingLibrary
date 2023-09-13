@@ -153,15 +153,15 @@ BOOST_AUTO_TEST_CASE(compute_mackenzie_test) {
 
     // load temperature & salinity data from World Ocean Atlas
 
-    auto* temp = new netcdf_woa(
-            USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
-            USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
-            month, 18.5, 18.5, 200.5, 200.5);
-    auto* salt = new netcdf_woa(
-            USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
-            USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc", month,
-            18.5, 18.5, 200.5, 200.5);
-    for (size_t n=0; n < 3; ++n) {
+    auto* temp =
+        new netcdf_woa(USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
+                       USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
+                       month, 18.5, 18.5, 200.5, 200.5);
+    auto* salt =
+        new netcdf_woa(USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
+                       USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc", month,
+                       18.5, 18.5, 200.5, 200.5);
+    for (size_t n = 0; n < 3; ++n) {
         temp->interp_type(n, interp_enum::nearest);
         salt->interp_type(n, interp_enum::nearest);
     }

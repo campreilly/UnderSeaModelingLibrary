@@ -3,7 +3,7 @@
  */
 
 #include <bits/stdint-intn.h>
-#include <stddef.h>
+#include <cstddef>
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_pool.h>
@@ -253,7 +253,7 @@ class sqrt_task_tester {
      */
     void random_wait() const {
         randgen rand;
-        int64_t msec = (int64_t)(1000.0 * _max_wait * rand.uniform());
+        auto msec = (int64_t)(1000.0 * _max_wait * rand.uniform());
         thread_task::sleep(msec);
     }
 };

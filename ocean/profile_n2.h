@@ -45,7 +45,7 @@ class USML_DECLSPEC profile_n2 : public profile_model {
      * @param attmodel  In-water attenuation model.  Defaults to Thorp.
      */
     profile_n2(double c0, double g0,
-               attenuation_model::csptr attmodel = nullptr)
+               const attenuation_model::csptr& attmodel = nullptr)
         : profile_model(attmodel), _soundspeed0(c0), _factor(2.0 * g0 / c0) {}
 
     /**

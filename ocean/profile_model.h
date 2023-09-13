@@ -37,7 +37,7 @@ class USML_DECLSPEC profile_model : public attenuation_model {
      * @param attenuation   In-water attenuation model.
      *                      Uses Thorp model if none specified.
      */
-    profile_model(attenuation_model::csptr attenuation = nullptr)
+    profile_model(const attenuation_model::csptr& attenuation = nullptr)
         : _flat_earth(false) {
         if (attenuation) {
             _attenuation = attenuation;
@@ -76,7 +76,7 @@ class USML_DECLSPEC profile_model : public attenuation_model {
      *
      * @param attenuation    In-water attenuation model.
      */
-    void attenuation(attenuation_model::csptr attenuation) {
+    void attenuation(const attenuation_model::csptr& attenuation) {
         _attenuation = attenuation;
     }
 
@@ -89,7 +89,7 @@ class USML_DECLSPEC profile_model : public attenuation_model {
      * @param attenuation   Absorption loss of sea water in dB (output).
      */
     virtual void attenuation(const wposition& location,
-                             seq_vector::csptr frequencies,
+                             const seq_vector::csptr& frequencies,
                              const matrix<double>& distance,
                              matrix<vector<double> >* attenuation) const {
         _attenuation->attenuation(location, frequencies, distance, attenuation);

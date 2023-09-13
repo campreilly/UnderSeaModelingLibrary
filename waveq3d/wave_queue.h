@@ -9,8 +9,8 @@
 #include <usml/types/wposition.h>
 #include <usml/types/wposition1.h>
 #include <usml/usml_config.h>
-#include <usml/waveq3d/wave_thresholds.h>
 #include <usml/waveq3d/wave_front.h>
+#include <usml/waveq3d/wave_thresholds.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
@@ -111,7 +111,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier,
      * while the wave_queue propagates and to delete the pointer when it is no
      *         longer required.
      */
-    wave_queue(ocean_model::csptr ocean, seq_vector::csptr freq,
+    wave_queue(const ocean_model::csptr& ocean, const seq_vector::csptr& freq,
                const wposition1& pos, const seq_vector::csptr& de,
                const seq_vector::csptr& az, double time_step,
                const wposition* target_pos = nullptr, const size_t run_id = 1,

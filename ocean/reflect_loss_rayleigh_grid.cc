@@ -49,15 +49,13 @@ reflect_loss_rayleigh_grid::reflect_loss_rayleigh_grid(
  * @param phase         Change in ray phase in radians (output).
  *                      Phase change not computed if this is nullptr.
  */
-void reflect_loss_rayleigh_grid::reflect_loss(const wposition1& location,
-                                              seq_vector::csptr frequencies,
-                                              double angle,
-                                              vector<double>* amplitude,
-                                              vector<double>* phase) const {
+void reflect_loss_rayleigh_grid::reflect_loss(
+    const wposition1& location, const seq_vector::csptr& frequencies,
+    double angle, vector<double>* amplitude, vector<double>* phase) const {
     double loc[2];
     loc[0] = location.latitude();
     loc[1] = location.longitude();
-    auto type = (size_t) _bottom_grid->interpolate(loc);
+    auto type = (size_t)_bottom_grid->interpolate(loc);
     _rayleigh[type]->reflect_loss(location, frequencies, angle, amplitude,
                                   phase);
 }

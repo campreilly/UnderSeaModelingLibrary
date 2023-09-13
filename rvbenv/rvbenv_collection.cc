@@ -25,11 +25,11 @@ using namespace usml::rvbenv;
  * Initialize model with data from a sensor_pair.
  */
 rvbenv_collection::rvbenv_collection(const sensor_pair::sptr& pair,
-                                     seq_vector::csptr times,
-                                     seq_vector::csptr freqs,
+                                     const seq_vector::csptr& times,
+                                     const seq_vector::csptr& freqs,
                                      size_t num_azimuths)
-    : _times(std::move(times)),
-      _freqs(std::move(freqs)),
+    : _times(times),
+      _freqs(freqs),
       _num_azimuths(num_azimuths) {
     // get reference to underlying source and receiver data
 

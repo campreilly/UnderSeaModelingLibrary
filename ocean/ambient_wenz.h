@@ -46,7 +46,7 @@ class USML_DECLSPEC ambient_wenz : public ambient_model {
      * @param frequency Frequencies at which noise is calculated.
      * @param noise     Ambient noise power spectral density (output)
      */
-    void ambient(const wposition1 &location, seq_vector::csptr frequency,
+    void ambient(const wposition1 &location, const seq_vector::csptr &frequency,
                  vector<double> *noise) const override;
 
    private:

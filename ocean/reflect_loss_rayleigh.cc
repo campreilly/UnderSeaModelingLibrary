@@ -81,7 +81,7 @@ reflect_loss_rayleigh::reflect_loss_rayleigh(double density, double speed,
  * Computes the broadband reflection loss and phase change.
  */
 void reflect_loss_rayleigh::reflect_loss(const wposition1& /*location*/,
-                                         seq_vector::csptr frequencies,
+                                         const seq_vector::csptr& frequencies,
                                          double angle,
                                          vector<double>* amplitude,
                                          vector<double>* phase) const {

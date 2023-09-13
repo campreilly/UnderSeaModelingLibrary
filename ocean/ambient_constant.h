@@ -46,9 +46,9 @@ class USML_DECLSPEC ambient_constant : public ambient_model {
      * @param noise     Ambient noise power spectral density (output)
      */
     virtual void ambient(const wposition1 &location,
-                         seq_vector::csptr frequency,
+                         const seq_vector::csptr &frequency,
                          vector<double> *noise) const {
-        *noise = scalar_vector<double>(frequency->size(), _coefficient) ;
+        *noise = scalar_vector<double>(frequency->size(), _coefficient);
     }
 
    private:

@@ -51,9 +51,9 @@ class USML_DECLSPEC reflect_loss_rayleigh_grid : public reflect_loss_model {
      *                      Phase change not computed if this is nullptr.
      */
     void reflect_loss(const wposition1& location,
-                              seq_vector::csptr frequencies, double angle,
-                              vector<double>* amplitude,
-                              vector<double>* phase = nullptr) const override;
+                      const seq_vector::csptr& frequencies, double angle,
+                      vector<double>* amplitude,
+                      vector<double>* phase = nullptr) const override;
 
    private:
     /**

@@ -43,7 +43,7 @@ class USML_DECLSPEC ocean_shared {
      *
      * @param   ocean  Shared pointer to the data used to update this singleton.
      */
-    static void update(ocean_model::csptr ocean);
+    static void update(const ocean_model::csptr& ocean);
 
     /**
      * Reset the shared ocean pointer to empty.

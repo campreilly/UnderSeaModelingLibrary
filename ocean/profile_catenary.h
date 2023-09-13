@@ -52,7 +52,7 @@ class USML_DECLSPEC profile_catenary : public profile_model {
      * @param attmodel  In-water attenuation model.  Defaults to Thorp.
      */
     profile_catenary(double c1, double g1, double z1,
-                     attenuation_model::csptr attmodel = nullptr)
+                     const attenuation_model::csptr& attmodel = nullptr)
         : profile_model(attmodel),
           _soundspeed1(c1),
           _gradient1(g1),

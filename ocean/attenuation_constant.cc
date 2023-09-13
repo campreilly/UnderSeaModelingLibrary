@@ -12,7 +12,7 @@ using namespace usml::ocean;
  * Computes the broadband absorption loss of sea water.
  */
 void attenuation_constant::attenuation(
-    const wposition& location, seq_vector::csptr frequencies,
+    const wposition& location, const seq_vector::csptr& frequencies,
     const matrix<double>& distance,
     matrix<vector<double> >* attenuation) const {
     for (size_t row = 0; row < location.size1(); ++row) {

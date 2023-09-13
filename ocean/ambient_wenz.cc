@@ -11,9 +11,9 @@ using namespace usml::ocean;
 /**
  * Computes the power spectral density of ambient noise.
  */
-void ambient_wenz::ambient(const wposition1 & /*location*/,
-                           seq_vector::csptr frequency,
-                           vector<double> *noise) const {
+void ambient_wenz::ambient(const wposition1& /*location*/,
+                           const seq_vector::csptr& frequency,
+                           vector<double>* noise) const {
     vector<double> nothing = scalar_vector<double>(frequency->size(), -300.0);
     vector<double> logf = frequency->data();
     logf = log10(logf);

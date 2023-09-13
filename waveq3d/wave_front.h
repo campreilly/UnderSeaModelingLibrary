@@ -90,7 +90,7 @@ class USML_DECLSPEC wave_front {
      *                      Used to speed up compute_target_distance() calc.
      *                      Not used if eigenrays are not being computed.
      */
-    wave_front(ocean_model::csptr ocean, const seq_vector::csptr& freq,
+    wave_front(const ocean_model::csptr& ocean, const seq_vector::csptr& freq,
                size_t num_de, size_t num_az, const wposition* targets = nullptr,
                const matrix<double>* sin_theta = nullptr);
 

@@ -170,7 +170,7 @@ class USML_DECLSPEC sensor_model : public platform_model,
      * @param keyID		Identification number.
      * @param pattern   Reference to bp_model.
      */
-    size_t src_beam(int keyID, bp_model::csptr pattern);
+    size_t src_beam(int keyID, const bp_model::csptr& pattern);
 
     /**
      * Find reference to specific source beam model.
@@ -200,7 +200,7 @@ class USML_DECLSPEC sensor_model : public platform_model,
      * @param keyID		Identification number.
      * @param pattern   Reference to bp_model.
      */
-    size_t rcv_beam(int keyID, bp_model::csptr pattern);
+    size_t rcv_beam(int keyID, const bp_model::csptr& pattern);
 
     /**
      * Find reference to specific receiver beam model.

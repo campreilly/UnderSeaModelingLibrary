@@ -25,18 +25,18 @@ using namespace usml::waveq3d;
  */
 wavefront_generator::wavefront_generator(
     sensor_model* source, const wposition& target_positions,
-    const matrix<int>& targetIDs, seq_vector::csptr frequencies,
-    seq_vector::csptr de_fan, seq_vector::csptr az_fan, double time_step,
-    double time_maximum, double intensity_threshold, int max_bottom,
-    int max_surface)
+    const matrix<int>& targetIDs, const seq_vector::csptr& frequencies,
+    const seq_vector::csptr& de_fan, const seq_vector::csptr& az_fan,
+    double time_step, double time_maximum, double intensity_threshold,
+    int max_bottom, int max_surface)
     : _ocean(ocean_shared::current()),
       _source(source),
       _source_position(source->position()),
       _target_positions(target_positions),
       _targetIDs(targetIDs),
-      _frequencies(std::move(std::move(frequencies))),
-      _de_fan(std::move(std::move(de_fan))),
-      _az_fan(std::move(std::move(az_fan))),
+      _frequencies(frequencies),
+      _de_fan(de_fan),
+      _az_fan(az_fan),
       _time_step(time_step),
       _time_maximum(time_maximum),
       _intensity_threshold(intensity_threshold),

@@ -20,8 +20,9 @@ using namespace usml::waveq3d;
 /**
  * Create workspace for all properties.
  */
-wave_front::wave_front(ocean_model::csptr ocean, const seq_vector::csptr& freq,
-                       size_t num_de, size_t num_az, const wposition* targets,
+wave_front::wave_front(const ocean_model::csptr& ocean,
+                       const seq_vector::csptr& freq, size_t num_de,
+                       size_t num_az, const wposition* targets,
                        const matrix<double>* sin_theta)
     : position(num_de, num_az),
       pos_gradient(num_de, num_az),
@@ -40,7 +41,7 @@ wave_front::wave_front(ocean_model::csptr ocean, const seq_vector::csptr& freq,
       lower(num_de, num_az),
       on_edge(num_de, num_az),
       targets(targets),
-      _ocean(std::move(std::move(ocean))),
+      _ocean(ocean),
       _frequencies(freq),
       _dc_c(num_de, num_az),
       _c2_r(num_de, num_az),

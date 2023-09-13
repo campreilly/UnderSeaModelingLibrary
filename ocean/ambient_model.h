@@ -40,7 +40,7 @@ class USML_DECLSPEC ambient_model {
      * @param noise	    Ambient noise power spectral density (output)
      */
     virtual void ambient(const wposition1 &location,
-                         seq_vector::csptr frequency,
+                         const seq_vector::csptr &frequency,
                          vector<double> *noise) const = 0;
 
     /**

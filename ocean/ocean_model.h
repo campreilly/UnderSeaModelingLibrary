@@ -34,27 +34,25 @@ class USML_DECLSPEC ocean_model {
     typedef std::shared_ptr<const ocean_model> csptr;
 
     /** Retrieve current model for the ocean surface. */
-    inline boundary_model::csptr surface() const { return _surface; }
+    boundary_model::csptr surface() const { return _surface; }
 
     /** Retrieve current model for the ocean bottom. */
-    inline boundary_model::csptr bottom() const { return _bottom; }
+    boundary_model::csptr bottom() const { return _bottom; }
 
     /** Retrieve one layer of the ocean volume. */
-    inline volume_model::csptr volume(
+    volume_model::csptr volume(
         std::vector<volume_model::csptr>::size_type n) const {
         return _volume.at(n);
     }
 
     /** Retrieve number of ocean volume layers. */
-    inline size_t num_volume() const { return _volume.size(); }
+    size_t num_volume() const { return _volume.size(); }
 
     /** Adds a layer to list of ocean volumes. */
-    inline void add_volume(volume_model::csptr layer) {
-        _volume.push_back(layer);
-    }
+    void add_volume(volume_model::csptr layer) { _volume.push_back(layer); }
 
     /** Retrieve current model for the ocean profile. */
-    inline profile_model::csptr profile() const { return _profile; }
+    profile_model::csptr profile() const { return _profile; }
 
     /**
      * Associate ocean parts with this model.
@@ -68,7 +66,7 @@ class USML_DECLSPEC ocean_model {
         if (volume) {
             _volume = *volume;
         } else {
-        	_volume = std::vector<volume_model::csptr>();
+            _volume = std::vector<volume_model::csptr>();
         }
     }
 

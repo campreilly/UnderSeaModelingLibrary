@@ -11,11 +11,12 @@ using namespace usml::rvbenv;
  * Initialize model parameters with state of sensor_pair at this time.
  */
 rvbenv_generator::rvbenv_generator(const sensor_pair::sptr& pair,
-                                   seq_vector::csptr times,
-                                   seq_vector::csptr freqs, size_t num_azimuths)
+                                   const seq_vector::csptr& times,
+                                   const seq_vector::csptr& freqs,
+                                   size_t num_azimuths)
     : _sensor_pair(pair),
-      _times(std::move(times)),
-      _freqs(std::move(freqs)),
+      _times(times),
+      _freqs(freqs),
       _num_azimuths(num_azimuths) {}
 
 /**

@@ -43,8 +43,8 @@ class USML_DECLSPEC reflect_loss_model {
      *                      Phase change not computed if this is nullptr.
      */
     virtual void reflect_loss(const wposition1& location,
-                              seq_vector::csptr frequencies, double angle,
-                              vector<double>* amplitude,
+                              const seq_vector::csptr& frequencies,
+                              double angle, vector<double>* amplitude,
                               vector<double>* phase = nullptr) const = 0;
 
     /**

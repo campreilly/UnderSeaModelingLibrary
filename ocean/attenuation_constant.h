@@ -41,7 +41,8 @@ class USML_DECLSPEC attenuation_constant : public attenuation_model {
      * @param distance      Distance travelled through the water (meters).
      * @param attenuation   Absorption loss of sea water in dB (output).
      */
-    void attenuation(const wposition& location, seq_vector::csptr frequencies,
+    void attenuation(const wposition& location,
+                     const seq_vector::csptr& frequencies,
                      const matrix<double>& distance,
                      matrix<vector<double> >* attenuation) const override;
 

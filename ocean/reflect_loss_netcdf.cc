@@ -124,14 +124,14 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
  *                      Phase change not computed if this is nullptr.
  */
 void reflect_loss_netcdf::reflect_loss(const wposition1& location,
-                                       seq_vector::csptr frequencies,
+                                       const seq_vector::csptr& frequencies,
                                        double angle, vector<double>* amplitude,
                                        vector<double>* phase) const {
     double loc[2];
     loc[0] = location.latitude();
     loc[1] = location.longitude();
 
-    auto type = (size_t) _bottom_grid->interpolate(loc);
+    auto type = (size_t)_bottom_grid->interpolate(loc);
     _loss_model[type]->reflect_loss(location, frequencies, angle, amplitude,
                                     phase);
 }

@@ -63,7 +63,7 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
     /**
      * Frequencies over which propagation is computed (Hz).
      */
-    void frequencies(seq_vector::csptr freq);
+    void frequencies(const seq_vector::csptr& freq);
 
     /**
      * Adds a sensor into the bistatic pair manager. Searches for all other

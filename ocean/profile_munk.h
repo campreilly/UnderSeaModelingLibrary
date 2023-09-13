@@ -54,7 +54,7 @@ class USML_DECLSPEC profile_munk : public profile_model {
      */
     profile_munk(double axis_depth = 1300.0, double scale = 1300.0,
                  double axis_speed = 1500.0, double epsilon = 7.37e-3,
-                 attenuation_model::csptr attmodel = nullptr)
+                 const attenuation_model::csptr& attmodel = nullptr)
         : profile_model(attmodel),
           _axis_depth(axis_depth),
           _scale(scale),

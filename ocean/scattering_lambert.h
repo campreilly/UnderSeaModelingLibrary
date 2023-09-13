@@ -62,8 +62,9 @@ class USML_DECLSPEC scattering_lambert : public scattering_model {
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
-    void scattering(const wposition1& location, seq_vector::csptr frequencies,
-                    double de_incident, double de_scattered, double az_incident,
+    void scattering(const wposition1& location,
+                    const seq_vector::csptr& frequencies, double de_incident,
+                    double de_scattered, double az_incident,
                     double az_scattered,
                     vector<double>* amplitude) const override {
         noalias(*amplitude) = scalar_vector<double>(
@@ -87,9 +88,10 @@ class USML_DECLSPEC scattering_lambert : public scattering_model {
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
-    void scattering(const wposition& location, seq_vector::csptr frequencies,
-                    double de_incident, matrix<double> de_scattered,
-                    double az_incident, matrix<double> az_scattered,
+    void scattering(const wposition& location,
+                    const seq_vector::csptr& frequencies, double de_incident,
+                    matrix<double> de_scattered, double az_incident,
+                    matrix<double> az_scattered,
                     matrix<vector<double> >* amplitude) const override {
         for (size_t n = 0; n < location.size1(); ++n) {
             for (size_t m = 0; m < location.size2(); ++m) {

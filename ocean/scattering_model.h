@@ -72,9 +72,9 @@ class USML_DECLSPEC scattering_model {
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
     virtual void scattering(const wposition1& location,
-                            seq_vector::csptr frequencies, double de_incident,
-                            double de_scattered, double az_incident,
-                            double az_scattered,
+                            const seq_vector::csptr& frequencies,
+                            double de_incident, double de_scattered,
+                            double az_incident, double az_scattered,
                             vector<double>* amplitude) const = 0;
 
     /**
@@ -93,9 +93,9 @@ class USML_DECLSPEC scattering_model {
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
     virtual void scattering(const wposition& location,
-                            seq_vector::csptr frequencies, double de_incident,
-                            matrix<double> de_scattered, double az_incident,
-                            matrix<double> az_scattered,
+                            const seq_vector::csptr& frequencies,
+                            double de_incident, matrix<double> de_scattered,
+                            double az_incident, matrix<double> az_scattered,
                             matrix<vector<double> >* amplitude) const = 0;
 
     /**

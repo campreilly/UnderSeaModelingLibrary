@@ -44,7 +44,7 @@ class USML_DECLSPEC volume_flat : public volume_model {
      * @param scattering    Reverberation scattering strength model.
      */
     volume_flat(double depth, double thickness,
-                scattering_model::csptr scattering)
+                const scattering_model::csptr& scattering)
         : volume_model(scattering),
           _rho(wposition::earth_radius - abs(depth)),
           _thickness(thickness) {}

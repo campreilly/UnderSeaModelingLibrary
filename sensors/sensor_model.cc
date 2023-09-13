@@ -29,9 +29,9 @@ using namespace usml::sensors;
 /**
  * Add source beam pattern to this sensor.
  */
-size_t sensor_model::src_beam(int keyID, bp_model::csptr pattern) {
+size_t sensor_model::src_beam(int keyID, const bp_model::csptr& pattern) {
     write_lock_guard guard(mutex());
-    _src_beams[keyID] = std::move(pattern);
+    _src_beams[keyID] = pattern;
     return _src_beams.size();
 }
 
@@ -66,9 +66,9 @@ std::list<int> sensor_model::src_keys() const {
  * @param keyID		Identification number.
  * @param pattern   Reference to bp_model.
  */
-size_t sensor_model::rcv_beam(int keyID, bp_model::csptr pattern) {
+size_t sensor_model::rcv_beam(int keyID, const bp_model::csptr& pattern) {
     write_lock_guard guard(mutex());
-    _rcv_beams[keyID] = std::move(pattern);
+    _rcv_beams[keyID] = pattern;
     return _rcv_beams.size();
 }
 

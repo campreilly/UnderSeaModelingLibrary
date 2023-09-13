@@ -32,7 +32,7 @@ class USML_DECLSPEC volume_model : public scattering_model {
      *
      * @param scatter        Reverberation scattering strength model
      */
-    volume_model(scattering_model::csptr scatter = nullptr)
+    volume_model(const scattering_model::csptr& scatter = nullptr)
         : _scattering(scatter) {
         if (scatter) {
             _scattering = scatter;
@@ -80,7 +80,7 @@ class USML_DECLSPEC volume_model : public scattering_model {
      *
      * @param scattering    Scattering model for this layer.
      */
-    void scattering(scattering_model::csptr scattering) {
+    void scattering(const scattering_model::csptr& scattering) {
         _scattering = scattering;
     }
 
@@ -95,8 +95,9 @@ class USML_DECLSPEC volume_model : public scattering_model {
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Change in ray strength in dB (output).
      */
-    void scattering(const wposition1& location, seq_vector::csptr frequencies,
-                    double de_incident, double de_scattered, double az_incident,
+    void scattering(const wposition1& location,
+                    const seq_vector::csptr& frequencies, double de_incident,
+                    double de_scattered, double az_incident,
                     double az_scattered,
                     vector<double>* amplitude) const override {
         _scattering->scattering(location, frequencies, de_incident,
@@ -119,9 +120,10 @@ class USML_DECLSPEC volume_model : public scattering_model {
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
-    void scattering(const wposition& location, seq_vector::csptr frequencies,
-                    double de_incident, matrix<double> de_scattered,
-                    double az_incident, matrix<double> az_scattered,
+    void scattering(const wposition& location,
+                    const seq_vector::csptr& frequencies, double de_incident,
+                    matrix<double> de_scattered, double az_incident,
+                    matrix<double> az_scattered,
                     matrix<vector<double> >* amplitude) const override {
         _scattering->scattering(location, frequencies, de_incident,
                                 de_scattered, az_incident, az_scattered,

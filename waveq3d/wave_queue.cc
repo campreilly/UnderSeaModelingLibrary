@@ -27,13 +27,13 @@ using namespace usml::waveq3d;
 /**
  * Initialize a propagation scenario.
  */
-wave_queue::wave_queue(ocean_model::csptr ocean, seq_vector::csptr freq,
-                       const wposition1& pos, const seq_vector::csptr& de,
-                       const seq_vector::csptr& az, double time_step,
-                       const wposition* target_pos, const size_t run_id,
-                       spreading_type type)
-    : _ocean(std::move(std::move(ocean))),
-      _frequencies(std::move(std::move(freq))),
+wave_queue::wave_queue(const ocean_model::csptr& ocean,
+                       const seq_vector::csptr& freq, const wposition1& pos,
+                       const seq_vector::csptr& de, const seq_vector::csptr& az,
+                       double time_step, const wposition* target_pos,
+                       const size_t run_id, spreading_type type)
+    : _ocean(ocean),
+      _frequencies(freq),
       _source_pos(pos),
       _source_de(de),
       _source_az(az),

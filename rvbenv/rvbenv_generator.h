@@ -46,8 +46,9 @@ class USML_DECLSPEC rvbenv_generator
      * @param freqs  		Frequencies at which reverb is computed (Hz).
      * @param num_azimuths	Number of receiver azimuths in result.
      */
-    rvbenv_generator(const sensor_pair::sptr& pair, seq_vector::csptr times,
-                     seq_vector::csptr freqs, size_t num_azimuths);
+    rvbenv_generator(const sensor_pair::sptr& pair,
+                     const seq_vector::csptr& times,
+                     const seq_vector::csptr& freqs, size_t num_azimuths);
 
     /**
      * Compute reverberation envelope collection for a bistatic pair.
@@ -62,7 +63,8 @@ class USML_DECLSPEC rvbenv_generator
      * @param de			Elevation angle in world coordinates.
      * @param az			Azimuthal angle in world coordinates.
      * @param beam_work 	Work space to compute beam paterns.
-     * @param beam 			Beam gains at this angle (rows=freq, cols=beam#).
+     * @param beam 			Beam gains at this angle (rows=freq,
+     * cols=beam#).
      */
     void beam_gain_src(const rvbenv_collection* collection, double de,
                        double az, vector<double>& beam_work,
@@ -75,7 +77,8 @@ class USML_DECLSPEC rvbenv_generator
      * @param de			Elevation angle in world coordinates.
      * @param az			Azimuthal angle in world coordinates.
      * @param beam_work 	Work space to compute beam paterns.
-     * @param beam 			Beam gains at this angle (rows=freq, cols=beam#).
+     * @param beam 			Beam gains at this angle (rows=freq,
+     * cols=beam#).
      */
     void beam_gain_rcv(const rvbenv_collection* collection, double de,
                        double az, vector<double>& beam_work,

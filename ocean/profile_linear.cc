@@ -12,7 +12,8 @@ using namespace usml::ocean;
  * a series of locations.
  */
 void profile_linear::sound_speed(const wposition& location,
-                                 matrix<double>* speed, wvector* gradient) const{
+                                 matrix<double>* speed,
+                                 wvector* gradient) const {
     if (gradient != nullptr) {
         gradient->clear();
     }

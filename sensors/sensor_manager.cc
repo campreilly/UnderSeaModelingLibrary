@@ -59,9 +59,9 @@ seq_vector::csptr sensor_manager::frequencies() const {
 /**
  * Frequencies over which propagation is computed (Hz).
  */
-void sensor_manager::frequencies(seq_vector::csptr freq) {
+void sensor_manager::frequencies(const seq_vector::csptr& freq) {
     write_lock_guard guard(_mutex);
-    _frequencies = std::move(freq);
+    _frequencies = freq;
 }
 
 /**

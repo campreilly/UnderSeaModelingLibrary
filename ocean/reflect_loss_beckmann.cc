@@ -14,11 +14,11 @@ using namespace usml::ocean;
  * @param angle         Grazing angle relative to the interface (radians).
  * @param amplitude     Change in ray intensity in dB (output).
  * @param phase         Change in ray phase in radians (output).
- * 						Hard-coded to a value of PI for this model.
- * 						Phase change not computed if this is nullptr.
+ * 						Hard-coded to a value of PI for
+ * this model. Phase change not computed if this is nullptr.
  */
 void reflect_loss_beckmann::reflect_loss(const wposition1& /*location*/,
-                                         seq_vector::csptr frequencies,
+                                         const seq_vector::csptr& frequencies,
                                          double angle,
                                          vector<double>* amplitude,
                                          vector<double>* phase) const {

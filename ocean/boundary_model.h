@@ -74,8 +74,8 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model,
      * @param reflect_loss  Reflection loss model.
      * @param scattering    Reverberation scattering strength model.
      */
-    boundary_model(reflect_loss_model::csptr reflect_loss = nullptr,
-                   scattering_model::csptr scattering = nullptr) {
+    boundary_model(const reflect_loss_model::csptr& reflect_loss = nullptr,
+                   const scattering_model::csptr& scattering = nullptr) {
         if (reflect_loss) {
             _reflect_loss = reflect_loss;
         } else {
@@ -128,7 +128,7 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model,
      *
      * @param reflect_loss   Reflection loss model.
      */
-    void reflect_loss(reflect_loss_model::csptr reflect_loss) {
+    void reflect_loss(const reflect_loss_model::csptr& reflect_loss) {
         _reflect_loss = reflect_loss;
     }
 
@@ -141,8 +141,9 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model,
      * @param amplitude     Change in ray strength in dB (output).
      * @param phase         Change in ray phase in dB (output).
      */
-    void reflect_loss(const wposition1& location, seq_vector::csptr frequencies,
-                      double angle, vector<double>* amplitude,
+    void reflect_loss(const wposition1& location,
+                      const seq_vector::csptr& frequencies, double angle,
+                      vector<double>* amplitude,
                       vector<double>* phase = nullptr) const override {
         _reflect_loss->reflect_loss(location, frequencies, angle, amplitude,
                                     phase);
@@ -156,7 +157,7 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model,
      *
      * @param scattering    Scattering model for this boundary
      */
-    void scattering(scattering_model::csptr scattering) {
+    void scattering(const scattering_model::csptr& scattering) {
         _scattering = scattering;
     }
 
@@ -171,8 +172,9 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model,
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
-    void scattering(const wposition1& location, seq_vector::csptr frequencies,
-                    double de_incident, double de_scattered, double az_incident,
+    void scattering(const wposition1& location,
+                    const seq_vector::csptr& frequencies, double de_incident,
+                    double de_scattered, double az_incident,
                     double az_scattered,
                     vector<double>* amplitude) const override {
         _scattering->scattering(location, frequencies, de_incident,
@@ -195,9 +197,10 @@ class USML_DECLSPEC boundary_model : public reflect_loss_model,
      * @param az_scattered  Azimuthal scattered angle (radians).
      * @param amplitude     Reverberation scattering strength ratio (output).
      */
-    void scattering(const wposition& location, seq_vector::csptr frequencies,
-                    double de_incident, matrix<double> de_scattered,
-                    double az_incident, matrix<double> az_scattered,
+    void scattering(const wposition& location,
+                    const seq_vector::csptr& frequencies, double de_incident,
+                    matrix<double> de_scattered, double az_incident,
+                    matrix<double> az_scattered,
                     matrix<vector<double> >* amplitude) const override {
         _scattering->scattering(location, frequencies, de_incident,
                                 de_scattered, az_incident, az_scattered,

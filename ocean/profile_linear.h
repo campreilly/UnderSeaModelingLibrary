@@ -51,7 +51,7 @@ class USML_DECLSPEC profile_linear : public profile_model {
      *                  reference and deletes it as part of its destructor.
      */
     profile_linear(double c0, double g0, double z1, double g1,
-                   attenuation_model::csptr attmodel = nullptr)
+                   const attenuation_model::csptr& attmodel = nullptr)
         : profile_model(attmodel),
           _soundspeed0(c0),
           _gradient0(g0),
@@ -68,7 +68,7 @@ class USML_DECLSPEC profile_linear : public profile_model {
      *                  reference and deletes it as part of its destructor.
      */
     profile_linear(double c0, double g0,
-                   attenuation_model::csptr attmodel = nullptr)
+                   const attenuation_model::csptr& attmodel = nullptr)
         : profile_model(attmodel),
           _soundspeed0(c0),
           _gradient0(g0),
@@ -84,7 +84,7 @@ class USML_DECLSPEC profile_linear : public profile_model {
      *                  reference and deletes it as part of its destructor.
      */
     profile_linear(double c0 = 1500.0,
-                   attenuation_model::csptr attmodel = nullptr)
+                   const attenuation_model::csptr& attmodel = nullptr)
         : profile_model(attmodel),
           _soundspeed0(c0),
           _gradient0(0.0),

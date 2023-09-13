@@ -43,7 +43,7 @@ class USML_DECLSPEC attenuation_model {
      * @param attenuation   Absorption loss of sea water in dB (output).
      */
     virtual void attenuation(const wposition& location,
-                             seq_vector::csptr frequencies,
+                             const seq_vector::csptr& frequencies,
                              const matrix<double>& distance,
                              matrix<vector<double> >* attenuation) const = 0;
 

@@ -39,8 +39,9 @@ class USML_DECLSPEC reflect_loss_constant : public reflect_loss_model {
      * @param phase         Change in ray phase in radians (output).
      *                      Phase change not computed if this is nullptr.
      */
-    void reflect_loss(const wposition1& location, seq_vector::csptr frequencies,
-                      double angle, vector<double>* amplitude,
+    void reflect_loss(const wposition1& location,
+                      const seq_vector::csptr& frequencies, double angle,
+                      vector<double>* amplitude,
                       vector<double>* phase = nullptr) const override {
         noalias(*amplitude) =
             scalar_vector<double>(frequencies->size(), _amplitude);

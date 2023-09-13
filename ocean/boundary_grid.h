@@ -47,11 +47,11 @@ class boundary_grid : public boundary_model {
      * @param height            Bottom depth (meters) as a function of position.
      * @param reflect_loss      Reflection loss model.  Defaults to a
      *                          Rayleigh reflection for "sand" if nullptr.
-     * destructor.
+     * @param scattering    	Reverberation scattering strength model.
      */
     boundary_grid(typename data_grid<NUM_DIMS>::csptr height,
-                  reflect_loss_model::csptr reflect_loss = nullptr,
-                  scattering_model::csptr scattering = nullptr)
+                  const reflect_loss_model::csptr& reflect_loss = nullptr,
+                  const scattering_model::csptr& scattering = nullptr)
         : boundary_model(reflect_loss, scattering), _height(height) {
         if (reflect_loss == nullptr) {
             this->reflect_loss(reflect_loss_model::csptr(
@@ -66,7 +66,6 @@ class boundary_grid : public boundary_model {
      * @param location      Location at which to compute boundary.
      * @param rho           Surface height in spherical earth coords (output).
      * @param normal        Unit normal relative to location (output).
-     * interp
      */
     void height(const wposition& location, matrix<double>* rho,
                 wvector* normal = nullptr) const override {

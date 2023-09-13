@@ -26,7 +26,7 @@ class ocean_utils {
      * @param depth			Ocean depth.
      * @param bottom_loss	Bottom reflection amplitude change (dB).
      */
-    static void make_iso(double depth, double bottom_loss=0.0);
+    static void make_iso(double depth, double bottom_loss = 0.0);
 
     /**
      * Creates a simple, but realistic, ocean from the databases delivered with
