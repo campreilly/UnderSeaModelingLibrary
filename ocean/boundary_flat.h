@@ -32,7 +32,8 @@ class USML_DECLSPEC boundary_flat : public boundary_model {
      *                      bottom reflection if no model specified.
      */
     boundary_flat(double depth = 0.0,
-                  const reflect_loss_model::csptr& reflect_loss = nullptr);
+                  reflect_loss_model::csptr reflect_loss = nullptr,
+                  scattering_model::csptr scattering = nullptr);
 
     /**
      * Compute the height of the boundary and it's surface normal at

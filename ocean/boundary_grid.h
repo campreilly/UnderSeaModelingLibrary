@@ -50,8 +50,9 @@ class boundary_grid : public boundary_model {
      * destructor.
      */
     boundary_grid(typename data_grid<NUM_DIMS>::csptr height,
-                  reflect_loss_model::csptr reflect_loss = nullptr)
-        : boundary_model(reflect_loss), _height(height) {
+                  reflect_loss_model::csptr reflect_loss = nullptr,
+                  scattering_model::csptr scattering = nullptr)
+        : boundary_model(reflect_loss, scattering), _height(height) {
         if (reflect_loss == nullptr) {
             this->reflect_loss(reflect_loss_model::csptr(
                 new reflect_loss_rayleigh(bottom_type_enum::sand)));

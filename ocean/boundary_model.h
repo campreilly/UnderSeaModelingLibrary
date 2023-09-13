@@ -63,7 +63,7 @@ using boost::numeric::ublas::vector;
  * reflection processing.
  */
 class USML_DECLSPEC boundary_model : public reflect_loss_model,
-                                     scattering_model {
+                                     public scattering_model {
    public:
     /// Shared pointer to constant version of this class.
     typedef std::shared_ptr<const boundary_model> csptr;

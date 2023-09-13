@@ -53,7 +53,8 @@ class USML_DECLSPEC boundary_slope : public boundary_model {
      */
     boundary_slope(const wposition1& location, double depth, double lat_slope,
                    double lng_slope = 0.0,
-                   reflect_loss_model::csptr reflect_loss = nullptr);
+                   reflect_loss_model::csptr reflect_loss = nullptr,
+                   scattering_model::csptr scattering = nullptr);
 
     /**
      * Compute the height of the boundary and it's surface normal at

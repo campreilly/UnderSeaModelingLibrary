@@ -21,6 +21,8 @@
 #include <usml/ocean/reflect_loss_eckart.h>
 #include <usml/ocean/reflect_loss_model.h>
 #include <usml/ocean/reflect_loss_rayleigh.h>
+#include <usml/ocean/scattering_constant.h>
+#include <usml/ocean/scattering_lambert.h>
 #include <usml/types/data_grid.h>
 
 using namespace usml::netcdf;
@@ -37,7 +39,9 @@ void ocean_utils::make_iso(double depth, double bottom_loss) {
     // build ocean bottom model
 
     reflect_loss_model::csptr botloss(new reflect_loss_constant(bottom_loss));
-    boundary_model::csptr bottom(new boundary_flat(-depth, botloss));
+    scattering_model::csptr scattering(new scattering_constant(-30.0));
+    boundary_model::csptr bottom(
+        new boundary_flat(-depth, botloss, scattering));
 
     // build sound speed model
 
@@ -56,18 +60,21 @@ void ocean_utils::make_basic(double south, double north, double west,
                              double east, int month, double wind_speed,
                              bottom_type_enum bottom_type) {
     // build ocean surface model
+    // TODO Implement default surface scattering model
 
     reflect_loss_model::csptr surfloss(new reflect_loss_eckart(wind_speed));
-    boundary_model::csptr surface(new boundary_flat(0.0, surfloss));
+    scattering_model::csptr surfscat(new scattering_lambert());
+    boundary_model::csptr surface(new boundary_flat(0.0, surfloss, surfscat));
 
     // load bathymetry from ETOPO1 database
 
     reflect_loss_model::csptr botloss(new reflect_loss_rayleigh(bottom_type));
-
+    scattering_model::csptr botscat(new scattering_lambert());
     data_grid<2>::csptr grid(
         new netcdf_bathy(USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
                          south, north, west, east));
-    boundary_grid<2>::csptr bottom(new boundary_grid<2>(grid, botloss));
+    boundary_grid<2>::csptr bottom(
+        new boundary_grid<2>(grid, botloss, botscat));
 
     // build sound velocity profile from World Ocean Atlas data
 

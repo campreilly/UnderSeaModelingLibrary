@@ -12,8 +12,9 @@ using namespace usml::ocean;
  */
 boundary_slope::boundary_slope(const wposition1& location, double depth,
                                double lat_slope, double lng_slope,
-                               reflect_loss_model::csptr reflect_loss)
-    : boundary_model(std::move(reflect_loss)),
+                               reflect_loss_model::csptr reflect_loss,
+                               scattering_model::csptr scattering)
+    : boundary_model(reflect_loss,scattering),
       _location(location),
       _height(wposition::earth_radius - depth),
       _normal(0.0, 0.0, 0.0) {
