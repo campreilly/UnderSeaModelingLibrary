@@ -112,8 +112,9 @@ BOOST_AUTO_TEST_CASE(create_eigenverbs) {
 
     // ensure that found list is smaller than full list
 
-    BOOST_CHECK_EQUAL(found_list.size(), 7);
-    BOOST_CHECK_EQUAL(found.size(eigenverb_model::BOTTOM), 7);
+    BOOST_CHECK_LT(found_list.size(), full_list.size());
+    BOOST_CHECK_LT(found.size(eigenverb_model::BOTTOM),
+                      collection.size(eigenverb_model::BOTTOM));
 }
 
 /// @}

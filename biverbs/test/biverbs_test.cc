@@ -85,6 +85,8 @@ static eigenverb_model::csptr create_eigenverb(
  *
  * Launches update_wavefront_data() background task to compute biverbs. Extracts
  * biverbs, writes them to disk, and counts entries in biverbs collection.
+ *
+ * TODO Compute analytic solution for biverb field values.
  */
 BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     cout << "=== biverbs_test: update_wavefront_data ===" << endl;
