@@ -29,7 +29,7 @@ using namespace usml::eigenverbs;
 /**
  * Scale factor for size of search area in find_eigenverbs().
  */
-double eigenverb_collection::search_scale = 3.0;
+double eigenverb_collection::search_scale = 1.5;
 
 /**
  * Creates list of eigenverbs for a specific interface.

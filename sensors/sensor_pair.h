@@ -1,6 +1,6 @@
 /**
  * @file sensor_pair.h
- * Modeling products for a link between source and receiver.
+ * Cache of modeling products for link between source and receiver.
  */
 #pragma once
 
@@ -34,25 +34,15 @@ using namespace usml::wavegen;
 /// @{
 
 /**
- * Modeling products for links between source and receiver. Listens for
+ * Cache of modeling products for link between source and receiver. Listens for
  * acoustic changes in its component sensor_models. Each eigenray represents a
  * single acoustic path between a source and target. The dirpaths are eigenrays
  * that connect this source and receiver; they represent the multipath direct
  * blast contributions to the received signal. Eigenverbs are a Gaussian beam
  * projection of an acoustic ray onto a reverberation interface at the point of
  * collision. The biverbs represent the bistatic overlap between the source and
- * receiver eigenverbs for this pair. Notifies sensor_pair update listeners of
+ * receiver eigenverbs for this pair. Notifies sensor_pair update listeners
  * when all of the calculations are complete.
- *
- * To improve the calculation speed for the the case where a single platform has
- * more than one sensor, you can make the host object a sensor_model instead of
- * a platform_model. The host is added to the platform_manager, but the child
- * sensors are not. The sensor_pair references the host the host has all of
- * the attributes needed to compute acoustics. The direct path eigenrays and
- * bistatic eigenverbs are computed relative to the host position. Small offsets
- * between the mounted sensors and the host are managed using dead reckoning,
- * which is the same technique that we use to account for small updates in
- * platform position between updates.
  */
 class USML_DECLSPEC sensor_pair
     : public managed_obj<std::string, sensor_pair>,

@@ -2,6 +2,8 @@
  * @example threads/test/threads_test.cc
  */
 
+#include <bits/stdint-intn.h>
+#include <stddef.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_pool.h>
@@ -10,7 +12,6 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/timer/timer.hpp>
-#include <chrono>
 #include <cmath>
 #include <iostream>
 #include <memory>
@@ -20,7 +21,6 @@ BOOST_AUTO_TEST_SUITE(threads_test)
 using namespace boost::unit_test;
 using namespace usml::threads;
 using namespace usml::ublas;
-using namespace std::chrono_literals;
 
 using std::cout;
 using std::endl;
@@ -228,7 +228,7 @@ class sqrt_task_tester {
                 boost::timer::auto_cpu_timer timer(3, "%w secs\n");
             #endif
             while (!task->done()) {
-                std::this_thread::sleep_for(1ms);
+            	thread_task::sleep();
             }
             #ifdef DEBUG_THREAD_TASK
                 cout << task->id() << " tester: waited for ";
@@ -242,9 +242,7 @@ class sqrt_task_tester {
              << " tester: completed with result=" << task->result() << endl;
 
         // Wait here until all tasks complete
-        while (thread_task::num_active() != 0) {
-            std::this_thread::sleep_for(50ms);
-        }
+        thread_task::wait();
     };
 
    private:
@@ -255,8 +253,8 @@ class sqrt_task_tester {
      */
     void random_wait() const {
         randgen rand;
-        long msec = (long)(1000.0 * _max_wait * rand.uniform());
-        std::this_thread::sleep_for(std::chrono::milliseconds(msec));
+        int64_t msec = (int64_t)(1000.0 * _max_wait * rand.uniform());
+        thread_task::sleep(msec);
     }
 };
 

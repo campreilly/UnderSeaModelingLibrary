@@ -86,12 +86,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
         new simple_sonobuoy(1, "receiver", 0.0, wposition1(55.0, 149.0, -1.0)));
     smgr->add_sensor(receiver);
     receiver->update(time, platform_model::FORCE_UPDATE);
-
-    // wait for threads to finish
-
-    while (thread_task::num_active() > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
+    thread_task::wait();
 
     cout << "== test complete ==" << endl;
     return 0;

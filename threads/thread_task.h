@@ -4,11 +4,15 @@
  */
 #pragma once
 
+#include <bits/stdint-intn.h>
 #include <usml/usml_config.h>
 
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <memory>
+#include <stdexcept>
+#include <thread>
 
 namespace usml {
 namespace threads {
@@ -74,10 +78,34 @@ class USML_DECLSPEC thread_task {
     virtual void run() = 0;
 
     /**
-     * Gets the current number of active tasks in the
+     * Gets the current number of active tasks.
      * @return number of active tasks
      */
     static std::size_t num_active() { return _num_active; }
+
+    /**
+     * Utility to sleep for a specific amount if time.
+     *
+     * param millisec 	Number of milliseconds to wait.
+     */
+    static void sleep(int64_t millisec = 1) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(millisec));
+    }
+
+    /**
+     * Utility to sleep for a specific amount if time.
+     *
+     * param millisec 	Number of milliseconds to wait, 0 waits forever.
+     */
+    static void wait(int64_t max_time = 0) {
+        int64_t count;
+        while (thread_task::num_active() > 0) {
+            if (max_time > 0 && count++ > max_time) {
+                throw std::range_error("maximum wait time exceeded");
+            }
+            sleep();
+        }
+    }
 
     /**
      * Indicate that task needs to abort itself.  Sets a protected member

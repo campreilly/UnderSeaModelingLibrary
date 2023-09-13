@@ -1,4 +1,6 @@
 # We'll use defaults from the Google style, but with 4 columns indentation.
 BasedOnStyle: Google
 IndentWidth: 4
+UseTab: Never
+IndentPPDirectives: BeforeHash
 

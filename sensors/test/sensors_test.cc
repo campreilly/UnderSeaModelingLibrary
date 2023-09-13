@@ -1,5 +1,5 @@
 /**
- * @example platforms/test/sensors_test.cc
+ * @example sensors/test/sensors_test.cc
  */
 #include <usml/platforms/platform_manager.h>
 #include <usml/sensors/sensors.h>
@@ -8,7 +8,7 @@
 #include <boost/test/unit_test.hpp>
 
 using namespace boost::unit_test;
-using namespace usml::platforms;
+using namespace usml::sensors;
 using namespace usml::sensors::test;
 
 /** Tolerance for value comparisons */

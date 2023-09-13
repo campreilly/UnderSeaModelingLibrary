@@ -9,40 +9,28 @@
 #include <usml/managed/managed_obj.h>
 #include <usml/managed/manager_template.h>
 #include <usml/managed/update_listener.h>
-#include <usml/ocean/ocean_shared.h>
 #include <usml/ocean/ocean_utils.h>
 #include <usml/platforms/platform_manager.h>
 #include <usml/platforms/platform_model.h>
 #include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_pair.h>
-#include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_task.h>
 #include <usml/types/seq_linear.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition1.h>
 
 #include <boost/test/unit_test.hpp>
-#include <chrono>
 #include <iostream>
 #include <list>
 #include <memory>
 #include <sstream>
 #include <string>
-#include <thread>
 
 BOOST_AUTO_TEST_SUITE(bistatic_test)
 
 using namespace boost::unit_test;
-using namespace usml::beampatterns;
-using namespace usml::biverbs;
-using namespace usml::eigenrays;
-using namespace usml::managed;
-using namespace usml::ocean;
-using namespace usml::platforms;
 using namespace usml::sensors;
-using namespace usml::threads;
-using namespace usml::types;
 
 /**
  * Listen for eigenray updates on sensor.
@@ -165,9 +153,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     for (auto& platform : platform_mgr->list()) {
         platform->update(0.0, platform_model::FORCE_UPDATE);
     }
-    while (thread_task::num_active() > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
+    thread_task::wait();
 
     // write direct path collections to disk
 

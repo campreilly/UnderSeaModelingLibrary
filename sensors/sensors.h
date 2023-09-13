@@ -1,7 +1,8 @@
 /**
  * @file sensors.h
  * Sensors are platforms that are can automatically compute there own acoustics.
- * @defgroup sensors Bistatic Sensor Pairs
+ *
+ * @defgroup sensors Sensors and Bistatic Pairs
  *
  * Sensors are platforms that are can automatically compute there own acoustics.
  * Simple sensors can be implemented as objects that control their own motion,

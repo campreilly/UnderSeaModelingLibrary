@@ -61,8 +61,9 @@ static eigenverb_model::csptr create_eigenverb(
 /**
  * This test builds eigenverbs on bottom for varying DE and AZ. First it tests
  * eigenverb collection to see if entries can be created and if notifications
- * work properly. Then it uses the find_eigenverbs to find all eigenverbs in the
- * neighborhood of the first entry in the list.
+ * work properly. Then it uses find_eigenverbs() to find all eigenverbs in the
+ * neighborhood of the first entry in the list. It does not test the contents of
+ * the eigenverbs, because those contents are hard-coded.
  */
 BOOST_AUTO_TEST_CASE(create_eigenverbs) {
     cout << "=== eigenverbs_test: create_eigenverbs ===" << endl;
@@ -87,7 +88,7 @@ BOOST_AUTO_TEST_CASE(create_eigenverbs) {
     cout << "writing full set of eigenverbs to " << ncname1 << endl;
     collection.write_netcdf(ncname1, eigenverb_model::BOTTOM);
 
-    // extract eigenverbs and count entries in collection
+    // extract eigenverbs and test entries in collection
 
     eigenverb_list full_list = collection.eigenverbs(eigenverb_model::BOTTOM);
     BOOST_CHECK_EQUAL(full_list.size(), 80);

@@ -1,6 +1,6 @@
 /**
  * @file sensor_model.h
- * Sensors are platforms that are can automatically compute there own acoustics.
+ * Sensors are platforms that can automatically compute their own acoustics.
  */
 #pragma once
 
@@ -38,7 +38,7 @@ using namespace usml::wavegen;
 /// @{
 
 /**
- * Sensors are platforms that are can automatically compute there own acoustics.
+ * Sensors are platforms that can automatically compute their own acoustics.
  * Simple sensors can be implemented as objects that control their own motion,
  * or they can be attached to host platforms using the add_child() method. Uses
  * mutex to lock queries and updates in multi-threaded environment.
@@ -53,7 +53,9 @@ using namespace usml::wavegen;
  * where each channel may have a different pattern model.
  *
  * Automatically launches a background task to recompute eigenrays and
- * eigenverbs when sensor motion exceeds position or orientation thresholds. If
+ * eigenverbs when sensor motion exceeds position or orientation thresholds.
+ * The find_targets() calculation searches the platform_manager for all
+ * platforms and sensors sensors between the maximum and minimum slant range. If
  * an existing wavefront_generator is running for this sensor, that task is
  * aborted before the new background task is created. Uses update_notifier to
  * notify listeners when eigenray and eigenverb data has changed. Does not

@@ -1,6 +1,6 @@
 /**
  * @file sensor_manager.h
- * Stores and manages the active bistatic pairs in use by the simulation.
+ * Stores and manages the active bistatic sensor pairs in use by the simulation.
  */
 #pragma once
 
@@ -27,14 +27,10 @@ using namespace usml::types;
 /// @{
 
 /**
- * Stores and manages the bistatic pairs in use by the simulation. Uses the
- * is_source() and is_receiver() members of the sensor_model class to
+ * Stores and manages the bistatic sensor pairs in use by the simulation. Uses
+ * the is_source() and is_receiver() members of the sensor_model class to
  * automatically identify all the cases where added sensors act as the source or
- * receiver in a pair. Sensors must appear in the platform_manager in order for
- * them to operate properly in the sensor_manager.
- *
- * Uses the update_pair_notifier interface to pass sensor_pair updates from
- * individual pairs to those listening to just the sensor_manager.
+ * receiver in a pair.
  */
 class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
    public:

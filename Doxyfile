@@ -936,7 +936,6 @@ WARN_LOGFILE           =
 INPUT = \
     . \
     beampatterns \
-    bistatic \
     biverbs \
     eigenrays \
     eigenverbs \
@@ -945,6 +944,7 @@ INPUT = \
     ocean \
     platforms \
     rvbenv \
+    sensors \
     threads \
     transmit \
     types \
@@ -952,7 +952,6 @@ INPUT = \
     wavegen \
     waveq3d \
     beampatterns/test \
-    bistatic/test \
     biverbs/test \
     eigenrays/test \
     eigenverbs/test \
@@ -961,6 +960,7 @@ INPUT = \
     ocean/test \
     platforms/test \
     rvbenv/test \
+    sensors/test \
     threads/test \
     transmit/test \
     types/test \

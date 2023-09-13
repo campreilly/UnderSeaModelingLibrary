@@ -2,29 +2,18 @@
  * @example wavegen/test/wavegen_test.cc
  */
 
-#include <usml/eigenrays/eigenray_collection.h>
-#include <usml/eigenverbs/eigenverb_collection.h>
-#include <usml/managed/managed_obj.h>
-#include <usml/managed/manager_template.h>
 #include <usml/ocean/ocean_utils.h>
 #include <usml/platforms/platform_manager.h>
 #include <usml/platforms/platform_model.h>
 #include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/sensor_model.h>
-#include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_task.h>
-#include <usml/types/seq_linear.h>
-#include <usml/types/seq_vector.h>
-#include <usml/types/wposition1.h>
 #include <usml/wavegen/wavefront_listener.h>
 
 #include <boost/test/unit_test.hpp>
-#include <chrono>
 #include <iostream>
-#include <memory>
 #include <sstream>
 #include <string>
-#include <thread>
 
 BOOST_AUTO_TEST_SUITE(wavegen_test)
 
@@ -122,9 +111,7 @@ BOOST_AUTO_TEST_CASE(propagate_wavefront) {
     cout << "update acoustics for sensor #2" << endl;
     platform_model::sptr platform = platform_manager::instance()->find(2);
     platform->update(0.0, platform_model::FORCE_UPDATE);
-    while (thread_task::num_active() > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
+    thread_task::wait();
 
     cout << "clean up" << endl;
     platform_manager::reset();

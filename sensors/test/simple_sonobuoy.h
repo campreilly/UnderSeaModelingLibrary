@@ -19,7 +19,7 @@ namespace platforms {
 namespace test {
 
 /**
- * @ingroup platforms_test
+ * @ingroup sensors_test
  * @{
  */
 

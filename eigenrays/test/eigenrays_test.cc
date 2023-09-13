@@ -84,4 +84,5 @@ BOOST_AUTO_TEST_CASE(create_eigenray) {
 }
 
 /// @}
+
 BOOST_AUTO_TEST_SUITE_END()

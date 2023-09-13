@@ -7,7 +7,6 @@
 
 #include <atomic>
 #include <cassert>
-#include <chrono>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -44,8 +43,7 @@ thread_pool::thread_pool(unsigned num_threads) {
             if (task != nullptr) {
                 task->start();
             } else {
-                // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                std::this_thread::sleep_for(1ms);
+            	thread_task::sleep();
             }
         }
     };

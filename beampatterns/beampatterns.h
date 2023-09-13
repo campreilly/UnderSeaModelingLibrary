@@ -2,7 +2,11 @@
  * @file beampatterns.h
  * @defgroup beampatterns Beampatterns
  *
- * This package provides computes the directionality of sonar sensors.
+ * A "beam pattern" computes the change of intensity for a signal arriving
+ * from a given arrival angle as a function of frequency, steering angle, and
+ * the local speed of sound. Beam patterns are provided in linear units
+ * with a range from 0.0 to 1.0.  All of the beam patterns defined in this
+ * module are immutable to support thread safety without locking.
  *
  * @defgroup bp_test Regression Tests
  * @ingroup beampatterns

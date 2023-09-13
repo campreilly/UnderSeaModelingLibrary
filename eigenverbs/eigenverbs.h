@@ -2,7 +2,7 @@
  * @file eigenverbs.h
  * Gaussian beam projection of an acoustic ray onto a reverberation interface.
  *
- * @defgroup eigenverbs Eigenverbs
+ * @defgroup eigenverbs Eigenverb Reverberation Contributions
  *
  * Eigenverbs are a Gaussian beam projection of an acoustic ray
  * onto a reverberation interface at the point of collision.
