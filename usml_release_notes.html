@@ -20,13 +20,15 @@
     <ul>
         <li>Replace seq_data with immutable algorithms.
         <li>Make ocean objects immutible and replace memory management scheme with constant shared pointers.
-        <li>Rework beampatterns, platforms, sensors, eigenrays, eigenverbs, bistatic pairs to better fit C++17 best practices.
-        <li>Add doxygen build target to CMake build scripts.
+        <li>Rework platforms, sensors, beampatterns, eigenrays, eigenverbs, and biverbs to better fit C++17 best practices.
+        <li>Add doxygen build target and ignore BOOST deprecated headers in CMake build scripts.
+        <li>Update style documentation in Mainpage.h
+        <li>Use git lfs to store large data files on GitHub.
     </ul>
     <li>Bugs</li>
     <ul>
         <li>Resolved Issue #254. Use points instead of boxes to lookup eigenverbs in eigenverb_collection.
-        <li>Fix problems with CR/LF line endings.     
+        <li>Fix problems with CR/LF line endings.
     </ul>
     </ul>
 

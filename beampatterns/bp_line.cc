@@ -1,5 +1,6 @@
 /**
  * @file bp_line.cc
+ * Vertical and horizontal line arrays in closed form.
  */
 #include <usml/beampatterns/bp_line.h>
 

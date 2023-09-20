@@ -1,8 +1,6 @@
 /**
- * @file sensors.h
- * Sensors are platforms that are can automatically compute there own acoustics.
- *
- * @defgroup sensors Sensors and Bistatic Pairs
+ * @file sensors.h Sensors and Bistatic Pairs
+ * @defgroup sensors sensors
  *
  * Sensors are platforms that are can automatically compute there own acoustics.
  * Simple sensors can be implemented as objects that control their own motion,
@@ -18,7 +16,7 @@
  * eigenverbs (biverbs) represent the bistatic overlap between the source and
  * receiver eigenverbs for this pair.
  *
- * @defgroup sensors_test Regression Tests
+ * @defgroup sensors_test *sensors_test
  * @ingroup sensors
  *
  * Regression tests for the bistatic module.

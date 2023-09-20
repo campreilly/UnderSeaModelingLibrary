@@ -1,10 +1,10 @@
 /**
  * @file threads.h Thread Utilities
- * @defgroup threads Thread Utilities
+ * @defgroup threads threads
  *
  * Threading utilities used by USML.
  *
- * @defgroup threads_test Regression Tests
+ * @defgroup threads_test *threads_test
  * @ingroup threads
  *
  * Regression tests for the threads package

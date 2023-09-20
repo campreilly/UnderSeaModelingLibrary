@@ -1,13 +1,11 @@
 /**
- * @file eigenrays.h
- * A acoustic paths between a sources and target.s
- *
- * @defgroup eigenrays Eigenray Acoustic Paths
+ * @file eigenrays.h Eigenray Acoustic Paths
+ * @defgroup eigenrays eigenrays
  *
  * Each eigenray represents a single acoustic path between a
  * source and target.
  *
- * @defgroup eigenrays_test Regression Tests
+ * @defgroup eigenrays_test *eigenrays_test
  * @ingroup eigenrays
  *
  * Regression tests for the eigenrays module.

@@ -1,8 +1,8 @@
 /**
- * @file biverbs.h
+ * @file biverbs.h Bistatic Eigenverbs
  * Combination of source and receiver eigenverbs for a bistatic pair.
  *
- * @defgroup biverbs Bistatic Eigenverbs
+ * @defgroup biverbs biverbs
  *
  * Combination of source and receiver eigenverbs for a bistatic pair.
  * Pre-computes all of the geometry related elements of eigenverb overlap except
@@ -10,7 +10,7 @@
  * change more quickly than the geometry of the source and receiver to each
  * scattering patch.
  *
- * @defgroup biverbs_test Regression Tests
+ * @defgroup biverbs_test *biverbs_test
  * @ingroup biverbs
  *
  * Regression tests for the biverbs module.

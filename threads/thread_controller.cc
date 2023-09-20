@@ -1,6 +1,6 @@
 /**
- * @file thread_pool.cc
- * A thread pool for executing tasks in a separate thread.
+ * @file thread_controller.cc
+ * Singleton version of a thread_pool.
  */
 
 #include <usml/threads/thread_controller.h>

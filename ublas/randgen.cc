@@ -1,5 +1,7 @@
-/* randgen.cc - UNCLASSIFIED */
-
+/**
+ * @file randgen.cc
+ * Random generator that uses a common seed across multiple instantiations.
+ */
 #include <usml/ublas/randgen.h>
 
 #include <algorithm>

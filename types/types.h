@@ -1,6 +1,6 @@
 /**
  * @file types.h Fundamental Data Types
- * @defgroup types Fundamental Data Types
+ * @defgroup types types
  *
  * This package defines the basic data types specific to USML.
  *
@@ -28,7 +28,7 @@
  * Vector relative to body along the aircraft principal axes and
  * body orientation.
  *
- * @defgroup types_test Regression Tests
+ * @defgroup types_test *types_test
  * @ingroup types
  *
  * Regression tests for the types package

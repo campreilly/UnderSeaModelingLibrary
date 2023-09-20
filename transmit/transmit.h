@@ -1,13 +1,11 @@
 /**
- * @file transmit.h
- * Active sonar waveforms and wavetrains.
- *
- * @defgroup transmit Active Sonar Transmit Waveforms
+ * @file transmit.h Active Sonar Transmit Waveforms
+ * @defgroup transmit transmit
  *
  * This package defines the active sonar waveforms and wavetrains
  * emitted by the sensor_model classes.
  *
- * @defgroup transmit_test Regression Tests
+ * @defgroup transmit_test *transmit_test
  * @ingroup transmit
  *
  * Regression tests for the transmit package

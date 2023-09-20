@@ -1,8 +1,6 @@
 /**
- * @file platforms.h
- * Physical objects that move through the simulation.
- *
- * @defgroup platforms Platforms
+ * @file platforms.h Platforms
+ * @defgroup platforms platforms
  *
  * This package defines the creation and movement of platforms in the
  * simulation. The platform_model manages the motion of these objects and
@@ -10,7 +8,7 @@
  * platforms. Children's positions and orientations in world coordinates are
  * updated each time that the platform's position or orientation changes.
  *
- * @defgroup platforms_test Regression Tests
+ * @defgroup platforms_test *platforms_test
  * @ingroup platforms
  *
  * Regression tests for the platforms package.

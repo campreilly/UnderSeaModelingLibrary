@@ -1,6 +1,6 @@
 /**
  * @file waveq3d.h WaveQ3D Model
- * @defgroup waveq3d WaveQ3D Model
+ * @defgroup waveq3d waveq3d
  *
  * The WaveQ3D model computes propagation loss using hybrid Gaussian beams
  * in spherical/time coordinates. This model is designed to support real-time,
@@ -81,7 +81,7 @@
  * These assumptions should be reviewed by the system development team
  * before this model is evaluated for their intended use.
  *
- * @defgroup waveq3d_test Regression Tests
+ * @defgroup waveq3d_test *waveq3d_test
  * @ingroup waveq3d
  *
  * Regression tests for the waveq3d package

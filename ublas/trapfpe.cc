@@ -1,5 +1,7 @@
-/* trapfpe.cc - Trap floating point exceptions for debugging. */
-
+/**
+ * @file trapfpe.cc
+ * Trap floating point exceptions for debugging.
+ */
 #if defined(USML_DEBUG)
 #if defined(__GNUC__)
 

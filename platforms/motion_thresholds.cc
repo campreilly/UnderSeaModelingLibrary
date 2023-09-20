@@ -1,5 +1,5 @@
 /**
- * @file motion_thresholds.h
+ * @file motion_thresholds.cc
  * Thresholds that causes new data for acoustics to be generated.
  */
 

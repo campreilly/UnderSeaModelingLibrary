@@ -1,5 +1,6 @@
 /**
  * @file ambient_wenz.h
+ * Wenz model for ambient noise in the ocean.
  */
 #pragma once
 

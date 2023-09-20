@@ -1,6 +1,6 @@
 /**
  * @file ocean.h Ocean Components
- * @defgroup ocean Ocean Components
+ * @defgroup ocean ocean
  *
  * This package defines the interface between WaveQ3D and the
  * models used to describe the synthetic natural environment.
@@ -50,7 +50,7 @@
  * Combines the effects of surface, bottom, volume, and profile into a single
  * model.
  *
- * @defgroup ocean_test Regression Tests
+ * @defgroup ocean_test *ocean_test
  * @ingroup ocean
  *
  * Regression tests for the ocean package

@@ -1,5 +1,6 @@
-/*
+/**
  * @file eigenverb_collection.cc
+ * Collection of eigenverbs in the form of a vector of eigenverb_lists.
  */
 
 #include <ncvalues.h>

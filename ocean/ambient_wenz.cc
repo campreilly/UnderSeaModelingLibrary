@@ -1,5 +1,6 @@
 /**
  * @file ambient_wenz.cc
+ * Wenz model for ambient noise in the ocean.
  */
 
 #include <usml/ocean/ambient_wenz.h>

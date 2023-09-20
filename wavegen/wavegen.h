@@ -1,13 +1,11 @@
 /**
- * @file wavegen.h
- * Wavefront generator for platforms.
- *
- * @defgroup wavegen Wavefront Generator
+ * @file wavegen.h Wavefront Generator
+ * @defgroup wavegen wavegen
  *
  * Automatically recomputes acoustic data when platform motion exceeds position
  * or orientation thresholds.
  *
- * @defgroup wavegen_test Regression Tests
+ * @defgroup wavegen_test *wavegen_test
  * @ingroup wavegen
  *
  * Regression tests for the wavegen package.

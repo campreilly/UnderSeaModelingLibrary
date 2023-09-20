@@ -1,6 +1,6 @@
 /**
  * @file ublas.h uBLAS Extensions
- * @defgroup ublas uBLAS Extensions
+ * @defgroup ublas ublas
  *
  * This package provides the extensions needed to transform Boost's
  * uBLAS library into a Matlab-like library of mathematical routines
@@ -40,7 +40,7 @@
  * random series in different parts of the application. The following files
  * are used to implement these components.
  *
- * @defgroup ublas_test Regression Tests
+ * @defgroup ublas_test *ublas_test
  * @ingroup ublas
  *
  * Regression tests for the ublas package.

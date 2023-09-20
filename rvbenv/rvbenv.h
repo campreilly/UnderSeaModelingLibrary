@@ -1,13 +1,11 @@
 /**
- * @file rvbenv.h
- * Reverberation envelope generation
- *
- * @defgroup rvbenv Reverberation Intensity Envelope
+ * @file rvbenv.h Reverberation Intensity Envelope
+ * @defgroup rvbenv rvbenv
  *
  * Reverberation envelope are intensity time series for a single combination of
  * receiver azimuth, source beam number, receiver beam number.
  *
- * @defgroup rvbenv_test Regression Tests
+ * @defgroup rvbenv_test *rvbenv_test
  * @ingroup rvbenv
  *
  * Regression tests for the rvbenv module.

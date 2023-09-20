@@ -1,5 +1,6 @@
-/*
+/**
  * @file biverb_collection.cc
+ * Collection of biverbs in the form of a vector of biverbs_lists.
  */
 
 #include <netcdfcpp.h>
