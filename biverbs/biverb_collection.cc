@@ -179,8 +179,8 @@ void biverb_collection::add_biverb(const eigenverb_model::csptr& src_verb,
 
     // add to collection
 
+    auto verb = biverb_model::csptr(biverb);
     if (norm_inf(biverb->power) >= power_threshold) {
-        auto verb = biverb_model::csptr(biverb);
         _collection[interface].insert({verb->travel_time, verb});
     }
 }

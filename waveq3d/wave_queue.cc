@@ -566,6 +566,7 @@ void wave_queue::build_eigenray(size_t t1, size_t t2, size_t de, size_t az,
     // build basic eigenray products
 
     auto* ray = new eigenray_model();
+    auto ray_csptr = eigenray_model::csptr(ray);
     ray->travel_time = _time + offset(0);
     ray->source_de = (*_source_de)(de) + offset(1);
     ray->source_az = (*_source_az)(az) + offset(2);
@@ -697,7 +698,7 @@ void wave_queue::build_eigenray(size_t t1, size_t t2, size_t de, size_t az,
     #endif
 
     // Add eigenray to those objects which requested them
-    notify_eigenray_listeners(t1, t2, eigenray_model::csptr(ray), runID());
+    notify_eigenray_listeners(t1, t2, ray_csptr, runID());
 }
 
 /**

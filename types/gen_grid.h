@@ -334,13 +334,15 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
     DATA_TYPE pchip(int dim, const size_t index[], const double location[],
                     DATA_TYPE& deriv, DATA_TYPE deriv_vec[]) const {
         DATA_TYPE result;
-        DATA_TYPE y0, y1, y2, y3;      // dim-1 values at k-1, k, k+1, k+2
-        DATA_TYPE dy0, dy1, dy2, dy3;  // dim-1 derivs at k-1, k, k+1, k+2
-        initialize<DATA_TYPE>::zero(dy0, dy1, dy2,
-                                    dy3);  // prevent valgrind from complaining
         seq_vector::csptr ax = this->_axis[dim];
         const size_t kmin = 1u;               // at endpt if k-1 < 0
         const size_t kmax = ax->size() - 3u;  // at endpt if k+2 > N-1
+
+        //NOLINTBEGIN(clang-diagnostic-uninitialized)
+        DATA_TYPE y0, y1, y2, y3;      // dim-1 values at k-1, k, k+1, k+2
+        DATA_TYPE dy0, dy1, dy2, dy3;  // dim-1 derivs at k-1, k, k+1, k+2
+        initialize<DATA_TYPE>::zero(dy0, dy1, dy2, dy3);
+        //NOLINTEND(clang-diagnostic-uninitialized)
 
         // interpolate in dim-1 dimension to find values and derivs at k, k-1
 

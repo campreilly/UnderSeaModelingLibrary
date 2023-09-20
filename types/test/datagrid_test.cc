@@ -170,7 +170,10 @@ BOOST_AUTO_TEST_CASE(linear_1d_test) {
 BOOST_AUTO_TEST_CASE(linear_1d_float_test) {
     cout << "=== datagrid_test: linear_1d_float_test ===" << endl;
     typedef float element_type;
-    element_type truth, nearest, linear, pchip;
+    element_type truth;
+    element_type nearest;
+    element_type linear;
+    element_type pchip;
 
     // construct synthetic data for this test
 
@@ -178,7 +181,7 @@ BOOST_AUTO_TEST_CASE(linear_1d_float_test) {
     gen_grid<1, element_type> grid(&axis);
     grid.edge_limit(0, false);
     for (size_t n = 0; n < axis->size(); ++n) {
-        grid.setdata(&n, linear1d((*axis)(n)));
+        grid.setdata(&n, (element_type) linear1d((*axis)(n)));
     }
 
     // interpolate using all possible algorithms
@@ -187,7 +190,7 @@ BOOST_AUTO_TEST_CASE(linear_1d_float_test) {
     for (double x = 0.25; x <= 10.0; x += 0.25) {
         // double y = x;
         cout << x << "\t";
-        truth = linear1d(x);
+        truth = (element_type) linear1d(x);
         cout << truth << "\t";
 
         grid.interp_type(0, interp_enum::nearest);
@@ -217,7 +220,10 @@ BOOST_AUTO_TEST_CASE(linear_1d_float_test) {
 BOOST_AUTO_TEST_CASE(linear_1d_complex_test) {
     cout << "=== datagrid_test: linear_1d_complex_test ===" << endl;
     typedef std::complex<double> element_type;
-    element_type truth, nearest, linear, pchip;
+    element_type truth;
+    element_type nearest;
+    element_type linear;
+    element_type pchip;
 
     // construct synthetic data for this test
 
@@ -263,7 +269,10 @@ BOOST_AUTO_TEST_CASE(linear_1d_complex_test) {
  */
 BOOST_AUTO_TEST_CASE(linear_1d_vector_test) {
     typedef boost::numeric::ublas::vector<double> element_type;
-    element_type truth, nearest, linear, pchip;
+    element_type truth;
+    element_type nearest;
+    element_type linear;
+    element_type pchip;
     size_t N = 3;
 
     cout << "=== datagrid_test: linear_1d_vector_test ===" << endl;
@@ -318,7 +327,10 @@ BOOST_AUTO_TEST_CASE(linear_1d_vector_test) {
  */
 BOOST_AUTO_TEST_CASE(linear_1d_matrix_test) {
     typedef boost::numeric::ublas::matrix<double> element_type;
-    element_type truth, nearest, linear, pchip;
+    element_type truth;
+    element_type nearest;
+    element_type linear;
+    element_type pchip;
     size_t N = 2;
 
     cout << "=== datagrid_test: linear_1d_matrix_test ===" << endl;
