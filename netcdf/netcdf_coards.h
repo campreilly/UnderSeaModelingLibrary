@@ -130,7 +130,7 @@ class netcdf_coards : public gen_grid<NUM_DIMS> {
         // replace missing data with fill value
 
         double* data = new double[N];
-        this->_writeable_data = std::shared_ptr<double>(data);
+        this->_writeable_data = std::shared_ptr<double[]>(data);
         this->_data = this->_writeable_data;
 
         NcValues* values = variable->values();

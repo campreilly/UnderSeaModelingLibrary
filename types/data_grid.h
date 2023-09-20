@@ -62,13 +62,13 @@ inline size_t data_grid_compute_offset<0>(const seq_vector::csptr axis[],
 }
 
 /**
- * N-dimensional data set and its associated axes.
- * Supports interpolation in any number of dimensions.
+ * N-dimensional data set and its associated axes. Immutable interface for
+ * sub-classes that support interpolation in any number of dimensions.
  *
  * @param  NUM_DIMS     Number of dimensions in this grid.  Specifying this
  *                      at compile time allows for some loop un-wrapping.
  */
-template <size_t NUM_DIMS>
+template <size_t NUM_DIMS, class DATA_TYPE = double>
 class USML_DLLEXPORT data_grid {
    public:
     /// Shared pointer to constant version of this class.
@@ -83,38 +83,38 @@ class USML_DLLEXPORT data_grid {
     /**
      * Extract a reference to the list of axes.
      */
-    inline const seq_vector::csptr* axis_list() const { return _axis; }
+    const seq_vector::csptr* axis_list() const { return _axis; }
 
     /**
      * Extract a constant shared pointer to one of the axes.
      * Allows sub-classes to take shared ownership of axes data.
      */
-    inline seq_vector::csptr axis_csptr(size_t dim) const { return _axis[dim]; }
+    seq_vector::csptr axis_csptr(size_t dim) const { return _axis[dim]; }
 
     /**
      * Extract a constant reference to one of the axes.
      * Passing it as a reference instead of as a csptr does not give the
      * caller the opportunity to take ownership of this object.
      */
-    inline const seq_vector& axis(size_t dim) const { return *_axis[dim]; }
+    const seq_vector& axis(size_t dim) const { return *_axis[dim]; }
 
     /**
      * Extracts a shared pointer to the data member.
      * Allows sub-classes to take shared ownership of axes data.
      */
-    inline std::shared_ptr<const double> data_csptr() const { return _data; }
+    std::shared_ptr<const DATA_TYPE[]> data_csptr() const { return _data; }
 
     /**
      * Extracts a const pointer to the data member.
      */
-    inline const double* data() const { return _data.get(); }
+    const DATA_TYPE* data() const { return _data.get(); }
 
     /**
      * Extract a data value at a specific combination of indices.
      *
      * @param  index            Index number in each dimension.
      */
-    inline double data(const size_t* index) const {
+    DATA_TYPE data(const size_t* index) const {
         const size_t offset =
             data_grid_compute_offset<NUM_DIMS - 1>(_axis, index);
         return _data.get()[offset];
@@ -123,7 +123,7 @@ class USML_DLLEXPORT data_grid {
     /**
      * Retrieve the type of interpolation for one of the axes.
      */
-    inline interp_enum interp_type(size_t dimension) const {
+    interp_enum interp_type(size_t dimension) const {
         return _interp_type[dimension];
     }
 
@@ -135,7 +135,7 @@ class USML_DLLEXPORT data_grid {
      * @param  dimension        Dimension number to be modified.
      * @param  type             Type of interpolation for this dimension.
      */
-    inline void interp_type(size_t dimension, interp_enum type) {
+    void interp_type(size_t dimension, interp_enum type) {
         const size_t size = this->_axis[dimension]->size();
         if (type > interp_enum::nearest && size < 2) {
             type = interp_enum::nearest;
@@ -149,9 +149,7 @@ class USML_DLLEXPORT data_grid {
     /**
      * Returns the edge_limit flag for the requested dimension.
      */
-    inline bool edge_limit(size_t dimension) const {
-        return _edge_limit[dimension];
-    }
+    bool edge_limit(size_t dimension) const { return _edge_limit[dimension]; }
 
     /**
      * Set the edge_limit flag for the requested dimension.
@@ -160,7 +158,7 @@ class USML_DLLEXPORT data_grid {
      * @param  dimension        Dimension number to be modified.
      * @param  flag             Limits locations when true.
      */
-    inline void edge_limit(size_t dimension, bool flag) {
+    void edge_limit(size_t dimension, bool flag) {
         this->_edge_limit[dimension] = flag;
     }
 
@@ -182,20 +180,20 @@ class USML_DLLEXPORT data_grid {
      *                      of the field at this point will also be computed.
      * @return              Value of the field at this point.
      */
-    virtual double interpolate(const double location[],
-                               double* derivative = nullptr) const = 0;
+    virtual DATA_TYPE interpolate(const double location[],
+                                  DATA_TYPE* derivative = nullptr) const = 0;
 
     /**
      * Interpolation 1-D specialization where the arguments, and results,
-     * are matrix<double>.  This is used frequently in the WaveQ3D model
+     * are matrix<DATA_TYPE>.  This is used frequently in the WaveQ3D model
      * to interpolate environmental parameters.
      *
      * @param   x           First dimension of location.
      * @param   result      Interpolated values at each location (output).
      * @param   dx          First dimension of derivative (output).
      */
-    void interpolate(const matrix<double>& x, matrix<double>* result,
-                     matrix<double>* dx = nullptr) const {
+    void interpolate(const matrix<double>& x, matrix<DATA_TYPE>* result,
+                     matrix<DATA_TYPE>* dx = nullptr) const {
         double location[1];
         double derivative[1];
         for (size_t n = 0; n < x.size1(); ++n) {
@@ -214,7 +212,7 @@ class USML_DLLEXPORT data_grid {
 
     /**
      * Interpolation 2-D specialization where the arguments, and results,
-     * are matrix<double>.  This is used frequently in the WaveQ3D model
+     * are matrix<DATA_TYPE>.  This is used frequently in the WaveQ3D model
      * to interpolate environmental parameters.
      *
      * @param   x           First dimension of location.
@@ -224,8 +222,8 @@ class USML_DLLEXPORT data_grid {
      * @param   dy          Second dimension of derivative (output).
      */
     void interpolate(const matrix<double>& x, const matrix<double>& y,
-                     matrix<double>* result, matrix<double>* dx = nullptr,
-                     matrix<double>* dy = nullptr) const {
+                     matrix<DATA_TYPE>* result, matrix<DATA_TYPE>* dx = nullptr,
+                     matrix<DATA_TYPE>* dy = nullptr) const {
         double location[2];
         double derivative[2];
         for (size_t n = 0; n < x.size1(); ++n) {
@@ -258,9 +256,10 @@ class USML_DLLEXPORT data_grid {
      * @param   dz          Third dimension of derivative (output).
      */
     void interpolate(const matrix<double>& x, const matrix<double>& y,
-                     const matrix<double>& z, matrix<double>* result,
-                     matrix<double>* dx = nullptr, matrix<double>* dy = nullptr,
-                     matrix<double>* dz = nullptr) const {
+                     const matrix<double>& z, matrix<DATA_TYPE>* result,
+                     matrix<DATA_TYPE>* dx = nullptr,
+                     matrix<DATA_TYPE>* dy = nullptr,
+                     matrix<DATA_TYPE>* dz = nullptr) const {
         double location[3];
         double derivative[3];
         for (size_t n = 0; n < x.size1(); ++n) {
@@ -354,7 +353,7 @@ class USML_DLLEXPORT data_grid {
      * This format is used to support an N-dimensional data set
      * with any number of dimensions.
      */
-    std::shared_ptr<const double> _data;
+    std::shared_ptr<const DATA_TYPE[]> _data;
 };
 
 }  // end of namespace types

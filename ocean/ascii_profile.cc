@@ -54,7 +54,7 @@ ascii_profile::ascii_profile(const char *filename) {
     // load into data_grid variables
 
     this->_axis[0] = seq_vector::csptr(new seq_data(height, size));
-    this->_data = std::shared_ptr<const double>(speed);
+    this->_data = std::shared_ptr<const double[]>(speed);
     delete[] height;
 
     // set interp type and edge limit

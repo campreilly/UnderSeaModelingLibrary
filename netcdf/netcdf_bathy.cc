@@ -117,7 +117,7 @@ netcdf_bathy::netcdf_bathy(const char* filename, double south, double north,
     // load depth data out of NetCDF file
 
     auto* data = new double[lat_num * lng_num];
-    _writeable_data = std::shared_ptr<double>(data);
+    _writeable_data = std::shared_ptr<double[]>(data);
     _data = _writeable_data;
 
     if (longitude->num_vals() > lng_last || !global) {

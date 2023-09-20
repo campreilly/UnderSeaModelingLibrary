@@ -139,7 +139,7 @@ netcdf_profile::netcdf_profile(const char *profile, double date, double south,
     // load profile data out of NetCDF variable
 
     auto *data = new double[lat_num * lng_num * alt_num];
-    _writeable_data = std::shared_ptr<double>(data);
+    _writeable_data = std::shared_ptr<double[]>(data);
     _data = _writeable_data;
 
     if (longitude->num_vals() > lng_last) {

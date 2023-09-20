@@ -62,7 +62,7 @@ ascii_arc_bathy::ascii_arc_bathy(const char* filename) {
             *(ptr++) += R;
         }
     }
-    this->_data = std::shared_ptr<const double>(data);
+    this->_data = std::shared_ptr<const double[]>(data);
 
     // set interp type and edge limit
 
