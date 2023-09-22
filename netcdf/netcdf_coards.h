@@ -86,6 +86,8 @@ class netcdf_coards : public gen_grid<NUM_DIMS> {
      *                         Use NAN as fill value if false.
      */
     netcdf_coards(NcFile& file, NcToken name, bool read_fill = false) {
+    	this->_zero = 0.0; // avoid uninitialized values in gen_grid class
+
         // search for this grid in the NetCDF file
 
         NcVar* variable = file.get_var(name);

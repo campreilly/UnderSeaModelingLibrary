@@ -44,9 +44,10 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
             this->_axis[n] = axis[n];
             N *= this->_axis[n]->size();
         }
-        this->_writeable_data = std::shared_ptr<DATA_TYPE[]>(new DATA_TYPE[N]);
-        this->_data = this->_writeable_data;  // read only reference
-        initialize<DATA_TYPE>::zero_n(this->_writeable_data.get(), N);
+        _writeable_data = std::shared_ptr<DATA_TYPE[]>(new DATA_TYPE[N]);
+        this->_data = _writeable_data;  // read only reference
+        initialize<DATA_TYPE>::zero_n(_writeable_data.get(), N);
+        _zero = initialize<DATA_TYPE>::zero((_writeable_data.get())[0]);
     }
 
     /**
@@ -59,10 +60,6 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
         const size_t offset =
             data_grid_compute_offset<NUM_DIMS - 1>(this->_axis, index);
         _writeable_data.get()[offset] = value;
-        if (!_zero_init) {
-            _zero_init = true;
-            _zero = initialize<DATA_TYPE>::zero(value);
-        }
     }
 
     /**
@@ -121,6 +118,10 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
 
         // compute interpolation results for value and derivative
 
+        if (!_zero_init) {
+            _zero_init = true;
+            _zero = initialize<DATA_TYPE>::zero((_writeable_data.get())[0]);
+        }
         DATA_TYPE dresult = _zero;
         return interp(NUM_DIMS - 1, index, loc, dresult, derivative);
     }
@@ -519,19 +520,20 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
     std::shared_ptr<DATA_TYPE[]> _writeable_data;
 
     /**
-     * Example of empty data type with correct size. If results variables are
-     * left uninitialized, Valgrind's Memcheck flags them out as potential
-     * errors. Initializing declaration of DATA_TYPE to _zeros quiets this
-     * error message.
+     * Example of empty data type with vector/matrix correct size. If results
+     * variables are left uninitialized, Valgrind's Memcheck flags them out as
+     * potential errors. Initializing declaration of DATA_TYPE to _zeros quiets
+     * this error message.
      */
-    DATA_TYPE _zero;
+    mutable DATA_TYPE _zero;
 
     /**
      * Since we don't know that the size of vector/matrix DATA_TYPEs are going
-     * to be until the setdata() has been called, we set the value of _zero in
-     * setdata() if it has not yet already been initialized.
+     * to be until the interpolate() has been called, we set the value of _zero
+     * in interpolate() if it has not yet already been initialized. Since the
+     * interpolate() method is const, this field must be mutable.
      */
-    bool _zero_init{false};
+    mutable bool _zero_init{false};
 };
 
 }  // end of namespace types
