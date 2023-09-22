@@ -36,7 +36,7 @@ using namespace usml::types;
  *
  * @xref Cooperative Ocean/Atmosphere Research Data Service,
  * "Conventions for the standardization of NetCDF files," May 1995.
- * See http://ferret.wrc.noaa.gov/noaa_coop/coop_cdf_profile.html
+ * See https://ferret.pmel.noaa.gov/Ferret/documentation/coards-netcdf-conventions
  * for more information.
  */
 template <int NUM_DIMS>

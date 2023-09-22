@@ -8,7 +8,7 @@
  * platforms. Children's positions and orientations in world coordinates are
  * updated each time that the platform's position or orientation changes.
  *
- * @defgroup platforms_test *platforms_test
+ * @defgroup platforms_test Platform Tests
  * @ingroup platforms
  *
  * Regression tests for the platforms package.

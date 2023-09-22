@@ -10,7 +10,7 @@
  * change more quickly than the geometry of the source and receiver to each
  * scattering patch.
  *
- * @defgroup biverbs_test *biverbs_test
+ * @defgroup biverbs_test Biverbs Tests
  * @ingroup biverbs
  *
  * Regression tests for the biverbs module.

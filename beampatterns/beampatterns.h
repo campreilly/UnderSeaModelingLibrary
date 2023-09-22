@@ -8,7 +8,7 @@
  * with a range from 0.0 to 1.0.  All of the beam patterns defined in this
  * module are immutable to support thread safety without locking.
  *
- * @defgroup bp_test *bp_test
+ * @defgroup bp_test Beampatterns Tests
  * @ingroup beampatterns
  *
  * Regression tests for the beampatterns package

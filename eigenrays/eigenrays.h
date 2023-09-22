@@ -5,7 +5,7 @@
  * Each eigenray represents a single acoustic path between a
  * source and target.
  *
- * @defgroup eigenrays_test *eigenrays_test
+ * @defgroup eigenrays_test Eigenrays Tests
  * @ingroup eigenrays
  *
  * Regression tests for the eigenrays module.

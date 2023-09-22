@@ -34,7 +34,8 @@ namespace types {
  * of the equatorial plane from the area of operations.
  *
  * @xref WGS 84 IMPLEMENTATION MANUAL, Version 2.4, 1998.
- *       See http://www.dqts.net/wgs84.htm for more information.
+ *       See https://www.icao.int/safety/pbn/documentation/eurocontrol
+ *       for more information.
  */
 class USML_DECLSPEC wposition : public wvector {
    public:
@@ -96,9 +97,8 @@ class USML_DECLSPEC wposition : public wvector {
 
     /**
      * Radius of curvature, FAI standard for aviation records.
-     * @xref Aviation Formulary, V1.46, 2011.
-     *       See http://williams.best.vwh.net/avform.htm
-     *       for more information.
+	 * @xref E. Williams, "Aviation Formulary V1.47",
+	 * http://www.edwilliams.org/avform147.htm, Accessed Sept 2023.
      */
     static double earth_radius;
 

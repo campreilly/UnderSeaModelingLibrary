@@ -17,11 +17,6 @@ const double tol = 1e-10;
 BOOST_AUTO_TEST_SUITE(sensors_test)
 
 /**
- * @ingroup sensors_test
- * @{
- */
-
-/**
  * Test the ability to create a simple sensor.
  */
 BOOST_AUTO_TEST_CASE(create_sensor) {
@@ -29,6 +24,11 @@ BOOST_AUTO_TEST_CASE(create_sensor) {
     simple_sonobuoy sensor(0,"simple_sonobuoy");
     platform_manager::reset();
 }
+
+/**
+ * @ingroup sensors_test
+ * @{
+ */
 
 /**
  * Test the ability to create a single platform with an attached sensor.

@@ -18,11 +18,6 @@ static const double de_spacing = 10.0;
 static const double az_spacing = 10.0;
 
 /**
- * @ingroup eigenverbs_test
- * @{
- */
-
-/**
  * Build simplified eigenverb for one combination of DE and AZ.
  */
 static eigenverb_model::csptr create_eigenverb(
@@ -57,6 +52,11 @@ static eigenverb_model::csptr create_eigenverb(
     verb->lower = 0;
     return eigenverb_model::csptr(verb);
 }
+
+/**
+ * @ingroup eigenverbs_test
+ * @{
+ */
 
 /**
  * This test builds eigenverbs on bottom for varying DE and AZ. First it tests

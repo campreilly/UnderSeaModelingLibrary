@@ -36,8 +36,7 @@ namespace ocean {
  * Journal of Geophysical Research 69, pp. 5181–5190, 1964.
  *
  * @xref R. H. Stewart, "Introduction to Physical Oceanography," Open source
- * text book, http://oceanworld.tamu.edu/resources/ocng_textbook/contents.html ,
- * 2008.
+ * text book, https://open.umn.edu/opentextbooks/textbooks/20, 2008.
  *
  * @xref Ocean-Wave Spectra entry on WikiWaves site,
  * http://www.wikiwaves.org/Ocean-Wave_Spectra .

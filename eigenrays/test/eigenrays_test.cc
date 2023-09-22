@@ -14,11 +14,6 @@ using namespace boost::unit_test;
 using namespace usml::eigenrays;
 
 /**
- * @ingroup eigenrays_test
- * @{
- */
-
-/**
  * Factory that builds eigenrays and notify listeners.
  */
 class USML_DECLSPEC eigenray_factory : public eigenray_notifier {
@@ -44,6 +39,11 @@ class USML_DECLSPEC eigenray_factory : public eigenray_notifier {
         notify_eigenray_listeners(0, 0, eigenray_model::csptr(ray), 0);
     }
 };
+
+/**
+ * @ingroup eigenrays_test
+ * @{
+ */
 
 /**
  * This test adds entries to an eigenray collection. It is used as a

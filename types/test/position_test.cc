@@ -20,7 +20,8 @@ using namespace usml::types;
  * Generate errors if values differ by more that 1E-6 percent.
  *
  * @xref WGS 84 IMPLEMENTATION MANUAL, Version 2.4, 1998.
- *       See http://www.dqts.net/wgs84.htm for more information.
+ *       See https://www.icao.int/safety/pbn/documentation/eurocontrol
+ *       for more information.
  */
 BOOST_AUTO_TEST_CASE( earth_radius_test ) {
     cout << "=== position_test: earth_radius_test ===" << endl;
@@ -206,8 +207,8 @@ BOOST_AUTO_TEST_CASE( distance1_test ) {
  * range and bearing from LAX.  Those answers are required to be within
  * 1e-10% of the true location for JFK.
  *
- * @xref E. Williams, "Aviation Formulary V1.43",
- * http://williams.best.vwh.net/avform.htm , July 2010.
+ * @xref E. Williams, "Aviation Formulary V1.47",
+ * http://www.edwilliams.org/avform147.htm, Accessed Sept 2023.
  */
 BOOST_AUTO_TEST_CASE( gc_range_test ) {
     cout << "=== position_test: gc_range_test ===" << endl;

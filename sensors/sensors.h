@@ -16,7 +16,7 @@
  * eigenverbs (biverbs) represent the bistatic overlap between the source and
  * receiver eigenverbs for this pair.
  *
- * @defgroup sensors_test *sensors_test
+ * @defgroup sensors_test Sensor Tests
  * @ingroup sensors
  *
  * Regression tests for the bistatic module.

@@ -5,7 +5,7 @@
  * This package provides the extensions needed to integrate NetCDF files
  * with Boost's uBLAS numeric library.
  *
- * @defgroup netcdf_test *netcdf_test
+ * @defgroup netcdf_test Netcdf Tests
  * @ingroup netcdf_files
  *
  * Regression tests for the netcdf package

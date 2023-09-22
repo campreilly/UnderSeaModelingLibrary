@@ -28,11 +28,6 @@ using std::endl;
 //#define DEBUG_THREAD_TASK
 
 /**
- * @ingroup threads_test
- * @{
- */
-
-/**
  * Task to compute sqrt() a random number of times in a separate thread.
  * Using a random number of sqrt() calculations allows each task to take
  * a random amount of time to complete.  Also demonstrates use of a
@@ -257,6 +252,11 @@ class sqrt_task_tester {
         thread_task::sleep(msec);
     }
 };
+
+/**
+ * @ingroup threads_test
+ * @{
+ */
 
 /**
  * Test the ability of thread_controller to schedule computationally intense

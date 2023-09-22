@@ -5,7 +5,7 @@
  * Reverberation envelope are intensity time series for a single combination of
  * receiver azimuth, source beam number, receiver beam number.
  *
- * @defgroup rvbenv_test *rvbenv_test
+ * @defgroup rvbenv_test Rvbenv Tests
  * @ingroup rvbenv
  *
  * Regression tests for the rvbenv module.

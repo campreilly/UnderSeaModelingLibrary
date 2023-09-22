@@ -28,7 +28,7 @@
  * Vector relative to body along the aircraft principal axes and
  * body orientation.
  *
- * @defgroup types_test *types_test
+ * @defgroup types_test Type Tests
  * @ingroup types
  *
  * Regression tests for the types package

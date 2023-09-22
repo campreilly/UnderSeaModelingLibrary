@@ -35,8 +35,9 @@ class wposition1; // forward reference
  * @xref Wikipedia Article on "Geodetic System"
  *       http://en.wikipedia.org/wiki/Geodetic_system
  *
- * @xref Portland State Aerospace Society, "Local Tangent Plane",
- *       Version 2.01 (2007.9.15), http://www.psas.pdx.edu.
+ * @xref Portland State Aerospace Society, "Conversion of Geodetic coordinates
+ * 		 to the Local Tangent Plane", Version 2.01 (2007.9.15)
+ * 		 https://archive.psas.pdx.edu/CoordinateSystem/, accessed Sept 2023.
  */
 class USML_DECLSPEC wvector
 {
@@ -303,8 +304,9 @@ public:
      * @xref Weisstein, Eric W. "Spherical Trigonometry."
      * From MathWorld--A Wolfram Web Resource.
      * http://mathworld.wolfram.com/SphericalTrigonometry.html.
-     * @xref E. Williams, "Aviation Formulary V1.46",
-     * http://williams.best.vwh.net/avform.htm
+     *
+	 * @xref E. Williams, "Aviation Formulary V1.47",
+	 * http://www.edwilliams.org/avform147.htm, Accessed Sept 2023.
      */
     void dot(const wvector1& other, matrix<double>& result) const;
 

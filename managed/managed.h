@@ -7,7 +7,7 @@
  * not allowed. Event listeners are notified when objects are added to the
  * manager, removed from the manager, or updated.
  *
- * @defgroup managed_test *managed_test
+ * @defgroup managed_test Managed Tests
  * @ingroup managed
  *
  * Regression tests for the managed package

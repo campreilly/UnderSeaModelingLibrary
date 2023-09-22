@@ -50,7 +50,7 @@
  * Combines the effects of surface, bottom, volume, and profile into a single
  * model.
  *
- * @defgroup ocean_test *ocean_test
+ * @defgroup ocean_test Ocean Tests
  * @ingroup ocean
  *
  * Regression tests for the ocean package

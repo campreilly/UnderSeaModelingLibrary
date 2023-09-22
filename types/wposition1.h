@@ -40,8 +40,8 @@ public:
      * Constructs a position on the Earth's surface using the great circle
      * range and bearing from a point.
      *
-     * @xref E. Williams, "Aviation Formulary V1.43",
-     * http://williams.best.vwh.net/avform.htm , July 2010.
+	 * @xref E. Williams, "Aviation Formulary V1.47",
+	 * http://www.edwilliams.org/avform147.htm, Accessed Sept 2023.
      *
      * @param  location     Location of the reference point.
      * @param  range        Distance to the new point along the Earth's surface (meters).
@@ -140,8 +140,8 @@ public:
      * Computes the great circle range and bearing between two
      * latitude/longitude positions along the Earth's surface.
      *
-     * @xref E. Williams, "Aviation Formulary V1.43",
-     * http://williams.best.vwh.net/avform.htm , July 2010.
+	 * @xref E. Williams, "Aviation Formulary V1.47",
+	 * http://www.edwilliams.org/avform147.htm, Accessed Sept 2023.
      *
      * @param  location     Location of the reference point.
      * @param  bearing      True bearing to the new point (radians, optional).

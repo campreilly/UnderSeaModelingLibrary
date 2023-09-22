@@ -4,7 +4,7 @@
  *
  * Threading utilities used by USML.
  *
- * @defgroup threads_test *threads_test
+ * @defgroup threads_test Thread Tests
  * @ingroup threads
  *
  * Regression tests for the threads package

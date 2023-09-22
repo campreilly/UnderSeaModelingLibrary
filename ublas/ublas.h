@@ -40,7 +40,7 @@
  * random series in different parts of the application. The following files
  * are used to implement these components.
  *
- * @defgroup ublas_test *ublas_test
+ * @defgroup ublas_test Ublas Tests
  * @ingroup ublas
  *
  * Regression tests for the ublas package.
