@@ -48,11 +48,6 @@ include_directories(    # ignore warnings in Boost and NetCDF includes
     ${Boost_INCLUDE_DIR}
     ${NETCDF_INCLUDES} )
 
-# ignore BOOST deprecated headers
-
-add_definitions("-DBOOST_ALLOW_DEPRECATED_HEADERS")
-add_definitions("-DBOOST_BIND_GLOBAL_PLACEHOLDERS")
-  
 ######################################################################
 # macro: searches a module list for headers and sources
 

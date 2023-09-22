@@ -101,6 +101,15 @@ find_package( Boost 1.74 REQUIRED COMPONENTS
 
 include_directories( ${Boost_INCLUDE_DIR} )
 
+# ignore BOOST deprecated headers
+
+add_definitions("-DBOOST_ALLOW_DEPRECATED_HEADERS")
+add_definitions("-DBOOST_BIND_GLOBAL_PLACEHOLDERS")
+  
+# speed up execution using move semantics
+
+add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
+
 ######################################################################
 # NetCDF data access library
 

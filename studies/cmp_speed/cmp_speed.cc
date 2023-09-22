@@ -17,6 +17,7 @@
  *
  */
 
+#include <usml/eigenrays/eigenray_collection.h>
 #include <usml/netcdf/netcdf_bathy.h>
 #include <usml/netcdf/netcdf_profile.h>
 #include <usml/ocean/boundary_flat.h>
@@ -37,7 +38,6 @@
 #include <usml/waveq3d/wave_queue.h>
 
 #include <boost/timer/timer.hpp>
-#include <usml/eigenrays/eigenray_collection.h>
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
@@ -75,14 +75,16 @@ int main(int argc, char* argv[]) {
     const double lng1 = -164.4;
     const double lng2 = -155.5;
 
-    cout << "load STD14 environmental profile data" << endl;
+    cout << "load STD14 environmental profile data from " << USML_STUDIES_DIR
+         << "/cmp_speed/std14profile.nc" << endl;
     data_grid<3>::csptr ssp(new netcdf_profile(USML_STUDIES_DIR
                                                "/cmp_speed/std14profile.nc",
                                                0.0, lat1, lat2, lng1, lng2));
     data_grid<3>::csptr fast_ssp(new data_grid_svp(ssp));
     profile_grid<3>::csptr profile(new profile_grid<3>(ssp));
 
-    cout << "load STD14 environmental bathy data" << endl;
+    cout << "load STD14 environmental bathy data from " << USML_STUDIES_DIR
+            << "/cmp_speed/std14bathy.nc" << endl;
     data_grid<2>::csptr grid(
         new netcdf_bathy(USML_STUDIES_DIR "/cmp_speed/std14bathy.nc", lat1,
                          lat2, lng1, lng2, wposition::earth_radius));
