@@ -228,31 +228,38 @@ template <typename T>
 struct initialize {
     typedef T argument_type;
     typedef std::size_t size_type;
-    static void zero(argument_type& a1, const argument_type s) {
-        a1 = argument_type(0);
+
+    /**
+     * Compute scalar of all zeros.
+     *
+     * @param model		Template type and size of return value
+     * (ignored).
+     * @return			Scalar of zeros, same type and size as "model".
+     */
+    static argument_type zero(const argument_type model) {
+        return argument_type(0);
     }
-    static void zero(argument_type& a1, argument_type& a2,
-                     const argument_type s) {
-        a1 = argument_type(0);
-        a2 = argument_type(0);
+
+    /**
+     * Compute array of all zeros.
+     *
+     * @param array		1D array of zeros
+     * @param size		Number of elements in 1D array.
+     */
+    static void zero_n(argument_type* array, size_t size) {
+        std::fill_n(array, size, (argument_type)0.0);
     }
-    static void zero(argument_type& a1, argument_type& a2, argument_type& a3,
-                     const argument_type s) {
-        a1 = argument_type(0);
-        a2 = argument_type(0);
-        a3 = argument_type(0);
-    }
-    static void zero(argument_type& a1, argument_type& a2, argument_type& a3,
-                     argument_type& a4, const argument_type s) {
-        a1 = argument_type(0);
-        a2 = argument_type(0);
-        a3 = argument_type(0);
-        a4 = argument_type(0);
-    }
-    static void zero_n(argument_type* a1, size_t n) { std::fill_n(a1, n, 0.0); }
-    static void value(argument_type& a, const argument_type s,
-                      argument_type v) {
-        a = v;
+
+    /**
+     * Copy value into a scalar.
+     *
+     * @param model		Template type and size of return value
+     * (ignored).
+     * @param value		Value to be copied.
+     * @return			Copy of value, same type and size as "model".
+     */
+    static argument_type value(const argument_type model, argument_type value) {
+        return value;
     }
 };
 
@@ -264,44 +271,39 @@ struct initialize<boost::numeric::ublas::vector<T> > {
     typedef T value_type;
     typedef std::size_t size_type;
     typedef boost::numeric::ublas::vector<value_type> argument_type;
-    static void zero(argument_type& a1, const argument_type s) {
-        a1.resize(s.size());
-        a1.clear();
+    /**
+     * Compute vector of all zeros.
+     * @param model		Template type and size of return value.
+     * @return			Vector of zeros, same type and size as "model".
+     */
+    static argument_type zero(const argument_type model) {
+        argument_type array;
+        array.resize(model.size());
+        array.clear();
+        return array;
     }
-    static void zero(argument_type& a1, argument_type& a2,
-                     const argument_type s) {
-        a1.resize(s.size());
-        a1.clear();
-        a2.resize(s.size());
-        a2.clear();
-    }
-    static void zero(argument_type& a1, argument_type& a2, argument_type& a3,
-                     const argument_type s) {
-        a1.resize(s.size());
-        a1.clear();
-        a2.resize(s.size());
-        a2.clear();
-        a3.resize(s.size());
-        a3.clear();
-    }
-    static void zero(argument_type& a1, argument_type& a2, argument_type& a3,
-                     argument_type& a4, const argument_type s) {
-        a1.resize(s.size());
-        a1.clear();
-        a2.resize(s.size());
-        a2.clear();
-        a3.resize(s.size());
-        a3.clear();
-        a4.resize(s.size());
-        a4.clear();
-    }
-    static void zero_n(argument_type* a1, size_t n) {
-        for (size_t m = 0; m < n; ++m) {
-            a1[m].clear();
+
+    /**
+     * Compute array of vectors that contain all zeros.
+     *
+     * @param array		1D array of vectors
+     * @param size		Number of elements in 1D array.
+     */
+    static void zero_n(argument_type* array, size_t size) {
+        for (size_t m = 0; m < size; ++m) {
+            array[m].clear();
         }
     }
-    static void value(argument_type& a, const argument_type s, value_type v) {
-        a = boost::numeric::ublas::vector<value_type>(s.size(), v);
+
+    /**
+     * Copy value into a vector.
+     *
+     * @param model		Template for type and size of return value.
+     * @param value		Value to be copied.
+     * @return			Copy of value, same type and size as "model".
+     */
+    static argument_type value(const argument_type model, value_type value) {
+        return boost::numeric::ublas::vector<value_type>(model.size(), value);
     }
 };
 
@@ -313,45 +315,41 @@ struct initialize<boost::numeric::ublas::matrix<T> > {
     typedef T value_type;
     typedef std::size_t size_type;
     typedef boost::numeric::ublas::matrix<value_type> argument_type;
-    static void zero(argument_type& a1, const argument_type s) {
-        a1.resize(s.size1(), s.size2());
-        a1.clear();
+
+    /**
+     * Compute matrix of all zeros.
+     * @param model		Template type and size of return value.
+     * @return			Matrix of zeros, same type and size as "model".
+     */
+    static argument_type zero(const argument_type model) {
+        argument_type value;
+        value.resize(model.size1(), model.size2());
+        value.clear();
+        return value;
     }
-    static void zero(argument_type& a1, argument_type& a2,
-                     const argument_type s) {
-        a1.resize(s.size1(), s.size2());
-        a1.clear();
-        a2.resize(s.size1(), s.size2());
-        a2.clear();
-    }
-    static void zero(argument_type& a1, argument_type& a2, argument_type& a3,
-                     const argument_type s) {
-        a1.resize(s.size1(), s.size2());
-        a1.clear();
-        a2.resize(s.size1(), s.size2());
-        a2.clear();
-        a3.resize(s.size1(), s.size2());
-        a3.clear();
-    }
-    static void zero(argument_type& a1, argument_type& a2, argument_type& a3,
-                     argument_type& a4, const argument_type s) {
-        a1.resize(s.size1(), s.size2());
-        a1.clear();
-        a2.resize(s.size1(), s.size2());
-        a2.clear();
-        a3.resize(s.size1(), s.size2());
-        a3.clear();
-        a4.resize(s.size1(), s.size2());
-        a4.clear();
-    }
-    static void zero_n(argument_type* a1, size_t n) {
-        for (size_t m = 0; m < n; ++m) {
-            a1[m].clear();
+
+    /**
+     * Compute array of vectors that contain all zeros.
+     *
+     * @param array		1D array of vectors
+     * @param size		Number of elements in 1D array.
+     */
+    static void zero_n(argument_type* array, size_t size) {
+        for (size_t m = 0; m < size; ++m) {
+            array[m].clear();
         }
     }
-    static void value(argument_type& a, const argument_type s, value_type v) {
-        a = boost::numeric::ublas::scalar_matrix<value_type>(s.size1(),
-                                                             s.size2(), v);
+
+    /**
+     * Copy value into a matrix.
+     *
+     * @param model		Template for type and size of return value.
+     * @param value		Value to be copied.
+     * @return			Copy of value, same type and size as "model".
+     */
+    static argument_type value(const argument_type model, value_type value) {
+        return boost::numeric::ublas::scalar_matrix<value_type>(
+            model.size1(), model.size2(), value);
     }
 };
 

@@ -436,10 +436,10 @@ BOOST_AUTO_TEST_CASE(cubic_1d_test) {
  * Generate errors if values differ by more that 1E-6 percent.
  */
 BOOST_AUTO_TEST_CASE(deriv_1d_test) {
-    double truth;
-    double nearest;
-    double linear;
-    double pchip;
+    double truth{0.0};
+    double nearest{0.0};
+    double linear{0.0};
+    double pchip{0.0};
 
     cout << "=== datagrid_test: deriv_1d_test ===" << endl;
 

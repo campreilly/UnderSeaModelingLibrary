@@ -58,7 +58,11 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
     void setdata(const size_t* index, DATA_TYPE value) {
         const size_t offset =
             data_grid_compute_offset<NUM_DIMS - 1>(this->_axis, index);
-        this->_writeable_data.get()[offset] = value;
+        _writeable_data.get()[offset] = value;
+        if (!_zero_init) {
+            _zero_init = true;
+            _zero = initialize<DATA_TYPE>::zero(value);
+        }
     }
 
     /**
@@ -117,7 +121,7 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
 
         // compute interpolation results for value and derivative
 
-        DATA_TYPE dresult;
+        DATA_TYPE dresult = _zero;
         return interp(NUM_DIMS - 1, index, loc, dresult, derivative);
     }
 
@@ -145,7 +149,7 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
      */
     DATA_TYPE interp(int dim, const size_t index[], const double location[],
                      DATA_TYPE& deriv, DATA_TYPE deriv_vec[]) const {
-        DATA_TYPE result;
+        DATA_TYPE result = _zero;
 
         if (dim < 0) {
             const size_t offset =
@@ -187,7 +191,8 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
      */
     DATA_TYPE nearest(int dim, const size_t index[], const double location[],
                       DATA_TYPE& deriv, DATA_TYPE deriv_vec[]) const {
-        DATA_TYPE result, da;
+        DATA_TYPE result = _zero;
+        DATA_TYPE da = _zero;
 
         // compute field value in this dimension
 
@@ -206,7 +211,6 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
         // compute derivative in this dimension
 
         if (deriv_vec) {
-            initialize<DATA_TYPE>::zero(deriv, result);
             deriv_vec[dim] = deriv;
             if (dim > 0) deriv_vec[dim - 1] = da;
         }
@@ -232,7 +236,9 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
      */
     DATA_TYPE linear(int dim, const size_t index[], const double location[],
                      DATA_TYPE& deriv, DATA_TYPE deriv_vec[]) const {
-        DATA_TYPE result, da, db;
+        DATA_TYPE result = _zero;
+        DATA_TYPE da = _zero;
+        DATA_TYPE db = _zero;
 
         // build interpolation coefficients
 
@@ -333,16 +339,24 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
      */
     DATA_TYPE pchip(int dim, const size_t index[], const double location[],
                     DATA_TYPE& deriv, DATA_TYPE deriv_vec[]) const {
-        DATA_TYPE result;
         seq_vector::csptr ax = this->_axis[dim];
         const size_t kmin = 1u;               // at endpt if k-1 < 0
         const size_t kmax = ax->size() - 3u;  // at endpt if k+2 > N-1
+        DATA_TYPE result = _zero;
 
-        //NOLINTBEGIN(clang-diagnostic-uninitialized)
-        DATA_TYPE y0, y1, y2, y3;      // dim-1 values at k-1, k, k+1, k+2
-        DATA_TYPE dy0, dy1, dy2, dy3;  // dim-1 derivs at k-1, k, k+1, k+2
-        initialize<DATA_TYPE>::zero(dy0, dy1, dy2, dy3);
-        //NOLINTEND(clang-diagnostic-uninitialized)
+        // dim-1 values at k-1, k, k+1, k+2
+
+        DATA_TYPE y0 = _zero;
+        DATA_TYPE y1 = _zero;
+        DATA_TYPE y2 = _zero;
+        DATA_TYPE y3 = _zero;
+
+        // dim-1 derivatives at k-1, k, k+1, k+2
+
+        DATA_TYPE dy0 = _zero;
+        DATA_TYPE dy1 = _zero;
+        DATA_TYPE dy2 = _zero;
+        DATA_TYPE dy3 = _zero;
 
         // interpolate in dim-1 dimension to find values and derivs at k, k-1
 
@@ -398,10 +412,12 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
         const DATA_TYPE deriv1 = (y2 - y1) / h1;  // fwd deriv from k to k+1
         const DATA_TYPE deriv2 = (y3 - y2) / h2;  // fwd deriv from k+1 to k+2
 
-        DATA_TYPE dderiv0, dderiv1, dderiv2;
-        initialize<DATA_TYPE>::zero(dderiv0, dderiv1, dderiv2,
-                                    y1);  // prevent valgrind from complaining
-        if (deriv_vec) {                  // fwd deriv of dim-1 derivatives
+        // forward derivatives of dim-1 derivatives
+
+        DATA_TYPE dderiv0 = _zero;
+        DATA_TYPE dderiv1 = _zero;
+        DATA_TYPE dderiv2 = _zero;
+        if (deriv_vec) {  // fwd deriv of dim-1 derivatives
             dderiv0 = (dy1 - dy0) / h0;
             dderiv1 = (dy2 - dy1) / h1;
             dderiv2 = (dy3 - dy2) / h2;
@@ -413,8 +429,8 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
         // set it zero at local maxima or minima
         // deriv0 * deriv1 condition guards against division by zero
 
-        DATA_TYPE slope1, dslope1;
-        initialize<DATA_TYPE>::zero(slope1, dslope1, y1);
+        DATA_TYPE slope1 = _zero;
+        DATA_TYPE dslope1 = _zero;
 
         // when not at an end-point, slope1 is the harmonic, weighted
         // average of deriv0 and deriv1.
@@ -441,8 +457,8 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
         // set it zero at local maxima or minima
         // deriv1 * deriv2 condition guards against division by zero
 
-        DATA_TYPE slope2, dslope2;
-        initialize<DATA_TYPE>::zero(slope2, dslope2, y1);
+        DATA_TYPE slope2 = _zero;
+        DATA_TYPE dslope2 = _zero;
 
         // when not at an end-point, slope2 is the harmonic, weighted
         // average of deriv1 and deriv2.
@@ -474,10 +490,10 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
         // assume linear change of slope across interval
 
         if (deriv_vec) {
-            DATA_TYPE u, one_minus_u;
             double v = s / h1;
-            initialize<DATA_TYPE>::value(u, slope1, v);
-            initialize<DATA_TYPE>::value(one_minus_u, slope1, (1.0 - v));
+            DATA_TYPE u = initialize<DATA_TYPE>::value(deriv, v);
+            DATA_TYPE one_minus_u =
+                initialize<DATA_TYPE>::value(deriv, (1.0 - v));
             deriv = slope1 * one_minus_u + slope2 * u;
             deriv_vec[dim] = deriv;
             if (dim > 0) {
@@ -501,6 +517,21 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
      * Local copy of data storage to support data editing.
      */
     std::shared_ptr<DATA_TYPE[]> _writeable_data;
+
+    /**
+     * Example of empty data type with correct size. If results variables are
+     * left uninitialized, Valgrind's Memcheck flags them out as potential
+     * errors. Initializing declaration of DATA_TYPE to _zeros quiets this
+     * error message.
+     */
+    DATA_TYPE _zero;
+
+    /**
+     * Since we don't know that the size of vector/matrix DATA_TYPEs are going
+     * to be until the setdata() has been called, we set the value of _zero in
+     * setdata() if it has not yet already been initialized.
+     */
+    bool _zero_init{false};
 };
 
 }  // end of namespace types
