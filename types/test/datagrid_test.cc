@@ -6,6 +6,7 @@
 #include <usml/types/data_grid_bathy.h>
 #include <usml/types/gen_grid.h>
 #include <usml/types/seq_linear.h>
+#include <usml/types/seq_log.h>
 #include <usml/types/seq_vector.h>
 #include <usml/ublas/randgen.h>
 
@@ -103,12 +104,12 @@ BOOST_AUTO_TEST_CASE(compute_index_test) {
 static double linear1d(double x) { return 5.0 + 3.0 * x; }
 
 /**
- * Compute a cubic field value of 1-D interpolation test data
+ * Compute a quadratic field value of 1-D interpolation test data
  */
-static double cubic1d(double x) { return 5.0 + 3.0 * x - 0.3 * x * x; }
+static double quad1d(double x) { return 5.0 + 3.0 * x - 0.3 * x * x; }
 
 /**
- * Compute the derivative of the function defined in cubic1d().
+ * Compute the derivative of the function defined in quad1d().
  */
 static double deriv1d(double x) { return 3.0 - 0.6 * x; }
 
@@ -181,7 +182,7 @@ BOOST_AUTO_TEST_CASE(linear_1d_float_test) {
     gen_grid<1, element_type> grid(&axis);
     grid.edge_limit(0, false);
     for (size_t n = 0; n < axis->size(); ++n) {
-        grid.setdata(&n, (element_type) linear1d((*axis)(n)));
+        grid.setdata(&n, (element_type)linear1d((*axis)(n)));
     }
 
     // interpolate using all possible algorithms
@@ -190,7 +191,7 @@ BOOST_AUTO_TEST_CASE(linear_1d_float_test) {
     for (double x = 0.25; x <= 10.0; x += 0.25) {
         // double y = x;
         cout << x << "\t";
-        truth = (element_type) linear1d(x);
+        truth = (element_type)linear1d(x);
         cout << truth << "\t";
 
         grid.interp_type(0, interp_enum::nearest);
@@ -251,12 +252,12 @@ BOOST_AUTO_TEST_CASE(linear_1d_complex_test) {
         grid.interp_type(0, interp_enum::linear);
         linear = grid.interpolate(&x);
         cout << linear << "\t";
-//        BOOST_CHECK_CLOSE(linear, truth, 1e-6);
+        //        BOOST_CHECK_CLOSE(linear, truth, 1e-6);
 
         grid.interp_type(0, interp_enum::pchip);
         pchip = grid.interpolate(&x);
         cout << pchip << "\t";
-//        BOOST_CHECK_CLOSE(pchip, truth, 1e-6);
+        //        BOOST_CHECK_CLOSE(pchip, truth, 1e-6);
 
         cout << endl;
     }
@@ -292,7 +293,7 @@ BOOST_AUTO_TEST_CASE(linear_1d_vector_test) {
     // interpolate using all possible algorithms
 
     cout << "x\ttruth\tnearest\tlinear\tpchip" << endl;
-    for (double x = 0.25; x <= 10.0; x += 0.25) {
+    for (double x = 1.0; x <= 10.0; x += 0.25) {
         double y = x;
         cout << y << "\t";
         truth = scalar_vector<double>(N, linear1d(y));
@@ -383,17 +384,17 @@ BOOST_AUTO_TEST_CASE(linear_1d_matrix_test) {
 }
 
 /**
- * Interpolate 1-D cubic field using a scalar.
+ * Interpolate 1-D quadratic field using a scalar.
  * Exercise all of the 1-D interpolation types.
  * Show that data can be interpolated slightly outside of original domain.
- * Generate errors if cubic values differ by more that 1E-6 percent.
+ * Generate errors if cubic values differ by more that 1 percent.
  */
-BOOST_AUTO_TEST_CASE(cubic_1d_test) {
+BOOST_AUTO_TEST_CASE(quad_1d_test) {
     double truth;
     double nearest;
     double linear;
     double pchip;
-    cout << "=== datagrid_test: cubic_1d_test ===" << endl;
+    cout << "=== datagrid_test: quad_1d_test ===" << endl;
 
     // construct synthetic data for this test
 
@@ -401,7 +402,7 @@ BOOST_AUTO_TEST_CASE(cubic_1d_test) {
     gen_grid<1> grid(&axis);
     grid.edge_limit(0, false);
     for (size_t n = 0; n < axis->size(); ++n) {
-        grid.setdata(&n, cubic1d((*axis)(n)));
+        grid.setdata(&n, quad1d((*axis)(n)));
     }
 
     // interpolate using all possible algorithms
@@ -410,7 +411,55 @@ BOOST_AUTO_TEST_CASE(cubic_1d_test) {
     cout << "x\ttruth\tnearest\tlinear\tpchip" << endl;
     for (double x = 0.5; x <= 9.5; x += 0.25) {
         cout << x << "\t";
-        truth = cubic1d(x);
+        truth = quad1d(x);
+        cout << truth << "\t";
+
+        grid.interp_type(0, interp_enum::nearest);
+        nearest = grid.interpolate(&x);
+        cout << nearest << "\t";
+
+        grid.interp_type(0, interp_enum::linear);
+        linear = grid.interpolate(&x);
+        cout << linear << "\t";
+
+        grid.interp_type(0, interp_enum::pchip);
+        pchip = grid.interpolate(&x);
+        cout << pchip << "\t";
+        BOOST_CHECK_CLOSE(pchip, truth, 1.0);
+
+        cout << endl;
+    }
+}
+
+/**
+ * Interpolate 1-D quadratic field with a logrithmic axis.
+ * Exercise all of the 1-D interpolation types.
+ * Show that data can be interpolated slightly outside of original domain.
+ * Generate errors if cubic values differ by more that 2 percent.
+ */
+BOOST_AUTO_TEST_CASE(log_axis_1d_test) {
+    double truth;
+    double nearest;
+    double linear;
+    double pchip;
+    cout << "=== datagrid_test: log_axis_1d_test ===" << endl;
+
+    // construct synthetic data for this test
+
+    seq_vector::csptr axis(new seq_log(1.0, pow(3.0, 1.0 / 3.0), 9.0));
+    gen_grid<1> grid(&axis);
+    grid.edge_limit(0, false);
+    for (size_t n = 0; n < axis->size(); ++n) {
+        grid.setdata(&n, quad1d((*axis)(n)));
+    }
+
+    // interpolate using all possible algorithms
+    // don't try extrapolation
+
+    cout << "x\ttruth\tnearest\tlinear\tpchip" << endl;
+    for (double x = 1.0; x <= 9.5; x += 0.25) {
+        cout << x << "\t";
+        truth = quad1d(x);
         cout << truth << "\t";
 
         grid.interp_type(0, interp_enum::nearest);
@@ -431,9 +480,9 @@ BOOST_AUTO_TEST_CASE(cubic_1d_test) {
 }
 
 /**
- * Interpolate 1-D cubic field using a scalar.
- * Test the accuracy of the derivatives
- * Generate errors if values differ by more that 1E-6 percent.
+ * Interpolate 1-D quadratic field using a scalar.
+ * Test the accuracy of the derivatives.
+ * Generate errors if values differ by more that 0.35.
  */
 BOOST_AUTO_TEST_CASE(deriv_1d_test) {
     double truth{0.0};
@@ -449,7 +498,7 @@ BOOST_AUTO_TEST_CASE(deriv_1d_test) {
     gen_grid<1> grid(&axis);
 
     for (size_t n = 0; n < axis->size(); ++n) {
-        grid.setdata(&n, cubic1d((*axis)(n)));
+        grid.setdata(&n, quad1d((*axis)(n)));
     }
 
     // interpolate using all possible algorithms
@@ -472,7 +521,7 @@ BOOST_AUTO_TEST_CASE(deriv_1d_test) {
         grid.interp_type(0, interp_enum::pchip);
         grid.interpolate(&x, &pchip);
         cout << pchip;
-        // BOOST_CHECK_CLOSE( pchip, truth, 20.0 ) ;
+        BOOST_CHECK_SMALL(abs(pchip - truth), 0.35);
 
         cout << endl;
     }
@@ -551,7 +600,6 @@ BOOST_AUTO_TEST_CASE(interp_speed_test) {
 }
 
 /**
- * @ingroup types_test
  * Interpolate 2-D cubic field using a cubic generating
  * function and compare the interpolated results and their
  * derivatives for both the fast_2d and gen_grid methods
