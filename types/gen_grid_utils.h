@@ -12,13 +12,44 @@ namespace usml {
 namespace types {
 
 /**
- * Base functor for pchip derivatives. Supports any scalar type that supports
- * floating point mathematics.
+ * Base functor for pchip derivatives.
+ * Supports any scalar type that supports floating point mathematics.
  */
 template <typename T>
 struct derivative {
     typedef T argument_type;
 
+    /**
+     * Compute derivative for shape preserving piecewise Cubic Hermite
+     * Interpolating Polynomial (PCHIP).
+     *
+     * If d0 and d1 have opposite signs or if either of them is zero, then this
+     * is a discrete local minimum or maximum, and the derivative is zero. If d0
+     * and d1 have the same sign, but the two intervals have different lengths,
+     * then the derivative is a weighted harmonic mean, with weights determined
+     * by the lengths of the two intervals.
+     *
+     * 						d0 = (y1-y0)/(x1-x0)
+     *
+     * 						d1 = (y2-y1)/(x2-x1)
+     *
+     * 						(w0+w1)/m = w0/d0 + w1/d1
+     *
+     * where w0 = 2 h0 + h1 and w1 = h0 + 2 w1.
+     *
+     * @xref Cleve Moler, Numerical Computing with MATLAB, Chapter 3.4
+     * Shape-Preserving Piecewise Cubic,
+     *
+     * @param d0	Forward derivative from k-1 to k
+     * @param d1	Forward derivative from k to k+1
+     * @param dd0	Second derivative from k-1 to k+1
+     * @param dd1	Second derivative from k to k+2
+     * @param w0    Interval weight from k-1 to k
+     * @param w1    Interval weight from k to k+1
+     * @param deriv	True if second derivative needs to be interpolated
+     * @param m		Estimated derivative in interval k to k+1
+     * @param dm	Estimated second derivative in interval k to k+1
+     */
     static void compute(argument_type d0, argument_type d1, argument_type dd0,
                         argument_type dd1, const argument_type w0,
                         const argument_type w1, bool deriv, argument_type& m,

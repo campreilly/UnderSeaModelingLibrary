@@ -34,14 +34,6 @@ using iterator = seq_vector::iterator;
  */
 
 /**
- * As a note when using valgrind mem-check, there are many instances
- * of an "Conditional jump or move depends on uninitialised value(s)"
- * warning that are issued for the deriv_1d_test and datagrid_fast_acc_test
- * that have been determined to not effect the overall performance or
- * functionality of gen_grid::pchip and may be ignored.
- */
-
-/**
  * Test the ability of data_grid_compute_offset() to retrieve data
  * from a 3-D data matrix in column major order.
  * Generate errors if values differ by more that 1E-6 percent.
@@ -388,6 +380,14 @@ BOOST_AUTO_TEST_CASE(linear_1d_matrix_test) {
  * Exercise all of the 1-D interpolation types.
  * Show that data can be interpolated slightly outside of original domain.
  * Generate errors if cubic values differ by more that 1 percent.
+ *
+ * The PCHIP algorithm is shape preserving, but not perfectly cubic. So there is
+ * still some significant error when interpolating a field that is quadratic. To
+ * establish the expected error, we take the outputs of this test an compare
+ * them to equivalent interpolations in Matlab. That is how we established our
+ * accuacy thresholds for this test.
+ *
+ * @xref Cleve Moler, Numerical Computing with MATLAB, Chapter 3 Interpolation.
  */
 BOOST_AUTO_TEST_CASE(quad_1d_test) {
     double truth;

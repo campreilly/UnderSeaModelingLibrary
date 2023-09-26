@@ -287,7 +287,7 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
      *
      * When using a gridded data set, it is recommended that edge_limit be set
      * to TRUE for any dimensional axis that uses the PCHIP interpolation. This
-     * is because of PCHIP allowing for extreme values when extrapolating data.
+     * is because of PCHIP allows for extreme values when extrapolating data.
      *
      * @xref Cleve Moler, Numerical Computing in Matlab, Chapter 3
      * Interpolation, http://www.mathworks.com/moler/chapters.html accessed
@@ -304,10 +304,10 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
      * spaced points, and their forward (one-sided) derivatives.
      *
      * <pre>
-     *         y0 = y[k-1]        h0 = x[k]-x[k-1]    deriv0 = (y1-y0)/h0
-     *         y1 = y[k]        h1 = x[k+1]-x[k]    deriv1 = (y2-y1)/h1
-     *         y2 = y[k+1]        h2 = x[k+2]-x[k+1]    deriv2 = (y3-y2)/h2
-     *         y3 = y[k+2]        s = x - x[k]
+     *         y0 = y[k-1]	h0 = x[k]-x[k-1]    deriv0 = (y1-y0)/h0
+     *         y1 = y[k]    h1 = x[k+1]-x[k]    deriv1 = (y2-y1)/h1
+     *         y2 = y[k+1]  h2 = x[k+2]-x[k+1]	deriv2 = (y3-y2)/h2
+     *         y3 = y[k+2]  s = x - x[k]
      *
      * such that
      *
@@ -319,8 +319,7 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
      *
      * where:
      *
-     *        slope[k] = weighted harmonic average of deriv0, deriv1, deriv2
-     * terms
+     * 		slope[k] = weighted harmonic average of deriv0, deriv1, deriv2
      *
      * </pre>
      * At the end-points, y'[0] and y'[N-1] must be estimated.  This
