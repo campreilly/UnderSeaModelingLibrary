@@ -22,7 +22,7 @@ class Bathymetry:
     longitude: np.array(object=float, ndmin=1)
     altitude: np.array(object=float, ndmin=2)
 
-    def __init__(self, filename: str) -> object:
+    def __init__(self, filename: str):
         """Loads bathymetry from netCDF file."""
         nc = netCDF4.Dataset(filename)
         values = list(nc.variables.values())
@@ -68,7 +68,7 @@ class Profile:
     time: np.array(object=float, ndmin=1)
     data: np.array(object=float, ndmin=4)
 
-    def __init__(self, filename: str) -> object:
+    def __init__(self, filename: str):
         """Loads ocean profile from netCDF file."""
         nc = netCDF4.Dataset(filename)
         values = list(nc.variables.values())
@@ -93,3 +93,109 @@ class Profile:
         self.altitude = up
         self.time = time
         self.data = data
+
+
+class Eigenrays:
+    """List of USML eigenrays for a specific target
+
+    Attributes:
+        intensity           transmission loss at each frequency (dB)
+        phase               path phase adjustment at each frequency (rad)
+        travel_time         path travel time (secs).
+        source_de           source D/E angle (degrees)
+        source_az           source AZ angle (degrees_true)
+        target_de           target D/E angle (degrees)
+        target_az           target AZ angle (degrees_true)
+        surface             number of surface reflections (count)
+        bottom              number of bottom reflections (count)
+        caustic             number of caustic encounters (count)
+        upper               number of upper vertices (count)
+        lower               number of lower vertices (count)
+    """
+    intensity: np.array(object=float, ndmin=2)
+    phase: np.array(object=float, ndmin=2)
+    travel_time: np.array(object=float, ndmin=1)
+    source_de: np.array(object=float, ndmin=1)
+    source_az: np.array(object=float, ndmin=1)
+    target_de: np.array(object=float, ndmin=1)
+    target_az: np.array(object=float, ndmin=1)
+    surface: np.array(object=int, ndmin=1)
+    bottom: np.array(object=int, ndmin=1)
+    caustic: np.array(object=int, ndmin=1)
+    upper: np.array(object=int, ndmin=1)
+    lower: np.array(object=int, ndmin=1)
+
+
+class EigenrayList:
+    """Loads USML eigenrays for matrix of targets from netCDF file.
+
+    USML computes eigenrays from a single source to a 2D matrix of targets. Each target has its own ID number,
+    latitude, longitude, and altitude. Each target has a 1D list of Eigenrays objects. Note that this implementation
+    uses the new file format introduced in the USML 3.0 release.
+
+    Attributes:
+        sourceID            source identification number (0 if unknown)
+        source_latitude     source latitudes (degrees_north)
+        source_longitude    source longitudes (degrees_east)
+        source_altitude     target altitudes (meters)
+        targetID	        target identification number (0 if unknown)
+        latitude            target latitudes (degrees_north)
+        longitude           target longitudes (degrees_east)
+        altitude            target altitudes (meters)
+        initial_time        earliest eigenray arrival time (secs)
+        frequency           propagation frequency (Hz)
+        eigenrays           list of eigenrays for each target
+    """
+    sourceID: int
+    source_latitude: float
+    source_longitude: float
+    source_altitude: float
+    targetID: np.array(object=int, ndmin=2)
+    latitude: np.array(object=float, ndmin=2)
+    longitude: np.array(object=float, ndmin=2)
+    altitude: np.array(object=float, ndmin=2)
+    initial_time: np.array(object=float, ndmin=2)
+    frequency: np.array(object=float, ndmin=1)
+    eigenrays: list[list[Eigenrays]]
+
+    def __init__(self, filename: str):
+        """Loads eigenray list from netCDF file."""
+        nc = netCDF4.Dataset(filename)
+        values = list(nc.variables.values())
+
+        # load file header variables
+        self.sourceID = int(values[0][0])
+        self.source_latitude = float(values[1][0])
+        self.source_longitude = float(values[2][0])
+        self.source_altitude = float(values[3][0])
+        self.targetID = values[4][:]
+        self.latitude = values[5][:]
+        self.longitude = values[6][:]
+        self.altitude = values[7][:]
+        self.initial_time = values[8][:]
+        self.frequency = values[9][:]
+        eigenray_offset = values[11][:]
+        eigenray_num = values[12][:]
+
+        num_rows, num_cols = self.latitude.shape
+        self.eigenrays = [[Eigenrays() for j in range(num_cols)] for i in range(num_rows)]
+
+        # find eigenrays for each target
+        for nrow in range(num_rows):
+            for ncol in range(num_cols):
+                ray = Eigenrays()
+                offset = eigenray_offset[nrow][ncol]
+                index = range(offset, offset + eigenray_num[nrow][ncol])
+                ray.intensity = values[13][index][:]
+                ray.phase = values[14][index][:]
+                ray.travel_time = values[15][index]
+                ray.source_de = values[16][index]
+                ray.source_az = values[17][index]
+                ray.target_de = values[18][index]
+                ray.target_az = values[19][index]
+                ray.surface = values[20][index]
+                ray.bottom = values[21][index]
+                ray.caustic = values[22][index]
+                ray.upper = values[23][index]
+                ray.lower = values[24][index]
+                self.eigenrays[nrow][ncol] = ray

@@ -52,6 +52,7 @@ class USML_DECLSPEC eigenray_factory : public eigenray_notifier {
  */
 BOOST_AUTO_TEST_CASE(create_eigenray) {
     cout << "=== eigenrays_test: create_eigenray ===" << endl;
+    const char* ncname = USML_TEST_DIR "/eigenrays/test/create_eigenray.nc";
 
     // create collection with references to wave front information
 
@@ -81,6 +82,8 @@ BOOST_AUTO_TEST_CASE(create_eigenray) {
     eigenray_model total =
         collection.total(0, 0);  // copy total instead of using reference
     BOOST_CHECK_CLOSE(total.intensity(0), -9.54, 0.1);
+
+    collection.write_netcdf(ncname);
 }
 
 /// @}
