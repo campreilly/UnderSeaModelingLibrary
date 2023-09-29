@@ -20,14 +20,14 @@ void wave_queue::init_netcdf(const char *filename, const char *long_name) {
     // dimensions
 
     NcDim *freq_dim =
-        _nc_file->add_dim("frequency", (long)_frequencies->size());
+        _nc_file->add_dim("frequencies", (long)_frequencies->size());
     NcDim *de_dim = _nc_file->add_dim("source_de", (long)_source_de->size());
     NcDim *az_dim = _nc_file->add_dim("source_az", (long)_source_az->size());
     NcDim *time_dim = _nc_file->add_dim("travel_time");  // unlimited
 
     // coordinates
 
-    NcVar *freq_var = _nc_file->add_var("frequency", ncDouble, freq_dim);
+    NcVar *freq_var = _nc_file->add_var("frequencies", ncDouble, freq_dim);
     NcVar *de_var = _nc_file->add_var("source_de", ncDouble, de_dim);
     NcVar *az_var = _nc_file->add_var("source_az", ncDouble, az_dim);
     _nc_time = _nc_file->add_var("travel_time", ncDouble, time_dim);

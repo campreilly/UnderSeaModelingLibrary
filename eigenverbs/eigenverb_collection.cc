@@ -133,13 +133,13 @@ void eigenverb_collection::write_netcdf(const char* filename,
 
         NcDim* eigenverb_dim = nc_file.add_dim("eigenverbs", (long)list.size());
         NcDim* freq_dim = nc_file.add_dim(
-            "frequency", (long)list.begin()->get()->frequencies->size());
+            "frequencies", (long)list.begin()->get()->frequencies->size());
 
         // variables
 
         NcVar* time_var =
             nc_file.add_var("travel_time", ncDouble, eigenverb_dim);
-        NcVar* freq_var = nc_file.add_var("frequency", ncDouble, freq_dim);
+        NcVar* freq_var = nc_file.add_var("frequencies", ncDouble, freq_dim);
         NcVar* power_var =
             nc_file.add_var("power", ncDouble, eigenverb_dim, freq_dim);
         NcVar* length_var = nc_file.add_var("length", ncDouble, eigenverb_dim);

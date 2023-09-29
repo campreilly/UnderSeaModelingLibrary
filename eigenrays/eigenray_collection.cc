@@ -200,7 +200,7 @@ void eigenray_collection::write_netcdf(const char *filename,
 
     // dimensions
 
-    NcDim *freq_dim = nc_file->add_dim("frequency", (long)_frequencies->size());
+    NcDim *freq_dim = nc_file->add_dim("frequencies", (long)_frequencies->size());
     NcDim *row_dim = nc_file->add_dim("rows", (long)_target_pos.size1());
     NcDim *col_dim = nc_file->add_dim("cols", (long)_target_pos.size2());
     NcDim *eigenray_dim = nc_file->add_dim(
@@ -219,7 +219,7 @@ void eigenray_collection::write_netcdf(const char *filename,
     NcVar *altitude_var = nc_file->add_var("altitude", ncDouble, row_dim, col_dim);
     NcVar *initial_time_var = nc_file->add_var("initial_time", ncDouble, row_dim, col_dim);
 
-    NcVar *freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
+    NcVar *freq_var = nc_file->add_var("frequencies", ncDouble, freq_dim);
     NcVar *proploss_index_var = nc_file->add_var("proploss_index", ncLong, row_dim, col_dim);
     NcVar *eigenray_index_var = nc_file->add_var("eigenray_index", ncLong, row_dim, col_dim);
     NcVar *eigenray_num_var = nc_file->add_var("eigenray_num", ncLong, row_dim, col_dim);

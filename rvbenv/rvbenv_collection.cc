@@ -134,13 +134,13 @@ void rvbenv_collection::write_netcdf(const char* filename) const {
     //    NcDim* src_beam_dim = nc_file->add_dim("src_beam",
     //    (long)_num_src_beams); NcDim* rcv_beam_dim =
     //    nc_file->add_dim("rcv_beam", (long)_num_rcv_beams); NcDim* freq_dim =
-    //        nc_file->add_dim("frequency", (long)_envelope_freq->size());
+    //        nc_file->add_dim("frequencies", (long)_envelope_freq->size());
     //    NcDim* time_dim =
     //        nc_file->add_dim("travel_time", (long)_travel_time->size());
     //
     //    // variables
     //
-    //    NcVar* freq_var = nc_file->add_var("frequency", ncDouble, freq_dim);
+    //    NcVar* freq_var = nc_file->add_var("frequencies", ncDouble, freq_dim);
     //    NcVar* time_var = nc_file->add_var("travel_time", ncDouble, time_dim);
     //    NcVar* envelopes_var =
     //        nc_file->add_var("intensity", ncDouble, azimuth_dim, src_beam_dim,

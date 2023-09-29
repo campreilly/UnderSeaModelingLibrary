@@ -145,7 +145,7 @@ class EigenrayList:
         longitude           target longitudes (degrees_east)
         altitude            target altitudes (meters)
         initial_time        earliest eigenray arrival time (secs)
-        frequency           propagation frequency (hertz)
+        frequencies         propagation frequency (hertz)
         eigenrays           list of eigenrays for each target
     """
     sourceID: int
@@ -157,7 +157,7 @@ class EigenrayList:
     longitude: np.array(object=float, ndmin=2)
     altitude: np.array(object=float, ndmin=2)
     initial_time: np.array(object=float, ndmin=2)
-    frequency: np.array(object=float, ndmin=1)
+    frequencies: np.array(object=float, ndmin=1)
     eigenrays: list[list[Eigenrays]]
 
     def __init__(self, filename: str):
@@ -174,7 +174,7 @@ class EigenrayList:
         self.longitude = nc.variables["longitude"][:]
         self.altitude = nc.variables["altitude"][:]
         self.initial_time = nc.variables["initial_time"][:]
-        self.frequency = nc.variables["frequency"][:]
+        self.frequencies = nc.variables["frequencies"][:]
         eigenray_index = nc.variables["eigenray_index"][:]
         eigenray_num = nc.variables["eigenray_num"][:]
 
@@ -203,15 +203,15 @@ class EigenrayList:
 
 
 class EigenverbList:
-    """Loads USML eigenverbs for a specific sourcefrom netCDF file.
+    """Loads USML eigenverbs for a specific source from netCDF file.
 
-    USML computes eigenrays from a single source location to a 2D matrix of targets. Each target has its own ID number,
-    latitude, longitude, and altitude. Each target has a 1D list of Eigenrays objects. Note that this implementation
-    uses the new file format introduced in the USML 3.0 release.
+    Eigenverbs are the Gaussian beam projection of an acoustic ray onto a reverberation interface. The name is taken
+    from the fact that eigenverbs provide discreet components of the total reverberation in the same way that
+    eigenrays provide discreet components of the total transmission loss.
 
     Attributes:
         travel_time         path travel time (secs).
-        frequency           propagation frequency (hertz)
+        frequencies         propagation frequency (hertz)
         power               intensity integrated over all locations on the interface (dB)
         length              half length of the D/E projection of ray path onto interface (meters)
         width               half width of the AZ projection of ray path onto interface (meters)
@@ -232,7 +232,7 @@ class EigenverbList:
         lower               number of lower vertices (count)
     """
     travel_time: np.array(object=float, ndmin=1)
-    frequency: np.array(object=float, ndmin=1)
+    frequencies: np.array(object=float, ndmin=1)
     power: np.array(object=float, ndmin=1)
     length: np.array(object=float, ndmin=1)
     width: np.array(object=float, ndmin=1)
@@ -251,6 +251,60 @@ class EigenverbList:
     caustic: np.array(object=int, ndmin=1)
     upper: np.array(object=int, ndmin=1)
     lower: np.array(object=int, ndmin=1)
+
+    def __init__(self, filename: str):
+        """Loads eigenverb list from netCDF file."""
+        nc = netCDF4.Dataset(filename)
+        for attr in nc.variables.keys():
+            setattr(self, attr, nc.variables[attr][:])
+
+class BiverbList:
+    """Loads USML bistatic eigenverbs for a specific sensor pair from netCDF file.
+
+    Biverbs a the combination of source and receiver eigenverbs for a bistatic pair. They are used to pre-computes
+    all of the geometry related elements of eigenverb overlap except the application of the beam patterns. This
+    caching assumes that the beam patterns many change more quickly than the geometry of the source and receiver to
+    each scattering patch.
+
+    Attributes:
+        travel_time         path travel time (secs).
+        frequencies         propagation frequency (hertz)
+        power               intensity integrated over all locations on the interface (dB)
+        duration            echo duration for this scattering patch as seen from the perspective of the receiver (sec)
+        de_index            index number of the source DE angle (count)
+        az_index            index number of the source AZ angle (count)
+        source_de           source D/E angle (degrees)
+        source_az           source AZ angle (degrees_true)
+        source_surface      number of surface reflections from source (count)
+        source_bottom       number of bottom reflections from source (count)
+        source_caustic      number of caustic encounters from source (count)
+        source_upper        number of upper vertices from source (count)
+        source_lower        number of lower vertices from source (count)
+        receiver_surface    number of surface reflections to receiver (count)
+        receiver_bottom     number of bottom reflections to receiver (count)
+        receiver_caustic    number of caustic encounters to receiver (count)
+        receiver_upper      number of upper vertices to receiver (count)
+        receiver_lower      number of lower vertices to receiver (count)
+    """
+    travel_time: np.array(object=float, ndmin=1)
+    frequencies: np.array(object=float, ndmin=1)
+    power: np.array(object=float, ndmin=1)
+    power: np.array(object=float, ndmin=1)
+    duration: np.array(object=float, ndmin=1)
+    de_index: np.array(object=int, ndmin=1)
+    az_index: np.array(object=int, ndmin=1)
+    source_de: np.array(object=float, ndmin=1)
+    source_az: np.array(object=float, ndmin=1)
+    source_surface: np.array(object=int, ndmin=1)
+    source_bottom: np.array(object=int, ndmin=1)
+    source_caustic: np.array(object=int, ndmin=1)
+    source_upper: np.array(object=int, ndmin=1)
+    source_lower: np.array(object=int, ndmin=1)
+    receiver_surface: np.array(object=int, ndmin=1)
+    receiver_bottom: np.array(object=int, ndmin=1)
+    receiver_caustic: np.array(object=int, ndmin=1)
+    receiver_upper: np.array(object=int, ndmin=1)
+    receiver_lower: np.array(object=int, ndmin=1)
 
     def __init__(self, filename: str):
         """Loads eigenverb list from netCDF file."""
