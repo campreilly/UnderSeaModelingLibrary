@@ -150,7 +150,7 @@ void eigenverb_collection::write_netcdf(const char* filename,
         NcVar* direction_var =
             nc_file.add_var("direction", ncDouble, eigenverb_dim);
         NcVar* grazing_var =
-            nc_file.add_var("grazing_angle", ncDouble, eigenverb_dim);
+            nc_file.add_var("grazing", ncDouble, eigenverb_dim);
         NcVar* sound_speed_var =
             nc_file.add_var("sound_speed", ncDouble, eigenverb_dim);
         NcVar* de_index_var =

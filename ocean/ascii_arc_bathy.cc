@@ -54,7 +54,7 @@ ascii_arc_bathy::ascii_arc_bathy(const char* filename) {
     // read depths and convert to rho coordinate of spherical earth system
     // flip latitude direction upside down during the read.
 
-    auto* data = new double[ncols * nrows];
+    double* data = new double[ncols * nrows];
     for (int r = 0; r < nrows; ++r) {
         double* ptr = &(data[r * ncols]);
         for (int c = 0; c < ncols; ++c) {
@@ -62,7 +62,8 @@ ascii_arc_bathy::ascii_arc_bathy(const char* filename) {
             *(ptr++) += R;
         }
     }
-    this->_data = std::shared_ptr<const double[]>(data);
+    this->_writeable_data = std::shared_ptr<double[]>(data);
+    this->_data = this->_writeable_data;  // read only reference
 
     // set interp type and edge limit
 

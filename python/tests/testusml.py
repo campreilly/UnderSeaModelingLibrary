@@ -3,6 +3,7 @@ import os
 import unittest
 
 import matplotlib.cm as cm
+import matplotlib.patches as ptch
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -78,12 +79,6 @@ class UsmlTest(unittest.TestCase):
 
     def test_create_eigenray(self):
         """Loads USML eigenrays from netCDF file.
-
-        Displays sea surface temperature as matplotlib surface plot in a top-down view. If the test runs correctly, then
-
-            - Latitudes will range from 18N to 23N along the y-axis
-            - Longitudes will range from 160W to 154W along the x-axis
-            - The big island of Hawaii will be in the south-east corner.
         """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -95,28 +90,116 @@ class UsmlTest(unittest.TestCase):
 
         # check that header arrays are the right size
         self.assertEqual(eigenray_list.frequency.shape, (1,))
-        self.assertEqual(eigenray_list.targetID.shape, (1, 1))
-        self.assertEqual(eigenray_list.targetID.shape, eigenray_list.latitude.shape)
-        self.assertEqual(eigenray_list.targetID.shape, eigenray_list.latitude.shape)
-        self.assertEqual(eigenray_list.targetID.shape, eigenray_list.longitude.shape)
-        self.assertEqual(eigenray_list.targetID.shape, eigenray_list.altitude.shape)
+        id_shape = eigenray_list.targetID.shape
+        self.assertEqual(id_shape, (1, 1))
+        self.assertEqual(eigenray_list.latitude.shape, id_shape)
+        self.assertEqual(eigenray_list.latitude.shape, id_shape)
+        self.assertEqual(eigenray_list.longitude.shape, id_shape)
+        self.assertEqual(eigenray_list.altitude.shape, id_shape)
         self.assertEqual(len(eigenray_list.eigenrays), 1)
         self.assertEqual(len(eigenray_list.eigenrays[0]), 1)
 
         # check that eigenray arrays are the right size
         ray = eigenray_list.eigenrays[0][0]
-        self.assertEqual(ray.intensity.shape, (3, 1))
-        self.assertEqual(ray.phase.shape, (3, 1))
-        self.assertEqual(ray.travel_time.shape, (3, ))
-        self.assertEqual(ray.source_de.shape, (3, ))
-        self.assertEqual(ray.source_az.shape, (3, ))
-        self.assertEqual(ray.target_de.shape, (3, ))
-        self.assertEqual(ray.target_az.shape, (3, ))
-        self.assertEqual(ray.surface.shape, (3, ))
-        self.assertEqual(ray.bottom.shape, (3, ))
-        self.assertEqual(ray.caustic.shape, (3, ))
-        self.assertEqual(ray.upper.shape, (3, ))
-        self.assertEqual(ray.lower.shape, (3, ))
+        num_rays = 3
+        self.assertEqual(ray.intensity.shape, (num_rays, 1))
+        self.assertEqual(ray.phase.shape, (num_rays, 1))
+        self.assertEqual(ray.travel_time.shape, (num_rays,))
+        self.assertEqual(ray.source_de.shape, (num_rays,))
+        self.assertEqual(ray.source_az.shape, (num_rays,))
+        self.assertEqual(ray.target_de.shape, (num_rays,))
+        self.assertEqual(ray.target_az.shape, (num_rays,))
+        self.assertEqual(ray.surface.shape, (num_rays,))
+        self.assertEqual(ray.bottom.shape, (num_rays,))
+        self.assertEqual(ray.caustic.shape, (num_rays,))
+        self.assertEqual(ray.upper.shape, (num_rays,))
+        self.assertEqual(ray.lower.shape, (num_rays,))
+
+    def test_create_eigenverbs(self):
+        """Loads USML eigenverbs from netCDF file."""
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load data from disk
+        filename = os.path.join(self.USML_DIR, "eigenverbs/test/create_eigenverbs.nc")
+        print("reading {0}".format(filename))
+        verbs = usml.netcdf.EigenverbList(filename)
+        verb_shape = verbs.travel_time.shape
+        freq_shape = verbs.frequency.shape
+
+        # check that eigenverb arrays are the right size
+        self.assertEqual(verbs.power.shape, (verb_shape[0], freq_shape[0]))
+        self.assertEqual(verbs.length.shape, verb_shape)
+        self.assertEqual(verbs.width.shape, verb_shape)
+        self.assertEqual(verbs.latitude.shape, verb_shape)
+        self.assertEqual(verbs.longitude.shape, verb_shape)
+        self.assertEqual(verbs.altitude.shape, verb_shape)
+        self.assertEqual(verbs.direction.shape, verb_shape)
+        self.assertEqual(verbs.grazing.shape, verb_shape)
+        self.assertEqual(verbs.sound_speed.shape, verb_shape)
+        self.assertEqual(verbs.de_index.shape, verb_shape)
+        self.assertEqual(verbs.az_index.shape, verb_shape)
+        self.assertEqual(verbs.source_de.shape, verb_shape)
+        self.assertEqual(verbs.source_az.shape, verb_shape)
+        self.assertEqual(verbs.surface.shape, verb_shape)
+        self.assertEqual(verbs.bottom.shape, verb_shape)
+        self.assertEqual(verbs.caustic.shape, verb_shape)
+        self.assertEqual(verbs.upper.shape, verb_shape)
+        self.assertEqual(verbs.lower.shape, verb_shape)
+
+    def test_update_wavefront_data(self):
+        """Loads USML eigenverbs generated by sensor_pair.update_wavefront_data() ."""
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load data from disk
+        filename = os.path.join(self.USML_DIR, "biverbs/test/eigenverbs.nc")
+        print("reading {0}".format(filename))
+        verbs = usml.netcdf.EigenverbList(filename)
+        verb_shape = verbs.travel_time.shape
+        freq_shape = verbs.frequency.shape
+
+        # check that eigenverb arrays are the right size
+        self.assertEqual(verbs.power.shape, (verb_shape[0], freq_shape[0]))
+        self.assertEqual(verbs.length.shape, verb_shape)
+        self.assertEqual(verbs.width.shape, verb_shape)
+        self.assertEqual(verbs.latitude.shape, verb_shape)
+        self.assertEqual(verbs.longitude.shape, verb_shape)
+        self.assertEqual(verbs.altitude.shape, verb_shape)
+        self.assertEqual(verbs.direction.shape, verb_shape)
+        # self.assertEqual(verbs.grazing.shape, verb_shape)
+        self.assertEqual(verbs.sound_speed.shape, verb_shape)
+        self.assertEqual(verbs.de_index.shape, verb_shape)
+        self.assertEqual(verbs.az_index.shape, verb_shape)
+        self.assertEqual(verbs.source_de.shape, verb_shape)
+        self.assertEqual(verbs.source_az.shape, verb_shape)
+        self.assertEqual(verbs.surface.shape, verb_shape)
+        self.assertEqual(verbs.bottom.shape, verb_shape)
+        self.assertEqual(verbs.caustic.shape, verb_shape)
+        self.assertEqual(verbs.upper.shape, verb_shape)
+        self.assertEqual(verbs.lower.shape, verb_shape)
+
+        # draw projection of eigenverbs onto ocean bottom
+        fig, ax = plt.subplots(figsize=(8, 6))
+        plt.scatter(verbs.longitude, verbs.latitude, 20)
+        earth_radius = 6371e3
+        for n in range(verb_shape[0]):
+            x = verbs.longitude[n]
+            y = verbs.latitude[n]
+            width = 2.0 * np.degrees(verbs.width[n] / earth_radius)
+            height = 2.0 * np.degrees(verbs.length[n] / earth_radius)
+            angle = verbs.direction[n]
+            ellipse = ptch.Ellipse((x, y), width=width, height=height, angle=angle, facecolor="none", edgecolor="black")
+            ax.add_patch(ellipse)
+        ax.axis("equal")
+        ax.grid("on")
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title(testname)
+        print("saving {0}.png".format(testname))
+        plt.savefig(testname)
+        plt.show()
+
 
 if __name__ == '__main__':
     unittest.main()

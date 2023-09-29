@@ -90,24 +90,24 @@ struct eigenverb_model {
     double direction;
 
     /**
-     * The grazing angle of this path at impact of the boundary
+     * Angle to interface tangent plane at point of impact
      * (radians, positive is up).
      */
     double grazing;
 
     /**
-     * The sound speed at the point of impact (m/s).
+     * The sound speed at point of impact (m/s).
      */
     double sound_speed;
 
     /**
-     * Index number of the of the launch DE.
+     * Index number of the source DE angle.
      * Allows reverberation model to easily group eigenverbs by launch D/E.
      */
     size_t de_index;
 
     /**
-     * The index of the launch AZ.
+     * The index of the source AZ angle.
      * Allows reverberation model to easily group eigenverbs by launch AZ.
      */
     size_t az_index;
