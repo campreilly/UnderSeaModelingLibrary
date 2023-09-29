@@ -166,6 +166,16 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
             filename << ncname << "dirpaths_" << pair->hash_key() << ".nc";
             pair->dirpaths()->write_netcdf(filename.str().c_str());
         }
+        if (pair->src_eigenverbs() != nullptr) {
+            std::ostringstream filename;
+            filename << ncname << "src_eigenverbs_" << pair->hash_key() << ".nc";
+            pair->src_eigenverbs()->write_netcdf(filename.str().c_str(), 0);
+        }
+        if (pair->rcv_eigenverbs() != nullptr) {
+            std::ostringstream filename;
+            filename << ncname << "rcv_eigenverbs_" << pair->hash_key() << ".nc";
+            pair->rcv_eigenverbs()->write_netcdf(filename.str().c_str(), 0);
+        }
         if (pair->biverbs() != nullptr) {
             std::ostringstream filename;
             filename << ncname << "biverbs_" << pair->hash_key() << ".nc";

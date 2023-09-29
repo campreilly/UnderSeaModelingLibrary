@@ -257,7 +257,3 @@ class EigenverbList:
         nc = netCDF4.Dataset(filename)
         for attr in nc.variables.keys():
             setattr(self, attr, nc.variables[attr][:])
-
-        # unit conversions
-        # self.direction = np.degrees(self.direction)
-        # self.grazing = np.degrees(self.grazing)
