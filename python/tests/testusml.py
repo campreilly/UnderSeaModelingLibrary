@@ -3,6 +3,7 @@ import os
 import unittest
 
 import matplotlib.cm as cm
+import matplotlib.patches as ptch
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -15,7 +16,7 @@ class TestUsml(unittest.TestCase):
     def test_bathymetry(self):
         """Loads bathymetry around Hawaii from netCDF file.
 
-        Displays it as matplotlib surface plot in a top-down view. If the test runs correctly, then
+        Displays bathymetry as matplotlib surface plot in a top-down view. If the test runs correctly, then
 
             - Latitudes will range from 18N to 23N along the y-axis
             - Longitudes will range from 160W to 154W along the x-axis
@@ -76,7 +77,7 @@ class TestUsml(unittest.TestCase):
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
 
-    def test_create_eigenray(self):
+    def test_eigenrays(self):
         """Loads USML eigenrays from netCDF file.
         """
         testname = inspect.stack()[0][3]
@@ -114,8 +115,22 @@ class TestUsml(unittest.TestCase):
         self.assertEqual(ray.upper.shape, (num_rays,))
         self.assertEqual(ray.lower.shape, (num_rays,))
 
-    def test_create_eigenverbs(self):
-        """Loads USML eigenverbs from netCDF file."""
+    def test_eigenverbs(self):
+        """Loads hard-coded USML eigenverbs from netCDF file and plots projection on ocean bottom.
+
+        Displays eigenverbs as matplotlib Ellipse patches in a top-down view.
+        If the test runs correctly, then
+
+        - Blue eigenverb location dots are plotted for 8 ranges and 10 beargins from 0 to 90 degrees.
+        - Eigenverb locations eminate from the sensor location at 36N 16E.
+        - Black eigenverb ellipses are drawn for each location.
+        - The long axis of each ellipse is parrallel to the bearing from the sensor location.
+        - Each ellipse touches its neighbors in both range and bearing directions.
+        - No assertions fail.
+
+        Note that a change of coordinate system is required to correctly plot eigenverbs using matplotlib. The
+        matplotlib's sense of height, width, and angle are reverved from those in USML.
+        """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
 
@@ -145,6 +160,28 @@ class TestUsml(unittest.TestCase):
         self.assertEqual(verbs.caustic.shape, verb_shape)
         self.assertEqual(verbs.upper.shape, verb_shape)
         self.assertEqual(verbs.lower.shape, verb_shape)
+
+        self.assertEqual(verbs.source_az.all(), verbs.direction.all())
+
+        # draw projection of eigenverbs onto ocean bottom.
+        fig, ax = plt.subplots(figsize=(8, 6))
+        plt.scatter(verbs.longitude, verbs.latitude, 20)
+        for n in range(verb_shape[0]):
+            x = verbs.longitude[n]
+            y = verbs.latitude[n]
+            scale = 6371e3 * np.cos(np.radians(y))
+            height = 2.0 * np.degrees(verbs.width[n] / scale)
+            width = 2.0 * np.degrees(verbs.length[n] / scale)
+            angle = 90 - verbs.direction[n]
+            ellipse = ptch.Ellipse((x, y), width=width, height=height, angle=angle, facecolor="none", edgecolor="black")
+            ax.add_patch(ellipse)
+        ax.axis("equal")
+        ax.grid("on")
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title(testname)
+        print("saving {0}.png".format(testname))
+        plt.savefig(testname)
 
 
 if __name__ == '__main__':

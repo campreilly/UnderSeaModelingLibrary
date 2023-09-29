@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(create_eigenverbs) {
     const char* ncname2 = USML_TEST_DIR "/eigenverbs/test/find_eigenverbs.nc";
 
     seq_vector::csptr frequencies(new seq_linear(3000.0, 1.0, 1));
-    wposition1 source_pos(15.0, 35.0, 0.0);
+    wposition1 source_pos(36.0, 16.0, 0.0);
     double depth = 1000;
 
     // build eigenverbs on bottom for varying DE and AZ
