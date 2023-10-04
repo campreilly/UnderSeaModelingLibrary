@@ -15,10 +15,10 @@ import usml.plot
 class TestNetCDF(unittest.TestCase):
     USML_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
 
-    def test_bathymetry(self):
-        """Loads bathymetry around Hawaii from netCDF file.
+    def test_bathymetry_3d(self):
+        """Draw 3D map of bathymetry around Hawaii from netCDF file.
 
-        Displays bathymetry as matplotlib surface plot in a top-down view. If the test runs correctly, then
+        Displays bathymetry as matplotlib surface plot. If the test runs correctly, then
 
             - Latitudes will range from 18N to 23N along the y-axis.
             - Longitudes will range from 160W to 154W along the x-axis.
@@ -35,7 +35,7 @@ class TestNetCDF(unittest.TestCase):
         x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
         z = bathymetry.altitude
 
-        # draw surface plot
+        # draw 3D surface plot
         fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
         surface = usml.plot.plot_bathymetry_3d(ax, bathymetry)
         ax.view_init(70, -100)
@@ -46,16 +46,44 @@ class TestNetCDF(unittest.TestCase):
         cbar.ax.set_title("Depth (m)")
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
-        plt.show()
+
+    def test_bathymetry_2d(self):
+        """Loads 2D slice of bathymetry around Hawaii from netCDF file.
+
+        The plot_bathymetry_2d() used the pyproj library to estimate latitude/longitude for a list of ranges along a
+        bearing of 45 degrees from 19N 159W. It then uses scipy.interpolate to estimate the depth at each of those
+        atitude/longitude points. Depth is plotted as a function of range. If the test runs correctly, then
+
+            - Ranges will span from 0 to 200 km along the x-axis.
+            - Depths will span from 160W to 154W along the x-axis.
+            - A minimum depth of about 3768 meters occurs at a range of 153.8 km.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load data from disk
+        filename = os.path.join(self.USML_DIR, "netcdf/test/etopo_cmp.nc")
+        print("reading {0}".format(filename))
+        bathymetry = usml.netcdf.Bathymetry(filename)
+        x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
+        z = bathymetry.altitude
+
+        # draw 2D depth vs. range plot
+        fig, ax = plt.subplots(figsize=(8, 6))
+        line = usml.plot.plot_bathymetry_2d(ax, bathymetry, latitude=19, longitude=-159, bearing=45,
+                                            ranges=np.linspace(start=0, stop=200e3, num=1001))
+        ax.set_xlabel("Range (km)")
+        ax.set_ylabel("Depth (m)")
+        ax.set_ylim(top=0)
+        ax.grid(visible=True)
+        ax.set_title("ETOPO1 Bathymetry from 19N 159W at 45 degrees")
+        print("saving {0}.png".format(testname))
+        plt.savefig(testname)
 
     def test_profile(self):
         """Loads ocean profile in Florida Straits from netCDF file.
 
         Displays sea surface temperature as matplotlib surface plot in a top-down view. If the test runs correctly, then
-
-            - Latitudes will range from 18N to 23N along the y-axis
-            - Longitudes will range from 160W to 154W along the x-axis
-            - The big island of Hawaii will be in the south-east corner.
         """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")

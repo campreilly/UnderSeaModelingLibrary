@@ -5,10 +5,12 @@ import matplotlib
 import matplotlib.patches as ptch
 import matplotlib.pyplot as plt
 import numpy as np
+import pyproj
+import scipy
 
 
 def ocean_colormap():
-    # Create a special color map with blue water, tan shallows, green land
+    """Create a special color map with blue water, tan shallows, green land."""
     num_colors = 50
     grey = matplotlib.colormaps['grey']
     newcolors = grey(np.linspace(0, 1, num_colors))
@@ -39,15 +41,16 @@ def plot_eigenverbs_2d(ax: plt.Axes, verbs, index):
 
 
 def plot_bathymetry_3d(ax, bathymetry):
-    """Create 3D surface plot of ocean bathymetry
+    """Plot 3D surface for ocean bathymetry.
 
     Reshapes latitude, longitude, and altitude bathymetry fields to support format required by plot_trisurf(). Uses
-    ocean_colormap() to create a special color map with blue water, tan shallows, green land. Clips all land values
-    to zero altitude.
+    ocean_colormap() to create blue water, tan shallows, green land. Clips all "land" values to zero altitude.
 
     :param ax:              matplotlib axis to use for drawing
     :param bathymetry:      bathmetry data loaded into 1D latitude, 1D longitude, and 2D altitude
+    :return:                surface drawn by matplotlib.
     """
+
     # reshape x, y, z, variables to support format required by plot_trisurf()
     x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
     z = bathymetry.altitude
@@ -63,3 +66,43 @@ def plot_bathymetry_3d(ax, bathymetry):
     # display 3D triangulated surface
     surface = ax.plot_trisurf(x, y, z, cmap=ocean_colormap(), linewidth=0, antialiased=False)
     return surface
+
+
+def plot_bathymetry_2d(ax, bathymetry, latitude: float, longitude: float, bearing: float, ranges):
+    """Plot 2D slice of ocean bathymetry.
+
+    Uses the pyproj library to estimate latitude/longitude for a list of ranges along a bearing of 45 degrees from a
+    point. It then uses scipy.interpolate to estimate the depth at each of those latitude/longitude points. Depth is
+    plotted as a function of range.
+
+    :param ax:              matplotlib axis to use for drawing
+    :param bathymetry:      bathmetry data loaded into 1D latitude, 1D longitude, and 2D altitude
+    :param latitude:        latitude of plot origin (degrees_north)
+    :param longitude:       longitude of plot origin (degrees_east)
+    :param bearing:         true bearing of radial to plot (degrees)
+    :param ranges:          list of ranges to plot (meters)
+    :return:                line drawn by matplotlib.
+    """
+    # reshape x, y, z, variables to support format required by griddata
+    x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
+    z = bathymetry.altitude
+
+    x = np.reshape(x, [x.size, ])
+    y = np.reshape(y, [y.size, ])
+    z = np.reshape(z, [z.size, ])
+
+    # clip all "land" values to zero elevation
+    index = np.where(z >= 0)
+    z[index] = 0.0
+
+    # find latitude and longitude for each range along this bearing
+    geodesic = pyproj.Geod(ellps='WGS84')
+    lat = np.full_like(ranges, fill_value=latitude)
+    lng = np.full_like(ranges, fill_value=longitude)
+    az = np.full_like(ranges, fill_value=bearing)
+    lng, lat, baz = geodesic.fwd(lng, lat, az, ranges, return_back_azimuth=False)
+    depths = scipy.interpolate.griddata((x, y), z, (lng, lat))
+
+    # display 2D slice of depth vs. range
+    line = ax.plot(ranges / 1e3, depths, color="black", linewidth=1.5)
+    return line
