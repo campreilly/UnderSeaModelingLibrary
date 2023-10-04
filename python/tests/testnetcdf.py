@@ -1,38 +1,15 @@
+"""Test ability to read netCDF files created by USML.
+"""
 import inspect
 import os
 import unittest
 
 import matplotlib.cm as cm
-import matplotlib.patches as ptch
 import matplotlib.pyplot as plt
 import numpy as np
 
 import usml.netcdf
-
-
-def plot_verbs(fig, ax, testname: str, verbs: usml.netcdf.EigenverbList, index):
-    """Draw projection of eigenverbs onto ocean bottom.
-
-    Arguments:
-        testname            name of the test
-        verbs               list of eigenverbs to plot
-        index               subset of indices to plot
-    """
-    plt.scatter(verbs.longitude[index], verbs.latitude[index], 20)
-    for n in index:  # range(verb_shape[0]):
-        x = verbs.longitude[n]
-        y = verbs.latitude[n]
-        scale = 6371e3 * np.cos(np.radians(y))
-        height = 2.0 * np.degrees(verbs.width[n] / scale)
-        width = 2.0 * np.degrees(verbs.length[n] / scale)
-        angle = 90 - verbs.direction[n]
-        ellipse = ptch.Ellipse((x, y), width=width, height=height, angle=angle, facecolor="none", edgecolor="black")
-        ax.add_patch(ellipse)
-    ax.axis("equal")
-    ax.grid("on")
-    ax.set_xlabel("Longitude (deg)")
-    ax.set_ylabel("Latitude (deg)")
-    ax.set_title(testname)
+import usml.plot
 
 
 class TestNetCDF(unittest.TestCase):
@@ -43,9 +20,10 @@ class TestNetCDF(unittest.TestCase):
 
         Displays bathymetry as matplotlib surface plot in a top-down view. If the test runs correctly, then
 
-            - Latitudes will range from 18N to 23N along the y-axis
-            - Longitudes will range from 160W to 154W along the x-axis
+            - Latitudes will range from 18N to 23N along the y-axis.
+            - Longitudes will range from 160W to 154W along the x-axis.
             - The big island of Hawaii will be in the south-east corner.
+            - Special color map with blue water, tan shallows, green land.
         """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -59,9 +37,8 @@ class TestNetCDF(unittest.TestCase):
 
         # draw surface plot
         fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
-        surface = ax.plot_surface(x, y, z, linewidth=0, cmap=cm.coolwarm, antialiased=False)
-        ax.set_proj_type('ortho')
-        ax.view_init(90, -90)
+        surface = usml.plot.plot_bathymetry_3d(ax, bathymetry)
+        ax.view_init(70, -100)
         ax.set_xlabel("Longitude (deg)")
         ax.set_ylabel("Latitude (deg)")
         ax.set_title("ETOPO1 Bathymetry Around Hawaii")
@@ -69,6 +46,7 @@ class TestNetCDF(unittest.TestCase):
         cbar.ax.set_title("Depth (m)")
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
+        plt.show()
 
     def test_profile(self):
         """Loads ocean profile in Florida Straits from netCDF file.
@@ -162,7 +140,7 @@ class TestNetCDF(unittest.TestCase):
         # load data from disk
         filename = os.path.join(self.USML_DIR, "eigenverbs/test/create_eigenverbs.nc")
         print("reading {0}".format(filename))
-        verbs = usml.netcdf.EigenverbList(filename)
+        verbs = usml.netcdf.read(filename)
         verb_shape = verbs.travel_time.shape
         freq_shape = verbs.frequencies.shape
 
@@ -191,7 +169,13 @@ class TestNetCDF(unittest.TestCase):
         # draw projection of eigenverbs onto ocean bottom.
         fig, ax = plt.subplots(figsize=(8, 6))
         index = range(verb_shape[0])
-        plot_verbs(fig, ax, testname, verbs, index)
+        usml.plot.plot_eigenverbs_2d(ax, verbs, index)
+
+        ax.axis("equal")
+        ax.grid("on")
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title(testname)
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
 
@@ -215,22 +199,23 @@ class TestNetCDF(unittest.TestCase):
         # load source eigenverb data from disk and plot it
         filename = os.path.join(self.USML_DIR, "sensors/test/src_eigenverbs_2_4.nc")
         print("reading {0}".format(filename))
-        verbs = usml.netcdf.EigenverbList(filename)
-        verb_shape = verbs.travel_time.shape
-        freq_shape = verbs.frequencies.shape
+        verbs = usml.netcdf.read(filename)
         index = np.where(verbs.surface == 0)
-        plot_verbs(fig, ax, testname + "_src", verbs, index[0])
+        usml.plot.plot_eigenverbs_2d(ax, verbs, index[0])
 
         # load source eigenverb data from disk and plot it
         filename = os.path.join(self.USML_DIR, "sensors/test/rcv_eigenverbs_2_4.nc")
         print("reading {0}".format(filename))
-        verbs = usml.netcdf.EigenverbList(filename)
-        verb_shape = verbs.travel_time.shape
-        freq_shape = verbs.frequencies.shape
+        verbs = usml.netcdf.read(filename)
         index = np.where(verbs.surface == 0)
-        plot_verbs(fig, ax, testname, verbs, index[0])
+        usml.plot.plot_eigenverbs_2d(ax, verbs, index[0])
 
         # record results
+        ax.axis("equal")
+        ax.grid("on")
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title(testname)
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
 
@@ -258,7 +243,7 @@ class TestNetCDF(unittest.TestCase):
         self.assertEqual(len(eigenray_list.eigenrays[0]), 1)
 
         # check that eigenray arrays are the right size
-        ray_list = eigenray_list.eigenrays[0][0] # first target
+        ray_list = eigenray_list.eigenrays[0][0]  # first target
         num_rays = ray_list.lower.shape[0]
         self.assertEqual(ray_list.intensity.shape, (num_rays, num_freqs))
         self.assertEqual(ray_list.phase.shape, (num_rays, num_freqs))
@@ -282,7 +267,7 @@ class TestNetCDF(unittest.TestCase):
         # load data from disk
         filename = os.path.join(self.USML_DIR, "sensors/test/biverbs_2_4.nc")
         print("reading {0}".format(filename))
-        verbs = usml.netcdf.BiverbList(filename)
+        verbs = usml.netcdf.read(filename)
         verb_shape = verbs.travel_time.shape
         freq_shape = verbs.frequencies.shape
 
@@ -303,6 +288,31 @@ class TestNetCDF(unittest.TestCase):
         self.assertEqual(verbs.receiver_caustic.shape, verb_shape)
         self.assertEqual(verbs.receiver_upper.shape, verb_shape)
         self.assertEqual(verbs.receiver_lower.shape, verb_shape)
+
+    def test_wavefront(self):
+        """Loads USML wavefronts from netCDF file.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load data from disk
+        filename = os.path.join(self.USML_DIR, "waveq3d/test/eigenverb_demo_wave.nc")
+        print("reading {0}".format(filename))
+        wavefront = usml.netcdf.read(filename)
+        time_shape = wavefront.travel_time.shape
+        de_shape = wavefront.source_de.shape
+        az_shape = wavefront.source_az.shape
+        grid_shape = (time_shape[0], de_shape[0], az_shape[0])
+        self.assertEqual(wavefront.latitude.shape, grid_shape)
+        self.assertEqual(wavefront.longitude.shape, grid_shape)
+        self.assertEqual(wavefront.altitude.shape, grid_shape)
+        self.assertEqual(wavefront.surface.shape, grid_shape)
+        self.assertEqual(wavefront.bottom.shape, grid_shape)
+        self.assertEqual(wavefront.caustic.shape, grid_shape)
+        self.assertEqual(wavefront.upper.shape, grid_shape)
+        self.assertEqual(wavefront.lower.shape, grid_shape)
+        self.assertEqual(wavefront.on_edge.shape, grid_shape)
+
 
 if __name__ == '__main__':
     unittest.main()

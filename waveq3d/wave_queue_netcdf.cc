@@ -43,9 +43,9 @@ void wave_queue::init_netcdf(const char *filename, const char *long_name) {
     _nc_caustic =
         _nc_file->add_var("caustic", ncShort, time_dim, de_dim, az_dim);
     _nc_upper =
-        _nc_file->add_var("upper_vertex", ncShort, time_dim, de_dim, az_dim);
+        _nc_file->add_var("upper", ncShort, time_dim, de_dim, az_dim);
     _nc_lower =
-        _nc_file->add_var("lower_vertex", ncShort, time_dim, de_dim, az_dim);
+        _nc_file->add_var("lower", ncShort, time_dim, de_dim, az_dim);
     _nc_on_edge =
         _nc_file->add_var("on_edge", ncByte, time_dim, de_dim, az_dim);
 

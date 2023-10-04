@@ -787,9 +787,9 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier,
      *                  bottom:units = "count" ;
      *          short caustic(travel_time, source_de, source_az) ;
      *                  caustic:units = "count" ;
-     *          short upper_vertex(travel_time, source_de, source_az) ;
+     *          short upper(travel_time, source_de, source_az) ;
      *                  caustic:units = "count" ;
-     *          short lower_vertex(travel_time, source_de, source_az) ;
+     *          short lower(travel_time, source_de, source_az) ;
      *                  caustic:units = "count" ;
      *          byte on_edge(travel_time, source_de, source_az) ;
      *                  caustic:units = "bool" ;
