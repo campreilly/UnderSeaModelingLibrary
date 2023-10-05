@@ -18,12 +18,22 @@ class TestNetCDF(unittest.TestCase):
     def test_bathymetry_3d(self):
         """Draw 3D map of bathymetry around Hawaii from netCDF file.
 
+        Tests the abilities to:
+
+        - Ready bathymetry from file extracted from ETOPO1 using ncks.
+        - Read whole bathymetry file without specifying lat_range or lng_range.
+        - Create 3D bathymetry surface plot
+
         Displays bathymetry as matplotlib surface plot. If the test runs correctly, then
 
-            - Latitudes will range from 18N to 23N along the y-axis.
-            - Longitudes will range from 160W to 154W along the x-axis.
-            - The big island of Hawaii will be in the south-east corner.
-            - Special color map with blue water, tan shallows, green land.
+        - The batymetry loads from netCDF file without errors.
+        - Latitudes extend from 18N to 23N along the y-axis.
+        - Longitudes extend from 160W to 154W along the x-axis.
+        - Depths extend from 0 to -5000 meters.
+        - The big island of Hawaii is displayed in the south-east corner.
+        - Plot uses special color map with blue water, tan shallows, green land.
+
+        Note that there are no automatic assertions in this test.
         """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -47,16 +57,58 @@ class TestNetCDF(unittest.TestCase):
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
 
+    def test_etopo1_3d(self):
+        """Draw 3D map of bathymetry around Hawaii from ETOPO1 database.
+
+        Tests the abilities to
+
+        - Read bathymetry from whole world ETOPO1 database.
+        - Limit area by specifying lat_range or lng_range.
+        - Create 3D bathymetry surface plot
+
+        Displays bathymetry as matplotlib surface plot. If the test runs correctly, then
+
+        - The batymetry loads from ETOPO1 database without errors.
+        - The batymetry file loads correctly.
+        - Plot looks identical to output of test_bathymetry_3d().
+
+        Note that there are no automatic assertions in this test.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load data from disk
+        filename = os.path.join(self.USML_DIR, "data/bathymetry/ETOPO1_Ice_g_gmt4.grd")
+        print("reading {0}".format(filename))
+        bathymetry = usml.netcdf.Bathymetry(filename, lat_range=(18, 23), lng_range=(-160,154))
+        x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
+        z = bathymetry.altitude
+
+        # draw 3D surface plot
+        fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
+        surface = usml.plot.plot_bathymetry_3d(ax, bathymetry)
+        ax.view_init(70, -100)
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title("ETOPO1 Bathymetry Around Hawaii")
+        cbar = fig.colorbar(surface)
+        cbar.ax.set_title("Depth (m)")
+        print("saving {0}.png".format(testname))
+        plt.savefig(testname)
+
     def test_bathymetry_2d(self):
         """Loads 2D slice of bathymetry around Hawaii from netCDF file.
 
-        The plot_bathymetry_2d() used the pyproj library to estimate latitude/longitude for a list of ranges along a
-        bearing of 45 degrees from 19N 159W. It then uses scipy.interpolate to estimate the depth at each of those
-        atitude/longitude points. Depth is plotted as a function of range. If the test runs correctly, then
+        The plot_bathymetry_2d() function uses the pyproj library to estimate latitude/longitude for a list of ranges
+        along a bearing of 45 degrees from 19N 159W. It uses scipy.interpolate to estimate the depth at each of those
+        latitude/longitude points. Depth is plotted as a function of range. If the test runs correctly, then
 
-            - Ranges will span from 0 to 200 km along the x-axis.
-            - Depths will span from 160W to 154W along the x-axis.
+            - The ETOPO1 netCDF batymetry file loads correctly.
+            - Ranges extend from 0 to 200 km along the x-axis.
+            - Depths extend from 160W to 154W along the x-axis.
             - A minimum depth of about 3768 meters occurs at a range of 153.8 km.
+
+        Note that there are no automatic assertions in this test.
         """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -80,8 +132,36 @@ class TestNetCDF(unittest.TestCase):
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
 
-    def test_profile(self):
-        """Loads ocean profile in Florida Straits from netCDF file.
+    def test_flstrts_profile(self):
+        """Loads in-situ ocean profile in Florida Straits from netCDF file.
+
+        Displays sea surface temperature as matplotlib surface plot in a top-down view. If the test runs correctly, then
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load data from disk
+        filename = os.path.join(self.USML_DIR, "netcdf/test/flstrts_temperature.nc")
+        print("reading {0}".format(filename))
+        profile = usml.netcdf.Profile(filename)
+        x, y = np.meshgrid(profile.longitude, profile.latitude)
+        v = profile.data[0, 0, :, :]
+
+        # draw surface plot
+        fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
+        surface = ax.plot_surface(x, y, v, linewidth=0, cmap=cm.coolwarm, antialiased=False)
+        ax.set_proj_type('ortho')
+        ax.view_init(90, -90)
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title("WOA09 Sea Surface Temperature in Florida Straits")
+        cbar = fig.colorbar(surface)
+        cbar.ax.set_title("Temp (C)")
+        print("saving {0}.png".format(testname))
+        plt.savefig(testname)
+
+    def test_flstrts_profile(self):
+        """Loads in-situ ocean profile in Florida Straits from netCDF file.
 
         Displays sea surface temperature as matplotlib surface plot in a top-down view. If the test runs correctly, then
         """

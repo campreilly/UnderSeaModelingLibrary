@@ -27,8 +27,7 @@ class Bathymetry:
 
     The COARDS convention used by the ETOPO Global Relief Model and most other databases stores the data in arrays
     for longitude, latitude, and altitude. Longitude and latitude, are in degrees. Altitude is 2D height above mean
-    sea level with positive in the upward direction. Extracts netCDF variable by their position in the file to
-    support a wide variety of variable names.
+    sea level with positive in the upward direction.
 
     USML has an ability to write bathymetry data to a netCDF file from the data_grid class. But the USML file is in a
     spherical coordinates format. The first variable is the local earth radius for mean sea level, the second in
@@ -40,23 +39,59 @@ class Bathymetry:
     https://www.ncei.noaa.gov/products/etopo-global-relief-model
     """
 
-    def __init__(self, filename: str):
-        """Loads bathymetry from netCDF file."""
-        nc = netCDF4.Dataset(filename)
-        values = list(nc.variables.values())
-        if "earth_radius" in nc.variables.keys():  # USML data_grid<2>
-            radius = values[0][:]
-            north = 90.0 - np.degrees(values[1][:])
-            east = np.degrees(values[2][:])
-            up = values[3][:] - radius
-        else:  # COARDS
-            east = values[0][:]
-            north = values[1][:]
-            up = values[2][:]
+    def __init__(self, filename: str, lat_range=None, lng_range=None):
+        """Loads bathymetry from netCDF file.
 
-        self.longitude = east
-        self.latitude = north
-        self.altitude = up
+         The variables to be loaded are deduced by their dimensionality. The first variable to have 2 dimensions is
+         assumed to be depth. The first dimension of the depth is assumed to be latitude. The second dimension of the
+         depth is assumed to be longitude. This may seem like a pretty loose specification, but this looseness is
+         very helpful in automating the reading NetCDF files from a variety of sources.
+
+         This implementation does not yet automatically unwraps differences between the [0,360) and the [-180,
+         180) longitude range.
+
+        :param filename:    Name of file to load from disk
+        :param lat_range:   Range of latitude to load (degrees_north)
+        :param lng_range:   Range of longitude to load (degrees_east)
+        """
+        ds = netCDF4.Dataset(filename)
+        variables = ds.variables
+
+        # search for depth data
+        depth = None
+        for values in variables.values():
+            if len(values.dimensions) == 2:
+                depth = values
+                break
+
+        # search for latitude and longitude data
+        latitude = variables[depth.dimensions[0]][:]
+        longitude = variables[depth.dimensions[0]][:]
+
+        # convert USML data to lat/long/lat
+        if "earth_radius" in variables.keys():
+            earth_radius = variables["earth_radius"][:]
+            latitude = 90.0 - np.degrees(latitude)
+            longitude = np.degrees(longitude)
+        else:
+            earth_radius = 0.0
+
+        # find slice of latitude to use
+        if lat_range == None:
+            lat_index = range(len(latitude))
+        else:
+            lat_index = np.where(np.logical_and(latitude >= lat_range[0], latitude <= lat_range[-1]))
+        self.latitude = latitude[lat_index]
+
+        # find slice of longitude to use
+        if lng_range == None:
+            lng_index = range(len(longitude))
+        else:
+            lng_index = np.where(np.logical_and(longitude >= lng_range[0], longitude <= lng_range[-1]))
+        self.longitude = longitude[lng_index]
+
+        # extract depth for only these latitudes and longitudes
+        self.altitude = depth[lat_index, lng_index] - earth_radius
 
 
 class Profile:
