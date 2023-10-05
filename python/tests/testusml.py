@@ -80,7 +80,7 @@ class TestNetCDF(unittest.TestCase):
         # load data from disk
         filename = os.path.join(self.USML_DIR, "data/bathymetry/ETOPO1_Ice_g_gmt4.grd")
         print("reading {0}".format(filename))
-        bathymetry = usml.netcdf.Bathymetry(filename, lat_range=(18, 23), lng_range=(-160,154))
+        bathymetry = usml.netcdf.Bathymetry(filename, lat_range=(18, 23), lng_range=(-160, -154))
         x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
         z = bathymetry.altitude
 

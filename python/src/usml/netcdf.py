@@ -47,7 +47,7 @@ class Bathymetry:
          depth is assumed to be longitude. This may seem like a pretty loose specification, but this looseness is
          very helpful in automating the reading NetCDF files from a variety of sources.
 
-         This implementation does not yet automatically unwraps differences between the [0,360) and the [-180,
+         This implementation does not yet automatically unwrap differences between the [0,360) and the [-180,
          180) longitude range.
 
         :param filename:    Name of file to load from disk
@@ -66,7 +66,7 @@ class Bathymetry:
 
         # search for latitude and longitude data
         latitude = variables[depth.dimensions[0]][:]
-        longitude = variables[depth.dimensions[0]][:]
+        longitude = variables[depth.dimensions[1]][:]
 
         # convert USML data to lat/long/lat
         if "earth_radius" in variables.keys():
@@ -77,17 +77,17 @@ class Bathymetry:
             earth_radius = 0.0
 
         # find slice of latitude to use
-        if lat_range == None:
+        if lat_range is None:
             lat_index = range(len(latitude))
         else:
-            lat_index = np.where(np.logical_and(latitude >= lat_range[0], latitude <= lat_range[-1]))
+            lat_index = np.where((latitude >= lat_range[0]) & (latitude <= lat_range[-1]))[0]
         self.latitude = latitude[lat_index]
 
         # find slice of longitude to use
-        if lng_range == None:
+        if lng_range is None:
             lng_index = range(len(longitude))
         else:
-            lng_index = np.where(np.logical_and(longitude >= lng_range[0], longitude <= lng_range[-1]))
+            lng_index = np.where((longitude >= lng_range[0]) & (longitude <= lng_range[-1]))[0]
         self.longitude = longitude[lng_index]
 
         # extract depth for only these latitudes and longitudes
