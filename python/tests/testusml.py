@@ -15,8 +15,8 @@ import usml.plot
 class TestNetCDF(unittest.TestCase):
     USML_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
 
-    def test_bathymetry_3d(self):
-        """Draw 3D map of bathymetry around Hawaii from netCDF file.
+    def test_bathy_ncks_3d(self):
+        """Draw 3D map of bathymetry around Hawaii from netCDF file extracted by ncks.
 
         Tests the abilities to:
 
@@ -32,8 +32,7 @@ class TestNetCDF(unittest.TestCase):
         - Depths extend from 0 to -5000 meters.
         - The big island of Hawaii is displayed in the south-east corner.
         - Plot uses special color map with blue water, tan shallows, green land.
-
-        Note that there are no automatic assertions in this test.
+        - No assertions fail.
         """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -44,6 +43,15 @@ class TestNetCDF(unittest.TestCase):
         bathymetry = usml.netcdf.Bathymetry(filename)
         x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
         z = bathymetry.altitude
+
+        # test the latitude and longtitude extents of the bathymetry
+        # using a-priori knowledge of this file's contents taken from ncdump
+        self.assertAlmostEqual(bathymetry.latitude[0], 18.0)
+        self.assertAlmostEqual(bathymetry.latitude[-1], 23.0)
+        self.assertAlmostEqual(bathymetry.longitude[0], -160.0)
+        self.assertAlmostEqual(bathymetry.longitude[-1], -154.0)
+        self.assertEqual(len(bathymetry.altitude), len(bathymetry.latitude))
+        self.assertEqual(len(bathymetry.altitude[0]), len(bathymetry.longitude))
 
         # draw 3D surface plot
         fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
@@ -57,7 +65,57 @@ class TestNetCDF(unittest.TestCase):
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
 
-    def test_etopo1_3d(self):
+    def test_bathy_grid_3d(self):
+        """Draw 3D map of bathymetry around Malta Escarpment from netCDF file written by USML's data_grid class.
+
+        Tests the abilities to:
+
+        - Ready bathymetry from file extracted from ETOPO1 using ncks.
+        - Read whole bathymetry file without specifying lat_range or lng_range.
+        - Create 3D bathymetry surface plot
+
+        Displays bathymetry as matplotlib surface plot. If the test runs correctly, then
+
+        - The batymetry loads from netCDF file without errors.
+        - Latitudes extend from 35.5N to 36.6N along the y-axis.
+        - Longitudes extend from 15.25E to 16.25 along the x-axis.
+        - Depths extend from 0 to -3500 meters.
+        - Plot uses special color map with blue water, tan shallows, green land.
+        - The west edge of the plot is shallow water, but it doesn't show up as green "land"
+        - No assertions fail.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load data from disk
+        filename = os.path.join(self.USML_DIR, "netcdf/test/grid_2d_test.nc")
+        print("reading {0}".format(filename))
+        bathymetry = usml.netcdf.Bathymetry(filename)
+        x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
+        z = bathymetry.altitude
+
+        # test the latitude and longtitude extents of the bathymetry
+        # using a-priori knowledge of this file's contents taken from ncdump
+        self.assertAlmostEqual(bathymetry.latitude[0], 35.5)
+        self.assertAlmostEqual(bathymetry.latitude[-1], 36.5)
+        self.assertAlmostEqual(bathymetry.longitude[0], 15.25)
+        self.assertAlmostEqual(bathymetry.longitude[-1], 16.25)
+        self.assertEqual(len(bathymetry.altitude), len(bathymetry.latitude))
+        self.assertEqual(len(bathymetry.altitude[0]), len(bathymetry.longitude))
+
+        # draw 3D surface plot
+        fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
+        surface = usml.plot.plot_bathymetry_3d(ax, bathymetry)
+        ax.view_init(70, -100)
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title("ETOPO1 Bathymetry Around Malta Escarpment")
+        cbar = fig.colorbar(surface)
+        cbar.ax.set_title("Depth (m)")
+        print("saving {0}.png".format(testname))
+        plt.savefig(testname)
+
+    def test_bathy_etopo_3d(self):
         """Draw 3D map of bathymetry around Hawaii from ETOPO1 database.
 
         Tests the abilities to
@@ -71,8 +129,7 @@ class TestNetCDF(unittest.TestCase):
         - The batymetry loads from ETOPO1 database without errors.
         - The batymetry file loads correctly.
         - Plot looks identical to output of test_bathymetry_3d().
-
-        Note that there are no automatic assertions in this test.
+        - No assertions fail.
         """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -83,6 +140,15 @@ class TestNetCDF(unittest.TestCase):
         bathymetry = usml.netcdf.Bathymetry(filename, lat_range=(18, 23), lng_range=(-160, -154))
         x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
         z = bathymetry.altitude
+
+        # test the latitude and longtitude extents of the bathymetry
+        # using a-priori knowledge of this file's contents taken from ncdump
+        self.assertAlmostEqual(bathymetry.latitude[0], 18.0)
+        self.assertAlmostEqual(bathymetry.latitude[-1], 23.0)
+        self.assertAlmostEqual(bathymetry.longitude[0], -160.0)
+        self.assertAlmostEqual(bathymetry.longitude[-1], -154.0)
+        self.assertEqual(len(bathymetry.altitude), len(bathymetry.latitude))
+        self.assertEqual(len(bathymetry.altitude[0]), len(bathymetry.longitude))
 
         # draw 3D surface plot
         fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
@@ -96,17 +162,17 @@ class TestNetCDF(unittest.TestCase):
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
 
-    def test_bathymetry_2d(self):
-        """Loads 2D slice of bathymetry around Hawaii from netCDF file.
+    def test_bathy_etopo_2d(self):
+        """Loads 2D slice of bathymetry around Hawaii from ETOPO1 database.
 
         The plot_bathymetry_2d() function uses the pyproj library to estimate latitude/longitude for a list of ranges
         along a bearing of 45 degrees from 19N 159W. It uses scipy.interpolate to estimate the depth at each of those
         latitude/longitude points. Depth is plotted as a function of range. If the test runs correctly, then
 
-            - The ETOPO1 netCDF batymetry file loads correctly.
-            - Ranges extend from 0 to 200 km along the x-axis.
-            - Depths extend from 160W to 154W along the x-axis.
-            - A minimum depth of about 3768 meters occurs at a range of 153.8 km.
+        - Read bathymetry from whole world ETOPO1 database.
+        - Ranges extend from 0 to 200 km along the x-axis.
+        - Depths extend from 160W to 154W along the x-axis.
+        - A minimum depth of about 3768 meters occurs at a range of 153.8 km.
 
         Note that there are no automatic assertions in this test.
         """
@@ -114,9 +180,9 @@ class TestNetCDF(unittest.TestCase):
         print("=== " + testname + " ===")
 
         # load data from disk
-        filename = os.path.join(self.USML_DIR, "netcdf/test/etopo_cmp.nc")
+        filename = os.path.join(self.USML_DIR, "data/bathymetry/ETOPO1_Ice_g_gmt4.grd")
         print("reading {0}".format(filename))
-        bathymetry = usml.netcdf.Bathymetry(filename)
+        bathymetry = usml.netcdf.Bathymetry(filename, lat_range=(18, 23), lng_range=(-160, -154))
         x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
         z = bathymetry.altitude
 
@@ -132,35 +198,7 @@ class TestNetCDF(unittest.TestCase):
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
 
-    def test_flstrts_profile(self):
-        """Loads in-situ ocean profile in Florida Straits from netCDF file.
-
-        Displays sea surface temperature as matplotlib surface plot in a top-down view. If the test runs correctly, then
-        """
-        testname = inspect.stack()[0][3]
-        print("=== " + testname + " ===")
-
-        # load data from disk
-        filename = os.path.join(self.USML_DIR, "netcdf/test/flstrts_temperature.nc")
-        print("reading {0}".format(filename))
-        profile = usml.netcdf.Profile(filename)
-        x, y = np.meshgrid(profile.longitude, profile.latitude)
-        v = profile.data[0, 0, :, :]
-
-        # draw surface plot
-        fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
-        surface = ax.plot_surface(x, y, v, linewidth=0, cmap=cm.coolwarm, antialiased=False)
-        ax.set_proj_type('ortho')
-        ax.view_init(90, -90)
-        ax.set_xlabel("Longitude (deg)")
-        ax.set_ylabel("Latitude (deg)")
-        ax.set_title("WOA09 Sea Surface Temperature in Florida Straits")
-        cbar = fig.colorbar(surface)
-        cbar.ax.set_title("Temp (C)")
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
-
-    def test_flstrts_profile(self):
+    def test_profile_file(self):
         """Loads in-situ ocean profile in Florida Straits from netCDF file.
 
         Displays sea surface temperature as matplotlib surface plot in a top-down view. If the test runs correctly, then

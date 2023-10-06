@@ -9,9 +9,8 @@ import pyproj
 import scipy
 
 
-def ocean_colormap():
+def ocean_colormap(num_colors = 1024):
     """Create a special color map with blue water, tan shallows, green land."""
-    num_colors = 50
     grey = matplotlib.colormaps['grey']
     newcolors = grey(np.linspace(0, 1, num_colors))
     newcolors[:, 2] = 0.75

@@ -68,7 +68,7 @@ class Bathymetry:
         latitude = variables[depth.dimensions[0]][:]
         longitude = variables[depth.dimensions[1]][:]
 
-        # convert USML data to lat/long/lat
+        # convert USML data_grid files from rho/theta/phi to lat/long/alt
         if "earth_radius" in variables.keys():
             earth_radius = variables["earth_radius"][:]
             latitude = 90.0 - np.degrees(latitude)
@@ -80,14 +80,16 @@ class Bathymetry:
         if lat_range is None:
             lat_index = range(len(latitude))
         else:
-            lat_index = np.where((latitude >= lat_range[0]) & (latitude <= lat_range[-1]))[0]
+            lat_index = np.asarray((latitude >= lat_range[0]) & (latitude <= lat_range[-1] + 1e-6)).nonzero()
+            lat_index = lat_index[0]  # extract list from tuple
         self.latitude = latitude[lat_index]
 
         # find slice of longitude to use
         if lng_range is None:
             lng_index = range(len(longitude))
         else:
-            lng_index = np.where((longitude >= lng_range[0]) & (longitude <= lng_range[-1]))[0]
+            lng_index = np.asarray((longitude >= lng_range[0]) & (longitude <= lng_range[-1] + 1e-6)).nonzero()
+            lng_index = lng_index[0]  # extract list from tuple
         self.longitude = longitude[lng_index]
 
         # extract depth for only these latitudes and longitudes
