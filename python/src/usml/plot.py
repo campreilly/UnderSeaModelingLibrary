@@ -2,7 +2,7 @@
 """
 
 import matplotlib
-import matplotlib.patches as ptch
+import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 import pyproj
@@ -35,7 +35,7 @@ def plot_eigenverbs_2d(ax: plt.Axes, verbs, index):
         height = 2.0 * np.degrees(verbs.width[n] / scale)
         width = 2.0 * np.degrees(verbs.length[n] / scale)
         angle = 90 - verbs.direction[n]
-        ellipse = ptch.Ellipse((x, y), width=width, height=height, angle=angle, facecolor="none", edgecolor="black")
+        ellipse = patches.Ellipse((x, y), width=width, height=height, angle=angle, facecolor="none", edgecolor="black")
         ax.add_patch(ellipse)
 
 

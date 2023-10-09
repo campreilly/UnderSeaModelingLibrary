@@ -12,8 +12,66 @@ import usml.netcdf
 import usml.plot
 
 
-class TestNetCDF(unittest.TestCase):
+class TestUSML(unittest.TestCase):
     USML_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
+
+    def __plot_beampattern_csv(self, ax, filename: str):
+        """Plot one output from bp_test.cc script.
+
+        :param filename:    Name of the *.csv file to load
+        """
+        file = os.path.join(self.USML_DIR, "beampatterns/test", filename)
+        print("reading {0}".format(file))
+
+        # convert levels to decibles
+        pattern = np.genfromtxt(file, delimiter=',')
+        pattern = 30 + 10.0 * np.log10(abs(pattern) + 1e-30);
+        pattern = np.clip(pattern, a_min=0.0, a_max=None)
+
+        # construct mesh of solid angles
+        az = np.linspace(0.0, 2 * np.pi, len(pattern))
+        de = np.linspace(-np.pi / 2, np.pi / 2, len(pattern[0]))
+        de, az = np.meshgrid(de, az)
+
+        # compute level at each solid angle
+        x = pattern * np.cos(de) * np.cos(az)
+        y = pattern * np.cos(de) * np.sin(az)
+        z = pattern * np.sin(de)
+        colors = cm.viridis(pattern / np.amax(pattern))
+
+        # draw 3D surface plot
+        ax.plot_surface(x, y, z, rstride=1, cstride=1, facecolors=colors, shade=False)
+        ax.axis('equal')
+        ax.set_title(filename)
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
+
+    def test_beampatterns(self):
+        """Plot all outputs from bp_test.cc script.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        filenames = (
+            "bp_omni.csv",
+            "bp_cos.csv",
+            "bp_sin.csv",
+            "bp_vla.csv",
+            "bp_hla.csv",
+            "bp_planar.csv",
+            "bp_piston.csv",
+            "bp_multi.csv",
+            "bp_cardioid.csv",
+            "bp_arb.csv",
+            "bp_arb_weight.csv",
+            "bp_solid.csv")
+        for file in filenames:
+            fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
+            self.__plot_beampattern_csv(ax, file)
+            output = file.replace(".csv","")
+            print("saving {0}.png".format(output))
+            plt.savefig(output)
 
     def test_bathy_ncks_3d(self):
         """Draw 3D map of bathymetry around Hawaii from netCDF file extracted by ncks.
