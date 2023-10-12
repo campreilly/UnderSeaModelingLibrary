@@ -15,38 +15,6 @@ import usml.plot
 class TestUSML(unittest.TestCase):
     USML_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
 
-    def __plot_beampattern_csv(self, ax, filename: str):
-        """Plot one output from bp_test.cc script.
-
-        :param filename:    Name of the *.csv file to load
-        """
-        file = os.path.join(self.USML_DIR, "beampatterns/test", filename)
-        print("reading {0}".format(file))
-
-        # convert levels to decibles
-        pattern = np.genfromtxt(file, delimiter=',')
-        pattern = 30 + 10.0 * np.log10(abs(pattern) + 1e-30);
-        pattern = np.clip(pattern, a_min=0.0, a_max=None)
-
-        # construct mesh of solid angles
-        az = np.linspace(0.0, 2 * np.pi, len(pattern))
-        de = np.linspace(-np.pi / 2, np.pi / 2, len(pattern[0]))
-        de, az = np.meshgrid(de, az)
-
-        # compute level at each solid angle
-        x = pattern * np.cos(de) * np.cos(az)
-        y = pattern * np.cos(de) * np.sin(az)
-        z = pattern * np.sin(de)
-        colors = cm.viridis(pattern / np.amax(pattern))
-
-        # draw 3D surface plot
-        ax.plot_surface(x, y, z, rstride=1, cstride=1, facecolors=colors, shade=False)
-        ax.axis('equal')
-        ax.set_title(filename)
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('z')
-
     def test_beampatterns(self):
         """Plot all outputs from bp_test.cc script.
         """
@@ -67,11 +35,82 @@ class TestUSML(unittest.TestCase):
             "bp_arb_weight.csv",
             "bp_solid.csv")
         for file in filenames:
+            # read beam pattern from disk
+            fullfile = os.path.join(self.USML_DIR, "beampatterns/test", file)
+            output = file.replace(".csv", "")
+            print("reading {0}".format(fullfile))
+            pattern = np.genfromtxt(fullfile, delimiter=',')
+
+            # plot beam pattern
             fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
-            self.__plot_beampattern_csv(ax, file)
-            output = file.replace(".csv","")
+            usml.plot.plot_beampattern_3d(ax, pattern)
+            ax.set_title(output)
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_zlabel('z')
             print("saving {0}.png".format(output))
             plt.savefig(output)
+
+    def test_seq_rayfan(self):
+        """Plot angle set of tangent spaced beams to illustrate features of USML's seq_rayfan class.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        first = -90.0
+        last = 90.0
+        spread = 6.0
+        center = 0.0
+        num = 45
+        radius = np.linspace(0, 12e3, 13)
+
+        first_ang = first - center
+        last_ang = last - center
+        scale = (last_ang - first_ang) / (num - 1)
+        n = np.linspace(0, num - 1, num)
+        x = first_ang + scale * n
+        angle = center + x
+
+        angle = np.radians(angle)
+        (aa, rr) = np.meshgrid(angle, radius)
+        x = rr * np.cos(aa)
+        y = -75.0 + rr * np.sin(aa)
+
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+
+        ax1.plot(x / 1e3, y, 'k-')
+        ax1.set_title("{} uniformly spaced rays".format(num))
+        ax1.set_xlim(0, 10)
+        ax1.set_ylim(-200, 0)
+        ax1.set_xticklabels([])
+        ax1.set_ylabel('Depth (m)')
+
+        first_ang = np.arctan((first - center) / spread)
+        last_ang = np.arctan((last - center) / spread)
+        scale = (last_ang - first_ang) / (num - 1)
+        x = first_ang + scale * n
+        angle = center + np.tan(x) * spread
+
+        angle = np.radians(angle)
+        (aa, rr) = np.meshgrid(angle, radius)
+        x = rr * np.cos(aa)
+        y = -75.0 + rr * np.sin(aa)
+
+        ax2.plot(x / 1e3, y, 'k-')
+        ax2.set_title("{} tangent spaced rays".format(num))
+        ax2.set_xlim(0, 10)
+        ax2.set_ylim(-200, 0)
+        ax2.set_xlabel('Range (km)')
+        ax2.set_ylabel('Depth (m)')
+
+        print("saving {0}.png".format(testname))
+        plt.savefig(testname)
+
+        fig, ax3 = plt.subplots(subplot_kw={'projection': 'polar'})
+        ax3.plot(angle, np.ones(angle.shape), 'o')
+        ax3.set_title("std = {:.3f} deg, min diff = {:.3f} deg".format(np.std(angle), np.min(np.diff(angle))))
+        print("saving {0}.png".format(testname + "_polar"))
+        plt.savefig(testname + "_polar")
 
     def test_bathy_ncks_3d(self):
         """Draw 3D map of bathymetry around Hawaii from netCDF file extracted by ncks.

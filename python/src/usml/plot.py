@@ -2,6 +2,7 @@
 """
 
 import matplotlib
+import matplotlib.cm as cm
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +10,7 @@ import pyproj
 import scipy
 
 
-def ocean_colormap(num_colors = 1024):
+def ocean_colormap(num_colors=1024):
     """Create a special color map with blue water, tan shallows, green land."""
     grey = matplotlib.colormaps['grey']
     newcolors = grey(np.linspace(0, 1, num_colors))
@@ -54,16 +55,12 @@ def plot_bathymetry_3d(ax, bathymetry):
     x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
     z = bathymetry.altitude
 
-    x = np.reshape(x, [x.size, ])
-    y = np.reshape(y, [y.size, ])
-    z = np.reshape(z, [z.size, ])
-
     # clip all "land" values to zero elevation
     index = np.where(z >= 0)
     z[index] = 0.0
 
     # display 3D triangulated surface
-    surface = ax.plot_trisurf(x, y, z, cmap=ocean_colormap(), linewidth=0, antialiased=False)
+    surface = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap=ocean_colormap(), linewidth=0, antialiased=False)
     return surface
 
 
@@ -105,3 +102,28 @@ def plot_bathymetry_2d(ax, bathymetry, latitude: float, longitude: float, bearin
     # display 2D slice of depth vs. range
     line = ax.plot(ranges / 1e3, depths, color="black", linewidth=1.5)
     return line
+
+
+def plot_beampattern_3d(ax, pattern):
+    """Plot one output from bp_test.cc script.
+
+    :param ax:          Axis on which to draw plot
+    :param pattern:     Beampattern as function of D/E and AZ
+    """
+    pattern = 30 + 10.0 * np.log10(abs(pattern) + 1e-30);
+    pattern = np.clip(pattern, a_min=0.0, a_max=None)
+
+    # construct mesh of solid angles
+    az = np.linspace(0.0, 2 * np.pi, len(pattern))
+    de = np.linspace(-np.pi / 2, np.pi / 2, len(pattern[0]))
+    de, az = np.meshgrid(de, az)
+
+    # compute level at each solid angle
+    x = pattern * np.cos(de) * np.cos(az)
+    y = pattern * np.cos(de) * np.sin(az)
+    z = pattern * np.sin(de)
+    colors = cm.viridis(pattern / np.amax(pattern))
+
+    # draw 3D surface plot
+    ax.plot_surface(x, y, z, rstride=1, cstride=1, facecolors=colors, shade=False)
+    ax.axis('equal')
