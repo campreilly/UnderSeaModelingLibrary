@@ -117,31 +117,85 @@ class Profile:
     https://www.ncei.noaa.gov/products/world-ocean-atlas
     """
 
-    def __init__(self, filename: str):
-        """Loads ocean profile from netCDF file."""
-        nc = netCDF4.Dataset(filename)
-        values = list(nc.variables.values())
-        if "earth_radius" in nc.variables.keys():  # USML data_grid<2>
-            radius = values[0][:]
-            up = values[1][:] - radius
-            north = 90.0 - np.degrees(values[2][:])
-            east = np.degrees(values[3][:])
-            data = values[4][:]
-            time = None
-        else:  # COARDS
-            east = values[0][:]
-            north = values[1][:]
-            up = values[2][:]
-            time = values[3][:]
-            data = values[4][:]
+    def __init__(self, filename: str, lat_range=None, lng_range=None, profile_name: str = None):
+        """Loads ocean profile from netCDF file.
 
-        up = np.reshape(data, [len(time), len(up), len(north), len(east)])
+        If the profile_name is specified, then it extracts that variable name from the netCDF file and treats that as
+        the profile data. This allows us to read HYCOM files where both the temperature and salinity are stored in
+        the same file. If the profile name is not specified, it looks for the first variable with 3 or more
+        dimensions and treats that as the profile. The last three dimensions of the profile are assumed to be depth,
+        latitude, and longitude. If there are more than 3 dimensions, the 4th from the end is assumed to be time.
 
-        self.longitude = east
-        self.latitude = north
-        self.altitude = up
-        self.time = time
-        self.data = data
+        If the file includes a variable called "earth_radius", we assume that it was read from the USML data_grid class
+        and that the coordinate system must be converted from rho/theta/phi to depth/lat/long.
+
+        If the profile has 4 dimensions, but the time variable has a size of 1, then only the last three dimensions
+        stored.
+
+        This implementation does not yet automatically unwrap differences between the [0,360) and the [-180,
+        180) longitude range.
+
+        :param filename:        Name of file to load from disk
+        :param lat_range:       Range of latitude to load (degrees_north)
+        :param lng_range:       Range of longitude to load (degrees_east)
+        :param profile_name:    Profile name to search for (string)
+        """
+        ds = netCDF4.Dataset(filename)
+        variables = ds.variables
+
+        # search for profile data
+        profile = None
+        if profile_name is None:
+            for values in variables.values():
+                if len(values.dimensions) >= 3:
+                    profile = values
+                    break
+        else:
+            profile = variables[profile_name]
+
+        # search for depth, latitude, and longitude data, backwards from the end
+        depth = variables[profile.dimensions[-3]][:]
+        latitude = variables[profile.dimensions[-2]][:]
+        longitude = variables[profile.dimensions[-1]][:]
+
+        # convert USML data_grid files from rho/theta/phi to lat/long/alt
+        if "earth_radius" in variables.keys():
+            earth_radius = variables["earth_radius"][:]
+            latitude = 90.0 - np.degrees(latitude)
+            longitude = np.degrees(longitude)
+        else:
+            earth_radius = 0.0
+        self.altitude = depth - earth_radius
+
+        # find time variable if it exists
+        if len(profile.dimensions) > 3:
+            self.time = variables[profile.dimensions[-4]][:]
+        else:
+            self.time = np.asarray([0.0])
+
+        # find slice of latitude to use
+        if lat_range is None:
+            lat_index = range(len(latitude))
+        else:
+            lat_index = np.asarray((latitude >= lat_range[0]) & (latitude <= lat_range[-1] + 1e-6)).nonzero()
+            lat_index = lat_index[0]  # extract list from tuple
+        self.latitude = latitude[lat_index]
+
+        # find slice of longitude to use
+        if lng_range is None:
+            lng_index = range(len(longitude))
+        else:
+            lng_index = np.asarray((longitude >= lng_range[0]) & (longitude <= lng_range[-1] + 1e-6)).nonzero()
+            lng_index = lng_index[0]  # extract list from tuple
+        self.longitude = longitude[lng_index]
+
+        # extract profile for only these latitudes and longitudes
+        if "earth_radius" in variables.keys():
+            self.data = profile[:, lat_index, lng_index]
+        else:
+            self.data = profile[:, :, lat_index, lng_index]
+            if self.data.ndim == 4 and self.time.size == 1:
+                self.data = self.data[0, :, :, :]
 
 
 class EigenrayList:

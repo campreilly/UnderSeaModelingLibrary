@@ -50,6 +50,7 @@ class TestUSML(unittest.TestCase):
             ax.set_zlabel('z')
             print("saving {0}.png".format(output))
             plt.savefig(output)
+            plt.close()
 
     def test_seq_rayfan(self):
         """Plot angle set of tangent spaced beams to illustrate features of USML's seq_rayfan class.
@@ -105,12 +106,14 @@ class TestUSML(unittest.TestCase):
 
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
+        plt.close()
 
         fig, ax3 = plt.subplots(subplot_kw={'projection': 'polar'})
         ax3.plot(angle, np.ones(angle.shape), 'o')
         ax3.set_title("std = {:.3f} deg, min diff = {:.3f} deg".format(np.std(angle), np.min(np.diff(angle))))
         print("saving {0}.png".format(testname + "_polar"))
         plt.savefig(testname + "_polar")
+        plt.close()
 
     def test_bathy_ncks_3d(self):
         """Draw 3D map of bathymetry around Hawaii from netCDF file extracted by ncks.
@@ -161,6 +164,7 @@ class TestUSML(unittest.TestCase):
         cbar.ax.set_title("Depth (m)")
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
+        plt.close()
 
     def test_bathy_grid_3d(self):
         """Draw 3D map of bathymetry around Malta Escarpment from netCDF file written by USML's data_grid class.
@@ -211,6 +215,7 @@ class TestUSML(unittest.TestCase):
         cbar.ax.set_title("Depth (m)")
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
+        plt.close()
 
     def test_bathy_etopo_3d(self):
         """Draw 3D map of bathymetry around Hawaii from ETOPO1 database.
@@ -258,6 +263,7 @@ class TestUSML(unittest.TestCase):
         cbar.ax.set_title("Depth (m)")
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
+        plt.close()
 
     def test_bathy_etopo_2d(self):
         """Loads 2D slice of bathymetry around Hawaii from ETOPO1 database.
@@ -294,11 +300,12 @@ class TestUSML(unittest.TestCase):
         ax.set_title("ETOPO1 Bathymetry from 19N 159W at 45 degrees")
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
+        plt.close()
 
     def test_profile_file(self):
         """Loads in-situ ocean profile in Florida Straits from netCDF file.
 
-        Displays sea surface temperature as matplotlib surface plot in a top-down view. If the test runs correctly, then
+        Displays sea surface temperature as matplotlib surface plot in a top-down view.
         """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -308,7 +315,7 @@ class TestUSML(unittest.TestCase):
         print("reading {0}".format(filename))
         profile = usml.netcdf.Profile(filename)
         x, y = np.meshgrid(profile.longitude, profile.latitude)
-        v = profile.data[0, 0, :, :]
+        v = profile.data[0, :, :]
 
         # draw surface plot
         fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
@@ -322,6 +329,103 @@ class TestUSML(unittest.TestCase):
         cbar.ax.set_title("Temp (C)")
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
+        plt.close()
+
+    def test_profile_woa(self):
+        """Loads in-situ ocean profile in Florida Straits from World Ocean Atlas database.
+
+        Displays sea surface temperature as matplotlib surface plot in a top-down view.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load data from disk
+        filename = os.path.join(self.USML_DIR, "data/woa09/temperature_monthly_1deg.nc")
+        print("reading {0}".format(filename))
+        profile = usml.netcdf.Profile(filename, lat_range=(20, 30), lng_range=(279,289))
+        x, y = np.meshgrid(profile.longitude, profile.latitude)
+        v = profile.data[6, 0, :, :]
+
+        # draw surface plot
+        fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
+        surface = ax.plot_surface(x, y, v, linewidth=0, cmap=cm.coolwarm, antialiased=False)
+        ax.set_proj_type('ortho')
+        ax.view_init(90, -90)
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title("WOA09 Sea Surface Temperature in Florida Straits")
+        cbar = fig.colorbar(surface)
+        cbar.ax.set_title("Temp (C)")
+        print("saving {0}.png".format(testname))
+        plt.savefig(testname)
+        plt.close()
+
+    def test_profile_hycom(self):
+        """Test the ability to load a  3D profile file downloaded from the HYCOM.org web site.
+            - site = https://ncss.hycom.org/thredds/ncss/grid/GLBv0.08/expt_93.0/ts3z/dataset.html
+            - type = NetcdfSubset
+            - latitudes 25.9-27.1
+            - longitudes 279.9-281.1
+            - time 2019-10-18T10:00:00Z
+        These files have a few differences from the other NetCDF files we have worked with in the past.
+            - Both the water_temp and salinity are contained in the same file, so the variables must be looked up by
+              name.
+            - The water_temp and salinity data are stored as scaled short integers, where all other file types to date
+              have used floating point values.
+        Displays sea surface temperature as matplotlib surface plot in a top-down view.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load data from disk
+        filename = os.path.join(self.USML_DIR, "netcdf/test/hycom_ts3z.nc4")
+        print("reading {0}".format(filename))
+        profile = usml.netcdf.Profile(filename, profile_name="water_temp")
+        x, y = np.meshgrid(profile.longitude-360.0, profile.latitude)
+        v = profile.data[0, :, :]
+
+        # draw surface plot
+        fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
+        surface = ax.plot_surface(x, y, v, linewidth=0, cmap=cm.coolwarm, antialiased=False)
+        ax.set_proj_type('ortho')
+        ax.view_init(90, -90)
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title("WOA09 Sea Surface Temperature in Florida Straits")
+        cbar = fig.colorbar(surface)
+        cbar.ax.set_title("Temp (C)")
+        print("saving {0}.png".format(testname))
+        plt.savefig(testname)
+        plt.close()
+
+    def test_profile_grid(self):
+        """Test the ability to load a 3D profile file stored by USML's data_grid class.
+
+        Displays sea surface temperature as matplotlib surface plot in a top-down view.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load data from disk
+        filename = os.path.join(self.USML_DIR, "netcdf/test/hycom_grid.nc")
+        print("reading {0}".format(filename))
+        profile = usml.netcdf.Profile(filename)
+        x, y = np.meshgrid(profile.longitude, profile.latitude)
+        v = profile.data[0, :, :]
+
+        # draw surface plot
+        fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection': '3d'})
+        surface = ax.plot_surface(x, y, v, linewidth=0, cmap=cm.coolwarm, antialiased=False)
+        ax.set_proj_type('ortho')
+        ax.view_init(90, -90)
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title("WOA09 Sea Surface Temperature in Florida Straits")
+        cbar = fig.colorbar(surface)
+        cbar.ax.set_title("Temp (C)")
+        print("saving {0}.png".format(testname))
+        plt.savefig(testname)
+        plt.close()
 
     def test_eigenrays(self):
         """Loads USML eigenrays from netCDF file.
@@ -421,6 +525,7 @@ class TestUSML(unittest.TestCase):
         ax.set_title(testname)
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
+        plt.close()
 
     def test_eigenverb_pair(self):
         """Plots source and receiver eigenverbs on ocean bottom.
@@ -461,6 +566,7 @@ class TestUSML(unittest.TestCase):
         ax.set_title(testname)
         print("saving {0}.png".format(testname))
         plt.savefig(testname)
+        plt.close()
 
     def test_fathometers(self):
         """Loads USML bistatic fathometers from netCDF file.
