@@ -27,11 +27,8 @@ using namespace usml::types;
  */
 
 /**
- * Computes ambient noise levels for ambient_wenz model for a variety of
- * sea states, shipping levels, and rain rates. Compares results to analytic
- * solutions at specific milestones. The accuracy is limited by the facts that
- * the frequency is matched to a nearest neighbor and that the results are
- * power summed before comparison, but the analytic solutions are not.
+ * Computes constant ambient noise levels as a fundamental test of code
+ * functionality.
  */
 BOOST_AUTO_TEST_CASE(ambient_constant_test) {
     cout << "=== ambient_wenz_test: generate constant curves ===" << endl;

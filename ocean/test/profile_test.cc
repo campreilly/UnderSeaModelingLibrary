@@ -91,6 +91,7 @@ BOOST_AUTO_TEST_CASE(plot_profile_test) {
     profile_linear constant;
     constant.sound_speed(points, &sConstant, &gConstant);
     constant.flat_earth(true);
+    // TODO Check to see if earth flattening working correctly. Gradient is all zeros.
 
     matrix<double> sLinear(1, D);
     wvector gLinear(1, D);
@@ -174,6 +175,7 @@ BOOST_AUTO_TEST_CASE(compute_mackenzie_test) {
     profile_grid<3> profile(grid);
 
     // print results for first lat/long entry
+    // TODO Gradient incorrectly comes out as all zeros.
 
     const char* name = USML_TEST_DIR "/ocean/test/mackenzie_test.csv";
     std::ofstream os(name);

@@ -279,7 +279,6 @@ BOOST_AUTO_TEST_CASE(nonglobal_database) {
  * Test the ability to load a  3D profile file downloaded from
  * the HYCOM.org web site.
  *
- * -
  * https://ncss.hycom.org/thredds/ncss/grid/GLBv0.08/expt_93.0/ts3z/dataset.html
  * - type = NetcdfSubset
  * - latitudes 25.9-27.1
@@ -297,8 +296,10 @@ BOOST_AUTO_TEST_CASE(nonglobal_database) {
 BOOST_AUTO_TEST_CASE(hycom_file_profile_test) {
     cout << "=== read_profile_test: hycom_file_profile_test ===" << endl;
     const char* ssp_file = USML_TEST_DIR "/netcdf/test/hycom_ts3z.nc4";
+    const char* grid_file = USML_TEST_DIR "/netcdf/test/hycom_grid.nc";
     cout << "opening " << ssp_file << endl;
     netcdf_profile temperature(ssp_file, 0.0, 25.9, 27.2, -80.1, -78.8, "temp");
+    temperature.write_netcdf(grid_file);
 }
 
 /// @}
