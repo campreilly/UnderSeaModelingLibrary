@@ -127,3 +127,170 @@ def plot_beampattern_3d(ax, pattern):
     # draw 3D surface plot
     ax.plot_surface(x, y, z, rstride=1, cstride=1, facecolors=colors, shade=False)
     ax.axis('equal')
+
+
+def plot_raytrace_2d(ax, wavefront, az: float = 0.0, de=None, times=None, fmt="-"):
+    """Plot 2D ray paths for a selected launch azimuth as a function of range and depth
+
+    :param ax:              matplotlib axis to use for drawing
+    :param wavefront:       USMl wavefront data structure
+    :param az:              individual source azimuth angle to plot
+    :param de:              list of source depression/elevation angles to plot
+    :param times:           range of times to plot
+    :param fmt:             format string used to draw lines
+    :return:                lines drawn by matplotlib.
+    """
+
+    # extract source location from first point in first ray
+    src_latitude = wavefront.latitude[0, 0, 0]
+    src_longitude = wavefront.longitude[0, 0, 0]
+
+    # extract ray positions for selected D/E and AZ
+    az_list = np.asarray(az)
+    if de is None:
+        de = wavefront.source_de
+
+    _, _, de_index = np.intersect1d(de, wavefront.source_de, return_indices=True)
+    _, _, az_index = np.intersect1d(az_list, wavefront.source_az, return_indices=True)
+
+    latitude = wavefront.latitude[:, de_index, az_index]
+    longitude = wavefront.longitude[:, de_index, az_index]
+    altitude = wavefront.altitude[:, de_index, az_index]
+
+    # extract ray positions for selected times
+    if times is not None:
+        time_index = np.asarray(
+            np.logical_and(wavefront.travel_time >= np.min(times), wavefront.travel_time <= np.max(times))).nonzero()
+        latitude = latitude[time_index, :][0]
+        longitude = longitude[time_index, :][0]
+        altitude = altitude[time_index, :][0]
+
+    # extract source location from first point in first ray
+
+    # plot range and depth for each latitude and longitude along this bearing
+    geodesic = pyproj.Geod(ellps='WGS84')
+    src_latitude = np.full_like(latitude, fill_value=src_latitude)
+    src_longitude = np.full_like(longitude, fill_value=src_longitude)
+    _, _, ranges = geodesic.inv(src_longitude, src_latitude, longitude, latitude)
+    rays = ax.plot(ranges / 1e3, altitude, fmt)
+    return rays
+
+
+def plot_raytrace_3d(ax, wavefront, az=None, de=None, times=None, fmt="-"):
+    """Plot 3D ray paths for a list of D/E and azimuth source angles
+
+    :param ax:              matplotlib axis to use for drawing
+    :param wavefront:       USMl wavefront data structure
+    :param az:              list of source azimuth angles to plot
+    :param de:              list of source depression/elevation angles to plot
+    :param times:           range of times to plot
+    :param fmt:             format string used to draw lines
+    :return:                lines drawn by matplotlib.
+    """
+
+    # extract ray positions for selected D/E and AZ
+    if az is None:
+        az = wavefront.source_az
+    if de is None:
+        de = wavefront.source_de
+
+    _, _, de_index = np.intersect1d(de, wavefront.source_de, return_indices=True)
+    _, _, az_index = np.intersect1d(az, wavefront.source_az, return_indices=True)
+    de_index, az_index = np.meshgrid(de_index, az_index)
+    de_index = de_index.reshape(de_index.size)
+    az_index = az_index.reshape(az_index.size)
+    latitude = wavefront.latitude[:, de_index, az_index]
+    longitude = wavefront.longitude[:, de_index, az_index]
+    altitude = wavefront.altitude[:, de_index, az_index]
+
+    # extract ray positions for selected times
+    if times is not None:
+        time_index = np.asarray(
+            np.logical_and(wavefront.travel_time >= np.min(times), wavefront.travel_time <= np.max(times))).nonzero()
+        latitude = latitude[time_index, :][0]
+        longitude = longitude[time_index, :][0]
+        altitude = altitude[time_index, :][0]
+
+    rays = list()
+    for n in range(len(latitude[0])):
+        h = ax.plot(longitude[:, n], latitude[:, n], altitude[:, n], fmt)
+        rays.append(h)
+    return rays
+
+
+def plot_wavefront_2d(ax, wavefront, az: float = 0.0, de=None, time: float = 0.0, fmt="-"):
+    """Plot 2D wavefront for a selected launch azimuth as a function of range and depth
+
+    :param ax:              matplotlib axis to use for drawing
+    :param wavefront:       USMl wavefront data structure
+    :param az:              individual source azimuth angle to plot
+    :param de:              list of source depression/elevation angles to plot
+    :param time:            individual travel time times to plot
+    :param fmt:             format string used to draw lines
+    :return:                lines drawn by matplotlib.
+    """
+
+    # extract source location from first point in first ray
+    src_latitude = wavefront.latitude[0, 0, 0]
+    src_longitude = wavefront.longitude[0, 0, 0]
+
+    # extract ray positions for selected D/E and AZ
+    az_list = np.asarray(az)
+    if de is None:
+        de = wavefront.source_de
+
+    _, _, de_index = np.intersect1d(de, wavefront.source_de, return_indices=True)
+    _, _, az_index = np.intersect1d(az_list, wavefront.source_az, return_indices=True)
+
+    latitude = wavefront.latitude[:, de_index, az_index]
+    longitude = wavefront.longitude[:, de_index, az_index]
+    altitude = wavefront.altitude[:, de_index, az_index]
+
+    # extract ray positions for selected time
+    time_index = np.absolute(wavefront.travel_time - time).argmin()
+    latitude = latitude[time_index, :]
+    longitude = longitude[time_index, :]
+    altitude = altitude[time_index, :]
+
+    # plot range and depth for each latitude and longitude along this bearing
+    geodesic = pyproj.Geod(ellps='WGS84')
+    src_latitude = np.full_like(latitude, fill_value=src_latitude)
+    src_longitude = np.full_like(longitude, fill_value=src_longitude)
+    az12, az21, ranges = geodesic.inv(src_longitude, src_latitude, longitude, latitude)
+    wave = ax.plot(ranges / 1e3, altitude, fmt)
+    return wave
+
+
+def plot_wavefront_3d(ax, wavefront, az=None, de=None, time: float = 0.0, **kwargs):
+    """Plot 3D ray paths for a list of D/E and azimuth source angles
+
+    :param ax:              matplotlib axis to use for drawing
+    :param wavefront:       USMl wavefront data structure
+    :param az:              list of source azimuth angles to plot
+    :param de:              list of source depression/elevation angles to plot
+    :param time:            individual travel time times to plot
+    :param fmt:             format string used to draw lines
+    :return:                lines drawn by matplotlib.
+    """
+
+    # extract ray positions for selected times
+    time_index = np.absolute(wavefront.travel_time - time).argmin()
+    latitude = wavefront.latitude[time_index, :, :]
+    longitude = wavefront.longitude[time_index, :, :]
+    altitude = wavefront.altitude[time_index, :, :]
+
+    # extract ray positions for selected D/E and AZ
+    if az is None:
+        az = wavefront.source_az
+    if de is None:
+        de = wavefront.source_de
+
+    _, _, de_index = np.intersect1d(de, wavefront.source_de, return_indices=True)
+    _, _, az_index = np.intersect1d(az, wavefront.source_az, return_indices=True)
+    de_index, az_index = np.meshgrid(de_index, az_index)
+    latitude = latitude[de_index, az_index]
+    longitude = longitude[de_index, az_index]
+    altitude = altitude[de_index, az_index]
+
+    surface = ax.plot_surface(longitude, latitude, altitude, **kwargs)
+    return surface

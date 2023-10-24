@@ -231,7 +231,7 @@ class TestNetCDF(unittest.TestCase):
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
 
-        # load data from disk
+        # test the ability to load data from disk
         filename = os.path.join(self.USML_DIR, "waveq3d/test/eigenverb_demo_wave.nc")
         print("reading {0}".format(filename))
         wavefront = usml.netcdf.read(filename)
@@ -248,6 +248,47 @@ class TestNetCDF(unittest.TestCase):
         self.assertEqual(wavefront.upper.shape, grid_shape)
         self.assertEqual(wavefront.lower.shape, grid_shape)
         self.assertEqual(wavefront.on_edge.shape, grid_shape)
+
+        # test the ability to draw 2D raytrace and wavefront
+        de_list = wavefront.source_de
+        index = np.asarray((de_list >= 0) & (de_list <= 10)).nonzero()
+        de_list = de_list[index]
+
+        fig, ax = plt.subplots()
+        usml.plot.plot_raytrace_2d(ax, wavefront, de=de_list, times=(1.0, 3.0), fmt="k-")
+        usml.plot.plot_wavefront_2d(ax, wavefront, de=de_list, time=2.0, fmt="go-")
+
+        output = testname + "_2d"
+        ax.grid(True)
+        ax.set_title("eigenverb_demo_wave")
+        ax.set_xlabel("Range (km)")
+        ax.set_ylabel("Depth (m)")
+        print("saving {0}.png".format(output))
+        plt.savefig(output)
+        plt.close()
+
+        # test the ability to draw 3D raytrace and wavefront
+        de_list = wavefront.source_de
+        index = np.asarray((de_list >= 0) & (de_list <= 5)).nonzero()
+        de_list = de_list[index]
+
+        az_list = wavefront.source_az
+        index = np.asarray(az_list <= 40).nonzero()
+        az_list = az_list[index]
+
+        fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
+        usml.plot.plot_wavefront_3d(ax, wavefront, az=az_list, de=de_list, time=2.0, color="green", alpha=0.5)
+        usml.plot.plot_raytrace_3d(ax, wavefront, az=az_list, de=de_list)
+
+        output = testname + "_3d"
+        ax.grid(True)
+        ax.set_title("eigenverb_demo_wave")
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_zlabel("Depth (m)")
+        print("saving {0}.png".format(output))
+        plt.savefig(output)
+        plt.close()
 
 
 if __name__ == '__main__':
