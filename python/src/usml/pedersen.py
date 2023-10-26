@@ -1,5 +1,7 @@
-"""Numerical studies for Pedersen N^2 linear ocean sound speed profile
+"""Analytic solutions for Pedersen n^2 linear ocean sound speed profile
 """
+
+from dataclasses import dataclass
 
 import numpy as np
 import scipy.integrate as integ
@@ -7,8 +9,20 @@ import scipy.interpolate as interp
 import scipy.optimize as opt
 
 
-class Eigenray(object):
-    pass
+@dataclass
+class Eigenray:
+    """Analytic solution for acoustic path connecting source and target position pair.
+    
+    Attributes:
+        horz_range (float): horizontal range from source to target (m)
+        travel_time (float): travel time from source to target (s)
+        source_de (float): depression/elevation angle at source (deg)
+        target_de (float): depression/elevation angle at source (deg)
+    """
+    horz_range: float
+    travel_time: float
+    source_de: float
+    target_de: float
 
 
 class PedersenCartesian:
@@ -123,15 +137,16 @@ class PedersenCartesian:
             # compute the depth at which ray becomes horizontal
             dc = self.vertex_diff(limits, ray_param[n])
             if dc[0] * dc[1] < 0.0:
-                vertex_depth[n] = opt.bisect(self.vertex_diff, limits[0], limits[1], args=ray_param[n])
+                vertex_depth[n] = opt.bisect(self.vertex_diff, limits.item(0), limits.item(1), args=ray_param[n])
 
             # use integral to compute the range at which vertex occurs
-            result = integ.quad(self.range_integrand, vertex_depth[n], source_depth, args=ray_param[n],
+            result = integ.quad(self.range_integrand, vertex_depth.item(n), source_depth, args=ray_param[n],
                                 full_output=True)
             cycle_ranges[n] = 2.0 * result[0]
 
             # use integral to compute the travel time along the ray path
-            result = integ.quad(self.time_integrand, vertex_depth[n], source_depth, args=ray_param[n], full_output=True)
+            result = integ.quad(self.time_integrand, vertex_depth.item(n), source_depth, args=ray_param[n],
+                                full_output=True)
             cycle_times[n] = 2.0 * result[0]
 
         return cycle_ranges, cycle_times, vertex_depth, ray_param
@@ -168,24 +183,24 @@ class PedersenCartesian:
 
         # find break point between direct path and folded paths
         max_index = cycle_ranges.argmax()
-        valid = np.logical_and( cycle_ranges[0] <= target_ranges, target_ranges <= cycle_ranges[max_index])
+        valid = np.logical_and(cycle_ranges[0] <= target_ranges, target_ranges <= cycle_ranges[max_index])
         target_ranges = target_ranges[valid]
 
         # compute eigenray products as a function of target range for direct path
         index = range(max_index)
-        direct = Eigenray()
-        direct.range = target_ranges
-        direct.travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
-        direct.source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
-        direct.target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
+        horz_range = target_ranges
+        travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
+        source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
+        target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
+        direct = Eigenray(horz_range, travel_time, source_de, target_de)
 
         # compute eigenray products as a function of target range for folded path
         index = range(len(source_angles) - 1, max_index - 1, -1)
-        folded = Eigenray()
-        folded.range = target_ranges
-        folded.travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
-        folded.source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
-        folded.target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
+        horz_range = target_ranges
+        travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
+        source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
+        target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
+        folded = Eigenray(horz_range, travel_time, source_de, target_de)
 
         return direct, folded
 
@@ -254,7 +269,7 @@ class PedersenSpherical:
         Snell's Law tells us that horizontal range is the integral of cot(a)/r. Note that at any point where cos(a)=1,
         this integrand is infinite.
 
-        :param depth:           depth expressed as distance down from ocean surface (m)
+        :param radius:          depth expressed as distance up from center of curvature (m)
         :param ray_param:       Snell's Law ray parameter for current path (s)
         :return:                horizontal range integrand (unitless)
         """
@@ -268,7 +283,7 @@ class PedersenSpherical:
         law in Spherical coordinates tells us that travel time is the integral of 1/[c*sin(a)]. Note that at any point
         where cos(a)=1, this integrand is infinite.
 
-        :param depth:           depth expressed as distance down from ocean surface (m)
+        :param radius:          depth expressed as distance up from center of curvature (m)
         :param ray_param:       Snell's Law ray parameter for current path (s)
         :return:                travel time integrand (s/m)
         """
@@ -290,8 +305,8 @@ class PedersenSpherical:
         Finally, the time_integrand along the ray path is integrated from the vertex to the source depth to estimate the
         travel time traversed by the ray path.
 
-        Note that both the cot() and time_integrand() functions have a singularity at the vertex, the point at which cos(
-        a)=1. Using full_output=True in the integration supresses warnings and gives us the best estimate.
+        Note that both the cot() and time_integrand() functions have a singularity at the vertex, the point at which
+        cos(a)=1. Using full_output=True in the integration supresses warnings and gives us the best estimate.
 
         :param source_depth:        source depth expressed as distance down from ocean surface (m)
         :param source_angles:       array of launch angles from source, up is positive (deg)
@@ -309,15 +324,15 @@ class PedersenSpherical:
             # compute the depth at which ray becomes horizontal
             dc = self.vertex_diff(limits, ray_param[n])
             if dc[0] * dc[1] < 0.0:
-                vertex_radius[n] = opt.bisect(self.vertex_diff, limits[0], limits[1], args=ray_param[n])
+                vertex_radius[n] = opt.bisect(self.vertex_diff, limits.item(0), limits.item(1), args=ray_param[n])
 
             # use integral to compute the range at which vertex occurs
-            result = integ.quad(self.range_integrand, source_radius, vertex_radius[n], args=ray_param[n],
+            result = integ.quad(self.range_integrand, source_radius, vertex_radius.item(n), args=ray_param[n],
                                 full_output=True)
             cycle_ranges[n] = 2.0 * result[0] * source_radius
 
             # use integral to compute the travel time along the ray path
-            result = integ.quad(self.time_integrand, source_radius, vertex_radius[n], args=ray_param[n],
+            result = integ.quad(self.time_integrand, source_radius, vertex_radius.item(n), args=ray_param[n],
                                 full_output=True)
             cycle_times[n] = 2.0 * result[0]
 
@@ -357,23 +372,23 @@ class PedersenSpherical:
 
         # find break point between direct path and folded paths
         max_index = cycle_ranges.argmax()
-        valid = np.logical_and( cycle_ranges[0] <= target_ranges, target_ranges <= cycle_ranges[max_index])
+        valid = np.logical_and(cycle_ranges[0] <= target_ranges, target_ranges <= cycle_ranges[max_index])
         target_ranges = target_ranges[valid]
 
         # compute eigenray products as a function of target range for direct path
         index = range(max_index)
-        direct = Eigenray()
-        direct.range = target_ranges
-        direct.travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
-        direct.source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
-        direct.target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
+        horz_range = target_ranges
+        travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
+        source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
+        target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
+        direct = Eigenray(horz_range, travel_time, source_de, target_de)
 
         # compute eigenray products as a function of target range for folded path
         index = range(len(source_angles) - 1, max_index - 1, -1)
-        folded = Eigenray()
-        folded.range = target_ranges
-        folded.travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
-        folded.source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
-        folded.target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
+        horz_range = target_ranges
+        travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
+        source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
+        target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
+        folded = Eigenray(horz_range, travel_time, source_de, target_de)
 
         return direct, folded
