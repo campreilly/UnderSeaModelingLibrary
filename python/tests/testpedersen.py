@@ -1,4 +1,4 @@
-"""Compute solutions for n^2 linear environment
+"""Use analytic solutions to test WaveQ3D results for Pedersen n^2 linear ocean sound speed profile
 """
 import inspect
 import os
@@ -7,18 +7,23 @@ import unittest
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.interpolate as interp
 
 import usml.netcdf
 import usml.pedersen
 import usml.plot
 
 
-def test_cycles(self, testname: str, source_depth: float, source_angles: np.ndarray):
+def test_cycles(self, testname: str, source_depth: float, source_angles: np.ndarray) -> None:
     """Compare cycle range/time analytic solutions in cartesian and spherical coordinate.
 
-    Test fails if the maximum difference between cycle ranges is greater than 0.5 m or if the maximum difference
-    between cycle times is greater than 0.5 msec.
+    Our tests use calculation of the cycle range to esimtate the travel time, source angle, and target angle for each
+    eigenray. This test checks to see if the Carteisan version of the cycle range model match the results in
+    Spherical Coordinates with an earth flattening correction. Acts as a unit test for the cycle range analytic
+    solutions. Test fails if the maximum difference between cycle ranges is greater than 0.5 m or if the maximum
+    difference between cycle times is greater than 0.5 msec.
 
+    :param self:                unit test that called this functopm
     :param testname:            name of the test to use for saving files.
     :param source_depth:        source depth expressed as distance down from ocean surface
     :param source_angles:       array of launch angles from source, up is positive
@@ -52,9 +57,15 @@ def test_cycles(self, testname: str, source_depth: float, source_angles: np.ndar
 
 
 def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.ndarray, target_depth: float,
-                   target_ranges: np.ndarray):
+                   target_ranges: np.ndarray) -> None:
     """Compare eigenray analytic solutions in cartesian and spherical coordinate.
 
+    This test checks to see if the Carteisan version of the eigneray analytic solution match the results in Spherical
+    Coordinates with an earth flattening correction. Acts as a unit test for the eigenray analytic solutions. Test
+    fails if the maximum difference between travel times ranges is greater than 0.001 sec or if the maximum difference
+    between angles is greater than 0.1 degrees.
+
+    :param self:                unit test that called this functopm
     :param testname:            name of the test to use for saving files.
     :param source_depth:        source depth expressed as distance down from ocean surface
     :param source_angles:       array of launch angles from source, up is positive
@@ -73,6 +84,7 @@ def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.n
     cart_folded.travel_time -= slope * cart_folded.horz_range
     sphr_folded.travel_time -= slope * sphr_folded.horz_range
 
+    # compare calculations of direct path eigenrays in Cartesian and Spherical coordinates.
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(8, 6), layout="constrained")
     ax1.axis("off")
 
@@ -100,8 +112,16 @@ def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.n
     plt.savefig(output)
     plt.close()
 
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(8, 6), layout="constrained")
+    travel_time = interp.pchip_interpolate(shpr_direct.horz_range, shpr_direct.travel_time, cart_direct.horz_range)
+    source_de = interp.pchip_interpolate(shpr_direct.horz_range, shpr_direct.source_de, cart_direct.horz_range)
+    target_de = interp.pchip_interpolate(shpr_direct.horz_range, shpr_direct.target_de, cart_direct.horz_range)
 
+    self.assertLess(np.abs(cart_direct.travel_time - travel_time).max(), 0.001)
+    self.assertLess(np.abs(cart_direct.source_de - source_de).max(), 0.1)
+    self.assertLess(np.abs(cart_direct.target_de - target_de).max(), 0.1)
+
+    # compare calculations of non-direct path eigenrays in Cartesian and Spherical coordinates.
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(8, 6), layout="constrained")
     ax1.axis("off")
 
     ax2.plot(cart_folded.horz_range / 1e3, cart_folded.travel_time * 1e3)
@@ -128,17 +148,30 @@ def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.n
     plt.savefig(output)
     plt.close()
 
+    travel_time = interp.pchip_interpolate(sphr_folded.horz_range, sphr_folded.travel_time, cart_folded.horz_range)
+    source_de = interp.pchip_interpolate(sphr_folded.horz_range, sphr_folded.source_de, cart_folded.horz_range)
+    target_de = interp.pchip_interpolate(sphr_folded.horz_range, sphr_folded.target_de, cart_folded.horz_range)
 
-def grab_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase: float = None):
+    self.assertLess(np.abs(cart_folded.travel_time - travel_time).max(), 0.001)
+    self.assertLess(np.abs(cart_folded.source_de - source_de).max(), 0.1)
+    self.assertLess(np.abs(cart_folded.target_de - target_de).max(), 0.1)
+
+
+def grab_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase: float = None) -> usml.netcdf.Eigenrays:
     """Load CASS/GRAB eigenrays for a single path type
 
+    The GRAB eignerays for these tests are cut-and-paste from the OUTPUT.DAT text file produced by CASS. The trailing 
+    "i" on the imaginary eigenrays is removed so that the file can be decoded purely as matrix of numbers. This 
+    routine uses a-priori knowledge of the CASS output files to decode these text files. The calling routine 
+    specifies a specific combination of bounces and phase to select a single acoustic path from this data.
+    
     :param filename:    Name of the text eigenray file to load
     :param srf:         Number of surface bounces to select
     :param btm:         Number of bottom bounces to select
     :param upr:         Number of upper vertices to select
     :param lwr:         Number of lower vertices to select
     :param phase:       Option to match path phase to distinguish paths
-    :return:            Eigenrays data structue.
+    :return:            Eigenrays data structure.
     """
     model = np.loadtxt(filename)
     model_phase = model[:, 5]
@@ -163,8 +196,11 @@ def grab_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase:
     return rays
 
 
-def wq3d_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase: float = None):
+def wq3d_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase: float = None) -> usml.netcdf.Eigenrays:
     """Load USML/WaveQ3D eigenrays for a single path type
+
+    The GRAB eignerays for these tests are written to a netCDF in USML format. The calling routine specifies a 
+    specific combination of bounces and phase to select a single acoustic path from this data.
 
     :param filename:    Name of the netCDF eigenray file to load
     :param srf:         Number of surface bounces to select
@@ -216,14 +252,17 @@ def wq3d_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase:
     return rays
 
 
-def plot_comparison(output: str, grab: usml.netcdf.Eigenrays, wq3d: usml.netcdf.Eigenrays,
-                    analytic: usml.netcdf.Eigenrays):
+def compare_models(self, output: str, grab: usml.netcdf.Eigenrays, wq3d: usml.netcdf.Eigenrays,
+                   analytic: usml.netcdf.Eigenrays) -> None:
     """Compare eigenrays computed by different models for individual paths
 
-    :param output:      Filename for plot outputs
-    :param grab:        Eigenrays for CASS/GRAB model
-    :param wq3d:        Eigenrays for USML/WaveQ3D model
-    :param analytic:    Eigenrays for analytic solution
+    TODO Compute quantitave differences
+    
+    :param self:        unit test that called this function
+    :param output:      filename for plot outputs
+    :param grab:        eigenrays from CASS/GRAB model
+    :param wq3d:        eigenrays from USML/WaveQ3D model
+    :param analytic:    eigenrays from analytic solution
     """
     # remove bulk travel time
     slope = np.mean(analytic.travel_time) / np.mean(analytic.horz_range)
@@ -265,6 +304,7 @@ def plot_comparison(output: str, grab: usml.netcdf.Eigenrays, wq3d: usml.netcdf.
 
 
 class TestPedersen(unittest.TestCase):
+    """Unit tests for USML Pedersen study"""
     USML_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
 
     @classmethod
@@ -394,11 +434,11 @@ class TestPedersen(unittest.TestCase):
         wq3d_folded = wq3d_eigenrays(filename, 1, 0, 0, 0)
 
         output = testname + "_direct"
-        plot_comparison(output, grab_direct, wq3d_direct, analytic_direct)
+        compare_models(self, output, grab_direct, wq3d_direct, analytic_direct)
         plt.suptitle("Direct Path")
 
         output = testname + "_folded"
-        plot_comparison(output, grab_folded, wq3d_folded, analytic_folded)
+        compare_models(self, output, grab_folded, wq3d_folded, analytic_folded)
         plt.suptitle("Surface Reflected Path")
 
     def test_pedersen_compare_deep(self):
@@ -423,9 +463,9 @@ class TestPedersen(unittest.TestCase):
         wq3d_folded = wq3d_eigenrays(filename, 0, 0, 1, 0, -90.0)
 
         output = testname + "_direct"
-        plot_comparison(output, grab_direct, wq3d_direct, analytic_direct)
+        compare_models(self, output, grab_direct, wq3d_direct, analytic_direct)
         plt.suptitle("Direct Path")
 
         output = testname + "_folded"
-        plot_comparison(output, grab_folded, wq3d_folded, analytic_folded)
+        compare_models(self, output, grab_folded, wq3d_folded, analytic_folded)
         plt.suptitle("Caustic Path")
