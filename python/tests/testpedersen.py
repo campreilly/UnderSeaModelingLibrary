@@ -4,6 +4,7 @@ import inspect
 import os
 import unittest
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -27,7 +28,7 @@ def test_cycles(self, testname: str, source_depth: float, source_angles: np.ndar
     cart_cycle_ranges, cart_cycle_times, _, _ = cartesian.analytic_cycle(source_depth, source_angles)
     sphr_cycle_ranges, sphr_cycle_times, _, _ = spherical.analytic_cycle(source_depth, source_angles)
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8,6), layout="constrained")
+    fig, (ax1, ax2) = plt.subplots(2, figsize=(8, 6), layout="constrained")
 
     ax1.plot(source_angles, cart_cycle_ranges / 1e3)
     ax1.plot(source_angles, sphr_cycle_ranges / 1e3, "--")
@@ -46,8 +47,8 @@ def test_cycles(self, testname: str, source_depth: float, source_angles: np.ndar
     plt.savefig(testname)
     plt.close()
 
-    # self.assertLess(np.abs(cart_cycle_ranges - sphr_cycle_ranges).max(), 0.5)
-    # self.assertLess(np.abs(cart_cycle_times - cart_cycle_times).max(), 0.5e-3)
+    self.assertLess(np.abs(cart_cycle_ranges - sphr_cycle_ranges).max(), 0.5)
+    self.assertLess(np.abs(cart_cycle_times - cart_cycle_times).max(), 0.5e-3)
 
 
 def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.ndarray, target_depth: float,
@@ -60,7 +61,7 @@ def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.n
     :param target_depth:        target depth expressed as distance down from ocean surface (m)
     :param target_ranges:       target range from source (m)
     """
-    cartesian = usml.pedersen.PedersenCartesian();
+    cartesian = usml.pedersen.PedersenCartesian()
     spherical = usml.pedersen.PedersenSpherical()
     cart_direct, cart_folded = cartesian.eigenrays(source_depth, source_angles, target_depth, target_ranges)
     shpr_direct, sphr_folded = spherical.eigenrays(source_depth, source_angles, target_depth, target_ranges)
@@ -72,7 +73,7 @@ def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.n
     cart_folded.travel_time -= slope * cart_folded.horz_range
     sphr_folded.travel_time -= slope * sphr_folded.horz_range
 
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(8,6), layout="constrained")
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(8, 6), layout="constrained")
     ax1.axis("off")
 
     ax2.plot(cart_direct.horz_range / 1e3, cart_direct.travel_time * 1e3)
@@ -99,7 +100,7 @@ def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.n
     plt.savefig(output)
     plt.close()
 
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(8,6), layout="constrained")
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(8, 6), layout="constrained")
 
     ax1.axis("off")
 
@@ -128,10 +129,6 @@ def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.n
     plt.close()
 
 
-class Eigenrays:
-    pass
-
-
 def grab_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase: float = None):
     """Load CASS/GRAB eigenrays for a single path type
 
@@ -141,7 +138,7 @@ def grab_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase:
     :param upr:         Number of upper vertices to select
     :param lwr:         Number of lower vertices to select
     :param phase:       Option to match path phase to distinguish paths
-    :return:            Eigenray data structue.
+    :return:            Eigenrays data structue.
     """
     model = np.loadtxt(filename)
     model_phase = model[:, 5]
@@ -156,12 +153,12 @@ def grab_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase:
     if phase is not None:
         index = np.logical_and(index, model_phase == phase)
 
-    rays = Eigenrays()
+    rays = usml.netcdf.Eigenrays()
     rays.horz_range = model[index, 0] * 1e3
     rays.travel_time = model[index, 1]
     rays.source_de = -model[index, 2]
     rays.target_de = -model[index, 3]
-    rays.level = model[index, 4]
+    rays.intensity = model[index, 4]
     rays.phase = model[index, 5]
     return rays
 
@@ -175,17 +172,17 @@ def wq3d_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase:
     :param upr:         Number of upper vertices to select
     :param lwr:         Number of lower vertices to select
     :param phase:       Option to match path phase to distinguish paths
-    :return:            Eigenray data structue.
+    :return:            Eigenrays data structue.
     """
     model = usml.netcdf.EigenrayList(filename)
 
     earth_radius = 6366.71e3
-    rays = Eigenrays()
+    rays = usml.netcdf.Eigenrays()
     rays.horz_range = list()
     rays.travel_time = list()
     rays.source_de = list()
     rays.target_de = list()
-    rays.level = list()
+    rays.intensity = list()
     rays.phase = list()
 
     for target_list in model.eigenrays:
@@ -206,22 +203,24 @@ def wq3d_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase:
                     rays.travel_time.append(target.travel_time.item(n))
                     rays.source_de.append(target.source_de.item(n))
                     rays.target_de.append(target.target_de.item(n))
-                    rays.level.append(-target.intensity.item(n))
+                    rays.intensity.append(-target.intensity.item(n))
                     rays.phase.append(model_phase)
 
     rays.horz_range = np.radians(model.latitude[:, 0] - model.source_latitude) * earth_radius
     rays.travel_time = np.asarray(rays.travel_time)
     rays.source_de = np.asarray(rays.source_de)
     rays.target_de = np.asarray(rays.target_de)
-    rays.level = np.asarray(rays.level)
+    rays.intensity = np.asarray(rays.intensity)
     rays.phase = np.asarray(rays.phase)
 
     return rays
 
 
-def plot_comparison(output: str, grab, wq3d, analytic):
+def plot_comparison(output: str, grab: usml.netcdf.Eigenrays, wq3d: usml.netcdf.Eigenrays,
+                    analytic: usml.netcdf.Eigenrays):
     """Compare eigenrays computed by different models for individual paths
 
+    :param output:      Filename for plot outputs
     :param grab:        Eigenrays for CASS/GRAB model
     :param wq3d:        Eigenrays for USML/WaveQ3D model
     :param analytic:    Eigenrays for analytic solution
@@ -232,10 +231,10 @@ def plot_comparison(output: str, grab, wq3d, analytic):
     wq3d.travel_time -= slope * wq3d.horz_range
     analytic.travel_time -= slope * analytic.horz_range
 
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(8,6), layout="constrained")
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(8, 6), layout="constrained")
 
-    ax1.plot(grab.horz_range / 1e3, grab.level)
-    ax1.plot(wq3d.horz_range / 1e3, wq3d.level, "--")
+    ax1.plot(grab.horz_range / 1e3, grab.intensity)
+    ax1.plot(wq3d.horz_range / 1e3, wq3d.intensity, "--")
     ax1.grid(True)
     ax1.set_ylabel("Propagation Loss (dB)")
 
@@ -268,7 +267,19 @@ def plot_comparison(output: str, grab, wq3d, analytic):
 class TestPedersen(unittest.TestCase):
     USML_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
 
-    def test_cycles_shallow(self):
+    @classmethod
+    def setUpClass(cls):
+        """Setup matplotlib defaults."""
+        mpl.rcdefaults()
+        plt.rcParams['figure.constrained_layout.use'] = True
+        plt.rcParams['figure.figsize'] = [8, 6]
+
+    @classmethod
+    def tearDownClass(cls):
+        """Reset matplotlib defaults."""
+        mpl.rcdefaults()
+
+    def test_pedersen_cycles_shallow(self):
         """Compare cycle range/time analytic solutions for shallow source. """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -277,7 +288,7 @@ class TestPedersen(unittest.TestCase):
         source_angles = np.arange(1.0, 25.0, 2.0)  # 0.1)
         test_cycles(self, testname, source_depth, source_angles)
 
-    def test_cycles_deep(self):
+    def test_pedersen_cycles_deep(self):
         """Compare cycle range/time analytic solutions for deep source. """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -286,7 +297,7 @@ class TestPedersen(unittest.TestCase):
         source_angles = np.arange(20.0, 60.0, 1.0)
         test_cycles(self, testname, source_depth, source_angles)
 
-    def test_eigenrays_shallow(self):
+    def test_pedersen_eigenrays_shallow(self):
         """Compare eigenray analytic solutions for deep source. """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -297,7 +308,7 @@ class TestPedersen(unittest.TestCase):
         target_ranges = np.arange(500.0, 1000.0, 1.0)
         test_eigenrays(self, testname, source_depth, source_angles, target_depth, target_ranges)
 
-    def test_eigenrays_deep(self):
+    def test_pedersen_eigenrays_deep(self):
         """Compare eigenray analytic solutions for deep source. """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -308,7 +319,7 @@ class TestPedersen(unittest.TestCase):
         target_ranges = np.arange(3000.0, 3100.0, 1.0)
         test_eigenrays(self, testname, source_depth, source_angles, target_depth, target_ranges)
 
-    def test_raytrace_shallow(self):
+    def test_pedersen_raytrace_shallow(self):
         """Draw ray trace for shallow source. """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -320,7 +331,7 @@ class TestPedersen(unittest.TestCase):
         de_reflect = de_list[np.asarray(de_list >= 18.82).nonzero()]
         time = 0.42
 
-        fig, ax = plt.subplots(figsize=(8,6), layout="constrained")
+        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         usml.plot.plot_raytrace_2d(ax, wavefront, de=de_direct)
         usml.plot.plot_raytrace_2d(ax, wavefront, de=de_reflect, fmt="--")
         usml.plot.plot_wavefront_2d(ax, wavefront, time=time, fmt="k-")
@@ -334,7 +345,7 @@ class TestPedersen(unittest.TestCase):
         plt.savefig(testname)
         plt.close()
 
-    def test_raytrace_deep(self):
+    def test_pedersen_raytrace_deep(self):
         """Draw ray trace for shallow source. """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -347,7 +358,7 @@ class TestPedersen(unittest.TestCase):
         de_reflect = de_list[np.asarray(de_list >= 51.21).nonzero()]
         time = 1.75
 
-        fig, ax = plt.subplots(figsize=(8,6), layout="constrained")
+        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         usml.plot.plot_raytrace_2d(ax, wavefront, de=de_direct)
         usml.plot.plot_raytrace_2d(ax, wavefront, de=de_reflect, fmt="--")
         usml.plot.plot_wavefront_2d(ax, wavefront, time=time, fmt="k-")
@@ -355,13 +366,13 @@ class TestPedersen(unittest.TestCase):
         ax.set_xlabel('Range (km)')
         ax.set_ylabel('Depth (m)')
         ax.set_xlim(0, 3.5)
-        ax.set_ylim(-1200, 0);
+        ax.set_ylim(-1200, 0)
 
         print(f"saving {testname}.png")
         plt.savefig(testname)
         plt.close()
 
-    def test_compare_shallow(self):
+    def test_pedersen_compare_shallow(self):
         """Compare eigenray solutions for shallow source. """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -371,7 +382,7 @@ class TestPedersen(unittest.TestCase):
         source_angles = np.arange(1.0, 25.0, 0.025)
         target_ranges = np.arange(500.0, 1000.0, 1.0)
 
-        analytic = usml.pedersen.PedersenCartesian();
+        analytic = usml.pedersen.PedersenCartesian()
         analytic_direct, analytic_folded = analytic.eigenrays(source_depth, source_angles, target_depth, target_ranges)
 
         filename = os.path.join(self.USML_DIR, "studies/pedersen/grab_eignerays_shallow.txt")
@@ -388,9 +399,9 @@ class TestPedersen(unittest.TestCase):
 
         output = testname + "_folded"
         plot_comparison(output, grab_folded, wq3d_folded, analytic_folded)
-        plt.suptitle("Surface Reflected Path");
+        plt.suptitle("Surface Reflected Path")
 
-    def test_compare_deep(self):
+    def test_pedersen_compare_deep(self):
         """Compare eigenray solutions for shallow source. """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -400,7 +411,7 @@ class TestPedersen(unittest.TestCase):
         source_angles = np.arange(20.0, 60.0, 0.025)
         target_ranges = np.arange(3000.0, 3120.0, 1.0)
 
-        analytic = usml.pedersen.PedersenCartesian();
+        analytic = usml.pedersen.PedersenCartesian()
         analytic_direct, analytic_folded = analytic.eigenrays(source_depth, source_angles, target_depth, target_ranges)
 
         filename = os.path.join(self.USML_DIR, "studies/pedersen/grab_eignerays_deep.txt")
@@ -417,4 +428,4 @@ class TestPedersen(unittest.TestCase):
 
         output = testname + "_folded"
         plot_comparison(output, grab_folded, wq3d_folded, analytic_folded)
-        plt.suptitle("Caustic Path");
+        plt.suptitle("Caustic Path")

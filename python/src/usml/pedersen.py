@@ -1,28 +1,12 @@
 """Analytic solutions for Pedersen n^2 linear ocean sound speed profile
 """
 
-from dataclasses import dataclass
-
 import numpy as np
 import scipy.integrate as integ
 import scipy.interpolate as interp
 import scipy.optimize as opt
 
-
-@dataclass
-class Eigenray:
-    """Analytic solution for acoustic path connecting source and target position pair.
-    
-    Attributes:
-        horz_range (float): horizontal range from source to target (m)
-        travel_time (float): travel time from source to target (s)
-        source_de (float): depression/elevation angle at source (deg)
-        target_de (float): depression/elevation angle at source (deg)
-    """
-    horz_range: float
-    travel_time: float
-    source_de: float
-    target_de: float
+import usml.netcdf
 
 
 class PedersenCartesian:
@@ -68,7 +52,7 @@ class PedersenCartesian:
     def vertex_diff(self, depth, ray_param):
         """Function used in root finding algorithm to search for vertex depth.
 
-        In an n^2 linear environment, there is at most 1 turning point in the ray path, and that point always occurs
+        In a n^2 linear environment, there is at most 1 turning point in the ray path, and that point always occurs
         above the source depth. This implementation uses eqn. (12) in reference 1 to search for the depth where the
         cosine of the depression/elevation angle equals 1. The result is positive when the selected depth is above
         the vertex point and negative when it is below the vertex point.
@@ -188,19 +172,19 @@ class PedersenCartesian:
 
         # compute eigenray products as a function of target range for direct path
         index = range(max_index)
-        horz_range = target_ranges
-        travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
-        source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
-        target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
-        direct = Eigenray(horz_range, travel_time, source_de, target_de)
+        direct = usml.netcdf.Eigenrays()
+        direct.horz_range = target_ranges
+        direct.travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
+        direct.source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
+        direct.target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
 
         # compute eigenray products as a function of target range for folded path
         index = range(len(source_angles) - 1, max_index - 1, -1)
-        horz_range = target_ranges
-        travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
-        source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
-        target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
-        folded = Eigenray(horz_range, travel_time, source_de, target_de)
+        folded = usml.netcdf.Eigenrays()
+        folded.horz_range = target_ranges
+        folded.travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
+        folded.source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
+        folded.target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
 
         return direct, folded
 
@@ -251,7 +235,7 @@ class PedersenSpherical:
     def vertex_diff(self, radius, ray_param):
         """Function used in root finding algorithm to search for vertex depth.
 
-        In an n^2 linear environment, there is at most 1 turning point in the ray path, and that point always occurs
+        In a n^2 linear environment, there is at most 1 turning point in the ray path, and that point always occurs
         above the source depth. This implementation uses eqn. (16) in reference 1 to search for the depth where the
         cosine of the depression/elevation angle equals 1. The result is positive when the selected depth is above
         the vertex point and negative when it is below the vertex point.
@@ -377,18 +361,18 @@ class PedersenSpherical:
 
         # compute eigenray products as a function of target range for direct path
         index = range(max_index)
-        horz_range = target_ranges
-        travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
-        source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
-        target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
-        direct = Eigenray(horz_range, travel_time, source_de, target_de)
+        direct = usml.netcdf.Eigenrays()
+        direct.horz_range = target_ranges
+        direct.travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
+        direct.source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
+        direct.target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
 
         # compute eigenray products as a function of target range for folded path
         index = range(len(source_angles) - 1, max_index - 1, -1)
-        horz_range = target_ranges
-        travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
-        source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
-        target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
-        folded = Eigenray(horz_range, travel_time, source_de, target_de)
+        folded = usml.netcdf.Eigenrays()
+        folded.horz_range = target_ranges
+        folded.travel_time = interp.pchip_interpolate(cycle_ranges[index], cycle_times[index], target_ranges)
+        folded.source_de = interp.pchip_interpolate(cycle_ranges[index], source_angles[index], target_ranges)
+        folded.target_de = interp.pchip_interpolate(cycle_ranges[index], target_angles[index], target_ranges)
 
         return direct, folded

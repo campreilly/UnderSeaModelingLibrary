@@ -1,12 +1,50 @@
 """Read netCDF files created by USML.
 """
+from dataclasses import dataclass
+
 import netCDF4
 import numpy as np
 
 
 class Struct:
-    """Dynamically defined data structure for eading netCDF variable arrays."""
+    """Dynamically defined data structure for reading netCDF variable arrays."""
     pass
+
+
+@dataclass
+class Eigenrays:
+    """Acoustic path connecting source and target position pair.
+
+    Atttibutes may be integers, float values, lists, numpy arrays. But they should all be the same time.
+
+    Attributes:
+        horz_range: horizontal range from source to target (m)
+        travel_time: travel time from source to target (s)
+        source_de: depression/elevation angle at source (deg)
+        source_az: azimuthal angle at source (deg)
+        target_de: depression/elevation angle at target (deg)
+        target_de: azimuthal angle at target (deg)
+        intensity: propagation loss (dB)
+        phase: propagation loss phase (deg)
+        surface: number of surface bounces (count)
+        bottom: number of surface bounces (count)
+        caustic: number of caustic traversals (count)
+        upper: number of upper vertices (count)
+        lower: number of lower vertices (count)
+    """
+    horz_range = None
+    travel_time = None
+    source_de = None
+    source_az = None
+    target_de = None
+    target_az = None
+    intensity = None
+    phase = None
+    surface = None
+    bottom = None
+    caustic = None
+    upper = None
+    lower = None
 
 
 def read(filename: str):
@@ -225,12 +263,12 @@ class EigenrayList:
         eigenray_num = nc.variables["eigenray_num"][:]
 
         num_rows, num_cols = self.latitude.shape
-        self.eigenrays = [[Struct() for j in range(num_cols)] for i in range(num_rows)]
+        self.eigenrays = [[Eigenrays() for j in range(num_cols)] for i in range(num_rows)]
 
         # find eigenrays for each target
         for nrow in range(num_rows):
             for ncol in range(num_cols):
-                ray = Struct()
+                ray = Eigenrays()
                 offset = eigenray_index[nrow][ncol]
                 index = range(offset, offset + eigenray_num[nrow][ncol])
                 ray.intensity = nc.variables["intensity"][index][:]
