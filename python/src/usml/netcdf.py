@@ -50,7 +50,7 @@ class Eigenrays:
 def read(filename: str):
     """Read variable arrays from netCDF file.
 
-    Many of the netCDF files created by USML can be read as a data structure where each field is a np.array object.
+    Many of the netCDF files created by USML can be read as a data structure where each field is a np.ndarray object.
     These include wavefront, eigenverb, and bistatic eigenverb files.
     """
     nc = netCDF4.Dataset(filename)
@@ -239,13 +239,18 @@ class Profile:
 class EigenrayList:
     """Loads USML eigenrays for matrix of targets from netCDF file.
 
-    USML computes eigenrays from a single source location to a 2D matrix of targets. Each target has its own ID number,
-    latitude, longitude, and altitude. Each target has a 1D list of Eigenrays objects. Note that this implementation
+    USML computes eigenrays from a single source location to a 2D matrix of targets. Each target has its own ID
+    number, latitude, longitude, and altitude. Each target has a 1D list of Eigenrays objects and a summation of the
+    total propation loss for those eigenrays (which can be coherent or incoherent). Note that this implementation
     uses the new file format introduced in the USML 3.0 release.
     """
 
-    def __init__(self, filename: str):
-        """Loads eigenray list from netCDF file."""
+    def __init__(self, filename: str, proploss: bool = False):
+        """Loads eigenray list from netCDF file.
+
+        :param filename:    netCDF file to load
+        :param proploss:    load individual eigenrays when false, total propation loss for each target when true
+        """
         nc = netCDF4.Dataset(filename)
 
         # load file header variables
@@ -259,11 +264,15 @@ class EigenrayList:
         self.altitude = nc.variables["altitude"][:]
         self.initial_time = nc.variables["initial_time"][:]
         self.frequencies = nc.variables["frequencies"][:]
-        eigenray_index = nc.variables["eigenray_index"][:]
-        eigenray_num = nc.variables["eigenray_num"][:]
+        if proploss:
+            eigenray_index = nc.variables["proploss_index"][:]
+            eigenray_num = np.ones_like(eigenray_index)
+        else:
+            eigenray_index = nc.variables["eigenray_index"][:]
+            eigenray_num = nc.variables["eigenray_num"][:]
 
         num_rows, num_cols = self.latitude.shape
-        self.eigenrays = [[Eigenrays() for j in range(num_cols)] for i in range(num_rows)]
+        self.eigenrays = [[Eigenrays() for _ in range(num_cols)] for _ in range(num_rows)]
 
         # find eigenrays for each target
         for nrow in range(num_rows):
