@@ -111,14 +111,14 @@ ocean_model::csptr build_ocean() {
     wposition::compute_earth_radius(LAT_SOURCE);
 
     attenuation_model::csptr attn(new attenuation_constant(0.0));
-    profile_model *profile = new profile_n2(C0, G0, attn);
-    profile->flat_earth(true);
-    profile_model::csptr profile_csptr(profile);
+    profile_model *ssp = new profile_n2(C0, G0, attn);
+    ssp->flat_earth(true);
+    profile_model::csptr profile(ssp);
 
     boundary_model::csptr surface(new boundary_flat());
     boundary_model::csptr bottom(new boundary_flat(30000.0));
 
-    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile_csptr));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
     return ocean;
 }
 
@@ -176,7 +176,7 @@ void analyze_raytrace(double source_depth, const seq_vector::csptr& de,
 
         if (wave.time() >= time_min) {
             for (size_t d = 0; d < wave.num_de(); ++d) {
-                // find Cm = speed at which each ray becomes horizonal
+                // find Cm = speed at which each ray becomes horizontal
 
                 const double As =
                     -to_radians(wave.source_de(d));  // angle at source
@@ -264,7 +264,7 @@ void analyze_raytrace(double source_depth, const seq_vector::csptr& de,
  */
 BOOST_AUTO_TEST_CASE(pedersen_shallow_raytrace) {
     cout << "=== pedersen_test: pedersen_shallow_raytrace ===" << endl;
-    seq_vector::csptr de(new seq_linear(0.0, 0.02, 25.00));
+    seq_vector::csptr de(new seq_linear(0.0, 0.5, 25.00));
     analyze_raytrace(-75.0, de, 0.30, 0.01, 0.85, 0.003, 5.0, 0.2,
                      USML_STUDIES_DIR "/pedersen/pedersen_shallow_raytrace.nc",
                      USML_STUDIES_DIR
@@ -275,7 +275,7 @@ BOOST_AUTO_TEST_CASE(pedersen_shallow_raytrace) {
  * Tests the accuracy of the raytrace model against the analytic
  * solution for N^2 linear test case used by Pedersen/Gordon.
  * Generates linearly spaced beams in a 20:1:60 degrees fan
- * to match Figure 3.8 in Jensen et. al.  The critical ray for a source
+ * to match Figure 3.8 in Jensen et. al. The critical ray for a source
  * at 1000.0 meters is 51.21 degrees.
  *
  * Errors are automatically generated if the ray paths deviate from the
@@ -284,7 +284,7 @@ BOOST_AUTO_TEST_CASE(pedersen_shallow_raytrace) {
  */
 BOOST_AUTO_TEST_CASE(pedersen_deep_raytrace) {
     cout << "=== pedersen_test: pedersen_deep_raytrace ===" << endl;
-    seq_vector::csptr de(new seq_linear(20.00, 0.2, 60.00));
+    seq_vector::csptr de(new seq_linear(20.00, 1.0, 60.00));
     analyze_raytrace(-1000.0, de, 2.0, 0.01, 3.5, 0.008, 10.0, 0.03,
                      USML_STUDIES_DIR "/pedersen/pedersen_deep_raytrace.nc",
                      USML_STUDIES_DIR "/pedersen/pedersen_deep_raytrace.csv");
@@ -301,12 +301,10 @@ BOOST_AUTO_TEST_CASE(pedersen_deep_raytrace) {
  * @param   target_depth    Target depth (m)
  * @param   target_range    List of target ranges (m)
  * @param   ncfile          File used to store eigenrays
- * @param   csvfile         File used to store model/theory comparisons
  */
 void analyze_proploss(const seq_vector::csptr& de, double source_depth,
                       double target_depth, const seq_vector::csptr& target_range,
-                      double time_step, double time_max, const char *ncfile,
-                      const char *csvfile) {
+                      double time_step, double time_max, const char *ncfile) {
     // initialize source information
 
     ocean_model::csptr ocean = build_ocean();
@@ -336,23 +334,6 @@ void analyze_proploss(const seq_vector::csptr& de, double source_depth,
     eigenrays.sum_eigenrays();
     cout << "writing eigenrays to " << ncfile << endl;
     eigenrays.write_netcdf(ncfile);
-
-    // save results to spreadsheet for post-test analysis
-
-    cout << "writing spreadsheets to " << csvfile << endl;
-    std::ofstream os(csvfile);
-    os << "range,model,first,second" << endl;
-    os << std::setprecision(18);
-
-    vector<double> tl_model(targets.size1());
-    for (size_t n = 0; n < targets.size1(); ++n) {
-        double tl_model = -eigenrays.total(n, 0).intensity(0);
-        os << (*target_range)[n] << "," << tl_model;
-        for (const eigenray_model::csptr& ray : eigenrays.eigenrays(0, 0)) {
-            os << "," << (-ray->intensity(0));
-        }
-        os << endl;
-    }
 }
 
 /**
@@ -374,9 +355,7 @@ BOOST_AUTO_TEST_CASE(pedersen_shallow_proploss) {
     seq_vector::csptr ranges(new seq_linear(500.0, 1.0, 1000.0));
     seq_vector::csptr de(new seq_linear(0.0, 0.025, 25.0));
     analyze_proploss(de, -75.0, -75.0, ranges, 0.01, 0.85,
-                     USML_STUDIES_DIR "/pedersen/pedersen_shallow_proploss.nc",
-                     USML_STUDIES_DIR
-                     "/pedersen/pedersen_shallow_proploss.csv");
+                     USML_STUDIES_DIR "/pedersen/pedersen_shallow_proploss.nc");
 }
 
 /**
@@ -403,8 +382,7 @@ BOOST_AUTO_TEST_CASE(pedersen_deep_proploss) {
     seq_vector::csptr ranges(new seq_linear(3000.0, 0.25, 3120.0));
     seq_vector::csptr de(new seq_linear(20.0, 0.25, 60.0));
     analyze_proploss(de, -1000.0, -800.0, ranges, 0.01, 3.5,
-                     USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.nc",
-                     USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.csv");
+                     USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.nc");
 }
 
 /**
@@ -428,32 +406,27 @@ BOOST_AUTO_TEST_CASE(pedersen_deep_sensitivity) {
     seq_vector::csptr de(new seq_linear(-90.0, 90.0, 181, true));
     analyze_proploss(
         de, -1000, -800.0, ranges, 0.01, 3.5,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_tan.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_tan.csv");
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_tan.nc");
 
     seq_vector::csptr de1000(new seq_linear(40.00, 0.100, 60.00));
     analyze_proploss(
         de1000, -1000, -800.0, ranges, 0.01, 3.5,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_1000.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_1000.csv");
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_1000.nc");
 
     seq_vector::csptr de0500(new seq_linear(40.00, 0.05000, 60.00));
     analyze_proploss(
         de0500, -1000, -800.0, ranges, 0.01, 3.5,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0500.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0500.csv");
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0500.nc");
 
     seq_vector::csptr de0250(new seq_linear(40.00, 0.0250, 60.00));
     analyze_proploss(
         de0250, -1000, -800.0, ranges, 0.01, 3.5,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0250.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0250.csv");
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0250.nc");
 
     seq_vector::csptr de0125(new seq_linear(40.00, 0.0125, 60.00));
     analyze_proploss(
         de0125, -1000, -800.0, ranges, 0.01, 3.5,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0125.nc",
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0125.csv");
+        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0125.nc");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

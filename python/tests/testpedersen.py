@@ -1,4 +1,6 @@
 """Use analytic solutions to test WaveQ3D results for Pedersen n^2 linear ocean sound speed profile
+
+TODO Errors in total TL and arrival time under conditions specified in original testing report.
 """
 import inspect
 import os
@@ -54,6 +56,35 @@ def test_cycles(self, testname: str, source_depth: float, source_angles: np.ndar
 
     self.assertLess(np.abs(cart_cycle_ranges - sphr_cycle_ranges).max(), 0.5)
     self.assertLess(np.abs(cart_cycle_times - cart_cycle_times).max(), 0.5e-3)
+
+
+def analyze_rayttace(filename: str) -> None:
+    """
+
+    :param filename:
+    """
+    results = np.loadtxt(filename, skiprows=1, delimiter=",")
+    de_launch = results[::10, 0]
+    time_model = results[::10, 1]
+    time_theory = results[::10, 2]
+    range_model = results[::10, 3]
+    range_theory = results[::10, 4]
+    de_model = results[::10, 5]
+    de_theory = results[::10, 6]
+
+    fig, (ax1, ax2, ax3) = plt.subplots(3)
+    ax1.plot(range_theory/1e3, (time_model - time_theory) * 1e3, ".")
+    ax1.grid(True)
+    ax1.set_ylabel('Time Diff (msec)')
+
+    ax2.plot(range_theory/1e3, (range_model - range_theory), ".")
+    ax2.grid(True)
+    ax2.set_ylabel('Range Diff (m)')
+
+    ax3.plot(range_theory/1e3, (de_model - de_theory), ".")
+    ax3.grid(True)
+    ax3.set_ylabel('D/E Diff (deg)')
+    ax3.set_xlabel('Range (km)')
 
 
 def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.ndarray, target_depth: float,
@@ -199,7 +230,7 @@ def grab_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase:
 def wq3d_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase: float = None) -> usml.netcdf.Eigenrays:
     """Load USML/WaveQ3D eigenrays for a single path type
 
-    The GRAB eigenrays for these tests are written to a netCDF in USML format. The calling routine specifies a 
+    The WaveQ3D eigenrays for these tests are written to a netCDF in USML format. The calling routine specifies a
     specific combination of bounces and phase to select a single acoustic path from this data.
 
     :param filename:    Name of the netCDF eigenray file to load
@@ -255,7 +286,7 @@ def wq3d_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase:
 def wq3d_proploss(filename: str) -> usml.netcdf.Eigenrays:
     """Load USML/WaveQ3D total propation loss for each target
 
-    The GRAB eigenrays for these tests are written to a netCDF in USML format. One of the eigenrays for each target
+    The WaveQ3D eigenrays for these tests are written to a netCDF in USML format. One of the eigenrays for each target
     represents the total propation loss for each target. This summation can be coherent or incoherent.
 
     :param filename:    Name of the netCDF eigenray file to load
@@ -434,7 +465,7 @@ class TestPedersen(unittest.TestCase):
 
         filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_shallow_raytrace.nc")
         wavefront = usml.netcdf.read(filename)
-        de_list = wavefront.source_de[::50]
+        de_list = wavefront.source_de
         de_direct = de_list[np.asarray(de_list < 18.82).nonzero()]
         de_reflect = de_list[np.asarray(de_list >= 18.82).nonzero()]
         time = 0.42
@@ -448,9 +479,17 @@ class TestPedersen(unittest.TestCase):
         ax.set_ylabel('Depth (m)')
         ax.set_xlim(0, 1.2)
         ax.set_ylim(-500, 0)
+        ax.set_title(f"Wavefront at {time:.3f} secs")
 
         print(f"saving {testname}.png")
         plt.savefig(testname)
+        plt.close()
+
+        output = testname + "_compare"
+        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_shallow_raytrace.csv")
+        analyze_rayttace(filename)
+        print(f"saving {output}.png")
+        plt.savefig(output)
         plt.close()
 
     def test_pedersen_raytrace_deep(self):
@@ -461,7 +500,7 @@ class TestPedersen(unittest.TestCase):
         filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_raytrace.nc")
         wavefront = usml.netcdf.read(filename)
 
-        de_list = wavefront.source_de[::10]
+        de_list = wavefront.source_de
         de_direct = de_list[np.asarray(de_list < 51.21).nonzero()]
         de_reflect = de_list[np.asarray(de_list >= 51.21).nonzero()]
         time = 1.75
@@ -475,9 +514,17 @@ class TestPedersen(unittest.TestCase):
         ax.set_ylabel('Depth (m)')
         ax.set_xlim(0, 3.5)
         ax.set_ylim(-1200, 0)
+        ax.set_title(f"Wavefront at {time:.3f} secs")
 
         print(f"saving {testname}.png")
         plt.savefig(testname)
+        plt.close()
+
+        output = testname + "_compare"
+        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_raytrace.csv")
+        analyze_rayttace(filename)
+        print(f"saving {output}.png")
+        plt.savefig(output)
         plt.close()
 
     def test_pedersen_compare_shallow(self):
@@ -519,7 +566,7 @@ class TestPedersen(unittest.TestCase):
         plt.suptitle("Coherent Totals")
 
     def test_pedersen_compare_deep(self):
-        """Compare eigenray solutions for shallow source. """
+        """Compare eigenray solutions for deep source. """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
 
@@ -555,3 +602,47 @@ class TestPedersen(unittest.TestCase):
         output = testname + "_total"
         compare_totals(self, output, grab_total, wq3d_total, analytic_total)
         plt.suptitle("Coherent Totals")
+
+    def test_pedersen_sensitivity(self):
+        """Compare eigenray solutions for different ray spacing options.
+
+        TODO Compute statistics of differences from analystic model.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        filename = os.path.join(self.USML_DIR, "studies/pedersen/ffp_n2deep.csv")
+        analytic = np.loadtxt(filename, delimiter=",")
+
+        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_sensitivity_0125.nc")
+        total_0125 = wq3d_proploss(filename)
+
+        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_sensitivity_0250.nc")
+        total_0250 = wq3d_proploss(filename)
+
+        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_sensitivity_0500.nc")
+        total_0500 = wq3d_proploss(filename)
+
+        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_sensitivity_1000.nc")
+        total_1000 = wq3d_proploss(filename)
+
+        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_sensitivity_tan.nc")
+        total_tan = wq3d_proploss(filename)
+
+        fig, ax = plt.subplots()
+
+        ax.plot(analytic[:, 0] / 1e3, analytic[:, 1])
+        ax.plot(total_0125.horz_range / 1e3, total_0125.intensity)
+        ax.plot(total_0250.horz_range / 1e3, total_0250.intensity)
+        ax.plot(total_0500.horz_range / 1e3, total_0500.intensity)
+        ax.plot(total_1000.horz_range / 1e3, total_1000.intensity)
+        ax.plot(total_tan.horz_range / 1e3, total_tan.intensity)
+        ax.grid(True)
+        ax.set_xlabel("Target Range (km)")
+        ax.set_ylabel("Propagation Loss (dB)")
+        ax.legend(["Analytic", "$1/8^o$ spacing", "$1/4^o$ spacing", "$1/2^o$ spacing", "$1^o$ spacing", "tan spacing"])
+        ax.set_ylim(-100, -40)
+
+        print(f"saving {testname}.png")
+        plt.savefig(testname)
+        plt.close()
