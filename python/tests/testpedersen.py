@@ -410,8 +410,8 @@ class TestPedersen(unittest.TestCase):
     def setUpClass(cls):
         """Setup matplotlib defaults."""
         mpl.rcdefaults()
-        plt.rcParams['figure.constrained_layout.use'] = True
-        plt.rcParams['figure.figsize'] = [8, 6]
+        plt.rcParams["figure.constrained_layout.use"] = True
+        plt.rcParams["figure.figsize"] = [8, 6]
 
     @classmethod
     def tearDownClass(cls):

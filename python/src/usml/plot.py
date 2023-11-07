@@ -165,8 +165,6 @@ def plot_raytrace_2d(ax, wavefront, az: float = 0.0, de=None, times=None, fmt="-
         longitude = longitude[time_index, :][0]
         altitude = altitude[time_index, :][0]
 
-    # extract source location from first point in first ray
-
     # plot range and depth for each latitude and longitude along this bearing
     geodesic = pyproj.Geod(ellps='WGS84')
     src_latitude = np.full_like(latitude, fill_value=src_latitude)

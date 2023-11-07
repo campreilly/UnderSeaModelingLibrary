@@ -6,9 +6,8 @@
  * in the normal suite of regression tests.
  */
 #define BOOST_TEST_MAIN
-#include <cstddef>
-#include <usml/eigenrays/eigenray_model.h>
 #include <usml/eigenrays/eigenray_collection.h>
+#include <usml/eigenrays/eigenray_model.h>
 #include <usml/ocean/attenuation_constant.h>
 #include <usml/ocean/attenuation_model.h>
 #include <usml/ocean/boundary_flat.h>
@@ -28,6 +27,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include <cmath>
+#include <cstddef>
 #include <iostream>
 
 BOOST_AUTO_TEST_SUITE(eigenray_extra_test)
@@ -140,7 +140,8 @@ static const double bot_depth = 1e5;
  * @xref Weisstein, Eric W. "Newton's Method." From MathWorld--A Wolfram
  *       Web Resource. http://mathworld.wolfram.com/NewtonsMethod.html
  */
-BOOST_AUTO_TEST_CASE(eigenray_lloyds) { // NOLINT(readability-function-cognitive-complexity)
+BOOST_AUTO_TEST_CASE(
+    eigenray_lloyds) {  // NOLINT(readability-function-cognitive-complexity)
     cout << "=== eigenray_extra_test: eigenray_lloyds ===" << endl;
     const char* ncname_wave =
         USML_STUDIES_DIR "/eigenray_extra/eigenray_lloyds_wave.nc";
@@ -215,7 +216,8 @@ BOOST_AUTO_TEST_CASE(eigenray_lloyds) { // NOLINT(readability-function-cognitive
         for (size_t t2 = 0; t2 < num_depths; ++t2) {
             double time;
             double sde;
-            double tde;  // , phase ;
+            double tde;
+            double phase;
 
             // setup analytic equations for this target
 
@@ -240,10 +242,10 @@ BOOST_AUTO_TEST_CASE(eigenray_lloyds) { // NOLINT(readability-function-cognitive
                         -asin((L * L + D1 * D1 - D2 * D2) / (2.0 * L * D1)));
                     tde = to_degrees(
                         asin((L * L + D2 * D2 - D1 * D1) / (2.0 * L * D2)));
-                    // phase = 0.0 ;
+                    phase = 0.0;
                     if (ray->surface == 1) {
                         tde *= -1.0;
-                        // phase = -M_PI ;
+                        phase = -M_PI;
                     }
 
                     //*************************************************************
@@ -284,30 +286,28 @@ BOOST_AUTO_TEST_CASE(eigenray_lloyds) { // NOLINT(readability-function-cognitive
                         -asin((a1 * a1 + D1 * D1 - R * R) / (2.0 * a1 * D1)));
                     tde = to_degrees(
                         asin((a2 * a2 + D2 * D2 - R * R) / (2.0 * a2 * D2)));
-                    // phase = -M_PI ;
+                    phase = -M_PI;
                 }
 
                 //*************************************************************
                 // test the accuracy of the model
                 // acknowledge that there will be bigger errors at short range
 
-                //                if ( range(t1) >= 0.1 ) {
-                //                    BOOST_CHECK_SMALL( ray->time - time,
-                //                    0.0005 ); BOOST_CHECK_SMALL(
-                //                    ray->phase(0)-phase, 1e-6 );
-                //                    BOOST_CHECK_SMALL( ray->source_de - sde,
-                //                    0.3 ); BOOST_CHECK_SMALL( ray->source_az,
-                //                    1e-6 ); BOOST_CHECK_SMALL( ray->target_de
-                //                    - tde, 0.3 ); BOOST_CHECK_SMALL(
-                //                    ray->target_az, 1e-6 );
-                //                }
+                if (range(t1) >= 0.1) {
+                    BOOST_REQUIRE_SMALL(ray->travel_time - time, 0.0005);
+                    BOOST_CHECK_SMALL(ray->phase(0) - phase, 1e-6);
+                    BOOST_CHECK_SMALL(ray->source_de - sde, 0.3);
+                    BOOST_CHECK_SMALL(ray->source_az, 1e-6);
+                    BOOST_CHECK_SMALL(ray->target_de - tde, 0.3);
+                    BOOST_CHECK_SMALL(ray->target_az, 1e-6);
+                }
 
-                //                #ifdef USML_DEBUG
+#ifdef USML_DEBUG
                 cout << "lat=" << range[t1] << " depth=" << depth[t2]
                      << " path=" << ray->surface;
                 cout << " time=" << time << " sd=" << sde << " tde=" << tde
                      << endl;
-                //                #endif
+#endif
             }  // loop through eigenrays for each target
         }      // loop through target depths
     }          // loop through target ranges
