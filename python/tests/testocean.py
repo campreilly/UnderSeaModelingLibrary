@@ -9,7 +9,8 @@ import numpy as np
 
 
 class TestOcean(unittest.TestCase):
-    USML_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
+    USML_DIR = os.path.join(os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))),
+                            "ocean", "test")
 
     def test_ambient(self):
         """Plots results of ambient_wenz_test case in ambient_test.cc unit test.
@@ -21,8 +22,8 @@ class TestOcean(unittest.TestCase):
         print("=== " + testname + " ===")
 
         # read ambient noise levels from disk
-        fullfile = os.path.join(self.USML_DIR, "ocean/test/ambient_wenz_test.csv")
-        print("reading {0}".format(fullfile))
+        fullfile = os.path.join(self.USML_DIR, "ambient_wenz_test.csv")
+        print("reading {fullfile}")
         model = np.genfromtxt(fullfile, delimiter=',')
         frequency = model[0, 3:]
         sea_state = np.unique(model[1:, 0])
@@ -30,11 +31,10 @@ class TestOcean(unittest.TestCase):
         rain_rate = np.unique(model[1:, 2])
         ambient = model[1:, 3:]
         ambient = ambient.reshape(ambient.size)
-        # ambient = ambient.reshape(len(frequency),len(sea_state),len(ship_level),len(rain_rate))
         ambient = ambient.reshape(len(rain_rate), len(ship_level), len(sea_state), len(frequency))
 
         # plot ambient noise levels as a function of frequency and sea state
-        output = testname + "_sea_state"
+        output = os.path.join(self.USML_DIR, testname + "_sea_state.png")
         fig, ax = plt.subplots()
         h = ax.semilogx(frequency, ambient[0, 0, :, :].transpose())
         ax.grid(True)
@@ -43,12 +43,12 @@ class TestOcean(unittest.TestCase):
         ax.set_ylabel("Noise Level (dB//Hz)")
         ax.legend(h, ["Sea State 0", "Sea State 1", "Sea State 2", "Sea State 3", "Sea State 4", "Sea State 5",
                       "Sea State 6"])
-        print("saving {0}.png".format(output))
+        print(f"saving {output}")
         plt.savefig(output)
         plt.close()
 
         # plot ambient noise levels as a function of frequency and sea state
-        output = testname + "_ship_level"
+        output = output = os.path.join(self.USML_DIR, testname + "_ship_level.png")
         fig, ax = plt.subplots()
         h = ax.semilogx(frequency, ambient[0, :, 0, :].transpose())
         ax.grid(True)
@@ -57,12 +57,12 @@ class TestOcean(unittest.TestCase):
         ax.set_ylabel("Noise Level (dB//Hz)")
         ax.legend(h, ["Shipping 0", "Shipping 1", "Shipping 2", "Shipping 3", "Shipping 4", "Shipping 5", "Shipping 6",
                       "Shipping 7"])
-        print("saving {0}.png".format(output))
+        print(f"saving {output}")
         plt.savefig(output)
         plt.close()
 
         # plot ambient noise levels as a function of frequency and sea state
-        output = testname + "_rain_rate"
+        output = output = os.path.join(self.USML_DIR, testname + "_rain_rate.png")
         fig, ax = plt.subplots()
         h = ax.semilogx(frequency, ambient[:, 0, 0, :].transpose())
         ax.grid(True)
@@ -70,7 +70,7 @@ class TestOcean(unittest.TestCase):
         ax.set_xlabel("Frequency (Hz)")
         ax.set_ylabel("Noise Level (dB//Hz)")
         ax.legend(h, ["No Rain", "Light Rain", "Medium Rain", "Heavy Rain"])
-        print("saving {0}.png".format(output))
+        print(f"saving {output}")
         plt.savefig(output)
         plt.close()
 
@@ -88,8 +88,8 @@ class TestOcean(unittest.TestCase):
         print("=== " + testname + " ===")
 
         # read analytic ocean profiles from disk
-        fullfile = os.path.join(self.USML_DIR, "ocean/test/profile_test.csv")
-        print("reading {0}".format(fullfile))
+        fullfile = os.path.join(self.USML_DIR, "profile_test.csv")
+        print(f"reading {fullfile}")
         model = np.genfromtxt(fullfile, delimiter=',')
         labels = ["FlatEarth", "Linear", "BiLinear", "Munk", "N2 Linear", "Catenary"]
         depth = model[1:, 0]
@@ -108,8 +108,9 @@ class TestOcean(unittest.TestCase):
         ax2.set_xlabel('Grad (m/s/m)')
         ax2.set_yticklabels([])
 
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+        output = fullfile.replace(".csv", ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_profile_mackenzie(self):
@@ -119,8 +120,8 @@ class TestOcean(unittest.TestCase):
         print("=== " + testname + " ===")
 
         # read analytic ocean profiles from disk
-        fullfile = os.path.join(self.USML_DIR, "ocean/test/mackenzie_test.csv")
-        print("reading {0}".format(fullfile))
+        fullfile = os.path.join(self.USML_DIR, "mackenzie_test.csv")
+        print(f"reading {fullfile}")
         model = np.genfromtxt(fullfile, delimiter=',')
         depth = -model[1:, 0]
         temp = model[1:, 1]
@@ -149,8 +150,9 @@ class TestOcean(unittest.TestCase):
         ax4.set_xlabel('Grad (m/s/m)')
         ax4.set_yticklabels([])
 
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+        output = fullfile.replace(".csv", ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_rayleigh_sediments(self):
@@ -164,8 +166,8 @@ class TestOcean(unittest.TestCase):
         print("=== " + testname + " ===")
 
         # read analytic ocean profiles from disk
-        fullfile = os.path.join(self.USML_DIR, "ocean/test/rayleigh_sediments.csv")
-        print("reading {0}".format(fullfile))
+        fullfile = os.path.join(self.USML_DIR, "rayleigh_sediments.csv")
+        print(f"reading {fullfile}")
         labels = ["clay", "silt", "sand", "gravel", "moraine", "chalk", "limestone", "basalt"]
         model = np.genfromtxt(fullfile, delimiter=',')
         angle = model[1:, 0]
@@ -179,8 +181,9 @@ class TestOcean(unittest.TestCase):
         ax.set_ylim(0, 20)
         ax.legend(h, labels, ncol=4)
 
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+        output = fullfile.replace(".csv", ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_rayleigh_changes(self):
@@ -196,8 +199,9 @@ class TestOcean(unittest.TestCase):
         max_db = 30
 
         # reflection loss for changes in compressional sound speed
-        fullfile = os.path.join(self.USML_DIR, "ocean/test/rayleigh_test_a.csv")
-        print("reading {0}".format(fullfile))
+        fullfile = os.path.join(self.USML_DIR, "rayleigh_test_a.csv")
+        output = fullfile.replace("_a.csv", ".png")
+        print(f"reading {fullfile}")
         labels = [r"$c_p$=1550", r"$c_p$=1600", r"$c_p$=1800"]
         model = np.genfromtxt(fullfile, delimiter=',')
         angle = model[1:, 0]
@@ -212,8 +216,8 @@ class TestOcean(unittest.TestCase):
         ax1.legend(h, labels)
 
         # reflection loss for changes in compressional attenuation
-        fullfile = os.path.join(self.USML_DIR, "ocean/test/rayleigh_test_b.csv")
-        print("reading {0}".format(fullfile))
+        fullfile = os.path.join(self.USML_DIR, "rayleigh_test_b.csv")
+        print(f"reading {fullfile}")
         labels = [r"$\alpha$=1.0", r"$\alpha$=0.5", r"$\alpha$=0.0"]
         model = np.genfromtxt(fullfile, delimiter=',')
         angle = model[1:, 0]
@@ -228,8 +232,8 @@ class TestOcean(unittest.TestCase):
         ax2.legend(h, labels)
 
         # reflection loss for changes in density
-        fullfile = os.path.join(self.USML_DIR, "ocean/test/rayleigh_test_c.csv")
-        print("reading {0}".format(fullfile))
+        fullfile = os.path.join(self.USML_DIR, "rayleigh_test_c.csv")
+        print(f"reading {fullfile}")
         labels = [r"$\rho$=1.5", r"$\rho$=2.0", r"$\rho$=2.5"]
         model = np.genfromtxt(fullfile, delimiter=',')
         angle = model[1:, 0]
@@ -244,8 +248,8 @@ class TestOcean(unittest.TestCase):
         ax3.legend(h, labels)
 
         # reflection loss for changes in shear speed
-        fullfile = os.path.join(self.USML_DIR, "ocean/test/rayleigh_test_d.csv")
-        print("reading {0}".format(fullfile))
+        fullfile = os.path.join(self.USML_DIR, "rayleigh_test_d.csv")
+        print(f"reading {fullfile}")
         labels = [r"$c_s$=0.0", r"$c_s$=200", r"$c_s$=400", r"$c_s$=600"]
         model = np.genfromtxt(fullfile, delimiter=',')
         angle = model[1:, 0]
@@ -259,8 +263,8 @@ class TestOcean(unittest.TestCase):
         ax4.set_title(r"$c_p$=1600 $\rho$=2 $\alpha$=0.5")
         ax4.legend(h, labels)
 
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_wave_height_pierson(self):
@@ -272,8 +276,8 @@ class TestOcean(unittest.TestCase):
         print("=== " + testname + " ===")
 
         # read analytic ocean profiles from disk
-        fullfile = os.path.join(self.USML_DIR, "ocean/test/wave_height_pierson_test.csv")
-        print("reading {0}".format(fullfile))
+        fullfile = os.path.join(self.USML_DIR, "wave_height_pierson_test.csv")
+        print(f"reading {fullfile}")
         model = np.genfromtxt(fullfile, delimiter=',')
         wind_speed = model[1:, 0]
         wave_height = model[1:, 1]
@@ -286,8 +290,9 @@ class TestOcean(unittest.TestCase):
         ax.set_xlabel('Wind Speed (m/s)')
         ax.set_ylabel('Significant Wave Height (m)')
 
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+        output = fullfile.replace(".csv", ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
 

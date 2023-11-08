@@ -25,7 +25,7 @@ class TestProfile(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "netcdf/test/flstrts_temperature.nc")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         profile = usml.netcdf.Profile(filename)
         x, y = np.meshgrid(profile.longitude, profile.latitude)
         v = profile.data[0, :, :]
@@ -40,8 +40,10 @@ class TestProfile(unittest.TestCase):
         ax.set_title("WOA09 Sea Surface Temperature in Florida Straits")
         cbar = fig.colorbar(surface)
         cbar.ax.set_title("Temp (C)")
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+
+        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_profile_woa(self):
@@ -54,7 +56,7 @@ class TestProfile(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "data/woa09/temperature_monthly_1deg.nc")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         profile = usml.netcdf.Profile(filename, lat_range=(20, 30), lng_range=(279, 289))
         x, y = np.meshgrid(profile.longitude, profile.latitude)
         v = profile.data[6, 0, :, :]
@@ -69,8 +71,10 @@ class TestProfile(unittest.TestCase):
         ax.set_title("WOA09 Sea Surface Temperature in Florida Straits")
         cbar = fig.colorbar(surface)
         cbar.ax.set_title("Temp (C)")
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+
+        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_profile_hycom(self):
@@ -92,7 +96,7 @@ class TestProfile(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "netcdf/test/hycom_ts3z.nc4")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         profile = usml.netcdf.Profile(filename, profile_name="water_temp")
         x, y = np.meshgrid(profile.longitude - 360.0, profile.latitude)
         v = profile.data[0, :, :]
@@ -107,8 +111,10 @@ class TestProfile(unittest.TestCase):
         ax.set_title("WOA09 Sea Surface Temperature in Florida Straits")
         cbar = fig.colorbar(surface)
         cbar.ax.set_title("Temp (C)")
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+
+        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_profile_grid(self):
@@ -121,7 +127,7 @@ class TestProfile(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "netcdf/test/hycom_grid.nc")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         profile = usml.netcdf.Profile(filename)
         x, y = np.meshgrid(profile.longitude, profile.latitude)
         v = profile.data[0, :, :]
@@ -136,8 +142,10 @@ class TestProfile(unittest.TestCase):
         ax.set_title("WOA09 Sea Surface Temperature in Florida Straits")
         cbar = fig.colorbar(surface)
         cbar.ax.set_title("Temp (C)")
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+
+        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
 

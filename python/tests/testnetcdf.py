@@ -22,7 +22,7 @@ class TestNetCDF(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "eigenrays/test/create_eigenray.nc")
-        print("reading {0}".format(filename))
+        print("reading {filename}")
         eigenray_list = usml.netcdf.EigenrayList(filename)
 
         # check that header arrays are the right size
@@ -73,7 +73,7 @@ class TestNetCDF(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "eigenverbs/test/create_eigenverbs.nc")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         verbs = usml.netcdf.read(filename)
         verb_shape = verbs.travel_time.shape
         freq_shape = verbs.frequencies.shape
@@ -110,8 +110,10 @@ class TestNetCDF(unittest.TestCase):
         ax.set_xlabel("Longitude (deg)")
         ax.set_ylabel("Latitude (deg)")
         ax.set_title(testname)
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+
+        output = os.path.join(self.USML_DIR, f"eigenverbs/test/{testname}.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_eigenverb_pair(self):
@@ -133,14 +135,14 @@ class TestNetCDF(unittest.TestCase):
 
         # load source eigenverb data from disk and plot it
         filename = os.path.join(self.USML_DIR, "sensors/test/src_eigenverbs_2_4.nc")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         verbs = usml.netcdf.read(filename)
         index = np.where(verbs.surface == 0)
         usml.plot.plot_eigenverbs_2d(ax, verbs, index[0])
 
         # load source eigenverb data from disk and plot it
         filename = os.path.join(self.USML_DIR, "sensors/test/rcv_eigenverbs_2_4.nc")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         verbs = usml.netcdf.read(filename)
         index = np.where(verbs.surface == 0)
         usml.plot.plot_eigenverbs_2d(ax, verbs, index[0])
@@ -151,8 +153,10 @@ class TestNetCDF(unittest.TestCase):
         ax.set_xlabel("Longitude (deg)")
         ax.set_ylabel("Latitude (deg)")
         ax.set_title(testname)
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+
+        output = os.path.join(self.USML_DIR, f"sensors/test/{testname}.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_fathometers(self):
@@ -163,7 +167,7 @@ class TestNetCDF(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "sensors/test/dirpaths_2_4.nc")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         eigenray_list = usml.netcdf.EigenrayList(filename)
 
         # check that header arrays are the right size
@@ -202,7 +206,7 @@ class TestNetCDF(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "sensors/test/biverbs_2_4.nc")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         verbs = usml.netcdf.read(filename)
         verb_shape = verbs.travel_time.shape
         freq_shape = verbs.frequencies.shape
@@ -233,7 +237,7 @@ class TestNetCDF(unittest.TestCase):
 
         # test the ability to load data from disk
         filename = os.path.join(self.USML_DIR, "waveq3d/test/eigenverb_demo_wave.nc")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         wavefront = usml.netcdf.read(filename)
         time_shape = wavefront.travel_time.shape
         de_shape = wavefront.source_de.shape
@@ -263,7 +267,9 @@ class TestNetCDF(unittest.TestCase):
         ax.set_title("eigenverb_demo_wave")
         ax.set_xlabel("Range (km)")
         ax.set_ylabel("Depth (m)")
-        print("saving {0}.png".format(output))
+
+        output = os.path.join(self.USML_DIR, f"waveq3d/test/{testname}_2d.png")
+        print(f"saving {output}")
         plt.savefig(output)
         plt.close()
 
@@ -280,13 +286,14 @@ class TestNetCDF(unittest.TestCase):
         usml.plot.plot_wavefront_3d(ax, wavefront, az=az_list, de=de_list, time=2.0, color="green", alpha=0.5)
         usml.plot.plot_raytrace_3d(ax, wavefront, az=az_list, de=de_list)
 
-        output = testname + "_3d"
         ax.grid(True)
         ax.set_title("eigenverb_demo_wave")
         ax.set_xlabel("Longitude (deg)")
         ax.set_ylabel("Latitude (deg)")
         ax.set_zlabel("Depth (m)")
-        print("saving {0}.png".format(output))
+
+        output = os.path.join(self.USML_DIR, f"waveq3d/test/{testname}_3d.png")
+        print(f"saving {output}")
         plt.savefig(output)
         plt.close()
 

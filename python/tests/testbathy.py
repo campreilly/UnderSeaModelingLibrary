@@ -38,7 +38,7 @@ class TestBathy(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "netcdf/test/etopo_cmp.nc")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         bathymetry = usml.netcdf.Bathymetry(filename)
 
         # test the latitude and longitude extents of the bathymetry
@@ -59,8 +59,10 @@ class TestBathy(unittest.TestCase):
         ax.set_title("ETOPO1 Bathymetry Around Hawaii")
         cbar = fig.colorbar(surface)
         cbar.ax.set_title("Depth (m)")
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+
+        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_bathy_grid_3d(self):
@@ -87,7 +89,7 @@ class TestBathy(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "netcdf/test/grid_2d_test.nc")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         bathymetry = usml.netcdf.Bathymetry(filename)
 
         # test the latitude and longitude extents of the bathymetry
@@ -108,8 +110,10 @@ class TestBathy(unittest.TestCase):
         ax.set_title("ETOPO1 Bathymetry Around Malta Escarpment")
         cbar = fig.colorbar(surface)
         cbar.ax.set_title("Depth (m)")
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+
+        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_bathy_etopo_3d(self):
@@ -133,7 +137,7 @@ class TestBathy(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "data/bathymetry/ETOPO1_Ice_g_gmt4.grd")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         bathymetry = usml.netcdf.Bathymetry(filename, lat_range=(18, 23), lng_range=(-160, -154))
 
         # test the latitude and longitude extents of the bathymetry
@@ -154,8 +158,10 @@ class TestBathy(unittest.TestCase):
         ax.set_title("ETOPO1 Bathymetry Around Hawaii")
         cbar = fig.colorbar(surface)
         cbar.ax.set_title("Depth (m)")
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+
+        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
     def test_bathy_etopo_2d(self):
@@ -177,7 +183,7 @@ class TestBathy(unittest.TestCase):
 
         # load data from disk
         filename = os.path.join(self.USML_DIR, "data/bathymetry/ETOPO1_Ice_g_gmt4.grd")
-        print("reading {0}".format(filename))
+        print(f"reading {filename}")
         bathymetry = usml.netcdf.Bathymetry(filename, lat_range=(18, 23), lng_range=(-160, -154))
 
         # draw 2D depth vs. range plot
@@ -189,8 +195,10 @@ class TestBathy(unittest.TestCase):
         ax.set_ylim(top=0)
         ax.grid(visible=True)
         ax.set_title("ETOPO1 Bathymetry from 19N 159W at 45 degrees")
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+
+        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
 

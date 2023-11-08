@@ -9,7 +9,8 @@ import numpy as np
 
 
 class TestTypes(unittest.TestCase):
-    USML_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
+    USML_DIR = os.path.join(os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))),
+                            "types", "test")
 
     def test_seq_rayfan(self):
         """Plot angle set of tangent spaced beams to illustrate features of USML's seq_rayfan class.
@@ -39,7 +40,7 @@ class TestTypes(unittest.TestCase):
         fig, (ax1, ax2) = plt.subplots(2)
 
         ax1.plot(x / 1e3, y, 'k-')
-        ax1.set_title("{} uniformly spaced rays".format(num))
+        ax1.set_title(f"{num} uniformly spaced rays")
         ax1.set_xlim(0, 10)
         ax1.set_ylim(-200, 0)
         ax1.set_xticklabels([])
@@ -57,21 +58,24 @@ class TestTypes(unittest.TestCase):
         y = -75.0 + rr * np.sin(aa)
 
         ax2.plot(x / 1e3, y, 'k-')
-        ax2.set_title("{} tangent spaced rays".format(num))
+        ax2.set_title(f"{num} tangent spaced rays")
         ax2.set_xlim(0, 10)
         ax2.set_ylim(-200, 0)
         ax2.set_xlabel('Range (km)')
         ax2.set_ylabel('Depth (m)')
 
-        print("saving {0}.png".format(testname))
-        plt.savefig(testname)
+        output = os.path.join(self.USML_DIR, f"{testname}.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
         fig, ax3 = plt.subplots(subplot_kw={'projection': 'polar'})
         ax3.plot(angle, np.ones(angle.shape), 'o')
         ax3.set_title("std = {:.3f} deg, min diff = {:.3f} deg".format(np.std(angle), np.min(np.diff(angle))))
-        print("saving {0}.png".format(testname + "_polar"))
-        plt.savefig(testname + "_polar")
+
+        output = os.path.join(self.USML_DIR, f"{testname}_polar.png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
 

@@ -50,15 +50,16 @@ def test_cycles(self, testname: str, source_depth: float, source_angles: np.ndar
     ax2.set_ylabel("Cycle Time (msec)")
     ax2.legend(["Cartesian", "Spherical"])
 
-    print(f"saving {testname}.png")
-    plt.savefig(testname)
+    output = os.path.join(self.USML_DIR, testname + ".png")
+    print(f"saving {output}")
+    plt.savefig(output)
     plt.close()
 
     self.assertLess(np.abs(cart_cycle_ranges - sphr_cycle_ranges).max(), 0.5)
     self.assertLess(np.abs(cart_cycle_times - cart_cycle_times).max(), 0.5e-3)
 
 
-def analyze_rayttace(filename: str) -> None:
+def analyze_ray_trace(filename: str) -> None:
     """
 
     :param filename:
@@ -73,15 +74,15 @@ def analyze_rayttace(filename: str) -> None:
     de_theory = results[::10, 6]
 
     fig, (ax1, ax2, ax3) = plt.subplots(3)
-    ax1.plot(range_theory/1e3, (time_model - time_theory) * 1e3, ".")
+    ax1.plot(range_theory / 1e3, (time_model - time_theory) * 1e3, ".")
     ax1.grid(True)
     ax1.set_ylabel('Time Diff (msec)')
 
-    ax2.plot(range_theory/1e3, (range_model - range_theory), ".")
+    ax2.plot(range_theory / 1e3, (range_model - range_theory), ".")
     ax2.grid(True)
     ax2.set_ylabel('Range Diff (m)')
 
-    ax3.plot(range_theory/1e3, (de_model - de_theory), ".")
+    ax3.plot(range_theory / 1e3, (de_model - de_theory), ".")
     ax3.grid(True)
     ax3.set_ylabel('D/E Diff (deg)')
     ax3.set_xlabel('Range (km)')
@@ -138,8 +139,8 @@ def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.n
     ax4.set_ylabel("Target D/E (deg)")
     ax4.legend(["Cartesian", "Spherical"])
 
-    output = testname + "_direct"
-    print(f"saving {output}.png")
+    output = os.path.join(self.USML_DIR, testname + "_direct.png")
+    print(f"saving {output}")
     plt.savefig(output)
     plt.close()
 
@@ -174,8 +175,8 @@ def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.n
     ax4.set_ylabel("Target D/E (deg)")
     ax4.legend(["Cartesian", "Spherical"])
 
-    output = testname + "_folded"
-    print(f"saving {output}.png")
+    output = os.path.join(self.USML_DIR, testname + "_folded.png")
+    print(f"saving {output}")
     plt.savefig(output)
     plt.close()
 
@@ -368,7 +369,7 @@ def compare_models(self, output: str, grab: usml.netcdf.Eigenrays, wq3d: usml.ne
     ax4.set_ylabel("Target D/E (deg)")
     ax4.legend(["CASS/GRAB", "USML/WaveQ3D", "Analytic"])
 
-    print(f"saving {output}.png")
+    print(f"saving {output}")
     plt.savefig(output)
     plt.close()
 
@@ -397,14 +398,15 @@ def compare_totals(self, output: str, grab: np.ndarray, wq3d: usml.netcdf.Eigenr
     ax.legend(["CASS/GRAB", "USML/WaveQ3D", "Analytic"])
     ax.set_ylim(-100, -40)
 
-    print(f"saving {output}.png")
+    print(f"saving {output}")
     plt.savefig(output)
     plt.close()
 
 
 class TestPedersen(unittest.TestCase):
     """Unit tests for USML Pedersen study"""
-    USML_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
+    USML_DIR = os.path.join(os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))),
+                            "studies", "pedersen")
 
     @classmethod
     def setUpClass(cls):
@@ -463,7 +465,7 @@ class TestPedersen(unittest.TestCase):
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_shallow_raytrace.nc")
+        filename = os.path.join(self.USML_DIR, "pedersen_shallow_raytrace.nc")
         wavefront = usml.netcdf.read(filename)
         de_list = wavefront.source_de
         de_direct = de_list[np.asarray(de_list < 18.82).nonzero()]
@@ -481,14 +483,16 @@ class TestPedersen(unittest.TestCase):
         ax.set_ylim(-500, 0)
         ax.set_title(f"Wavefront at {time:.3f} secs")
 
-        print(f"saving {testname}.png")
-        plt.savefig(testname)
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
-        output = testname + "_compare"
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_shallow_raytrace.csv")
-        analyze_rayttace(filename)
-        print(f"saving {output}.png")
+        filename = os.path.join(self.USML_DIR, "pedersen_shallow_raytrace.csv")
+        analyze_ray_trace(filename)
+
+        output = os.path.join(self.USML_DIR, testname + "_compare.png")
+        print(f"saving {output}")
         plt.savefig(output)
         plt.close()
 
@@ -497,7 +501,7 @@ class TestPedersen(unittest.TestCase):
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_raytrace.nc")
+        filename = os.path.join(self.USML_DIR, "pedersen_deep_raytrace.nc")
         wavefront = usml.netcdf.read(filename)
 
         de_list = wavefront.source_de
@@ -516,14 +520,16 @@ class TestPedersen(unittest.TestCase):
         ax.set_ylim(-1200, 0)
         ax.set_title(f"Wavefront at {time:.3f} secs")
 
-        print(f"saving {testname}.png")
-        plt.savefig(testname)
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
 
-        output = testname + "_compare"
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_raytrace.csv")
-        analyze_rayttace(filename)
-        print(f"saving {output}.png")
+        filename = os.path.join(self.USML_DIR, "pedersen_deep_raytrace.csv")
+        analyze_ray_trace(filename)
+
+        output = os.path.join(self.USML_DIR, testname + "_compare.png")
+        print(f"saving {output}")
         plt.savefig(output)
         plt.close()
 
@@ -539,31 +545,29 @@ class TestPedersen(unittest.TestCase):
 
         analytic = usml.pedersen.PedersenCartesian()
         analytic_direct, analytic_folded = analytic.eigenrays(source_depth, source_angles, target_depth, target_ranges)
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/ffp_n2shallow.csv")
+        filename = os.path.join(self.USML_DIR, "ffp_n2shallow.csv")
         analytic_total = np.loadtxt(filename, delimiter=",")
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/grab_eigenrays_shallow.txt")
+        filename = os.path.join(self.USML_DIR, "grab_eigenrays_shallow.txt")
         grab_direct = grab_eigenrays(filename, 0, 0, 1, 0)
         grab_folded = grab_eigenrays(filename, 1, 0, 0, 0)
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/grab_pressure_shallow.csv")
+        filename = os.path.join(self.USML_DIR, "grab_pressure_shallow.csv")
         grab_total = np.loadtxt(filename, delimiter=",")
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_shallow_proploss.nc")
+        filename = os.path.join(self.USML_DIR, "pedersen_shallow_proploss.nc")
         wq3d_direct = wq3d_eigenrays(filename, 0, 0, 1, 0, 0.0)
         wq3d_folded = wq3d_eigenrays(filename, 1, 0, 0, 0)
         wq3d_total = wq3d_proploss(filename)
 
-        output = testname + "_direct"
+        output = os.path.join(self.USML_DIR, testname + "_direct.png")
         compare_models(self, output, grab_direct, wq3d_direct, analytic_direct)
-        plt.suptitle("Direct Path")
 
-        output = testname + "_folded"
+        output = os.path.join(self.USML_DIR, testname + "_folded.png")
         compare_models(self, output, grab_folded, wq3d_folded, analytic_folded)
-        plt.suptitle("Surface Reflected Path")
 
         output = testname + "_total"
+        output = os.path.join(self.USML_DIR, testname + "_total.png")
         compare_totals(self, output, grab_total, wq3d_total, analytic_total)
-        plt.suptitle("Coherent Totals")
 
     def test_pedersen_compare_deep(self):
         """Compare eigenray solutions for deep source. """
@@ -577,31 +581,28 @@ class TestPedersen(unittest.TestCase):
 
         analytic = usml.pedersen.PedersenCartesian()
         analytic_direct, analytic_folded = analytic.eigenrays(source_depth, source_angles, target_depth, target_ranges)
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/ffp_n2deep.csv")
+        filename = os.path.join(self.USML_DIR, "ffp_n2deep.csv")
         analytic_total = np.loadtxt(filename, delimiter=",")
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/grab_eigenrays_deep.txt")
+        filename = os.path.join(self.USML_DIR, "grab_eigenrays_deep.txt")
         grab_direct = grab_eigenrays(filename, 0, 0, 1, 0, 0.0)
         grab_folded = grab_eigenrays(filename, 0, 0, 1, 0, -90.0)
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/grab_pressure_deep.csv")
+        filename = os.path.join(self.USML_DIR, "grab_pressure_deep.csv")
         grab_total = np.loadtxt(filename, delimiter=",")
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_proploss.nc")
+        filename = os.path.join(self.USML_DIR, "pedersen_deep_proploss.nc")
         wq3d_direct = wq3d_eigenrays(filename, 0, 0, 1, 0, 0.0)
         wq3d_folded = wq3d_eigenrays(filename, 0, 0, 1, 0, -90.0)
         wq3d_total = wq3d_proploss(filename)
 
-        output = testname + "_direct"
+        output = os.path.join(self.USML_DIR, testname + "_direct.png")
         compare_models(self, output, grab_direct, wq3d_direct, analytic_direct)
-        plt.suptitle("Direct Path")
 
-        output = testname + "_folded"
+        output = os.path.join(self.USML_DIR, testname + "_folded.png")
         compare_models(self, output, grab_folded, wq3d_folded, analytic_folded)
-        plt.suptitle("Caustic Path")
 
-        output = testname + "_total"
+        output = os.path.join(self.USML_DIR, testname + "_total.png")
         compare_totals(self, output, grab_total, wq3d_total, analytic_total)
-        plt.suptitle("Coherent Totals")
 
     def test_pedersen_sensitivity(self):
         """Compare eigenray solutions for different ray spacing options.
@@ -611,22 +612,22 @@ class TestPedersen(unittest.TestCase):
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/ffp_n2deep.csv")
+        filename = os.path.join(self.USML_DIR, "ffp_n2deep.csv")
         analytic = np.loadtxt(filename, delimiter=",")
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_sensitivity_0125.nc")
+        filename = os.path.join(self.USML_DIR, "pedersen_deep_sensitivity_0125.nc")
         total_0125 = wq3d_proploss(filename)
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_sensitivity_0250.nc")
+        filename = os.path.join(self.USML_DIR, "pedersen_deep_sensitivity_0250.nc")
         total_0250 = wq3d_proploss(filename)
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_sensitivity_0500.nc")
+        filename = os.path.join(self.USML_DIR, "pedersen_deep_sensitivity_0500.nc")
         total_0500 = wq3d_proploss(filename)
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_sensitivity_1000.nc")
+        filename = os.path.join(self.USML_DIR, "pedersen_deep_sensitivity_1000.nc")
         total_1000 = wq3d_proploss(filename)
 
-        filename = os.path.join(self.USML_DIR, "studies/pedersen/pedersen_deep_sensitivity_tan.nc")
+        filename = os.path.join(self.USML_DIR, "pedersen_deep_sensitivity_tan.nc")
         total_tan = wq3d_proploss(filename)
 
         fig, ax = plt.subplots()
@@ -643,6 +644,7 @@ class TestPedersen(unittest.TestCase):
         ax.legend(["Analytic", "$1/8^o$ spacing", "$1/4^o$ spacing", "$1/2^o$ spacing", "$1^o$ spacing", "tan spacing"])
         ax.set_ylim(-100, -40)
 
-        print(f"saving {testname}.png")
-        plt.savefig(testname)
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
         plt.close()
