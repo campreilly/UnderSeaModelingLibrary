@@ -363,7 +363,8 @@ BOOST_AUTO_TEST_CASE(pedersen_shallow_proploss) {
  * solution for the deep source, N^2 linear test case developed by Pedersen and
  * Gordon. The source is located at a depth of 1000 meters. Receivers have a
  * depth of 800 meters and ranges from 3000 to 3120 meters. Uses rays from 20 to
- * 60 degrees at a 0.25 deg spacing.
+ * 60 degrees at a 0.1 deg spacing. Finer spacing than this can result in more
+ * than a single eigenray per path, and that messes up out plotting routines.
  *
  * We found that tangent spaced beams did not work very well for this
  * scenario.  Several combinations of parameters lead to artifacts in the
@@ -380,15 +381,15 @@ BOOST_AUTO_TEST_CASE(pedersen_shallow_proploss) {
 BOOST_AUTO_TEST_CASE(pedersen_deep_proploss) {
     cout << "=== pedersen_deep_proploss ===" << endl;
     seq_vector::csptr ranges(new seq_linear(3000.0, 0.25, 3120.0));
-    seq_vector::csptr de(new seq_linear(20.0, 0.25, 60.0));
+    seq_vector::csptr de(new seq_linear(20.0, 0.1, 60.0));
     analyze_proploss(de, -1000.0, -800.0, ranges, 0.01, 3.5,
                      USML_STUDIES_DIR "/pedersen/pedersen_deep_proploss.nc");
 }
 
 /**
  * Tests the sensitivity of the eigenray_collection model the D/E angular
- * resolution near the caustic. The source is located at a depth of 1000 yds.
- * Receivers have a depth of 800 yds and ranges from 3100 to 3180 yds. Uses a
+ * resolution near the caustic. The source is located at a depth of 1000 m.
+ * Receivers have a depth of 800 m and ranges from 3100 to 3120 m. Uses a
  * ray fan from +40 to +51 degrees with increments of 0.025, 0.05, 0.10, and
  * 0.20 degrees. This configuration test the models sensitivity to ray spacing
  * near the caustic.
@@ -396,34 +397,34 @@ BOOST_AUTO_TEST_CASE(pedersen_deep_proploss) {
  * The N^2 linear test case developed by Pedersen and Gordon was specifically
  * chosen because we expect it to be very sensitive to the ray geometry near
  * the caustic.  This sensitivity is especially true for the deep source
- * varient, because the profile below 200 meters is more extreme than those
+ * variant, because the profile below 200 meters is more extreme than those
  * found in the real world.
  */
 BOOST_AUTO_TEST_CASE(pedersen_deep_sensitivity) {
     cout << "=== pedersen_deep_sensitivity ===" << endl;
     seq_vector::csptr ranges(new seq_linear(3000.0, 0.25, 3120.0));
 
-    seq_vector::csptr de(new seq_linear(-90.0, 90.0, 181, true));
+    seq_vector::csptr de(new seq_rayfan(-90.0, 90.0, 181, true));
     analyze_proploss(
         de, -1000, -800.0, ranges, 0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_tan.nc");
 
-    seq_vector::csptr de1000(new seq_linear(40.00, 0.100, 60.00));
+    seq_vector::csptr de1000(new seq_linear(20.00, 0.100, 60.00));
     analyze_proploss(
         de1000, -1000, -800.0, ranges, 0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_1000.nc");
 
-    seq_vector::csptr de0500(new seq_linear(40.00, 0.05000, 60.00));
+    seq_vector::csptr de0500(new seq_linear(20.00, 0.05000, 60.00));
     analyze_proploss(
         de0500, -1000, -800.0, ranges, 0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0500.nc");
 
-    seq_vector::csptr de0250(new seq_linear(40.00, 0.0250, 60.00));
+    seq_vector::csptr de0250(new seq_linear(20.00, 0.0250, 60.00));
     analyze_proploss(
         de0250, -1000, -800.0, ranges, 0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0250.nc");
 
-    seq_vector::csptr de0125(new seq_linear(40.00, 0.0125, 60.00));
+    seq_vector::csptr de0125(new seq_linear(20.00, 0.0125, 60.00));
     analyze_proploss(
         de0125, -1000, -800.0, ranges, 0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0125.nc");

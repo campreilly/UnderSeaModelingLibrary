@@ -1,10 +1,9 @@
 """Use analytic solutions to test WaveQ3D results for Pedersen n^2 linear ocean sound speed profile
-
-TODO Errors in total TL and arrival time under conditions specified in original testing report.
 """
 import inspect
 import os
 import unittest
+from typing import Tuple
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -16,11 +15,11 @@ import usml.pedersen
 import usml.plot
 
 
-def test_cycles(self, testname: str, source_depth: float, source_angles: np.ndarray) -> None:
+def test_analytic_cycles(self, testname: str, source_depth: float, source_angles: np.ndarray) -> None:
     """Compare cycle range/time analytic solutions in cartesian and spherical coordinate.
 
     Our tests use calculation of the cycle range to esimtate the travel time, source angle, and target angle for each
-    eigenray. This test checks to see if the Carteisan version of the cycle range model match the results in
+    eigenray. This test checks to see if the Carteisan version of the cycle range model matches the results in
     Spherical Coordinates with an earth flattening correction. Acts as a unit test for the cycle range analytic
     solutions. Test fails if the maximum difference between cycle ranges is greater than 0.5 m or if the maximum
     difference between cycle times is greater than 0.5 msec.
@@ -59,40 +58,11 @@ def test_cycles(self, testname: str, source_depth: float, source_angles: np.ndar
     self.assertLess(np.abs(cart_cycle_times - cart_cycle_times).max(), 0.5e-3)
 
 
-def analyze_ray_trace(filename: str) -> None:
-    """
-
-    :param filename:
-    """
-    results = np.loadtxt(filename, skiprows=1, delimiter=",")
-    de_launch = results[::10, 0]
-    time_model = results[::10, 1]
-    time_theory = results[::10, 2]
-    range_model = results[::10, 3]
-    range_theory = results[::10, 4]
-    de_model = results[::10, 5]
-    de_theory = results[::10, 6]
-
-    fig, (ax1, ax2, ax3) = plt.subplots(3)
-    ax1.plot(range_theory / 1e3, (time_model - time_theory) * 1e3, ".")
-    ax1.grid(True)
-    ax1.set_ylabel('Time Diff (msec)')
-
-    ax2.plot(range_theory / 1e3, (range_model - range_theory), ".")
-    ax2.grid(True)
-    ax2.set_ylabel('Range Diff (m)')
-
-    ax3.plot(range_theory / 1e3, (de_model - de_theory), ".")
-    ax3.grid(True)
-    ax3.set_ylabel('D/E Diff (deg)')
-    ax3.set_xlabel('Range (km)')
-
-
-def test_eigenrays(self, testname: str, source_depth: float, source_angles: np.ndarray, target_depth: float,
-                   target_ranges: np.ndarray) -> None:
+def test_analytic_eigenrays(self, testname: str, source_depth: float, source_angles: np.ndarray, target_depth: float,
+                            target_ranges: np.ndarray) -> None:
     """Compare eigenray analytic solutions in cartesian and spherical coordinate.
 
-    This test checks to see if the Carteisan version of the eigneray analytic solution match the results in Spherical
+    This test checks to see if the Carteisan version of the eigneray analytic solution matches the results in Spherical
     Coordinates with an earth flattening correction. Acts as a unit test for the eigenray analytic solutions. Test
     fails if the maximum difference between travel times ranges is greater than 0.001 sec or if the maximum difference
     between angles is greater than 0.1 degrees.
@@ -244,14 +214,21 @@ def wq3d_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase:
     """
     model = usml.netcdf.EigenrayList(filename)
 
-    earth_radius = 6366.71e3
+    earth_radius = 6378101.030201019  # earth radius at 45 deg north
     rays = usml.netcdf.Eigenrays()
     rays.horz_range = list()
     rays.travel_time = list()
     rays.source_de = list()
+    rays.source_az = list()
     rays.target_de = list()
+    rays.target_az = list()
     rays.intensity = list()
     rays.phase = list()
+    rays.bottom = list()
+    rays.surface = list()
+    rays.caustic = list()
+    rays.upper = list()
+    rays.lower = list()
 
     for target_list in model.eigenrays:
         for target in target_list:
@@ -259,27 +236,41 @@ def wq3d_eigenrays(filename: str, srf: int, btm: int, upr: int, lwr: int, phase:
                 model_phase = np.round(np.degrees(target.phase.item(n)))
                 model_srf = target.surface.item(n)
                 model_btm = target.bottom.item(n)
+                model_cst = target.caustic.item(n)
                 model_upr = target.upper.item(n)
                 model_lwr = target.lower.item(n)
 
-                ok = model_srf == srf and model_btm == btm
-                ok = ok and model_upr == upr and model_lwr == lwr
+                ok = model_srf == srf and model_btm == btm and model_upr == upr and model_lwr == lwr
                 if phase is not None:
                     ok = ok and model_phase == phase
 
                 if ok:
                     rays.travel_time.append(target.travel_time.item(n))
                     rays.source_de.append(target.source_de.item(n))
+                    rays.source_az.append(target.source_az.item(n))
                     rays.target_de.append(target.target_de.item(n))
+                    rays.target_az.append(target.target_az.item(n))
                     rays.intensity.append(-target.intensity.item(n))
                     rays.phase.append(model_phase)
+                    rays.bottom.append(model_btm)
+                    rays.surface.append(model_btm)
+                    rays.caustic.append(model_btm)
+                    rays.upper.append(model_btm)
+                    rays.lower.append(model_btm)
 
     rays.horz_range = np.radians(model.latitude[:, 0] - model.source_latitude) * earth_radius
     rays.travel_time = np.asarray(rays.travel_time)
     rays.source_de = np.asarray(rays.source_de)
+    rays.source_az = np.asarray(rays.source_az)
     rays.target_de = np.asarray(rays.target_de)
+    rays.target_az = np.asarray(rays.target_az)
     rays.intensity = np.asarray(rays.intensity)
     rays.phase = np.asarray(rays.phase)
+    rays.bottom = np.asarray(rays.bottom)
+    rays.surface = np.asarray(rays.surface)
+    rays.caustic = np.asarray(rays.caustic)
+    rays.upper = np.asarray(rays.upper)
+    rays.lower = np.asarray(rays.lower)
 
     return rays
 
@@ -295,7 +286,7 @@ def wq3d_proploss(filename: str) -> usml.netcdf.Eigenrays:
     """
     model = usml.netcdf.EigenrayList(filename, proploss=True)
 
-    earth_radius = 6366.71e3
+    earth_radius = 6378101.030201019  # earth radius at 45 deg north
     rays = usml.netcdf.Eigenrays()
     rays.horz_range = list()
     rays.travel_time = list()
@@ -323,12 +314,44 @@ def wq3d_proploss(filename: str) -> usml.netcdf.Eigenrays:
     return rays
 
 
-def compare_models(self, output: str, grab: usml.netcdf.Eigenrays, wq3d: usml.netcdf.Eigenrays,
-                   analytic: usml.netcdf.Eigenrays) -> None:
+def plot_ray_differences(filename: str) -> None:
+    """Compare modeled ray trace to analytic results.
+
+    The analyze_raytrace unit test in pedersen_test.cc compares the modeled results for travel time, range,
+    and depression/elevation angle to their analytic solution, and it writes the results to a *.csv file. The unit
+    test analyzes this data for the maximum difference. But this utility plots the differences to provide the tester
+    with an overview of the difference trendes.
+
+    :param filename:    CSV file to load
+    """
+    results = np.loadtxt(filename, skiprows=1, delimiter=",")
+    de_launch = results[::10, 0]
+    time_model = results[::10, 1]
+    time_theory = results[::10, 2]
+    range_model = results[::10, 3]
+    range_theory = results[::10, 4]
+    de_model = results[::10, 5]
+    de_theory = results[::10, 6]
+
+    fig, (ax1, ax2, ax3) = plt.subplots(3)
+    ax1.plot(range_theory / 1e3, (time_model - time_theory) * 1e3, ".")
+    ax1.grid(True)
+    ax1.set_ylabel('Time Diff (msec)')
+
+    ax2.plot(range_theory / 1e3, (range_model - range_theory), ".")
+    ax2.grid(True)
+    ax2.set_ylabel('Range Diff (m)')
+
+    ax3.plot(range_theory / 1e3, (de_model - de_theory), ".")
+    ax3.grid(True)
+    ax3.set_ylabel('D/E Diff (deg)')
+    ax3.set_xlabel('Range (km)')
+
+
+def compare_eigenray_models(self, output: str, grab: usml.netcdf.Eigenrays, wq3d: usml.netcdf.Eigenrays,
+                            analytic: usml.netcdf.Eigenrays, tl_lim: Tuple, ang_lim: Tuple, time_lim: Tuple) -> None:
     """Compare eigenrays computed by different models for individual paths
 
-    TODO Compute quantitave differences
-    
     :param self:        unit test that called this function
     :param output:      filename for plot outputs
     :param grab:        eigenrays from CASS/GRAB model
@@ -346,18 +369,21 @@ def compare_models(self, output: str, grab: usml.netcdf.Eigenrays, wq3d: usml.ne
     ax1.plot(grab.horz_range / 1e3, grab.intensity, ":", linewidth=3.0)
     ax1.plot(wq3d.horz_range / 1e3, wq3d.intensity, "--")
     ax1.grid(True)
+    ax1.set_ylim(tl_lim[0], tl_lim[1])
     ax1.set_ylabel("Propagation Loss (dB)")
 
     ax2.plot(grab.horz_range / 1e3, grab.travel_time * 1e3, ":", linewidth=3.0)
     ax2.plot(wq3d.horz_range / 1e3, wq3d.travel_time * 1e3, "--")
     ax2.plot(analytic.horz_range / 1e3, analytic.travel_time * 1e3)
     ax2.grid(True)
+    ax2.set_ylim(time_lim[0], time_lim[1])
     ax2.set_ylabel("Travel Time - Bulk (msec)")
 
     ax3.plot(grab.horz_range / 1e3, grab.source_de, ":", linewidth=3.0)
     ax3.plot(wq3d.horz_range / 1e3, wq3d.source_de, "--")
     ax3.plot(analytic.horz_range / 1e3, analytic.source_de)
     ax3.grid(True)
+    ax3.set_ylim(ang_lim[0], ang_lim[1])
     ax3.set_xlabel("Target Range (km)")
     ax3.set_ylabel("Source D/E (deg)")
 
@@ -365,6 +391,7 @@ def compare_models(self, output: str, grab: usml.netcdf.Eigenrays, wq3d: usml.ne
     ax4.plot(wq3d.horz_range / 1e3, wq3d.target_de, "--")
     ax4.plot(analytic.horz_range / 1e3, analytic.target_de)
     ax4.grid(True)
+    ax4.set_ylim(-ang_lim[1], -ang_lim[0])
     ax4.set_xlabel("Target Range (km)")
     ax4.set_ylabel("Target D/E (deg)")
     ax4.legend(["CASS/GRAB", "USML/WaveQ3D", "Analytic"])
@@ -374,10 +401,9 @@ def compare_models(self, output: str, grab: usml.netcdf.Eigenrays, wq3d: usml.ne
     plt.close()
 
 
-def compare_totals(self, output: str, grab: np.ndarray, wq3d: usml.netcdf.Eigenrays, analytic: np.ndarray) -> None:
+def compare_proploss_totals(self, output: str, grab: np.ndarray, wq3d: usml.netcdf.Eigenrays,
+                            analytic: np.ndarray) -> None:
     """Compare total propagation loss computed by different models
-
-    TODO Compute quantitave differences
 
     :param self:        unit test that called this function
     :param output:      filename for plot outputs
@@ -396,7 +422,7 @@ def compare_totals(self, output: str, grab: np.ndarray, wq3d: usml.netcdf.Eigenr
     ax.set_xlabel("Target Range (km)")
     ax.set_ylabel("Propagation Loss (dB)")
     ax.legend(["CASS/GRAB", "USML/WaveQ3D", "Analytic"])
-    ax.set_ylim(-100, -40)
+    ax.set_ylim(-80, -40)
 
     print(f"saving {output}")
     plt.savefig(output)
@@ -427,7 +453,7 @@ class TestPedersen(unittest.TestCase):
 
         source_depth = 75.0
         source_angles = np.arange(1.0, 25.0, 2.0)  # 0.1)
-        test_cycles(self, testname, source_depth, source_angles)
+        test_analytic_cycles(self, testname, source_depth, source_angles)
 
     def test_pedersen_cycles_deep(self):
         """Compare cycle range/time analytic solutions for deep source. """
@@ -436,7 +462,7 @@ class TestPedersen(unittest.TestCase):
 
         source_depth = 1000.0
         source_angles = np.arange(20.0, 60.0, 1.0)
-        test_cycles(self, testname, source_depth, source_angles)
+        test_analytic_cycles(self, testname, source_depth, source_angles)
 
     def test_pedersen_eigenrays_shallow(self):
         """Compare eigenray analytic solutions for deep source. """
@@ -447,7 +473,7 @@ class TestPedersen(unittest.TestCase):
         target_depth = 75.0
         source_angles = np.arange(1.0, 25.0, 0.1)
         target_ranges = np.arange(500.0, 1000.0, 1.0)
-        test_eigenrays(self, testname, source_depth, source_angles, target_depth, target_ranges)
+        test_analytic_eigenrays(self, testname, source_depth, source_angles, target_depth, target_ranges)
 
     def test_pedersen_eigenrays_deep(self):
         """Compare eigenray analytic solutions for deep source. """
@@ -458,7 +484,7 @@ class TestPedersen(unittest.TestCase):
         target_depth = 800.0
         source_angles = np.arange(20.0, 51.21, 0.1)
         target_ranges = np.arange(3000.0, 3100.0, 1.0)
-        test_eigenrays(self, testname, source_depth, source_angles, target_depth, target_ranges)
+        test_analytic_eigenrays(self, testname, source_depth, source_angles, target_depth, target_ranges)
 
     def test_pedersen_raytrace_shallow(self):
         """Draw ray trace for shallow source. """
@@ -471,16 +497,19 @@ class TestPedersen(unittest.TestCase):
         de_direct = de_list[np.asarray(de_list < 18.82).nonzero()]
         de_reflect = de_list[np.asarray(de_list >= 18.82).nonzero()]
         time = 0.42
+        target_ranges = np.arange(500.0, 1000.0, 1.0)
+        target_depths = -75.0 * np.ones_like(target_ranges)
 
         fig, ax = plt.subplots()
         usml.plot.plot_raytrace_2d(ax, wavefront, de=de_direct)
         usml.plot.plot_raytrace_2d(ax, wavefront, de=de_reflect, fmt="--")
         usml.plot.plot_wavefront_2d(ax, wavefront, time=time, fmt="k-")
+        ax.plot(target_ranges / 1e3, target_depths, 'k.')
         ax.grid(True)
         ax.set_xlabel('Range (km)')
         ax.set_ylabel('Depth (m)')
         ax.set_xlim(0, 1.2)
-        ax.set_ylim(-500, 0)
+        ax.set_ylim(-200, 0)
         ax.set_title(f"Wavefront at {time:.3f} secs")
 
         output = os.path.join(self.USML_DIR, testname + ".png")
@@ -489,7 +518,7 @@ class TestPedersen(unittest.TestCase):
         plt.close()
 
         filename = os.path.join(self.USML_DIR, "pedersen_shallow_raytrace.csv")
-        analyze_ray_trace(filename)
+        plot_ray_differences(filename)
 
         output = os.path.join(self.USML_DIR, testname + "_compare.png")
         print(f"saving {output}")
@@ -508,11 +537,14 @@ class TestPedersen(unittest.TestCase):
         de_direct = de_list[np.asarray(de_list < 51.21).nonzero()]
         de_reflect = de_list[np.asarray(de_list >= 51.21).nonzero()]
         time = 1.75
+        target_ranges = np.arange(3000.0, 3100.0, 1.0)
+        target_depths = -800.0 * np.ones_like(target_ranges)
 
         fig, ax = plt.subplots()
         usml.plot.plot_raytrace_2d(ax, wavefront, de=de_direct)
         usml.plot.plot_raytrace_2d(ax, wavefront, de=de_reflect, fmt="--")
         usml.plot.plot_wavefront_2d(ax, wavefront, time=time, fmt="k-")
+        ax.plot(target_ranges / 1e3, target_depths, 'k.')
         ax.grid(True)
         ax.set_xlabel('Range (km)')
         ax.set_ylabel('Depth (m)')
@@ -526,7 +558,7 @@ class TestPedersen(unittest.TestCase):
         plt.close()
 
         filename = os.path.join(self.USML_DIR, "pedersen_deep_raytrace.csv")
-        analyze_ray_trace(filename)
+        plot_ray_differences(filename)
 
         output = os.path.join(self.USML_DIR, testname + "_compare.png")
         print(f"saving {output}")
@@ -555,19 +587,23 @@ class TestPedersen(unittest.TestCase):
         grab_total = np.loadtxt(filename, delimiter=",")
 
         filename = os.path.join(self.USML_DIR, "pedersen_shallow_proploss.nc")
-        wq3d_direct = wq3d_eigenrays(filename, 0, 0, 1, 0, 0.0)
+        wq3d_direct = wq3d_eigenrays(filename, 0, 0, 1, 0)
         wq3d_folded = wq3d_eigenrays(filename, 1, 0, 0, 0)
         wq3d_total = wq3d_proploss(filename)
 
         output = os.path.join(self.USML_DIR, testname + "_direct.png")
-        compare_models(self, output, grab_direct, wq3d_direct, analytic_direct)
+        compare_eigenray_models(self, output, grab_direct, wq3d_direct, analytic_direct, tl_lim=(-90, -50),
+                                ang_lim=(8, 24),
+                                time_lim=(-20, 15))
 
         output = os.path.join(self.USML_DIR, testname + "_folded.png")
-        compare_models(self, output, grab_folded, wq3d_folded, analytic_folded)
+        compare_eigenray_models(self, output, grab_folded, wq3d_folded, analytic_folded, tl_lim=(-90, -50),
+                                ang_lim=(8, 24),
+                                time_lim=(-20, 15))
 
         output = testname + "_total"
         output = os.path.join(self.USML_DIR, testname + "_total.png")
-        compare_totals(self, output, grab_total, wq3d_total, analytic_total)
+        compare_proploss_totals(self, output, grab_total, wq3d_total, analytic_total)
 
     def test_pedersen_compare_deep(self):
         """Compare eigenray solutions for deep source. """
@@ -596,13 +632,17 @@ class TestPedersen(unittest.TestCase):
         wq3d_total = wq3d_proploss(filename)
 
         output = os.path.join(self.USML_DIR, testname + "_direct.png")
-        compare_models(self, output, grab_direct, wq3d_direct, analytic_direct)
+        compare_eigenray_models(self, output, grab_direct, wq3d_direct, analytic_direct, tl_lim=(-90, -50),
+                                ang_lim=(36, 52),
+                                time_lim=(-20, 15))
 
         output = os.path.join(self.USML_DIR, testname + "_folded.png")
-        compare_models(self, output, grab_folded, wq3d_folded, analytic_folded)
+        compare_eigenray_models(self, output, grab_folded, wq3d_folded, analytic_folded, tl_lim=(-90, -50),
+                                ang_lim=(36, 52),
+                                time_lim=(-20, 15))
 
         output = os.path.join(self.USML_DIR, testname + "_total.png")
-        compare_totals(self, output, grab_total, wq3d_total, analytic_total)
+        compare_proploss_totals(self, output, grab_total, wq3d_total, analytic_total)
 
     def test_pedersen_sensitivity(self):
         """Compare eigenray solutions for different ray spacing options.
@@ -641,8 +681,8 @@ class TestPedersen(unittest.TestCase):
         ax.grid(True)
         ax.set_xlabel("Target Range (km)")
         ax.set_ylabel("Propagation Loss (dB)")
-        ax.legend(["Analytic", "$1/8^o$ spacing", "$1/4^o$ spacing", "$1/2^o$ spacing", "$1^o$ spacing", "tan spacing"])
-        ax.set_ylim(-100, -40)
+        ax.legend(["Analytic", "$1/80^o$ spacing", "$1/40^o$ spacing", "$1/20^o$ spacing", "$1/10^o$ spacing", "tan spacing"])
+        ax.set_ylim(-80, -40)
 
         output = os.path.join(self.USML_DIR, testname + ".png")
         print(f"saving {output}")

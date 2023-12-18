@@ -1,4 +1,6 @@
 """Unit tests for USML eigenray_extra study
+
+TODO Figure out why these results don't match those in orginal paper.
 """
 import inspect
 import os
