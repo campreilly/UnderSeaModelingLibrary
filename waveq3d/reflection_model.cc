@@ -4,23 +4,20 @@
  */
 
 #include <usml/eigenverbs/eigenverb_model.h>
+#include <usml/eigenverbs/eigenverb_notifier.h>
 #include <usml/ocean/boundary_model.h>
 #include <usml/ocean/ocean_model.h>
-#include <usml/ocean/reflect_loss_model.h>
-#include <usml/ocean/scattering_model.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition.h>
 #include <usml/types/wvector.h>
 #include <usml/types/wvector1.h>
 #include <usml/waveq3d/ode_integ.h>
 #include <usml/waveq3d/reflection_model.h>
-#include <usml/waveq3d/wave_front.h>
-#include <usml/waveq3d/wave_queue.h>
+#include <usml/waveq3d/reflection_notifier.h>
 
 #include <algorithm>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
-#include <usml/eigenverbs/eigenverb_notifier.h>
 #include <cmath>
 
 using namespace usml::eigenverbs;
@@ -36,6 +33,7 @@ const double reflection_model::MIN_REFLECT = 6.0;
 bool reflection_model::bottom_reflection(size_t de, size_t az, double depth) {
     double N;
     bool shallow = false;
+    double time = _wave.time();
 
     // extract position, direction, and sound speed from this ray
     // at a point just before it goes below the bottom
@@ -136,6 +134,14 @@ bool reflection_model::bottom_reflection(size_t de, size_t az, double depth) {
         grazing = asin(-dot_full / c);
     }
 
+    // invoke bottom reflection callback
+
+    if (_wave.has_reflection_listeners()) {
+        _wave.notify_reflection_listeners(_wave.time() + time_water, de, az,
+                                          time_water, grazing, c, position,
+                                          ndirection, eigenverb_model::BOTTOM);
+    }
+
     // invoke bottom reverberation callback
 
     if (_wave.has_eigenverb_listeners()) {
@@ -204,7 +210,15 @@ bool reflection_model::surface_reflection(size_t de, size_t az) {
         return false;  // near miss of the surface
     }
 
-    // surface reverberation callback
+    // invoke surface reflection callback
+
+    if (_wave.has_reflection_listeners()) {
+        _wave.notify_reflection_listeners(_wave.time() + time_water, de, az,
+                                          time_water, grazing, c, position,
+                                          ndirection, eigenverb_model::SURFACE);
+    }
+
+    // invoke surface reverberation callback
 
     if (_wave.has_eigenverb_listeners()) {
         _wave.build_eigenverb(de, az, time_water, grazing, c, position,

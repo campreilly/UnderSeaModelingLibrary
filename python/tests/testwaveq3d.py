@@ -7,6 +7,7 @@ import unittest
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import pyproj
 
 import usml.eigenrays
 import usml.netcdf
@@ -78,7 +79,7 @@ class TestWaveQ3D(unittest.TestCase):
         """Plots iovelocity ray paths on a spherical earth to illustrate effects of curvature.
 
         ref: Section 4.2 from Sean M. Reilly, Gopu Potty, "Veriffcation Tests for Hybrid Gaussian Beams in
-        Spherical/Time Coordinates, May 2012.
+        Spherical/Time Coordinates," May 2012.
         """
         testname = inspect.stack()[0][3]
         print("=== " + testname + " ===")
@@ -113,7 +114,7 @@ class TestWaveQ3D(unittest.TestCase):
         ray_x = rho * np.sin(theta) / 1000.0
         ray_y = rho * np.cos(theta) - earth_radius
 
-        # compute location of ocean sruface on spherical earth
+        # compute location of ocean surface on spherical earth
         surf_t = np.radians(np.linspace(0.0, 2.0, num=200))
         surf_x = earth_radius * np.sin(surf_t) / 1000.0
         surf_y = earth_radius * np.cos(surf_t) - earth_radius
@@ -148,7 +149,7 @@ class TestWaveQ3D(unittest.TestCase):
 
         # plot ray path on a flat earth
         fig, ax = plt.subplots()
-        ax.plot(eigenrays.source_az,eigenrays.intensity-np.mean(eigenrays.intensity))
+        ax.plot(eigenrays.source_az, eigenrays.intensity - np.mean(eigenrays.intensity))
         ax.grid(True)
         ax.set_xlabel('Target Bearing (deg)')
         ax.set_ylabel('Intensity Difference (dB)')

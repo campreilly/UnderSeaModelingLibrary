@@ -1,4 +1,4 @@
-"""Use analytic solutions to test WaveQ3D results for Pedersen n^2 linear ocean sound speed profile
+"""Utilities for reading eigenray data
 """
 
 import numpy as np

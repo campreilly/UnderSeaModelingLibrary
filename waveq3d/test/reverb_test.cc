@@ -1,29 +1,44 @@
 /**
- * @example waveq3d/test/waveq3d_test.cc
+ * @example waveq3d/test/reverb_test.cc
  */
-
-#include <usml/eigenrays/eigenrays.h>
-#include <usml/ocean/ocean.h>
-#include <usml/types/types.h>
+#include <usml/eigenrays/eigenray_collection.h>
+#include <usml/eigenrays/eigenray_model.h>
+#include <usml/eigenverbs/eigenverb_collection.h>
+#include <usml/eigenverbs/eigenverb_model.h>
+#include <usml/ocean/attenuation_constant.h>
+#include <usml/ocean/attenuation_model.h>
+#include <usml/ocean/boundary_flat.h>
+#include <usml/ocean/boundary_model.h>
+#include <usml/ocean/ocean_model.h>
+#include <usml/ocean/profile_linear.h>
+#include <usml/ocean/profile_model.h>
+#include <usml/ocean/profile_munk.h>
+#include <usml/ocean/reflect_loss_model.h>
+#include <usml/ocean/reflect_loss_rayleigh.h>
+#include <usml/ocean/volume_flat.h>
+#include <usml/ocean/volume_model.h>
+#include <usml/types/seq_linear.h>
+#include <usml/types/seq_log.h>
+#include <usml/types/seq_rayfan.h>
+#include <usml/types/seq_vector.h>
+#include <usml/types/wposition.h>
+#include <usml/types/wposition1.h>
 #include <usml/ublas/math_traits.h>
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/wave_thresholds.h>
 
-#include <boost/geometry/geometry.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
-#include <cstddef>
-#include <cstdio>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <list>
 #include <sstream>
 #include <string>
 
-BOOST_AUTO_TEST_SUITE(waveq3d_test)
+BOOST_AUTO_TEST_SUITE(reverb_test)
 
+using namespace usml::eigenverbs;
 using namespace usml::eigenrays;
 using namespace usml::ocean;
 using namespace usml::waveq3d;

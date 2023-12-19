@@ -4,11 +4,15 @@
  */
 #pragma once
 
-#include <usml/eigenrays/eigenrays.h>
-#include <usml/eigenverbs/eigenverbs.h>
+#include <netcdfcpp.h>
+#include <usml/eigenrays/eigenray_notifier.h>
+#include <usml/eigenverbs/eigenverb_notifier.h>
+#include <usml/ocean/ocean_model.h>
+#include <usml/types/seq_vector.h>
 #include <usml/types/wposition.h>
 #include <usml/types/wposition1.h>
 #include <usml/usml_config.h>
+#include <usml/waveq3d/reflection_notifier.h>
 #include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/wave_thresholds.h>
 
@@ -69,6 +73,7 @@ class spreading_hybrid_gaussian;
  */
 class USML_DECLSPEC wave_queue : public eigenray_notifier,
                                  public eigenverb_notifier,
+                                 public reflection_notifier,
                                  public wave_thresholds {
     friend class reflection_model;
     friend class spreading_ray;
