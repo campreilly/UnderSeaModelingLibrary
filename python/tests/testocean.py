@@ -4,13 +4,29 @@ import inspect
 import os
 import unittest
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
 
 class TestOcean(unittest.TestCase):
+    """Display plots for outputs of usml.ocean.test unit tests. Reads data from and write plots to the USML ocean/test
+    directory.
+    """
     USML_DIR = os.path.join(os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))),
                             "ocean", "test")
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup matplotlib defaults."""
+        mpl.rcdefaults()
+        plt.rcParams["figure.constrained_layout.use"] = True
+        plt.rcParams["figure.figsize"] = [8, 6]
+
+    @classmethod
+    def tearDownClass(cls):
+        """Reset matplotlib defaults."""
+        mpl.rcdefaults()
 
     def test_ambient(self):
         """Plots results of ambient_wenz_test case in ambient_test.cc unit test.

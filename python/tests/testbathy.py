@@ -4,6 +4,7 @@ import inspect
 import os
 import unittest
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -12,7 +13,22 @@ import usml.plot
 
 
 class TestBathy(unittest.TestCase):
+    """Unit tests for bathymetry reading classes in usml.netcdf module. Reads data from and write plots to the USML
+    netcdf/test directory.
+    """
     USML_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup matplotlib defaults."""
+        mpl.rcdefaults()
+        plt.rcParams["figure.constrained_layout.use"] = True
+        plt.rcParams["figure.figsize"] = [8, 6]
+
+    @classmethod
+    def tearDownClass(cls):
+        """Reset matplotlib defaults."""
+        mpl.rcdefaults()
 
     def test_bathy_ncks_3d(self):
         """Draw 3D map of bathymetry around Hawaii from netCDF file extracted by ncks.
@@ -60,7 +76,7 @@ class TestBathy(unittest.TestCase):
         cbar = fig.colorbar(surface)
         cbar.ax.set_title("Depth (m)")
 
-        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        output = os.path.join(self.USML_DIR, f"{testname}.png")
         print(f"saving {output}")
         plt.savefig(output)
         plt.close()
@@ -111,7 +127,7 @@ class TestBathy(unittest.TestCase):
         cbar = fig.colorbar(surface)
         cbar.ax.set_title("Depth (m)")
 
-        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        output = os.path.join(self.USML_DIR, f"netcdf/test/{testname}.png")
         print(f"saving {output}")
         plt.savefig(output)
         plt.close()
@@ -159,7 +175,7 @@ class TestBathy(unittest.TestCase):
         cbar = fig.colorbar(surface)
         cbar.ax.set_title("Depth (m)")
 
-        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        output = os.path.join(self.USML_DIR, f"netcdf/test/{testname}.png")
         print(f"saving {output}")
         plt.savefig(output)
         plt.close()
@@ -196,7 +212,7 @@ class TestBathy(unittest.TestCase):
         ax.grid(visible=True)
         ax.set_title("ETOPO1 Bathymetry from 19N 159W at 45 degrees")
 
-        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}.png")
+        output = os.path.join(self.USML_DIR, f"netcdf/test/{testname}.png")
         print(f"saving {output}")
         plt.savefig(output)
         plt.close()

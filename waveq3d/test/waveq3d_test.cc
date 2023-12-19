@@ -9,11 +9,13 @@
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/wave_thresholds.h>
 
+#include <boost/geometry/geometry.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/test/unit_test.hpp>
-#include <boost/geometry/geometry.hpp>
 #include <cmath>
 #include <cstddef>
+#include <cstdio>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <list>
@@ -30,6 +32,8 @@ static const double time_step = 0.100;
 static const double src_lat = 45.0;  // location = mid-Atlantic
 static const double src_lng = -45.0;
 static const double c0 = 1500.0;  // constant sound speed
+static const double f0 = 2000;
+static const double bot_depth = 1e5;
 
 /**
  * @ingroup waveq3d_test
@@ -284,8 +288,7 @@ BOOST_AUTO_TEST_CASE(eigenverb_accuracy) {
                  << "de=" << to_degrees(verb->source_de)
                  << " s=" << verb->surface << " b=" << verb->bottom
                  << "\tL=" << verb->length << " theory=" << verb_length
-                 << "\tW=" << verb->width << " theory=" << verb_width
-                 << endl;
+                 << "\tW=" << verb->width << " theory=" << verb_width << endl;
             BOOST_CHECK_SMALL(verb->travel_time - time, 1e-3);
             BOOST_CHECK_SMALL(verb->grazing - grazing, 1e-6);
             BOOST_CHECK_SMALL(verb->direction - verb->source_az, 1e-6);
@@ -416,8 +419,7 @@ BOOST_AUTO_TEST_CASE(eigenverb_demo) {
                  << "de=" << to_degrees(verb->source_de)
                  << " s=" << verb->surface << " b=" << verb->bottom
                  << "\tL=" << verb->length << " theory=" << verb_length
-                 << "\tW=" << verb->width << " theory=" << verb_width
-                 << endl;
+                 << "\tW=" << verb->width << " theory=" << verb_width << endl;
             BOOST_CHECK_SMALL(verb->travel_time - time, 1e-3);
             BOOST_CHECK_SMALL(verb->grazing - grazing, 1e-6);
             BOOST_CHECK_SMALL(verb->direction - verb->source_az, 1e-6);

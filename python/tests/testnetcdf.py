@@ -4,6 +4,7 @@ import inspect
 import os
 import unittest
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -12,7 +13,22 @@ import usml.plot
 
 
 class TestNetCDF(unittest.TestCase):
+    """Unit tests for propagation reading classes in usml.netcdf module. Reads data and writes plats to a wide
+    variety of USML test directories.
+    """
     USML_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup matplotlib defaults."""
+        mpl.rcdefaults()
+        plt.rcParams["figure.constrained_layout.use"] = True
+        plt.rcParams["figure.figsize"] = [8, 6]
+
+    @classmethod
+    def tearDownClass(cls):
+        """Reset matplotlib defaults."""
+        mpl.rcdefaults()
 
     def test_eigenrays(self):
         """Loads USML eigenrays from netCDF file.
