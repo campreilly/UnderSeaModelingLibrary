@@ -465,18 +465,18 @@ BOOST_AUTO_TEST_CASE(seq_ublas_test) {
     cout << "=== sequence_test/seq_ublas_test ===" << endl;
 
     // Tests the use of seq_linear
-    seq_linear line(-5.0, 1.0, 5.0);
-    size_t n(line.size());
-    vector<double> result(n);
-    noalias(result) = 6.0 * line;
+    seq_linear linear(-5.0, 1.0, 5.0);
+    size_t size(linear.size());
+    vector<double> result(size);
+    noalias(result) = 6.0 * linear;
     size_t count = 0;
     for (double i: result) {
-        BOOST_CHECK_EQUAL(i, 6.0 * line(count++));
+        BOOST_CHECK_EQUAL(i, 6.0 * linear(count++));
     }
     cout << "linear: " << result << endl;
 
     // Tests the use of seq_log
-    seq_log log(1.0, 10.0, n);
+    seq_log log(1.0, 10.0, size);
     result = 2.0 * log10(log);
     count = 0;
     for (double i: result) {
@@ -485,7 +485,7 @@ BOOST_AUTO_TEST_CASE(seq_ublas_test) {
     cout << "log: " << result << endl;
 
     // Tests the use of seq_rayfan
-    seq_rayfan fan(-90.0, 90.0, n);
+    seq_rayfan fan(-90.0, 90.0, size);
     result = atan(fan) / 2.0;
     count = 0;
     for (double i: result) {
@@ -494,18 +494,21 @@ BOOST_AUTO_TEST_CASE(seq_ublas_test) {
     cout << "rayfan: " << result << endl;
 
     // Tests the use of seq_data
+    // NOLINTBEGIN(clang-analyzer-core.UndefinedBinaryOperatorResult)
     std::srand(1);
-    auto* d = new double[n];
-    for (size_t i = 0; i < n; ++i) {
-        d[i] = (double) std::rand() / RAND_MAX * 100.0; // NOLINT(concurrency-mt-unsafe)
+    auto* d = new double[size];
+    for (size_t i = 0; i < size; ++i) {
+    	// NOLINTNEXTLINE(concurrency-mt-unsafe)
+        d[i] = (double) std::rand() / RAND_MAX * 100.0;
     }
-    std::sort(d, d + n);
-    seq_data sdata(d, n);
-    result = element_div(element_prod(exp(sdata), line), log);
+    std::sort(d, d + size);
+    // NOLINTEND(clang-analyzer-core.UndefinedBinaryOperatorResult)
+    seq_data sdata(d, size);
+    result = element_div(element_prod(exp(sdata), linear), log);
     count = 0;
     double tmp = 0;
     for (double i: result) {
-        tmp = exp(sdata(count)) * line(count) / log(count);
+        tmp = exp(sdata(count)) * linear(count) / log(count);
         ++count;
         BOOST_CHECK_EQUAL(i, tmp);
     }

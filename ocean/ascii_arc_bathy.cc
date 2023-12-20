@@ -54,7 +54,7 @@ ascii_arc_bathy::ascii_arc_bathy(const char* filename) {
     // read depths and convert to rho coordinate of spherical earth system
     // flip latitude direction upside down during the read.
 
-    double* data = new double[ncols * nrows];
+    auto* data = new double[ncols * nrows];
     for (int r = 0; r < nrows; ++r) {
         double* ptr = &(data[r * ncols]);
         for (int c = 0; c < ncols; ++c) {

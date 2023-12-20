@@ -1,6 +1,7 @@
 /**
  * @example waveq3d/test/reverb_test.cc
  */
+
 #include <usml/eigenrays/eigenray_collection.h>
 #include <usml/eigenrays/eigenray_model.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
@@ -47,8 +48,6 @@ static const double time_step = 0.100;
 static const double src_lat = 45.0;  // location = mid-Atlantic
 static const double src_lng = -45.0;
 static const double c0 = 1500.0;  // constant sound speed
-static const double f0 = 2000;
-static const double bot_depth = 1e5;
 
 /**
  * @ingroup waveq3d_test

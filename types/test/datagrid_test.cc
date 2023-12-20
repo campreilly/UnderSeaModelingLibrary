@@ -90,20 +90,22 @@ BOOST_AUTO_TEST_CASE(compute_index_test) {
     }
 }
 
+namespace {
 /**
  * Compute a linear field value of 1-D interpolation test data
  */
-static double linear1d(double x) { return 5.0 + 3.0 * x; }
+double linear1d(double x) { return 5.0 + 3.0 * x; }
 
 /**
  * Compute a quadratic field value of 1-D interpolation test data
  */
-static double quad1d(double x) { return 5.0 + 3.0 * x - 0.3 * x * x; }
+double quad1d(double x) { return 5.0 + 3.0 * x - 0.3 * x * x; }
 
 /**
  * Compute the derivative of the function defined in quad1d().
  */
-static double deriv1d(double x) { return 3.0 - 0.6 * x; }
+double deriv1d(double x) { return 3.0 - 0.6 * x; }
+}  // namespace
 
 /**
  * Interpolate 1-D linear field using double precision numbers.
@@ -527,19 +529,22 @@ BOOST_AUTO_TEST_CASE(deriv_1d_test) {
     }
 }
 
+namespace {
 /**
- * Cubic generating function and its derivative
- * functions in the x and y directions.
+ * Compute a cubic field value of 2D interpolation test data
  */
-static double cubic2d(double x, double y) { return (x * x * x) * (y * y * y); }
+double cubic2d(double x, double y) { return (x * x * x) * (y * y * y); }
 
-static double deriv2d_x(double x, double y) {
-    return (3.0 * x * x) * (y * y * y);
-}
+/**
+ * Compute derivative of 2D cubic field in x direction.
+ */
+double deriv2d_x(double x, double y) { return (3.0 * x * x) * (y * y * y); }
 
-static double deriv2d_y(double x, double y) {
-    return (x * x * x) * (3.0 * y * y);
-}
+/**
+ * Compute derivative of 2D cubic field in y direction.
+ */
+double deriv2d_y(double x, double y) { return (x * x * x) * (3.0 * y * y); }
+}  // namespace
 
 /**
  * Interpolate 2-D cubic field using a cubic generating

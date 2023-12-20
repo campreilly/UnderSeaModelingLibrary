@@ -2,7 +2,6 @@
  * @example waveq3d/test/reflection_test.cc
  */
 
-#include <stddef.h>
 #include <usml/eigenrays/eigenray_collection.h>
 #include <usml/eigenrays/eigenray_model.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
@@ -36,6 +35,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
+#include <cstddef>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -65,6 +65,7 @@ class reflection_callback : public reflection_listener {
     size_t _old_count{0};
 
    public:
+    // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
     size_t count{0};
     double time{0};
     size_t de{0};
@@ -75,6 +76,7 @@ class reflection_callback : public reflection_listener {
     wposition1 position;
     wvector1 ndirection;
     size_t type{0};
+    // NOLINTEND(misc-non-private-member-variables-in-classes)
 
     /**
      * Pure virtual method to process reflection notifications
@@ -91,10 +93,9 @@ class reflection_callback : public reflection_listener {
      *                      class header for documentation on interpreting
      *                      this number. For some layers, you can also use
      */
-    virtual void reflect(double time, size_t de, size_t az, double dt,
-                         double grazing, double speed,
-                         const wposition1& position, const wvector1& ndirection,
-                         size_t type) {
+    void reflect(double time, size_t de, size_t az, double dt, double grazing,
+                 double speed, const wposition1& position,
+                 const wvector1& ndirection, size_t type) override {
         ++count;
         this->time = time;
         this->de = de;
@@ -213,7 +214,8 @@ BOOST_AUTO_TEST_CASE(reflect_flat_test) {
         // write to spreadsheet file
 
         wvector1 ndir(wave.curr()->ndirection, 0, 0);
-        double de, az;
+        double de;
+        double az;
         ndir.direction(&de, &az);
 
         os << wave.time() << ',' << wave.curr()->position.latitude(0, 0) << ','
@@ -243,13 +245,13 @@ BOOST_AUTO_TEST_CASE(reflect_flat_test) {
         // check location and time of reflections against analytic result
 
         if (callback.check_count()) {
-            auto count = callback.count;
+            auto count = (double)callback.count;
             double predict_time = count * 7.450560973;
             double current_time = callback.time;
             double predict_lat = 45.0 + count * 0.1;
             double current_lat = callback.position.latitude();
 
-            if (callback.type) {
+            if (callback.type != 0U) {
                 cout << "bottom";
             } else {
                 cout << "surface";
@@ -306,8 +308,6 @@ BOOST_AUTO_TEST_CASE(reflect_slope_test) {
     wave_queue wave(ocean, freq, pos, de, az, time_step);
     reflection_callback callback;
     wave.add_reflection_listener(&callback);
-    double max_time_error = 0.0;
-    double max_lat_error = 0.0;
 
     // initialize output to spreadsheet file
 
@@ -329,13 +329,13 @@ BOOST_AUTO_TEST_CASE(reflect_slope_test) {
 
     // propagate rays to stimulate bottom and surface reflections
 
-    int bounce = 0;
     double old_de = (*de)(0);
     while (wave.time() < max_time) {
         // write to spreadsheet file
 
         wvector1 ndir(wave.curr()->ndirection, 0, 0);
-        double de, az;
+        double de;
+        double az;
         ndir.direction(&de, &az);
 
         os << wave.time() << ',' << wave.curr()->position.latitude(0, 0) << ','
@@ -365,7 +365,6 @@ BOOST_AUTO_TEST_CASE(reflect_slope_test) {
         // check angle change for each reflection
 
         if (old_de * de < 0.0) {
-            ++bounce;
             if (old_de < 0.0) {
                 cout << "bottom  reflection at t=" << wave.time()
                      << " lat=" << wave.curr()->position.latitude(0, 0)
@@ -402,8 +401,6 @@ BOOST_AUTO_TEST_CASE(reflect_grid_test) {
     cout << "=== reflection_test: reflect_grid_test ===" << endl;
 
     // define scenario parameters
-
-    const double c0 = 1500.0;  // speed of sound
 
     const double lat1 = 35.5;   // Mediterranean sea
     const double lat2 = 36.5;   // malta escarpment
@@ -465,7 +462,8 @@ BOOST_AUTO_TEST_CASE(reflect_grid_test) {
         // write to spreadsheet file
 
         wvector1 ndir(wave.curr()->ndirection, 0, 0);
-        double de, az;
+        double de;
+        double az;
         ndir.direction(&de, &az);
 
         os << wave.time() << ',' << wave.curr()->position.latitude(0, 0) << ','
@@ -503,8 +501,6 @@ BOOST_AUTO_TEST_CASE(reflect_fast_test) {
 
     // define scenario parameters
 
-    const double c0 = 1500.0;  // speed of sound
-
     const double lat1 = 35.5;   // Mediterranean sea
     const double lat2 = 36.5;   // malta escarpment
     const double lng1 = 15.25;  // south-east of Sicily
@@ -525,7 +521,7 @@ BOOST_AUTO_TEST_CASE(reflect_fast_test) {
     data_grid<2>::csptr grid(
         new netcdf_bathy(USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
                          lat1, lat2, lng1, lng2));
-    data_grid_bathy::csptr fast_grid(grid);
+    const data_grid_bathy::csptr& fast_grid(grid);
     boundary_model::csptr bottom(new boundary_grid<2>(fast_grid));
 
     // combine sound speed and bathymetry into ocean model
@@ -566,7 +562,8 @@ BOOST_AUTO_TEST_CASE(reflect_fast_test) {
         // write to spreadsheet file
 
         wvector1 ndir(wave.curr()->ndirection, 0, 0);
-        double de, az;
+        double de;
+        double az;
         ndir.direction(&de, &az);
 
         os << wave.time() << ',' << wave.curr()->position.latitude(0, 0) << ','
@@ -635,7 +632,7 @@ BOOST_AUTO_TEST_CASE(bounce_threshold_test) {
 
     const eigenray_list ray_list = eigenrays.eigenrays(0, 0);
     cout << "checking " << ray_list.size() << " eigenrays" << endl;
-    for (eigenray_model::csptr ray : ray_list) {
+    for (const eigenray_model::csptr& ray : ray_list) {
         BOOST_REQUIRE(ray->bottom <= wave.max_bottom());
         BOOST_REQUIRE(ray->surface <= wave.max_surface());
     }
@@ -645,7 +642,7 @@ BOOST_AUTO_TEST_CASE(bounce_threshold_test) {
     const eigenverb_list bottom_list =
         eigenverbs.eigenverbs(eigenverb_model::BOTTOM);
     cout << "checking " << bottom_list.size() << " bottom eigenverbs" << endl;
-    for (eigenverb_model::csptr verb : bottom_list) {
+    for (const eigenverb_model::csptr& verb : bottom_list) {
         BOOST_REQUIRE(verb->bottom <= wave.max_bottom());
         BOOST_REQUIRE(verb->surface <= wave.max_surface());
     }
@@ -654,7 +651,7 @@ BOOST_AUTO_TEST_CASE(bounce_threshold_test) {
     const eigenverb_list surface_list =
         eigenverbs.eigenverbs(eigenverb_model::SURFACE);
     cout << "checking " << surface_list.size() << " surface eigenverbs" << endl;
-    for (eigenverb_model::csptr verb : surface_list) {
+    for (const eigenverb_model::csptr& verb : surface_list) {
         BOOST_REQUIRE(verb->bottom <= wave.max_bottom());
         BOOST_REQUIRE(verb->surface <= wave.max_surface());
     }

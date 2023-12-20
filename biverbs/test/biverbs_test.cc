@@ -33,10 +33,11 @@ static const double de_spacing = 10.0;
 static const double az_spacing = 10.0;
 static const double depth = 1000.0;
 
+namespace {
 /**
  * Build hard-coded eigenverb and notify listeners.
  */
-static eigenverb_model::csptr create_eigenverb(
+eigenverb_model::csptr create_eigenverb(
     const wposition1 source_pos, double depth, double de, double az,
     const seq_vector::csptr& frequencies) {
     auto* verb = new eigenverb_model();
@@ -71,6 +72,7 @@ static eigenverb_model::csptr create_eigenverb(
 
     return eigenverb_model::csptr(verb);
 }
+}  // namespace
 
 /**
  * @ingroup biverbs_test

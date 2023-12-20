@@ -1,9 +1,9 @@
 /**
  * @example waveq3d/test/eigenray_test.cc
  */
+#include <usml/eigenrays/eigenrays.h>
 #include <usml/ocean/ocean.h>
 #include <usml/waveq3d/waveq3d.h>
-#include <usml/eigenrays/eigenrays.h>
 
 #include <boost/test/unit_test.hpp>
 #include <cstdio>
@@ -82,6 +82,7 @@ static const double bot_depth = 1e5;
  * and in netCDF format to eigenray_basic.nc.  It also records the wavefronts
  * to eigenray_basic_wave.nc so that a ray trace can be plotted in Matlab.
  */
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 BOOST_AUTO_TEST_CASE(eigenray_basic) {
     cout << "=== eigenray_test: eigenray_basic ===" << endl;
     const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_basic.csv";
@@ -144,7 +145,7 @@ BOOST_AUTO_TEST_CASE(eigenray_basic) {
     const eigenray_list raylist = collection.eigenrays(0, 0);
     int test_case = 0;
     BOOST_CHECK_EQUAL(raylist.size(), 3);
-    for (eigenray_model::csptr ray : raylist) {
+    for (const eigenray_model::csptr& ray : raylist) {
         cout << "ray #" << test_case << " tl=" << ray->intensity(0)
              << " t=" << ray->travel_time << " de=" << -ray->target_de
              << " error:";
@@ -282,8 +283,10 @@ BOOST_AUTO_TEST_CASE(eigenray_concave) {
 
     const eigenray_list raylist = collection.eigenrays(0, 0);
     BOOST_CHECK_EQUAL(raylist.size(), 4);
-    for (eigenray_model::csptr ray : raylist) {
-        double theory_t, theory_sde, theory_tde;
+    for (const eigenray_model::csptr& ray : raylist) {
+        double theory_t;
+        double theory_sde;
+        double theory_tde;
 
         // direct path
 
@@ -421,6 +424,7 @@ BOOST_AUTO_TEST_CASE(eigenray_tl_az) {
  * can then be used to verify the correct transmission loss has been produced
  * for each eigenray to each target.
  */
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 BOOST_AUTO_TEST_CASE(eigenray_branch_pt) {
     cout << "=== eigenray_test: eigenray_branch_pt ===" << endl;
     const char* csvname = USML_TEST_DIR "/waveq3d/test/eigenray_branch_pt.csv";
@@ -483,10 +487,10 @@ BOOST_AUTO_TEST_CASE(eigenray_branch_pt) {
 
     for (int trg_num = 0; trg_num < num_targets; ++trg_num) {
         os << "#" << trg_num;
-        const eigenray_list raylist = collection.eigenrays(trg_num, 0);
+        const eigenray_list& raylist = collection.eigenrays(trg_num, 0);
         int test_case = 0;
         BOOST_CHECK_EQUAL(raylist.size(), 3);
-        for (eigenray_model::csptr ray : raylist) {
+        for (const eigenray_model::csptr& ray : raylist) {
             os << "," << ray->travel_time << "," << ray->intensity(0) << ","
                << ray->phase(0) << "," << ray->source_de << ","
                << ray->source_az << "," << ray->target_de << ","

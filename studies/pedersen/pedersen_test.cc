@@ -404,7 +404,7 @@ BOOST_AUTO_TEST_CASE(pedersen_deep_sensitivity) {
     cout << "=== pedersen_deep_sensitivity ===" << endl;
     seq_vector::csptr ranges(new seq_linear(3000.0, 0.25, 3120.0));
 
-    seq_vector::csptr de(new seq_rayfan(-90.0, 90.0, 181, true));
+    seq_vector::csptr de(new seq_rayfan(-90.0, 90.0, 181));
     analyze_proploss(
         de, -1000, -800.0, ranges, 0.01, 3.5,
         USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_tan.nc");

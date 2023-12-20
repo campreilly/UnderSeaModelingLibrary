@@ -176,10 +176,12 @@ netcdf_profile::netcdf_profile(const char *profile, double date, double south,
         const long N = alt_num * lat_num * lng_num;
         double *ptr = data;
         while (ptr < data + N) {
+        	// NOLINTNEXTLINE(clang-analyzer-core.UndefinedBinaryOperatorResult)
             if (!std::isnan(missing) && *ptr == missing) {
                 *ptr = NAN;
             }
             if (!std::isnan(scale_factor * add_offset)) {
+                // NOLINTNEXTLINE(clang-analyzer-core.UndefinedBinaryOperatorResult)
                 *ptr = *ptr * scale_factor + add_offset;
             }
             ++ptr;
@@ -190,7 +192,7 @@ netcdf_profile::netcdf_profile(const char *profile, double date, double south,
 /**
  * Fill missing values with average data at each depth.
  */
-//NOLINTNEXTLINE(readability-function-cognitive-complexity)
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void netcdf_profile::fill_missing() {
     gen_grid<3> replace(_axis);
 

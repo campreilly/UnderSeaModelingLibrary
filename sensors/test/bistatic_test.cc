@@ -87,6 +87,7 @@ pair_listener test_listener;
  * TODO: Compare acoustic paths to analytic solutions to validate number of
  * paths for each pair.
  */
+//NOLINTNEXTLINE(readability-function-cognitive-complexity)
 BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     cout << "=== bistatic_test: update_wavefront_data ===" << endl;
     const char* ncname = USML_TEST_DIR "/sensors/test/";

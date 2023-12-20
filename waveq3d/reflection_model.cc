@@ -33,7 +33,6 @@ const double reflection_model::MIN_REFLECT = 6.0;
 bool reflection_model::bottom_reflection(size_t de, size_t az, double depth) {
     double N;
     bool shallow = false;
-    double time = _wave.time();
 
     // extract position, direction, and sound speed from this ray
     // at a point just before it goes below the bottom

@@ -231,8 +231,7 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
  *      - \f$c(z)\f$ is the speed of sound as a function of depth on a flat
  *        Earth (constant for this test);
  *      - \f$r\f$ is the radial distance from the center of Earth;
- *      - \f$R\f$ is the radius of Earth's curvature in this area of operations;
- *and
+ *      - \f$R\f$ is the radius of Earth's curvature in this area of operations; and
  *      - \f$c(r)\f$ is the speed of sound as a function of radial distance
  *        from the center of Earth.
  *
@@ -1113,7 +1112,7 @@ BOOST_AUTO_TEST_CASE(surface_duct_test) {
     seq_vector::csptr axis[1];
     axis[0] =
         seq_vector::csptr(new seq_linear(wposition::earth_radius, -0.5, 1000));
-    gen_grid<1>* ssp_grid = new gen_grid<1>(axis);
+    auto* ssp_grid = new gen_grid<1>(axis);
     size_t index[1];
     for (int i = 0; i < axis[0]->size(); ++i) {
         index[0] = i;

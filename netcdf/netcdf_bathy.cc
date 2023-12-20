@@ -19,7 +19,7 @@ using namespace usml::netcdf;
 /**
  * Load bathymetry from disk.
  */
-//NOLINTNEXTLINE(readability-function-cognitive-complexity)
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 netcdf_bathy::netcdf_bathy(const char* filename, double south, double north,
                            double west, double east, double earth_radius) {
     // initialize access to NetCDF file.
@@ -150,9 +150,10 @@ netcdf_bathy::netcdf_bathy(const char* filename, double south, double north,
     // convert depth to rho coordinate of spherical earth system
 
     double* ptr = data;
-    auto R = double(earth_radius);
-    while (ptr < data + (lat_num * lng_num)) {
-        *(ptr++) += R;
+    double* end = data + (lat_num * lng_num);
+    while (ptr < end) {
+    	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Assign)
+        *(ptr++) += earth_radius;
     }
 }
 

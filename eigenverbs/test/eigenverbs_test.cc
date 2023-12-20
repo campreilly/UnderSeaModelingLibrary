@@ -17,12 +17,13 @@ using namespace usml::eigenverbs;
 static const double de_spacing = 10.0;
 static const double az_spacing = 10.0;
 
+namespace {
 /**
  * Build simplified eigenverb for one combination of DE and AZ.
  */
-static eigenverb_model::csptr create_eigenverb(
-    const wposition1 source_pos, double depth, double de, double az,
-    const seq_vector::csptr& frequencies) {
+eigenverb_model::csptr create_eigenverb(const wposition1 source_pos,
+                                        double depth, double de, double az,
+                                        const seq_vector::csptr& frequencies) {
     auto* verb = new eigenverb_model();
 
     double de_rad = to_radians(de);
@@ -52,6 +53,7 @@ static eigenverb_model::csptr create_eigenverb(
     verb->lower = 0;
     return eigenverb_model::csptr(verb);
 }
+}  // namespace
 
 /**
  * @ingroup eigenverbs_test
@@ -114,7 +116,7 @@ BOOST_AUTO_TEST_CASE(create_eigenverbs) {
 
     BOOST_CHECK_LT(found_list.size(), full_list.size());
     BOOST_CHECK_LT(found.size(eigenverb_model::BOTTOM),
-                      collection.size(eigenverb_model::BOTTOM));
+                   collection.size(eigenverb_model::BOTTOM));
 }
 
 /// @}

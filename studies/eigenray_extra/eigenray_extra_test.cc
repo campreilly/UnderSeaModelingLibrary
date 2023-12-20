@@ -140,6 +140,7 @@ static const double bot_depth = 1e5;
  * @xref Weisstein, Eric W. "Newton's Method." From MathWorld--A Wolfram
  *       Web Resource. http://mathworld.wolfram.com/NewtonsMethod.html
  */
+//NOLINTNEXTLINE(readability-function-cognitive-complexity)
 BOOST_AUTO_TEST_CASE(
     eigenray_lloyds) {  // NOLINT(readability-function-cognitive-complexity)
     cout << "=== eigenray_extra_test: eigenray_lloyds ===" << endl;

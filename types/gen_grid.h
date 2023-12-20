@@ -511,6 +511,7 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
 
    protected:
     /// Limit construction to sub-classes.
+    // NOLINTNEXTLINE(clang-analyzer-optin.cplusplus.UninitializedObject)
     gen_grid<NUM_DIMS, DATA_TYPE>() {}
 
     /**
