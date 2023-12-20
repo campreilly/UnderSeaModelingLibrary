@@ -5,9 +5,11 @@ import os
 import unittest
 
 import matplotlib as mpl
+import matplotlib.patches as ptch
 import matplotlib.pyplot as plt
 import numpy as np
 import pyproj
+import scipy.interpolate as interp
 
 import usml.eigenrays
 import usml.netcdf
@@ -131,7 +133,6 @@ class TestWaveQ3D(unittest.TestCase):
 
         output = os.path.join(self.USML_DIR, testname + "_sphere.png")
         print(f"saving {output}")
-        plt.show()
         plt.savefig(output)
         plt.close()
 
@@ -153,6 +154,126 @@ class TestWaveQ3D(unittest.TestCase):
         ax.grid(True)
         ax.set_xlabel('Target Bearing (deg)')
         ax.set_ylabel('Intensity Difference (dB)')
+
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+    def test_reflect_flat(self):
+        """Flat bottom reflection test results.
+
+        ref: Section 3.1 from Sean M. Reilly, Gopu Potty, "Veriffcation Tests for Hybrid Gaussian Beams in
+        Spherical/Time Coordinates," May 2012.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        filename = os.path.join(self.USML_DIR, "reflect_flat_test.csv")
+        results = np.loadtxt(filename, skiprows=1, delimiter=",")
+        latitude = results[:, 1]
+        altitude = results[:, 3]
+
+        # plot ray path on a flat earth
+        fig, ax = plt.subplots()
+        ax.plot(latitude, altitude)
+        ax.grid(True)
+        ax.set_xlabel('Latitude (deg)')
+        ax.set_ylabel('Depth (m)')
+        ax.set_xlim(45.0, 45.9)
+        ax.set_ylim(-1000, 0)
+
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+    def test_reflect_slope(self):
+        """Sloped bottom reflection test results.
+
+        ref: Section 3.2 from Sean M. Reilly, Gopu Potty, "Veriffcation Tests for Hybrid Gaussian Beams in
+        Spherical/Time Coordinates," May 2012.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        filename = os.path.join(self.USML_DIR, "reflect_slope_test.csv")
+        results = np.loadtxt(filename, skiprows=1, delimiter=",")
+        latitude = results[:, 1]
+        altitude = results[:, 3]
+
+        # plot ray path on a flat earth
+        fig, ax = plt.subplots()
+
+        coord = np.array([[45.1, -1000], [45.4, -1000], [45.4, -425]])
+        patch = ptch.Polygon(coord, facecolor=[0.7, 0.7, 0.7])
+        ax.add_patch(patch)
+
+        ax.plot(latitude, altitude)
+        ax.grid(True)
+        ax.set_xlabel('Latitude (deg)')
+        ax.set_ylabel('Depth (m)')
+        ax.set_xlim(45.0, 45.4)
+        ax.set_ylim(-1000, 0)
+
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+    def test_reflect_grid(self):
+        """Sloped bottom reflection test results.
+
+        Plots the bathymetry for the Malta escarpment and then plots the ray path from the *.csv file on top of it.
+        The ray paths for both the reflect_grid_test.csv and reflect_grid_test are plotted to see if they line up on
+        top of eac hother. We turn off the computed_zorder so that matplotlib doesn't default to plotting the surface
+        on top of the line plots. Also demonstrate a method for upsampling the bathymetry grid plot.
+
+        ref: Section 3.2 from Sean M. Reilly, Gopu Potty, "Veriffcation Tests for Hybrid Gaussian Beams in
+        Spherical/Time Coordinates," May 2012.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load bathymetry data from disk and plot in 3D
+        filename = os.path.join(self.USML_DIR, "../../data/bathymetry/ETOPO1_Ice_g_gmt4.grd")
+        print(f"reading {filename}")
+        bathymetry = usml.netcdf.Bathymetry(filename, lat_range=(35.6, 36.4), lng_range=(15.35, 16.05))
+
+        spline = interp.RectBivariateSpline(bathymetry.latitude, bathymetry.longitude, bathymetry.altitude)
+        bathymetry.latitude = np.linspace(bathymetry.latitude[1], bathymetry.latitude[-1], num=200)
+        bathymetry.longitude = np.linspace(bathymetry.longitude[1], bathymetry.longitude[-1], num=200)
+        bathymetry.altitude = spline(bathymetry.latitude, bathymetry.longitude)
+
+        fig, ax = plt.subplots(subplot_kw={'projection': '3d', 'computed_zorder': False}, figsize=[16, 12])
+        surface = usml.plot.plot_bathymetry_3d(ax, bathymetry)
+        ax.set_proj_type('ortho')
+        ax.view_init(70, -70)
+        ax.set_xlim(bathymetry.longitude[1], bathymetry.longitude[-1])
+        ax.set_ylim(bathymetry.latitude[1], bathymetry.latitude[-1])
+
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        cbar = fig.colorbar(surface)
+        cbar.ax.set_title("Depth (m)")
+
+        # load acoustic ray trace data from disk and plot in 3D
+
+        filename = os.path.join(self.USML_DIR, "reflect_grid_test.csv")
+        results = np.loadtxt(filename, skiprows=1, delimiter=",")
+        latitude = results[:, 1]
+        longitude = results[:, 2]
+        altitude = results[:, 3]
+        ax.plot(longitude, latitude, altitude, 'k-')
+
+        # load acoustic ray trace data from disk and plot in 3D
+
+        filename = os.path.join(self.USML_DIR, "reflect_fast_test.csv")
+        results = np.loadtxt(filename, skiprows=1, delimiter=",")
+        latitude = results[:, 1]
+        longitude = results[:, 2]
+        altitude = results[:, 3]
+        ax.plot(longitude, latitude, altitude, 'r--')
 
         output = os.path.join(self.USML_DIR, testname + ".png")
         print(f"saving {output}")
