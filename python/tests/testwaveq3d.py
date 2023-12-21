@@ -280,6 +280,309 @@ class TestWaveQ3D(unittest.TestCase):
         plt.savefig(output)
         plt.close()
 
+    def test_refraction_great_circle(self):
+        """Verify the model's ability to follow great circle routes along the earth's surface.
+
+        ref: Section 2.4 from Sean M. Reilly, Gopu Potty, "Veriffcation Tests for Hybrid Gaussian Beams in
+        Spherical/Time Coordinates," May 2012.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        filename = os.path.join(self.USML_DIR, "refraction_great_circle.csv")
+        results = np.loadtxt(filename, skiprows=1, delimiter=",")
+        latitude = results[:, 1:16:4]
+        longitude = results[:, 2:16:4]
+        fig, ax = plt.subplots()
+        ax.plot(longitude, latitude)
+
+        rng = np.linspace(0.0, 18.0)  # distance in degrees of latitude
+        brg = np.radians(np.linspace(30.0, 90.0, num=3))
+        brg, rng = np.meshgrid(brg, rng)
+        x = rng * np.sin(brg) - 45.0
+        y = rng * np.cos(brg) + 45.0
+        ax.plot(x, y, 'k--')
+
+        ax.grid(True)
+        ax.set_xlabel('Longitude (deg)')
+        ax.set_ylabel('Latitude (deg)')
+        ax.set_aspect('equal', 'box')
+        plt.show()
+
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+    def test_refraction_linear(self):
+        """Evaluates ray refraction accuracy using a comparison to the analytic solution for a linear profile.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        filename = os.path.join(self.USML_DIR, "refraction_linear.csv")
+        data = np.loadtxt(filename, skiprows=1, delimiter=",")
+
+        dt = data[1, 0] - data[0, 0]
+        R = data[0, 1] + 1000
+        range = data[:, 5] / 1e3
+        zmodel = data[:, 1] - R
+        ztheory = data[:, 4]
+
+        fig, ax = plt.subplots()
+        ax.plot(range, zmodel)
+        ax.plot(range, ztheory, '--')
+        ax.grid(True)
+        ax.set_xlabel('Range (km)')
+        ax.set_ylabel('Depth (m)')
+        ax.legend(["Model", "Theory"])
+        plt.show()
+
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+    def test_refraction_n2_linear(self):
+        """Evaluates ray refraction accuracy using a comparison to the analytic solution for a n^2 linear profile.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        filename = os.path.join(self.USML_DIR, "refraction_n2_linear.csv")
+        data = np.loadtxt(filename, skiprows=1, delimiter=",")
+
+        dt = data[1, 0] - data[0, 0]
+        R = data[0, 1] + 1000
+        range = data[:, 5] / 1e3
+        zmodel = data[:, 1] - R
+        ztheory = data[:, 4]
+
+        fig, ax = plt.subplots()
+        ax.plot(range, zmodel)
+        ax.plot(range, ztheory, '--')
+        ax.grid(True)
+        ax.set_xlabel('Range (km)')
+        ax.set_ylabel('Depth (m)')
+        ax.legend(["Model", "Theory"])
+        plt.show()
+
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+    def test_refraction_munk_range(self):
+        """Verify cycle range errors for Munk profile
+
+        ref: Section 2.2 from Sean M. Reilly, Gopu Potty, "Veriffcation Tests for Hybrid Gaussian Beams in
+        Spherical/Time Coordinates," May 2012.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load Munk wavefront and plot in range/depth coordinates
+
+        filename = os.path.join(self.USML_DIR, "refraction_munk_range.nc")
+        wavefront = usml.netcdf.read(filename)
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, width_ratios=[1, 4], sharey=True)
+
+        d = np.linspace(0.0, 5000.0, num=200)
+        z = 2.0 / 1300.0 * (d - 1300.0)
+        c = 1500.0 * (1 + 7.37e-3 * (z - 1.0 + np.exp(-z)));
+        ax1.plot(c, -d)
+        ax1.grid(True)
+        ax1.set_ylim(-5000, 0)
+        ax1.set_xlabel('Speed (m/s)')
+        ax1.set_ylabel('Depth (m)')
+
+        usml.plot.plot_raytrace_2d(ax2, wavefront)
+        ax2.grid(True)
+        ax2.set_xlabel('Range (km)')
+        ax2.set_xlim(0, 140.0)
+        ax2.set_ylim(-5000, 0)
+
+        output = os.path.join(self.USML_DIR, testname + "refraction_munk_range.png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+        # load Munk error spreadsheet and plot errors
+
+        filename = os.path.join(self.USML_DIR, "refraction_munk_range.csv")
+        data = np.loadtxt(filename, skiprows=1, delimiter=",")
+        de = data[:, 1]
+        range = data[:, 3] / 1e3
+        diff = data[:, 4]
+
+        n = de > 0  # launched up
+        m = de <= 0  # launched down
+
+        fig, ax = plt.subplots()
+        ax.plot(range[n], diff[n], 'kx')
+        ax.plot(range[m], diff[m], 'k+')
+        ax.grid(True)
+        ax.set_xlim(0, 140.0)
+        ax.set_xlabel('Range (km)')
+        ax.set_ylabel('Range Error (m)')
+        ax.legend(["Launched Up", "Launched Down"])
+
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+    def test_refraction_pedersen_range(self):
+        """Verify cycle range errors for Pedersen profile
+
+        ref: Section 2.3 from Sean M. Reilly, Gopu Potty, "Veriffcation Tests for Hybrid Gaussian Beams in
+        Spherical/Time Coordinates," May 2012.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load Munk wavefront and plot in range/depth coordinates
+
+        filename = os.path.join(self.USML_DIR, "refraction_pedersen_range.nc")
+        wavefront = usml.netcdf.read(filename)
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, width_ratios=[1, 4], sharey=True)
+
+        d = np.linspace(0.0, 1200.0, num=200)
+        c0 = 1550
+        g0 = 1.2
+        c = c0 / np.sqrt(1.0 + (2.0 * g0 / c0) * d)
+        ax1.plot(c, -d)
+        ax1.grid(True)
+        ax2.set_ylim(-1200.0, 0)
+        ax1.set_xlabel('Speed (m/s)')
+        ax1.set_ylabel('Depth (m)')
+
+        usml.plot.plot_raytrace_2d(ax2, wavefront)
+        ax2.grid(True)
+        ax2.set_xlabel('Range (km)')
+        ax2.set_xlim(0, 3.5)
+        ax2.set_ylim(-1200.0, 0)
+
+        output = os.path.join(self.USML_DIR, testname + "refraction_munk_range.png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+        # load Pedersen error spreadsheet and plot errors
+
+        filename = os.path.join(self.USML_DIR, "refraction_pedersen_range.csv")
+        data = np.loadtxt(filename, skiprows=1, delimiter=",")
+        range = data[:, 3] / 1e3
+        diff = data[:, 4]
+
+        fig, ax = plt.subplots()
+        ax.plot(range, diff, 'kx')
+        ax.grid(True)
+        ax.set_xlim(2.0, 3.5)
+        ax.set_xlabel('Range (km)')
+        ax.set_ylabel('Range Error (m)')
+
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+    def test_proploss_lloyds_range(self):
+        """Verify modeled propagation loss as a function of range for Lloyd's mirror,
+
+        Compares total transmission loss and individual paths to the analytic solution for Lloyd's mirror surface
+        reflection in an isovelocity ocean. In this test, we expect to see the errors between the model and theory
+        grow at short ranges. The discreet time step creates a discontinuity between the direct and reflected paths
+        near the ocean surface, and the size of this discontinuity increases at higher D/E angles. The model must
+        extrapolate the transmission loss across this fold in the wavefront, and we beleive this extrapolation causes
+        the observed errors. Decreasing the size of the time step decreases these errors.
+
+        ref: Section 4.4 from Sean M. Reilly, Gopu Potty, "Veriffcation Tests for Hybrid Gaussian Beams in
+        Spherical/Time Coordinates," May 2012.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        filename = os.path.join(self.USML_DIR, "proploss_lloyds_range.csv")
+        data = np.loadtxt(filename, skiprows=1, delimiter=",")
+
+        freq_test = 500.0
+        freq = data[:, 0]
+        data = data[freq == freq_test, :]
+
+        range = data[:, 1] / 1e3
+        model = data[:, 2]
+        theory = data[:, 3]
+        m1surf = data[:,4]
+        m1btm = data[:,5]
+        m1amp = data[:, 6]
+        m1time = data[:, 7] * 1e3
+        t1amp = data[:, 8]
+        t1time = data[:, 9] * 1e3
+        m1surf = data[:,10]
+        m1btm = data[:,11]
+        m2amp = data[:, 12]
+        m2time = data[:, 13] * 1e3
+        t2amp = data[:, 14]
+        t2time = data[:, 15] * 1e3
+
+        # plot total transmission loss errors as a function of range
+        fig, ax = plt.subplots()
+        ax.plot(range, model)
+        ax.plot(range, theory)
+        ax.grid(True)
+        ax.set_xlim(0.0, range[-1])
+        ax.set_ylim(-90, -40)
+        ax.set_xlabel('Range (km)')
+        ax.set_ylabel('Transmission Loss (dB)')
+        ax.legend(["Model", "Theory"])
+        ax.set_title(f"Frequency = {freq_test:.0f} Hz")
+
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+        # zoom into short ranges
+        fig, ax = plt.subplots()
+        ax.plot(range, model)
+        ax.plot(range, theory)
+        ax.grid(True)
+        ax.set_xlim(0.0, 1.0)
+        ax.set_ylim(-90, -40)
+        ax.set_xlabel('Range (km)')
+        ax.set_ylabel('Transmission Loss (dB)')
+        ax.legend(["Model", "Theory"])
+        ax.set_title(f"Frequency = {freq_test:.0f} Hz")
+
+        output = os.path.join(self.USML_DIR, testname + "_zoom.png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+        # plot transmission loss and travel time errors as a function of range
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+        ax1.plot(range, m1amp - t1amp)
+        ax1.plot(range, m2amp - t2amp)
+        ax1.grid(True)
+        ax1.set_xlim(0.0, range[-1])
+        ax1.set_ylabel('Transmission Loss Error (dB)')
+        ax1.set_title(f"Frequency = {freq_test:.0f} Hz")
+
+        ax2.plot(range, m1time - t1time)
+        ax2.plot(range, m2time - t2time)
+        ax2.grid(True)
+        ax2.set_ylabel('Travel Time Error (ms)')
+        ax2.set_xlabel('Range (km)')
+        ax2.legend(["Direct", "Surface"])
+
+        output = os.path.join(self.USML_DIR, testname + "_error.png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
 
 if __name__ == '__main__':
     unittest.main()
