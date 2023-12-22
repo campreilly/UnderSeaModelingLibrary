@@ -11,9 +11,6 @@
     add_executable( cmp_speed studies/cmp_speed/cmp_speed.cc )
     target_link_libraries( cmp_speed usml )
     
-    add_executable( eigenray_extra_test studies/eigenray_extra/eigenray_extra_test.cc )
-    target_link_libraries( eigenray_extra_test usml )
-    
     add_executable( pedersen_test studies/pedersen/pedersen_test.cc )
     target_link_libraries( pedersen_test usml )
     

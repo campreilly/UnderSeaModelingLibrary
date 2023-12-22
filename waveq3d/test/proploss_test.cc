@@ -27,7 +27,6 @@ const auto spreading_type = wave_queue::HYBRID_GAUSSIAN;
  */
 
 static const double time_step = 0.100;
-static const double f0 = 2000;
 static const double bot_depth = 1e5;
 
 /**
@@ -76,13 +75,13 @@ BOOST_AUTO_TEST_CASE(proploss_classic) {
 
     wposition target(10, 1, src_lat, src_lng, src_alt);
     for (size_t n = 0; n < target.size1(); ++n) {
-        target.latitude(n, 0, src_lat + 0.01 * (n + 2.0));
+        target.latitude(n, 0, src_lat + 0.01 * ((double)n + 2.0));
     }
 
-    eigenray_collection collection(freq_list, pos, target, 1);
+    eigenray_collection model(freq_list, pos, target, 1);
     wave_queue wave(ocean, freq_list, pos, de, az, time_step, &target,
                     wave_queue::CLASSIC_RAY);
-    wave.add_eigenray_listener(&collection);
+    wave.add_eigenray_listener(&model);
 
     // propagate rays & record to log file
 
@@ -90,7 +89,7 @@ BOOST_AUTO_TEST_CASE(proploss_classic) {
     while (wave.time() < time_max) {
         wave.step();
     }
-    collection.sum_eigenrays();
+    model.sum_eigenrays();
 
     // save results to spreadsheet and compare to analytic results
 
@@ -102,7 +101,7 @@ BOOST_AUTO_TEST_CASE(proploss_classic) {
     cout << "writing spreadsheets to " << csvname << endl;
 
     for (size_t n = 0; n < target.size1(); ++n) {
-        const eigenray_list raylist = collection.eigenrays(n, 0);
+        const eigenray_list& raylist = model.eigenrays(n, 0);
         for (const eigenray_model::csptr& ray : raylist) {
             os << n << "," << ray->travel_time << "," << ray->intensity(0)
                << "," << ray->phase(0) << "," << ray->source_de << ","
@@ -180,9 +179,9 @@ BOOST_AUTO_TEST_CASE(proploss_gaussian) {
 
     wposition target(1, 1, trg_lat, src_lng, src_alt);
 
-    eigenray_collection collection(freq_list, pos, target);
+    eigenray_collection model(freq_list, pos, target);
     wave_queue wave(ocean, freq_list, pos, de, az, time_step, &target);
-    wave.add_eigenray_listener(&collection);
+    wave.add_eigenray_listener(&model);
 
     // propagate rays & record to log file
 
@@ -190,9 +189,9 @@ BOOST_AUTO_TEST_CASE(proploss_gaussian) {
     while (wave.time() < time_max) {
         wave.step();
     }
-    collection.sum_eigenrays();
+    model.sum_eigenrays();
     cout << "writing eigenray_collection to " << ncproploss << endl;
-    collection.write_netcdf(ncproploss, "proploss_freq test");
+    model.write_netcdf(ncproploss, "proploss_freq test");
 
     // save results to spreadsheet and compare to analytic results
 
@@ -204,9 +203,13 @@ BOOST_AUTO_TEST_CASE(proploss_gaussian) {
        << endl;
     os << std::setprecision(18);
 
-    eigenray_model::csptr direct_ray, surface_ray, bottom_ray;
-    double direct_pl, surface_pl, bottom_pl;
-    const eigenray_list raylist = collection.eigenrays(0, 0);
+    eigenray_model::csptr direct_ray;
+    eigenray_model::csptr surface_ray;
+    eigenray_model::csptr bottom_ray;
+    double direct_pl{0};
+    double surface_pl{0};
+    double bottom_pl{0};
+    const eigenray_list raylist = model.eigenrays(0, 0);
     for (const eigenray_model::csptr& ray : raylist) {
         double range_list = c0 * ray->travel_time;
         double pl = 20.0 * log10(range_list - 2.0);
@@ -236,6 +239,45 @@ BOOST_AUTO_TEST_CASE(proploss_gaussian) {
             BOOST_CHECK_SMALL(bottom_ray->intensity(j) - bottom_pl, 2.0);
         }
     }
+}
+
+/**
+ * This test demonstrates ability to adjust source position if it is within
+ * 0.1 meters of being above the ocean surface or below the ocean bottom.
+ * The boundary reflection logic does not perform correctly if the
+ * wavefront starts on the wrong side of either boundary.
+ */
+BOOST_AUTO_TEST_CASE(proploss_limits) {
+    cout << "=== proploss_test: proploss_limits ===" << endl;
+
+    const double src_lat = 45.0;
+    const double src_lng = -45.0;
+    const double src_alt = 0.0;
+    const double depth = -1000;
+
+    // initialize propagation model
+
+    profile_model::csptr profile(new profile_linear());
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(1000.0));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
+
+    seq_vector::csptr freq(new seq_linear(1000.0, 1.0, 1));
+    wposition1 pos(src_lat, src_lng, src_alt);
+    seq_vector::csptr de(new seq_rayfan());
+    seq_vector::csptr az(new seq_linear(-20.0, 5.0, 20.0));
+
+    // try building a source above ocean surface
+
+    pos.altitude(10.0);
+    wave_queue wave1(ocean, freq, pos, de, az, time_step);
+    BOOST_CHECK_CLOSE(wave1.source_pos().altitude(), -0.1, 1e-6);
+
+    // try building a source above ocean surface
+
+    pos.altitude(depth - 10.0);
+    wave_queue wave2(ocean, freq, pos, de, az, time_step);
+    BOOST_CHECK_CLOSE(wave2.source_pos().altitude(), depth + 0.1, 1e-6);
 }
 
 /**
@@ -293,7 +335,7 @@ BOOST_AUTO_TEST_CASE(proploss_gaussian) {
  * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
  * "Computational Ocean Acoustics", pp. 16-19.
  */
-
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
     cout << "=== proploss_test: proploss_lloyds_range ===" << endl;
     const char* csvname =
@@ -335,10 +377,10 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
         target.latitude(n, 0, degrees);
     }
 
-    eigenray_collection collection(freq_list, pos, target);
+    eigenray_collection model(freq_list, pos, target);
     wave_queue wave(ocean, freq_list, pos, de, az, time_step, &target,
                     spreading_type);
-    wave.add_eigenray_listener(&collection);
+    wave.add_eigenray_listener(&model);
 
     // propagate rays & record to log file
 
@@ -352,8 +394,8 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
     }
     wave.close_netcdf();
     cout << "writing eigenrays to " << ncname << endl;
-    collection.sum_eigenrays();
-    collection.write_netcdf(ncname);
+    model.sum_eigenrays();
+    model.write_netcdf(ncname);
 
     // save results to spreadsheet and compare to analytic results
 
@@ -378,7 +420,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
 
         for (size_t n = 0; n < range_list.size(); ++n) {
             const auto range = range_list(n);
-            tl_model[n] = -collection.total(n, 0).intensity(f);
+            tl_model[n] = -model.total(n, 0).intensity(f);
 
             // compute analytic solution
 
@@ -394,7 +436,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
 
             os << freq << "," << range << "," << tl_model[n] << ","
                << tl_analytic[n];
-            const eigenray_list raylist = collection.eigenrays(n, 0);
+            const eigenray_list& raylist = model.eigenrays(n, 0);
             auto path_num = 0;
             for (const eigenray_model::csptr& ray : raylist) {
                 // write path data to spreadsheet
@@ -422,8 +464,8 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
             mean_analytic += tl_analytic[n];
         }
 
-        mean_model /= range_list.size();
-        mean_analytic /= range_list.size();
+        mean_model /= (double)range_list.size();
+        mean_analytic /= (double)range_list.size();
 
         // compute statistics of difference between curves
 
@@ -442,8 +484,8 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
             Syy += (diff_model * diff_model);
             Sxy += (diff_analytic * diff_model);
         }
-        bias /= range_list.size();
-        dev = sqrt(dev / range_list.size() - bias * bias);
+        bias /= (double)range_list.size();
+        dev = sqrt(dev / (double)range_list.size() - bias * bias);
         double detcoef = Sxy * Sxy / (Sxx * Syy) * 100.0;
 
         cout << std::setprecision(4);
@@ -498,6 +540,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
  * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
  * "Computational Ocean Acoustics", pp. 16-19.
  */
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
     cout << "=== proploss_test: proploss_lloyds_depth ===" << endl;
     const char* csvname =
@@ -510,7 +553,6 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
     const double src_lat = 45.0;
     const double src_lng = -45.0;
     const double src_alt = -25.0;
-    const double trg_alt = -200.0;
     const double range = 10e3;
     const double time_max = 8.0;
 
@@ -540,10 +582,10 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
         target.altitude(n, 0, depth_list(n));
     }
 
-    eigenray_collection collection(freq_list, pos, target);
+    eigenray_collection model(freq_list, pos, target);
     wave_queue wave(ocean, freq_list, pos, de, az, time_step, &target,
                     spreading_type);
-    wave.add_eigenray_listener(&collection);
+    wave.add_eigenray_listener(&model);
 
     // propagate rays & record to log file
 
@@ -557,8 +599,8 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
     }
     wave.close_netcdf();
     cout << "writing eigenrays to " << ncname << endl;
-    collection.sum_eigenrays();
-    collection.write_netcdf(ncname);
+    model.sum_eigenrays();
+    model.write_netcdf(ncname);
 
     // save results to spreadsheet and compare to analytic results
 
@@ -582,7 +624,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
             auto depth = depth_list(n);
             const double z1 = depth - src_alt;
             const double z2 = depth + src_alt;
-            tl_model[n] = -collection.total(n, 0).intensity(f);
+            tl_model[n] = -model.total(n, 0).intensity(f);
 
             // compute analytic solution
 
@@ -598,7 +640,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
 
             os << freq << "," << depth << "," << tl_model[n] << ","
                << tl_analytic[n];
-            const eigenray_list raylist = collection.eigenrays(n, 0);
+            const eigenray_list& raylist = model.eigenrays(n, 0);
             auto path_num = 0;
             for (const eigenray_model::csptr& ray : raylist) {
                 // write path data to spreadsheet
@@ -626,8 +668,8 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
             mean_analytic += tl_analytic[n];
         }
 
-        mean_model /= depth_list.size();
-        mean_analytic /= depth_list.size();
+        mean_model /= (double)depth_list.size();
+        mean_analytic /= (double)depth_list.size();
 
         // compute statistics of difference between curves
 
@@ -646,8 +688,8 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
             Syy += (diff_model * diff_model);
             Sxy += (diff_analytic * diff_model);
         }
-        bias /= depth_list.size();
-        dev = sqrt(dev / depth_list.size() - bias * bias);
+        bias /= (double)depth_list.size();
+        dev = sqrt(dev / (double)depth_list.size() - bias * bias);
         double detcoef = Sxy * Sxy / (Sxx * Syy) * 100.0;
 
         cout << std::setprecision(4);
@@ -665,44 +707,292 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
 }
 
 /**
- * This test demonstrates ability to adjust source position if it is within
- * 0.1 meters of being above the ocean surface or below the ocean bottom.
- * The boundary reflection logic does not perform correctly if the
- * wavefront starts on the wrong side of either boundary.
+ * Tests the model's ability to accurately estimate geometric terms for
+ * Lloyd's Mirror eigenrays on a spherical earth.  Performing this test in
+ * spherical coordinates eliminates potential sources of error for the
+ * proploss_test.cc suite, which compares its results to Cartesian test cases.
+ *
+ * - Scenario parameters
+ *   - Profile: constant 1500 m/s sound speed, no absorption
+ *   - Bottom: "infinitely" deep
+ *   - Source: 200 meters deep, 2000 Hz
+ *   - Target: 0, 10, 100, 1000 meters deep
+ *   - Time Step: 100 msec
+ *   - Launch D/E: 181 tangent spaced rays from -90 to 90 degrees
+ *
+ * This test computes travel times and eigenray angles for a combination
+ * of direct and surface-reflected paths in an isovelocity ocean on a
+ * round earth. It searches for zones of inaccuracies in the the wavefront
+ * model by comparing the modeled results to analytic solutions at a
+ * variety of depths and ranges.
+ *
+ * To compute the analytic solution we start with:
+ *
+ *  - R = earth's radius
+ *  - \f$ c_0 \f$ = speed of sound in the ocean
+ *  - \f$ d_1 \f$ = source depth
+ *  - \f$ d_2 \f$ = target depth
+ *  - \f$ \xi \f$ = latitude change from source to receiver
+ *
+ * The laws of sines and cosines are then used to compute an analytic
+ * solution for all direct-path eigenray terms:
+ * \f[
+ *      L^2 = D_1^2 + D_2^2 - 2 D_1 D_2 cos( \xi )
+ * \f]\f[
+ *      \mu_{source} = arccos \left( \frac{L^2+D_1^2+D_2^2}{2 L D_1} \right) -
+ * 90 \f]\f[ \mu_{target} = arccos \left( \frac{L^2+D_2^2+D_1^2}{2 L D_2}
+ * \right) - 90 \f]\f[ \tau_{direct} = L / c_0 \f] where:
+ *  - \f$ L \f$ = length of direct-path (meters)
+ *  - \f$ D_1 = R - d_1 \f$ = distance from earth center to source (meters)
+ *  - \f$ D_2 = R - d_2 \f$ = distance from earth center to target (meters)
+ *  - \f$ \mu_{source} \f$ = direct-path D/E angle at source (degrees)
+ *  - \f$ \mu_{target} \f$ = direct-path D/E angle at target (degrees)
+ *  - \f$ \tau_{direct} \f$ = direct-path travel time from source to target
+ * (sec)
+ *
+ * The surface-reflected path is very complicated in spherical coordinates.
+ * One way to find it is to search for the roots to the transcendental equation:
+ * \f[
+ *      f( \xi_1 ) = D_1 sin( \xi_1 ) - D_2 sin( \xi - \xi_1 ) + \frac{D_1
+ * D_2}{R} sin( \xi - 2 \xi_1 ) = 0 \f] where
+ *  - \f$ \xi_1 \f$ = latitude change from source to point of reflection
+ *  - \f$ \xi_2 = \xi -\xi_1 \f$ = latitude change from reflection point to
+ * target
+ *
+ * This test uses the Newton-Raphson method to iterate over successive values of
+ * \f$ \xi_1 \f$ until a solution \f$ f( \xi_1 ) \approx 0 \f$ is found.
+ * \f[
+ *      f'( \xi_1 ) = D_1 cos( \xi_1 ) + D_2 cos( \xi - \xi_1 ) - 2 \frac{D_1
+ * D_2}{R} cos( \xi - 2 \xi_1 ) \f]\f[ \xi_{1 new} = \xi_1 - \frac{ f( \xi_1 )
+ * }{ f'( \xi_1 ) } \f]
+ *
+ * Plots of the transcendental equation indicate that the solution for
+ * \f$ \xi_1 \f$ can have up to three roots, at long ranges, for depths near
+ * that of the source.  For the purposes of analytic solution computation,
+ * we will limit the range to an area where only two roots are supported.
+ * For a source at 200 meters, that corresponds to ranges below
+ * approximately 0.8 degrees.
+ *
+ * Once \f$ \xi_1 \f$ and \f$ \xi_2 \f$ are known, the laws of sines and
+ * cosines are used to compute an analytic solution for all surface
+ * reflected eigenray terms:
+ * \f[
+ *      a_1^2 = R^2 + D_1^2 - 2 R D_1 cos( \xi_1 )
+ * \f]\f[
+ *      a_2^2 = R^2 + D_2^2 - 2 R D_2 cos( \xi_2 )
+ * \f]\f[
+ *      \eta_{source} = arccos \left( \frac{a_1^2+D_1^2-R^2}{2 a_1 D_1} \right)
+ * - 90 \f]\f[ \eta_{target} = arccos \left( \frac{a_2^2+D_2^2-R^2}{2 a_2 D_2}
+ * \right) - 90 \f]\f[ \tau_{surface} = ( a_1 + a_2 ) / c_0 \f] where:
+ *  - \f$ a_1 \f$ = distance from source to point of reflection (meters)
+ *  - \f$ a_2 \f$ = distance from point of reflection to target  (meters)
+ *  - \f$ \eta_{source} \f$ = surface-reflected D/E angle at source (degrees)
+ *  - \f$ \eta_{target} \f$ = surface-reflected D/E angle at target (degrees)
+ *  - \f$ \tau_{surface} \f$ = surface-reflected travel time from source to
+ * target (sec)
+ *
+ * Errors are automatically generated if the modeled eigenrays
+ * deviate from the analytic results by more than 0.5 millisecs in time or
+ * 0.2 degrees in angle.
+ *
+ * When the wave_queue::compute_offsets() fallback calculation of
+ * offset(n) = -gradient(n) / hessian(n,n) is not limited to 1/2 of the
+ * beamwidth, then this test has large errors in D/E angle. This test
+ * illustrates the importance of this limitation.
+ *
+ * @xref Weisstein, Eric W. "Newton's Method." From MathWorld--A Wolfram
+ *       Web Resource. http://mathworld.wolfram.com/NewtonsMethod.html
  */
-BOOST_AUTO_TEST_CASE(proploss_limits) {
-    cout << "=== proploss_test: proploss_limits ===" << endl;
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+BOOST_AUTO_TEST_CASE(proploss_lloyds_spherical) {
+    cout << "=== proploss_test: lloyds_spherical ===" << endl;
+    const char* ncname_wave =
+        USML_TEST_DIR "/waveq3d/test/proploss_lloyds_spherical_wave.nc";
+    const char* ncname =
+        USML_TEST_DIR "/waveq3d/test/proploss_lloyds_spherical.nc";
+    const char* analytic_name =
+        USML_TEST_DIR "/waveq3d/test/proploss_lloyds_spherical_analytic.nc";
 
-    const double c0 = 1500.0;
+    const double time_step = 0.100;
+    const double f0 = 2000;
     const double src_lat = 45.0;
     const double src_lng = -45.0;
-    const double src_alt = 0.0;
-    const double time_max = 8.0;
-    const double depth = -1000;
+    const double src_alt = -200.0;
+    const double c0 = 1500.0;
+    const double bot_depth = 1e5;
 
-    // initialize propagation model
+    const double time_max = 120.0;  // let rays plots go into region w/ 2 roots
 
-    profile_model::csptr profile(new profile_linear());
+    const double rmax = 45.0 / 60.0;  // limit to area where N/R converges
+    const double rmin = 1.0 / 60.0;   // 1 nmi min range
+    const double rinc = 1.0 / 60.0;   // 1 nmi range inc
+    const seq_linear range(rmin, rinc, rmax);  // range in latitude
+
+    static double depth[] = {0.0, 10.0, 100.0, 1000.0};
+    size_t num_depths = sizeof(depth) / sizeof(double);
+
+    // compute eigenrays for this ocean
+
+    wposition::compute_earth_radius(src_lat);
+    attenuation_model::csptr attn(new attenuation_constant(0.0));
+    profile_model::csptr profile(new profile_linear(c0, attn));
     boundary_model::csptr surface(new boundary_flat());
-    boundary_model::csptr bottom(new boundary_flat(1000.0));
+    boundary_model::csptr bottom(new boundary_flat(bot_depth));
     ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
 
-    seq_vector::csptr freq(new seq_linear(1000.0, 1.0, 1));
-    wposition1 pos(src_lat, src_lng, src_alt);
+    seq_vector::csptr freq(new seq_log(f0, 1.0, 1));
+    wposition1 pos(src_lat, src_lng, src_alt);  // build ray source
     seq_vector::csptr de(new seq_rayfan());
-    seq_vector::csptr az(new seq_linear(-20.0, 5.0, 20.0));
+    seq_vector::csptr az(new seq_linear(-4.0, 1.0, 4.0));
 
-    // try building a source above ocean surface
+    // build a grid of targets at different ranges and depths
 
-    pos.altitude(10.0);
-    wave_queue wave1(ocean, freq, pos, de, az, time_step);
-    BOOST_CHECK_CLOSE(wave1.source_pos().altitude(), -0.1, 1e-6);
+    wposition target(range.size(), num_depths, src_lat, src_lng, src_alt);
+    for (size_t t1 = 0; t1 < range.size(); ++t1) {
+        for (size_t t2 = 0; t2 < num_depths; ++t2) {
+            target.latitude(t1, t2, src_lat + range(t1));
+            target.altitude(t1, t2, -depth[t2]);
+        }
+    }
 
-    // try building a source above ocean surface
+    // create wavefront used to create eigenrays
 
-    pos.altitude(depth - 10.0);
-    wave_queue wave2(ocean, freq, pos, de, az, time_step);
-    BOOST_CHECK_CLOSE(wave2.source_pos().altitude(), depth + 0.1, 1e-6);
+    eigenray_collection model(freq, pos, target);
+    eigenray_collection analytic(freq, pos, target);
+    wave_queue wave(ocean, freq, pos, de, az, time_step, &target,
+                    spreading_type);
+    wave.add_eigenray_listener(&model);
+
+    // propagate rays & record to log files
+
+    cout << "propagate wavefronts" << endl;
+    cout << "writing wavefronts to " << ncname_wave << endl;
+    wave.init_netcdf(ncname_wave);  // open a log file for wavefront data
+    wave.save_netcdf();             // write ray data to log file
+    while (wave.time() < time_max) {
+        wave.step();
+        wave.save_netcdf();  // write ray data to log file
+    }
+    wave.close_netcdf();  // close log file for wavefront data
+
+    model.sum_eigenrays();
+    cout << "writing eigenrays to " << ncname << endl;
+    model.write_netcdf(ncname);
+
+    // compare each target location to analytic results
+
+    cout << "testing eigenrays" << endl;
+    for (size_t t1 = 0; t1 < range.size(); ++t1) {
+        for (size_t t2 = 0; t2 < num_depths; ++t2) {
+            double time;
+            double sde;
+            double tde;
+            double intensity;
+            double phase;
+
+            // setup analytic equations for this target
+
+            const double R = wposition::earth_radius;
+            const double xi = to_radians(target.latitude(t1, t2) - src_lat);
+            const double d1 = -src_alt;
+            const double d2 = -target.altitude(t1, t2);
+            const double D1 = R - d1;
+            const double D2 = R - d2;
+
+            const eigenray_list& raylist = model.eigenrays(t1, t2);
+            // BOOST_REQUIRE_EQUAL(raylist.size(), 2);
+
+            for (const eigenray_model::csptr& ray : raylist) {
+                // compare direct-path model to analytic results
+
+                if (ray->surface == 0 || depth[t2] < 1e-3) {
+                    // compute analytic results
+
+                    const double L =
+                        sqrt(D1 * D1 + D2 * D2 - 2.0 * D1 * D2 * cos(xi));
+                    time = L / c0;
+                    intensity = 20*log10(L);
+                    sde = to_degrees(
+                        -asin((L * L + D1 * D1 - D2 * D2) / (2.0 * L * D1)));
+                    tde = to_degrees(
+                        asin((L * L + D2 * D2 - D1 * D1) / (2.0 * L * D2)));
+                    phase = 0.0;
+                    if (ray->surface == 1) {
+                        tde *= -1.0;
+                        phase = -M_PI;
+                    }
+
+                    // compare surface-reflected model to analytic results
+
+                } else {
+                    // find reflection point using root of transindental
+                    // equation warning: xi2 = 0 for depths < 1e-3, and this
+                    // makes solution unstable
+
+                    double xi1 = xi;
+                    double xi2 = xi - xi1;
+                    if (abs(d2) > 0.5) {
+                        xi1 = xi / 2.0;
+                        xi2 = xi - xi1;
+                        double f;
+                        double g;
+                        double delta;
+                        do {
+                            f = D1 * sin(xi1) - D2 * sin(xi2) +
+                                D1 * D2 / R * sin(xi2 - xi1);
+                            g = D1 * cos(xi1) + D2 * cos(xi2) -
+                                2.0 * D1 * D2 / R * cos(xi2 - xi1);
+                            delta = -f / g;
+                            xi1 += delta;
+                            xi2 = xi - xi1;
+                        } while (abs(delta) > 1e-6);
+                    }
+
+                    // compute analytic results
+
+                    const double a1 =
+                        sqrt(R * R + D1 * D1 - 2.0 * R * D1 * cos(xi1));
+                    const double a2 =
+                        sqrt(R * R + D2 * D2 - 2.0 * R * D2 * cos(xi2));
+                    time = (a1 + a2) / c0;
+                    intensity = 20*log10(a1 + a2);
+                    sde = to_degrees(
+                        -asin((a1 * a1 + D1 * D1 - R * R) / (2.0 * a1 * D1)));
+                    tde = to_degrees(
+                        asin((a2 * a2 + D2 * D2 - R * R) / (2.0 * a2 * D2)));
+                    phase = -M_PI;
+                }
+
+                // record analytic solution for this ray path
+
+                auto* new_ray = new eigenray_model(*ray);
+                new_ray->travel_time = time;
+                std::fill(new_ray->intensity.begin(), new_ray->intensity.end(),
+                          intensity);
+                std::fill(new_ray->phase.begin(), new_ray->phase.end(), phase);
+                new_ray->source_de = sde;
+                new_ray->source_az = 0.0;
+                new_ray->target_de = tde;
+                new_ray->target_az = 0.0;
+                analytic.add_eigenray(t1, t2, eigenray_model::csptr(new_ray));
+
+                //*************************************************************
+                // test the accuracy of the model
+                // acknowledge that there will be bigger errors at short range
+
+                if (range(t1) >= 0.1) {
+                    BOOST_REQUIRE_SMALL(ray->travel_time - time, 0.0005);
+                    BOOST_CHECK_SMALL(ray->phase(0) - phase, 1e-6);
+                    BOOST_CHECK_SMALL(ray->source_de - sde, 0.3);
+                    BOOST_CHECK_SMALL(ray->source_az, 1e-6);
+                    BOOST_CHECK_SMALL(ray->target_de - tde, 0.3);
+                    BOOST_CHECK_SMALL(ray->target_az, 1e-6);
+                }
+            }  // loop through eigenrays for each target
+        }      // loop through target depths
+    }          // loop through target ranges
+
+    analytic.write_netcdf(analytic_name);
 }
 
 /// @}
