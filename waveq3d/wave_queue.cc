@@ -31,7 +31,7 @@ wave_queue::wave_queue(const ocean_model::csptr& ocean,
                        const seq_vector::csptr& freq, const wposition1& pos,
                        const seq_vector::csptr& de, const seq_vector::csptr& az,
                        double time_step, const wposition* target_pos,
-                       const size_t run_id, spreading_type type)
+                       spreading_type type)
     : _ocean(ocean),
       _frequencies(freq),
       _source_pos(pos),
@@ -42,7 +42,7 @@ wave_queue::wave_queue(const ocean_model::csptr& ocean,
       _time_step(time_step),
       _time(0.0),
       _target_pos(target_pos),
-      _run_id(run_id),
+      _run_id(0),
       _nc_file(nullptr) {
     _az_boundary = false;
     if (_source_az->size() > 1) {

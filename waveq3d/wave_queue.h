@@ -107,7 +107,6 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier,
      *                      include rays for both 0 and 360 degrees.
      * @param  time_step    Propagation step size (seconds).
      * @param  target_pos   List of acoustic target positions.
-     * @param  run_id       Run Identification number.
      * @param  type         Type of spreading model to use: CLASSIC_RAY
      *                      or HYBRID_GAUSSIAN.
      *   NOTE: The freq paramater above, is a seq_vector pointer and is owned
@@ -119,7 +118,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier,
     wave_queue(const ocean_model::csptr& ocean, const seq_vector::csptr& freq,
                const wposition1& pos, const seq_vector::csptr& de,
                const seq_vector::csptr& az, double time_step,
-               const wposition* target_pos = nullptr, const size_t run_id = 1,
+               const wposition* target_pos = nullptr,
                spreading_type type = HYBRID_GAUSSIAN);
 
     /** Destroy all temporary memory. */

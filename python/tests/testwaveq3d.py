@@ -555,7 +555,7 @@ class TestWaveQ3D(unittest.TestCase):
         ax.set_xlabel('Range (km)')
         ax.set_ylabel('Transmission Loss (dB)')
         ax.legend(["Model", "Theory"])
-        ax.set_title(f"Frequency = {freq_test:.0f} Hz")
+        fig.suptitle(f"Frequency = {freq_test:.0f} Hz")
 
         output = os.path.join(self.USML_DIR, testname + "_zoom.png")
         print(f"saving {output}")
@@ -569,13 +569,88 @@ class TestWaveQ3D(unittest.TestCase):
         ax1.grid(True)
         ax1.set_xlim(0.0, range[-1])
         ax1.set_ylabel('Transmission Loss Error (dB)')
-        ax1.set_title(f"Frequency = {freq_test:.0f} Hz")
+        fig.suptitle(f"Frequency = {freq_test:.0f} Hz")
 
         ax2.plot(range, m1time - t1time)
         ax2.plot(range, m2time - t2time)
         ax2.grid(True)
         ax2.set_ylabel('Travel Time Error (ms)')
         ax2.set_xlabel('Range (km)')
+        ax2.legend(["Direct", "Surface"])
+
+        output = os.path.join(self.USML_DIR, testname + "_error.png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+    def test_proploss_lloyds_depth(self):
+        """Verify modeled propagation loss as a function of depth for Lloyd's mirror,
+
+        Compares total transmission loss and individual paths to the analytic solution for Lloyd's mirror surface
+        reflection in an isovelocity ocean. Targets near the surface must be extrapolated from the wavefronts below
+        them.  Because the Gaussian profile rolls off at edge of a ray family, it is important to test the impact of
+        that phenomena on propagation loss at the interface.
+
+        ref: Section 4.4 from Sean M. Reilly, Gopu Potty, "Veriffcation Tests for Hybrid Gaussian Beams in
+        Spherical/Time Coordinates," May 2012.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        filename = os.path.join(self.USML_DIR, "proploss_lloyds_depth.csv")
+        data = np.loadtxt(filename, skiprows=1, delimiter=",")
+
+        freq_test = 500.0
+        freq = data[:, 0]
+        data = data[freq == freq_test, :]
+
+        depth = data[:, 1]
+        model = data[:, 2]
+        theory = data[:, 3]
+        m1surf = data[:,4]
+        m1btm = data[:,5]
+        m1amp = data[:, 6]
+        m1time = data[:, 7] * 1e3
+        t1amp = data[:, 8]
+        t1time = data[:, 9] * 1e3
+        m1surf = data[:,10]
+        m1btm = data[:,11]
+        m2amp = data[:, 12]
+        m2time = data[:, 13] * 1e3
+        t2amp = data[:, 14]
+        t2time = data[:, 15] * 1e3
+
+        # plot total transmission loss errors as a function of depth
+        fig, ax = plt.subplots()
+        ax.plot(model,depth)
+        ax.plot(theory, depth)
+        ax.grid(True)
+        ax.set_xlim(-120, -75)
+        ax.set_ylim(depth[-1], 0.0)
+        ax.set_xlabel('Transmission Loss (dB)')
+        ax.set_ylabel('Depth (m)')
+        ax.legend(["Model", "Theory"])
+        fig.suptitle(f"Frequency = {freq_test:.0f} Hz")
+
+        output = os.path.join(self.USML_DIR, testname + ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+        # plot transmission loss and travel time errors as a function of depth
+        fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+        ax1.plot(m1amp - t1amp, depth)
+        ax1.plot(m2amp - t2amp, depth)
+        ax1.grid(True)
+        ax1.set_ylim(depth[-1], 0.0)
+        ax1.set_xlabel('Transmission Loss Error (dB)')
+        ax1.set_ylabel('Depth (m)')
+        fig.suptitle(f"Frequency = {freq_test:.0f} Hz")
+
+        ax2.plot(m1time - t1time, depth)
+        ax2.plot(m2time - t2time, depth)
+        ax2.grid(True)
+        ax2.set_xlabel('Travel Time Error (ms)')
         ax2.legend(["Direct", "Surface"])
 
         output = os.path.join(self.USML_DIR, testname + "_error.png")

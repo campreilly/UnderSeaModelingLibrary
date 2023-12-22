@@ -344,13 +344,13 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
 
     cout << "propagate wavefronts" << endl;
     cout << "writing wavefronts to " << ncname_wave << endl;
-    wave.init_netcdf(ncname_wave);  // open a log file for wavefront data
-    wave.save_netcdf();             // write ray data to log file
+    wave.init_netcdf(ncname_wave);
+    wave.save_netcdf();
     while (wave.time() < time_max) {
         wave.step();
-        wave.save_netcdf();  // write ray data to log file
+        wave.save_netcdf();
     }
-    wave.close_netcdf();  // close log file for wavefront data
+    wave.close_netcdf();
     cout << "writing eigenrays to " << ncname << endl;
     collection.sum_eigenrays();
     collection.write_netcdf(ncname);
@@ -378,6 +378,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
 
         for (size_t n = 0; n < range_list.size(); ++n) {
             const auto range = range_list(n);
+            tl_model[n] = -collection.total(n, 0).intensity(f);
 
             // compute analytic solution
 
@@ -388,7 +389,6 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
             p1 = exp(p1) / R1;
             p2 = -exp(p2) / R2;
             tl_analytic[n] = 10.0 * log10(norm(p1 + p2));
-            tl_model[n] = -collection.total(n, 0).intensity(f);
 
             // print to log file
 
@@ -409,7 +409,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
 
                 // check path type data
 
-                BOOST_CHECK_LT(path_num, 2);
+                BOOST_REQUIRE_LT(path_num, 2);
                 BOOST_CHECK_EQUAL(ray->surface, path_num);
                 BOOST_CHECK_EQUAL(ray->bottom, 0);
                 BOOST_CHECK_EQUAL(ray->caustic, 0);
@@ -460,241 +460,250 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_range) {
     }
 }
 
-///**
-// * Compares modeled propagation loss as a function of depth to the Lloyd's
-// * mirror analytic expression for surface reflection in an isovelocity
-// ocean.
-// * This forces the model to deal with target points near the surface where
-// the
-// * up-going and down-going wavefronts must be extrapolated from two ray
-// * families that have different numbers of surface bounces.
-// *
-// *      - Source:       25 meters deep
-// *      - Target:       Range 2000 meters, depth is 1-50 meters
-// *      - Frequency:    2000 Hz
-// *      - Sound Speed:  1500 m/s
-// *      - Time Step:    50 msec
-// *	- Source D/E:	-90 deg to 90 deg, 181 rays with tangent spacing
-// *	- Source AZ:	-2 deg to 2 deg in 1 deg increments
-// *
-// * The analytic result is the same as that for proploss_lloyds_range().
-// *
-// * Targets near the surface must be extrapolated from the wavefronts below
-// * them.  Because the Gaussian profile rolls off at edge of a ray family,
-// * it is important to test the impact of that phenomena on propagation
-// loss at
-// * the interface.
-// *
-// * This test computes three statistics to measure the difference between
-// * the model and the analytic solution.
-// *
-// * - "bias" is the mean difference and it measures offsets in level.
-// * - "dev" is an estimate of the sqrt of the variance and it is a measure
-// of
-// *   the difference in fluctuations of between the models.
-// * - "detcoef" is the coefficient of determination and it measure of the
-// *   fraction of the model that is predicts the analytic solution.
-// *
-// * An automatic error is thrown if abs(bias) > 0.5 dB, dev > 4 db, or
-// * detcoef < 80%.
-// *
-// * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
-// * "Computational Ocean Acoustics", pp. 16-19.
-// */
-// BOOST_AUTO_TEST_CASE(proploss_lloyds_depth)
-//{
-//    cout << "=== proploss_test: proploss_lloyds_depth ===" << endl;
-//    const char* csvname = USML_TEST_DIR
-//    "/waveq3d/test/proploss_lloyds_depth.csv"; const char* ncname =
-//    USML_TEST_DIR "/waveq3d/test/proploss_lloyds_depth.nc"; const char*
-//    ncname_wave = USML_TEST_DIR
-//    "/waveq3d/test/proploss_lloyds_depth_wave.nc"; const double c0 =
-//    1500.0; const double src_lat = 45.0; const double src_lng = -45.0;
-//    const double src_alt = -25.0;
-//    const double range = 10e3;
-//    const double time_max = 8.0;
-//
-//    // initialize propagation model
-//
-//    wposition::compute_earth_radius(src_lat);
-//    attenuation_model* attn = new attenuation_constant(0.0);
-//    profile_model* profile = new profile_linear(c0, attn);
-//    boundary_model* surface = new boundary_flat();
-//    boundary_model* bottom = new boundary_flat(bot_depth);
-//    ocean_model ocean(surface, bottom, profile);
-//    profile->flat_earth(true);
-//
-//    seq_log freq(f0, 1.0, 1);
-//    const double wavenum = TWO_PI * freq(0) / c0;
-//
-//    wposition1 pos(src_lat, src_lng, src_alt);
-//    seq_rayfan de ;
-//    seq_linear az( -4.0, 1.0, 4.0 );
-//
-//    // build a series of targets at different depths
-//
-//    double degrees = src_lat + to_degrees(range /
-//    (wposition::earth_radius+src_alt)); // range in latitude seq_linear
-//    depth(-0.1, -0.5, -40.1); // depth in meters wposition
-//    target(depth.size(), 1, degrees, src_lng, 0.0); for (size_t n = 0; n <
-//    target.size1(); ++n)
-//    {
-//        target.altitude(n, 0, depth(n));
-//    }
-//
-//    eigenray_collection loss(freq, pos, de, az, time_step, &target);
-//    wave_queue wave( ocean, freq, pos, de, az, time_step, &target) ;
-//    wave.add_eigenray_listener(&loss);
-//
-//    // propagate rays & record to log file
-//
-//    cout << "propagate wavefronts" << endl;
-//    cout << "writing wavefronts to " << ncname_wave << endl;
-//    wave.init_netcdf(ncname_wave); // open a log file for wavefront data
-//    wave.save_netcdf(); // write ray data to log file
-//    while (wave.time() < time_max)
-//    {
-//        wave.step();
-//        wave.save_netcdf(); // write ray data to log file
-//    }
-//    wave.close_netcdf(); // close log file for wavefront data
-//    cout << "writing eigenrays to " << ncname << endl;
-//    loss.sum_eigenrays();
-//    loss.write_netcdf(ncname);
-//
-//    // save results to spreadsheet and compare to analytic results
-//
-//    cout << "writing spreadsheets to " << csvname << endl;
-//    std::ofstream os(csvname);
-//    os <<
-//    "depth,model,theory,m1amp,t1amp,m1time,t1time,time1-diff,m2amp,t2amp,m2time,t2time,time2-diff,phase"
-//    << endl;
-//    os << std::setprecision(18);
-//
-//    vector<double> tl_model(depth.size());
-//    vector<double> tl_analytic(depth.size());
-//    double mean_model = 0.0;
-//    double mean_analytic = 0.0;
-//
-//    for (size_t n = 0; n < depth.size(); ++n)
-//    {
-//        const double z1 = depth(n) - src_alt;
-//        const double z2 = depth(n) + src_alt;
-//
-//        tl_model[n] = -loss.total(n, 0)->intensity(0);
-//
-//        // compute analytic solution
-//
-//        const double R1 = sqrt(range * range + z1 * z1);
-//        const double R2 = sqrt(range * range + z2 * z2);
-//        complex<double> p1(0.0, wavenum * R1);
-//        complex<double> p2(0.0, wavenum * R2);
-//        p1 = exp(p1) / R1;
-//        p2 = -exp(p2) / R2;
-//        tl_analytic[n] = 10.0 * log10(norm(p1 + p2));
-//
-//        // print to log file
-//
-//        eigenray_list::const_iterator iter = loss.eigenrays(n,
-//        0)->begin(); if (iter != loss.eigenrays(n, 0)->end())
-//        {
-//            os << depth(n)
-//            << "," << tl_model[n]
-//            << "," << tl_analytic[n]
-//            << "," << -(*iter).intensity(0)
-//            << "," << 10.0 * log10(norm(p1))
-//            << "," << (*iter).time
-//            << "," << R1 / c0
-//            << "," << (*iter).time-R1 / c0;
-//            ++iter;
-//            if (iter != loss.eigenrays(n, 0)->end())
-//            {
-//                os << "," << -(*iter).intensity(0)
-//                << "," << 10.0 * log10(norm(p2))
-//                << "," << (*iter).time
-//                << "," << R2 / c0
-//                << "," << (*iter).time-R2 / c0;
-//            }
-//            os << "," << (*iter).phase(0);
-//        }
-//        os << endl;
-//        mean_model += tl_model[n];
-//        mean_analytic += tl_analytic[n];
-//    }
-//    mean_model /= depth.size();
-//    mean_analytic /= depth.size();
-//
-//    // compute statistics of difference between curves
-//
-//    double bias = 0.0;
-//    double dev = 0.0;
-//    double Sxx = 0.0;
-//    double Syy = 0.0;
-//    double Sxy = 0.0;
-//    for (size_t n = 0; n < depth.size(); ++n)
-//    {
-//        const double diff = (tl_model[n] - tl_analytic[n]);
-//        bias += diff ;
-//        dev += (diff * diff);
-//        const double diff_analytic = (tl_analytic[n] - mean_analytic);
-//        Sxx += (diff_analytic * diff_analytic);
-//        const double diff_model = (tl_model[n] - mean_model);
-//        Syy += (diff_model * diff_model);
-//        Sxy += (diff_analytic * diff_model);
-//    }
-//    bias /= depth.size() ;
-//    dev = sqrt( dev / depth.size() - bias*bias ) ;
-//    double detcoef = Sxy * Sxy / (Sxx * Syy) * 100.0;
-//
-//    cout << std::setprecision(4);
-//    cout << "bias = " << bias << " dB"
-//         << " dev = " << dev << " dB"
-//         << " detcoef = " << detcoef << "%" << endl ;
-//
-//    BOOST_CHECK( abs(bias) <= 0.7 );
-//    BOOST_CHECK( dev <= 5.0 );
-//    BOOST_CHECK( detcoef >= 80.0 );
-//}
-//
-///**
-// * This test demonstrates ability to adjust source position if it is
-// within
-// * 0.1 meters of being above the ocean surface or below the ocean bottom.
-// * The boundary reflection logic does not perform correctly if the
-// * wavefront starts on the wrong side of either boundary.
-// */
-// BOOST_AUTO_TEST_CASE(proploss_limits)
-//{
-//    cout << "=== proploss_test: proploss_limits ===" << endl;
-//    const double c0 = 1500.0;
-//    const double src_lat = 45.0;
-//    const double src_lng = -45.0;
-//    const double src_alt = 0.0;
-//    const double depth = -1000 ;
-//
-//    // initialize propagation model
-//
-//    profile_model* profile = new profile_linear(c0);
-//    boundary_model* surface = new boundary_flat();
-//    boundary_model* bottom = new boundary_flat(depth);
-//    ocean_model ocean(surface, bottom, profile);
-//
-//    wposition1 pos(src_lat, src_lng, src_alt);
-//    seq_linear de(-10.7, 1.0, 10.0);
-//    seq_linear az(-10.5, 2.0, 10.0);
-//    seq_log freq(f0, 1.0, 1);  // 2000 Hz
-//
-//    // try building a source above ocean surface
-//
-//    wave_queue wave1( ocean, freq, pos, de, az, time_step ) ;
-//    BOOST_CHECK_CLOSE( wave1.source_pos().altitude(), -0.1, 1e-6 );
-//
-//    // try building a source above ocean surface
-//
-//    pos.altitude( depth-10.0 ) ;
-//    wave_queue wave2( ocean, freq, pos, de, az, time_step ) ;
-//    BOOST_CHECK_CLOSE( wave2.source_pos().altitude(), depth+0.1, 1e-6 );
-//}
+/**
+ * Compares modeled propagation loss as a function of depth to the Lloyd's
+ * mirror analytic expression for surface reflection in an isovelocity ocean.
+ * This forces the model to deal with target points near the surface where the
+ * up-going and down-going wavefronts must be extrapolated from two ray
+ * families that have different numbers of surface bounces.
+ *
+ * - Scenario parameters
+ *   - Source:       25 meters deep
+ *   - Target:       Range 2000 meters, depth is 1-50 meters
+ *   - Frequency:    2000 Hz
+ *   - Sound Speed:  1500 m/s
+ *   - Time Step:    50 msec
+ *	 - Source D/E:	-90 deg to 90 deg, 181 rays with tangent spacing
+ *	 - Source AZ:	-2 deg to 2 deg in 1 deg increments
+ *
+ * The analytic result is the same as that for proploss_lloyds_range().
+ *
+ * Targets near the surface must be extrapolated from the wavefronts below
+ * them.  Because the Gaussian profile rolls off at edge of a ray family,
+ * it is important to test the impact of that phenomena on propagation loss at
+ * the interface.
+ *
+ * This test computes three statistics to measure the difference between
+ * the model and the analytic solution.
+ *
+ * - "bias" is the mean difference and it measures offsets in level.
+ * - "dev" is an estimate of the sqrt of the variance and it is a measure of
+ *   the difference in fluctuations of between the models.
+ * - "detcoef" is the coefficient of determination and it measure of the
+ *   fraction of the model that is predicts the analytic solution.
+ *
+ * An automatic error is thrown if abs(bias) > 0.5 dB, dev > 4 db, or
+ * detcoef < 80%.
+ *
+ * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
+ * "Computational Ocean Acoustics", pp. 16-19.
+ */
+BOOST_AUTO_TEST_CASE(proploss_lloyds_depth) {
+    cout << "=== proploss_test: proploss_lloyds_depth ===" << endl;
+    const char* csvname =
+        USML_TEST_DIR "/waveq3d/test/proploss_lloyds_depth.csv";
+    const char* ncname = USML_TEST_DIR "/waveq3d/test/proploss_lloyds_depth.nc";
+    const char* ncname_wave =
+        USML_TEST_DIR "/waveq3d/test/proploss_lloyds_depth_wave.nc";
+
+    const double c0 = 1500.0;
+    const double src_lat = 45.0;
+    const double src_lng = -45.0;
+    const double src_alt = -25.0;
+    const double trg_alt = -200.0;
+    const double range = 10e3;
+    const double time_max = 8.0;
+
+    // initialize propagation model
+
+    attenuation_model::csptr attn(new attenuation_constant(0.0));
+    profile_model* ssp = new profile_linear(c0, attn);
+    ssp->flat_earth(true);
+    profile_model::csptr profile(ssp);
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(1e5));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
+
+    seq_vector::csptr freq_list(new seq_linear(500.0, 500.0, 4));
+    cout << "frequencies: " << (*freq_list) << endl;
+    wposition1 pos(src_lat, src_lng, src_alt);
+    seq_vector::csptr de(new seq_rayfan());
+    seq_vector::csptr az(new seq_linear(-20.0, 5.0, 20.0));
+
+    // build a series of targets at different depths
+
+    double degrees =
+        src_lat + to_degrees(range / (wposition::earth_radius + src_alt));
+    seq_linear depth_list(-0.1, -0.5, -50.1);  // depth in meters
+    wposition target(depth_list.size(), 1, degrees, src_lng, 0.0);
+    for (size_t n = 0; n < target.size1(); ++n) {
+        target.altitude(n, 0, depth_list(n));
+    }
+
+    eigenray_collection collection(freq_list, pos, target);
+    wave_queue wave(ocean, freq_list, pos, de, az, time_step, &target,
+                    spreading_type);
+    wave.add_eigenray_listener(&collection);
+
+    // propagate rays & record to log file
+
+    cout << "propagate wavefronts" << endl;
+    cout << "writing wavefronts to " << ncname_wave << endl;
+    wave.init_netcdf(ncname_wave);
+    wave.save_netcdf();
+    while (wave.time() < time_max) {
+        wave.step();
+        wave.save_netcdf();
+    }
+    wave.close_netcdf();
+    cout << "writing eigenrays to " << ncname << endl;
+    collection.sum_eigenrays();
+    collection.write_netcdf(ncname);
+
+    // save results to spreadsheet and compare to analytic results
+
+    cout << "writing spreadsheets to " << csvname << endl;
+    std::ofstream os(csvname);
+    os << "freq,depth,model,theory,m1srf,m1btm,m1amp,m1time,t1amp,"
+          "t1time,m2srf,m2btm,m2amp,m2time,t2amp,t2time"
+       << endl;
+    os << std::setprecision(18);
+
+    for (size_t f = 0; f < freq_list->size(); ++f) {
+        const auto freq = (*freq_list)(f);
+        const auto wavenum = TWO_PI * freq / c0;
+        double mean_model = 0.0;
+        double mean_analytic = 0.0;
+
+        vector<double> tl_model(depth_list.size());
+        vector<double> tl_analytic(depth_list.size());
+
+        for (size_t n = 0; n < depth_list.size(); ++n) {
+            auto depth = depth_list(n);
+            const double z1 = depth - src_alt;
+            const double z2 = depth + src_alt;
+            tl_model[n] = -collection.total(n, 0).intensity(f);
+
+            // compute analytic solution
+
+            const double R1 = hypot(range, z1);
+            const double R2 = hypot(range, z2);
+            complex<double> p1(0.0, wavenum * R1);
+            complex<double> p2(0.0, wavenum * R2);
+            p1 = exp(p1) / R1;
+            p2 = -exp(p2) / R2;
+            tl_analytic[n] = 10.0 * log10(norm(p1 + p2));
+
+            // print to log file
+
+            os << freq << "," << depth << "," << tl_model[n] << ","
+               << tl_analytic[n];
+            const eigenray_list raylist = collection.eigenrays(n, 0);
+            auto path_num = 0;
+            for (const eigenray_model::csptr& ray : raylist) {
+                // write path data to spreadsheet
+
+                os << "," << ray->surface << "," << ray->bottom << ","
+                   << -ray->intensity(0) << "," << ray->travel_time;
+                if (ray->surface == 0) {
+                    os << "," << 10.0 * log10(norm(p1)) << "," << R1 / c0;
+                } else {
+                    os << "," << 10.0 * log10(norm(p2)) << "," << R2 / c0;
+                }
+
+                // check path type data
+
+                BOOST_REQUIRE_LT(path_num, 2);
+                BOOST_CHECK_EQUAL(ray->surface, path_num);
+                BOOST_CHECK_EQUAL(ray->bottom, 0);
+                BOOST_CHECK_EQUAL(ray->caustic, 0);
+                BOOST_CHECK_EQUAL(ray->upper, 0);
+                BOOST_CHECK_EQUAL(ray->lower, 0);
+                ++path_num;
+            }
+            os << endl;
+            mean_model += tl_model[n];
+            mean_analytic += tl_analytic[n];
+        }
+
+        mean_model /= depth_list.size();
+        mean_analytic /= depth_list.size();
+
+        // compute statistics of difference between curves
+
+        double bias = 0.0;
+        double dev = 0.0;
+        double Sxx = 0.0;
+        double Syy = 0.0;
+        double Sxy = 0.0;
+        for (size_t n = 0; n < depth_list.size(); ++n) {
+            const double diff = (tl_model[n] - tl_analytic[n]);
+            bias += diff;
+            dev += (diff * diff);
+            const double diff_analytic = (tl_analytic[n] - mean_analytic);
+            Sxx += (diff_analytic * diff_analytic);
+            const double diff_model = (tl_model[n] - mean_model);
+            Syy += (diff_model * diff_model);
+            Sxy += (diff_analytic * diff_model);
+        }
+        bias /= depth_list.size();
+        dev = sqrt(dev / depth_list.size() - bias * bias);
+        double detcoef = Sxy * Sxy / (Sxx * Syy) * 100.0;
+
+        cout << std::setprecision(4);
+        cout << "freq = " << (*freq_list)(f) << " Hz"
+             << " bias = " << bias << " dB"
+             << " dev = " << dev << " dB"
+             << " detcoef = " << detcoef << "%" << endl;
+
+        if (freq > 250.0) {
+            BOOST_CHECK(abs(bias) <= 0.7);
+        }
+        BOOST_CHECK(dev <= 5.0);
+        BOOST_CHECK(detcoef >= 80.0);
+    }
+}
+
+/**
+ * This test demonstrates ability to adjust source position if it is within
+ * 0.1 meters of being above the ocean surface or below the ocean bottom.
+ * The boundary reflection logic does not perform correctly if the
+ * wavefront starts on the wrong side of either boundary.
+ */
+BOOST_AUTO_TEST_CASE(proploss_limits) {
+    cout << "=== proploss_test: proploss_limits ===" << endl;
+
+    const double c0 = 1500.0;
+    const double src_lat = 45.0;
+    const double src_lng = -45.0;
+    const double src_alt = 0.0;
+    const double time_max = 8.0;
+    const double depth = -1000;
+
+    // initialize propagation model
+
+    profile_model::csptr profile(new profile_linear());
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(1000.0));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
+
+    seq_vector::csptr freq(new seq_linear(1000.0, 1.0, 1));
+    wposition1 pos(src_lat, src_lng, src_alt);
+    seq_vector::csptr de(new seq_rayfan());
+    seq_vector::csptr az(new seq_linear(-20.0, 5.0, 20.0));
+
+    // try building a source above ocean surface
+
+    pos.altitude(10.0);
+    wave_queue wave1(ocean, freq, pos, de, az, time_step);
+    BOOST_CHECK_CLOSE(wave1.source_pos().altitude(), -0.1, 1e-6);
+
+    // try building a source above ocean surface
+
+    pos.altitude(depth - 10.0);
+    wave_queue wave2(ocean, freq, pos, de, az, time_step);
+    BOOST_CHECK_CLOSE(wave2.source_pos().altitude(), depth + 0.1, 1e-6);
+}
 
 /// @}
 
