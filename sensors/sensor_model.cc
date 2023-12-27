@@ -108,7 +108,7 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
 
     // clang-format off
     bool update_acoustics =
-		update_type != NO_UPDATE && _time_maximum > 0.0 && (
+		update_type != NO_UPDATE && (
         update_type == FORCE_UPDATE
 		|| abs(pos.latitude() - position().latitude()) >= motion_thresholds::lat_threshold
 		|| abs(pos.longitude() - position().longitude()) >= motion_thresholds::lon_threshold

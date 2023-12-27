@@ -108,10 +108,8 @@ class USML_DECLSPEC sensor_pair
     /**
      * Queries for the bistatic pair for the complement of the given sensor.
      *
-     * @param   sensor  	Reference to sensor that requested the
-     * complement.
-     * @return  			Reference to complement sensor of the
-     * pair.
+     * @param   sensor 	Reference to sensor that requested the complement.
+     * @return  		Reference to complement sensor of the pair.
      */
     sensor_model::sptr complement(const sensor_model::sptr& sensor) const;
 

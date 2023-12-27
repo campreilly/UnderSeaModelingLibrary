@@ -34,9 +34,17 @@ using namespace usml::types;
  */
 class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
    public:
-    /// Exception thrown if keyID not found.
-    struct missing_key : public std::exception {
-        const char* what() const throw() { return "missing key"; }
+    /// Exception thrown if frequencies member not set
+    struct freq_missing : public std::exception {
+        const char* what() const throw() {
+            return "frequencies member not set";
+        }
+    };
+    /// Exception thrown if time member not set
+    struct time_maximum_missing : public std::exception {
+        const char* what() const throw() {
+            return "time_maximum member not set";
+        }
     };
 
     /**
@@ -74,7 +82,8 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
      *
      * @param sensor		Reference to the sensor to add.
      * @param listener      Optional update listener for sensor_pair objects.
-     * @throw missing_key   If sensor not found in platform_manager.
+     * @throw freq_missing  If frequency not set before first sensor added.
+     * @throw time_maximum_missing  If time_maximum not set before sensor added.
      */
     void add_sensor(const sensor_model::sptr& sensor,
                     update_listener<sensor_pair>* listener = nullptr);

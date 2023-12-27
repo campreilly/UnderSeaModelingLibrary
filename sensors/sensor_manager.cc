@@ -70,6 +70,12 @@ void sensor_manager::frequencies(const seq_vector::csptr& freq) {
 void sensor_manager::add_sensor(const sensor_model::sptr& sensor,
                                 update_listener<sensor_pair>* listener) {
     write_lock_guard guard(_mutex);
+    if (_frequencies == nullptr || _frequencies->size() < 1) {
+        throw freq_missing();
+    }
+    if (sensor->time_maximum() == 0.0) {
+    	throw time_maximum_missing();
+    }
 
     // add reference to platform_manager
 

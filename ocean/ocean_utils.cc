@@ -46,7 +46,7 @@ void ocean_utils::make_iso(double depth, double bottom_loss) {
     // build sound speed model
 
     attenuation_model::csptr attn(new attenuation_constant(0.0));
-    profile_model::csptr profile(new profile_linear());
+    profile_model::csptr profile(new profile_linear(1500.0,attn));
 
     ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
     ocean_shared::update(ocean);
