@@ -10,14 +10,16 @@ using namespace usml::rvbenv;
 /**
  * Initialize model parameters with state of sensor_pair at this time.
  */
-rvbenv_generator::rvbenv_generator(const sensor_pair::sptr& pair,
-                                   const seq_vector::csptr& times,
-                                   const seq_vector::csptr& freqs,
-                                   size_t num_azimuths)
-    : _sensor_pair(pair),
-      _times(times),
-      _freqs(freqs),
-      _num_azimuths(num_azimuths) {}
+rvbenv_generator::rvbenv_generator(const sensor_model::sptr& source,
+                                   const sensor_model::sptr& receiver,
+                                   const biverb_collection::csptr& biverbs,
+                                   const seq_vector::csptr& frequencies,
+                                   const seq_vector::csptr& travel_times)
+    : _source(source),
+      _receiver(receiver),
+      _biverbs(biverbs),
+      _frequencies(frequencies),
+      _travel_times(travel_times) {}
 
 /**
  * Compute reverberation envelope collection for a bistatic pair.
@@ -30,15 +32,14 @@ void rvbenv_generator::run() {
     }
     cout << "task #" << id()
          << " rvbenv_generator *** aborted before execution ***" << endl;
-    cout << "task #" << id()
-         << " rvbenv_generator src=" << _sensor_pair->source()->keyID()
-         << " rcv=" << _sensor_pair->receiver()->keyID() << endl;
+    cout << "task #" << id() << " rvbenv_generator src=" << _source->keyID()
+         << " rcv=" << _receiver->keyID() << endl;
 
     // initialize workspace for results
 
     auto* collection =
-        new rvbenv_collection(_sensor_pair, _times, _freqs, _num_azimuths);
-    const auto num_freqs = _freqs->size();
+        new rvbenv_collection(_source, _receiver, _travel_times, _frequencies);
+    const auto num_freqs = _frequencies->size();
     const auto num_src_beams = collection->num_src_beams();
     const auto num_rcv_beams = collection->num_rcv_beams();
 
@@ -48,9 +49,9 @@ void rvbenv_generator::run() {
 
     // loop through eigenverbs for each interface
 
-    auto num_interfaces = collection->biverbs()->num_interfaces();
+    auto num_interfaces = _biverbs->num_interfaces();
     for (size_t interface = 0; interface < num_interfaces; ++interface) {
-        for (const auto& verb : collection->biverbs()->biverbs(interface)) {
+        for (const auto& verb : _biverbs->biverbs(interface)) {
             beam_gain_src(collection, verb->source_de, verb->source_az,
                           beam_work, src_beam);
             beam_gain_rcv(collection, verb->receiver_de, verb->receiver_az,
@@ -67,13 +68,14 @@ void rvbenv_generator::run() {
 
     // notify listeners of results
 
-    _collection = rvbenv_collection::csptr(collection);
+    rvbenv_collection::csptr result(collection);
     _done = true;
-    notify_update(&_collection);
+    notify_update(&result);
 }
 
 /**
- * Computes the source beam gain for each frequency and beam number.
+ * Computes the source beam gain as a function of DE and AZ for each frequency
+ * and beam number.
  */
 void rvbenv_generator::beam_gain_src(const rvbenv_collection* collection,
                                      double de, double az,
@@ -81,11 +83,11 @@ void rvbenv_generator::beam_gain_src(const rvbenv_collection* collection,
                                      matrix<double>& beam) {
     sensor_model::sptr source = collection->source();
     bvector arrival(de, az);
-    arrival.rotate(source->orient(), arrival);
+    arrival.rotate(collection->source_orient(), arrival);
     int beam_number = 0;
     for (auto keyID : source->src_keys()) {
         bp_model::csptr bp = source->src_beam(keyID);
-        bp->beam_level(arrival, _freqs, &beam_work);
+        bp->beam_level(arrival, _frequencies, &beam_work);
         matrix_column<matrix<double> > col(beam, beam_number);
         col = beam_work;
         ++beam_number;
@@ -93,7 +95,8 @@ void rvbenv_generator::beam_gain_src(const rvbenv_collection* collection,
 }
 
 /**
- * Computes the source beam gain for each frequency and beam number.
+ * Computes the source beam gain as a function of DE and AZ for each frequency
+ * and beam number.
  */
 void rvbenv_generator::beam_gain_rcv(const rvbenv_collection* collection,
                                      double de, double az,
@@ -101,11 +104,11 @@ void rvbenv_generator::beam_gain_rcv(const rvbenv_collection* collection,
                                      matrix<double>& beam) {
     sensor_model::sptr receiver = collection->receiver();
     bvector arrival(de, az);
-    arrival.rotate(receiver->orient(), arrival);
+    arrival.rotate(collection->receiver_orient(), arrival);
     int beam_number = 0;
     for (auto keyID : receiver->rcv_keys()) {
         bp_model::csptr bp = receiver->rcv_beam(keyID);
-        bp->beam_level(arrival, _freqs, &beam_work);
+        bp->beam_level(arrival, _frequencies, &beam_work);
         matrix_column<matrix<double> > col(beam, beam_number);
         col = beam_work;
         ++beam_number;

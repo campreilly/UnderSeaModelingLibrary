@@ -55,6 +55,7 @@ std::string sensor_pair::generate_hash_key(int src_id, int rcv_id) {
  */
 sensor_model::sptr sensor_pair::complement(
     const sensor_model::sptr& sensor) const {
+    read_lock_guard guard(_mutex);
     if (sensor == _source) {
         return _receiver;
     }
@@ -148,17 +149,23 @@ void sensor_pair::update_wavefront_data(
 }
 
 /**
- * Notify listeners that this sensor_pair has been updated.
- */
-void sensor_pair::notify_update(const sensor_pair* object) const {
-    this->update_notifier<sensor_pair>::notify_update(object);
-}
-
-/**
  * Update bistatic eigenverbs using results of biverb_generator.
  */
 void sensor_pair::notify_update(const biverb_collection::csptr* object) {
     write_lock_guard guard(_mutex);
     _biverbs = *object;
-    notify_update(this);
+//
+//    // launch a new reverberation envelope generator background task
+//
+//    _biverb_task = std::make_shared<biverb_generator>(this);
+//    thread_controller::instance()->run(_biverb_task);
+//    _biverb_task.reset();  // destroy background task shared pointer
+
+}
+
+/**
+ * Notify listeners that this sensor_pair has been updated.
+ */
+void sensor_pair::notify_update(const sensor_pair* object) const {
+    this->update_notifier<sensor_pair>::notify_update(object);
 }

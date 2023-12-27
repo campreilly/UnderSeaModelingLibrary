@@ -1,14 +1,13 @@
 /**
  * @file rvbenv_collection.h
  * Computes the reverberation envelope time series for all combinations of
- * receiver azimuth, source beam number, and receiver beam number.
+ * transmit frequency, source beam number, and receiver beam number.
  */
 #pragma once
 
 #include <usml/biverbs/biverb_collection.h>
 #include <usml/biverbs/biverb_model.h>
 #include <usml/sensors/sensor_model.h>
-#include <usml/sensors/sensor_pair.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/types/orientation.h>
 #include <usml/types/seq_vector.h>
@@ -32,10 +31,9 @@ using namespace usml::types;
 
 /**
  * Computes and stores the reverberation envelope time series for all
- * combinations of receiver azimuth, source beam number, and receiver beam
- * number. Each envelope is stored as a matrix that represents
- * the results as a function of frequency (rows) and two-way travel time
- * (columns).
+ * combinations of source beam number, and receiver beam number. Each envelope
+ * is stored as a matrix that represents the results as a function of frequency
+ * (rows) and two-way travel time (columns).
  */
 class USML_DECLSPEC rvbenv_collection {
    public:
@@ -47,14 +45,15 @@ class USML_DECLSPEC rvbenv_collection {
     /**
      * Initialize model with data from a sensor_pair.
      *
-     * @param pair       	Bistatic pair that creates reverberation.
-     * @param times 		Times at which reverb is computed (sec).
-     * @param freqs  		Frequencies at which reverb is computed (Hz).
-     * @param num_azimuths	Number of receiver azimuths in result.
+     * @param source      	Reference to the source for this pair.
+     * @param receiver    	Reference to the receiver for this pair.
+     * @param travel_times 	Times at which reverb is computed (sec).
+     * @param frequencies  	Frequencies at which reverb is computed (Hz).
      */
-    rvbenv_collection(const sensor_pair::sptr& pair,
-                      const seq_vector::csptr& times,
-                      const seq_vector::csptr& freqs, size_t num_azimuths);
+    rvbenv_collection(const sensor_model::sptr& source,
+                      const sensor_model::sptr& receiver,
+                      const seq_vector::csptr& travel_times,
+                      const seq_vector::csptr& frequencies);
 
     /**
      * Delete dynamic memory in each of the nested dynamic arrays.
@@ -65,34 +64,22 @@ class USML_DECLSPEC rvbenv_collection {
     read_write_lock& mutex() const { return _mutex; }
 
     /// Times at which reverberation is computed (sec).
-    const seq_vector::csptr& times() const {
-        read_lock_guard guard(mutex());
-        return _times;
-    }
+    seq_vector::csptr travel_times() const { return _travel_times; }
 
     /// Frequencies at which reverberation is computed (Hz).
-    const seq_vector::csptr& freqs() const {
-        read_lock_guard guard(mutex());
-        return _freqs;
-    }
+    seq_vector::csptr frequencies() const { return _frequencies; }
 
-    /// Number of receiver azimuths in result.
-    size_t num_azimuths() const {
-        read_lock_guard guard(mutex());
-        return _num_azimuths;
-    }
+    // Reference to source sensor
+    sensor_model::sptr source() const { return _source; }
+
+    // Reference to receiver sensor
+    sensor_model::sptr receiver() const { return _receiver; }
 
     /// Number of source beam patterns
     size_t num_src_beams() const { return _num_src_beams; }
 
     /// Number of receiver beam patterns
     size_t num_rcv_beams() const { return _num_rcv_beams; }
-
-    // Reference to source sensor
-    const sensor_model::sptr source() const { return _source; }
-
-    // Reference to receiver sensor
-    const sensor_model::sptr receiver() const { return _receiver; }
 
     /// Source position at time that class constructed.
     const wposition1& source_pos() const {
@@ -130,31 +117,23 @@ class USML_DECLSPEC rvbenv_collection {
         return _receiver_speed;
     }
 
-    /// Bistatic eigenverbs at time that class constructed.
-    const biverb_collection::csptr& biverbs() const {
-        read_lock_guard guard(mutex());
-        return _biverbs;
-    }
-
     /**
-     * Retrieves intensity time series for one combination of parameters.
+     * Envelope for one combination of source and receiver beam numbers.
      *
-     * @param azimuth     Receiver azimuth number.
      * @param src_beam    Source beam number.
      * @param rcv_beam    Receiver beam number
      * @return            Reverberation intensity at each point the time series.
      *                    Each row represents a specific envelope frequency.
      *                    Each column represents a specific travel time.
      */
-    const matrix<double>& envelope(size_t azimuth, size_t src_beam,
-                                   size_t rcv_beam) const {
-        read_lock_guard guard(mutex());
-        return *_envelopes[azimuth][src_beam][rcv_beam];
+    const matrix<double>& envelope(size_t src_beam, size_t rcv_beam) const {
+        read_lock_guard guard(_mutex);
+        return *_envelopes[src_beam][rcv_beam];
     }
 
     /**
-     * Adds the intensity contribution for a single bistatic eigenverb. Loops
-     * over source and receiver beams to apply beam pattern to each
+     * Adds the Guassian intensity contribution for a single bistatic eigenverb.
+     * Loops over source and receiver beams to apply beam pattern to each
      * contribution.
      *
      * @param verb	   Bistatic eigenverb for envelope contribution.
@@ -166,12 +145,10 @@ class USML_DECLSPEC rvbenv_collection {
                     const matrix<double>& rcv_beam);
 
     /**
-     * Writes the envelope data to disk
+     * Writes reverberation envelope data to disk.
      *
      * An example of the file format is given below.
      * <pre>
-
-     *	}
      * </pre>
      */
     void write_netcdf(const char* filename) const;
@@ -181,55 +158,48 @@ class USML_DECLSPEC rvbenv_collection {
     mutable read_write_lock _mutex;
 
     /// Times at which reverberation is computed (sec).
-    const seq_vector::csptr _times;
+    const seq_vector::csptr _travel_times;
 
     /// Frequencies at which reverberation is computed (Hz).
-    const seq_vector::csptr _freqs;
+    const seq_vector::csptr _frequencies;
 
-    /// Number of receiver azimuths in result.
-    const size_t _num_azimuths;
+    // Reference to source sensor
+    const sensor_model::sptr _source;
+
+    // Reference to receiver sensor
+    const sensor_model::sptr _receiver;
 
     /// Number of source beam patterns
-    size_t _num_src_beams;
+    const size_t _num_src_beams;
 
     /// Number of receiver beam patterns
-    size_t _num_rcv_beams;
-
-    // Reference to source sensor
-    sensor_model::sptr _source;
-
-    // Reference to source sensor
-    sensor_model::sptr _receiver;
+    const size_t _num_rcv_beams;
 
     /// Source position at time that class constructed.
-    wposition1 _source_pos;
+    const wposition1 _source_pos;
 
     /// Receiver position at time that class constructed.
-    wposition1 _receiver_pos;
+    const wposition1 _receiver_pos;
 
     /// Source orientation at time that class constructed.
-    orientation _source_orient;
+    const orientation _source_orient;
 
     /// Receiver orientation at time that class constructed.
-    orientation _receiver_orient;
+    const orientation _receiver_orient;
 
     /// Source speed at time that class constructed.
-    double _source_speed;
+    const double _source_speed;
 
     /// Receiver speed at time that class constructed.
-    double _receiver_speed;
-
-    /// Bistatic eigenverbs at time that class constructed.
-    biverb_collection::csptr _biverbs;
+    const double _receiver_speed;
 
     /**
-     * Reverberation envelopes for each combination of parameters.
-     * The order of indices is azimuth number, source beam number,
-     * and then receiver beam number.  Each envelope is stored as a
-     * matrix that represents the results a function of the sensor_pair's
-     * envelope frequency (rows) and two-way travel time (columns).
+     * Reverberation envelopes for each source and receiver beam number.
+     * Each envelope is stored as a uBLAS matrix that represents the results a
+     * function of the sensor_pair's envelope frequency (rows) and two-way
+     * travel time (columns).
      */
-    matrix<double>**** _envelopes;
+    matrix<double>*** _envelopes;
 };
 
 /// @}

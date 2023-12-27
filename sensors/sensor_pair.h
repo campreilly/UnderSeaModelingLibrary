@@ -11,6 +11,7 @@
 #include <usml/managed/managed_obj.h>
 #include <usml/managed/update_listener.h>
 #include <usml/managed/update_notifier.h>
+#include <usml/rvbenv/rvbenv_collection.h>
 #include <usml/sensors/sensor_model.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/usml_config.h>
@@ -68,33 +69,51 @@ class USML_DECLSPEC sensor_pair
 
     /// Lookup key for this combination of source and receiver
     std::string hash_key() const {
+        read_lock_guard guard(_mutex);
         return generate_hash_key(_source->keyID(), _receiver->keyID());
     }
 
     /// Reference to the source sensor.
-    const sensor_model::sptr source() const { return _source; }
+    const sensor_model::sptr source() const {
+        read_lock_guard guard(_mutex);
+        return _source;
+    }
 
     /// Reference to the receiving sensor.
-    const sensor_model::sptr receiver() const { return _receiver; }
+    const sensor_model::sptr receiver() const {
+        read_lock_guard guard(_mutex);
+        return _receiver;
+    }
 
     /// Direct paths that connect source and receiver locations.
-    eigenray_collection::csptr dirpaths() const { return _dirpaths; }
+    eigenray_collection::csptr dirpaths() const {
+        read_lock_guard guard(_mutex);
+        return _dirpaths;
+    }
 
     /// Interface collisions for wavefront emanating from the source.
     eigenverb_collection::csptr rcv_eigenverbs() const {
+        read_lock_guard guard(_mutex);
         return _rcv_eigenverbs;
     }
 
     /// Interface collisions for wavefront emanating from the receiver.
     eigenverb_collection::csptr src_eigenverbs() const {
+        read_lock_guard guard(_mutex);
         return _src_eigenverbs;
     }
 
     /// Overlap of source and receiver eigenverbs.
-    biverb_collection::csptr biverbs() const { return _biverbs; }
+    biverb_collection::csptr biverbs() const {
+        read_lock_guard guard(_mutex);
+        return _biverbs;
+    }
 
     /// True if eigenverbs computed for this sensor.
-    bool compute_reverb() const { return _compute_reverb; }
+    bool compute_reverb() const {
+        read_lock_guard guard(_mutex);
+        return _compute_reverb;
+    }
 
     /**
      * Utility to generate a hash key for the bistatic_template
@@ -137,18 +156,18 @@ class USML_DECLSPEC sensor_pair
         eigenverb_collection::csptr eigenverbs) override;
 
     /**
-     * Notify listeners that this sensor_pair has been updated.
-     *
-     * @param object    Reference to the object that has been updated.
-     */
-    virtual void notify_update(const sensor_pair* object) const override;
-
-    /**
      * Update bistatic eigenverbs using results of biverb_generator.
      *
      * @param  object	Updated bistatic eigenverbs collection.
      */
     virtual void notify_update(const biverb_collection::csptr* object) override;
+
+    /**
+     * Notify listeners that this sensor_pair has been updated.
+     *
+     * @param object    Reference to the object that has been updated.
+     */
+    virtual void notify_update(const sensor_pair* object) const override;
 
    private:
     /// Mutex to that locks pair updates.
@@ -177,7 +196,11 @@ class USML_DECLSPEC sensor_pair
     /// Overlap of source and receiver eigenverbs.
     biverb_collection::csptr _biverbs;
 
+    /// Background task used to generate biverb objects.
     std::shared_ptr<biverb_generator> _biverb_task;
+
+    /// Background task used to generate reverberation envelope objects.
+//    std::shared_ptr<rvbenv_generator> _rvbenv_task;
 };
 
 typedef std::list<sensor_pair::sptr> pair_list;
