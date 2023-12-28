@@ -46,11 +46,15 @@ using namespace usml::wavegen;
  * This class also stores the beampattern models used by this sensor. Each
  * beampattern has a keyID and a const shared pointer to the beampattern model
  * to use. Beampatterns models are immutable and may be shared between sensors.
- * The keyID for source beam patterns identifies the pattern to use for each
- * transmitter operating mode (ex: narrow vs. wide) in the transmit_model. The
- * keyID for receiver beam patterns identifies the receiver channel associated
- * with each pattern. This is particularly useful in beam level simulations
- * where each channel may have a different pattern model.
+ * The transmission schedule used to generate acoustic time series includes
+ * pulse characterstics, a transmit mode, and a transmit steering direction for
+ * each pulse. The keyID for of the source beam patterns in sensor_model
+ * identifies the beam pattern model to use for each of these pulses.
+ * The keyID for each receiver beam patterns identifies the receiver channel
+ * associated with each pattern. This is particularly useful in beam level
+ * simulations where each channel may have a different pattern model. The
+ * steering for each receiver channel is updated through the sensor_model.
+ * Results are generated as a function of receiver channel number and time.
  *
  * Automatically launches a background task to recompute eigenrays and
  * eigenverbs when sensor motion exceeds position or orientation thresholds.
@@ -86,16 +90,18 @@ class USML_DECLSPEC sensor_model : public platform_model,
                  const orientation& orient = orientation(), double speed = 0.0)
         : platform_model(keyID, description, time, pos, orient, speed) {}
 
-    /// Minimum range to valid targets (m).
+    /// Minimum range to find valid targets (m).
     double min_range() const { return _min_range; }
 
-    /// Minimum range to valid targets (m).
+    /// Minimum range to find valid targets (m).
     void min_range(double value) { _min_range = value; }
 
-    /// Maximum range to valid targets (m).  Set to zero for infinite range.
+    /// Maximum range to find valid targets (m).  Set to zero for infinite
+    /// range.
     double max_range() const { return _max_range; }
 
-    /// Maximum range to valid targets (m).  Set to zero for infinite range.
+    /// Maximum range to find valid targets (m).  Set to zero for infinite
+    /// range.
     void max_range(double value) { _max_range = value; }
 
     /// List of depression/elevation angles to use in wavefront calculation.
@@ -123,9 +129,9 @@ class USML_DECLSPEC sensor_model : public platform_model,
     void time_maximum(double value) { _time_maximum = value; }
 
     /**
-     * The value of the intensity threshold in dB.
-     * Any eigenray or eigenverb with an intensity value that are weaker
-     * than this threshold is not sent the listeners.
+     * The value of the intensity threshold in dB. Any eigenray or eigenverb
+     * with an intensity value that are weaker than this threshold is not sent
+     * the listeners.
      */
     double intensity_threshold() const { return _intensity_threshold; }
 
@@ -158,70 +164,61 @@ class USML_DECLSPEC sensor_model : public platform_model,
     /// True if eigenverbs computed for this sensor.
     void compute_reverb(bool value) { _compute_reverb = value; }
 
-    /// Multi-static group for this sensor (0=none).
+    /**
+     * Multi-static group for this sensor (0=none). The sensor_manager
+     * automatically creates bistatic pairs for sources and receivers in the
+     * same multistatic group.
+     */
     int multistatic() const { return _multistatic; }
 
     /// Multi-static group for this sensor (0=none).
     void multistatic(int value) { _multistatic = value; }
 
-    /**
-     * Add source beam pattern to this sensor.
-     *
-     * @param keyID		Identification number.
-     * @param pattern   Reference to bp_model.
-     */
+    /// Add transmit mode beam pattern to this sensor.
     size_t src_beam(int keyID, const bp_model::csptr& pattern);
 
-    /**
-     * Find reference to specific source beam model.
-     *
-     * @param keyID		Identification number.
-     */
+    /// Find reference to specific source beam model.
     bp_model::csptr src_beam(int keyID) const;
 
-    /**
-     * Return a list of all source beam keys.
-     */
+    /// Return a list of all source beam keys.
     std::list<int> src_keys() const;
 
-    /**
-     * Indicate if this sensor can act as a source.
-     *
-     * @return True if the sensor has source beams.
-     */
+    /// True if the sensor has source beams.
     bool is_source() const {
         read_lock_guard guard(mutex());
         return _src_beams.size() > 0;
     }
 
-    /**
-     * Add receiver beam pattern to this sensor.
-     *
-     * @param keyID		Identification number.
-     * @param pattern   Reference to bp_model.
-     */
-    size_t rcv_beam(int keyID, const bp_model::csptr& pattern);
+    /// Add receiver beam pattern to this sensor.
+    size_t rcv_beam(int keyID, const bp_model::csptr& pattern,
+                    const bvector& steering = bvector(1.0, 0.0, 0.0));
 
-    /**
-     * Find reference to specific receiver beam model.
-     *
-     * @param keyID		Identification number.
-     */
+    ///  Find reference to specific receiver beam model.
     bp_model::csptr rcv_beam(int keyID) const;
 
-    /**
-     * Return a list of all receiver beam keys.
-     */
+    /// Retrieve source steering for specific channel number.
+    bvector rcv_steering(int keyID) const;
+
+    /// Update source steering for specific channel number.
+    void rcv_steering(int keyID, const bvector& steering);
+
+    /// Return a list of all receiver beam keys.
     std::list<int> rcv_keys() const;
 
-    /**
-     * Indicate if this sensor can act as a receiver.
-     *
-     * @return True if the sensor has receiver beams.
-     */
+    /// True if the sensor has receiver beams.
     bool is_receiver() const {
         read_lock_guard guard(mutex());
         return _rcv_beams.size() > 0;
+    }
+
+    /// Retrieve receiver sampling rate (Hz).
+    double fsample() const {
+    	return _fsample;
+    }
+
+    /// Update receiver sampling rate (Hz).
+    void fsample(double value) {
+    	_fsample = value;
     }
 
    protected:
@@ -253,13 +250,13 @@ class USML_DECLSPEC sensor_model : public platform_model,
     /// Type used to store list of objects.
     typedef std::map<int, bp_model::csptr> beam_map_type;
 
-    /// Iterator used to search for specific objects.
-    typedef typename beam_map_type::const_iterator beam_iterator;
+    /// Type used to store list of beam steerings.
+    typedef std::map<int, bvector> steering_map_type;
 
-    /// Minimum range to valid targets (m).
+    /// Minimum range to find valid targets (m).
     double _min_range{0.0};
 
-    /// Maximum range to valid targets (m).  Use zero for infinite range.
+    /// Maximum range to find valid targets (m).  Use zero for infinite range.
     double _max_range{0.0};
 
     /// List of depression/elevation angles to use in wavefront calculation.
@@ -302,11 +299,17 @@ class USML_DECLSPEC sensor_model : public platform_model,
     /// Multi-static group for this sensor (0=none).
     int _multistatic{0};
 
-    /// Source beam patterns
+    /// Source beam patterns.
     beam_map_type _src_beams;
 
-    /// Receiver beam patterns
+    /// Receiver beam patterns.
     beam_map_type _rcv_beams;
+
+    /// Receiver beam steerings.
+    steering_map_type _rcv_steering;
+
+    /// Receiver sampling rate (Hz).
+    double _fsample{0.0};
 
     /// Reference to currently executing wavefront generator.
     std::shared_ptr<wavefront_generator> _wavefront_task;

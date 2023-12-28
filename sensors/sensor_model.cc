@@ -62,13 +62,12 @@ std::list<int> sensor_model::src_keys() const {
 
 /**
  * Add receiver beam pattern to this sensor.
- *
- * @param keyID		Identification number.
- * @param pattern   Reference to bp_model.
  */
-size_t sensor_model::rcv_beam(int keyID, const bp_model::csptr& pattern) {
+size_t sensor_model::rcv_beam(int keyID, const bp_model::csptr& pattern,
+                              const bvector& steering) {
     write_lock_guard guard(mutex());
     _rcv_beams[keyID] = pattern;
+    _rcv_steering[keyID] = steering;
     return _rcv_beams.size();
 }
 
@@ -86,7 +85,24 @@ bp_model::csptr sensor_model::rcv_beam(int keyID) const {
 }
 
 /**
- * Return a list of all source beam keys.
+ * Retrieve receiver steering for specific channel number.
+ */
+bvector sensor_model::rcv_steering(int keyID) const {
+    read_lock_guard guard(mutex());
+    auto iter = _rcv_steering.find(keyID);
+	return iter->second;
+}
+
+/**
+ * Update receiver steering for specific channel number.
+ */
+void sensor_model::rcv_steering(int keyID, const bvector& steering){
+    write_lock_guard guard(mutex());
+	_rcv_steering[keyID] = steering;
+}
+
+/**
+ * Return a list of all receiver beam keys.
  */
 std::list<int> sensor_model::rcv_keys() const {
     read_lock_guard guard(mutex());

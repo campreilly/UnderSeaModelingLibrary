@@ -137,8 +137,8 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
                              update_listener<sensor_pair>* listener);
 
     /**
-     * Creates bistatic pairs between the new source and all bistatic receivers.
-     * Called from sensor_manager::add_sensor().
+     * Creates bistatic pairs between the new source and all bistatic receivers
+     * in the same multistatic group. Called from sensor_manager::add_sensor().
      *
      * @param source 		Multistatic source to be paired with valid
      * receivers.
@@ -150,8 +150,8 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
                                 update_listener<sensor_pair>* listener);
 
     /**
-     * Creates bistatic pairs between the new receiver and all bistatic sources.
-     * Called from sensor_manager::add_sensor().
+     * Creates bistatic pairs between the new receiver and all bistatic sources
+     * in the same multistatic group. Called from sensor_manager::add_sensor().
      *
      * @param receiver 		Multistatic receiver to be paired with valid
      * sources.
@@ -163,8 +163,8 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
                                   update_listener<sensor_pair>* listener);
 
     /**
-     * Removes a monostatic pair from the sensor_manager. Called
-     * within the sensor_manager.
+     * Removes a monostatic pair from the sensor_manager. Called from
+     * sensor_manager::remove_sensor().
      *
      * @param sensor 	Monostatic sensor to be removed.
      * @param listener	Update listener for sensor_pair objects.
@@ -173,8 +173,8 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
                                 update_listener<sensor_pair>* listener);
 
     /**
-     * Removes all multistatic pairs with the provided source. Called
-     * Within the sensor_pair_manger.
+     * Removes all multistatic pairs with the provided source. Called from
+     * sensor_manager::remove_sensor().
      *
      * @param source 	Multistatic source to be removed.
      * @param listener	Update listener for sensor_pair objects.
@@ -183,8 +183,8 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
                                    update_listener<sensor_pair>* listener);
 
     /**
-     * Removes all multistatic pairs with he provided receiver. Called
-     * within the sensor_manager
+     * Removes all multistatic pairs with he provided receiver. Called from
+     * sensor_manager::remove_sensor().
      *
      * @param receiver 	Multistatic receiver to be removed.
      * @param listener	Update listener for sensor_pair objects.

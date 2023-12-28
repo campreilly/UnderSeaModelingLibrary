@@ -18,8 +18,7 @@ transmit_model::transmit_model(const std::string& type, double duration,
                                double fcenter, double bandwidth, double delay,
                                double source_level, window::type window_type,
                                double window_param, double orderedAZ,
-                               double orderedDE, int transmit_mode,
-                               double treverb)
+                               double orderedDE, int transmit_mode)
     : type(type),
       duration(duration),
       fcenter(fcenter),
@@ -30,8 +29,7 @@ transmit_model::transmit_model(const std::string& type, double duration,
       window_param(window_param),
       orderedAZ(orderedAZ),
       orderedDE(orderedDE),
-      transmit_mode(transmit_mode),
-      treverb(treverb) {}
+      transmit_mode(transmit_mode) {}
 
 /**
  * Add window to transmit pulse, in-place.

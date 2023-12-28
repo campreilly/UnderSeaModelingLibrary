@@ -5,6 +5,7 @@
 #pragma once
 
 #include <usml/transmit/window.h>
+#include <usml/types/bvector.h>
 #include <usml/usml_config.h>
 
 #include <boost/numeric/ublas/vector.hpp>
@@ -67,9 +68,6 @@ class USML_DECLSPEC transmit_model {
     /// Transmitter beam pattern number to use
     const int transmit_mode;
 
-    /// Override time resolution for reverb calculations
-    const double treverb;
-
     /**
      * Creates a complex analytic signal for this waveform. To support phase
      * continuity between waveforms, this implement includes an option to
@@ -98,13 +96,11 @@ class USML_DECLSPEC transmit_model {
      * @param orderedAZ  	Ordered steering azimuth relative to host (deg).
      * @param orderedDE  	Ordered steering elevation relative to host (deg).
      * @param transmit_mode Transmitter beam pattern number to use.
-     * @param treverb  		Override time resolution for reverb calcs.
      */
     transmit_model(const std::string& type, double duration, double fcenter,
                    double bandwidth, double delay, double source_level,
                    window::type window_type, double window_param,
-                   double orderedAZ, double orderedDE, int transmit_mode,
-                   double treverb);
+                   double orderedAZ, double orderedDE, int transmit_mode);
 
     /**
      * Add window to transmit pulse, in-place.

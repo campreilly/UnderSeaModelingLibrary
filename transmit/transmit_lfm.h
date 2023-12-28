@@ -45,13 +45,11 @@ class USML_DECLSPEC transmit_lfm : public transmit_model {
      * @param orderedAZ  	Ordered steering azimuth direction (deg).
      * @param orderedDE  	Ordered steering elevation direction (deg)
      * @param transmit_mode Transmitter beam pattern number to use.
-     * @param treverb  		Override time resolution for reverb
-     * calculations.
      */
     transmit_lfm(const std::string& type, double duration, double fcenter,
                  double delay, double source_level, window::type window,
                  double window_param, double orderedAZ, double orderedDE,
-                 int transmit_mode, double treverb);
+                 int transmit_mode);
 
     /**
      * Creates a complex analytic signal for this waveform. To support phase

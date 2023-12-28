@@ -107,7 +107,8 @@ void rvbenv_generator::beam_gain_rcv(const rvbenv_collection* collection,
     int beam_number = 0;
     for (auto keyID : receiver->rcv_keys()) {
         bp_model::csptr bp = receiver->rcv_beam(keyID);
-        bp->beam_level(arrival, _frequencies, &beam_work);
+        bvector steering = receiver->rcv_steering(keyID);
+        bp->beam_level(arrival, _frequencies, &beam_work, steering);
         matrix_column<matrix<double> > col(beam, beam_number);
         col = beam_work;
         ++beam_number;

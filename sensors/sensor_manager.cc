@@ -74,7 +74,7 @@ void sensor_manager::add_sensor(const sensor_model::sptr& sensor,
         throw freq_missing();
     }
     if (sensor->time_maximum() == 0.0) {
-    	throw time_maximum_missing();
+        throw time_maximum_missing();
     }
 
     // add reference to platform_manager
@@ -91,11 +91,13 @@ void sensor_manager::add_sensor(const sensor_model::sptr& sensor,
         _rcv_list.insert(sensor->keyID());
     }
 
-    // add pair as required
+    // add monostatic pair if this sensor can both transmit and receive
 
     if (sensor->is_source() && sensor->is_receiver()) {
         add_monostatic_pair(sensor, listener);
     }
+
+    // add bistatic pairs for other sensors in the same multistatic group
 
     int multistatic = sensor->multistatic();
     if (multistatic > 0) {
@@ -189,8 +191,8 @@ void sensor_manager::add_monostatic_pair(
 }
 
 /**
- * Creates bistatic pairs between the new source and all bistatic receivers.
- * Called from sensor_manager::add_sensor().
+ * Creates bistatic pairs between the new source and all bistatic receivers in
+ * the same multistatic group. Called from sensor_manager::add_sensor().
  */
 void sensor_manager::add_multistatic_source(
     const sensor_model::sptr& source, int multistatic,
@@ -211,8 +213,8 @@ void sensor_manager::add_multistatic_source(
 }
 
 /**
- * Creates bistatic pairs between the new receiver and all bistatic sources.
- * Called from sensor_manager::add_sensor().
+ * Creates bistatic pairs between the new receiver and all bistatic sources in
+ * the same multistatic group. Called from sensor_manager::add_sensor().
  */
 void sensor_manager::add_multistatic_receiver(
     const sensor_model::sptr& receiver, int multistatic,
@@ -233,7 +235,8 @@ void sensor_manager::add_multistatic_receiver(
 }
 
 /**
- * Utility to remove a monosatic pair
+ * Removes a monostatic pair from the sensor_manager. Called from
+ * sensor_manager::remove_sensor().
  */
 void sensor_manager::remove_monostatic_pair(
     const sensor_model::sptr& sensor, update_listener<sensor_pair>* listener) {
@@ -249,7 +252,8 @@ void sensor_manager::remove_monostatic_pair(
 }
 
 /**
- * Utility to remove a multistatic pair with the given sensor being the source
+ * Removes all multistatic pairs with the provided source. Called from
+ * sensor_manager::remove_sensor().
  */
 void sensor_manager::remove_multistatic_source(
     const sensor_model::sptr& source, update_listener<sensor_pair>* listener) {
@@ -271,8 +275,8 @@ void sensor_manager::remove_multistatic_source(
 }
 
 /**
- * Utility to remove a multistatic pair with the given sensor being the
- * receiver
+ * Removes all multistatic pairs with he provided receiver. Called from
+ * sensor_manager::remove_sensor().
  */
 void sensor_manager::remove_multistatic_receiver(
     const sensor_model::sptr& receiver,
