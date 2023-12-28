@@ -3,8 +3,11 @@
  * Modeling products for a link between source and receiver.
  */
 
+#include <usml/biverbs/biverb_generator.h>
 #include <usml/eigenrays/eigenray_model.h>
 #include <usml/platforms/platform_model.h>
+#include <usml/rvbenv/rvbenv_generator.h>
+#include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/sensor_pair.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_pool.h>
@@ -143,7 +146,9 @@ void sensor_pair::update_wavefront_data(
 
     // launch a new bistatic eigenverb generator background task
 
-    _biverb_task = std::make_shared<biverb_generator>(this);
+    eigenverb_collection::csptr src_verbs = _src_eigenverbs;
+    eigenverb_collection::csptr rcv_verbs = _rcv_eigenverbs;
+    _biverb_task = std::make_shared<biverb_generator>(this,src_verbs,rcv_verbs);
     thread_controller::instance()->run(_biverb_task);
     _biverb_task.reset();  // destroy background task shared pointer
 }
@@ -154,13 +159,33 @@ void sensor_pair::update_wavefront_data(
 void sensor_pair::notify_update(const biverb_collection::csptr* object) {
     write_lock_guard guard(_mutex);
     _biverbs = *object;
-//
-//    // launch a new reverberation envelope generator background task
-//
-//    _biverb_task = std::make_shared<biverb_generator>(this);
-//    thread_controller::instance()->run(_biverb_task);
-//    _biverb_task.reset();  // destroy background task shared pointer
 
+    // abort previous biverb generator if it exists
+
+    if (_rvbenv_task != nullptr) {
+    	_rvbenv_task->abort();
+    }
+
+    // launch a new reverberation envelope generator background task
+
+    seq_vector::csptr frequencies = sensor_manager::instance()->frequencies();
+    seq_vector::csptr travel_times(
+        new seq_linear(0.0, _receiver->time_step(), _receiver->time_maximum()));
+
+    _rvbenv_task = std::make_shared<rvbenv_generator>(
+        _source, _receiver, _biverbs, frequencies, travel_times);
+    thread_controller::instance()->run(_rvbenv_task);
+    _rvbenv_task.reset();  // destroy background task shared pointer
+//    notify_update(this);
+}
+
+/**
+ * Update bistatic eigenverbs using results of rvbenv_generator.
+ */
+void sensor_pair::notify_update(const rvbenv_collection::csptr* object) {
+    write_lock_guard guard(_mutex);
+    _rvbenv = *object;
+    notify_update(this);
 }
 
 /**

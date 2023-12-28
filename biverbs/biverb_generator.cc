@@ -25,10 +25,12 @@ using namespace usml::biverbs;
  * Copies envelope computation parameters from static memory into
  * this specific task.
  */
-biverb_generator::biverb_generator(sensor_pair* pair)
+biverb_generator::biverb_generator(sensor_pair* pair,
+                                   eigenverb_collection::csptr src_eigenverbs,
+                                   eigenverb_collection::csptr rcv_eigenverbs)
     : _sensor_pair(pair),
-      _src_eigenverbs(pair->src_eigenverbs()),
-      _rcv_eigenverbs(pair->rcv_eigenverbs()) {
+      _src_eigenverbs(src_eigenverbs),
+      _rcv_eigenverbs(rcv_eigenverbs) {
     add_listener(pair);
 }
 
@@ -42,7 +44,8 @@ void biverb_generator::run() {
         return;
     }
     cout << "task #" << id()
-         << " biverb_generator: " << _sensor_pair->description() << endl;
+         << " biverb_generator src=" << _sensor_pair->source()->keyID()
+         << " rcv=" << _sensor_pair->receiver()->keyID() << endl;
 
     // initialize workspace for results
 

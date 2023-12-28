@@ -40,11 +40,18 @@ class USML_DECLSPEC biverb_generator
       public update_notifier<biverb_collection::csptr> {
    public:
     /**
-     * Initialize model parameters and reserve memory.
+     * Initialize model parameters and reserve memory. Note that passing the
+     * src_eigenverbs and rcv_eigenverbs of the pair as their own arguments
+     * allows the sensor_pair class to invoke this contructor while pair is
+     * locked.
      *
      * @param pair       		Object to notify when complete.
+     * @param src_eigenverbs 	Interface collisions for source.
+     * @param rcv_eigenverbs 	Interface collisions for receiver.
      */
-    biverb_generator(sensor_pair* pair);
+    biverb_generator(sensor_pair* pair,
+                     eigenverb_collection::csptr src_eigenverbs,
+                     eigenverb_collection::csptr rcv_eigenverbs);
 
     /**
      * Virtual destructor

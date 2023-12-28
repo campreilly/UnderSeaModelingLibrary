@@ -30,8 +30,6 @@ void rvbenv_generator::run() {
              << " rvbenv_generator *** aborted before execution ***" << endl;
         return;
     }
-    cout << "task #" << id()
-         << " rvbenv_generator *** aborted before execution ***" << endl;
     cout << "task #" << id() << " rvbenv_generator src=" << _source->keyID()
          << " rcv=" << _receiver->keyID() << endl;
 
@@ -71,6 +69,7 @@ void rvbenv_generator::run() {
     rvbenv_collection::csptr result(collection);
     _done = true;
     notify_update(&result);
+    cout << "task #" << id() << " rvbenv_generator: done" << endl;
 }
 
 /**

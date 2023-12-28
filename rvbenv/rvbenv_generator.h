@@ -105,10 +105,10 @@ class USML_DECLSPEC rvbenv_generator
     biverb_collection::csptr _biverbs;
 
     /// Frequencies at which reverb is computed (Hz).
-    const seq_vector::csptr& _frequencies;
+    const seq_vector::csptr _frequencies;
 
     /// Times at which reverb is computed (sec).
-    const seq_vector::csptr& _travel_times;
+    const seq_vector::csptr _travel_times;
 };
 
 /// @}

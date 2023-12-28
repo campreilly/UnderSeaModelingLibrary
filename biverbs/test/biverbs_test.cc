@@ -104,6 +104,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     // construct monostatic sensor pair in the bistatic manager
 
     sensor_model* sensor_ptr = new test::simple_sonobuoy(1, "simple_sonobuoy");
+    sensor_ptr->time_maximum(7.0);
     sensor_ptr->compute_reverb(true);
     sensor_model::sptr sensor(sensor_ptr);
     smgr->add_sensor(sensor);

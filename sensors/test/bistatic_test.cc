@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
         }
     }
 
-    // check that the rights bistatic pairs created
+    // check that the right bistatic pairs created
 
     int n = 0;
     for (const auto& pair : sensor_mgr->list()) {

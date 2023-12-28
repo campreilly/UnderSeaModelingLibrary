@@ -78,29 +78,37 @@ void rvbenv_collection::add_biverb(const biverb_model::csptr& verb,
                                    const matrix<double>& rcv_beam) {
     const auto num_freqs = _frequencies->size();
     const auto duration = verb->duration;
-    const auto delay = verb->travel_time + verb->duration;
+    const auto delay = verb->travel_time + duration;
+    static const double SQRT_TWO_PI = sqrt(TWO_PI);
 
     // find range of time indices to update
 
-    size_t first =
-        _travel_times->find_index(verb->travel_time - 5.0 * duration);
-    size_t last =
-        _travel_times->find_index(verb->travel_time + 5.0 * duration) + 1;
+    size_t first = _travel_times->find_index(delay - 5.0 * duration);
+    size_t last = _travel_times->find_index(delay + 5.0 * duration) + 1;
     range window(first, last);
-    vector<double> vtimes = *_travel_times;
-    vector_range<vector<double> > time(vtimes, window);
-    vector<double> gaussian = exp(-0.5 * abs2((time - delay) / duration));
 
-    // loop through source and receiver beams
+    // update Gaussian levels in this time window
+
+    vector<double> times = _travel_times->data();
+    vector_range<vector<double> > tau(times, window);
+    vector<double> gaussian =
+        exp(-0.5 * abs2((tau - delay) / duration)) / (duration * SQRT_TWO_PI);
+
+    // add Gaussian to each source beam, receiver beam, and frequency
 
     for (size_t s = 0; s < _num_src_beams; ++s) {
         for (size_t r = 0; r < _num_rcv_beams; ++r) {
+            matrix<double>& intensity = *_envelopes[s][r];
             for (size_t f = 0; f < num_freqs; ++f) {
-                matrix_vector_range<matrix<double> > intensity(
-                    *_envelopes[s][r], range(f, f), window);
-                auto scale =
-                    verb->power(f) * src_beam(f, s) * rcv_beam(f, r) / duration;
-                intensity += scale * gaussian;
+                // compute eigenverb total power for this source beam, receiver
+                // beam, and frequency combination
+                auto scale = verb->power(f) * src_beam(f, s) * rcv_beam(f, r);
+
+                // add scaled Gaussian to each intensity in time window
+                for (size_t n = 0; n < gaussian.size(); ++n) {
+                    auto t = n + first - 1;
+                    intensity(f, t) += scale * gaussian[n];
+                }
             }
         }
     }

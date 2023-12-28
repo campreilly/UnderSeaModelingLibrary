@@ -132,13 +132,29 @@ class USML_DECLSPEC rvbenv_collection {
     }
 
     /**
-     * Adds the Guassian intensity contribution for a single bistatic eigenverb.
-     * Loops over source and receiver beams to apply beam pattern to each
-     * contribution.
+     * Adds the intensity contribution for a single bistatic eigenverb.
+     * \f[
+     *		G_{sr}(f,t) = \frac{ P(f) * B_s(f) * B_r(f) }{ T \sqrt{2\pi} }
+     *					exp \left [ -\frac{ (t-\tau)^2 }{2 T^2} \right ]
+     * \f]
+     *
+     * where
+     * 	- \f$ P(f) \f$ = eigenverb power as function of frequency,
+     * 	- \f$ B_s(f) \f$ = source beam level as function of frequency,
+     * 	- \f$ B_r(f) \f$ = receiver beam level as function of frequency,
+     * 	- \f$ T \f$ = eigenverb duration,
+     * 	- \f$ \tau \f$ = arrival time of eigenverb peak,
+     * 	- \f$ G_{sr}(f,t) \f$ = Reverb contribution vs. frequency and time.
+     *
+     * Loops over source beams, receiver beams, and frequencies to apply
+     * eigenverb power and beam patterns to each contribution.
      *
      * @param verb	   Bistatic eigenverb for envelope contribution.
      * @param src_beam Source gain for this eigenverb (rows=freq, cols=beam#).
      * @param rcv_beam Receiver gain for this eigenverb (rows=freq, cols=beam#).
+     *
+     * TODO Add ability to adjust source and receiver beam steering.
+     * TODO Add ability to incorporate Doppler shif for each contribution.
      */
     void add_biverb(const biverb_model::csptr& verb,
                     const matrix<double>& src_beam,
