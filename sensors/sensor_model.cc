@@ -3,26 +3,20 @@
  * Instance of an individual sensor in the simulation.
  */
 
-#include <usml/eigenrays/eigenray_collection.h>
-#include <usml/eigenverbs/eigenverb_collection.h>
 #include <usml/managed/manager_template.h>
 #include <usml/platforms/motion_thresholds.h>
 #include <usml/platforms/platform_manager.h>
 #include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/sensor_model.h>
-#include <usml/threads/read_write_lock.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_pool.h>
+#include <usml/threads/thread_task.h>
 #include <usml/types/wposition.h>
 #include <usml/wavegen/wavefront_generator.h>
 
-#include <algorithm>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <cfloat>
 #include <cmath>
-#include <iostream>
-#include <memory>
-#include <utility>
 
 using namespace usml::sensors;
 

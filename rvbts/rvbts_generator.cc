@@ -3,7 +3,15 @@
  * Computes reverberation envelopes from eigenverbs.
  */
 
+#include <usml/beampatterns/bp_model.h>
+#include <usml/biverbs/biverb_collection.h>
+#include <usml/managed/managed_obj.h>
 #include <usml/rvbts/rvbts_generator.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/types/bvector.h>
+
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <iostream>
 
 using namespace usml::rvbts;
 

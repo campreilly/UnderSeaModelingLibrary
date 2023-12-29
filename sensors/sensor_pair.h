@@ -20,7 +20,6 @@
 #include <memory>
 #include <string>
 
-
 namespace usml {
 namespace biverbs {
 class biverb_generator;

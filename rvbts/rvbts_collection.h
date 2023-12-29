@@ -5,7 +5,6 @@
  */
 #pragma once
 
-#include <usml/biverbs/biverb_collection.h>
 #include <usml/biverbs/biverb_model.h>
 #include <usml/sensors/sensor_model.h>
 #include <usml/threads/read_write_lock.h>

@@ -5,14 +5,13 @@
 #pragma once
 
 #include <usml/transmit/window.h>
-#include <usml/types/bvector.h>
 #include <usml/usml_config.h>
 
 #include <boost/numeric/ublas/vector.hpp>
 #include <complex>
+#include <list>
 #include <memory>
 #include <string>
-#include <list>
 
 namespace usml {
 namespace transmit {
@@ -68,6 +67,9 @@ class USML_DECLSPEC transmit_model {
 
     /// Transmitter beam pattern number to use
     const int transmit_mode;
+
+    /// Virtual destructor.
+    virtual ~transmit_model() {}
 
     /**
      * Creates a complex analytic signal for this waveform. To support phase

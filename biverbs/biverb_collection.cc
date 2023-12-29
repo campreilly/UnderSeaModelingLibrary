@@ -3,14 +3,18 @@
  * Collection of biverbs in the form of a vector of biverbs_lists.
  */
 
+#include <ncvalues.h>
 #include <netcdfcpp.h>
 #include <usml/biverbs/biverb_collection.h>
-#include <usml/biverbs/biverb_model.h>
-#include <usml/eigenverbs/eigenverb_model.h>
-#include <usml/sensors/sensor_manager.h>
-#include <usml/threads/read_write_lock.h>
+#include <usml/types/seq_vector.h>
+#include <usml/types/wposition1.h>
+#include <usml/ublas/math_traits.h>
+#include <usml/ublas/vector_math.h>
 
-#include <cstddef>
+#include <boost/numeric/ublas/expression_types.hpp>
+#include <boost/numeric/ublas/storage.hpp>
+#include <boost/numeric/ublas/vector_expression.hpp>
+#include <cmath>
 #include <list>
 #include <sstream>
 #include <string>

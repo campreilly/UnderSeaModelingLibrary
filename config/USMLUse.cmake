@@ -45,6 +45,7 @@ else( CMAKE_COMPILER_IS_GNUCXX )
     if( NOT CMAKE_BUILD_TYPE )
         set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE )
     endif()
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     set(CMAKE_CXX_STANDARD 17)
     if ( ( ${CMAKE_BUILD_TYPE} MATCHES Debug ) ) # disable optimizations
        add_definitions( -g -O0 )

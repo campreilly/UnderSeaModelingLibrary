@@ -30,6 +30,10 @@ using namespace usml::sensors;
  */
 class USML_DECLSPEC wavefront_listener {
    public:
+
+	/// Virtual destructor
+	virtual ~wavefront_listener() {}
+
     /**
      * Notify listener of new wavefront data (eigenrays and eigenverbs) have
      * been computed for a sensor.

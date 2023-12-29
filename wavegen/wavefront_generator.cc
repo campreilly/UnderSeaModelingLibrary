@@ -5,6 +5,7 @@
 
 #include <usml/eigenrays/eigenray_collection.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
+#include <usml/managed/managed_obj.h>
 #include <usml/ocean/ocean_shared.h>
 #include <usml/platforms/platform_model.h>
 #include <usml/sensors/sensor_model.h>
@@ -12,9 +13,9 @@
 #include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/wave_thresholds.h>
 
-#include <algorithm>
 #include <iostream>
 #include <memory>
+#include <string>
 
 using namespace usml::wavegen;
 using namespace usml::waveq3d;

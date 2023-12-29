@@ -7,7 +7,6 @@
 #include <usml/ublas/vector_math.h>
 
 #include <boost/numeric/ublas/expression_types.hpp>
-#include <utility>
 
 using namespace usml::transmit;
 

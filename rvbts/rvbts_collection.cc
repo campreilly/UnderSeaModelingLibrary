@@ -4,19 +4,20 @@
  * transmit frequency, source beam number, receiver beam number.
  */
 
+#include <ncvalues.h>
+#include <netcdfcpp.h>
 #include <usml/platforms/platform_model.h>
-#include <usml/sensors/sensor_model.h>
+#include <usml/rvbts/rvbts_collection.h>
+#include <usml/ublas/math_traits.h>
 #include <usml/ublas/vector_math.h>
 
-#include <algorithm>
-#include <boost/numeric/ublas/expression_types.hpp>
 #include <boost/numeric/ublas/fwd.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/storage.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
-#include <usml/rvbts/rvbts_collection.h>
+#include <cmath>
 #include <list>
 
 using namespace usml::rvbts;

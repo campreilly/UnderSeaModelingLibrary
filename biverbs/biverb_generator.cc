@@ -15,7 +15,6 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <iostream>
 #include <memory>
-#include <string>
 
 using namespace usml::biverbs;
 

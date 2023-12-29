@@ -10,13 +10,13 @@
 #include <usml/platforms/platform_model.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/transmit/transmit_model.h>
+#include <usml/types/bvector.h>
 #include <usml/types/orientation.h>
 #include <usml/types/seq_linear.h>
 #include <usml/types/seq_rayfan.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition1.h>
 #include <usml/usml_config.h>
-#include <usml/wavegen/wavefront_generator.h>
 #include <usml/wavegen/wavefront_notifier.h>
 
 #include <cstddef>
@@ -24,6 +24,12 @@
 #include <map>
 #include <memory>
 #include <string>
+
+namespace usml {
+namespace wavegen {
+class wavefront_generator;
+} /* namespace wavegen */
+} /* namespace usml */
 
 namespace usml {
 namespace sensors {
@@ -49,7 +55,7 @@ using namespace usml::wavegen;
  * beampattern has a keyID and a const shared pointer to the beampattern model
  * to use. Beampatterns models are immutable and may be shared between sensors.
  * The transmission schedule used to generate acoustic time series includes
- * pulse characterstics, a transmit mode, and a transmit steering direction for
+ * pulse characteristics, a transmit mode, and a transmit steering direction for
  * each pulse. The keyID for of the source beam patterns in sensor_model
  * identifies the beam pattern model to use for each of these pulses.
  * The keyID for each receiver beam patterns identifies the receiver channel
@@ -234,13 +240,13 @@ class USML_DECLSPEC sensor_model : public platform_model,
     /// List of pulses to transmit.
     transmit_list transmit_schedule() const {
         read_lock_guard guard(mutex());
-    	return _transmit_schedule;
+        return _transmit_schedule;
     }
 
     /// List of pulses to transmit.
     void transmit_schedule(const transmit_list& schedule) {
         write_lock_guard guard(mutex());
-    	_transmit_schedule = schedule;
+        _transmit_schedule = schedule;
     }
 
    protected:

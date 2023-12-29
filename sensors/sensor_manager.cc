@@ -3,12 +3,12 @@
  * Manages the containers for all the bistatic pair's in use by the USML.
  */
 
+#include <usml/managed/managed_obj.h>
+#include <usml/managed/update_notifier.h>
 #include <usml/platforms/platform_manager.h>
 #include <usml/sensors/sensor_manager.h>
-#include <usml/threads/read_write_lock.h>
 
 #include <list>
-#include <memory>
 #include <utility>
 
 using namespace usml::sensors;

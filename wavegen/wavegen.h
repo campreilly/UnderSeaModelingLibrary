@@ -2,8 +2,7 @@
  * @file wavegen.h Wavefront Generator
  * @defgroup wavegen wavegen
  *
- * Automatically recomputes acoustic data when platform motion exceeds position
- * or orientation thresholds.
+ * Automatically recomputes WaveQ3D wavefront as a background task.
  *
  * @defgroup wavegen_test Wavegen Tests
  * @ingroup wavegen

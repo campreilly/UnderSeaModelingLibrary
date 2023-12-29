@@ -4,7 +4,6 @@
  */
 
 #include <usml/transmit/transmit_lfm.h>
-#include <usml/transmit/window.h>
 #include <usml/types/seq_linear.h>
 #include <usml/types/seq_vector.h>
 #include <usml/ublas/math_traits.h>
@@ -13,7 +12,6 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <cmath>
-#include <string>
 
 using namespace usml::transmit;
 

@@ -6,7 +6,6 @@
 
 #include <usml/eigenrays/eigenray_collection.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
-#include <usml/sensors/sensor_model.h>
 #include <usml/usml_config.h>
 #include <usml/wavegen/wavefront_listener.h>
 

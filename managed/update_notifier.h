@@ -26,6 +26,9 @@ class USML_DECLSPEC update_notifier {
    public:
     using listener_type = update_listener<obj_type>;
 
+    /// Virtual destructor.
+    virtual ~update_notifier() {}
+
     /**
      * Add an update listener to this object.
      */

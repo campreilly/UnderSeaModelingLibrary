@@ -8,23 +8,24 @@
 #include <usml/beampatterns/bp_omni.h>
 #include <usml/beampatterns/bp_trig.h>
 #include <usml/ocean/ocean_utils.h>
+#include <usml/platforms/platform_model.h>
 #include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/sensor_model.h>
+#include <usml/threads/thread_task.h>
 #include <usml/types/orientation.h>
 #include <usml/types/seq_linear.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition1.h>
 #include <usml/usml_config.h>
 
-#include <chrono>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <thread>
 
 using namespace usml::beampatterns;
-using namespace usml::sensors;
 using namespace usml::ocean;
+using namespace usml::sensors;
+using namespace usml::threads;
 
 class USML_DECLSPEC simple_sonobuoy : public sensor_model {
    public:

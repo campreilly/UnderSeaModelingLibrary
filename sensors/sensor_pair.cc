@@ -12,6 +12,7 @@
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_pool.h>
 #include <usml/threads/thread_task.h>
+#include <usml/types/seq_linear.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition.h>
 #include <usml/types/wposition1.h>

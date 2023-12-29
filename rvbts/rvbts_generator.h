@@ -4,16 +4,16 @@
  */
 #pragma once
 
+#include <usml/biverbs/biverb_collection.h>
 #include <usml/managed/update_notifier.h>
-#include <usml/sensors/sensor_pair.h>
+#include <usml/rvbts/rvbts_collection.h>
+#include <usml/sensors/sensor_model.h>
 #include <usml/threads/thread_task.h>
 #include <usml/types/seq_vector.h>
 #include <usml/usml_config.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
-#include <usml/rvbts/rvbts_collection.h>
-#include <cstddef>
 
 namespace usml {
 namespace rvbts {
@@ -71,8 +71,7 @@ class USML_DECLSPEC rvbts_generator
      * @param de		 	Elevation angle in world coordinates.
      * @param az		 	Azimuthal angle in world coordinates.
      * @param beam_work  	Temporary work space to compute beam paterns.
-     * @param beam 		 	Beam gains in this direction
-     * (rows=freq,cols=beam#).
+     * @param beam 		 	Beam gains in this direction (rows=freq,cols=beam#).
      */
     void beam_gain_src(const rvbts_collection* collection, double de,
                        double az, vector<double>& beam_work,
@@ -86,7 +85,7 @@ class USML_DECLSPEC rvbts_generator
      * @param collection 	Source of information on sensor.
      * @param de			Elevation angle in world coordinates.
      * @param az			Azimuthal angle in world coordinates.
-     * @param beam_work 	Temporary work space to compute beam paterns.
+     * @param beam_work 	Temporary work space to compute beam patterns.
      * @param beam 			Beam gains in this direction
      * (rows=freq,cols=beam#).
      */
