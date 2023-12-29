@@ -9,6 +9,7 @@
 #include <usml/managed/managed_obj.h>
 #include <usml/platforms/platform_model.h>
 #include <usml/threads/read_write_lock.h>
+#include <usml/transmit/transmit_model.h>
 #include <usml/types/orientation.h>
 #include <usml/types/seq_linear.h>
 #include <usml/types/seq_rayfan.h>
@@ -31,6 +32,7 @@ using namespace usml::beampatterns;
 using namespace usml::managed;
 using namespace usml::platforms;
 using namespace usml::threads;
+using namespace usml::transmit;
 using namespace usml::types;
 using namespace usml::wavegen;
 
@@ -123,6 +125,12 @@ class USML_DECLSPEC sensor_model : public platform_model,
     void time_step(double value) { _time_step = value; }
 
     /// Maximum time to propagate wavefront (sec).
+    double time_minimum() const { return _time_minimum; }
+
+    /// Maximum time to propagate wavefront (sec).
+    void time_minimum(double value) { _time_minimum = value; }
+
+    /// Maximum time to propagate wavefront (sec).
     double time_maximum() const { return _time_maximum; }
 
     /// Maximum time to propagate wavefront (sec).
@@ -212,13 +220,27 @@ class USML_DECLSPEC sensor_model : public platform_model,
     }
 
     /// Retrieve receiver sampling rate (Hz).
-    double fsample() const {
-    	return _fsample;
-    }
+    double fsample() const { return _fsample; }
 
     /// Update receiver sampling rate (Hz).
-    void fsample(double value) {
-    	_fsample = value;
+    void fsample(double value) { _fsample = value; }
+
+    /// Retrieve receiver center frequency (Hz).
+    double fcenter() const { return _fcenter; }
+
+    /// Update receiver center frequency (Hz).
+    void fcenter(double value) { _fcenter = value; }
+
+    /// List of pulses to transmit.
+    transmit_list transmit_schedule() const {
+        read_lock_guard guard(mutex());
+    	return _transmit_schedule;
+    }
+
+    /// List of pulses to transmit.
+    void transmit_schedule(const transmit_list& schedule) {
+        write_lock_guard guard(mutex());
+    	_transmit_schedule = schedule;
     }
 
    protected:
@@ -269,6 +291,9 @@ class USML_DECLSPEC sensor_model : public platform_model,
     /// Time step between wavefronts (sec).
     double _time_step{0.1};
 
+    /// Minimum time to compute wavefront results (sec).
+    double _time_minimum{0.0};
+
     /// Maximum time to propagate wavefront (sec).
     double _time_maximum{0.0};
 
@@ -310,6 +335,12 @@ class USML_DECLSPEC sensor_model : public platform_model,
 
     /// Receiver sampling rate (Hz).
     double _fsample{0.0};
+
+    /// Receiver center frequency (Hz).
+    double _fcenter{0.0};
+
+    /// List of pulses to transmit.
+    transmit_list _transmit_schedule;
 
     /// Reference to currently executing wavefront generator.
     std::shared_ptr<wavefront_generator> _wavefront_task;

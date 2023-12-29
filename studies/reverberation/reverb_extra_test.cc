@@ -39,7 +39,7 @@ static const double c0 = 1500.0;           // constant sound speed
  * The primary motivation for this test is to generate an envelope netCDF
  * file that can be used to support off-line comparisons to the
  * eigenverb_demo.m scenario.  It also serves as a standalone prototype
- * for the calculations in the rvbenv_generator::run() method.
+ * for the calculations in the rvbts_generator::run() method.
  *
  * This test artificially limits its processing to downward D/E launch
  * angles and receivers AZ launch angles to zero to match the conditions
@@ -104,10 +104,10 @@ BOOST_AUTO_TEST_CASE( envelope_analytic ) {
     	eigenverbs->write_netcdf( filename.str().c_str(),n) ;
     }
 
-	// construct an rvbenv_collection
+	// construct an rvbts_collection
 
 	seq_vector::csptr  travel_time = new seq_linear(0.0,0.001,70.0) ;
-	rvbenv_collection envelopes(
+	rvbts_collection envelopes(
 		&freq,			// envelope_freq
 		0,				// src_freq_first
 		travel_time,	// travel_time, cloned by model

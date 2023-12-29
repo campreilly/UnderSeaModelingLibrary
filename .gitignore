@@ -21,3 +21,9 @@
 /usml.spec
 *.eps
 /build
+/CMakeFiles
+CMakeCache.txt
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
+/*.cmake
+Makefile

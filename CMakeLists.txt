@@ -32,7 +32,7 @@ set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/config" )
 
 set( PACKAGE_MODULES ublas types netcdf ocean threads beampatterns transmit
     eigenrays eigenverbs biverbs waveq3d wavegen 
-    managed platforms sensors rvbenv)
+    managed platforms sensors rvbts)
 
 if( MSVC )	# work around for missing netcdf_c++ on windows
     set( PACKAGE_MODULES ${PACKAGE_MODULES} netcdf/msvc )

@@ -1,11 +1,10 @@
 /**
- * @file rvbenv_generator.h
+ * @file rvbts_generator.h
  * Computes reverberation envelopes from eigenverbs.
  */
 #pragma once
 
 #include <usml/managed/update_notifier.h>
-#include <usml/rvbenv/rvbenv_collection.h>
 #include <usml/sensors/sensor_pair.h>
 #include <usml/threads/thread_task.h>
 #include <usml/types/seq_vector.h>
@@ -13,30 +12,31 @@
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
+#include <usml/rvbts/rvbts_collection.h>
 #include <cstddef>
 
 namespace usml {
-namespace rvbenv {
+namespace rvbts {
 
 using namespace usml::managed;
 using namespace usml::sensors;
 using namespace usml::threads;
 using namespace usml::types;
 
-/// @ingroup rvbenv
+/// @ingroup rvbts
 /// @{
 
 /**
  * Background task to compute reverberation envelope collection for a bistatic
  * pair. Loops through the bistatic eigenverbs in the pair, computes the beam
- * pattern gain for each frequency/beam number, and asks rvbenv_collection to
+ * pattern gain for each frequency/beam number, and asks rvbts_collection to
  * add this contribution to the envelope time series. Repeats for each interface
  * in the ocean to incorporate the effects of the bottom, surface, and volume
  * reverberation. Notifies update listeners when the computation is complete.
  */
-class USML_DECLSPEC rvbenv_generator
+class USML_DECLSPEC rvbts_generator
     : public thread_task,
-      public update_notifier<rvbenv_collection::csptr> {
+      public update_notifier<rvbts_collection::csptr> {
    public:
     /**
      * Initialize model with data from a sensor_pair.
@@ -47,7 +47,7 @@ class USML_DECLSPEC rvbenv_generator
      * @param frequencies  	Frequencies at which reverb is computed (Hz).
      * @param travel_times 	Times at which reverb is computed (sec).
      */
-    rvbenv_generator(const sensor_model::sptr& source,
+    rvbts_generator(const sensor_model::sptr& source,
                      const sensor_model::sptr& receiver,
 					 const biverb_collection::csptr& biverbs,
                      const seq_vector::csptr& frequencies,
@@ -74,7 +74,7 @@ class USML_DECLSPEC rvbenv_generator
      * @param beam 		 	Beam gains in this direction
      * (rows=freq,cols=beam#).
      */
-    void beam_gain_src(const rvbenv_collection* collection, double de,
+    void beam_gain_src(const rvbts_collection* collection, double de,
                        double az, vector<double>& beam_work,
                        matrix<double>& beam);
 
@@ -90,7 +90,7 @@ class USML_DECLSPEC rvbenv_generator
      * @param beam 			Beam gains in this direction
      * (rows=freq,cols=beam#).
      */
-    void beam_gain_rcv(const rvbenv_collection* collection, double de,
+    void beam_gain_rcv(const rvbts_collection* collection, double de,
                        double az, vector<double>& beam_work,
                        matrix<double>& beam);
 
@@ -112,5 +112,5 @@ class USML_DECLSPEC rvbenv_generator
 };
 
 /// @}
-}  // end of namespace rvbenv
+}  // end of namespace rvbts
 }  // end of namespace usml

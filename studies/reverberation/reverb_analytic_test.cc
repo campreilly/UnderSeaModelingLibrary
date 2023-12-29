@@ -103,12 +103,12 @@ class reverb_analytic_test {
     void compute_reverb() {
         cout << "== compute reverb ==" << endl;
 
-//        rvbenv_task = std::make_shared<rvbenv_generator>(
+//        rvbts_task = std::make_shared<rvbts_generator>(
 //            this, tpos, targetIDs, frequencies, _de_fan, _az_fan,
 //            _time_step, _time_maximum, _intensity_threshold, _max_bottom,
 //            _max_surface);
 //
-//        rvbenv_generator(const sensor_pair::sptr& pair,
+//        rvbts_generator(const sensor_pair::sptr& pair,
 //                         const seq_vector::csptr& times,
 //                         const seq_vector::csptr& freqs, size_t num_azimuths);
 //

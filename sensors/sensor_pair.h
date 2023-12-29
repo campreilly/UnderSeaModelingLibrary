@@ -10,7 +10,7 @@
 #include <usml/managed/managed_obj.h>
 #include <usml/managed/update_listener.h>
 #include <usml/managed/update_notifier.h>
-#include <usml/rvbenv/rvbenv_collection.h>
+#include <usml/rvbts/rvbts_collection.h>
 #include <usml/sensors/sensor_model.h>
 #include <usml/threads/read_write_lock.h>
 #include <usml/usml_config.h>
@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+
 namespace usml {
 namespace biverbs {
 class biverb_generator;
@@ -27,8 +28,8 @@ class biverb_generator;
 }  // namespace usml
 
 namespace usml {
-namespace rvbenv {
-class rvbenv_generator;
+namespace rvbts {
+class rvbts_generator;
 }
 }  // namespace usml
 
@@ -39,7 +40,7 @@ using namespace usml::biverbs;
 using namespace usml::eigenrays;
 using namespace usml::eigenverbs;
 using namespace usml::managed;
-using namespace usml::rvbenv;
+using namespace usml::rvbts;
 using namespace usml::threads;
 using namespace usml::wavegen;
 
@@ -61,7 +62,7 @@ class USML_DECLSPEC sensor_pair
     : public managed_obj<std::string, sensor_pair>,
       public wavefront_listener,
       public update_listener<biverb_collection::csptr>,
-      public update_listener<rvbenv_collection::csptr>,
+      public update_listener<rvbts_collection::csptr>,
       public update_notifier<sensor_pair> {
    public:
     /**
@@ -123,9 +124,9 @@ class USML_DECLSPEC sensor_pair
     }
 
     /// Reverberation envelope time series.
-    rvbenv_collection::csptr rvbenv() const {
+    rvbts_collection::csptr rvbts() const {
     	read_lock_guard guard(_mutex);
-        return _rvbenv;
+        return _rvbts;
     }
 
     /// True if eigenverbs computed for this sensor.
@@ -177,20 +178,20 @@ class USML_DECLSPEC sensor_pair
     /**
      * Update bistatic eigenverbs using results of biverb_generator.
      * Stores a reference to the bistatic eigenverbs then launches a new
-     * rvbenv_generator to compute reverberation envelopes.
+     * rvbts_generator to compute reverberation envelopes.
      *
      * @param  object	Updated bistatic eigenverbs collection.
      */
     virtual void notify_update(const biverb_collection::csptr* object) override;
 
     /**
-     * Update bistatic eigenverbs using results of rvbenv_generator.
+     * Update bistatic eigenverbs using results of rvbts_generator.
      * Stores a reference to the reverberation envelopes then notifies listeners
      * that this sensor_pair has been updated.
      *
      * @param  object	Updated reverberation envelope collection.
      */
-    virtual void notify_update(const rvbenv_collection::csptr* object) override;
+    virtual void notify_update(const rvbts_collection::csptr* object) override;
 
     /**
      * Notify listeners that this sensor_pair has been updated.
@@ -227,13 +228,13 @@ class USML_DECLSPEC sensor_pair
     biverb_collection::csptr _biverbs;
 
     /// Reverberation envelope time series.
-    rvbenv_collection::csptr _rvbenv;
+    rvbts_collection::csptr _rvbts;
 
     /// Background task used to generate biverb objects.
     std::shared_ptr<biverb_generator> _biverb_task;
 
     /// Background task used to generate reverberation envelope objects.
-    std::shared_ptr<rvbenv_generator> _rvbenv_task;
+    std::shared_ptr<rvbts_generator> _rvbts_task;
 };
 
 typedef std::list<sensor_pair::sptr> pair_list;

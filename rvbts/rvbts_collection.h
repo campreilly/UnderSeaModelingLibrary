@@ -1,5 +1,5 @@
 /**
- * @file rvbenv_collection.h
+ * @file rvbts_collection.h
  * Computes the reverberation envelope time series for all combinations of
  * transmit frequency, source beam number, and receiver beam number.
  */
@@ -19,14 +19,14 @@
 #include <memory>
 
 namespace usml {
-namespace rvbenv {
+namespace rvbts {
 
 using namespace usml::biverbs;
 using namespace usml::sensors;
 using namespace usml::threads;
 using namespace usml::types;
 
-/// @ingroup rvbenv
+/// @ingroup rvbts
 /// @{
 
 /**
@@ -35,12 +35,12 @@ using namespace usml::types;
  * is stored as a matrix that represents the results as a function of frequency
  * (rows) and two-way travel time (columns).
  */
-class USML_DECLSPEC rvbenv_collection {
+class USML_DECLSPEC rvbts_collection {
    public:
     /**
-     * Data type used for reference to a rvbenv_collection.
+     * Data type used for reference to a rvbts_collection.
      */
-    typedef std::shared_ptr<const rvbenv_collection> csptr;
+    typedef std::shared_ptr<const rvbts_collection> csptr;
 
     /**
      * Initialize model with data from a sensor_pair.
@@ -50,7 +50,7 @@ class USML_DECLSPEC rvbenv_collection {
      * @param travel_times 	Times at which reverb is computed (sec).
      * @param frequencies  	Frequencies at which reverb is computed (Hz).
      */
-    rvbenv_collection(const sensor_model::sptr& source,
+    rvbts_collection(const sensor_model::sptr& source,
                       const sensor_model::sptr& receiver,
                       const seq_vector::csptr& travel_times,
                       const seq_vector::csptr& frequencies);
@@ -58,7 +58,7 @@ class USML_DECLSPEC rvbenv_collection {
     /**
      * Delete dynamic memory in each of the nested dynamic arrays.
      */
-    ~rvbenv_collection();
+    ~rvbts_collection();
 
     /// Mutex that locks object during access.
     read_write_lock& mutex() const { return _mutex; }
@@ -219,5 +219,5 @@ class USML_DECLSPEC rvbenv_collection {
 };
 
 /// @}
-}  // namespace rvbenv
+}  // namespace rvbts
 }  // end of namespace usml

@@ -1,11 +1,10 @@
 /**
- * @file rvbenv_collection.cc
+ * @file rvbts_collection.cc
  * Computes the reverberation envelope time series for all combinations of
  * transmit frequency, source beam number, receiver beam number.
  */
 
 #include <usml/platforms/platform_model.h>
-#include <usml/rvbenv/rvbenv_collection.h>
 #include <usml/sensors/sensor_model.h>
 #include <usml/ublas/vector_math.h>
 
@@ -17,14 +16,15 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
+#include <usml/rvbts/rvbts_collection.h>
 #include <list>
 
-using namespace usml::rvbenv;
+using namespace usml::rvbts;
 
 /**
  * Initialize model with data from a sensor_pair.
  */
-rvbenv_collection::rvbenv_collection(const sensor_model::sptr& source,
+rvbts_collection::rvbts_collection(const sensor_model::sptr& source,
                                      const sensor_model::sptr& receiver,
                                      const seq_vector::csptr& travel_times,
                                      const seq_vector::csptr& frequencies)
@@ -58,7 +58,7 @@ rvbenv_collection::rvbenv_collection(const sensor_model::sptr& source,
 /**
  * Delete dynamic memory in each of the nested dynamic arrays.
  */
-rvbenv_collection::~rvbenv_collection() {
+rvbts_collection::~rvbts_collection() {
     matrix<double>*** ps = _envelopes;
     for (size_t s = 0; s < _num_src_beams; ++s, ++ps) {
         matrix<double>** pr = *ps;
@@ -73,7 +73,7 @@ rvbenv_collection::~rvbenv_collection() {
 /**
  * Adds the intensity contribution for a single bistatic eigenverb.
  */
-void rvbenv_collection::add_biverb(const biverb_model::csptr& verb,
+void rvbts_collection::add_biverb(const biverb_model::csptr& verb,
                                    const matrix<double>& src_beam,
                                    const matrix<double>& rcv_beam) {
     const auto num_freqs = _frequencies->size();
@@ -117,7 +117,7 @@ void rvbenv_collection::add_biverb(const biverb_model::csptr& verb,
 /**
  * Writes reverberation envelope data to disk.
  */
-void rvbenv_collection::write_netcdf(const char* filename) const {
+void rvbts_collection::write_netcdf(const char* filename) const {
     read_lock_guard guard(_mutex);
     auto* nc_file = new NcFile(filename, NcFile::Replace);
 

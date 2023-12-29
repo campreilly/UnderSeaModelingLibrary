@@ -6,7 +6,7 @@
 #include <usml/biverbs/biverb_generator.h>
 #include <usml/eigenrays/eigenray_model.h>
 #include <usml/platforms/platform_model.h>
-#include <usml/rvbenv/rvbenv_generator.h>
+#include <usml/rvbts/rvbts_generator.h>
 #include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/sensor_pair.h>
 #include <usml/threads/thread_controller.h>
@@ -162,8 +162,8 @@ void sensor_pair::notify_update(const biverb_collection::csptr* object) {
 
     // abort previous biverb generator if it exists
 
-    if (_rvbenv_task != nullptr) {
-    	_rvbenv_task->abort();
+    if (_rvbts_task != nullptr) {
+    	_rvbts_task->abort();
     }
 
     // launch a new reverberation envelope generator background task
@@ -172,19 +172,19 @@ void sensor_pair::notify_update(const biverb_collection::csptr* object) {
     seq_vector::csptr travel_times(
         new seq_linear(0.0, _receiver->time_step(), _receiver->time_maximum()));
 
-    _rvbenv_task = std::make_shared<rvbenv_generator>(
-        _source, _receiver, _biverbs, frequencies, travel_times);
-    thread_controller::instance()->run(_rvbenv_task);
-    _rvbenv_task.reset();  // destroy background task shared pointer
-//    notify_update(this);
+//    _rvbts_task = std::make_shared<rvbts_generator>(
+//        _source, _receiver, _biverbs, );
+//    thread_controller::instance()->run(_rvbts_task);
+//    _rvbts_task.reset();  // destroy background task shared pointer
+    notify_update(this);
 }
 
 /**
- * Update bistatic eigenverbs using results of rvbenv_generator.
+ * Update bistatic eigenverbs using results of rvbts_generator.
  */
-void sensor_pair::notify_update(const rvbenv_collection::csptr* object) {
+void sensor_pair::notify_update(const rvbts_collection::csptr* object) {
     write_lock_guard guard(_mutex);
-    _rvbenv = *object;
+    _rvbts = *object;
     notify_update(this);
 }
 

@@ -12,6 +12,7 @@
 #include <complex>
 #include <memory>
 #include <string>
+#include <list>
 
 namespace usml {
 namespace transmit {
@@ -107,6 +108,11 @@ class USML_DECLSPEC transmit_model {
      */
     void add_window(cdvector& signal) const;
 };
+
+/**
+ * List of transmit pulses.
+ */
+typedef std::list<transmit_model::csptr> transmit_list;
 
 /// @}
 }  // namespace transmit

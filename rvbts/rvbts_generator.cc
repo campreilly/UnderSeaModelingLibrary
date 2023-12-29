@@ -1,16 +1,16 @@
 /**
- * @file rvbenv_generator.cc
+ * @file rvbts_generator.cc
  * Computes reverberation envelopes from eigenverbs.
  */
 
-#include <usml/rvbenv/rvbenv_generator.h>
+#include <usml/rvbts/rvbts_generator.h>
 
-using namespace usml::rvbenv;
+using namespace usml::rvbts;
 
 /**
  * Initialize model parameters with state of sensor_pair at this time.
  */
-rvbenv_generator::rvbenv_generator(const sensor_model::sptr& source,
+rvbts_generator::rvbts_generator(const sensor_model::sptr& source,
                                    const sensor_model::sptr& receiver,
                                    const biverb_collection::csptr& biverbs,
                                    const seq_vector::csptr& frequencies,
@@ -24,19 +24,19 @@ rvbenv_generator::rvbenv_generator(const sensor_model::sptr& source,
 /**
  * Compute reverberation envelope collection for a bistatic pair.
  */
-void rvbenv_generator::run() {
+void rvbts_generator::run() {
     if (_abort) {
         cout << "task #" << id()
-             << " rvbenv_generator *** aborted before execution ***" << endl;
+             << " rvbts_generator *** aborted before execution ***" << endl;
         return;
     }
-    cout << "task #" << id() << " rvbenv_generator src=" << _source->keyID()
+    cout << "task #" << id() << " rvbts_generator src=" << _source->keyID()
          << " rcv=" << _receiver->keyID() << endl;
 
     // initialize workspace for results
 
     auto* collection =
-        new rvbenv_collection(_source, _receiver, _travel_times, _frequencies);
+        new rvbts_collection(_source, _receiver, _travel_times, _frequencies);
     const auto num_freqs = _frequencies->size();
     const auto num_src_beams = collection->num_src_beams();
     const auto num_rcv_beams = collection->num_rcv_beams();
@@ -57,7 +57,7 @@ void rvbenv_generator::run() {
             collection->add_biverb(verb, src_beam, rcv_beam);
             if (_abort) {
                 cout << "task #" << id()
-                     << " rvbenv_generator *** aborted during execution ***"
+                     << " rvbts_generator *** aborted during execution ***"
                      << endl;
                 return;
             }
@@ -66,17 +66,17 @@ void rvbenv_generator::run() {
 
     // notify listeners of results
 
-    rvbenv_collection::csptr result(collection);
+    rvbts_collection::csptr result(collection);
     _done = true;
     notify_update(&result);
-    cout << "task #" << id() << " rvbenv_generator: done" << endl;
+    cout << "task #" << id() << " rvbts_generator: done" << endl;
 }
 
 /**
  * Computes the source beam gain as a function of DE and AZ for each frequency
  * and beam number.
  */
-void rvbenv_generator::beam_gain_src(const rvbenv_collection* collection,
+void rvbts_generator::beam_gain_src(const rvbts_collection* collection,
                                      double de, double az,
                                      vector<double>& beam_work,
                                      matrix<double>& beam) {
@@ -97,7 +97,7 @@ void rvbenv_generator::beam_gain_src(const rvbenv_collection* collection,
  * Computes the source beam gain as a function of DE and AZ for each frequency
  * and beam number.
  */
-void rvbenv_generator::beam_gain_rcv(const rvbenv_collection* collection,
+void rvbts_generator::beam_gain_rcv(const rvbts_collection* collection,
                                      double de, double az,
                                      vector<double>& beam_work,
                                      matrix<double>& beam) {
