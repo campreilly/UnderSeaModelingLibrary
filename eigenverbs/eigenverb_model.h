@@ -26,7 +26,7 @@ using namespace usml::types;
  * of the total reverberation in the same way that eigenrays provide discreet
  * components of the total transmission loss.
  *
- * To avoid conversions during the reverberation envelope generation process,
+ * To avoid conversions during the reverberation time series generation process,
  * the attributes for direction, grazing, source_de, and source_az are
  * all expressed in radians.  Similar fields in the eigenray structure are
  * represented in degrees.

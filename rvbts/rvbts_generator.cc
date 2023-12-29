@@ -1,16 +1,13 @@
 /**
  * @file rvbts_generator.cc
- * Computes reverberation envelopes from eigenverbs.
+ * Background task to compute reverberation time series for a bistatic pair.
  */
 
-#include <usml/beampatterns/bp_model.h>
-#include <usml/biverbs/biverb_collection.h>
 #include <usml/managed/managed_obj.h>
+#include <usml/platforms/platform_model.h>
 #include <usml/rvbts/rvbts_generator.h>
-#include <usml/sensors/sensor_model.h>
-#include <usml/types/bvector.h>
+#include <usml/types/seq_linear.h>
 
-#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <iostream>
 
 using namespace usml::rvbts;
@@ -19,18 +16,57 @@ using namespace usml::rvbts;
  * Initialize model parameters with state of sensor_pair at this time.
  */
 rvbts_generator::rvbts_generator(const sensor_model::sptr& source,
-                                   const sensor_model::sptr& receiver,
-                                   const biverb_collection::csptr& biverbs,
-                                   const seq_vector::csptr& frequencies,
-                                   const seq_vector::csptr& travel_times)
+                                 const sensor_model::sptr& receiver,
+                                 const biverb_collection::csptr& biverbs)
     : _source(source),
+      _source_pos(source->position()),
+      _source_orient(source->orient()),
+      _source_speed(source->speed()),
+      _transmit_schedule(source->transmit_schedule()),
       _receiver(receiver),
+      _receiver_pos(receiver->position()),
+      _receiver_orient(receiver->orient()),
+      _receiver_speed(receiver->speed()),
+      _travel_times(new seq_linear(receiver->time_minimum(),
+                                   1.0 / receiver->fsample(),
+                                   receiver->time_maximum())),
       _biverbs(biverbs),
-      _frequencies(frequencies),
-      _travel_times(travel_times) {}
+      _source_steering(compute_src_steering()) {}
 
 /**
- * Compute reverberation envelope collection for a bistatic pair.
+ * Compute source steerings for each transmit waveform.
+ */
+matrix<double> rvbts_generator::compute_src_steering() const {
+    // compute matrix of ordered steerings relative to host
+
+    matrix<double> steering(3, _transmit_schedule.size());
+    int n = 0;
+    for (const auto& transmit : _transmit_schedule) {
+        bvector ordered(transmit->orderedDE, transmit->orderedAZ);
+        steering(n, 0) = ordered.front();
+        steering(n, 1) = ordered.right();
+        steering(n, 2) = ordered.up();
+        ++n;
+    }
+
+    // convert to world coordinates using orientation of host
+
+    const platform_model* host = _source->host();
+    if (host != nullptr) {
+        while (host->host() != nullptr) {
+            host = host->host();
+        }
+        steering = prod(host->orient().rotation(), steering);
+    }
+
+    // convert from world to array coordinates
+
+    steering = prod(trans(_source_orient.rotation()), steering);
+    return steering;
+}
+
+/**
+ * Compute reverberation time series for a bistatic pair.
  */
 void rvbts_generator::run() {
     if (_abort) {
@@ -38,87 +74,41 @@ void rvbts_generator::run() {
              << " rvbts_generator *** aborted before execution ***" << endl;
         return;
     }
-    cout << "task #" << id() << " rvbts_generator src=" << _source->keyID()
-         << " rcv=" << _receiver->keyID() << endl;
 
-    // initialize workspace for results
+    rvbts_collection* collection = new rvbts_collection(
+        _source, _source_pos, _source_orient, _source_speed, _receiver,
+        _receiver_pos, _receiver_orient, _receiver_speed, _travel_times);
+    rvbts_collection::csptr result(collection);
 
-    auto* collection =
-        new rvbts_collection(_source, _receiver, _travel_times, _frequencies);
-    const auto num_freqs = _frequencies->size();
-    const auto num_src_beams = collection->num_src_beams();
-    const auto num_rcv_beams = collection->num_rcv_beams();
-
-    vector<double> beam_work(num_freqs, 1.0);
-    matrix<double> src_beam(num_freqs, num_src_beams, 1.0);
-    matrix<double> rcv_beam(num_freqs, num_rcv_beams, 1.0);
+    cout << "task #" << id()
+         << " rvbts_generator src=" << collection->source()->keyID()
+         << " rcv=" << collection->receiver()->keyID() << endl;
 
     // loop through eigenverbs for each interface
 
     auto num_interfaces = _biverbs->num_interfaces();
     for (size_t interface = 0; interface < num_interfaces; ++interface) {
-        for (const auto& verb : _biverbs->biverbs(interface)) {
-            beam_gain_src(collection, verb->source_de, verb->source_az,
-                          beam_work, src_beam);
-            beam_gain_rcv(collection, verb->receiver_de, verb->receiver_az,
-                          beam_work, rcv_beam);
-            collection->add_biverb(verb, src_beam, rcv_beam);
-            if (_abort) {
-                cout << "task #" << id()
-                     << " rvbts_generator *** aborted during execution ***"
-                     << endl;
-                return;
+        auto verb_list = _biverbs->biverbs(interface);
+        for (const auto& verb : verb_list) {
+            int n = 0;
+            for (const auto& transmit : _transmit_schedule) {
+                bvector steering(
+                    matrix_column<matrix<double> >(_source_steering, n));
+                collection->add_biverb(verb, transmit, steering);
+                if (_abort) {
+                    cout << "task #" << id()
+                         << " rvbts_generator *** aborted during execution ***"
+                         << endl;
+                    return;
+                }
+                ++n;
             }
         }
     }
 
     // notify listeners of results
 
-    rvbts_collection::csptr result(collection);
     _done = true;
     notify_update(&result);
     cout << "task #" << id() << " rvbts_generator: done" << endl;
-}
-
-/**
- * Computes the source beam gain as a function of DE and AZ for each frequency
- * and beam number.
- */
-void rvbts_generator::beam_gain_src(const rvbts_collection* collection,
-                                     double de, double az,
-                                     vector<double>& beam_work,
-                                     matrix<double>& beam) {
-    sensor_model::sptr source = collection->source();
-    bvector arrival(de, az);
-    arrival.rotate(collection->source_orient(), arrival);
-    int beam_number = 0;
-    for (auto keyID : source->src_keys()) {
-        bp_model::csptr bp = source->src_beam(keyID);
-        bp->beam_level(arrival, _frequencies, &beam_work);
-        matrix_column<matrix<double> > col(beam, beam_number);
-        col = beam_work;
-        ++beam_number;
-    }
-}
-
-/**
- * Computes the source beam gain as a function of DE and AZ for each frequency
- * and beam number.
- */
-void rvbts_generator::beam_gain_rcv(const rvbts_collection* collection,
-                                     double de, double az,
-                                     vector<double>& beam_work,
-                                     matrix<double>& beam) {
-    sensor_model::sptr receiver = collection->receiver();
-    bvector arrival(de, az);
-    arrival.rotate(collection->receiver_orient(), arrival);
-    int beam_number = 0;
-    for (auto keyID : receiver->rcv_keys()) {
-        bp_model::csptr bp = receiver->rcv_beam(keyID);
-        bvector steering = receiver->rcv_steering(keyID);
-        bp->beam_level(arrival, _frequencies, &beam_work, steering);
-        matrix_column<matrix<double> > col(beam, beam_number);
-        col = beam_work;
-        ++beam_number;
-    }
 }

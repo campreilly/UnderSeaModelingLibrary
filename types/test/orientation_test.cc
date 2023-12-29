@@ -255,7 +255,7 @@ BOOST_AUTO_TEST_CASE(rotate_vector) {
 	world_units <<=	1.0, 0.0, 0.0,
 					0.0, 1.0, 0.0,
 					0.0, 0.0, 1.0;
-	cout << "wolrd unit vectors" << endl;
+	cout << "world unit vectors" << endl;
 	pretty_print_matrix(world_units);
 
 	/* rotate these into the body's system */
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE(rotate_vector) {
 	world_units_expected <<=	0.5, 			0.5, 			sqrt(2.0)/2.0,
 								0.5, 			0.5, 			-sqrt(2.0)/2.0,
 								-sqrt(2.0)/2.0,	sqrt(2.0)/2.0, 	0.0;
-	cout << "wolrd unit expected" << endl;
+	cout << "world unit expected" << endl;
 	pretty_print_matrix(world_units_expected);
 
 	for(int i=0; i<3; i++){

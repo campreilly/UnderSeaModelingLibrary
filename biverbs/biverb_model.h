@@ -26,7 +26,7 @@ using namespace usml::types;
  * change more quickly than the geometry of the source and receiver to each
  * scattering patch.
  *
- * To avoid conversions during the reverberation envelope generation process,
+ * To avoid conversions during the reverberation time series generation process,
  * the attributes for direction, grazing, source_de, and source_az are
  * all expressed in radians.  Similar fields in the eigenray structure are
  * represented in degrees.

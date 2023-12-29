@@ -122,7 +122,7 @@ class USML_DECLSPEC sensor_pair
         return _biverbs;
     }
 
-    /// Reverberation envelope time series.
+    /// Reverberation time series time series.
     rvbts_collection::csptr rvbts() const {
     	read_lock_guard guard(_mutex);
         return _rvbts;
@@ -177,7 +177,7 @@ class USML_DECLSPEC sensor_pair
     /**
      * Update bistatic eigenverbs using results of biverb_generator.
      * Stores a reference to the bistatic eigenverbs then launches a new
-     * rvbts_generator to compute reverberation envelopes.
+     * rvbts_generator to compute reverberation time series.
      *
      * @param  object	Updated bistatic eigenverbs collection.
      */
@@ -185,10 +185,10 @@ class USML_DECLSPEC sensor_pair
 
     /**
      * Update bistatic eigenverbs using results of rvbts_generator.
-     * Stores a reference to the reverberation envelopes then notifies listeners
+     * Stores a reference to the reverberation time series then notifies listeners
      * that this sensor_pair has been updated.
      *
-     * @param  object	Updated reverberation envelope collection.
+     * @param  object	Updated reverberation time series collection.
      */
     virtual void notify_update(const rvbts_collection::csptr* object) override;
 
@@ -226,13 +226,13 @@ class USML_DECLSPEC sensor_pair
     /// Overlap of source and receiver eigenverbs.
     biverb_collection::csptr _biverbs;
 
-    /// Reverberation envelope time series.
+    /// Reverberation time series time series.
     rvbts_collection::csptr _rvbts;
 
     /// Background task used to generate biverb objects.
     std::shared_ptr<biverb_generator> _biverb_task;
 
-    /// Background task used to generate reverberation envelope objects.
+    /// Background task used to generate reverberation time series objects.
     std::shared_ptr<rvbts_generator> _rvbts_task;
 };
 

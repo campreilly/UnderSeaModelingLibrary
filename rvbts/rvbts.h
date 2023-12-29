@@ -1,9 +1,10 @@
 /**
- * @file rvbts.h Reverberation Intensity Envelope
+ * @file rvbts.h Reverberation time series for a bistatic pair.
  * @defgroup rvbts rvbts
  *
- * Reverberation envelope are intensity time series for a single combination of
- * receiver azimuth, source beam number, receiver beam number.
+ * This implementation supports beam level simulations where each receiver
+ * channel has its own beam pattern and steering. It lacks the phase delay
+ * between channels needed to support element level simulation.
  *
  * @defgroup rvbts_test rvbts Tests
  * @ingroup rvbts

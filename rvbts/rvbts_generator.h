@@ -1,6 +1,6 @@
 /**
  * @file rvbts_generator.h
- * Computes reverberation envelopes from eigenverbs.
+ * Background task to compute reverberation time series for a bistatic pair.
  */
 #pragma once
 
@@ -9,11 +9,11 @@
 #include <usml/rvbts/rvbts_collection.h>
 #include <usml/sensors/sensor_model.h>
 #include <usml/threads/thread_task.h>
+#include <usml/transmit/transmit_model.h>
+#include <usml/types/orientation.h>
 #include <usml/types/seq_vector.h>
+#include <usml/types/wposition1.h>
 #include <usml/usml_config.h>
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
 
 namespace usml {
 namespace rvbts {
@@ -21,93 +21,96 @@ namespace rvbts {
 using namespace usml::managed;
 using namespace usml::sensors;
 using namespace usml::threads;
+using namespace usml::transmit;
 using namespace usml::types;
 
 /// @ingroup rvbts
 /// @{
 
 /**
- * Background task to compute reverberation envelope collection for a bistatic
- * pair. Loops through the bistatic eigenverbs in the pair, computes the beam
- * pattern gain for each frequency/beam number, and asks rvbts_collection to
- * add this contribution to the envelope time series. Repeats for each interface
- * in the ocean to incorporate the effects of the bottom, surface, and volume
- * reverberation. Notifies update listeners when the computation is complete.
+ * Background task to compute reverberation time series for a bistatic
+ * pair.
+ * Notifies update listeners when the computation is
+ * complete.
  */
 class USML_DECLSPEC rvbts_generator
     : public thread_task,
       public update_notifier<rvbts_collection::csptr> {
    public:
     /**
-     * Initialize model with data from a sensor_pair.
+     * Initialize generator with state of sensor_pair at this time. Makes copies
+     * of the position, orientation, speed, transmit pulses, and bistatic
+     * eigenverbs at the time that the generator is constructed to ensure that
+     * the state of the sensor pair is consistent throughout the calculation.
      *
      * @param source      	Reference to the source for this pair.
      * @param receiver    	Reference to the receiver for this pair.
      * @param biverbs		Overlap of source and receiver eigenverbs.
-     * @param frequencies  	Frequencies at which reverb is computed (Hz).
-     * @param travel_times 	Times at which reverb is computed (sec).
      */
     rvbts_generator(const sensor_model::sptr& source,
-                     const sensor_model::sptr& receiver,
-					 const biverb_collection::csptr& biverbs,
-                     const seq_vector::csptr& frequencies,
-                     const seq_vector::csptr& travel_times);
+                    const sensor_model::sptr& receiver,
+                    const biverb_collection::csptr& biverbs);
 
     /**
-     * Compute reverberation envelope collection for a bistatic pair.
-     * Loops through all of the bistatic eigenverbs in the pair and computes its
-     * contribution to each source and receiver beam as a function of transmit
-     * frequency and travel time.
+     * Compute reverberation time series for a bistatic pair. Loops through all
+     * of the bistatic eigenverbs in the pair and computes their contribution to
+     * each receiver channel as a function of travel time.
      */
     virtual void run();
 
    private:
     /**
-     * Computes the source beam gain as a function of DE and AZ for each
-     * frequency and beam number. Rotates the DE and AZ of each eigenverb into
-     * the coordinate system of the sensor.
+     * Compute source steerings for each transmit waveform. Steerings in the
+     * transmission schedule are defined relative to the orientation of the host
+     * platform. But, the beam patterns need them to be specified in array
+     * coordinates. This implementation uses the orientation of the host to
+     * convert the ordered heading into world coordinates. Then it uses the
+     * orientation of the array to covert from world to array coordinates.
      *
-     * @param collection 	Source of information on sensor.
-     * @param de		 	Elevation angle in world coordinates.
-     * @param az		 	Azimuthal angle in world coordinates.
-     * @param beam_work  	Temporary work space to compute beam paterns.
-     * @param beam 		 	Beam gains in this direction (rows=freq,cols=beam#).
+     * Receiver beam patterns are less work because their steering directions
+     * are defined relative to the array and not the array's host platform.
      */
-    void beam_gain_src(const rvbts_collection* collection, double de,
-                       double az, vector<double>& beam_work,
-                       matrix<double>& beam);
+    matrix<double> compute_src_steering() const;
 
-    /**
-     * Computes the receiver beam gain as a function of DE and AZ for each
-     * frequency and beam number. Rotates the DE and AZ of each eigenverb into
-     * the coordinate system of the sensor.
-     *
-     * @param collection 	Source of information on sensor.
-     * @param de			Elevation angle in world coordinates.
-     * @param az			Azimuthal angle in world coordinates.
-     * @param beam_work 	Temporary work space to compute beam patterns.
-     * @param beam 			Beam gains in this direction
-     * (rows=freq,cols=beam#).
-     */
-    void beam_gain_rcv(const rvbts_collection* collection, double de,
-                       double az, vector<double>& beam_work,
-                       matrix<double>& beam);
-
-   private:
-    // Reference to source sensor
+    /// Reference to source sensor
     const sensor_model::sptr _source;
 
-    // Reference to receiver sensor
+    /// Source position at time that class constructed.
+    const wposition1 _source_pos;
+
+    /// Source orientation at time that class constructed.
+    const orientation _source_orient;
+
+    /// Source speed at time that class constructed (m/s).
+    const double _source_speed;
+
+    /// List of transmit pulses for this source.
+    const transmit_list& _transmit_schedule;
+
+    /// Reference to receiver sensor
     const sensor_model::sptr _receiver;
 
-    /// Overlap of source and receiver eigenverbs.
-    biverb_collection::csptr _biverbs;
+    /// Receiver position at time that class constructed.
+    const wposition1 _receiver_pos;
 
-    /// Frequencies at which reverb is computed (Hz).
-    const seq_vector::csptr _frequencies;
+    /// Receiver orientation at time that class constructed.
+    const orientation _receiver_orient;
 
-    /// Times at which reverb is computed (sec).
+    /// Receiver speed at time that class constructed (m/s).
+    const double _receiver_speed;
+
+    /// Receiver times at which reverberation is computed (sec).
     const seq_vector::csptr _travel_times;
+
+    /// Overlap of source and receiver eigenverbs.
+    const biverb_collection::csptr _biverbs;
+
+    /**
+     * Source steerings relative to source array orientation. The rows represent
+     * front, right, and up coordinates.  There is a column for each pulse in
+     * the transmit schedule.
+     */
+    matrix<double> _source_steering;
 };
 
 /// @}

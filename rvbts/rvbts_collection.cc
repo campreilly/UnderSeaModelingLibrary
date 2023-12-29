@@ -1,165 +1,155 @@
 /**
  * @file rvbts_collection.cc
- * Computes the reverberation envelope time series for all combinations of
+ * Computes the reverberation time series time series for all combinations of
  * transmit frequency, source beam number, receiver beam number.
  */
 
 #include <ncvalues.h>
 #include <netcdfcpp.h>
-#include <usml/platforms/platform_model.h>
+#include <usml/beampatterns/bp_model.h>
 #include <usml/rvbts/rvbts_collection.h>
+#include <usml/types/bvector.h>
+#include <usml/types/seq_linear.h>
 #include <usml/ublas/math_traits.h>
 #include <usml/ublas/vector_math.h>
 
 #include <boost/numeric/ublas/fwd.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/storage.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <cmath>
+#include <cstddef>
 #include <list>
 
 using namespace usml::rvbts;
 
 /**
- * Initialize model with data from a sensor_pair.
+ * Initialize model parameters with state of sensor_pair at the time that
+ * reverberation generator was created.
  */
-rvbts_collection::rvbts_collection(const sensor_model::sptr& source,
-                                     const sensor_model::sptr& receiver,
-                                     const seq_vector::csptr& travel_times,
-                                     const seq_vector::csptr& frequencies)
-    : _travel_times(travel_times),
-      _frequencies(frequencies),
-      _source(source),
+rvbts_collection::rvbts_collection(
+    const sensor_model::sptr source, const wposition1 source_pos,
+    const orientation source_orient, const double source_speed,
+    const sensor_model::sptr receiver, const wposition1 receiver_pos,
+    const orientation receiver_orient, const double receiver_speed,
+    const seq_vector::csptr travel_times)
+    : _source(source),
+      _source_pos(source_pos),
+      _source_orient(source_orient),
+      _source_speed(source_speed),
       _receiver(receiver),
-      _num_src_beams(_source->src_keys().size()),
-      _num_rcv_beams(_receiver->rcv_keys().size()),
-      _source_pos(_source->position()),
-      _receiver_pos(_source->position()),
-      _source_orient(_source->orient()),
-      _receiver_orient(_receiver->orient()),
-      _source_speed(_source->speed()),
-      _receiver_speed(_receiver->speed()) {
-    const auto num_freqs = _frequencies->size();
-    const auto num_times = _travel_times->size();
-
-    _envelopes = new matrix<double>**[_num_src_beams];
-    matrix<double>*** ps = _envelopes;
-    for (size_t s = 0; s < _num_src_beams; ++s, ++ps) {
-        *ps = new matrix<double>*[_num_rcv_beams];
-        matrix<double>** pr = *ps;
-        for (size_t r = 0; r < _num_rcv_beams; ++r, ++pr) {
-            *pr = new matrix<double>(num_freqs, num_times);
-            (*pr)->clear();
-        }
-    }
-}
-
-/**
- * Delete dynamic memory in each of the nested dynamic arrays.
- */
-rvbts_collection::~rvbts_collection() {
-    matrix<double>*** ps = _envelopes;
-    for (size_t s = 0; s < _num_src_beams; ++s, ++ps) {
-        matrix<double>** pr = *ps;
-        for (size_t r = 0; r < _num_rcv_beams; ++r, ++pr) {
-            delete *pr;
-        }
-        delete[] *ps;
-    }
-    delete[] _envelopes;
-}
+      _receiver_pos(receiver_pos),
+      _receiver_orient(receiver_orient),
+      _receiver_speed(receiver_speed),
+      _travel_times(travel_times),
+      _time_series(receiver->rcv_keys().size(), travel_times->size()) {}
 
 /**
  * Adds the intensity contribution for a single bistatic eigenverb.
+ *
+ * TODO Add the ability to compute Doppler shifts.
+ * TODO Add the ability to compute element level phase delays between receivers.
  */
 void rvbts_collection::add_biverb(const biverb_model::csptr& verb,
-                                   const matrix<double>& src_beam,
-                                   const matrix<double>& rcv_beam) {
-    const auto num_freqs = _frequencies->size();
-    const auto duration = verb->duration;
-    const auto delay = verb->travel_time + duration;
+                                  transmit_model::csptr transmit,
+                                  bvector steering) {
     static const double SQRT_TWO_PI = sqrt(TWO_PI);
 
     // find range of time indices to update
 
+    const auto duration = verb->duration;
+    const auto delay = transmit->delay + verb->travel_time + duration;
     size_t first = _travel_times->find_index(delay - 5.0 * duration);
     size_t last = _travel_times->find_index(delay + 5.0 * duration) + 1;
     range window(first, last);
 
-    // update Gaussian levels in this time window
+    // update Gaussian time series in this window
 
     vector<double> times = _travel_times->data();
     vector_range<vector<double> > tau(times, window);
     vector<double> gaussian =
         exp(-0.5 * abs2((tau - delay) / duration)) / (duration * SQRT_TWO_PI);
 
-    // add Gaussian to each source beam, receiver beam, and frequency
+    // interpolate eigenverb power
 
-    for (size_t s = 0; s < _num_src_beams; ++s) {
-        for (size_t r = 0; r < _num_rcv_beams; ++r) {
-            matrix<double>& intensity = *_envelopes[s][r];
-            for (size_t f = 0; f < num_freqs; ++f) {
-                // compute eigenverb total power for this source beam, receiver
-                // beam, and frequency combination
-                auto scale = verb->power(f) * src_beam(f, s) * rcv_beam(f, r);
+    double verb_level = verb->power[0];
+    if (verb->frequencies->size() > 1) {
+        double freq = transmit->fcenter;
+        const seq_vector& axis = *(verb->frequencies);
+        size_t index = axis.find_nearest(freq);
+        if (index >= axis.size()) {
+            --index;
+        }
+        double u = (freq - axis[index]) / axis.increment(index);
+        verb_level = u * verb->power[index + 1] + (1 - u) * verb->power[index];
+    }
 
-                // add scaled Gaussian to each intensity in time window
-                for (size_t n = 0; n < gaussian.size(); ++n) {
-                    auto t = n + first - 1;
-                    intensity(f, t) += scale * gaussian[n];
-                }
-            }
+    // compute source level for this transmission
+
+    bp_model::csptr src_beam = _source->src_beam(transmit->transmit_mode);
+    const seq_vector::csptr frequencies(
+        new seq_linear(transmit->fcenter, 1.0, 1));
+    vector<double> level(1);
+    bvector src_arrival(verb->source_de, verb->source_az);
+    src_arrival.rotate(_source_orient, src_arrival);
+    src_beam->beam_level(src_arrival, frequencies, &level, steering);
+    double src_level = transmit->source_level + level[0];
+
+    // add Gaussian to each receiver channel
+
+    for (int rcv : this->_receiver->rcv_keys()) {
+        // compute received level for this transmission
+
+        bp_model::csptr rcv_beam = _receiver->rcv_beam(rcv);
+        bvector rcv_arrival(verb->receiver_de, verb->receiver_az);
+        rcv_arrival.rotate(_receiver_orient, rcv_arrival);
+        bvector rcv_steering = _receiver->rcv_steering(rcv);
+        rcv_beam->beam_level(rcv_arrival, frequencies, &level, rcv_steering);
+        double rcv_level = src_level + verb_level + level[0];
+
+        // add scaled Gaussian to each result in time window
+
+        for (size_t n = 0; n < gaussian.size(); ++n) {
+            auto t = n + first - 1;
+            _time_series(rcv, t) += rcv_level * gaussian[n];
         }
     }
 }
 
 /**
- * Writes reverberation envelope data to disk.
+ * Writes reverberation time series data to disk.
+ *
+ * TODO Add source and receiver parameters.
  */
 void rvbts_collection::write_netcdf(const char* filename) const {
-    read_lock_guard guard(_mutex);
     auto* nc_file = new NcFile(filename, NcFile::Replace);
+
+    auto num_channels = (long)_time_series.size1();
+    auto num_times = (long)_time_series.size2();
 
     // dimensions
 
-    NcDim* src_beam_dim = nc_file->add_dim("src_beam", (long)_num_src_beams);
-    NcDim* rcv_beam_dim = nc_file->add_dim("rcv_beam", (long)_num_rcv_beams);
-    NcDim* freq_dim =
-        nc_file->add_dim("frequencies", (long)_frequencies->size());
-    NcDim* time_dim =
-        nc_file->add_dim("travel_time", (long)_travel_times->size());
+    NcDim* channels_dim = nc_file->add_dim("channels", num_channels);
+    NcDim* time_dim = nc_file->add_dim("travel_time", num_times);
 
     // variables
 
-    NcVar* freq_var = nc_file->add_var("frequencies", ncDouble, freq_dim);
+    NcVar* channels_var = nc_file->add_var("channels", ncDouble, channels_dim);
     NcVar* time_var = nc_file->add_var("travel_time", ncDouble, time_dim);
-    NcVar* envelopes_var = nc_file->add_var("intensity", ncDouble, src_beam_dim,
-                                            rcv_beam_dim, freq_dim, time_dim);
+    NcVar* time_series_var =
+        nc_file->add_var("time_series", ncDouble, channels_dim, time_dim);
 
     // units
 
     time_var->add_att("units", "seconds");
-    freq_var->add_att("units", "hertz");
-    envelopes_var->add_att("units", "dB");
 
     // data
 
-    freq_var->put(_frequencies->data().begin(), (long)_frequencies->size());
-    time_var->put(_travel_times->data().begin(), (long)_travel_times->size());
-
-    for (size_t s = 0; s < _num_src_beams; ++s) {
-        for (size_t r = 0; r < _num_rcv_beams; ++r) {
-            for (size_t f = 0; f < _frequencies->size(); ++f) {
-                matrix_row<matrix<double> > row(*_envelopes[s][r], f);
-                vector<double> envelope = 10.0 * log10(max(row, 1e-30));
-                envelopes_var->set_cur((long)s, (long)r, (long)f, 0L);
-                envelopes_var->put(envelope.data().begin(), 1L, 1L, 1L,
-                                   (long)_travel_times->size());
-            }
-        }
-    }
+    seq_linear channels(0.0, 1.0, (size_t)num_channels);
+    channels_var->put(channels.data().begin(), num_channels);
+    time_var->put(_travel_times->data().begin(), num_times);
+    time_series_var->put(_time_series.data().begin(), num_channels * num_times);
 
     // close file and free all netCDF temp variables
 

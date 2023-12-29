@@ -167,7 +167,7 @@ void sensor_pair::notify_update(const biverb_collection::csptr* object) {
     	_rvbts_task->abort();
     }
 
-    // launch a new reverberation envelope generator background task
+    // launch a new reverberation time series generator background task
 
     seq_vector::csptr frequencies = sensor_manager::instance()->frequencies();
     seq_vector::csptr travel_times(

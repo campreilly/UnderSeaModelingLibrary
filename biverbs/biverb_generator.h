@@ -70,7 +70,7 @@ class USML_DECLSPEC biverb_generator
      * this source/receiver combination.
      * Finally, it uses the evelope_collection.add_contribution() method
      * to add this this source/receiver combination to the reverberation
-     * envelopes.
+     * time series.
      */
     virtual void run();
 

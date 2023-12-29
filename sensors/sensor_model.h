@@ -54,15 +54,15 @@ using namespace usml::wavegen;
  * This class also stores the beampattern models used by this sensor. Each
  * beampattern has a keyID and a const shared pointer to the beampattern model
  * to use. Beampatterns models are immutable and may be shared between sensors.
- * The transmission schedule used to generate acoustic time series includes
- * pulse characteristics, a transmit mode, and a transmit steering direction for
- * each pulse. The keyID for of the source beam patterns in sensor_model
- * identifies the beam pattern model to use for each of these pulses.
- * The keyID for each receiver beam patterns identifies the receiver channel
- * associated with each pattern. This is particularly useful in beam level
- * simulations where each channel may have a different pattern model. The
- * steering for each receiver channel is updated through the sensor_model.
- * Results are generated as a function of receiver channel number and time.
+ * The transmission schedule used to generate acoustic time series and it
+ * includes pulse characteristics, a transmit keyID, and a transmit steering
+ * direction for each pulse. The keyID for of the source beam patterns
+ * identifies the beam pattern model to use for each of these pulses. The keyID
+ * for each receiver beam patterns identifies the receiver channel associated
+ * with each pattern. This implementation currently supports beam level
+ * simulations where each channel has its own beam pattern and steering. Time
+ * series results are generated as a function of receiver channel number and
+ * time.
  *
  * Automatically launches a background task to recompute eigenrays and
  * eigenverbs when sensor motion exceeds position or orientation thresholds.
@@ -244,6 +244,7 @@ class USML_DECLSPEC sensor_model : public platform_model,
     }
 
     /// List of pulses to transmit.
+    /// TODO Recompute reverberation time series when transmit schedule changes.
     void transmit_schedule(const transmit_list& schedule) {
         write_lock_guard guard(mutex());
         _transmit_schedule = schedule;

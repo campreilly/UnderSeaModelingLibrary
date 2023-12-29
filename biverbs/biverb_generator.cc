@@ -21,7 +21,7 @@ using namespace usml::biverbs;
 #define DEBUG_BIVERB
 
 /**
- * Copies envelope computation parameters from static memory into
+ * Copies time series computation parameters from static memory into
  * this specific task.
  */
 biverb_generator::biverb_generator(sensor_pair* pair,
