@@ -8,12 +8,15 @@
 #include <usml/platforms/platform_manager.h>
 #include <usml/sensors/sensors.h>
 #include <usml/wavegen/wavegen.h>
+#include <usml/transmit/transmit_cw.h>
+#include <usml/transmit/transmit_model.h>
 
 #include <list>
 
+using namespace usml::eigenverbs;
 using namespace usml::ocean;
 using namespace usml::sensors;
-using namespace usml::eigenverbs;
+using namespace usml::transmit;
 using namespace usml::wavegen;
 
 /**
@@ -90,6 +93,17 @@ class reverb_analytic_test {
         sensor->rcv_beam(0, bp_model::csptr(new bp_omni()));
         sensor->time_maximum(7.0);
         sensor->compute_reverb(true);
+        sensor->fsample(10.0);
+
+        std::string type1("CW");
+        double duration = 0.1;
+        double fcenter = 1005.0;
+        double delay = 0.0;
+        double source_level = 200.0;
+        transmit_list transmits;
+        transmits.push_back(transmit_model::csptr(new transmit_cw(
+            type1, duration, fcenter, delay, source_level)));
+        sensor->transmit_schedule(transmits);
 
         sensor_mgr->add_sensor(sensor);
         sensor->update(0.0, platform_model::FORCE_UPDATE);
@@ -98,25 +112,6 @@ class reverb_analytic_test {
     }
 
     /**
-     * Use
-     */
-    static void compute_reverb() {
-        cout << "== compute reverb ==" << endl;
-
-//        rvbts_task = std::make_shared<rvbts_generator>(
-//            this, tpos, targetIDs, frequencies, _de_fan, _az_fan,
-//            _time_step, _time_maximum, _intensity_threshold, _max_bottom,
-//            _max_surface);
-//
-//        rvbts_generator(const sensor_pair::sptr& pair,
-//                         const seq_vector::csptr& times,
-//                         const seq_vector::csptr& freqs, size_t num_azimuths);
-//
-//        thread_task::wait();	// wait for acoustic processing to finish
-    }
-
-    /**
-     * Wait for the reverberation model to compute results.
      * Retrieve eigenrays and envelopes from sensor_pair_manager,
      * and write them to netCDF files for further analysis.
      */
@@ -127,10 +122,8 @@ class reverb_analytic_test {
 
         // write direct path collections to disk
 
-        cout << endl << "*** pairs ***" << endl;
         for (const auto& pair : sensor_mgr->list()) {
-            cout << pair->description()
-                 << " dirpaths=" << pair->dirpaths()->eigenrays().size()
+            cout << "dirpaths=" << pair->dirpaths()->eigenrays().size()
                  << endl;
             if (pair->dirpaths() != nullptr) {
                 std::ostringstream filename;
@@ -157,6 +150,13 @@ class reverb_analytic_test {
                 cout << "writing " << filename.str().c_str() << endl;
                 pair->biverbs()->write_netcdf(filename.str().c_str(), 0);
             }
+            if (pair->rvbts() != nullptr) {
+				std::ostringstream filename;
+				filename << ncname << "rvbts_" << pair->hash_key() << ".nc";
+				cout << "writing to " << filename.str() << endl;
+				pair->rvbts()->write_netcdf(filename.str().c_str());
+            }
+
         }
     }
 };
@@ -166,5 +166,6 @@ class reverb_analytic_test {
  */
 int main(int  /*argc*/, char*  /*argv*/[]) {
     reverb_analytic_test test;
+    cout << "== test complete ==" << endl;
     return 0;
 }

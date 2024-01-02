@@ -30,7 +30,7 @@ sensor_pair::sensor_pair(const sensor_model::sptr& source,
                          const sensor_model::sptr& receiver)
     : managed_obj<std::string, sensor_pair>(
           generate_hash_key(source->keyID(), receiver->keyID()),
-          source->description() + "->" + receiver->description()),
+          source->description() + " -> " + receiver->description()),
       _source(source),
       _receiver(receiver),
       _compute_reverb(source->compute_reverb() && receiver->compute_reverb()) {

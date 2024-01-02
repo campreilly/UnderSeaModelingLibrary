@@ -42,6 +42,11 @@ class USML_DECLSPEC rvbts_collection {
     typedef std::shared_ptr<const rvbts_collection> csptr;
 
     /**
+     * Threshold for minimum envelope power.
+     */
+    static double power_threshold;
+
+    /**
      * Initialize model parameters with state of sensor_pair at the time that
      * reverberation generator was created.
      *
@@ -55,14 +60,12 @@ class USML_DECLSPEC rvbts_collection {
      * @param receiver_speed  Receiver speed at this time.
      * @param travel_times    Times at which reverberation is computed (sec).
      */
-    rvbts_collection(const sensor_model::sptr& source,
-                     const wposition1 source_pos,
-                     const orientation& source_orient, const double source_speed,
-                     const sensor_model::sptr& receiver,
-                     const wposition1 receiver_pos,
-                     const orientation& receiver_orient,
-                     const double receiver_speed,
-                     const seq_vector::csptr& travel_times);
+    rvbts_collection(
+        const sensor_model::sptr& source,
+        const wposition1 source_pos, const orientation& source_orient,
+        const double source_speed, const sensor_model::sptr& receiver,
+        const wposition1 receiver_pos, const orientation& receiver_orient,
+        const double receiver_speed, const seq_vector::csptr& travel_times);
 
     // Reference to source sensor.
     sensor_model::sptr source() const { return _source; }
@@ -115,7 +118,8 @@ class USML_DECLSPEC rvbts_collection {
      * @param steering 	Transmit steering relative to source array.
      */
     void add_biverb(const biverb_model::csptr& verb,
-                    const transmit_model::csptr& transmit, const bvector& steering);
+                    const transmit_model::csptr& transmit,
+                    const bvector& steering);
 
     /**
      * Writes reverberation time series data to disk.

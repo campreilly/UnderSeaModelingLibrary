@@ -25,15 +25,20 @@
 using namespace usml::rvbts;
 
 /**
+ * Threshold for minimum envelope power.
+ */
+double rvbts_collection::power_threshold = 1e-20;
+
+/**
  * Initialize model parameters with state of sensor_pair at the time that
  * reverberation generator was created.
  */
 rvbts_collection::rvbts_collection(
-    const sensor_model::sptr& source, const wposition1 source_pos,
-    const orientation& source_orient, const double source_speed,
-    const sensor_model::sptr& receiver, const wposition1 receiver_pos,
-    const orientation& receiver_orient, const double receiver_speed,
-    const seq_vector::csptr& travel_times)
+    const sensor_model::sptr &source, const wposition1 source_pos,
+    const orientation &source_orient, const double source_speed,
+    const sensor_model::sptr &receiver, const wposition1 receiver_pos,
+    const orientation &receiver_orient, const double receiver_speed,
+    const seq_vector::csptr &travel_times)
     : _source(source),
       _source_pos(source_pos),
       _source_orient(source_orient),
@@ -51,13 +56,13 @@ rvbts_collection::rvbts_collection(
  * TODO Add the ability to compute Doppler shifts when fcenter > 0.
  */
 void rvbts_collection::add_biverb(const biverb_model::csptr &verb,
-                                  const transmit_model::csptr& transmit,
-                                  const bvector& steering) {
+                                  const transmit_model::csptr &transmit,
+                                  const bvector &steering) {
     static const double SQRT_TWO_PI = sqrt(TWO_PI);
 
     // find range of time indices to update
 
-    const auto duration = verb->duration;
+    const auto duration = verb->duration + transmit->duration;
     const auto delay = transmit->delay + verb->travel_time + duration;
     size_t first = _travel_times->find_index(delay - 5.0 * duration);
     size_t last = _travel_times->find_index(delay + 5.0 * duration) + 1;
@@ -72,7 +77,7 @@ void rvbts_collection::add_biverb(const biverb_model::csptr &verb,
 
     // interpolate eigenverb power
 
-    double verb_level = verb->power[0];
+    double verb_level = verb->power[0] * transmit->duration;
     if (verb->frequencies->size() > 1) {
         double freq = transmit->fcenter;
         const seq_vector &axis = *(verb->frequencies);
@@ -94,6 +99,9 @@ void rvbts_collection::add_biverb(const biverb_model::csptr &verb,
     src_arrival.rotate(_source_orient, src_arrival);
     src_beam->beam_level(src_arrival, frequencies, &level, steering);
     double src_level = transmit->source_level + level[0];
+    if (src_level < power_threshold) {
+        return;
+    }
 
     // add Gaussian to each receiver channel
 
@@ -106,6 +114,9 @@ void rvbts_collection::add_biverb(const biverb_model::csptr &verb,
         bvector rcv_steering = _receiver->rcv_steering(rcv);
         rcv_beam->beam_level(rcv_arrival, frequencies, &level, rcv_steering);
         double rcv_level = src_level + verb_level + level[0];
+        if (rcv_level < power_threshold) {
+            continue;
+        }
 
         // add scaled Gaussian to each result in time window
 

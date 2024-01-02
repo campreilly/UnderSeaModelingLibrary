@@ -25,7 +25,8 @@ rvbts_generator::rvbts_generator(const sensor_pair::sptr& pair,
                                  const sensor_model::sptr& source,
                                  const sensor_model::sptr& receiver,
                                  const biverb_collection::csptr& biverbs)
-    : _source(source),
+    : _description(pair->description()),
+      _source(source),
       _source_pos(source->position()),
       _source_orient(source->orient()),
       _source_speed(source->speed()),
@@ -84,18 +85,17 @@ matrix<double> rvbts_generator::compute_src_steering() const {
 void rvbts_generator::run() {
     if (_abort) {
         cout << "task #" << id()
-             << " rvbts_generator *** aborted before execution ***" << endl;
+             << " rvbts_generator: *** aborted before execution ***" << endl;
         return;
     }
 
-    auto* collection = new rvbts_collection(
-        _source, _source_pos, _source_orient, _source_speed, _receiver,
-        _receiver_pos, _receiver_orient, _receiver_speed, _travel_times);
+    auto* collection =
+        new rvbts_collection(_source, _source_pos, _source_orient,
+                             _source_speed, _receiver, _receiver_pos,
+                             _receiver_orient, _receiver_speed, _travel_times);
     rvbts_collection::csptr result(collection);
 
-    cout << "task #" << id()
-         << " rvbts_generator src=" << collection->source()->keyID()
-         << " rcv=" << collection->receiver()->keyID() << endl;
+    cout << "task #" << id() << " rvbts_generator: " << _description<< endl;
 
     // loop through eigenverbs for each interface
 

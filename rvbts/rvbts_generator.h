@@ -78,6 +78,9 @@ class USML_DECLSPEC rvbts_generator
      */
     matrix<double> compute_src_steering() const;
 
+    /// Human readable name for this object instance.
+    const std::string _description;
+
     /// Reference to source sensor
     const sensor_model::sptr _source;
 

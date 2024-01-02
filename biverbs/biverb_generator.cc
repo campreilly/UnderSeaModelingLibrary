@@ -39,12 +39,11 @@ biverb_generator::biverb_generator(
 void biverb_generator::run() {
     if (_abort) {
         cout << "task #" << id()
-             << " biverb_generator *** aborted before execution ***" << endl;
+             << " biverb_generator: *** aborted before execution ***" << endl;
         return;
     }
     cout << "task #" << id()
-         << " biverb_generator src=" << _sensor_pair->source()->keyID()
-         << " rcv=" << _sensor_pair->receiver()->keyID() << endl;
+         << " biverb_generator: " << _sensor_pair->description() << endl;
 
     // initialize workspace for results
 
