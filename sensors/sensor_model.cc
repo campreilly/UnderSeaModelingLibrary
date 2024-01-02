@@ -3,11 +3,13 @@
  * Instance of an individual sensor in the simulation.
  */
 
+#include <usml/biverbs/biverb_collection.h>
 #include <usml/managed/manager_template.h>
 #include <usml/platforms/motion_thresholds.h>
 #include <usml/platforms/platform_manager.h>
 #include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_pool.h>
 #include <usml/threads/thread_task.h>
@@ -84,15 +86,15 @@ bp_model::csptr sensor_model::rcv_beam(int keyID) const {
 bvector sensor_model::rcv_steering(int keyID) const {
     read_lock_guard guard(mutex());
     auto iter = _rcv_steering.find(keyID);
-	return iter->second;
+    return iter->second;
 }
 
 /**
  * Update receiver steering for specific channel number.
  */
-void sensor_model::rcv_steering(int keyID, const bvector& steering){
+void sensor_model::rcv_steering(int keyID, const bvector& steering) {
     write_lock_guard guard(mutex());
-	_rcv_steering[keyID] = steering;
+    _rcv_steering[keyID] = steering;
 }
 
 /**
@@ -105,6 +107,30 @@ std::list<int> sensor_model::rcv_keys() const {
         list.push_back(beam.first);
     }
     return list;
+}
+
+/**
+ * Update list of pulses to transmit. Receiver time series data, including
+ * reverberation, are not computed if the source transmit_schedule is not
+ * set by the user. Recomputes receiver time series for pairs when source
+ * transmit_schedule is updated and old schedule is empty or update_type is
+ * FORCE_UPDATE.
+ */
+void sensor_model::transmit_schedule(const transmit_list& schedule,
+                                     update_type_enum update_type) {
+    transmit_list old_schedule;
+    {
+        write_lock_guard guard(mutex());
+        old_schedule = _transmit_schedule;
+        _transmit_schedule = schedule;
+    }
+    if (old_schedule.size() == 0 || update_type == FORCE_UPDATE) {
+        sensor_manager* sensor_mgr = sensor_manager::instance();
+        for (sensor_pair::sptr pair : sensor_mgr->find_source(keyID())) {
+            biverb_collection::csptr biverbs = pair->biverbs();
+            pair->notify_update(&biverbs);
+        }
+    }
 }
 
 /**

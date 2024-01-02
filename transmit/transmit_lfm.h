@@ -36,6 +36,7 @@ class USML_DECLSPEC transmit_lfm : public transmit_model {
      *
      * @param type          Display name for waveform type.
      * @param duration      Duration of the transmitted signal (sec).
+     * @param bandwidth     Bandwidth of the transmitted signal (sec).
      * @param fcenter       Center frequency for current modulation scheme (Hz).
      * @param delay         Delay after completion of previous pulse (sec).
      * @param source_level  Peak intensity of the transmitted pulse (microPa at
@@ -46,10 +47,11 @@ class USML_DECLSPEC transmit_lfm : public transmit_model {
      * @param orderedDE  	Ordered steering elevation direction (deg)
      * @param transmit_mode Transmitter beam pattern number to use.
      */
-    transmit_lfm(const std::string& type, double duration, double fcenter,
-                 double delay, double source_level, window::type window,
-                 double window_param, double orderedAZ, double orderedDE,
-                 int transmit_mode);
+    transmit_lfm(const std::string& type, double duration, double bandwidth,
+                 double fcenter, double delay = 0.0, double source_level = 1.0,
+                 window::type window = window::type::BOXCAR,
+                 double window_param = 0.0, double orderedAZ = 0.0,
+                 double orderedDE = 0.0, int transmit_mode = 0);
 
     /**
      * Creates a complex analytic signal for this waveform. To support phase

@@ -47,9 +47,10 @@ class USML_DECLSPEC transmit_cw : public transmit_model {
      * @param transmit_mode Transmitter beam pattern number to use.
      */
     transmit_cw(const std::string& type, double duration, double fcenter,
-                double delay, double source_level, window::type window,
-                double window_param, double orderedAZ, double orderedDE,
-                int transmit_mode);
+                double delay = 0.0, double source_level = 1.0,
+                window::type window = window::type::BOXCAR,
+                double window_param = 0.0, double orderedAZ = 0.0,
+                double orderedDE = 0.0, int transmit_mode = 0);
 
     /**
      * Creates a complex analytic signal for this waveform. To support phase

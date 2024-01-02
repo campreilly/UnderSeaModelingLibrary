@@ -51,27 +51,29 @@ using namespace usml::wavegen;
  * or they can be attached to host platforms using the add_child() method. Uses
  * mutex to lock queries and updates in multi-threaded environment.
  *
- * This class also stores the beampattern models used by this sensor. Each
- * beampattern has a keyID and a const shared pointer to the beampattern model
- * to use. Beampatterns models are immutable and may be shared between sensors.
- * The transmission schedule used to generate acoustic time series and it
+ * Stores the beampattern models used by this sensor. Each beampattern has a
+ * keyID and a const shared pointer to the beampattern model to use.
+ * Beampatterns models are immutable and may be shared between sensors.
+ *
+ * Stores a transmission schedule used to generate acoustic time series and it
  * includes pulse characteristics, a transmit keyID, and a transmit steering
  * direction for each pulse. The keyID for of the source beam patterns
- * identifies the beam pattern model to use for each of these pulses. The keyID
- * for each receiver beam patterns identifies the receiver channel associated
- * with each pattern. This implementation currently supports beam level
- * simulations where each channel has its own beam pattern and steering. Time
- * series results are generated as a function of receiver channel number and
- * time.
+ * identifies the beam pattern model to use for each of these pulses.
+ *
+ * The keyID for each receiver beam pattern identifies the receiver channel
+ * associated with each pattern. This implementation currently supports beam
+ * level simulations where each channel has its own beam pattern and steering.
+ * Time series results are generated as a function of receiver channel number
+ * and time when the fsample property is set.
  *
  * Automatically launches a background task to recompute eigenrays and
- * eigenverbs when sensor motion exceeds position or orientation thresholds.
- * The find_targets() calculation searches the platform_manager for all
- * platforms and sensors sensors between the maximum and minimum slant range. If
- * an existing wavefront_generator is running for this sensor, that task is
- * aborted before the new background task is created. Uses update_notifier to
- * notify listeners when eigenray and eigenverb data has changed. Does not
- * notify listeners when other fields like position and orientation change.
+ * eigenverbs when sensor motion exceeds position or orientation thresholds. The
+ * find_targets() calculation searches the platform_manager for all platforms
+ * and sensors sensors between the maximum and minimum slant range. If an
+ * existing wavefront_generator is running for this sensor, that task is aborted
+ * before the new background task is created. Uses update_notifier to notify
+ * listeners when eigenray and eigenverb data has changed. Does not notify
+ * listeners when other fields like position and orientation change.
  */
 class USML_DECLSPEC sensor_model : public platform_model,
                                    public wavefront_notifier {
@@ -240,27 +242,37 @@ class USML_DECLSPEC sensor_model : public platform_model,
     /// Retrieve receiver sampling rate (Hz).
     double fsample() const { return _fsample; }
 
-    /// Update receiver sampling rate (Hz).
+    /**
+     * Update receiver sampling rate (Hz). Receiver time series data,
+     * including reverberation, are not computed if the receiver sampling rate
+     * is not set by the user.
+     */
     void fsample(double value) { _fsample = value; }
 
     /// Retrieve receiver center frequency (Hz).
     double fcenter() const { return _fcenter; }
 
-    /// Update receiver center frequency (Hz).
+    /**
+     * Update receiver center frequency (Hz). Models frequency contents of the
+     * receiver time series data when this value is set by user.
+     */
     void fcenter(double value) { _fcenter = value; }
 
-    /// List of pulses to transmit.
+    /// Retrieve list of pulses to transmit.
     transmit_list transmit_schedule() const {
         read_lock_guard guard(mutex());
         return _transmit_schedule;
     }
 
-    /// List of pulses to transmit.
-    /// TODO Recompute reverberation time series when transmit schedule changes.
-    void transmit_schedule(const transmit_list& schedule) {
-        write_lock_guard guard(mutex());
-        _transmit_schedule = schedule;
-    }
+    /**
+     * Update list of pulses to transmit. Receiver time series data, including
+     * reverberation, are not computed if the source transmit_schedule is not
+     * set by the user. Recomputes receiver time series for pairs when source
+     * transmit_schedule is updated and old schedule is empty or update_type is
+     * FORCE_UPDATE.
+     */
+    void transmit_schedule(const transmit_list& schedule,
+                           update_type_enum update_type = NO_UPDATE);
 
    protected:
     /**

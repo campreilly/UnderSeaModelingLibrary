@@ -48,8 +48,7 @@ rvbts_collection::rvbts_collection(
 /**
  * Adds the intensity contribution for a single bistatic eigenverb.
  *
- * TODO Add the ability to compute Doppler shifts.
- * TODO Add the ability to compute element level phase delays between receivers.
+ * TODO Add the ability to compute Doppler shifts when fcenter > 0.
  */
 void rvbts_collection::add_biverb(const biverb_model::csptr &verb,
                                   const transmit_model::csptr& transmit,

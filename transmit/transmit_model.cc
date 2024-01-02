@@ -14,14 +14,14 @@ using namespace usml::transmit;
  * Parameters for a single waveform in a transmission schedule.
  */
 transmit_model::transmit_model(const std::string& type, double duration,
-                               double fcenter, double bandwidth, double delay,
+                               double bandwidth, double fcenter, double delay,
                                double source_level, window::type window_type,
                                double window_param, double orderedAZ,
                                double orderedDE, int transmit_mode)
     : type(type),
       duration(duration),
-      fcenter(fcenter),
       bandwidth(bandwidth),
+      fcenter(fcenter),
       delay(delay),
       source_level(source_level),
       window_type(window_type),

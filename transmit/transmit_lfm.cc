@@ -19,11 +19,11 @@ using namespace usml::transmit;
  * Waveform parameters for a linear frequency modulated pulse.
  */
 transmit_lfm::transmit_lfm(const std::string& type, double duration,
-                           double fcenter, double delay, double source_level,
-                           window::type window, double window_param,
-                           double orderedAZ, double orderedDE,
-                           int transmit_mode)
-    : transmit_model(type, duration, fcenter, 1.0 / duration, delay,
+                           double bandwidth, double fcenter, double delay,
+                           double source_level, window::type window,
+                           double window_param, double orderedAZ,
+                           double orderedDE, int transmit_mode)
+    : transmit_model(type, duration, bandwidth, fcenter, delay,
                      source_level, window, window_param, orderedAZ, orderedDE,
                      transmit_mode) {}
 
