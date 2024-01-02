@@ -21,7 +21,8 @@ using namespace usml::rvbts;
 /**
  * Initialize model parameters with state of sensor_pair at this time.
  */
-rvbts_generator::rvbts_generator(const sensor_model::sptr& source,
+rvbts_generator::rvbts_generator(const sensor_pair::sptr& pair,
+                                 const sensor_model::sptr& source,
                                  const sensor_model::sptr& receiver,
                                  const biverb_collection::csptr& biverbs)
     : _source(source),
@@ -37,7 +38,9 @@ rvbts_generator::rvbts_generator(const sensor_model::sptr& source,
                                    1.0 / receiver->fsample(),
                                    receiver->time_maximum())),
       _biverbs(biverbs),
-      _source_steering(compute_src_steering()) {}
+      _source_steering(compute_src_steering()) {
+    add_listener(pair.get());
+}
 
 /**
  * Compute source steerings for each transmit waveform.
@@ -49,23 +52,27 @@ matrix<double> rvbts_generator::compute_src_steering() const {
     int n = 0;
     for (const auto& transmit : _transmit_schedule) {
         bvector ordered(transmit->orderedDE, transmit->orderedAZ);
-        steering(n, 0) = ordered.front();
-        steering(n, 1) = ordered.right();
-        steering(n, 2) = ordered.up();
+        steering(0, n) = ordered.front();
+        steering(1, n) = ordered.right();
+        steering(2, n) = ordered.up();
         ++n;
     }
 
-    // convert to world coordinates using orientation of host
+    // use these steerings if sensor has no host
 
     const platform_model* host = _source->host();
-    if (host != nullptr) {
-        while (host->host() != nullptr) {
-            host = host->host();
-        }
-        steering = prod(host->orient().rotation(), steering);
+    if (host == nullptr) {
+        return steering;
     }
 
-    // convert from world to array coordinates
+    // convert steerings to world coordinates using orientation of host
+
+    while (host->host() != nullptr) {
+        host = host->host();
+    }
+    steering = prod(host->orient().rotation(), steering);
+
+    // convert steerings from world to array coordinates
 
     steering = prod(trans(_source_orient.rotation()), steering);
     return steering;

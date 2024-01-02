@@ -203,7 +203,9 @@ class USML_DECLSPEC sensor_pair
 
     /**
      * Notify listeners that acoustic data for this sensor_pair has been
-     * updated.
+     * updated. Invoked early after eigenrays computed if this pair does not
+     * compute reverberation. Invoked early after bistatic eigenrays if this
+     * pair does not compute reverberation time series.
      *
      * @param object    Reference to the object that has been updated.
      */

@@ -5,9 +5,11 @@
 #pragma once
 
 #include <usml/biverbs/biverb_collection.h>
+#include <usml/managed/managed_obj.h>
 #include <usml/managed/update_notifier.h>
 #include <usml/rvbts/rvbts_collection.h>
 #include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/threads/thread_task.h>
 #include <usml/transmit/transmit_model.h>
 #include <usml/types/orientation.h>
@@ -45,11 +47,13 @@ class USML_DECLSPEC rvbts_generator
      * eigenverbs at the time that the generator is constructed to ensure that
      * the state of the sensor pair is consistent throughout the calculation.
      *
+     * @param pair       	Object to notify when complete.
      * @param source      	Reference to the source for this pair.
      * @param receiver    	Reference to the receiver for this pair.
      * @param biverbs		Overlap of source and receiver eigenverbs.
      */
-    rvbts_generator(const sensor_model::sptr& source,
+    rvbts_generator(const sensor_pair::sptr& pair,
+                    const sensor_model::sptr& source,
                     const sensor_model::sptr& receiver,
                     const biverb_collection::csptr& biverbs);
 

@@ -122,6 +122,7 @@ void sensor_pair::update_wavefront_data(
         // update eigenverb contributions
 
         if (_compute_reverb) {
+            notify_early = false;
             if (_source == _receiver) {
                 _src_eigenverbs = eigenverbs;
                 _rcv_eigenverbs = eigenverbs;
@@ -134,7 +135,6 @@ void sensor_pair::update_wavefront_data(
             // launch a new bistatic eigenverb generator background task
 
             if (_src_eigenverbs != nullptr && _rcv_eigenverbs != nullptr) {
-                notify_early = false;
                 if (_biverb_task != nullptr) {  // abort incomplete tasks
                     _biverb_task->abort();
                 }
@@ -166,18 +166,16 @@ void sensor_pair::notify_update(const biverb_collection::csptr* object) {
 
         // launch a new reverberation time series generator background task
 
-        if (this->_receiver->fsample() > 0.0 &&
-            !this->_source->transmit_schedule().empty()) {
+        double fsample = _receiver->fsample();
+        if (fsample > 0.0 && !this->_source->transmit_schedule().empty()) {
             notify_early = false;
             if (_rvbts_task != nullptr) {  // abort incomplete tasks
                 _rvbts_task->abort();
             }
-            seq_vector::csptr frequencies =
-                sensor_manager::instance()->frequencies();
-            seq_vector::csptr travel_times(new seq_linear(
-                0.0, _receiver->time_step(), _receiver->time_maximum()));
-            _rvbts_task =
-                std::make_shared<rvbts_generator>(_source, _receiver, _biverbs);
+            sensor_pair::sptr reference =
+                sensor_manager::instance()->find(keyID());
+            _rvbts_task = std::make_shared<rvbts_generator>(
+                reference, _source, _receiver, _biverbs);
             thread_controller::instance()->run(_rvbts_task);
             _rvbts_task.reset();  // destroy background task shared pointer
         }

@@ -1,5 +1,7 @@
 /**
  * @example rvbts/test/rvbts_test.cc
+ *
+ * TODO Build unit test that includes rvbts_generator::compute_src_steering() processing.
  */
 
 #include <usml/beampatterns/bp_model.h>
@@ -115,7 +117,7 @@ BOOST_AUTO_TEST_CASE(update_envelope) {
         }
         if (site == 2) {
             sensor->rcv_beam(0, beam);
-            // sensor->fsample(10.0);
+            sensor->fsample(10.0);
         }
         sensor_mgr->add_sensor(sensor_model::sptr(sensor), &test_listener);
     }
@@ -133,31 +135,41 @@ BOOST_AUTO_TEST_CASE(update_envelope) {
     for (const auto& pair : sensor_mgr->list()) {
         cout << pair->description()
              << " dirpaths=" << pair->dirpaths()->eigenrays().size() << endl;
-        if (pair->dirpaths() != nullptr) {
+        {
+            BOOST_REQUIRE(pair->dirpaths() != nullptr);
             std::ostringstream filename;
             filename << ncname << "dirpaths_" << pair->hash_key() << ".nc";
+            cout << "writing to " << filename.str() << endl;
             pair->dirpaths()->write_netcdf(filename.str().c_str());
         }
-        if (pair->src_eigenverbs() != nullptr) {
+        {
+            BOOST_REQUIRE(pair->src_eigenverbs() != nullptr);
             std::ostringstream filename;
             filename << ncname << "src_eigenverbs_" << pair->hash_key()
                      << ".nc";
+            cout << "writing to " << filename.str() << endl;
             pair->src_eigenverbs()->write_netcdf(filename.str().c_str(), 0);
         }
-        if (pair->rcv_eigenverbs() != nullptr) {
+        {
+            BOOST_REQUIRE(pair->rcv_eigenverbs() != nullptr);
             std::ostringstream filename;
             filename << ncname << "rcv_eigenverbs_" << pair->hash_key()
                      << ".nc";
+            cout << "writing to " << filename.str() << endl;
             pair->rcv_eigenverbs()->write_netcdf(filename.str().c_str(), 0);
         }
-        if (pair->biverbs() != nullptr) {
+        {
+            BOOST_REQUIRE(pair->biverbs() != nullptr);
             std::ostringstream filename;
             filename << ncname << "biverbs_" << pair->hash_key() << ".nc";
+            cout << "writing to " << filename.str() << endl;
             pair->biverbs()->write_netcdf(filename.str().c_str(), 0);
         }
-        if (pair->rvbts() != nullptr) {
+        {
+            BOOST_REQUIRE(pair->rvbts() != nullptr);
             std::ostringstream filename;
             filename << ncname << "rvbts_" << pair->hash_key() << ".nc";
+            cout << "writing to " << filename.str() << endl;
             pair->rvbts()->write_netcdf(filename.str().c_str());
         }
     }

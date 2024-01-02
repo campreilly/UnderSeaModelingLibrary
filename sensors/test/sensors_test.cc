@@ -105,8 +105,7 @@ pair_listener test_listener;
  * bistatic pairs have more. This difference is the result of accuracy limits in
  * the wavefront generator ray fan for paths near vertical.
  *
- * TODO: Compare acoustic paths to analytic solutions to validate number of
- * paths for each pair.
+ * TODO: Compare acoustic paths to analytic solutions to validate number of paths for each pair.
  */
 //NOLINTNEXTLINE(readability-function-cognitive-complexity)
 BOOST_AUTO_TEST_CASE(update_wavefront_data) {
@@ -185,21 +184,25 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
         if (pair->dirpaths() != nullptr) {
             std::ostringstream filename;
             filename << ncname << "dirpaths_" << pair->hash_key() << ".nc";
+            cout << "writing to " << filename.str() << endl;
             pair->dirpaths()->write_netcdf(filename.str().c_str());
         }
         if (pair->src_eigenverbs() != nullptr) {
             std::ostringstream filename;
             filename << ncname << "src_eigenverbs_" << pair->hash_key() << ".nc";
+            cout << "writing to " << filename.str() << endl;
             pair->src_eigenverbs()->write_netcdf(filename.str().c_str(), 0);
         }
         if (pair->rcv_eigenverbs() != nullptr) {
             std::ostringstream filename;
             filename << ncname << "rcv_eigenverbs_" << pair->hash_key() << ".nc";
+            cout << "writing to " << filename.str() << endl;
             pair->rcv_eigenverbs()->write_netcdf(filename.str().c_str(), 0);
         }
         if (pair->biverbs() != nullptr) {
             std::ostringstream filename;
             filename << ncname << "biverbs_" << pair->hash_key() << ".nc";
+            cout << "writing to " << filename.str() << endl;
             pair->biverbs()->write_netcdf(filename.str().c_str(), 0);
         }
     }

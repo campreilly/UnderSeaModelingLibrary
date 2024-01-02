@@ -210,7 +210,7 @@ void rvbts_collection::write_netcdf(const char *filename) const {
     seq_linear channels(0.0, 1.0, (size_t)num_channels);
     channels_var->put(channels.data().begin(), num_channels);
     time_var->put(_travel_times->data().begin(), num_times);
-    time_series_var->put(_time_series.data().begin(), num_channels * num_times);
+    time_series_var->put(_time_series.data().begin(), num_channels, num_times);
 
     // close file and free all netCDF temp variables
 
