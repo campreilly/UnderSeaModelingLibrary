@@ -76,6 +76,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
     sensor_model::sptr source(
         new simple_sonobuoy(3, "source", time, wposition1(54.955, 149.0, -15.0),
                             orientation(), 10.0));
+    source->time_maximum(7.0);
     smgr->add_sensor(source);
     source->update(time, platform_model::FORCE_UPDATE);
 
@@ -85,6 +86,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
     time = 60.0;
     sensor_model::sptr receiver(
         new simple_sonobuoy(1, "receiver", 0.0, wposition1(55.0, 149.0, -1.0)));
+    receiver->time_maximum(7.0);
     smgr->add_sensor(receiver);
     receiver->update(time, platform_model::FORCE_UPDATE);
     thread_task::wait();

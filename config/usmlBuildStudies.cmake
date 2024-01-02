@@ -14,9 +14,6 @@ target_link_libraries( cmp_speed usml )
 add_executable( pedersen_test studies/pedersen/pedersen_test.cc )
 target_link_libraries( pedersen_test usml )
 
-# add_executable( reverb_extra_test studies/reverberation/reverb_extra_test.cc )
-# target_link_libraries( reverb_extra_test usml )
-
 add_executable( reverb_analytic_test studies/reverberation/reverb_analytic_test.cc )
 target_link_libraries( reverb_analytic_test usml )
 
@@ -25,4 +22,3 @@ target_link_libraries( dead_reckon_test usml )
 
 add_executable( simple_wedge studies/simple_wedge/simple_wedge.cc )
 target_link_libraries( simple_wedge usml )
-    
