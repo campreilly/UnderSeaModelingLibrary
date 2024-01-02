@@ -29,11 +29,11 @@ using namespace usml::rvbts;
  * reverberation generator was created.
  */
 rvbts_collection::rvbts_collection(
-    const sensor_model::sptr source, const wposition1 source_pos,
-    const orientation source_orient, const double source_speed,
-    const sensor_model::sptr receiver, const wposition1 receiver_pos,
-    const orientation receiver_orient, const double receiver_speed,
-    const seq_vector::csptr travel_times)
+    const sensor_model::sptr& source, const wposition1 source_pos,
+    const orientation& source_orient, const double source_speed,
+    const sensor_model::sptr& receiver, const wposition1 receiver_pos,
+    const orientation& receiver_orient, const double receiver_speed,
+    const seq_vector::csptr& travel_times)
     : _source(source),
       _source_pos(source_pos),
       _source_orient(source_orient),
@@ -43,7 +43,7 @@ rvbts_collection::rvbts_collection(
       _receiver_orient(receiver_orient),
       _receiver_speed(receiver_speed),
       _travel_times(travel_times),
-      _time_series(receiver->rcv_keys().size(), travel_times->size()) {}
+      _time_series(receiver->rcv_num_keys(), travel_times->size()) {}
 
 /**
  * Adds the intensity contribution for a single bistatic eigenverb.
@@ -51,9 +51,9 @@ rvbts_collection::rvbts_collection(
  * TODO Add the ability to compute Doppler shifts.
  * TODO Add the ability to compute element level phase delays between receivers.
  */
-void rvbts_collection::add_biverb(const biverb_model::csptr& verb,
-                                  transmit_model::csptr transmit,
-                                  bvector steering) {
+void rvbts_collection::add_biverb(const biverb_model::csptr &verb,
+                                  const transmit_model::csptr& transmit,
+                                  const bvector& steering) {
     static const double SQRT_TWO_PI = sqrt(TWO_PI);
 
     // find range of time indices to update
@@ -76,7 +76,7 @@ void rvbts_collection::add_biverb(const biverb_model::csptr& verb,
     double verb_level = verb->power[0];
     if (verb->frequencies->size() > 1) {
         double freq = transmit->fcenter;
-        const seq_vector& axis = *(verb->frequencies);
+        const seq_vector &axis = *(verb->frequencies);
         size_t index = axis.find_nearest(freq);
         if (index >= axis.size()) {
             --index;
@@ -119,30 +119,92 @@ void rvbts_collection::add_biverb(const biverb_model::csptr& verb,
 
 /**
  * Writes reverberation time series data to disk.
- *
- * TODO Add source and receiver parameters.
  */
-void rvbts_collection::write_netcdf(const char* filename) const {
-    auto* nc_file = new NcFile(filename, NcFile::Replace);
+void rvbts_collection::write_netcdf(const char *filename) const {
+    auto *nc_file = new NcFile(filename, NcFile::Replace);
 
     auto num_channels = (long)_time_series.size1();
     auto num_times = (long)_time_series.size2();
 
     // dimensions
 
-    NcDim* channels_dim = nc_file->add_dim("channels", num_channels);
-    NcDim* time_dim = nc_file->add_dim("travel_time", num_times);
+    NcDim *channels_dim = nc_file->add_dim("channels", num_channels);
+    NcDim *time_dim = nc_file->add_dim("travel_time", num_times);
 
     // variables
 
-    NcVar* channels_var = nc_file->add_var("channels", ncDouble, channels_dim);
-    NcVar* time_var = nc_file->add_var("travel_time", ncDouble, time_dim);
-    NcVar* time_series_var =
+    NcVar *src_id_var = nc_file->add_var("sourceID", ncLong);
+    NcVar *src_lat_var = nc_file->add_var("source_latitude", ncDouble);
+    NcVar *src_lng_var = nc_file->add_var("source_longitude", ncDouble);
+    NcVar *src_alt_var = nc_file->add_var("source_altitude", ncDouble);
+
+    NcVar *src_yaw_var = nc_file->add_var("source_yaw", ncDouble);
+    NcVar *src_pitch_var = nc_file->add_var("source_pitch", ncDouble);
+    NcVar *src_roll_var = nc_file->add_var("source_roll", ncDouble);
+
+    NcVar *src_speed_var = nc_file->add_var("source_speed", ncDouble);
+
+    NcVar *rcv_id_var = nc_file->add_var("receiverID", ncLong);
+    NcVar *rcv_lat_var = nc_file->add_var("receiver_latitude", ncDouble);
+    NcVar *rcv_lng_var = nc_file->add_var("receiver_longitude", ncDouble);
+    NcVar *rcv_alt_var = nc_file->add_var("receiver_altitude", ncDouble);
+
+    NcVar *rcv_yaw_var = nc_file->add_var("receiver_yaw", ncDouble);
+    NcVar *rcv_pitch_var = nc_file->add_var("receiver_pitch", ncDouble);
+    NcVar *rcv_roll_var = nc_file->add_var("receiver_roll", ncDouble);
+
+    NcVar *rcv_speed_var = nc_file->add_var("receiver_speed", ncDouble);
+
+    NcVar *channels_var = nc_file->add_var("channels", ncDouble, channels_dim);
+    NcVar *time_var = nc_file->add_var("travel_time", ncDouble, time_dim);
+    NcVar *time_series_var =
         nc_file->add_var("time_series", ncDouble, channels_dim, time_dim);
 
     // units
 
     time_var->add_att("units", "seconds");
+
+    src_yaw_var->add_att("units", "degrees");
+    src_pitch_var->add_att("units", "degrees");
+    src_roll_var->add_att("units", "degrees");
+    src_speed_var->add_att("units", "m/s");
+
+    rcv_yaw_var->add_att("units", "degrees");
+    rcv_pitch_var->add_att("units", "degrees");
+    rcv_roll_var->add_att("units", "degrees");
+    rcv_speed_var->add_att("units", "m/s");
+
+    // write source parameters
+
+    // clang-format off
+    int n;
+    double v;
+    n = _source->keyID();			src_id_var->put(&n);
+    v = _source_pos.latitude(); 	src_lat_var->put(&v);
+    v = _source_pos.longitude();	src_lng_var->put(&v);
+    v = _source_pos.altitude(); 	src_alt_var->put(&v);
+
+    orientation src_orient(_source_orient);
+    v = src_orient.yaw(); 			src_yaw_var->put(&v);
+    v = src_orient.pitch();			src_pitch_var->put(&v);
+    v = src_orient.roll(); 			src_roll_var->put(&v);
+
+    v = _source_speed; 				src_speed_var->put(&v);
+
+    // write receiver parameters
+
+    n = _receiver->keyID();			rcv_id_var->put(&n);
+    v = _receiver_pos.latitude(); 	rcv_lat_var->put(&v);
+    v = _receiver_pos.longitude();	rcv_lng_var->put(&v);
+    v = _receiver_pos.altitude(); 	rcv_alt_var->put(&v);
+
+    orientation rcv_orient(_receiver_orient);
+    v = rcv_orient.yaw(); 			rcv_yaw_var->put(&v);
+    v = rcv_orient.pitch();			rcv_pitch_var->put(&v);
+    v = rcv_orient.roll(); 			rcv_roll_var->put(&v);
+
+    v = _receiver_speed; 			rcv_speed_var->put(&v);
+    // clang-format on
 
     // data
 

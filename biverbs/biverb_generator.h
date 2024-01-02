@@ -7,14 +7,9 @@
 #include <usml/biverbs/biverb_collection.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
 #include <usml/managed/update_notifier.h>
+#include <usml/sensors/sensor_pair.h>
 #include <usml/threads/thread_task.h>
 #include <usml/usml_config.h>
-
-namespace usml {
-namespace sensors {
-class sensor_pair;
-}
-}  // namespace usml
 
 namespace usml {
 namespace biverbs {
@@ -49,9 +44,9 @@ class USML_DECLSPEC biverb_generator
      * @param src_eigenverbs 	Interface collisions for source.
      * @param rcv_eigenverbs 	Interface collisions for receiver.
      */
-    biverb_generator(sensor_pair* pair,
-                     eigenverb_collection::csptr src_eigenverbs,
-                     eigenverb_collection::csptr rcv_eigenverbs);
+    biverb_generator(const sensor_pair::sptr& pair,
+                     const eigenverb_collection::csptr& src_eigenverbs,
+                     const eigenverb_collection::csptr& rcv_eigenverbs);
 
     /**
      * Virtual destructor
@@ -78,7 +73,7 @@ class USML_DECLSPEC biverb_generator
     /**
      * The sensor pair that instantiated this class
      */
-    sensor_pair* _sensor_pair;
+    sensor_pair::sptr _sensor_pair;
 
     /**
      * Interface collisions for wavefront emanating from the source. Stored at

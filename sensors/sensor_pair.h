@@ -87,16 +87,13 @@ class USML_DECLSPEC sensor_pair
     }
 
     /// Reference to the source sensor.
-    const sensor_model::sptr source() const {
-        read_lock_guard guard(_mutex);
-        return _source;
-    }
+    const sensor_model::sptr source() const { return _source; }
 
     /// Reference to the receiving sensor.
-    const sensor_model::sptr receiver() const {
-        read_lock_guard guard(_mutex);
-        return _receiver;
-    }
+    const sensor_model::sptr receiver() const { return _receiver; }
+
+    /// True if eigenverbs can be computed for this sensor pair.
+    bool compute_reverb() const { return _compute_reverb; }
 
     /// Direct paths that connect source and receiver locations.
     eigenray_collection::csptr dirpaths() const {
@@ -124,14 +121,8 @@ class USML_DECLSPEC sensor_pair
 
     /// Reverberation time series time series.
     rvbts_collection::csptr rvbts() const {
-    	read_lock_guard guard(_mutex);
-        return _rvbts;
-    }
-
-    /// True if eigenverbs computed for this sensor.
-    bool compute_reverb() const {
         read_lock_guard guard(_mutex);
-        return _compute_reverb;
+        return _rvbts;
     }
 
     /**
@@ -152,11 +143,12 @@ class USML_DECLSPEC sensor_pair
     sensor_model::sptr complement(const sensor_model::sptr& sensor) const;
 
     /**
-     * Notify this pair of eigenray and eigenverb changes for one of its
-     * sensors. Updates the direct path eigenrays and bistatic eigenverbs for
-     * this pair. Launches a new biverb_generator if this sensor_pair supports
-     * reverberation and if both source and receiver eigenverbs exist once this
-     * update is complete.
+     * Update eigenrays and eigenverbs using results of the wavefront_generator
+     * background task. Stores a reference to the eigenrays and eigenverbs
+     * and computes direct path eigenrays. Launches a new biverb_generator to
+     * compute bistatic eigenverb contributions if both source and receiver
+     * eigenverbs are ready. Notifies sensor_pair listeners early if acoustic
+     * calculations are complete with any additional background tasks.
      *
      * This computation can be triggered by updates from either the source or
      * receiver object in this sensor_pair. If this is an update from a
@@ -165,6 +157,12 @@ class USML_DECLSPEC sensor_pair
      * if the eigenrays have source/receiver reciprocity, which they might not
      * have in complex environments because of accuracy limitations in the
      * wavefront modeling.
+     *
+     * Locks the object while this update is taking place. Then unlocks the
+     * object before notifying sensor_pair listeners of the change.
+     *
+     * Aborts previous biverb_generator if new calculation required before old
+     * one has been completed.
      *
      * @param sensor		Pointer to updated sensor.
      * @param eigenrays		Transmission loss results for this sensor
@@ -175,25 +173,37 @@ class USML_DECLSPEC sensor_pair
         eigenverb_collection::csptr eigenverbs) override;
 
     /**
-     * Update bistatic eigenverbs using results of biverb_generator.
-     * Stores a reference to the bistatic eigenverbs then launches a new
-     * rvbts_generator to compute reverberation time series.
+     * Update bistatic eigenverbs using results of the biverb_generator
+     * background task. Stores a reference to the bistatic eigenverbs then
+     * launches a new rvbts_generator to compute reverberation time series.
+     * Notifies sensor_pair listeners early if acoustic
+     * calculations are complete with any additional background tasks.
+     *
+     * Locks the object while this update is taking place. Then unlocks the
+     * object before notifying sensor_pair listeners of the change.
+     *
+     * Aborts previous rvbts_generator if new calculation required before old
+     * one has been completed.
      *
      * @param  object	Updated bistatic eigenverbs collection.
      */
     virtual void notify_update(const biverb_collection::csptr* object) override;
 
     /**
-     * Update bistatic eigenverbs using results of rvbts_generator.
-     * Stores a reference to the reverberation time series then notifies listeners
-     * that this sensor_pair has been updated.
+     * Update reverberation time series using results of the rvbts_generator
+     * background task. Stores a reference to the reverberation time series then
+     * notifies listeners that this sensor_pair has been updated.
+     *
+     * Locks the object while this update is taking place. Then unlocks the
+     * object before notifying sensor_pair listeners of the change.
      *
      * @param  object	Updated reverberation time series collection.
      */
     virtual void notify_update(const rvbts_collection::csptr* object) override;
 
     /**
-     * Notify listeners that this sensor_pair has been updated.
+     * Notify listeners that acoustic data for this sensor_pair has been
+     * updated.
      *
      * @param object    Reference to the object that has been updated.
      */
@@ -211,11 +221,11 @@ class USML_DECLSPEC sensor_pair
     /// The source and receiver will be equal for monostatic sensors.
     const sensor_model::sptr _receiver;
 
+    /// True if computing reverberation for this pair.
+    const bool _compute_reverb{false};
+
     /// Direct paths that connect source and receiver locations.
     eigenray_collection::csptr _dirpaths;
-
-    /// True if computing reverberation for this pair.
-    bool _compute_reverb{false};
 
     /// Interface collisions for wavefront emanating from the source.
     eigenverb_collection::csptr _src_eigenverbs;

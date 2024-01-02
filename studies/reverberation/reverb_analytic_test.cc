@@ -56,7 +56,7 @@ class reverb_analytic_test {
      * singleton. Uses profile_lock and boundary_lock classes so that the
      * new ocean can be shared by multiple threads.
      */
-    void define_ocean() {
+    static void define_ocean() {
         cout << "== define ocean ==" << endl;
 
         attenuation_model::csptr attn(new attenuation_constant(0.0));
@@ -78,7 +78,7 @@ class reverb_analytic_test {
      * and updates it with a position of (0.0,0.0,0.0). The update
      * causes reverberation calculations to start.
      */
-    void deploy_sensors() {
+    static void deploy_sensors() {
         cout << "== deploy sensors ==" << endl;
         auto* sensor_mgr = sensor_manager::instance();
         seq_vector::csptr freq(new seq_linear(3000.0, 1.0, 1));
@@ -100,7 +100,7 @@ class reverb_analytic_test {
     /**
      * Use
      */
-    void compute_reverb() {
+    static void compute_reverb() {
         cout << "== compute reverb ==" << endl;
 
 //        rvbts_task = std::make_shared<rvbts_generator>(
@@ -120,7 +120,7 @@ class reverb_analytic_test {
      * Retrieve eigenrays and envelopes from sensor_pair_manager,
      * and write them to netCDF files for further analysis.
      */
-    void analyze_results() {
+    static void analyze_results() {
         cout << "== analyze results ==" << endl;
         const char* ncname = USML_TEST_DIR "/studies/reverberation/";
         auto* sensor_mgr = sensor_manager::instance();
@@ -164,7 +164,7 @@ class reverb_analytic_test {
 /**
  * Command line interface.
  */
-int main(int argc, char* argv[]) {
+int main(int  /*argc*/, char*  /*argv*/[]) {
     reverb_analytic_test test;
     return 0;
 }

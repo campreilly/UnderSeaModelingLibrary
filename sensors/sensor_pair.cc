@@ -5,6 +5,7 @@
 
 #include <usml/biverbs/biverb_generator.h>
 #include <usml/eigenrays/eigenray_model.h>
+#include <usml/managed/manager_template.h>
 #include <usml/platforms/platform_model.h>
 #include <usml/rvbts/rvbts_generator.h>
 #include <usml/sensors/sensor_manager.h>
@@ -31,8 +32,8 @@ sensor_pair::sensor_pair(const sensor_model::sptr& source,
           generate_hash_key(source->keyID(), receiver->keyID()),
           source->description() + "->" + receiver->description()),
       _source(source),
-      _receiver(receiver) {
-    _compute_reverb = source->compute_reverb() && receiver->compute_reverb();
+      _receiver(receiver),
+      _compute_reverb(source->compute_reverb() && receiver->compute_reverb()) {
     source->add_wavefront_listener(this);
     receiver->add_wavefront_listener(this);
 }
@@ -67,130 +68,139 @@ sensor_model::sptr sensor_pair::complement(
 }
 
 /**
- * Notify this pair of eigenray and eigenverb changes for one of its sensors.
+ * Update eigenrays and eigenverbs using results of the wavefront_generator
+ * background task.
  */
 void sensor_pair::update_wavefront_data(
     const sensor_model* sensor, eigenray_collection::csptr eigenrays,
     eigenverb_collection::csptr eigenverbs) {
-    write_lock_guard guard(_mutex);
+    bool notify_early{true};
+    {
+        write_lock_guard guard(_mutex);
 
-    // abort previous biverb generator if it exists
+        // eigenray collection has eigenray list for all targets near this
+        // sensor find the eigenray list specific to this pair
 
-    if (_biverb_task != nullptr) {
-        _biverb_task->abort();
-    }
+        auto sourceID = _source->keyID();
+        auto targetID = _receiver->keyID();
+        wposition1 source_pos(_source->position());
+        wposition1 receiver_pos(_receiver->position());
+        eigenray_list raylist = eigenrays->find_eigenrays(targetID);
 
-    // eigenray collection has eigenray list for all targets near this sensor
-    // find the eigenray list specific to this pair
+        // swap source/receiver sense of direct path eigenrays, if needed
 
-    auto sourceID = _source->keyID();
-    auto targetID = _receiver->keyID();
-    wposition1 source_pos(_source->position());
-    wposition1 receiver_pos(_receiver->position());
-    eigenray_list raylist = eigenrays->find_eigenrays(targetID);
-
-    // swap source/receiver sense of direct path eigenrays, if needed
-
-    if (_source != _receiver && sensor->keyID() == _receiver->keyID()) {
-        sourceID = _receiver->keyID();
-        targetID = _source->keyID();
-        source_pos = _receiver->position();
-        receiver_pos = _source->position();
-        eigenray_list new_list;
-        for (const auto& ray : eigenrays->find_eigenrays(targetID)) {
-            auto* copy = new eigenray_model(*ray);
-            std::swap(copy->source_de, copy->target_de);
-            std::swap(copy->source_az, copy->target_az);
-            new_list.push_back(eigenray_model::csptr(copy));
+        if (_source != _receiver && sensor->keyID() == _receiver->keyID()) {
+            sourceID = _receiver->keyID();
+            targetID = _source->keyID();
+            source_pos = _receiver->position();
+            receiver_pos = _source->position();
+            eigenray_list new_list;
+            for (const auto& ray : eigenrays->find_eigenrays(targetID)) {
+                auto* copy = new eigenray_model(*ray);
+                std::swap(copy->source_de, copy->target_de);
+                std::swap(copy->source_az, copy->target_az);
+                new_list.push_back(eigenray_model::csptr(copy));
+            }
+            raylist = new_list;  // replace original list
         }
-        raylist = new_list;  // replace original list
+
+        // create new direct path collection with just rays for a single target
+
+        matrix<int> receiverID(1, 1);
+        receiverID(0, 0) = targetID;
+
+        auto* collection = new eigenray_collection(
+            eigenrays->frequencies(), _source->position(),
+            wposition(receiver_pos), sourceID, receiverID,
+            eigenrays->coherent());
+        for (const auto& ray : raylist) {
+            collection->add_eigenray(0, 0, ray);
+        }
+        collection->sum_eigenrays();
+        _dirpaths = eigenray_collection::csptr(collection);
+
+        // update eigenverb contributions
+
+        if (_compute_reverb) {
+            if (_source == _receiver) {
+                _src_eigenverbs = eigenverbs;
+                _rcv_eigenverbs = eigenverbs;
+            } else if (sensor->keyID() == _receiver->keyID()) {
+                _rcv_eigenverbs = eigenverbs;
+            } else {
+                _src_eigenverbs = eigenverbs;
+            }
+
+            // launch a new bistatic eigenverb generator background task
+
+            if (_src_eigenverbs != nullptr && _rcv_eigenverbs != nullptr) {
+                notify_early = false;
+                if (_biverb_task != nullptr) {  // abort incomplete tasks
+                    _biverb_task->abort();
+                }
+                sensor_pair::sptr reference =
+                    sensor_manager::instance()->find(keyID());
+                eigenverb_collection::csptr src_verbs = _src_eigenverbs;
+                eigenverb_collection::csptr rcv_verbs = _rcv_eigenverbs;
+                _biverb_task = std::make_shared<biverb_generator>(
+                    reference, src_verbs, rcv_verbs);
+                thread_controller::instance()->run(_biverb_task);
+                _biverb_task.reset();  // destroy background task shared pointer
+            }
+        }
     }
-
-    // create new collection with just the rays for a single target
-
-    matrix<int> receiverID(1, 1);
-    receiverID(0, 0) = targetID;
-
-    auto* collection = new eigenray_collection(
-        eigenrays->frequencies(), _source->position(), wposition(receiver_pos),
-        sourceID, receiverID, eigenrays->coherent());
-    for (const auto& ray : raylist) {
-        collection->add_eigenray(0, 0, ray);
-    }
-    collection->sum_eigenrays();
-    _dirpaths = eigenray_collection::csptr(collection);
-
-    // execute notify_update() early if biverbs never computed
-
-    if (!_compute_reverb) {
+    if (notify_early) {
         notify_update(this);
-        return;
     }
-
-    // update eigenverb contributions
-
-    if (_source == _receiver) {
-        _src_eigenverbs = eigenverbs;
-        _rcv_eigenverbs = eigenverbs;
-    } else if (sensor->keyID() == _receiver->keyID()) {
-        _rcv_eigenverbs = eigenverbs;
-    } else {
-        _src_eigenverbs = eigenverbs;
-    }
-
-    // execute notify_update() early if biverbs can't be computed yet
-
-    if (_src_eigenverbs == nullptr || _rcv_eigenverbs == nullptr) {
-        notify_update(this);
-        return;
-    }
-
-    // launch a new bistatic eigenverb generator background task
-
-    eigenverb_collection::csptr src_verbs = _src_eigenverbs;
-    eigenverb_collection::csptr rcv_verbs = _rcv_eigenverbs;
-    _biverb_task = std::make_shared<biverb_generator>(this,src_verbs,rcv_verbs);
-    thread_controller::instance()->run(_biverb_task);
-    _biverb_task.reset();  // destroy background task shared pointer
 }
 
 /**
- * Update bistatic eigenverbs using results of biverb_generator.
+ * Update bistatic eigenverbs using results of the biverb_generator
+ * background task.
  */
 void sensor_pair::notify_update(const biverb_collection::csptr* object) {
-    write_lock_guard guard(_mutex);
-    _biverbs = *object;
+    bool notify_early{true};
+    {
+        write_lock_guard guard(_mutex);
+        _biverbs = *object;
 
-    // abort previous biverb generator if it exists
+        // launch a new reverberation time series generator background task
 
-    if (_rvbts_task != nullptr) {
-    	_rvbts_task->abort();
+        if (this->_receiver->fsample() > 0.0 &&
+            !this->_source->transmit_schedule().empty()) {
+            notify_early = false;
+            if (_rvbts_task != nullptr) {  // abort incomplete tasks
+                _rvbts_task->abort();
+            }
+            seq_vector::csptr frequencies =
+                sensor_manager::instance()->frequencies();
+            seq_vector::csptr travel_times(new seq_linear(
+                0.0, _receiver->time_step(), _receiver->time_maximum()));
+            _rvbts_task =
+                std::make_shared<rvbts_generator>(_source, _receiver, _biverbs);
+            thread_controller::instance()->run(_rvbts_task);
+            _rvbts_task.reset();  // destroy background task shared pointer
+        }
     }
-
-    // launch a new reverberation time series generator background task
-
-    seq_vector::csptr frequencies = sensor_manager::instance()->frequencies();
-    seq_vector::csptr travel_times(
-        new seq_linear(0.0, _receiver->time_step(), _receiver->time_maximum()));
-
-//    _rvbts_task = std::make_shared<rvbts_generator>(
-//        _source, _receiver, _biverbs, );
-//    thread_controller::instance()->run(_rvbts_task);
-//    _rvbts_task.reset();  // destroy background task shared pointer
-    notify_update(this);
+    if (notify_early) {
+        notify_update(this);
+    }
 }
 
 /**
- * Update bistatic eigenverbs using results of rvbts_generator.
+ * Update reverberation time series using results of the rvbts_generator
+ * background task.
  */
 void sensor_pair::notify_update(const rvbts_collection::csptr* object) {
-    write_lock_guard guard(_mutex);
-    _rvbts = *object;
+    {
+        write_lock_guard guard(_mutex);
+        _rvbts = *object;
+    }
     notify_update(this);
 }
 
 /**
- * Notify listeners that this sensor_pair has been updated.
+ * Notify listeners that acoustic data for this sensor_pair has been updated.
  */
 void sensor_pair::notify_update(const sensor_pair* object) const {
     this->update_notifier<sensor_pair>::notify_update(object);

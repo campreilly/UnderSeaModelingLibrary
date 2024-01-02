@@ -15,6 +15,8 @@
 #include <usml/types/wposition1.h>
 #include <usml/usml_config.h>
 
+#include <boost/numeric/ublas/matrix.hpp>
+
 namespace usml {
 namespace rvbts {
 
@@ -85,7 +87,7 @@ class USML_DECLSPEC rvbts_generator
     const double _source_speed;
 
     /// List of transmit pulses for this source.
-    const transmit_list& _transmit_schedule;
+    transmit_list _transmit_schedule;
 
     /// Reference to receiver sensor
     const sensor_model::sptr _receiver;

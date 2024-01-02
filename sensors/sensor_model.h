@@ -197,6 +197,12 @@ class USML_DECLSPEC sensor_model : public platform_model,
     /// Return a list of all source beam keys.
     std::list<int> src_keys() const;
 
+    /// Return the number of source beam keys.
+    size_t src_num_keys() const {
+        read_lock_guard guard(mutex());
+        return _src_beams.size();
+    }
+
     /// True if the sensor has source beams.
     bool is_source() const {
         read_lock_guard guard(mutex());
@@ -207,7 +213,7 @@ class USML_DECLSPEC sensor_model : public platform_model,
     size_t rcv_beam(int keyID, const bp_model::csptr& pattern,
                     const bvector& steering = bvector(1.0, 0.0, 0.0));
 
-    ///  Find reference to specific receiver beam model.
+    /// Find reference to specific receiver beam model.
     bp_model::csptr rcv_beam(int keyID) const;
 
     /// Retrieve source steering for specific channel number.
@@ -218,6 +224,12 @@ class USML_DECLSPEC sensor_model : public platform_model,
 
     /// Return a list of all receiver beam keys.
     std::list<int> rcv_keys() const;
+
+    /// Return the number of receiver beam keys.
+    size_t rcv_num_keys() const {
+        read_lock_guard guard(mutex());
+        return _rcv_beams.size();
+    }
 
     /// True if the sensor has receiver beams.
     bool is_receiver() const {

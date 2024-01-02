@@ -6,9 +6,15 @@
 #include <usml/managed/managed_obj.h>
 #include <usml/platforms/platform_model.h>
 #include <usml/rvbts/rvbts_generator.h>
+#include <usml/types/bvector.h>
 #include <usml/types/seq_linear.h>
 
+#include <boost/numeric/ublas/expression_types.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/matrix_expression.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <iostream>
+#include <list>
 
 using namespace usml::rvbts;
 
@@ -75,7 +81,7 @@ void rvbts_generator::run() {
         return;
     }
 
-    rvbts_collection* collection = new rvbts_collection(
+    auto* collection = new rvbts_collection(
         _source, _source_pos, _source_orient, _source_speed, _receiver,
         _receiver_pos, _receiver_orient, _receiver_speed, _travel_times);
     rvbts_collection::csptr result(collection);

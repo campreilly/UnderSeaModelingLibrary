@@ -9,7 +9,6 @@
 #include <usml/ocean/ocean_model.h>
 #include <usml/ocean/ocean_shared.h>
 #include <usml/sensors/sensor_manager.h>
-#include <usml/sensors/sensor_pair.h>
 #include <usml/types/seq_vector.h>
 
 #include <boost/numeric/ublas/vector.hpp>
@@ -24,13 +23,14 @@ using namespace usml::biverbs;
  * Copies time series computation parameters from static memory into
  * this specific task.
  */
-biverb_generator::biverb_generator(sensor_pair* pair,
-                                   eigenverb_collection::csptr src_eigenverbs,
-                                   eigenverb_collection::csptr rcv_eigenverbs)
+biverb_generator::biverb_generator(
+    const sensor_pair::sptr& pair,
+    const eigenverb_collection::csptr& src_eigenverbs,
+    const eigenverb_collection::csptr& rcv_eigenverbs)
     : _sensor_pair(pair),
       _src_eigenverbs(src_eigenverbs),
       _rcv_eigenverbs(rcv_eigenverbs) {
-    add_listener(pair);
+    add_listener(pair.get());
 }
 
 /**
