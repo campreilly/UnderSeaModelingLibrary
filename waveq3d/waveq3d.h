@@ -81,7 +81,7 @@
  * These assumptions should be reviewed by the system development team
  * before this model is evaluated for their intended use.
  *
- * @defgroup waveq3d_test Waveq3d Tests
+ * @defgroup waveq3d_test WaveQ3D Tests
  * @ingroup waveq3d
  *
  * Regression tests for the waveq3d package

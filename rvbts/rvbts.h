@@ -6,7 +6,7 @@
  * channel has its own beam pattern and steering. It lacks the phase delay
  * between channels needed to support element level simulation.
  *
- * @defgroup rvbts_test rvbts Tests
+ * @defgroup rvbts_test Reverberation Time Series Tests
  * @ingroup rvbts
  *
  * Regression tests for the rvbts module.

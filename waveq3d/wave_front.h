@@ -259,14 +259,13 @@ class USML_DECLSPEC wave_front {
 
    private:
     /**
-     * Environmental parameters.
-     * Reference to data managed by wave_queue class.
+     * Reference to the environmental parameters.
+     * Cached to avoid change while the calculation is being performed.
      */
     ocean_model::csptr _ocean;
 
     /**
      * Frequencies over which to compute propagation effects (Hz).
-     * Reference to data managed by wave_queue class.
      */
     seq_vector::csptr _frequencies;
 

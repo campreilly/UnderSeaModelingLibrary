@@ -124,9 +124,9 @@ void sensor_model::transmit_schedule(const transmit_list& schedule,
         old_schedule = _transmit_schedule;
         _transmit_schedule = schedule;
     }
-    if (old_schedule.size() == 0 || update_type == FORCE_UPDATE) {
+    if (old_schedule.empty() || update_type == FORCE_UPDATE) {
         sensor_manager* sensor_mgr = sensor_manager::instance();
-        for (sensor_pair::sptr pair : sensor_mgr->find_source(keyID())) {
+        for (const sensor_pair::sptr& pair : sensor_mgr->find_source(keyID())) {
             biverb_collection::csptr biverbs = pair->biverbs();
             pair->notify_update(&biverbs);
         }

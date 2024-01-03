@@ -4,7 +4,7 @@
  *
  * Automatically recomputes WaveQ3D wavefront as a background task.
  *
- * @defgroup wavegen_test Wavegen Tests
+ * @defgroup wavegen_test Wavefront Generator Tests
  * @ingroup wavegen
  *
  * Regression tests for the wavegen package.

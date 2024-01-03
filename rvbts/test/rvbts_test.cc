@@ -1,7 +1,5 @@
 /**
  * @example rvbts/test/rvbts_test.cc
- *
- * TODO Build unit test that includes rvbts_generator::compute_src_steering() processing.
  */
 
 #include <usml/beampatterns/bp_model.h>
@@ -68,7 +66,7 @@ pair_listener test_listener;
  * is below the source. Uses a simple isovelocity ocean with a 2000m depth.
  */
 BOOST_AUTO_TEST_CASE(update_envelope) {
-    cout << "=== bistatic_test: update_envelope ===" << endl;
+    cout << "=== rvbts_test: update_envelope ===" << endl;
     const char* ncname = USML_TEST_DIR "/rvbts/test/";
 
     ocean_utils::make_iso(2000.0);

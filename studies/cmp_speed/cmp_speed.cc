@@ -80,7 +80,8 @@ int main(int argc, char* argv[]) {
     data_grid<3>::csptr ssp(new netcdf_profile(USML_STUDIES_DIR
                                                "/cmp_speed/std14profile.nc",
                                                0.0, lat1, lat2, lng1, lng2));
-    data_grid<3>::csptr fast_ssp(new data_grid_svp(ssp));
+    // data_grid<3>::csptr fast_ssp(new data_grid_svp(ssp));
+    // profile_grid<3>::csptr profile(new profile_grid<3>(fast_ssp));
     profile_grid<3>::csptr profile(new profile_grid<3>(ssp));
 
     cout << "load STD14 environmental bathy data from " << USML_STUDIES_DIR
@@ -88,8 +89,9 @@ int main(int argc, char* argv[]) {
     data_grid<2>::csptr grid(
         new netcdf_bathy(USML_STUDIES_DIR "/cmp_speed/std14bathy.nc", lat1,
                          lat2, lng1, lng2, wposition::earth_radius));
-    data_grid<2>::csptr fast_grid(new data_grid_bathy(grid));
-    boundary_model::csptr bottom(new boundary_grid<2>(fast_grid));
+    // data_grid<2>::csptr fast_grid(new data_grid_bathy(grid));
+    // boundary_model::csptr bottom(new boundary_grid<2>(fast_grid));
+    boundary_model::csptr bottom(new boundary_grid<2>(grid));
 
     boundary_model::csptr surface(new boundary_flat());
     ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));

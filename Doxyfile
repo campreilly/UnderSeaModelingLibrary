@@ -936,37 +936,37 @@ WARN_LOGFILE           =
 INPUT = \
     . \
     beampatterns \
-    biverbs \
-    eigenrays \
-    eigenverbs \
-    managed \
-    netcdf \
-    ocean \
-    platforms \
-    rvbenv \
-    sensors \
-    threads \
-    transmit \
-    types \
-    ublas \
-    wavegen \
-    waveq3d \
     beampatterns/test \
+    biverbs \
     biverbs/test \
+    eigenrays \
     eigenrays/test \
+    eigenverbs \
     eigenverbs/test \
+    managed \
     managed/test \
+    netcdf \
     netcdf/test \
+    ocean \
     ocean/test \
+    platforms \
     platforms/test \
-    rvbenv/test \
+    rvbts \
+    rvbts/test \
+    sensors \
     sensors/test \
+    threads \
     threads/test \
+    transmit \
     transmit/test \
+    types \
     types/test \
+    ublas \
     ublas/test \
+    wavegen \
     wavegen/test \
-    waveq3d/test
+    waveq3d \
+    waveq3d/test \
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

@@ -262,13 +262,12 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier,
    protected:
     /**
      * Reference to the environmental parameters.
-     * Assumes that the storage for this data is managed by calling routine.
+     * Cached to avoid change while the calculation is being performed.
      */
     ocean_model::csptr _ocean;
 
     /**
      * Frequencies over which to compute propagation loss (Hz).
-     * Defined as a pointer to support virtual methods in seq_vector class.
      */
     seq_vector::csptr _frequencies;
 
@@ -284,24 +283,22 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier,
     /**
      * Initial depression/elevation angle (D/E) at the
      * source location (degrees, positive is up).
-     * Defined as a pointer to support virtual methods in seq_vector class.
      */
     seq_vector::csptr _source_de;
 
     /**
      * Initial azimuthal angle (AZ) at the source location
      * (degrees, clockwise from true north).
-     * Defined as a pointer to support virtual methods in seq_vector class.
      */
     seq_vector::csptr _source_az;
 
     /**
-     * Maximum index for source_de
+     * Maximum index for source_de.
      */
     const size_t _max_de;
 
     /**
-     * Maximum index for source_az
+     * Maximum index for source_az.
      */
     const size_t _max_az;
 
@@ -316,7 +313,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier,
      */
     const wposition* _target_pos;
 
-    /** Run Identification */
+    /** Run identification number. */
     size_t _run_id;
 
     /**

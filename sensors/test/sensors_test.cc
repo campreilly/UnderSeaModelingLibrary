@@ -34,24 +34,7 @@ using namespace boost::unit_test;
 using namespace usml::sensors;
 using namespace usml::sensors::test;
 
-// Tolerance for value comparisons.
-const double tol = 1e-10;
-
 BOOST_AUTO_TEST_SUITE(sensors_test)
-
-/**
- * @ingroup sensors_test
- * @{
- */
-
-/**
- * Test the ability to create a simple sonobuoy.
- */
-BOOST_AUTO_TEST_CASE(create_sonobuoy) {
-    cout << "=== sensors_test: create_sonobuoy ===" << endl;
-    simple_sonobuoy sensor(0,"simple_sonobuoy");
-    platform_manager::reset();
-}
 
 /**
  * Listen for eigenray updates on sensor.
@@ -74,6 +57,15 @@ pair_listener test_listener;
  * @ingroup sensors_test
  * @{
  */
+
+/**
+ * Test the ability to create a simple sonobuoy.
+ */
+BOOST_AUTO_TEST_CASE(create_sonobuoy) {
+    cout << "=== sensors_test: create_sonobuoy ===" << endl;
+    simple_sonobuoy sensor(0,"simple_sonobuoy");
+    platform_manager::reset();
+}
 
 /**
  * Tests the ability to control the production of sensor_pair objects with the
@@ -220,6 +212,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     cout << "clean up" << endl;
     sensor_manager::reset();
 }
+
 /// @}
 
 BOOST_AUTO_TEST_SUITE_END()
