@@ -90,9 +90,15 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
             seq_vector::csptr ax = this->_axis[dim];
             assert(!std::isnan(loc[dim]));
 
-            // limit interpolation to axis domain if _edge_limit turned on
+            // short axis
 
-            if (this->_edge_limit[dim]) {
+            if (ax->size() < 2) {
+                loc[dim] = (*ax)(0);
+                index[dim] = 0;
+
+                // limit interpolation to axis domain if _edge_limit turned on
+
+            } else if (this->_edge_limit[dim]) {
                 double a = (*ax)(0);
                 double b = (*ax)(ax->size() - 1);
                 double sign = (ax->increment(0) < 0) ? -1.0 : 1.0;
@@ -148,8 +154,9 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
      *                      Derivative not computed if nullptr.
      * @return              Estimate of the field after interpolation.
      */
-    DATA_TYPE interp(int dim, const size_t index[], const double location[],
-                     DATA_TYPE& deriv, DATA_TYPE deriv_vec[]) const {
+    DATA_TYPE
+    interp(int dim, const size_t index[], const double location[],
+           DATA_TYPE& deriv, DATA_TYPE deriv_vec[]) const {
         DATA_TYPE result = _zero;
 
         if (dim < 0) {
@@ -157,6 +164,9 @@ class USML_DLLEXPORT gen_grid : public data_grid<NUM_DIMS, DATA_TYPE> {
                 data_grid_compute_offset<NUM_DIMS - 1>(this->_axis, index);
             result = this->_data.get()[offset];
             // terminates recursion
+
+        } else if (this->_axis[dim]->size() < 2) {
+            result = nearest(dim, index, location, deriv, deriv_vec);
 
         } else {
             switch (this->_interp_type[dim]) {

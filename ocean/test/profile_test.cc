@@ -89,9 +89,8 @@ BOOST_AUTO_TEST_CASE(plot_profile_test) {
     matrix<double> sConstant(1, D);
     wvector gConstant(1, D);
     profile_linear constant;
-    constant.sound_speed(points, &sConstant, &gConstant);
     constant.flat_earth(true);
-    // TODO Check to see if earth flattening working correctly. Gradient is all zeros.
+    constant.sound_speed(points, &sConstant, &gConstant);
 
     matrix<double> sLinear(1, D);
     wvector gLinear(1, D);
@@ -163,8 +162,8 @@ BOOST_AUTO_TEST_CASE(compute_mackenzie_test) {
                        USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc", month,
                        18.5, 18.5, 200.5, 200.5);
     for (size_t n = 0; n < 3; ++n) {
-        temp->interp_type(n, interp_enum::nearest);
-        salt->interp_type(n, interp_enum::nearest);
+        temp->interp_type(n, interp_enum::linear);
+        salt->interp_type(n, interp_enum::linear);
     }
     netcdf_woa::csptr temperature(temp);
     netcdf_woa::csptr salinity(salt);
