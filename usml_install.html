@@ -63,16 +63,16 @@
 	     source, such as GitHub, make sure to rename the home directory <code>usml</code>.
 	</ul>
 	<p>
-     <li> Install CMake GUI, NetCDF Development, and Git GUI RPMs from the Oracle Linux servers
+    <li> Install NetCDF Development, Git GUI, and CMake GUI RPMs from the Oracle Linux servers
 	<pre>
-    dnf install git-gui gitk aspell-en # to install Git GUI tools
-    dnf install libcanberra-gtk2 # to fix bug in git
-    dnf install cmake cmake-gui # platform independent build tools
-    dnf install clang-tools-extra # for the clang tidying tools
-    dnf install oracle-epel-release-el8 # to enable extra libraries like netCDF
-    dnf config-manager --set-enabled ol8_codeready_builder # to enable extra libraries like netCDF
+    dnf install oracle-epel-release-el9     # to enable extra libraries like netCDF
+    dnf config-manager --set-enabled ol9_codeready_builder # to enable extra libraries like netCDF
     dnf install netcdf-cxx-devel netcdf-devel nco # to access environmental data files
-    dnf install texlive doxygen graphviz # LaTex equations and UML images in doxygen
+    dnf install git-gui gitk aspell-en      # to install Git GUI tools
+    dnf install libcanberra-gtk2            # to fix bug in git
+    dnf install cmake cmake-gui             # platform independent build tools
+    dnf install clang-tools-extra           # for the clang tidying tools
+    dnf install texlive doxygen graphviz    # LaTex equations and UML images in doxygen
 	</pre>
 	<p>
     <li> Install Boost library from source code.
@@ -88,9 +88,9 @@
     cd /usr/local
     tar -xvf distrib/boost_1_82_0.tar.gz
     cd boost_1_82_0
-    ./bootstrap.sh (to configure gcc options)
-    ./b2 (to compile Boost libraries for static and dynamic)
-    sudo ./b2 install (to install boost libraries)
+    ./bootstrap.sh      # to configure gcc options
+    ./b2                # to compile Boost libraries for static and dynamic
+    sudo ./b2 install   # to install boost libraries
 	</pre>
     <li>You should see boost libraries in /usr/local/include and /usr/local/lib directories.
     <p>
@@ -100,8 +100,7 @@
 	<li> In the <code>cmake-gui</code> tool (example below), set the source directory to the home directory where you
          installed the USML source code.  As suggested above, source code could go in <code>~/Projects/usml</code>.
 	<li> Setup for an "out of source" build by setting the binaries directory to
-         something like the <code>~/Projects/usml/build</code> directory.  Using a binary
-         directory that is not outside of the source tree is strictly optional.
+         something like the <code>~/Projects/usml/build</code> directory.
 	<li> Use the <code>Configure</code> button to process the CMakeList file.
 	     Select the <code>Unix Makefile</code> generator from the pop-up menu.
 	<li> Change options to match your development requirements.  The default options
@@ -149,7 +148,7 @@
     cmake_minimum_required( VERSION 2.6 )
     project( usml_example CXX )
 
-    find_package( USML 1.0 REQUIRED )
+    find_package( USML 3.0 REQUIRED )
     include_directories( ${USML_INCLUDES} )
     add_executable( example example.cc )
     target_link_libraries( example ${USML_LIBRARIES} )
