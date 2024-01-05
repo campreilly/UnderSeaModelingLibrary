@@ -10,6 +10,7 @@
 #include <usml/ocean/ocean_model.h>
 #include <usml/ocean/profile_linear.h>
 #include <usml/ocean/profile_model.h>
+#include <usml/ocean/scattering_chapman.h>
 #include <usml/ocean/scattering_lambert.h>
 #include <usml/ocean/volume_flat.h>
 #include <usml/ocean/volume_model.h>
@@ -323,20 +324,19 @@ BOOST_AUTO_TEST_CASE(ascii_arc_test) {
 
 /**
  * Computes the broad spectrum scattering strength from a flat
- * boundary interface, using lambert's law.
+ * ocean bottom, using Lambert's law.
  */
-BOOST_AUTO_TEST_CASE(scattering_strength_test) {
-    cout << "=== boundary_test: scattering_strength_test ===" << endl;
+BOOST_AUTO_TEST_CASE(scattering_lambert_test) {
+    cout << "=== boundary_test: scattering_lambert_test ===" << endl;
+    const char* csv_name =
+        USML_TEST_DIR "/ocean/test/scattering_lambert_test.csv";
 
     const wposition1 pos;
     seq_vector::csptr freq(new seq_linear(100.0, 0.0, 1));
     vector<double> amplitude(freq->size());
-    vector<double> phase(freq->size());
     scattering_lambert model;
     const double de_scattered = M_PI / 4.0;
 
-    const char* csv_name =
-        USML_TEST_DIR "/ocean/test/scattering_lambert_test.csv";
     std::ofstream os(csv_name);
     cout << "writing tables to " << csv_name << endl;
     os << "de_incident,de_scattered,amp" << endl;
@@ -345,6 +345,51 @@ BOOST_AUTO_TEST_CASE(scattering_strength_test) {
         model.scattering(pos, freq, de_incident, de_scattered, 0.0, 0.0,
                          &amplitude);
         os << de_incident << "," << de_scattered << "," << amplitude(0) << endl;
+    }
+}
+
+/**
+ * Computes the broad spectrum scattering strength from ocean surface,
+ * using Chapman/Harris model. Compares results to those in Figure 1 of the
+ * original paper.
+ *
+ * @xref Chapman R. P., Harris J. H., "Surface Backscattering Strengths Measured
+ * with Explosive Sound Sources," J. Acoust. Soc. Am. 34, 1592–1597 (1962).
+ */
+BOOST_AUTO_TEST_CASE(scattering_chapman_test) {
+    cout << "=== boundary_test: scattering_chapman_test ===" << endl;
+    const char* csv_name =
+        USML_TEST_DIR "/ocean/test/scattering_chapman_test.csv";
+
+    const wposition1 pos;
+    seq_vector::csptr freq(new seq_log(600.0, 2.0, 4));
+     seq_linear grazing(1.0, 1.0, 90.0);
+     vector<double> wind_speed = seq_linear(5.0, 5.0, 30.0).data();
+
+    vector<double> amplitude(freq->size());
+    matrix<vector<double> > result(wind_speed.size(), grazing.size());
+    for (int w = 0; w < wind_speed.size(); ++w) {
+        scattering_chapman model(wind_speed(w) / 1.94384449);
+        for (int g = 0; g < grazing.size(); ++g) {
+            vector<double> amplitude;
+            double de = grazing(g) * M_PI / 180.0;
+            model.scattering(pos, freq, de, de, 0.0, 0.0, &amplitude);
+            result(w, g) = amplitude;
+        }
+    }
+
+    std::ofstream os(csv_name);
+    cout << "writing tables to " << csv_name << endl;
+    os << "wind_speed,grazing,0.6kHz,1.2kHz,2.4kHz,4.8kHz" << endl;
+
+    for (int w = 0; w < wind_speed.size(); ++w) {
+        scattering_chapman model(wind_speed(w));
+        for (int g = 0; g < grazing.size(); ++g) {
+            vector<double> amplitude = 10 * log10(result(w, g));
+            os << wind_speed(w) << "," << grazing(g) << "," << amplitude(0)
+               << "," << amplitude(1) << "," << amplitude(2) << ","
+               << amplitude(3) << endl;
+        }
     }
 }
 

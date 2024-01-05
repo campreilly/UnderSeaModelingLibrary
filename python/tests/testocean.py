@@ -7,6 +7,7 @@ import unittest
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import FormatStrFormatter, MultipleLocator
 
 
 class TestOcean(unittest.TestCase):
@@ -307,6 +308,91 @@ class TestOcean(unittest.TestCase):
         ax.set_ylabel('Significant Wave Height (m)')
 
         output = fullfile.replace(".csv", ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+    def test_scattering_chapman(self):
+        """Plot data output from Chapman and Harris model for computing surface scattering strength from wind speed.
+
+        The Chapman/Harris surface scattering strength model is an empirical fit to surface scattering strength
+        measurements. The model developemnet process fit scattering strength vs. grazing angle on a log/log scale to
+        straight lines. This test replicates Figures 1 and 3 from the original paper and shows how the values
+        computed by USML fit the theory.
+
+        Chapman R. P., Harris J. H., "Surface Backscattering Strengths Measured with Explosive Sound Sources,"
+        J. Acoust. Soc. Am. 34, 1592–1597 (1962).
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # read USML scattering strength from disk
+        fullfile = os.path.join(self.USML_DIR, "scattering_chapman_test.csv")
+        print(f"reading {fullfile}")
+        model = np.genfromtxt(fullfile, delimiter=',', skip_header=1)
+        wind_speed = np.unique(model[:, 0])
+        grazing = np.unique(model[:, 1])
+        titles = ["0.6 kHz", "1.2 kHz", "2.4 kHz", "4.8 kHz"]
+        labels = ["5 kts", "10 kts", "15 kts", "20 kts", "25 kts", "30 kts"]
+        freqs = [600.0, 1_200, 2_400, 4_800]
+
+        # compute and plot scattering strength vs. grazing angle
+        fig, ax = plt.subplots(2, 2, figsize=[10, 8], sharex=True, sharey=True)
+        ax = np.reshape(ax, (1, 4))
+        for speed in wind_speed:
+            index = model[:, 0] == speed
+            scattering = model[index, 2:]
+            for nfreq in range(4):
+                beta = 158.0 * (speed * freqs[nfreq] ** (1.0 / 3.0)) ** (-0.58)
+                theory = 2.6 - 42.4 * np.log10(beta) + 3.3 * beta * np.log10(grazing / 30.0)
+                sub_ax = ax[0, nfreq]
+                sub_ax.semilogx(grazing, theory)
+
+        for speed in wind_speed:
+            index = model[:, 0] == speed
+            scattering = model[index, 2:]
+            for nfreq in range(4):
+                sub_ax = ax[0, nfreq]
+                sub_ax.semilogx(grazing, scattering[:, nfreq], "k--")
+                sub_ax.grid(True, which="both")
+                sub_ax.xaxis.set_major_locator(MultipleLocator(10))
+                sub_ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
+                sub_ax.set_xlim(2, 79.9)
+                sub_ax.set_ylim(-70, 0)
+                sub_ax.set_title(titles[nfreq])
+
+        ax[0, 2].set_xlabel('Grazing Angle (deg)')
+        ax[0, 3].set_xlabel("Grazing Angle (deg)")
+        ax[0, 0].set_ylabel("Scattering Strength (dB)")
+        ax[0, 2].set_ylabel("Scattering Strength (dB)")
+        ax[0, 0].legend(labels)
+
+        output = fullfile.replace(".csv", ".png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+        # compute and plot scattering strength vs. beta
+        fig, ax = plt.subplots()
+        index = model[:, 1] == 30.0
+        for nfreq in range(4):
+            scattering = model[index, 2 + nfreq]
+            beta = 158.0 * (wind_speed * freqs[nfreq] ** (1.0 / 3.0)) ** (-0.58)
+            ax.semilogx(beta, scattering, "o")
+
+        beta = np.linspace(2.0, 20.0, 19)
+        theory = 2.6 - 42.4 * np.log10(beta)
+        ax.semilogx(beta, theory, "k-")
+        ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
+        ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+        ax.grid(True, which="both")
+        ax.set_xlim(2, 20)
+        ax.set_ylim(-70, 0)
+        ax.set_xlabel('Beta Factor')
+        ax.set_ylabel("Scattering Strength (dB)")
+        ax.legend(titles)
+
+        output = fullfile.replace(".csv", "_beta.png")
         print(f"saving {output}")
         plt.savefig(output)
         plt.close()

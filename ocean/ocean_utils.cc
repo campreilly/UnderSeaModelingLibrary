@@ -21,6 +21,7 @@
 #include <usml/ocean/reflect_loss_eckart.h>
 #include <usml/ocean/reflect_loss_model.h>
 #include <usml/ocean/reflect_loss_rayleigh.h>
+#include <usml/ocean/scattering_chapman.h>
 #include <usml/ocean/scattering_constant.h>
 #include <usml/ocean/scattering_lambert.h>
 #include <usml/types/data_grid.h>
@@ -34,19 +35,20 @@ using namespace usml::ocean;
 void ocean_utils::make_iso(double depth, double bottom_loss) {
     // build ocean surface model
 
-    boundary_model::csptr surface(new boundary_flat());
+    reflect_loss_model::csptr surfloss(new reflect_loss_constant(0.0, M_PI));
+    scattering_model::csptr surfscat(new scattering_constant(-30.0));
+    boundary_model::csptr surface(new boundary_flat(0.0, surfloss, surfscat));
 
     // build ocean bottom model
 
     reflect_loss_model::csptr botloss(new reflect_loss_constant(bottom_loss));
-    scattering_model::csptr scattering(new scattering_constant(-30.0));
-    boundary_model::csptr bottom(
-        new boundary_flat(-depth, botloss, scattering));
+    scattering_model::csptr botscat(new scattering_constant(-30.0));
+    boundary_model::csptr bottom(new boundary_flat(-depth, botloss, botscat));
 
     // build sound speed model
 
     attenuation_model::csptr attn(new attenuation_constant(0.0));
-    profile_model::csptr profile(new profile_linear(1500.0,attn));
+    profile_model::csptr profile(new profile_linear(1500.0, attn));
 
     ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
     ocean_shared::update(ocean);
@@ -60,10 +62,9 @@ void ocean_utils::make_basic(double south, double north, double west,
                              double east, int month, double wind_speed,
                              bottom_type_enum bottom_type) {
     // build ocean surface model
-    // TODO Implement default surface scattering model
 
     reflect_loss_model::csptr surfloss(new reflect_loss_eckart(wind_speed));
-    scattering_model::csptr surfscat(new scattering_lambert());
+    scattering_model::csptr surfscat(new scattering_chapman(wind_speed));
     boundary_model::csptr surface(new boundary_flat(0.0, surfloss, surfscat));
 
     // load bathymetry from ETOPO1 database
