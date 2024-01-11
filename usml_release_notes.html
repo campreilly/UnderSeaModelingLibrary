@@ -19,19 +19,35 @@
     <li>Enhancements</li>
     <ul>
         <li>Replace seq_data with immutable algorithms.
-        <li>Make ocean objects immutible and replace memory management scheme with constant shared pointers.
+        <li>Make ocean objects immutable and replace memory management scheme with constant shared pointers.
         <li>Rework platforms, sensors, beampatterns, eigenrays, eigenverbs, and biverbs to better fit C++17 best practices.
         <li>Add doxygen build target and ignore BOOST deprecated headers in CMake build scripts.
         <li>Update style documentation in Mainpage.h
         <li>Use git lfs to store large data files on GitHub.
+        <li>Replace Matlab unit tests with Python equivalents.
+        <li>Update usml.netcdf.Profile class to read wider variety of variable layouts.
+        <li>Update bathymety implementation to correctly limit files using lat_range and lng_range.
+        <li>Add scattering strength argument to all boundary model constructors.
+        <li>Skip eigenverb calculations for bistatic_pair if either sensor has compute_reverb() = false.
+        <li>Group sensors into multistatic groups by changing the multistatic field from a boolean to an int.
+        <li>Migrate to using transmit_model parameters for source mode and steering.
+        <li>Add Chapman/Harris model for ocean surface scattering.
     </ul>
     <li>Bugs</li>
     <ul>
-        <li>Resolved Issue #164. Allow data_grid to use uBLAS vectors as DATA_TYPE.
-	    Shift from using just double as data type, but default to double.
-            Test ability to support double, float, complex, vector, matrix.
-        <li>Resolved Issue #254. Use points instead of boxes to lookup eigenverbs 
-            in eigenverb_collection.
+        <li>Resolved issue gen_grid errors if lat/long axis has length of 1 #259
+        <li>Resolved Issue Investigate speed of eigenverb_collection lookup #254. Use points instead of boxes to lookup eigenverbs in eigenverb_collection.
+        <li>Resolved issue Are there any thorough examples or documentation of how to use this library, particularly WaveQ3D #252
+        <li>Resolved issue Update seq_data::find_index to quickly lookup index values without storing index numbers from the last search #246
+        <li>Resolved issue Update build process to CMake 3 #242
+        <li>Resolved issue Find a way to re-enable reflect_flat_test  #235 
+        <li>Resolved issue Compiler bug in the boost::geometry package in 1.56 and 1.57. #230 
+        <li>Resolved issue Source frequencies far outside of receiver range. #223
+        <li>Resolved Issue Allow data_grid to use uBLAS vectors as DATA_TYPE #164. Allow data_grid to use uBLAS vectors as DATA_TYPE. Shift from using just double as data type, but default to         <li>double. Test ability to support double, float, complex, vector, matrix.
+        <li>Resolved issue Seq_vector virtual operator() #115
+        <li>Resolved issue Upgrade NetCDF-C++ interface to cxx4 variant #88
+        <li>Resolved issue Use BOOST_UBLAS_MOVE_SEMANTICS to improve execution speed #17
+        <li>Fix some problems with uninitialized values in gen_grid class.
         <li>Fix problems with CR/LF line endings.
     </ul>
     </ul>

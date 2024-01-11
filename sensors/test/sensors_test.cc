@@ -96,8 +96,6 @@ BOOST_AUTO_TEST_CASE(create_sonobuoy) {
  * monostatic pairs should have about 5 in this environment and that the
  * bistatic pairs have more. This difference is the result of accuracy limits in
  * the wavefront generator ray fan for paths near vertical.
- *
- * TODO: Compare acoustic paths to analytic solutions to validate number of paths for each pair.
  */
 //NOLINTNEXTLINE(readability-function-cognitive-complexity)
 BOOST_AUTO_TEST_CASE(update_wavefront_data) {
