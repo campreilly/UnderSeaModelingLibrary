@@ -6,6 +6,11 @@
 
 #include <usml/types/seq_vector.h>
 
+#include <boost/numeric/ublas/vector.hpp>
+
+#include <map>
+#include <stdexcept>
+
 namespace usml {
 namespace types {
 
@@ -21,205 +26,108 @@ using boost::numeric::ublas::vector;
  * But, some grids are just not defined using an evenly spaced sequence
  * of points and this class is needed for completeness.
  *
- * The find_index() routine in this implementation tries to speed up the
- * search by using the last search as the initial guess for the next search.
+ * The find_index() routine uses the map::upper_bound() function to lookup
+ * the bounding indices for each value.
  */
-class USML_DECLSPEC seq_data : public seq_vector
-{
-    public:
+class USML_DECLSPEC seq_data : public seq_vector {
+   public:
+    /**
+     * Construct sequence from any object that supports operator[].
+     * Ensures that the sequence is a monotonic sequence.
+     *
+     * @param  data               Set of data elements to use.
+     * @param  size               Number of elements in data.
+     * @throws invalid_argument   If series not monotonic
+     */
+    template <class Container>
+    seq_data(Container data, size_type size) : seq_data(size) {
+        init(data, size);
+    }
 
-        //***************************************************************
-        // constructors and destructors
+    /**
+     * Construct sequence from any object that supports both operator[] and
+     * size(). Ensures that the sequence is a monotonic sequence.
+     *
+     * @param  data               Set of data elements to use.
+     * @throws invalid_argument   If series not monotonic
+     */
+    template <class Container>
+    seq_data(Container data) : seq_data(data, data.size()) {}
 
-        /**
-         * Initialize sequence sub-class using number of elements.
-         *
-         * @param  size       Length of the sequence to create.
-         */
-        seq_data(size_type size)
-            : seq_vector(size)
-        {}
+    /**
+     * Quickly search for the interpolation grid index for a value.
+     * Normally, this is the index of the sequence member less than or
+     * equal to provided value. For sequences with negative increments,
+     * it is the sequence member greater than or equal to provided value.
+     * Legal values are limited to the range [0,size-2] to ensure that
+     * there is always a sequence member to the "right" of the returned index.
+     *
+     * @param   value       Value of the element to find.
+     * @return              Index of the largest value that is not greater
+     *                      than the argument.
+     */
+    size_type find_index(value_type value) const override;
 
-        /**
-         * Construct sequence from a standard C array.
-         * Ensures that the sequence is a monotonic sequence.
-         *
-         * @param  data               Set of data elements to use.
-         * @param  size               Number of elements in data.
-         * @throws invalid_argument   If series not monotonic
-         */
-        seq_data( const double* data, size_t size )
-            : seq_vector( size )
-        {
-            init( data, size );
-        }
+   protected:
+    /**
+     * Initialize sequence sub-class using number of elements.
+     *
+     * @param  size       Length of the sequence to create.
+     */
+    seq_data(size_type size) : seq_vector(size) { _sign = 1.0; }
 
-        /**
-         * Construct sequence from a uBLAS vector.
-         * Ensures that the sequence is a monotonic sequence.
-         *
-         * @param  data               Set of data elements to use.
-         * @throws invalid_argument   If series not monotonic
-         */
-        template<class T, class A> seq_data( const vector<T,A> &data )
-                : seq_vector( data.size() )
-        {
-            const size_t N = data.size();
-            double* buffer = new double[N];
-            std::copy( data.begin(), data.end(), buffer );
-            init( buffer, N );
-            delete[] buffer ;
-        }
+    /**
+     * Initialize sequence from any object that supports operator[].
+     * Ensures that the sequence is a monotonic sequence.
+     *
+     * @param  data               Set of data elements to use.
+     * @param  size               Number of elements in data.
+     * @throws invalid_argument   If series not monotonic
+     */
+    template <class Container>
+    void init(Container data, size_type size) {
+        if (size < 2) {
+            _data[0] = value_type(data[0]);
+            _increment[0] = 0.0;
+            _data_map[_sign * value_type(data[0])] = 0;
 
-        /**
-         * Copies data from another seq_data object.
-         *
-         * @param  copy         The object to be copied.
-         */
-        seq_data( const seq_data & copy ) :
-            seq_vector(copy),
-            _index(copy._index), _value(copy._value),
-            _index_data(copy._index_data), _sign(copy._sign)
-        {}
+        } else {
+            // process first element
 
-        /** Create a copy using a reference to the base class. */
-        virtual seq_vector* clone() const {
-            return new seq_data(*this);
-        }
-
-        /** Virtual destructor. */
-        virtual ~seq_data() {}
-
-        //**************************************************
-        // virtual functions
-
-        /**
-         * Search for a value in this sequence. If the value is outside of the
-         * legal range, the index for the nearest endpoint will be returned,
-         * unless the nearest endpoint is that last index, in which the second
-         * to last index will be returned. This is to guarantee that there is
-         * always an index to the right of the returned index.
-         *
-         * @param   value       Value of the element to find.
-         * @return              Index of the largest value that is not greater
-         *                      than the argument.
-         */
-        virtual size_type find_index(value_type value) {
-
-            // Special case of data sets of size one
-            if (_max_index == 0) {
-                return 0;
+            value_type left = value_type(data[1]) - value_type(data[0]);
+            if (left < 0) {
+                _sign = -1.0;
             }
+            _data[0] = value_type(data[0]);
+            _increment[0] = left;
+            _data_map[_sign * _data[0]] = 0;
 
-            // check for a redundant search
-            if (value == _value) {
-                return _index;
-            }
-            _value = value;
+            // process remaining elements
 
-            // search backwards (toward the front)?
-
-            value *= _sign;
-            if (_index_data > value) {
-
-                // Looping ends when the beginning of the list is hit or when
-                // then new point is less than, or equal to, the search value.
-
-                for (difference_type n = _index - 1; n >= 0 && _index_data > value; --n) {
-                    _index_data = _data[--_index] * _sign;
-                }
-
-                // search forwards (toward the back)?
-
-            } else if (_index_data < value) {
-
-                // Looping ends when the end of the list is hit or when
-                // new point is greater than, or equal to, the search value.
-
-                difference_type N = size() - 2;
-                for (difference_type n = _index + 1; n <= N && _index_data < value; ++n) {
-                    _index_data = _data[++_index] * _sign;
-                }
-
-                // If new point is greater than the search value,
-                // we've gone too far and we need to back up by one.
-
-                if (_index_data > value && _index > 0) {
-                    _index_data = _data[--_index] * _sign;
-                }
-
-            }
-            return _index;
-        }
-
-    protected:
-
-        /** index number from the last search */
-        size_type _index;
-
-        /** Value from the last search.  Speeds up redundant searches. */
-        value_type _value;
-
-        /** axis value that corresponds to _index */
-        value_type _index_data;
-
-        /** Sign value is 1 if the sequence is increasing, -1 if decreasing. */
-        value_type _sign;
-
-        //**************************************************
-        // private functions
-
-        /**
-         * Initialize sequence from a uBLAS vector.
-         * Ensures that the sequence is a monotonic sequence.
-         *
-         * @param  data  Set of data elements to use.
-         * @param  size  Number of data elements.
-         * @throws invalid_argument   If series not monotonic
-         */
-        void init( const double* data, size_t size ) {
-            _data.resize(size) ;
-            _increment.resize(size) ;
-            _max_index = size-1;
-            _index = 0;
-            _value = data[0];
-            _sign = 1.0;
-            if (_max_index == 0) {
-                _data[0] = data[0];
-                _increment[0] = 0.0;
-            } else if (_max_index > 0) {
-
-                // process first element
-
-                value_type left = data[1] - data[0];
-                if (left < 0) {
-                    _sign = -1.0;
-                }
-                _data[0] = data[0];
-                _increment[0] = left;
-
-                // process middle elements
-
-                for ( size_type n = 1; n < _max_index; ++n ) {
-                    value_type right = data[n+1] - data[n];
-                    if (left * right <= 0) { // detect change of sign
+            for (size_type n = 1; n < size; ++n) {
+                value_type right = left;
+                if (n < size - 1) {
+                    right = value_type(data[n + 1]) - value_type(data[n]);
+                    if (left * right <= 0) {  // detect change of sign
                         throw std::invalid_argument("series not monotonic");
                     }
-                    left = right;
-                    _data[n] = data[n];
-                    _increment[n] = left;
                 }
-
-                // process last element
-
-                _data[ _max_index ] = data[ _max_index ];
-                _increment[ _max_index ] = left;
+                left = right;
+                _data[n] = value_type(data[n]);
+                _increment[n] = left;
+                _data_map[_sign * _data[n]] = n;
             }
-            _index_data = _data[_index] * _sign;
         }
+    }
 
-}; // end of class
+    /// Allow lookup of index from value.
+    std::map<value_type, size_type> _data_map;
+
+    /// Sign value is +1 if the sequence is increasing, -1 if decreasing.
+    value_type _sign = 1.0;
+
+};  // end of class
 
 /// @}
-} // end of namespace types
-} // end of namespace usml
+}  // end of namespace types
+}  // end of namespace usml

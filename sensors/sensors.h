@@ -1,46 +1,29 @@
 /**
- * @file sensors.h
- * Basic sensors data specific to USML
+ * @file sensors.h Sensors and Bistatic Pairs
+ * @defgroup sensors sensors
  *
- * @defgroup sensors Sensor Components
+ * Sensors are platforms that are can automatically compute there own acoustics.
+ * Simple sensors can be implemented as objects that control their own motion,
+ * or they can be attached to host platforms. Uses update_notifier to notify
+ * listeners when eigenray and eigenverb data has changed.
  *
- * This package defines the basic sensors data specific to USML.
+ * This package defines the objects that store bistatic eigenray and eigenverb
+ * data products. Each eigenray represents a single acoustic path between a
+ * source and target. The direct paths are eigenrays that connect this source
+ * and receiver; they represent the multipath direct blast contributions to the
+ * received signal. Eigenverbs are a Gaussian beam projection of an acoustic ray
+ * onto a reverberation interface at the point of collision. The bistatic
+ * eigenverbs (biverbs) represent the bistatic overlap between the source and
+ * receiver eigenverbs for this pair.
  *
- * @defgroup wposition World Coordinates
+ * @defgroup sensors_test Sensor Tests
  * @ingroup sensors
  *
- * Locations and directions are defined in a spherical earth
- * coordinate system relative to the WGS84 center of curvature for the
- * local area of operations. The model also supports the ability to
- * transform these coordinates into the geodetic parameters of
- * latitude, longitude, and altitude.
+ * Regression tests for the bistatic module.
  *
- * @defgroup data_grid Data Grids and Sequences
- * @ingroup sensors
- *
- * These components define support for N-dimensional data sets and their
- * associated axes. Supports interpolation in any number of dimensions.
- * Fast interpolation algorithms require an ability to quickly lookup an
- * axis index appropriate given a floating point axis value.
- * These axes are implemented as read-only, monotonic sequence of values.
- *
- * @defgroup sensors_test Regression Tests
- * @ingroup sensors
- *
- * Regression tests for the sensors package
  */
 #pragma once
 
-#include <usml/sensors/beam_pattern_model.h>
-#include <usml/sensors/beam_pattern_map.h>
-#include <usml/sensors/beam_pattern_model.h>
-
-#include <usml/sensors/receiver_params.h>
-#include <usml/sensors/receiver_params_map.h>
-#include <usml/sensors/source_params.h>
-#include <usml/sensors/source_params_map.h>
-
-#include <usml/sensors/xmitRcvModeType.h>
-#include <usml/sensors/sensor_model.h>
 #include <usml/sensors/sensor_manager.h>
-#include <usml/sensors/sonobuoy.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_pair.h>

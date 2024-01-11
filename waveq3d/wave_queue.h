@@ -4,24 +4,34 @@
  */
 #pragma once
 
-#include <usml/ocean/ocean.h>
+#include <netcdfcpp.h>
+#include <usml/eigenrays/eigenray_notifier.h>
+#include <usml/eigenverbs/eigenverb_notifier.h>
+#include <usml/ocean/ocean_model.h>
+#include <usml/types/seq_vector.h>
+#include <usml/types/wposition.h>
+#include <usml/types/wposition1.h>
+#include <usml/usml_config.h>
+#include <usml/waveq3d/reflection_notifier.h>
 #include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/wave_thresholds.h>
-#include <usml/waveq3d/eigenray_notifier.h>
-#include <usml/eigenverb/eigenverb_notifier.h>
-#include <usml/eigenverb/eigenverb_collection.h>
-#include <netcdfcpp.h>
+
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <cstddef>
+#include <memory>
 
 namespace usml {
 namespace waveq3d {
 
-using namespace usml::ocean ;
-using namespace usml::eigenverb ;
+using namespace usml::ocean;
+using namespace usml::eigenverbs;
+using namespace usml::eigenrays;
 
-class reflection_model ;
-class spreading_model ;
-class spreading_ray ;
-class spreading_hybrid_gaussian ;
+class reflection_model;
+class spreading_model;
+class spreading_ray;
+class spreading_hybrid_gaussian;
 
 /// @ingroup waveq3d
 /// @{
@@ -61,22 +71,19 @@ class spreading_hybrid_gaussian ;
  * @xref S.M. Reilly, G. Potty, Sonar Propagation Modeling using Hybrid
  * Gaussian Beams in Spherical/Time Coordinates, January 2012.
  */
-class USML_DECLSPEC wave_queue :
-    public eigenray_notifier,
-    public eigenverb_notifier,
-    public wave_thresholds
-{
+class USML_DECLSPEC wave_queue : public eigenray_notifier,
+                                 public eigenverb_notifier,
+                                 public reflection_notifier,
+                                 public wave_thresholds {
+    friend class reflection_model;
+    friend class spreading_ray;
+    friend class spreading_hybrid_gaussian;
 
-    friend class reflection_model ;
-    friend class spreading_ray ;
-    friend class spreading_hybrid_gaussian ;
-
-  public:
-
+   public:
     /**
      * Type of spreading model to be used.
      */
-    typedef enum { CLASSIC_RAY, HYBRID_GAUSSIAN } spreading_type ;
+    typedef enum { CLASSIC_RAY, HYBRID_GAUSSIAN } spreading_type;
 
     //**************************************************
     // methods
@@ -85,7 +92,7 @@ class USML_DECLSPEC wave_queue :
      * Initialize a propagation scenario.
      *
      * @param  ocean        Reference to the environmental parameters.
-     * @param  freq         Frequencies over which to compute propagation (Hz). *See note below.
+     * @param  freq         Frequencies over which to compute propagation (Hz).
      * @param  pos          Location of the wavefront source in spherical
      *                      earth coordinates.
      * @param  de           Initial depression/elevation angles at the
@@ -99,47 +106,37 @@ class USML_DECLSPEC wave_queue :
      *                      Ray fans that wrap around all azimuths should
      *                      include rays for both 0 and 360 degrees.
      * @param  time_step    Propagation step size (seconds).
-     * @param  targets      List of acoustic targets.
-     * @param  run_id        Run Identification number.
+     * @param  target_pos   List of acoustic target positions.
      * @param  type         Type of spreading model to use: CLASSIC_RAY
      *                      or HYBRID_GAUSSIAN.
-     *   NOTE: The freq paramater above, is a seq_vector pointer and is owned 
-     *         by caller of the wave_queue constructor. It is the responsibilty 
-     *         of the caller to ensure the pointer is not freed from memory while 
-     *         the wave_queue propagates and to delete the pointer when it is no
+     *   NOTE: The freq paramater above, is a seq_vector pointer and is owned
+     *         by caller of the wave_queue constructor. It is the responsibilty
+     *         of the caller to ensure the pointer is not freed from memory
+     * while the wave_queue propagates and to delete the pointer when it is no
      *         longer required.
      */
-    wave_queue(
-        ocean_model& ocean,
-        const seq_vector& freq,
-        const wposition1& pos,
-        const seq_vector& de, const seq_vector& az,
-        double time_step,
-        const wposition* targets=NULL,
-        const size_t run_id=1,
-        spreading_type type=HYBRID_GAUSSIAN
-        ) ;
+    wave_queue(const ocean_model::csptr& ocean, const seq_vector::csptr& freq,
+               const wposition1& pos, const seq_vector::csptr& de,
+               const seq_vector::csptr& az, double time_step,
+               const wposition* target_pos = nullptr,
+               spreading_type type = HYBRID_GAUSSIAN);
 
     /** Destroy all temporary memory. */
-    virtual ~wave_queue() ;
+    virtual ~wave_queue();
 
     /**
      * Location of the wavefront source in spherical earth coordinates.
      *
      * @return              Common origin of all points on the wavefront
      */
-    inline const wposition1& source_pos() const {
-        return _source_pos ;
-    }
+    inline const wposition1& source_pos() const { return _source_pos; }
 
     /**
      * List of frequencies for this wave queue.
      *
      * @return              Frequencies for this wavefront
      */
-    inline const seq_vector* frequencies() const {
-        return _frequencies ;
-    }
+    inline seq_vector::csptr frequencies() const { return _frequencies; }
 
     /**
      * Initial depression/elevation angle at the source location.
@@ -148,9 +145,7 @@ class USML_DECLSPEC wave_queue :
      * @return              Depression/elevation angle.
      *                      (degrees, positive is up)
      */
-    inline double source_de( size_t de ) const {
-        return (*_source_de)(de) ;
-    }
+    inline double source_de(size_t de) const { return (*_source_de)(de); }
 
     /**
      * Initial azimuthal angle at the source location.
@@ -159,100 +154,72 @@ class USML_DECLSPEC wave_queue :
      * @return              Depression/elevation angle.
      *                      (degrees, clockwise from true north)
      */
-    inline double source_az( size_t az ) const {
-        return (*_source_az)(az) ;
-    }
+    inline double source_az(size_t az) const { return (*_source_az)(az); }
 
     /**
      * Elapsed time for the current element in the wavefront.
      */
-    inline double time() const {
-        return _time ;
-    }
+    inline double time() const { return _time; }
 
     /**
      * Propagation step size (seconds).
      */
-    inline double time_step() const {
-        return _time_step ;
-    }
+    inline double time_step() const { return _time_step; }
 
     /**
      * List of acoustic targets.
      */
-    inline const wposition* targets() const {
-        return _targets;
-    }
+    inline const wposition* targets() const { return _target_pos; }
 
     /**
      * Return next element in the wavefront.
      */
-    inline const wave_front* next() {
-        return _next ;
-    }
+    inline const wave_front* next() { return _next; }
 
     /**
      * Return const next element in the wavefront.
      */
-    inline const wave_front* next() const {
-        return _next ;
-    }
+    inline const wave_front* next() const { return _next; }
 
     /**
      * Return current element in the wavefront.
      */
-    inline const wave_front* curr() {
-        return _curr ;
-    }
+    inline const wave_front* curr() { return _curr; }
 
     /**
      * Return const current element in the wavefront.
      */
-    inline const wave_front* curr() const {
-        return _curr ;
-    }
+    inline const wave_front* curr() const { return _curr; }
 
     /**
      * Return previous element in the wavefront.
      */
-    inline const wave_front* prev() {
-        return _prev ;
-    }
+    inline const wave_front* prev() { return _prev; }
 
     /**
      * Return const previous element in the wavefront.
      */
-    inline const wave_front* prev() const {
-        return _prev ;
-    }
+    inline const wave_front* prev() const { return _prev; }
 
     /**
      * Return past element in the wavefront.
      */
-    inline const wave_front* past() {
-        return _past ;
-    }
+    inline const wave_front* past() { return _past; }
 
     /**
      * Return const past element in the wavefront.
      */
-    inline const wave_front* past() const {
-        return _past ;
-    }
+    inline const wave_front* past() const { return _past; }
 
     /**
      * Number of D/E angles in the ray fan.
      */
-    inline size_t num_de() const {
-        return _source_de->size() ;
-    }
+    inline size_t num_de() const { return _source_de->size(); }
 
     /**
      * Number of AZ angles in the ray fan.
      */
-    inline size_t num_az() const {
-        return _source_az->size() ;
-    }
+    inline size_t num_az() const { return _source_az->size(); }
 
     /**
      * Optional identification number for this wavefront calculation.
@@ -262,16 +229,12 @@ class USML_DECLSPEC wave_queue :
      *
      * @param id    New identification number for this wavefront calculation.
      */
-    inline void runID( size_t id ) {
-        _run_id = id ;
-    }
+    inline void runID(size_t id) { _run_id = id; }
 
     /**
      * Optional identification number for this wavefront calculation.
      */
-    inline const size_t runID() const {
-        return _run_id ;
-    }
+    inline const size_t runID() const { return _run_id; }
 
     /**
      * Marches to the next integration step in the acoustic propagation.
@@ -294,22 +257,19 @@ class USML_DECLSPEC wave_queue :
      * beginning of the next iteration to ensure that the next wave elements
      * are alway inside of the water column.
      */
-    void step() ;
+    void step();
 
-
-  protected:
-
+   protected:
     /**
      * Reference to the environmental parameters.
-     * Assumes that the storage for this data is managed by calling routine.
+     * Cached to avoid change while the calculation is being performed.
      */
-    ocean_model& _ocean ;
+    ocean_model::csptr _ocean;
 
     /**
      * Frequencies over which to compute propagation loss (Hz).
-     * Defined as a pointer to support virtual methods in seq_vector class.
      */
-    const seq_vector* _frequencies ;
+    seq_vector::csptr _frequencies;
 
     /**
      * Location of the wavefront source in spherical earth coordinates.
@@ -318,45 +278,43 @@ class USML_DECLSPEC wave_queue :
      * The boundary reflection logic does not perform correctly if the
      * wavefront starts on the wrong side of either boundary.
      */
-    wposition1 _source_pos ;
+    wposition1 _source_pos;
 
     /**
      * Initial depression/elevation angle (D/E) at the
      * source location (degrees, positive is up).
-     * Defined as a pointer to support virtual methods in seq_vector class.
      */
-    const seq_vector* _source_de ;
+    seq_vector::csptr _source_de;
 
     /**
      * Initial azimuthal angle (AZ) at the source location
      * (degrees, clockwise from true north).
-     * Defined as a pointer to support virtual methods in seq_vector class.
      */
-    const seq_vector* _source_az ;
+    seq_vector::csptr _source_az;
 
     /**
-     * Maximum index for source_de
+     * Maximum index for source_de.
      */
-    const size_t _max_de ;
+    const size_t _max_de;
 
     /**
-     * Maximum index for source_az
+     * Maximum index for source_az.
      */
-    const size_t _max_az ;
+    const size_t _max_az;
 
     /** Propagation step size (seconds). */
-    double _time_step ;
+    double _time_step;
 
     /** Time for current entry in the wave_front circular queue (seconds). */
-    double _time ;
+    double _time;
 
     /**
      * List of acoustic targets.
      */
-    const wposition* _targets;
+    const wposition* _target_pos;
 
-    /** Run Identification */
-    size_t _run_id ;
+    /** Run identification number. */
+    size_t _run_id;
 
     /**
      * Intermediate term: sin of colatitude for targets.
@@ -365,16 +323,16 @@ class USML_DECLSPEC wave_queue :
      * compute the distance squared from each target to each point
      * on the wavefront.
      */
-    matrix<double> _targets_sin_theta ;
+    matrix<double> _targets_sin_theta;
 
     /** Reference to the reflection model component. */
-    reflection_model* _reflection_model ;
+    reflection_model* _reflection_model;
 
     /**
      * Reference to the spreading loss model component.
      * Supports either classic ray theory or Hybrid Gaussian Beams.
      */
-    spreading_model* _spreading_model ;
+    spreading_model* _spreading_model;
 
     /**
      * Circular queue of wavefront elements needed by the
@@ -385,7 +343,7 @@ class USML_DECLSPEC wave_queue :
      *    - _curr is for iteration n (the current wavefront)
      *    - _next is for iteration n+1
      */
-    wave_front *_past, *_prev, *_curr, *_next ;
+    wave_front *_past, *_prev, *_curr, *_next;
 
     /**
      * Create an Azimuthal boundary loop condition upon initialization.
@@ -393,13 +351,13 @@ class USML_DECLSPEC wave_queue :
      * for instances where the first azimuthal angle is equivalent to
      * the last azimuthal angle in the AZ vector that is passed.
      */
-    bool _az_boundary ;
+    bool _az_boundary;
 
     /**
      * Treat all targets that are slightly away from directly above the
      * source as special cases.
      */
-    bool _de_branch ;
+    bool _de_branch;
 
     /**
      * Initialize wavefronts at the start of propagation using a
@@ -416,7 +374,7 @@ class USML_DECLSPEC wave_queue :
      * However, the _next element will not have been checked for interface
      * collisions or eigenray collisions with targets.
      */
-    void init_wavefronts() ;
+    void init_wavefronts();
 
     //**************************************************
     // reflections and caustics
@@ -438,7 +396,7 @@ class USML_DECLSPEC wave_queue :
      * A ray family is defined by a set of rays that have the same
      * surface, bottom, or caustic count.
      */
-    void detect_reflections() ;
+    void detect_reflections();
 
     /**
      * Detect and process surface reflection for a single (DE,AZ) combination.
@@ -451,7 +409,7 @@ class USML_DECLSPEC wave_queue :
      * @param   az      AZ angle index number.
      * @return        True if first recursion reflects from surface.
      */
-    bool detect_reflections_surface( size_t de, size_t az ) ;
+    bool detect_reflections_surface(size_t de, size_t az);
 
     /**
      * Detect and process reflection for a single (DE,AZ) combination.
@@ -464,7 +422,7 @@ class USML_DECLSPEC wave_queue :
      * @param   az      AZ angle index number.
      * @return        True if first recursion reflects from bottom.
      */
-    bool detect_reflections_bottom( size_t de, size_t az ) ;
+    bool detect_reflections_bottom(size_t de, size_t az);
 
     /**
      * Upper and lower vertices are present when the wavefront undergoes a
@@ -473,7 +431,7 @@ class USML_DECLSPEC wave_queue :
      * wavefront is a local minimum in time. Conversely, an upper vertex
      * is present if it is a local maximum in time.
      */
-    void detect_vertices( size_t de, size_t az ) ;
+    void detect_vertices(size_t de, size_t az);
 
     /**
      * Detects and processes all of the logic necessary to determine
@@ -482,7 +440,7 @@ class USML_DECLSPEC wave_queue :
      * over each other when going from current wavefront to the next.
      */
 
-    void detect_caustics( size_t de, size_t az ) ;
+    void detect_caustics(size_t de, size_t az);
 
     /**
      * Searches the volume layers collisions and sends data to the
@@ -492,7 +450,7 @@ class USML_DECLSPEC wave_queue :
      * but the next point is below the layer.  Calls collide_from_below()
      * if the curr point is below but the next point is above.
      */
-    void detect_volume_scattering( size_t de, size_t az ) ;
+    void detect_volume_scattering(size_t de, size_t az);
 
     //**************************************************
     // eigenray estimation routines
@@ -503,7 +461,7 @@ class USML_DECLSPEC wave_queue :
      * beyond the edge of the wavefront are matched to the next ray inside
      * the fan.
      */
-    void detect_eigenrays() ;
+    void detect_eigenrays();
 
     /**
      * Used by detect_eigenrays() to discover if the current ray is the
@@ -535,18 +493,15 @@ class USML_DECLSPEC wave_queue :
      *                      and the third is AZ (output).
      * @return  True if central point is closest point of approach.
      */
-    bool is_closest_ray(
-        size_t t1, size_t t2,
-        size_t de, size_t az,
-        const double &center,
-        double distance2[3][3][3] ) ;
+    bool is_closest_ray(size_t t1, size_t t2, size_t de, size_t az,
+                        const double& center, double distance2[3][3][3]);
 
     /**
      * Used by detect_eigenrays() to compute eigneray parameters and
      * add a new eigenray entry to the current target. Uses compute_offset()
-     * to find offsets in time, source D/E, and source AZ that minimize 
-     * the distance to the target. This routine uses these offsets and 
-     * a Taylor series for direction to compute the target D/E and AZ. 
+     * to find offsets in time, source D/E, and source AZ that minimize
+     * the distance to the target. This routine uses these offsets and
+     * a Taylor series for direction to compute the target D/E and AZ.
      *
      * Intensity is computed using either a classic ray theory or a hybrid
      * Gaussian beam summation across the wavefront. Attenuation is
@@ -565,10 +520,8 @@ class USML_DECLSPEC wave_queue :
      *                      and the third is AZ. Warning: this array
      *                      is modified during the computation.
      */
-    void build_eigenray(
-        size_t t1, size_t t2,
-        size_t de, size_t az,
-        double distance2[3][3][3] ) ;
+    void build_eigenray(size_t t1, size_t t2, size_t de, size_t az,
+                        double distance2[3][3][3]);
 
     /**
      * Find relative offsets and true distances in time, D/E, and AZ.
@@ -642,11 +595,11 @@ class USML_DECLSPEC wave_queue :
      *                      units (meters). Give the distance the same sign
      *                      as the relative offset. (output)
      */
-    void compute_offsets(
-        size_t t1, size_t t2,
-        size_t de, size_t az,
-        const double distance2[3][3][3], const c_vector<double,3>& delta,
-        c_vector<double,3>& offset, c_vector<double,3>& distance ) ;
+    void compute_offsets(size_t t1, size_t t2, size_t de, size_t az,
+                         const double distance2[3][3][3],
+                         const c_vector<double, 3>& delta,
+                         c_vector<double, 3>& offset,
+                         c_vector<double, 3>& distance);
 
     /**
      * Computes the Taylor series coefficients used to compute eigenrays.
@@ -665,9 +618,10 @@ class USML_DECLSPEC wave_queue :
      * @xref Weisstein, Eric W. "Hessian." From MathWorld--A Wolfram Web
      *       Resource. http://mathworld.wolfram.com/Hessian.html
      */
-    static void make_taylor_coeff(
-        const double value[3][3][3], const c_vector<double,3>& delta,
-        double& center, c_vector<double,3>& gradient, c_matrix<double,3,3>& hessian ) ;
+    static void make_taylor_coeff(const double value[3][3][3],
+                                  const c_vector<double, 3>& delta,
+                                  double& center, c_vector<double, 3>& gradient,
+                                  c_matrix<double, 3, 3>& hessian);
 
     /**
      * Computes a refined location and direction at the point of collision.
@@ -676,16 +630,16 @@ class USML_DECLSPEC wave_queue :
      *
      * @param de            D/E angle index number.
      * @param az            AZ angle index number.
-     * @param dtime         The distance (in time) from the "current"
+     * @param time_water    The distance (in time) from the "current"
      *                      wavefront to the collision.
      * @param position      Refined position of the collision (output).
      * @param ndirection    Normalized direction at the point
      *                      of collision (output).
      * @param speed         Speed of sound at the point of collision (output).
      */
-    void collision_location(
-        size_t de, size_t az, double dtime,
-        wposition1* position, wvector1* ndirection, double* speed ) const ;
+    void collision_location(size_t de, size_t az, double time_water,
+                            wposition1* position, wvector1* ndirection,
+                            double* speed) const;
 
     /**
      * Constructs an eigenverb from a collision with a boundary_model
@@ -722,9 +676,11 @@ class USML_DECLSPEC wave_queue :
      *         - \f$ \varphi_{n,m} \f$ = AZ launch angle for this ray;
      *         - \f$ \delta\mu_{n} \f$ = ray spacing in D/E direction;
      *         - \f$ \delta\varphi_{m} \f$ = ray spacing in AZ direction.
-     *         - \f$ A_{n,m} \f$ = surface area for this ray at 1 meter from source;
+     *         - \f$ A_{n,m} \f$ = surface area for this ray at 1 meter from
+     * source;
      *         - \f$ \Delta\mu_{n,m} \f$ = average height of this surface area;
-     *         - \f$ \Delta\varphi_{n,m} \f$ = average width of this surface area;
+     *         - \f$ \Delta\varphi_{n,m} \f$ = average width of this surface
+     * area;
      *
      * The eigenverb is the projection of a Gaussian intensity profile onto
      * the interface. This implementation computes the length and width of the
@@ -740,10 +696,12 @@ class USML_DECLSPEC wave_queue :
      *        - k = collision number;
      *        - \f$ L_{n,m,k} \f$ = Length of eigenverb along the interface;
      *        - \f$ W_{n,m,k} \f$ = Width of eigenverb along the interface;
-     *        - \f$ P_{n,m,k} \f$ = Total power in eigenverb integrated over interface.
+     *        - \f$ P_{n,m,k} \f$ = Total power in eigenverb integrated over
+     * interface.
      *
-     * If the eigenverb meets the intensity threshold, the eigenverb is passed to the collision
-     * listener who then calls its collector to save the eigenverb.
+     * If the eigenverb meets the intensity threshold, the eigenverb is passed
+     * to the collision listener who then calls its collector to save the
+     * eigenverb.
      *
      * Because this can be an expensive calculation, it includes logic to
      * exits immediately if any of the following conditions are met.
@@ -770,35 +728,31 @@ class USML_DECLSPEC wave_queue :
      * @param type          Interface number for the interface that generated
      *                         for this eigenverb.  See the eigenverb_collection
      *                         class header for documentation on interpreting
-     *                         this number. For some layers, you can also use the
-     *                         eigenverb::interface_type.
+     *                         this number. For some layers, you can also use
+     * the eigenverb::interface_type.
      */
-    void build_eigenverb(
-        size_t de, size_t az, double dt, double grazing,
-        double speed, const wposition1& position,
-        const wvector1& ndirection, size_t type ) ;
+    void build_eigenverb(size_t de, size_t az, double dt, double grazing,
+                         double speed, const wposition1& position,
+                         const wvector1& ndirection, size_t type);
 
     //**************************************************
     // wavefront_netcdf routines
 
-  private:
-
+   private:
     /**
      * The netCDF file used to record the wavefront log.
-     * Reset to NULL when not initialized.
+     * Reset to nullptr when not initialized.
      */
-    NcFile* _nc_file ;
+    NcFile* _nc_file;
 
     /** The netCDF variables used to record the wavefront log. */
-    NcVar *_nc_time, *_nc_latitude, *_nc_longitude, *_nc_altitude,
-          *_nc_surface, *_nc_bottom, *_nc_caustic, *_nc_upper,
-          *_nc_lower, *_nc_on_edge ;
+    NcVar *_nc_time, *_nc_latitude, *_nc_longitude, *_nc_altitude, *_nc_surface,
+        *_nc_bottom, *_nc_caustic, *_nc_upper, *_nc_lower, *_nc_on_edge;
 
     /** Current record number in netDCF file. */
-    long _nc_rec ;
+    long _nc_rec;
 
-  public:
-
+   public:
     /**
      * Initialize recording to netCDF wavefront log.
      * Opens the file and records initial conditions.
@@ -834,9 +788,9 @@ class USML_DECLSPEC wave_queue :
      *                  bottom:units = "count" ;
      *          short caustic(travel_time, source_de, source_az) ;
      *                  caustic:units = "count" ;
-     *          short upper_vertex(travel_time, source_de, source_az) ;
+     *          short upper(travel_time, source_de, source_az) ;
      *                  caustic:units = "count" ;
-     *          short lower_vertex(travel_time, source_de, source_az) ;
+     *          short lower(travel_time, source_de, source_az) ;
      *                  caustic:units = "count" ;
      *          byte on_edge(travel_time, source_de, source_az) ;
      *                  caustic:units = "bool" ;
@@ -858,20 +812,19 @@ class USML_DECLSPEC wave_queue :
      * @param   filename    Name of the file to write to disk.
      * @param   long_name   Optional global attribute for identifying data-set.
      */
-    void init_netcdf( const char* filename, const char* long_name=NULL ) ;
+    void init_netcdf(const char* filename, const char* long_name = nullptr);
 
     /**
      * Write current record to netCDF wavefront log.
      * Records travel time, latitude, longitude, altitude for
      * the current wavefront.
      */
-    void save_netcdf() ;
+    void save_netcdf();
 
     /**
      * Close netCDF wavefront log.
      */
-    void close_netcdf() ;
-
+    void close_netcdf();
 };
 
 /// @}

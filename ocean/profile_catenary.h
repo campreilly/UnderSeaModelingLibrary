@@ -1,13 +1,21 @@
-/** 
+/**
  * @file profile_catenary.h
  * Creates an analytic model for a deep duct catenary profile.
  */
 #pragma once
 
+#include <stddef.h>
 #include <usml/ocean/profile_model.h>
+#include <usml/types/wposition.h>
+#include <usml/types/wvector.h>
+#include <usml/usml_config.h>
+
+#include <boost/numeric/ublas/matrix.hpp>
 
 namespace usml {
 namespace ocean {
+
+using namespace usml::types;
 
 /// @ingroup profiles
 /// @{
@@ -29,25 +37,26 @@ namespace ocean {
  *          g1   = sound speed gradient scaling factor
  * </pre>
  *
- * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the 
- * Time Domain, Comprehensive Test Results", Alion Science and 
+ * @xref S.M. Reilly, M.S. Goodrich, "Geodetic Acoustic Rays in the
+ * Time Domain, Comprehensive Test Results", Alion Science and
  * Technology, Norfolk, VA, September, 2006.
  */
 class USML_DECLSPEC profile_catenary : public profile_model {
-
-    //**************************************************
-    // sound speed model
-
-    /** Speed of sound at the deep sound channel axis. */
-    double _soundspeed1 ;
-
-    /** Sound speed gradient scaling factor. */
-    double _gradient1 ;
-
-    /** Depth of the deep sound channel axis. */
-    double _depth1 ;
-
-  public:
+   public:
+    /**
+     * Default behavior for new profile models.
+     *
+     * @param c1        Speed of sound at the deep sound channel axis.
+     * @param g1        Sound speed gradient scaling factor.
+     * @param z1        Depth of the deep sound channel axis.
+     * @param attmodel  In-water attenuation model.  Defaults to Thorp.
+     */
+    profile_catenary(double c1, double g1, double z1,
+                     const attenuation_model::csptr& attmodel = nullptr)
+        : profile_model(attmodel),
+          _soundspeed1(c1),
+          _gradient1(g1),
+          _depth1(z1) {}
 
     /**
      * Compute the speed of sound and it's first derivatives at
@@ -57,30 +66,18 @@ class USML_DECLSPEC profile_catenary : public profile_model {
      * @param speed         Speed of sound (m/s) at each location (output).
      * @param gradient      Sound speed gradient at each location (output).
      */
-    virtual void sound_speed( const wposition& location, 
-        matrix<double>* speed, wvector* gradient ) ;
+    void sound_speed(const wposition& location, matrix<double>* speed,
+                     wvector* gradient) const override;
 
-    //**************************************************
-    // initialization
+   private:
+    /** Speed of sound at the deep sound channel axis. */
+    double _soundspeed1;
 
-    /**
-     * Default behavior for new profile models.
-     * 
-     * @param c1        Speed of sound at the deep sound channel axis.
-     * @param g1        Sound speed gradient scaling factor.
-     * @param z1        Depth of the deep sound channel axis.
-     * @param attmodel  In-water attenuation model.  Defaults to Thorp.
-     *                  The profile_model takes over ownship of this
-     *                  reference and deletes it as part of its destructor.
-     */
-    profile_catenary(
-        double c1, double g1, double z1, 
-        attenuation_model* attmodel=NULL 
-        ) : 
-        profile_model(attmodel),
-        _soundspeed1(c1), _gradient1(g1), _depth1(z1)
-        { }
+    /** Sound speed gradient scaling factor. */
+    double _gradient1;
 
+    /** Depth of the deep sound channel axis. */
+    double _depth1;
 };
 
 /// @}

@@ -1,17 +1,17 @@
 /**
  * @file ascii_arc_bathy.h
- * Extracts bathymetry data from from ASCII files with an ARC header.
+ * Extracts bathymetry data from ASCII files with an ARC header.
  */
 #pragma once
 
-#include <usml/ublas/ublas.h>
-#include <usml/types/types.h>
+#include <usml/types/gen_grid.h>
+#include <usml/usml_config.h>
 
 namespace usml {
 namespace ocean {
 
-using namespace usml::ublas ;
-using namespace usml::types ;
+using namespace usml::ublas;
+using namespace usml::types;
 
 /// @ingroup boundaries
 /// @{
@@ -45,13 +45,11 @@ using namespace usml::types ;
  * This format is one of the options used by the Geophysical Data System
  * (GEODAS) Search and Data Retrieval web site to distribute custom
  * bathymetry grids. The link is provided below:
- * http://www.ngdc.noaa.gov/mgg/gdas/gd_designagrid.html
+ * https://www.ngdc.noaa.gov/mgg/bathymetry/relief.html
  *
  */
-class USML_DECLSPEC ascii_arc_bathy : public data_grid<double,2> {
-
-  public:
-
+class USML_DECLSPEC ascii_arc_bathy : public gen_grid<2> {
+   public:
     /**
      * Load bathymetry from disk from ASCII file with an ARC header.
      * The entire data file is loaded.
@@ -59,9 +57,8 @@ class USML_DECLSPEC ascii_arc_bathy : public data_grid<double,2> {
      * @param  filename     Name of the ASCII ARC file to load.
      *
      */
-    ascii_arc_bathy( const char* filename ) ;
-
-} ;
+    ascii_arc_bathy(const char* filename);
+};
 
 /// @}
 }  // end of namespace ocean

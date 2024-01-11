@@ -35,9 +35,9 @@
 
     We've tested this process with:
     <ul>
-	<li> 64-bit CentOS 7 with gcc 4.8.5
-	<li> CMake 3.6.3
-    <li> Boost 1.66.0
+	<li> 64-bit Oracle Linux Server 9.3 with gcc 11.4.1 using C++ 2017 standard
+	<li> CMake 3.20.2
+    <li> Boost 1.82.0
 	<li> NetCDF C 4.3.3.1 and C++ 4.2
 	<li> Git GUI 1.8.3.1
     </ul>
@@ -63,52 +63,44 @@
 	     source, such as GitHub, make sure to rename the home directory <code>usml</code>.
 	</ul>
 	<p>
-     <li> Install CMake GUI, NetCDF Development, and Git GUI RPMs from the CentOS yum servers
+    <li> Install NetCDF Development, Git GUI, and CMake GUI RPMs from the Oracle Linux servers
 	<pre>
-	sudo yum install epel-release (to add EPEL repository to yum config)
-	sudo yum install cmake3-gui (to install CMake 3.6.3)
-	sudo yum install netcdf-cxx-devel netcdf-devel nco (to install NetCDF C 4.3.3.1 and C++ 4.2)
-	sudo yum install git-gui gitk (to install Git GUI 1.8.3.1 tools)
+    dnf install oracle-epel-release-el9     # to enable extra libraries like netCDF
+    dnf config-manager --set-enabled ol9_codeready_builder # to enable extra libraries like netCDF
+    dnf install netcdf-cxx-devel netcdf-devel nco # to access environmental data files
+    dnf install git-gui gitk aspell-en      # to install Git GUI tools
+    dnf install libcanberra-gtk2            # to fix bug in git
+    dnf install cmake cmake-gui             # platform independent build tools
+    dnf install clang-tools-extra           # for the clang tidying tools
+    dnf install texlive doxygen graphviz    # LaTex equations and UML images in doxygen
 	</pre>
-	<ul>
-     <li>If you do not have access to the CentOS yum servers, you can find the needed RPMs from the <a href="https://centos.pkgs.org">https://centos.pkgs.org</a> site.
-	</ul>
 	<p>
     <li> Install Boost library from source code.
 	<ul>
-	<li> We tested this with the distribution called <code>boost_1_66_0.tar.gz</code> from 
+	<li> We tested this with the distribution called <code>boost_1_82_0.tar.gz</code> from 
 	     <a href="http://www.boost.org">http://www.boost.org</a> and the
-	     install instructions from <a href="http://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html">
-	    http://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html</a>.
+	     install instructions from <a href="http://www.boost.org/doc/libs/1_82_0/more/getting_started/unix-variants.html">
+	    http://www.boost.org/doc/libs/1_82_0/more/getting_started/unix-variants.html</a>.
   	     To install this software in <code>/usr/local</code>, these instructions boil down to:
-	<ul>
-    <li>Download boost_1_66_0.tar.gz from http://www.boost.org to /usr/local/distrib
+    <li>Download boost_1_82_0.tar.gz from http://www.boost.org to /usr/local/distrib
     <li>Open a normal terminal window
 	<pre>
     cd /usr/local
-    tar -xvf distrib/boost_1_66_0.tar.gz
-    cd boost_1_66_0
-    ./bootstrap.sh (to configure gcc options)
-    ./b2 (to compile Boost libraries for static and dynamic)
-    sudo ./b2 install (to install boost libraries)
+    tar -xvf distrib/boost_1_82_0.tar.gz
+    cd boost_1_82_0
+    ./bootstrap.sh      # to configure gcc options
+    ./b2                # to compile Boost libraries for static and dynamic
+    sudo ./b2 install   # to install boost libraries
 	</pre>
     <li>You should see boost libraries in /usr/local/include and /usr/local/lib directories.
-	</ul>
-    <li> There is a bug in the Boost uBLAS library that vector and matrix scaling using 
-	    <code>operator/()</code> in Boost versions prior to 1.58.
-	<li> Some versions of Boost, using gcc at -O0 optimization levels, fail to properly chain multiple 
-	     boost::ublas operations into a single evaluation.  When this happens, the result is 
-	     equal to the first operation.  For this reason, we recommend using -O1 as the
-	     minimum optimization level.
-	</ul>
-	<p>
+    <p>
+    </ul>
     <li> Use cmake-gui to generate Unix Makefiles project
 	<ul>
 	<li> In the <code>cmake-gui</code> tool (example below), set the source directory to the home directory where you
-             installed the USML source code.  As suggested above source code could go in <code>~/Projects/usml</code>.
+         installed the USML source code.  As suggested above, source code could go in <code>~/Projects/usml</code>.
 	<li> Setup for an "out of source" build by setting the binaries directory to
-             something like the <code>~/Projects/usml-build</code> directory.  Using a binary
-             directory that is not outside of the source tree is strictly optional.
+         something like the <code>~/Projects/usml/build</code> directory.
 	<li> Use the <code>Configure</code> button to process the CMakeList file.
 	     Select the <code>Unix Makefile</code> generator from the pop-up menu.
 	<li> Change options to match your development requirements.  The default options
@@ -117,8 +109,10 @@
 	     options.  Hit the <code>Generate</code> button to create makefiles for your system.
 	 <li> At this point, you can close the cmake-gui tool.
 	</ul>
+    <p><img src="config/cmake-example.png" alt="cmake-gui example">
 	<p>
-    <li>Run the <code>make</code> utility from <code>~/Projects/usml-build</code> directory to compile both
+    <li>Run the <code>make</code> utility from <code>~/Projects/usml/build</code> directory to compile both
+        the shared libraries and the unit testing executables.
 	<p>
     <li> The <code>usml_test</code> regression test in this directory should run without errors.  
          <ul>
@@ -144,146 +138,6 @@
 	</ul>
     </ul>
 
-    <p><img src="config/cmake-example.png" alt="cmake-gui example">
-
-    <h2>Linux using Eclipse CDT4</h2>
-
-    This is almost identical to the setup for Unix Makefiles with some small exceptions.
-
-    <ul>
-    <li> Setting up for an "out of source" build is not optional.
-    <li> Select Eclipse CDT4 - Unix Makefiles when configuring CMake.
-    <li> Turn on <code>Advanced</code> options to see all of the CMake variables for Eclipse. 
-	<ul> 
-	<li> Check the <code>CMAKE_ECLIPSE_GENERATE_SOURCE_PROJECT</code> option.
-	</ul>
-    <li> To import this project into Eclipse:
-	<ul>
-	<li> Select </code>Import...</code> from the </code>File</code> menu.
-	<li> Select </code>Existing Projects into Workspace</code> under </code>General</code> folder.
-	<li> Select the parent of the </code>usml</code>, such as <code>~/Projects</code>
-	<li> Check the </code>usml-Release</code> and </code>usml-Source</code> 
-             projects and select </code>Finish</code>.
-	</ul>
-    <li>Select </code>Build All</code> from the </code>Build</code> menu to compile.
-    </ul>
-
-    <h2>Windows using Microsoft Visual C++</h2>
-
-    We've tested this process using Windows 7 with:
-    <ul>
-	<li> 64-bit Visual Studio 2017 Community Edition
-	<lI> CMake 3.11.0-rc1
-    <li> Boost 1.66.0
-	<li> NetCDF C 4.6.0
-	<li> Git GUI 2.16.1.4
-    </ul>
-    The steps that follow are the process we used to setup USML for a 64-bit Visual Studio 2017 development environment.
-    We expect your environment to be a little different, but this should get you started.
-    <ul>
-    <li> Download the source code distribution for USML
-	<ul>
-	<li> Extract USML from the distribution media.  On Windows, these consist of
-	<pre>
-        tar -xzf usml-src-#.#.#.zip
-        tar -xzf usml-doc-#.#.#.zip
-        tar -xzf usml-data-#.#.#.zip
-	</pre>
-	     where #.#.# is the version number to be installed.  
-	     In this example, we extracted them to <code>C:\Projects</code>, and this
-	     created a directory called <code>C:\Projects\usml</code>
-	 <li> The USML build process <b>absolutely</b> requires the home directory          
-              to be named <code>usml</code>.  If you are extracting the code from another
-              source, such as GitHub, make sure to rename the home directory to <code>usml</code>.
-	</ul>
-    <li> Download the binary distribution for CMake 3.11.0-rc1
-	<ul>
-    <li> CMake has some trouble resolving the Boost dependencie under Windows, and only the latest CMake builds
-            will work with the last Boost builds.
-            <ul>
-            <li> Boost 1.63 requires CMake 3.7 or newer
-            <li> Boost 1.64 requires CMake 3.8 or newer
-            <li> Boost 1.65 and 1.65.1 require CMake 3.9.3 or newer
-            <li> Boost 1.66 is supported by CMake 3.11 or newer
-            </ul>
-	<li> We used the Windows win64-x64 installer called <code>cmake-3.11.0-rc1-win64-x64.msi</code>, 
-	     from <a href="http://www.cmake.org/download">http://www.cmake.org/download</a>.
-	<li> Running this installer deposits the software
-	     in the <code>C:\Program Files\CMake</code> directory by default.
-	</ul>
-    <li> Install Boost library from source code.
-	<ul>
-	<li> We tested this with the distribution called <code>boost_1_66_0.tar.gz</code> from 
-	     <a href="http://www.boost.org">http://www.boost.org</a> and the
-	     install instructions from <a href="http://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html">
-	    http://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html</a>.
-  	     To install this software in <code>/usr/local</code>, these instructions boil down to:
-    <li>Download boost_1_66_0.zip from http://www.boost.org and unzip it into a local building area such as C:\Projects directory.
-    <li>Open a Windows command window
-	<pre>
-    cd \Projects\boost_1_66_0
-    bootstrap (to configure Visual Studio options)
-    b2 (to compile Boost static libraries for Release and Debug)
-    b2 install (to install boost libraries into C:\Boost)
-	</pre>
-    <li>You should see boost libraries in C:\Boost\include and C:\Boost\lib directories.
-	</ul>
-    <li> Download the pre-built Windows binaries for NetCDF-C 4.6.0,
-	<ul>
-	<li> We used the Win32 installer called <code>netCDF4.6.0-NC4-DAP-64.exe</code> from 
-	     <a href="http://www.unidata.ucar.edu/software/netcdf/docs/winbin.html">
-	     http://www.unidata.ucar.edu/software/netcdf/docs/winbin.html</a>
-	<li> Running this installer deposits the software in the 
-	     <code>C:\Program Files\netCDF 4.6.0</code> directory by default.
-	</ul>
-    <li> Add NetCDF and USML environment variables
-	<ul>
-	<li> Right click on Computer, select Properties <code>-></code> Advanced system settings <code>-></code> Environment Variables.
-	<li> Create new user variable <code>NETCDF_DIR=C:\Program Files\netCDF 4.6.0 </code> or equivalent.
-	<li> Create new user variable <code>USML_DIR</code> for the USML installation directory.
-	     We used <code>C:\local\usml</code> to avoid permission problems installing libraries
-          into <code>Program Files</code>,
-	<li> Finally, add <code>%BOOST_LIBRARY_DIR%;%NETCDF_DIR%\bin;%USML_DIR%\lib</code> to the <code>Path</code> variable.
-	</ul>
-    <li> Use cmake-gui to generate Visual Studio project
-	<ul>
-	<li> We set <code>Where is the source code:</code> to <code>C:\Projects\usml</code>.
-	<li> We set <code>Where to build the binaries:</code> to <code>C:\Projects\usml-build</code>
-	     to create an out-of-source build.
-	<li> Hit <code>Configure</code> button, select your version of Visual Studio.
-	<li> If status shows <code>Configuring done</code>, hit <code>Configure</code> again, then <code>Generate</code>.
-	</ul>
-    <li> Use Visual Studio to build project
-	<ul>
-	<li> Open the file <code>usml.sln</code>, in the build directory, using Visual Studio
-	<li> Select <code>Rebuild Solution</code> from <code>Build</code> menu.
-	</ul>
-    <li> Test the ability to run USML applications
-	<ul>
-	<li> Right click on the <code>usml_test</code> target and select
-             <code>Set as StartUp Project</code>.
-        <li> Select <code>Start Without Debugging</code> under the <code>Debug</code> menu.
-	<li> Test fully successful if <code>*** No errors detected</code> printed to screen.
-	</ul>
-    <li> If this test is successful, install the USML libraries
-        <ul>
-        <li> Select <code>Batch Build...</code> under the <code>Build</code> menu.
-        <li> Check the <code>Build</code> checkbox next to the <code>Debug</code> 
-             and <code>Release</code> versions of the <code>INSTALL</code> targets.
-	<li> Click on the <code>Build</code> button to compile and deploy these 
-             releases into the directory defined by the <code>USML_DIR</code> prefix.
-	    <ul>
-            <li> USML header files are written to <code>&ltprefix&gt/include/usml</code>
-            <li> USML libraries are written to <code>&ltprefix&gt/lib</code>
-            <li> CMake configuration files are written to <code>&ltprefix&gt/CMake</code>
-	    </ul>
-        <li> Building the <code>uninstall</code> target will remove these files.
-        <li> Note that if both Static and Dynamic libraries are created in the
-             same directory, the *.lib files will overwrite each other.
-
-        </ul>
-    </ul>
-
     <h2>Using USML with CMake</h2>
     USML does not require your project to use CMake.  However, CMake 
     configuration files are provided to automate the integration of USML,
@@ -294,7 +148,7 @@
     cmake_minimum_required( VERSION 2.6 )
     project( usml_example CXX )
 
-    find_package( USML 1.0 REQUIRED )
+    find_package( USML 3.0 REQUIRED )
     include_directories( ${USML_INCLUDES} )
     add_executable( example example.cc )
     target_link_libraries( example ${USML_LIBRARIES} )

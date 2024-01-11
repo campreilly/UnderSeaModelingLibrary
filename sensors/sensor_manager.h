@@ -1,146 +1,223 @@
 /**
  * @file sensor_manager.h
- * Container for all the sensor's in use by the USML.
+ * Stores and manages the active bistatic sensor pairs in use by the simulation.
  */
 #pragma once
 
+#include <bits/exception.h>
+#include <usml/managed/manager_template.h>
+#include <usml/managed/update_listener.h>
+#include <usml/sensors/sensor_model.h>
+#include <usml/sensors/sensor_pair.h>
+#include <usml/threads/read_write_lock.h>
+#include <usml/types/seq_vector.h>
 #include <usml/usml_config.h>
 
-#include <usml/threads/threads.h>
-#include <usml/sensors/sensor_model.h>
-#include <usml/sensors/sensor_params.h>
-#include <usml/sensors/sensor_pair_manager.h>
-#include <usml/sensors/source_params_map.h>
-#include <usml/sensors/receiver_params_map.h>
-#include <usml/sensors/sensor_map_template.h>
+#include <memory>
+#include <set>
 
 namespace usml {
 namespace sensors {
 
+using namespace usml::managed;
 using namespace usml::threads;
-
-class sensor;
+using namespace usml::types;
 
 /// @ingroup sensors
 /// @{
 
 /**
- * Container for all the sensor's in use by the USML. This class inherits from
- * the map_template class. This class implements the singleton GOF pattern.
- * The map stores pointers to sensor's and take's ownership of the pointers.
- * See usml/sensors/map_template.h A typedef of sensor_model::id_type has been defined
- * to allow for modification of the key of the map at a later time if needed.
+ * Stores and manages the bistatic sensor pairs in use by the simulation. Uses
+ * the is_source() and is_receiver() members of the sensor_model class to
+ * automatically identify all the cases where added sensors act as the source or
+ * receiver in a pair.
  */
-class USML_DECLSPEC sensor_manager {
-public:
+class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
+   public:
+    /// Exception thrown if frequencies member not set
+    struct freq_missing : public std::exception {
+        const char* what() const throw() {
+            return "frequencies member not set";
+        }
+    };
+    /// Exception thrown if time member not set
+    struct time_maximum_missing : public std::exception {
+        const char* what() const throw() {
+            return "time_maximum member not set";
+        }
+    };
 
     /**
-     * Singleton Constructor - Creates sensor_manager instance just once.
-     * Accessible everywhere.
-     * @return  pointer to the instance of the singleton sensor_manager
+     * Singleton constructor, implemented using double-checked locking
+     * pattern.
+     *
+     * @return Pointer to the singleton,
      */
     static sensor_manager* instance();
 
     /**
-     * Default destructor.
-     */
-    virtual ~sensor_manager();
-
-    /**
-     * Reset the sensor_manager singleton unique pointer to empty.
+     * Removes all sensors from the manager and destroys it.
+     * Also destroys the platform_manager as a side effect.
      */
     static void reset();
 
     /**
-     * Construct a new instance of a specific sensor type.
-     * Automatically invokes the sensor_pair_manager::add_sensor() on the
-     * newly created sensor. Note that the position and orientation are not
-     * valid until the update_sensor() is invoked for the first time.
+     * Frequencies over which propagation is computed (Hz). Making this common
+     * to all the sensors controlled by this manager avoids the problem of
+     * having to compute the frequency overlap between sources and receivers.
+     */
+    seq_vector::csptr frequencies() const;
+
+    /**
+     * Frequencies over which propagation is computed (Hz).
+     */
+    void frequencies(const seq_vector::csptr& freq);
+
+    /**
+     * Adds a sensor into the bistatic pair manager. Searches for all other
+     * sensors that can be paired with the new sensor. Uses the presence or
+     * absence of source and receiver beam patterns to determine if the new
+     * sensor has transmit/receive capabilities. Adds a monostatic pair if the
+     * new sensor can act as both a source and receiver.
      *
-     * @param sensorID        Identification used to find this sensor instance
-     *                         in sensor_manager.
-     * @param paramsID        Identification used to lookup sensor type data
-     *                         in source_params_map and receiver_params_map.
-     * @param description    Human readable name for this sensor instance.
-     * @return                 False if sensorID already exists.
+     * @param sensor		Reference to the sensor to add.
+     * @param listener      Optional update listener for sensor_pair objects.
+     * @throw freq_missing  If frequency not set before first sensor added.
+     * @throw time_maximum_missing  If time_maximum not set before sensor added.
      */
-    bool add_sensor(sensor_model::id_type sensorID, sensor_params::id_type paramsID,
-            const std::string& description = std::string());
+    void add_sensor(const sensor_model::sptr& sensor,
+                    update_listener<sensor_pair>* listener = nullptr);
 
     /**
-     * Removes an existing sensor instance by sensorID.
-     * Also deletes the sensor from the sensor_pair_manager.
+     * Removes a sensor into the bistatic pair manager. Searches for all
+     * pairs that have this sensor as a source or receiver.
      *
-     * @param sensorID        Identification used to find this sensor instance
-     *                         in sensor_manager.
-     * @return                 False if sensorID was not found.
+     * @param sensor		Reference to the sensor to remove.
+     * @param listener      Optional update listener for sensor_pair objects.
      */
-    bool remove_sensor(sensor_model::id_type sensorID);
+    void remove_sensor(const sensor_model::sptr& sensor,
+                       update_listener<sensor_pair>* listener = nullptr);
 
     /**
-     * Updates an existing sensor instance by sensorID.
-     * Also updates the sensor in the sensor_pair_manager.
+     * Find a specific sensor_model in the platform_manager. Manages casting the
+     * shared pointer into a form that supports access to sensor_model
+     * attributes and methods.
      *
-     * @param sensorID        Identification used to find this sensor instance
-     *                         in sensor_manager.
-     * @param position      Updated position data
-     * @param orientation    Updated orientation value
-     * @param force_update    When true, forces update without checking thresholds.
-     * @return                 False if sensorID was not found.
+     * @param keyID 	Identification used to find this sensor_model.
+     * @return    		nullptr if not found.
      */
-    bool update_sensor(sensor_model::id_type sensorID, const wposition1& position,
-            const orientation& orientation, bool force_update = false);
+    static typename sensor_model::sptr find_sensor(
+        typename sensor_model::key_type keyID);
 
     /**
-     * Finds the sensor_model associated with the keyID.
+     * Search all pairs for ones that have this sensor as a source.
      *
-     * @param     keyID     Key used to lookup the sensor_model.
-     * @return            Pointer to the sensor_model, NULL if not found.
+     * @param keyID		ID used to lookup sensor in platform_manager.
+     * @return 			List of pairs that include this sensor.
      */
-    sensor_model* find(sensor_model::id_type keyID) const {
-        return _map.find(keyID) ;
-    }
-
-
-private:
+    pair_list find_source(sensor_model::key_type keyID);
 
     /**
-     * Hide access to default constructor.
+     * Search all pairs for ones that have this sensor as a receiver.
+     *
+     * @param keyID		ID used to lookup sensor in platform_manager.
+     * @return 			List of pairs that include this sensor.
      */
-    sensor_manager() {
-    }
+    pair_list find_receiver(sensor_model::key_type keyID);
+
+   private:
+    /**
+     * Adds a monostatic sensor pair if new sensor being added is both a source
+     * and receiver. Called from sensor_manager::add_sensor().
+     *
+     * @param sensor 	Monostatic sensor to be added as a monostatic pair.
+     * @param listener	Update listener for sensor_pair objects.
+     */
+    void add_monostatic_pair(const sensor_model::sptr& sensor,
+                             update_listener<sensor_pair>* listener);
 
     /**
-     * Hide access to copy constructor
+     * Creates bistatic pairs between the new source and all bistatic receivers
+     * in the same multistatic group. Called from sensor_manager::add_sensor().
+     *
+     * @param source 		Multistatic source to be paired with valid
+     * receivers.
+     * @param multistatic 	Multistatic group for this sensor.
+     * @param listener		Update listener for sensor_pair objects.
      */
-    sensor_manager(sensor_manager const&);
+    void add_multistatic_source(const sensor_model::sptr& source,
+                                int multistatic,
+                                update_listener<sensor_pair>* listener);
 
     /**
-     * Hide access to assignment operator
+     * Creates bistatic pairs between the new receiver and all bistatic sources
+     * in the same multistatic group. Called from sensor_manager::add_sensor().
+     *
+     * @param receiver 		Multistatic receiver to be paired with valid
+     * sources.
+     * @param multistatic 	Multistatic group for this sensor.
+     * @param listener		Update listener for sensor_pair objects.
      */
-    sensor_manager& operator=(sensor_manager const&);
+    void add_multistatic_receiver(const sensor_model::sptr& receiver,
+                                  int multistatic,
+                                  update_listener<sensor_pair>* listener);
+
+    /**
+     * Removes a monostatic pair from the sensor_manager. Called from
+     * sensor_manager::remove_sensor().
+     *
+     * @param sensor 	Monostatic sensor to be removed.
+     * @param listener	Update listener for sensor_pair objects.
+     */
+    void remove_monostatic_pair(const sensor_model::sptr& sensor,
+                                update_listener<sensor_pair>* listener);
+
+    /**
+     * Removes all multistatic pairs with the provided source. Called from
+     * sensor_manager::remove_sensor().
+     *
+     * @param source 	Multistatic source to be removed.
+     * @param listener	Update listener for sensor_pair objects.
+     */
+    void remove_multistatic_source(const sensor_model::sptr& source,
+                                   update_listener<sensor_pair>* listener);
+
+    /**
+     * Removes all multistatic pairs with he provided receiver. Called from
+     * sensor_manager::remove_sensor().
+     *
+     * @param receiver 	Multistatic receiver to be removed.
+     * @param listener	Update listener for sensor_pair objects.
+     */
+    void remove_multistatic_receiver(const sensor_model::sptr& receiver,
+                                     update_listener<sensor_pair>* listener);
 
     /**
      * The singleton access pointer.
      */
-    static unique_ptr<sensor_manager> _instance;
+    static std::unique_ptr<sensor_manager> _instance;
+
+    /// Mutex for singleton access.
+    static read_write_lock _mutex;
+
+    /// Frequencies over which propagation is computed (Hz).
+    seq_vector::csptr _frequencies;
 
     /**
-     * The mutex for the singleton pointer.
+     * List of all active source sensor IDs.  Used by insert() to
+     * find the receivers that may need to be paired with each incoming
+     * source.
      */
-    static read_write_lock _instance_mutex;
+    std::set<int> _src_list;
 
     /**
-     * The mutex for adding and removing sensors in manager.
+     * List of all active receiver sensor IDs.  Used by insert() to
+     * find the sources that may need to be paired with each incoming
+     * receiver.
      */
-    mutable read_write_lock _manager_mutex;
-
-    /**
-     * Container used to store sensor_models and sensorID keys.
-     */
-    sensor_map_template<sensor_model::id_type, sensor_model*> _map ;
+    std::set<int> _rcv_list;
 };
 
 /// @}
-} // end of namespace sensors
-} // end of namespace usml
+}  // namespace sensors
+}  // namespace usml

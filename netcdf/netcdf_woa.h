@@ -5,6 +5,7 @@
 #pragma once
 
 #include <usml/netcdf/netcdf_profile.h>
+#include <usml/usml_config.h>
 
 namespace usml {
 namespace netcdf {
@@ -34,7 +35,7 @@ namespace netcdf {
  * of the products are:
  *
  * - Monthly: 15, 46, 75, 106, 136, 167, 197, 228, 259, 289, 320, 350 days.
- * - Seaonsal: 46, 136, 228, 320 days.
+ * - Seasonal: 46, 136, 228, 320 days.
  * - Yearly: 182 days.
  *
  * WOA latitude and longitudes are given relative to the center of the cell
@@ -46,9 +47,12 @@ namespace netcdf {
  * World Ocean Atlas 2009 and 2005 data sets. The WOA09 filenames for
  * the 1 degree version of each of these products take the form:
  *
- * - xxx_monthly_1deg.nc = Monthly averages for depths in the [0,1500] meter range.
- * - xxx_seasonal_1deg.nc = Seasonal averages for depths in the [0,5500] meter range.
- * - xxx_annual_1deg.nc = Yearly averages for depths in the [0,5500] meter range.
+ * - xxx_monthly_1deg.nc = Monthly averages for depths in the [0,1500] meter
+ * range.
+ * - xxx_seasonal_1deg.nc = Seasonal averages for depths in the [0,5500] meter
+ * range.
+ * - xxx_annual_1deg.nc = Yearly averages for depths in the [0,5500] meter
+ * range.
  *
  * where xxx = "salinity" or "temperature", and the analyzed climatologies
  * are the first 4-D grid (s_an or t_an). The WOA05 filenames for each of
@@ -63,12 +67,12 @@ namespace netcdf {
  * @xref National Oceanographic Data Center (NODC), "World Ocean
  * Atlas 2009 (WOA09) Product Documentation," National Oceanic and
  * Atmospheric Administration (NOAA), Silver Springs, MD, March 2010.
- * See http://www.nodc.noaa.gov/OC5/WOA09/pr_woa09.html for more information.
+ * See https://www.ncei.noaa.gov/products/world-ocean-atlas for more information.
  *
  * @xref National Oceanographic Data Center (NODC), "World Ocean
  * Atlas 2005 (WOA05) Product Documentation," National Oceanic and
  * Atmospheric Administration (NOAA), Silver Springs, MD, September 2006.
- * See http://www.nodc.noaa.gov/OC5/WOA05/pubwoa05.html for more information.
+ * See https://www.ncei.noaa.gov/products/world-ocean-atlas for more information.
  *
  * @xref Mark A. Collier, Paul J. Durack, "CSIRO netCDF version of the
  * NODC World Ocean Atlas 2005," Commonwealth Scientific and Industrial
@@ -76,16 +80,15 @@ namespace netcdf {
  * Australia, December 2006. Contact mark.collier@csiro.au for more information.
  */
 class USML_DECLSPEC netcdf_woa : public netcdf_profile {
-
-  public:
-
+   public:
     /**
      * Load deep and shallow parts of WOA ocean profile from disk.
      * Uses netcdf_profile.fill_missing() to automatically replace
      * missing (NaN) values with average data at each depth.  The
      * interpolation features of the data_grid superclass are setup to use
      * linear interpolation for latitude and longitude, but PCHIP
-     * interpolation for the depth axis.
+     * interpolation for the depth axis. Sets edge_limit to allow
+     * extrapolation in depth.
      *
      * Western hemisphere longitude can be expressed either as negative
      * values or values above 180 degrees. Output longitudes use the
@@ -102,16 +105,10 @@ class USML_DECLSPEC netcdf_woa : public netcdf_profile {
      * @param  north        Upper limit for the latitude axis (degrees).
      * @param  west         Lower limit for the longitude axis (degrees).
      * @param  east         Upper limit for the longitude axis (degrees).
-     * @param  earth_radius Depth correction term (meters).
-     *                      Set to zero if you want to avoid transforming
-     *                      profile into spherical earth coordinates.
      */
-    netcdf_woa(
-        const char* deep, const char* shallow, int month,
-        double south, double north, double west, double east,
-        double earth_radius=wposition::earth_radius ) ;
-
-} ;
+    netcdf_woa(const char* deep, const char* shallow, int month, double south,
+               double north, double west, double east);
+};
 
 /// @}
 }  // end of namespace netcdf

@@ -1,60 +1,46 @@
 /**
  * @example studies/reverberation/reverb_analytic_test.cc
  */
-#include <usml/ocean/ocean_shared.h>
-#include <usml/sensors/beams.h>
+#include <usml/beampatterns/bp_model.h>
+#include <usml/beampatterns/bp_omni.h>
+#include <usml/eigenverbs/eigenverbs.h>
+#include <usml/ocean/ocean.h>
+#include <usml/platforms/platform_manager.h>
 #include <usml/sensors/sensors.h>
-#include <usml/eigenverb/wavefront_generator.h>
-#include <list>
-#include <boost/progress.hpp>
-#include <boost/foreach.hpp>
+#include <usml/wavegen/wavegen.h>
+#include <usml/transmit/transmit_cw.h>
+#include <usml/transmit/transmit_model.h>
 
+#include <list>
+
+using namespace usml::eigenverbs;
+using namespace usml::ocean;
 using namespace usml::sensors;
-using namespace usml::eigenverb;
+using namespace usml::transmit;
+using namespace usml::wavegen;
 
 /**
  * This scenario compute reverberation for a scenario that has a simple
- * analytic solution.  This scenario has a monostatic sensor, a flat bottom,
- * and a constant sound speed.  Reverberation is only computed for the
- * ocean bottom.
+ * analytic solution. This scenario has a monostatic sensor, a flat bottom,
+ * and a constant sound speed. Reverberation is only computed for the
+ * ocean bottom, because that is the only interface given a scattering strength
+ * in define_ocean().
  */
 class reverb_analytic_test {
-
-public:
-
+   public:
     /**
      * Initializes the scenario, starts the reverberation calculation,
      * and waits for the results.
      */
     reverb_analytic_test() {
-
-        // define global control parameters
-
-        wavefront_generator::intensity_threshold = 170.0; //dB
-        wavefront_generator::time_maximum = 4.0;
-        wavefront_generator::time_step = 0.001;
-        wavefront_generator::extra_rays = 4;
-        wavefront_generator::max_bottom = 2;
-        wavefront_generator::max_surface = 2;
-
-        // execute scenario
-
-        define_ocean_characteristics();
-        define_sensor_characteristics();
-        deploy_sensor_instance();     // starts reverb calc `
-        wait_for_results();
+        define_ocean();
+        deploy_sensors();
+        analyze_results();
+        sensor_manager::reset();
         cout << "== test complete ==" << endl;
     }
 
-    /**
-     * Cleans up singletons so that valgrind can be used to find
-     * other memory leaks.
-     */
-    ~reverb_analytic_test() {
-    }
-
-private:
-
+   private:
     /**
      * Creates a simple ocean for comparison to the analytic solution
      * for monostatic reverberation defined in the reverb theory paper.
@@ -69,152 +55,108 @@ private:
      * bottom scattering:   Lambert -27 dB
      * </pre>
      *
-     * Generates the ocean model and then updates the ocean_shared singleton.
-     * Uses profile_lock and boundary_lock classes so that the new ocean
-     * can be shared by multiple threads.
+     * Generates the ocean model and then updates the ocean_shared
+     * singleton. Uses profile_lock and boundary_lock classes so that the
+     * new ocean can be shared by multiple threads.
      */
-    void define_ocean_characteristics() {
-        cout << "== define ocean characteristics ==" << endl;
-        profile_model* water = new profile_linear(1500.0);
-        water->attenuation(new attenuation_constant(0.0));
-        profile_lock* profile = new profile_lock(water);
+    static void define_ocean() {
+        cout << "== define ocean ==" << endl;
 
-        boundary_model* surf = new boundary_flat();
-        boundary_lock* surface = new boundary_lock(surf);
+        attenuation_model::csptr attn(new attenuation_constant(0.0));
+        profile_model::csptr profile(new profile_linear(1500.0, attn));
 
         boundary_model* btm = new boundary_flat(200.0);
-        btm->reflect_loss(
-                new reflect_loss_rayleigh(reflect_loss_rayleigh::SAND));
-        btm->scattering(new scattering_lambert());
-        boundary_lock* bottom = new boundary_lock(btm);
+        btm->reflect_loss(reflect_loss_model::csptr(
+            new reflect_loss_rayleigh(bottom_type_enum::sand)));
+        btm->scattering(scattering_model::csptr(new scattering_lambert()));
+        boundary_model::csptr bottom(btm);
 
-        ocean_shared::reference ocean(
-                new ocean_model(surface, bottom, profile));
+        boundary_model::csptr surface(new boundary_flat());
+        ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
         ocean_shared::update(ocean);
     }
 
     /**
-     * Defines the source and receiver parameters for a simple
-     * omni-direction sensor.
-     *
-     * <pre>
-     * multistatic:			false
-     * source strength:     200 dB
-     * pulse length:		250 msec
-     * reverb duration:		7.0 sec
-     * transmit frequency:  3 KHz
-     * src beam pattern:    omni directional
-     * rcv beam pattern: 	omni directional
-     * </pre>
-     *
-     * Generates the sensor parameter then updates the sensor parameter
-     * singletons.
-     */
-    void define_sensor_characteristics() {
-        cout << "== define sensor characteristics ==" << endl;
-        sensor_params::id_type paramsID = 1;
-        bool multistatic = false;
-        vector<double> source_level(1, 200.0);
-        seq_linear freq(3000.0, 1.0, 1);
-
-        beam_pattern_model::id_type omni = 0;
-        std::list<beam_pattern_model::id_type> beam_list;
-        beam_list.push_back(omni);
-
-        // define source parameters
-
-        source_params::reference source(
-                new source_params(paramsID, source_level, 0.250,// pulse_length
-                        7.0,                // reverb_duration
-                        3000, 3000.0,       // min, max active freq
-                        freq, beam_list, multistatic));
-        source_params_map::instance()->insert(source->paramsID(), source);
-
-        // define receiver parameters
-
-        std::list<beam_pattern_model::id_type> receiver_beams;
-        receiver_params::reference receiver(
-                new receiver_params(paramsID,
-                        3000.0, 3000.0,     // min, max active freq
-                        freq, beam_list, multistatic));
-        receiver_params_map::instance()->insert(receiver->paramsID(), receiver);
-    }
-
-    /**
      * Creates a new instance of the simple omni-direction sensor,
-     * and updates it with a position of (0.0,0.0,0.0).  The update
+     * and updates it with a position of (0.0,0.0,0.0). The update
      * causes reverberation calculations to start.
      */
-    void deploy_sensor_instance() {
-        cout << "== deploy sensor instance ==" << endl;
-        sensor_model::id_type sensorID = 1;
-        sensor_params::id_type paramsID = 1;
-        wposition1 pos(0.0, 0.0);        // locate on ocean surface
-        orientation orient(0.0, 0.0);	 // default orientation
+    static void deploy_sensors() {
+        cout << "== deploy sensors ==" << endl;
+        auto* sensor_mgr = sensor_manager::instance();
+        seq_vector::csptr freq(new seq_linear(3000.0, 1.0, 1));
+        sensor_mgr->frequencies(freq);
 
-        sensor_manager::instance()->add_sensor(sensorID, paramsID, "sensor1");
-        sensor_manager::instance()->update_sensor(sensorID, pos, orient, true);
+        const int platformID = 1;
+        sensor_model::sptr sensor(new sensor_model(platformID, "sensor"));
+        sensor->src_beam(0, bp_model::csptr(new bp_omni()));
+        sensor->rcv_beam(0, bp_model::csptr(new bp_omni()));
+        sensor->time_maximum(7.0);
+        sensor->compute_reverb(true);
+        sensor->fsample(10.0);
+
+        std::string type1("CW");
+        double duration = 0.1;
+        double fcenter = 1005.0;
+        double delay = 0.0;
+        double source_level = 200.0;
+        transmit_list transmits;
+        transmits.push_back(transmit_model::csptr(new transmit_cw(
+            type1, duration, fcenter, delay, source_level)));
+        sensor->transmit_schedule(transmits);
+
+        sensor_mgr->add_sensor(sensor);
+        sensor->update(0.0, platform_model::FORCE_UPDATE);
+
+        thread_task::wait();	// wait for acoustic processing to finish
     }
 
     /**
-     * Wait for the reverberation model to compute results.
      * Retrieve eigenrays and envelopes from sensor_pair_manager,
      * and write them to netCDF files for further analysis.
      */
-    void wait_for_results() {
-        cout << "== wait for results ==" << endl;
+    static void analyze_results() {
+        cout << "== analyze results ==" << endl;
+        const char* ncname = USML_TEST_DIR "/studies/reverberation/";
+        auto* sensor_mgr = sensor_manager::instance();
 
-        // wait for results
+        // write direct path collections to disk
 
-        boost::timer timer;
-        while (true) {
-            if (thread_task::num_active() == 0) break;
-            boost::this_thread::sleep(boost::posix_time::milliseconds(250));
-        }
-        cout << "waited for " << timer.elapsed() << " secs" << endl;
+        for (const auto& pair : sensor_mgr->list()) {
+            cout << "dirpaths=" << pair->dirpaths()->eigenrays().size()
+                 << endl;
+            if (pair->dirpaths() != nullptr) {
+                std::ostringstream filename;
+                filename << ncname << "dirpaths_" << pair->hash_key() << ".nc";
+                cout << "writing " << filename.str().c_str() << endl;
+                pair->dirpaths()->write_netcdf(filename.str().c_str());
+            }
+            if (pair->src_eigenverbs() != nullptr) {
+                std::ostringstream filename;
+                filename << ncname << "src_eigenverbs_" << pair->hash_key()
+                         << ".nc";
+                cout << "writing " << filename.str().c_str() << endl;
+                pair->src_eigenverbs()->write_netcdf(filename.str().c_str(), 0);
+            }
+            if (pair->rcv_eigenverbs() != nullptr) {
+                std::ostringstream filename;
+                filename << ncname << "rcv_eigenverbs_" << pair->hash_key()
+                         << ".nc";
+                pair->rcv_eigenverbs()->write_netcdf(filename.str().c_str(), 0);
+            }
+            if (pair->biverbs() != nullptr) {
+                std::ostringstream filename;
+                filename << ncname << "biverbs_" << pair->hash_key() << ".nc";
+                cout << "writing " << filename.str().c_str() << endl;
+                pair->biverbs()->write_netcdf(filename.str().c_str(), 0);
+            }
+            if (pair->rvbts() != nullptr) {
+				std::ostringstream filename;
+				filename << ncname << "rvbts_" << pair->hash_key() << ".nc";
+				cout << "writing to " << filename.str() << endl;
+				pair->rvbts()->write_netcdf(filename.str().c_str());
+            }
 
-        // build list of sensors for extracting data from sensor_pair_manager
-
-        sensor_pair_manager* sp_manager = sensor_pair_manager::instance();
-        sensor_model::id_type sensor_ids[] = { 1 };
-        xmitRcvModeType sensor_modes[] = { usml::sensors::BOTH };
-
-        sensor_data_map query;
-        for (int i = 0; i < sizeof(sensor_ids) / sizeof(sensor_model::id_type); ++i) {
-            sensor_data sensor;
-            sensor._sensorID = sensor_ids[i];
-            sensor._mode = sensor_modes[i];
-            sensor._position = wposition1(0.0, 0.0);
-            sensor._orient = orientation(0.0, 0.0);
-            query[sensor._sensorID] = sensor ;
-        }
-
-        // write fathometer data to netCDF file
-
-        fathometer_collection::fathometer_package fathometers =
-                sp_manager->get_fathometers(query);
-        const std::string ncname_fathometers = USML_STUDIES_DIR "/reverberation/fathometer_";
-        BOOST_FOREACH( fathometer_collection* model, fathometers ) {
-            sensor_model::id_type src_id = model->source_id();
-            sensor_model::id_type rcv_id = model->receiver_id();
-            std::stringstream ss;
-            ss << ncname_fathometers << "src_" << src_id << "_rcv_" << rcv_id << ".nc" ;
-            cout << "write to " << ss.str().c_str() << endl ;
-            model->write_netcdf( ss.str().c_str() );
-        }
-
-        // write envelope data to netCDF file
-
-        envelope_collection::envelope_package envelopes =
-                sp_manager->get_envelopes(query);
-        const std::string ncname_envelopes = USML_STUDIES_DIR "/reverberation/envelopes_";
-        BOOST_FOREACH( envelope_collection* collection, envelopes ) {
-            sensor_model::id_type src_id = collection->source_id();
-            sensor_model::id_type rcv_id = collection->receiver_id();
-            std::stringstream ss;
-            ss << ncname_envelopes << "src_" << src_id << "_rcv_" << rcv_id << ".nc" ;
-            cout << "write to " << ss.str().c_str() << endl ;
-            collection->write_netcdf( ss.str().c_str() ) ;
         }
     }
 };
@@ -222,7 +164,8 @@ private:
 /**
  * Command line interface.
  */
-int main(int argc, char* argv[]) {
+int main(int  /*argc*/, char*  /*argv*/[]) {
     reverb_analytic_test test;
+    cout << "== test complete ==" << endl;
     return 0;
 }

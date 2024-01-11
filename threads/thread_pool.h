@@ -4,9 +4,14 @@
  */
 #pragma once
 
+#include <usml/threads/read_write_lock.h>
 #include <usml/threads/thread_task.h>
-#include <boost/thread/thread.hpp>
-#include <boost/asio.hpp>
+#include <usml/usml_config.h>
+
+#include <atomic>
+#include <queue>
+#include <thread>
+#include <vector>
 
 namespace usml {
 namespace threads {
@@ -17,52 +22,52 @@ namespace threads {
 /**
  * A thread pool for executing tasks in a separate thread.  This scheme
  * allows the developer to limit the number of tasks running
- * simultaneously on a specific computer. Uses Boost's Asynchronous I/O
- * library (ASIO) to schedule the tasks.
+ * simultaneously on a specific computer. It also avoids the overhead
+ * associated with starting each task on its own thread.
  *
- * @xref ASIO Recipe for a thread pool for executing arbitrary tasks,
- *       http://think-async.com/Asio/Recipes
+ * @xref Vorbrodt's C++ Blog: Advanced thread pool
+ *       Posted on February 27, 2019 by Martin Vorbrodt
+ *       https://vorbrodt.blog/2019/02/27/advanced-thread-pool/
  */
 class USML_DECLSPEC thread_pool {
-
-private:
-
-    /** ASIO service that queues tasks for execution. */
-    boost::asio::io_service _scheduler;
-
-    /** ASIO service that runs the scheduler. */
-    boost::asio::io_service::work _scheduler_work;
-
-    /** Group of threads used by the scheduler to execute tasks. */
-    boost::thread_group _thread_group;
-
-public:
-
+   public:
     /**
      * Creates a new thread pool with a specific number of threads.
      *
      * @param num_threads   Number of threads used to execute tasks.
      */
-    thread_pool( size_t num_threads ) ;
+    thread_pool(unsigned num_threads = std::thread::hardware_concurrency());
 
     /**
      * Stop the scheduler and terminate the threads used to execute tasks.
      */
-    ~thread_pool() ;
+    ~thread_pool();
 
     /**
      * Adds a task to the scheduler.
      * This allows the calling program to invoke the abort() method,
      * on the shared reference, without fear that the scheduler has already
-     * disposed of the task object.  The task object is deleted when both the
+     * disposed of the task object. The task object is deleted when both the
      * calling program and the scheduler have de-referenced the shared object.
      *
      * @param task      Shared pointer to the task to be executed
      */
-    void run( thread_task::reference task ) ;
+    void run(const thread_task::ref& task);
+
+   private:
+    /// List of threads that execute the tasks.
+    std::vector<std::thread> _thread_list;
+
+    /// Queue of the tasks to execute.
+    std::queue<thread_task::ref> _task_queue;
+
+    /// Mutex used to lock updates to the the task queue.
+    read_write_lock _task_mutex;
+
+    /// Flag that controls execution of thread loop.
+    std::atomic<bool> _running = true;
 };
 
 /// @}
-} // end of namespace threads
-} // end of namespace usml
-
+}  // end of namespace threads
+}  // end of namespace usml

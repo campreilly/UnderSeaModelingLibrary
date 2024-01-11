@@ -4,10 +4,16 @@
  */
 #pragma once
 
+#include <stddef.h>
 #include <usml/types/data_grid.h>
+#include <usml/types/gen_grid.h>
+#include <usml/types/seq_vector.h>
+#include <usml/types/wposition.h>
 
 namespace usml {
 namespace ocean {
+
+using namespace usml::types;
 
 /// @ingroup profiles
 /// @{
@@ -31,9 +37,9 @@ namespace ocean {
  *      - S = salinity (ppt)
  *      - T = temperature (degrees C)
  *
- * Uses the GRID_INTERP_PCHIP interpolation in the depth direction
+ * Uses the interp_enum::pchip interpolation in the depth direction
  * to reduce sudden changes in profile slope.  The latitude and longitude
- * directions use GRID_INTERP_LINEAR (the default).  Values outside of the
+ * directions use interp_enum::linear (the default).  Values outside of the
  * latitude/longitude axes defined by the data grid at limited to the values
  * at the grid edge.
  *
@@ -54,10 +60,8 @@ namespace ocean {
  *       Speed of Sound in Sea-Water," interactive website at
  *       http://resource.npl.co.uk/acoustics/techguides/soundseawater/
  */
-class data_grid_mackenzie {
-
-  public:
-
+class data_grid_mackenzie : public gen_grid<3> {
+   public:
     //**************************************************
     // initialization
 
@@ -66,52 +70,44 @@ class data_grid_mackenzie {
      *
      * @param temperature   Ocean temperature profile (degrees C).
      * @param salinity      Ocean salinity profile (ppt).
-     * @param clean_up      Delete the data_grids passed in. Defaults
-     *                      to true and will delete them, if false
-     *                      the user is responsible for deleting them.
-     *
      */
-    static data_grid<double,3>* construct(
-        const data_grid<double,3>* temperature,
-        const data_grid<double,3>* salinity,
-        bool clean_up=true )
-    {
-        data_grid<double,3>* ssp = new data_grid<double,3>(*temperature,false) ;
-        ssp->interp_type(0,GRID_INTERP_PCHIP) ;
-        ssp->interp_type(1,GRID_INTERP_LINEAR) ;
-        ssp->interp_type(2,GRID_INTERP_LINEAR) ;
+    data_grid_mackenzie(data_grid<3>::csptr temperature,
+                        data_grid<3>::csptr salinity)
+        : gen_grid<3>(temperature->axis_list()) {
+        // build grid the same size as the temperature grid
 
-        size_t index[3] ;
-        for ( index[0]=0 ; index[0] < temperature->axis(0)->size() ; ++index[0] ) {
-            for ( index[1]=0 ; index[1] < temperature->axis(1)->size() ; ++index[1] ) {
-                for ( index[2]=0 ; index[2] < temperature->axis(2)->size() ; ++index[2] ) {
+        for (int dim = 0; dim < 3; ++dim) {
+            this->interp_type(dim, temperature->interp_type(dim));
+            this->edge_limit(dim, temperature->edge_limit(dim));
+        }
 
+        // compute sound speed for each temperature, salinity, and depth
+
+        size_t index[3];
+        for (index[0] = 0; index[0] < temperature->axis(0).size(); ++index[0]) {
+            for (index[1] = 0; index[1] < temperature->axis(1).size();
+                 ++index[1]) {
+                for (index[2] = 0; index[2] < temperature->axis(2).size();
+                     ++index[2]) {
                     // extract depth, temperature, and salinity at this point
 
                     double D = wposition::earth_radius -
-                               (*temperature->axis(0))[ index[0] ] ;
-                    double T = temperature->data( index ) ;
-                    double S = salinity->data( index ) ;
+                               temperature->axis(0)[index[0]];
+                    double T = temperature->data(index);
+                    double S = salinity->data(index);
 
                     // compute sound speed
 
-                    double c =  1448.96 + 4.591 * T - 5.304e-2 * T*T
-                             + 2.374e-4 * T*T*T
-                             + ( 1.340 - 1.025e-2 * T ) * ( S - 35.0 )
-                             + 1.630e-2 * D + 1.675e-7 * D*D
-                             - 7.139e-13 * T * D*D*D ;
-
-                    ssp->data( index, c ) ;
+                    double c = 1448.96 + 4.591 * T - 5.304e-2 * T * T +
+                               2.374e-4 * T * T * T +
+                               (1.340 - 1.025e-2 * T) * (S - 35.0) +
+                               1.630e-2 * D + 1.675e-7 * D * D -
+                               7.139e-13 * T * D * D * D;
+                    setdata(index, c);
                 }
             }
         }
-        if( clean_up ) {
-            delete temperature ;
-            delete salinity ;
-        }
-        return ssp ;
     }
-
 };
 
 /// @}

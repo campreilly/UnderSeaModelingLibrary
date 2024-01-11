@@ -24,6 +24,10 @@
 %       caustic             caustic reflections (count)
 %       upper               bottom reflections (count)
 %       lower               surface reflections (count)
+%       bounding_north      north edge of bounding box (degrees_north)
+%       bounding_south      south edge of bounding box (degrees_north)
+%       bounding_east       east edge of bounding box (degrees_north)
+%       bounding_west       west edge of bounding box (degrees_north)
 %
 function eigenverbs = load_eigenverbs( filename )
 
@@ -49,6 +53,10 @@ bottom = ncread(filename,'bottom') ;
 caustic = ncread(filename,'caustic') ;
 upper = ncread(filename,'upper') ;
 lower = ncread(filename,'lower') ;
+bounding_north = ncread(filename,'bounding_north') ;
+bounding_south = ncread(filename,'bounding_south') ;
+bounding_east = ncread(filename,'bounding_east') ;
+bounding_west = ncread(filename,'bounding_west') ;
 
 % translate data into structure
 
@@ -73,7 +81,11 @@ for i=1:length(travel_time)
         'bottom', bottom(i), ...
         'caustic', caustic(i), ...
         'upper', upper(i), ...
-        'lower', lower(i) ) ;
+        'lower', lower(i), ...
+        'bounding_north', bounding_north(i), ...
+        'bounding_south', bounding_south(i), ...
+        'bounding_east', bounding_east(i), ...
+        'bounding_west', bounding_west(i) ) ;
 end
 
 end

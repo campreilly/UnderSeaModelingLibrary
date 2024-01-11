@@ -1,14 +1,16 @@
 /**
  * @example waveq3d/test/refraction_test.cc
  */
-#include <boost/test/unit_test.hpp>
+#include <usml/ocean/ocean.h>
+#include <usml/types/types.h>
 #include <usml/waveq3d/waveq3d.h>
-#include <usml/types/seq_vector.h>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
 
-BOOST_AUTO_TEST_SUITE(refraction_test)
+#include <boost/test/unit_test.hpp>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+
+BOOST_AUTO_TEST_SUITE(waveq3d_refraction_test)
 
 using namespace boost::unit_test;
 using namespace usml::waveq3d;
@@ -18,9 +20,9 @@ using namespace usml::waveq3d;
  * @{
  */
 
-static const double time_step = 0.1 ;
-static const seq_log freq(10e3, 10e3, 1);
+static const double time_step = 0.1;
 
+// clang-format off
 /**
  * In this test, an isovelocity ocean (1500 m/s) is used to verify the
  * accuracy of those terms the ray equations that do not depend on the
@@ -42,7 +44,7 @@ static const seq_log freq(10e3, 10e3, 1);
  * (Cartesian) coordinates and then measuring the distance from the analytic
  * form of straight line, as a function of time, in the geocentric system.
  * The equations for this comparison are
- *  * \f[
+ * \f[
  *          x(t) = r(t) \sin{\theta(t)} \cos{\phi(t)} ,
  * \f]\f[
  *          y(t) = r(t) \sin{\theta(t)} \sin{\phi(t)} ,
@@ -84,24 +86,26 @@ static const seq_log freq(10e3, 10e3, 1);
  * Time Domain, Comprehensive Test Results", Alion Science and Technology,
  * Norfolk, VA, September, 2006.
  */
+// clang-format on
 BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
     cout << "=== refraction_test: refraction_isovelocity ===" << endl;
 
     // initialize propagation model
 
     const double c0 = 1500.0;
-    profile_model* profile = new profile_linear(c0);
-    boundary_model* surface = new boundary_flat();
-    boundary_model* bottom = new boundary_flat(5000.0);
-    ocean_model ocean(surface, bottom, profile);
+    profile_model::csptr profile(new profile_linear(c0));
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(1000.0));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
 
     wposition1 pos(45.0, -45.0, -1000.0);
-    seq_linear de(0.0, 1.0, 1); // along the tangent plane
-    seq_linear az(0.0, 30.0, 90.0); // due north, east, and in between
+    seq_vector::csptr de(new seq_linear(0.0, 1.0, 1));
+    seq_vector::csptr az(new seq_linear(0.0, 30.0, 90.0));
+    seq_vector::csptr freq(new seq_log(10e3, 1.0, 1));
 
     wave_queue wave(ocean, freq, pos, de, az, time_step);
     cout << "time step = " << time_step << " secs"
-         << " freq = " << freq(0) << " Hz" << endl;
+         << " freq = " << (*freq)(0) << " Hz" << endl;
 
     // compute initial position in cartesian coordinates
 
@@ -117,9 +121,9 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
 
     // compute initial direction in cartesian coordinates.
 
-    vector<double> east = az;
+    vector<double> east = az->data();
     east = sin(to_radians(east));
-    vector<double> north = az;
+    vector<double> north = az->data();
     north = cos(to_radians(north));
 
     // assume initial "up" coordinate is always zero
@@ -138,18 +142,16 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
     os << "time,x,y,z,d";
-    for (size_t n = 0; n < az.size(); ++n) {
-        os << ",x" << az(n)
-           << ",y" << az(n)
-           << ",z" << az(n)
-           << ",d" << az(n);
+    for (size_t n = 0; n < az->size(); ++n) {
+        os << ",x" << (*az)(n) << ",y" << (*az)(n) << ",z" << (*az)(n) << ",d"
+           << (*az)(n);
     }
     os << endl;
 
     // compute modeled and analytic depth until surface is hit
 
     double max_error = 0.0;
-    while (wave.curr()->position.altitude(0,0) < -10.0) {
+    while (wave.curr()->position.altitude(0, 0) < -10.0) {
         double time = wave.time();
 
         // compute analytic solution for (x,y,z) vs. time
@@ -163,15 +165,14 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
 
         // compute analytic solution for depth vs. time
 
-        double d_analytic = r0 / cos(atan(c0 * time / r0))
-                - wposition::earth_radius;
+        double d_analytic =
+            r0 / cos(atan(c0 * time / r0)) - wposition::earth_radius;
 
         // check answer and write to spreadsheet file
 
-        os << time << "," << x(0) << "," << y(0) << "," << z(0)
-                << "," << d_analytic;
-        for (size_t n = 0; n < az.size(); ++n) {
-
+        os << time << "," << x(0) << "," << y(0) << "," << z(0) << ","
+           << d_analytic;
+        for (size_t n = 0; n < az->size(); ++n) {
             // decode model's solution for (x,y,z) vs. time
 
             rho = wave.curr()->position.rho(0, n);
@@ -203,7 +204,6 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
             max_error = max(max_error, fabs(dd));
             os << "," << alt_model;
             BOOST_CHECK(fabs(dd) < 1e-3);
-
         }
         os << endl;
 
@@ -215,6 +215,7 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
          << "max error = " << max_error << " meters" << endl;
 }
 
+// clang-format off
 /**
  * In this test, an ocean with a small amount of downward refraction is used
  * to verify the model's ability to follow great circle routes along the
@@ -236,7 +237,7 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
  *
  * Four horizontal rays are launched from 45N 45W, at a depth of 1000 meters,
  * with azimuths of 0, 30, 60, and 90 degrees, for 1000 seconds, with
- * a time step of 100 milliseconds.  The accuracy of the greate circle routes
+ * a time step of 100 milliseconds.  The accuracy of the great circle routes
  * is computed by converting the latitude, longitude, and altitude of each
  * ray back into a great circle azimuth at the point of origin
  * \f[
@@ -260,39 +261,43 @@ BOOST_AUTO_TEST_CASE(refraction_isovelocity) {
  * @xref E. Williams, "Aviation Formulary V1.43",
  * http://williams.best.vwh.net/avform.htm , July 2010.
  */
+// clang-format on
 BOOST_AUTO_TEST_CASE(refraction_great_circle) {
     cout << "=== refraction_test: refraction_great_circle ===" << endl;
 
     // initialize propagation model
 
     const double c0 = 1500.0;
-    profile_model* profile = new profile_linear(c0);
-    boundary_model* surface = new boundary_flat();
-    boundary_model* bottom = new boundary_flat(5000.0);
-    ocean_model ocean(surface, bottom, profile);
-    profile->flat_earth(true);
+
+    profile_model* ssp = new profile_linear(c0);
+    ssp->flat_earth(true);
+    profile_model::csptr profile(ssp);
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(1000.0));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
 
     double lat1 = 45.0;
     double lng1 = -45.0;
     double alt1 = -1000.0;
-
     wposition1 pos(lat1, lng1, alt1);
-    seq_linear de(0.0, 1.0, 1);
-    seq_linear az(0.0, 30.0, 90.0); // due north, east, and in between
+    seq_vector::csptr de(new seq_linear(0.0, 1.0, 1));
+    seq_vector::csptr az(new seq_linear(0.0, 30.0, 90.0));
+    seq_vector::csptr freq(new seq_log(10e3, 1.0, 1));
 
     wave_queue wave(ocean, freq, pos, de, az, time_step);
     cout << "time step = " << time_step << " secs"
-         << " freq = " << freq(0) << " Hz" << endl;
+         << " freq = " << (*freq)(0) << " Hz" << endl;
 
     // initialize output to spreadsheet file
 
-    const char* name = USML_TEST_DIR "/waveq3d/test/refraction_great_circle.csv";
+    const char* name =
+        USML_TEST_DIR "/waveq3d/test/refraction_great_circle.csv";
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
     os << "time";
-    for (size_t n = 0; n < az.size(); ++n) {
-        os << ",lat" << az(n) << ",long" << az(n)
-           << ",dalt" << az(n) << ",dbear" << az(n);
+    for (size_t n = 0; n < az->size(); ++n) {
+        os << ",lat" << (*az)(n) << ",long" << (*az)(n) << ",dalt" << (*az)(n)
+           << ",dbear" << (*az)(n);
     }
     os << endl;
 
@@ -304,7 +309,6 @@ BOOST_AUTO_TEST_CASE(refraction_great_circle) {
     double max_d_tc1 = 0.0;
 
     while (wave.time() < 1000.0) {
-
         // move wavefront to next time step
 
         wave.step();
@@ -312,8 +316,7 @@ BOOST_AUTO_TEST_CASE(refraction_great_circle) {
 
         // check answer and write to spreadsheet file
 
-        for (size_t n = 0; n < az.size(); ++n) {
-
+        for (size_t n = 0; n < az->size(); ++n) {
             // compute altitude: is it constant?
 
             double alt2 = wave.curr()->position.altitude(0, n);
@@ -322,29 +325,27 @@ BOOST_AUTO_TEST_CASE(refraction_great_circle) {
 
             // compute great circle bearing to origin: is it constant?
 
-            double lat2 = wave.curr()->position.latitude(0, n)
-                    * M_PI / 180;
-            double lng2 = wave.curr()->position.longitude(0, n)
-                    * M_PI / 180;
+            double lat2 = wave.curr()->position.latitude(0, n) * M_PI / 180;
+            double lng2 = wave.curr()->position.longitude(0, n) * M_PI / 180;
 
             double tc1 = -atan2(sin(lng1 - lng2) * cos(lat2),
-                    cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lng1 - lng2))
-                    * 180 / M_PI;
-            double d_tc1 = tc1 - az(n);
+                                cos(lat1) * sin(lat2) -
+                                    sin(lat1) * cos(lat2) * cos(lng1 - lng2)) *
+                         180 / M_PI;
+            double d_tc1 = tc1 - (*az)(n);
             max_d_tc1 = max(max_d_tc1, fabs(d_tc1));
 
-            os << "," << wave.curr()->position.latitude(0, n)
-               << "," << wave.curr()->position.longitude(0, n)
-               << "," << d_alt << "," << d_tc1;
+            os << "," << wave.curr()->position.latitude(0, n) << ","
+               << wave.curr()->position.longitude(0, n) << "," << d_alt << ","
+               << d_tc1;
             BOOST_CHECK(fabs(d_alt) < 1e-3);
             BOOST_CHECK(fabs(d_tc1) < 1e-3);
         }
         os << endl;
     }
     cout << "wave propagates for " << wave.time() << " secs" << endl
-         << "max error = " << max_d_alt << " meters and "
-         << max_d_tc1 << " degrees" << endl;
-
+         << "max error = " << max_d_alt << " meters and " << max_d_tc1
+         << " degrees" << endl;
 }
 
 /**
@@ -379,26 +380,28 @@ BOOST_AUTO_TEST_CASE(refraction_linear) {
     // initialize propagation model
 
     const double angle = 0.0;
-    const double ang = to_radians( angle );
+    const double ang = to_radians(angle);
     const double z0 = 1000.0;
     const double c0 = 1500.0;
     const double g0 = 0.016;
     const double a0 = cos(ang) / (c0 + g0 * z0);
     const double sinT = sin(ang);
 
-    profile_model* profile = new profile_linear(c0, g0);
-    boundary_model* surface = new boundary_flat();
-    boundary_model* bottom = new boundary_flat(5000.0);
-    ocean_model ocean(surface, bottom, profile);
-    profile->flat_earth(true);
+    profile_model* ssp = new profile_linear(c0, g0);
+    ssp->flat_earth(true);
+    profile_model::csptr profile(ssp);
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(5000.0));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
 
     wposition1 pos(0.0, 0.0, -z0);
-    seq_linear de(angle, 0.0, 1);
-    seq_linear az(90.0, 0.0, 1);
+    seq_vector::csptr de(new seq_linear(angle, 0.0, 1));
+    seq_vector::csptr az(new seq_linear(90.0, 0.0, 1));
+    seq_vector::csptr freq(new seq_log(10e3, 1.0, 1));
 
     wave_queue wave(ocean, freq, pos, de, az, time_step);
     cout << "time step = " << time_step << " secs"
-         << " freq = " << freq(0) << " Hz" << endl;
+         << " freq = " << (*freq)(0) << " Hz" << endl;
 
     // initialize output to spreadsheet file
 
@@ -406,12 +409,23 @@ BOOST_AUTO_TEST_CASE(refraction_linear) {
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
 
-    os << "t," << "r," << "theta," << "phi," << "z," << "rng(m),"
-       << "rd," << "thd," << "phid,"
-       << "alpha," << "beta," << "gamma,"
-       << "alphad," << "betad," << "gammad,"
-       << "c," << "dcdz,"
-       << endl;
+    os << "t,"
+       << "r,"
+       << "theta,"
+       << "phi,"
+       << "z,"
+       << "rng(m),"
+       << "rd,"
+       << "thd,"
+       << "phid,"
+       << "alpha,"
+       << "beta,"
+       << "gamma,"
+       << "alphad,"
+       << "betad,"
+       << "gammad,"
+       << "c,"
+       << "dcdz," << endl;
     os << std::scientific << std::showpoint << std::setprecision(18);
 
     // compute modeled and analytic depth until surface is hit
@@ -426,37 +440,34 @@ BOOST_AUTO_TEST_CASE(refraction_linear) {
     double z = -z0;
 
     while (wave.time() < 9.0) {
-
         // compute analytic solution for depth vs. range
 
-        r += 0.5 * (wave.curr()->position.rho(0,0) + prev.rho(0,0))
-                * (wave.curr()->position.phi(0,0) - prev.phi(0,0));
+        r += 0.5 * (wave.curr()->position.rho(0, 0) + prev.rho(0, 0)) *
+             (wave.curr()->position.phi(0, 0) - prev.phi(0, 0));
         double agr = a0 * g0 * r + sinT;
         z = -(sqrt(1.0 - agr * agr) / a0 - c0) / g0;
         prev = wave.curr()->position;
 
         // write to spreadsheet file
 
-        os << wave.time() << ','
-           << wave.curr()->position.rho(0,0) << ','
-           << wave.curr()->position.theta(0,0) << ','
-           << wave.curr()->position.phi(0,0) << ','
-           << z << ',' << r << ','
-           << wave.curr()->pos_gradient.rho(0,0) << ','
-           << wave.curr()->pos_gradient.theta(0,0) << ','
-           << wave.curr()->pos_gradient.phi(0,0) << ','
-           << wave.curr()->ndirection.rho(0,0) << ','
-           << wave.curr()->ndirection.theta(0,0) << ','
-           << wave.curr()->ndirection.phi(0,0) << ','
-           << wave.curr()->ndir_gradient.rho(0,0) << ','
-           << wave.curr()->ndir_gradient.theta(0,0) << ','
-           << wave.curr()->ndir_gradient.phi(0,0) << ','
-           << wave.curr()->sound_speed(0,0) << ','
-           << wave.curr()->sound_gradient.rho(0,0) << endl;
+        os << wave.time() << ',' << wave.curr()->position.rho(0, 0) << ','
+           << wave.curr()->position.theta(0, 0) << ','
+           << wave.curr()->position.phi(0, 0) << ',' << z << ',' << r << ','
+           << wave.curr()->pos_gradient.rho(0, 0) << ','
+           << wave.curr()->pos_gradient.theta(0, 0) << ','
+           << wave.curr()->pos_gradient.phi(0, 0) << ','
+           << wave.curr()->ndirection.rho(0, 0) << ','
+           << wave.curr()->ndirection.theta(0, 0) << ','
+           << wave.curr()->ndirection.phi(0, 0) << ','
+           << wave.curr()->ndir_gradient.rho(0, 0) << ','
+           << wave.curr()->ndir_gradient.theta(0, 0) << ','
+           << wave.curr()->ndir_gradient.phi(0, 0) << ','
+           << wave.curr()->sound_speed(0, 0) << ','
+           << wave.curr()->sound_gradient.rho(0, 0) << endl;
 
         // check answer
 
-        double d_alt = fabs(wave.curr()->position.altitude(0,0) - z);
+        double d_alt = fabs(wave.curr()->position.altitude(0, 0) - z);
         max_error = max(max_error, d_alt);
         BOOST_CHECK(d_alt < 1e-3);
 
@@ -465,7 +476,6 @@ BOOST_AUTO_TEST_CASE(refraction_linear) {
         wave.step();
     }
     cout << "max error = " << max_error << " meters" << endl;
-
 }
 
 /**
@@ -497,7 +507,7 @@ BOOST_AUTO_TEST_CASE(refraction_linear) {
  *      - \f$ g_0 \f$ =  sound speed gradient at z=0.
  *      - \f$ a_0 \f$ = Snell coefficient = \f$ cos(\delta_0)/c_0 \f$
  *
- * An exception is thrown if the modeled position is not within 200 millimeters
+ * An exception is thrown if the modeled position is not within 2 meters
  * of the analytic result.  Note that this threshold is much different
  * than the linear case where the maximum error is significantly
  * less than 1 millimeter.  The maximum error shrinks to about 14 millimeters
@@ -516,25 +526,27 @@ BOOST_AUTO_TEST_CASE(refraction_n2_linear) {
     // initialize propagation model
 
     const double angle = 50.0;
-    const double ang = to_radians( angle ) ;
+    const double ang = to_radians(angle);
     const double z0 = 1000.0;
     const double c0 = 1550.0;
-    const double g0 = 1.2 ;
-    const double a0 = cos(ang) / (c0 / sqrt(1.0 + 2*g0/c0 * z0));
+    const double g0 = 1.2;
+    const double a0 = cos(ang) / (c0 / sqrt(1.0 + 2 * g0 / c0 * z0));
 
-    profile_model* profile = new profile_n2(c0, g0) ;
-    boundary_model* surface = new boundary_flat();
-    boundary_model* bottom = new boundary_flat(5000.0);
-    ocean_model ocean(surface, bottom, profile);
-    profile->flat_earth(true);
+    profile_model* ssp = new profile_n2(c0, g0);
+    ssp->flat_earth(true);
+    profile_model::csptr profile(ssp);
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(5000.0));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
 
     wposition1 pos(0.0, 0.0, -z0);
-    seq_linear de(angle, 0.0, 1);
-    seq_linear az(90.0, 0.0, 1);
+    seq_vector::csptr de(new seq_linear(angle, 0.0, 1));
+    seq_vector::csptr az(new seq_linear(90.0, 0.0, 1));
+    seq_vector::csptr freq(new seq_log(10e3, 1.0, 1));
 
     wave_queue wave(ocean, freq, pos, de, az, time_step);
     cout << "time step = " << time_step << " secs"
-         << " freq = " << freq(0) << endl;
+         << " freq = " << (*freq)(0) << endl;
 
     // initialize output to spreadsheet file
 
@@ -542,12 +554,23 @@ BOOST_AUTO_TEST_CASE(refraction_n2_linear) {
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
 
-    os << "t," << "r," << "theta," << "phi," << "z," << "rng(m),"
-       << "rd," << "thd," << "phid,"
-       << "alpha," << "beta," << "gamma,"
-       << "alphad," << "betad," << "gammad,"
-       << "c," << "dcdz,"
-       << endl;
+    os << "t,"
+       << "r,"
+       << "theta,"
+       << "phi,"
+       << "z,"
+       << "rng(m),"
+       << "rd,"
+       << "thd,"
+       << "phid,"
+       << "alpha,"
+       << "beta,"
+       << "gamma,"
+       << "alphad,"
+       << "betad,"
+       << "gammad,"
+       << "c,"
+       << "dcdz," << endl;
     os << std::scientific << std::showpoint << std::setprecision(18);
 
     // compute modeled and analytic depth until max range hit
@@ -566,44 +589,41 @@ BOOST_AUTO_TEST_CASE(refraction_n2_linear) {
 
         // compute analytic solution for depth vs. range
 
-        r += 0.5 * (wave.curr()->position.rho(0,0) + prev.rho(0,0))
-                * (wave.curr()->position.phi(0,0) - prev.phi(0,0));
-        z = -(2*g0/c0 / (4.0 * a0 * a0 * c0 * c0) * r * r
-                - r * tan(ang) + z0);
+        r += 0.5 * (wave.curr()->position.rho(0, 0) + prev.rho(0, 0)) *
+             (wave.curr()->position.phi(0, 0) - prev.phi(0, 0));
+        z = -(2 * g0 / c0 / (4.0 * a0 * a0 * c0 * c0) * r * r - r * tan(ang) +
+              z0);
         prev = wave.curr()->position;
 
         // write to spreadsheet file
 
-        os << time << ','
-           << wave.curr()->position.rho(0,0) << ','
-           << wave.curr()->position.theta(0,0) << ','
-           << wave.curr()->position.phi(0,0) << ','
-           << z << ',' << r << ','
-           << wave.curr()->pos_gradient.rho(0,0) << ','
-           << wave.curr()->pos_gradient.theta(0,0) << ','
-           << wave.curr()->pos_gradient.phi(0,0) << ','
-           << wave.curr()->ndirection.rho(0,0) << ','
-           << wave.curr()->ndirection.theta(0,0) << ','
-           << wave.curr()->ndirection.phi(0,0) << ','
-           << wave.curr()->ndir_gradient.rho(0,0) << ','
-           << wave.curr()->ndir_gradient.theta(0,0) << ','
-           << wave.curr()->ndir_gradient.phi(0,0) << ','
-           << wave.curr()->sound_speed(0,0) << ','
-           << wave.curr()->sound_gradient.rho(0,0) << endl;
+        os << time << ',' << wave.curr()->position.rho(0, 0) << ','
+           << wave.curr()->position.theta(0, 0) << ','
+           << wave.curr()->position.phi(0, 0) << ',' << z << ',' << r << ','
+           << wave.curr()->pos_gradient.rho(0, 0) << ','
+           << wave.curr()->pos_gradient.theta(0, 0) << ','
+           << wave.curr()->pos_gradient.phi(0, 0) << ','
+           << wave.curr()->ndirection.rho(0, 0) << ','
+           << wave.curr()->ndirection.theta(0, 0) << ','
+           << wave.curr()->ndirection.phi(0, 0) << ','
+           << wave.curr()->ndir_gradient.rho(0, 0) << ','
+           << wave.curr()->ndir_gradient.theta(0, 0) << ','
+           << wave.curr()->ndir_gradient.phi(0, 0) << ','
+           << wave.curr()->sound_speed(0, 0) << ','
+           << wave.curr()->sound_gradient.rho(0, 0) << endl;
 
         // check answer
 
-        double d_alt = fabs(wave.curr()->position.altitude(0,0) - z);
+        double d_alt = fabs(wave.curr()->position.altitude(0, 0) - z);
         max_error = max(max_error, d_alt);
-        BOOST_CHECK_SMALL( wave.curr()->position.altitude(0,0)-z, 2.0 ) ;
-        // cout << "r=" << r << " z=" << z << " d_alt=" << d_alt << endl ;
+        BOOST_CHECK_SMALL(wave.curr()->position.altitude(0, 0) - z, 2.0);
 
         // move wavefront to next time step
 
         wave.step();
     }
-    cout << "wave reaches " << z << " m depth around "
-         << wave.time() << " secs" << endl
+    cout << "wave reaches " << z << " m depth around " << wave.time() << " secs"
+         << endl
          << "max error = " << max_error << " meters" << endl;
 }
 
@@ -654,26 +674,28 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
     // initialize propagation model
 
     const double angle = -3.0;
-    const double ang = to_radians( angle );
+    const double ang = to_radians(angle);
     const double z0 = 1000.0;
     const double c1 = 1500.0;
     const double g1 = 1500.0;
     const double sinT2 = sin(ang) * sin(ang);
     const double cosT2 = cos(ang) * cos(ang);
 
-    profile_model* profile = new profile_catenary(c1, g1, z0);
-    boundary_model* surface = new boundary_flat();
-    boundary_model* bottom = new boundary_flat(5000.0);
-    ocean_model ocean(surface, bottom, profile);
-    profile->flat_earth(true);
+    profile_model* ssp = new profile_catenary(c1, g1, z0);
+    ssp->flat_earth(true);
+    profile_model::csptr profile(ssp);
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(5000.0));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
 
     wposition1 pos(0.0, 0.0, -z0);
-    seq_linear de(angle, 0.0, 1);
-    seq_linear az(90.0, 0.0, 1);
+    seq_vector::csptr de(new seq_linear(angle, 0.0, 1));
+    seq_vector::csptr az(new seq_linear(90.0, 0.0, 1));
+    seq_vector::csptr freq(new seq_log(10e3, 1.0, 1));
 
     wave_queue wave(ocean, freq, pos, de, az, time_step);
     cout << "time step = " << time_step << " secs"
-         << " freq = " << freq(0) << " Hz" << endl;
+         << " freq = " << (*freq)(0) << " Hz" << endl;
 
     wposition prev(1, 1);
     prev.rho(0, 0, pos.rho());
@@ -686,12 +708,23 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
     std::ofstream os(name);
     cout << "writing tables to " << name << endl;
 
-    os << "t," << "r," << "theta," << "phi," << "z," << "rng(m),"
-       << "rd," << "thd," << "phid,"
-       << "alpha," << "beta," << "gamma,"
-       << "alphad," << "betad," << "gammad,"
-       << "c," << "dcdz,"
-       << endl;
+    os << "t,"
+       << "r,"
+       << "theta,"
+       << "phi,"
+       << "z,"
+       << "rng(m),"
+       << "rd,"
+       << "thd,"
+       << "phid,"
+       << "alpha,"
+       << "beta,"
+       << "gamma,"
+       << "alphad,"
+       << "betad,"
+       << "gammad,"
+       << "c,"
+       << "dcdz," << endl;
     os << std::scientific << std::showpoint << std::setprecision(18);
 
     // compute modeled and analytic depth until surface is hit
@@ -705,8 +738,8 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
 
         // compute analytic solution for depth vs. range
 
-        r += 0.5 * (wave.curr()->position.rho(0,0) + prev.rho(0,0))
-                * (wave.curr()->position.phi(0,0) - prev.phi(0,0));
+        r += 0.5 * (wave.curr()->position.rho(0, 0) + prev.rho(0, 0)) *
+             (wave.curr()->position.phi(0, 0) - prev.phi(0, 0));
         double t = 2.0 * r / c1;
         if (t >= TWO_PI * n) {
             ++n;
@@ -718,29 +751,26 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
 
         // write to spreadsheet file
 
-        os << time << ','
-           << wave.curr()->position.rho(0,0) << ','
-           << wave.curr()->position.theta(0,0) << ','
-           << wave.curr()->position.phi(0,0) << ','
-           << z << ',' << r << ','
-           << wave.curr()->pos_gradient.rho(0,0) << ','
-           << wave.curr()->pos_gradient.theta(0,0) << ','
-           << wave.curr()->pos_gradient.phi(0,0) << ','
-           << wave.curr()->ndirection.rho(0,0) << ','
-           << wave.curr()->ndirection.theta(0,0) << ','
-           << wave.curr()->ndirection.phi(0,0) << ','
-           << wave.curr()->ndir_gradient.rho(0,0) << ','
-           << wave.curr()->ndir_gradient.theta(0,0) << ','
-           << wave.curr()->ndir_gradient.phi(0,0) << ','
-           << wave.curr()->sound_speed(0,0) << ','
-           << wave.curr()->sound_gradient.rho(0,0) << endl;
+        os << time << ',' << wave.curr()->position.rho(0, 0) << ','
+           << wave.curr()->position.theta(0, 0) << ','
+           << wave.curr()->position.phi(0, 0) << ',' << z << ',' << r << ','
+           << wave.curr()->pos_gradient.rho(0, 0) << ','
+           << wave.curr()->pos_gradient.theta(0, 0) << ','
+           << wave.curr()->pos_gradient.phi(0, 0) << ','
+           << wave.curr()->ndirection.rho(0, 0) << ','
+           << wave.curr()->ndirection.theta(0, 0) << ','
+           << wave.curr()->ndirection.phi(0, 0) << ','
+           << wave.curr()->ndir_gradient.rho(0, 0) << ','
+           << wave.curr()->ndir_gradient.theta(0, 0) << ','
+           << wave.curr()->ndir_gradient.phi(0, 0) << ','
+           << wave.curr()->sound_speed(0, 0) << ','
+           << wave.curr()->sound_gradient.rho(0, 0) << endl;
 
         // check answer
 
-        double d_alt = fabs(wave.curr()->position.altitude(0,0) - z);
+        double d_alt = fabs(wave.curr()->position.altitude(0, 0) - z);
         max_error = max(max_error, d_alt);
-        BOOST_CHECK_SMALL( d_alt, 2.0 );
-        // cout << "r=" << r << " t=" << t << " s=" << s << " z=" << z << " d_alt=" << d_alt << endl ;
+        BOOST_CHECK_SMALL(d_alt, 2.0);
 
         // move wavefront to next time step
 
@@ -790,71 +820,54 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
  */
 BOOST_AUTO_TEST_CASE(refraction_munk_range) {
     cout << "=== refraction_test: refraction_munk_range ===" << endl;
-    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/refraction_munk_range.nc";
+    const char* ncname_wave =
+        USML_TEST_DIR "/waveq3d/test/refraction_munk_range.nc";
     const char* name = USML_TEST_DIR "/waveq3d/test/refraction_munk_range.csv";
 
     // analytic solution for cycle ranges for angles -14:14 degrees;
     // computed using the munk_range_compute.m routine
 
     static const double cycle_ranges[] = {
-	64977.771509,
-	62686.699943,
-	60536.790347,
-	58539.834823,
-	56706.277890,
-	55044.418981,
-	53559.948084,
-	52255.876772,
-	51132.827760,
-	50189.572079,
-	49423.683193,
-	48832.195747,
-	48412.185973,
-	48161.238557,
-	48077.771909,
-	48161.238557,
-	48412.185973,
-	48832.195747,
-	49423.683193,
-	50189.572079,
-	51132.827760,
-	52255.876772,
-	53559.948084,
-	55044.418981,
-	56706.277890,
-	58539.834823,
-	60536.790347,
-	62686.699943,
-	64977.771509
-    } ;
+        64977.771509, 62686.699943, 60536.790347, 58539.834823, 56706.277890,
+        55044.418981, 53559.948084, 52255.876772, 51132.827760, 50189.572079,
+        49423.683193, 48832.195747, 48412.185973, 48161.238557, 48077.771909,
+        48161.238557, 48412.185973, 48832.195747, 49423.683193, 50189.572079,
+        51132.827760, 52255.876772, 53559.948084, 55044.418981, 56706.277890,
+        58539.834823, 60536.790347, 62686.699943, 64977.771509};
 
     // initialize propagation model
 
-    profile_munk* profile = new profile_munk();
-    boundary_model* surface = new boundary_flat();
-    boundary_model* bottom = new boundary_flat(1e4); // infinitely deep
-    ocean_model ocean(surface, bottom, profile);
-    profile->flat_earth(true);
+    profile_model* ssp = new profile_munk();
+    ssp->flat_earth(true);
+    profile_model::csptr profile(ssp);
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(5000.0));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
 
     double lat1 = 45.0;
     double lng1 = -45.0;
-    double alt1 = -1000.0 ;
+    double alt1 = -1000.0;
 
     wposition1 pos(lat1, lng1, alt1);
-    seq_linear de(-14.0,1.0,14.0);
-    seq_linear az(0.0, 0.0, 1);
+    seq_vector::csptr de(new seq_linear(-14.0, 1.0, 14.0));
+    seq_vector::csptr az(new seq_linear(0.0, 0.0, 1));
+    seq_vector::csptr freq(new seq_log(10e3, 1.0, 1));
 
     wave_queue wave(ocean, freq, pos, de, az, time_step);
     cout << "time step = " << time_step << " secs"
-         << " freq = " << freq(0) << " Hz" << endl;
+         << " freq = " << (*freq)(0) << " Hz" << endl;
 
     // initialize output to spreadsheet file
 
     std::ofstream os(name);
     cout << "writing error data to " << name << endl;
 
-    os << "t," << "de," << "Rtheory," << "Rtheory," << "diff," << "diff%,"
-       << endl;
+    os << "t,"
+       << "de,"
+       << "Rtheory,"
+       << "Rtheory,"
+       << "diff,"
+       << "diff%," << endl;
     os << std::scientific << std::showpoint << std::setprecision(18);
 
     // compute wavefronts and write them to disk
@@ -866,75 +879,74 @@ BOOST_AUTO_TEST_CASE(refraction_munk_range) {
 
     // Keep track of the current number of upper and lower vertices
     // these values should increase by one for each cycle
-    matrix<std::size_t> up( de.size(), 1 ) ;
-    matrix<std::size_t> low( de.size(), 1 ) ;
-    up.clear() ;
-    low.clear() ;
-    vector<double> loop( de.size() ) ;
-    loop.clear() ;
+    matrix<std::size_t> up(de->size(), 1);
+    matrix<std::size_t> low(de->size(), 1);
+    up.clear();
+    low.clear();
+    vector<double> loop(de->size());
+    loop.clear();
 
-    double max_error = 0.0 ;
+    double max_error = 0.0;
     while (wave.time() < 95.0) {
-
         // increment wavefront by one time step
 
         wave.step();
-        wave.save_netcdf();         // write ray data to log file
+        wave.save_netcdf();  // write ray data to log file
 
         // compare to analytic solution if crossing axis
 
-        for ( size_t d=0 ; d < de.size() ; ++d ) {
-
+        for (size_t d = 0; d < de->size(); ++d) {
             // look for axis crossings in same direction as launch angle
             // this is how we recognize that one cycle is complete
 
-            const double Hprev = wave.prev()->position.altitude(d,0) - alt1 ;
-            const double Hcurr = wave.curr()->position.altitude(d,0) - alt1 ;
-            const double Hnext = wave.next()->position.altitude(d,0) - alt1 ;
-            if ( Hcurr*Hnext < 0.0 &&
-                 wave.curr()->ndirection.rho(d,0) * de(d) > 0.0 )
-            {
+            const double Hprev = wave.prev()->position.altitude(d, 0) - alt1;
+            const double Hcurr = wave.curr()->position.altitude(d, 0) - alt1;
+            const double Hnext = wave.next()->position.altitude(d, 0) - alt1;
+            if (Hcurr * Hnext < 0.0 &&
+                wave.curr()->ndirection.rho(d, 0) * (*de)(d) > 0.0) {
                 // find the analytic result for this launch angle
 
-                loop(d) += 1.0 ;
-                const double Rtheory = loop(d) * cycle_ranges[d] ;
+                loop(d) += 1.0;
+                const double Rtheory = loop(d) * cycle_ranges[d];
 
                 // quadratic interpolation of wavefront range
 
-                const double Rprev = wave.prev()->position.rho(d,0)
-                    * to_radians(wave.prev()->position.latitude(d,0)-lat1) ;
-                const double Rcurr = wave.curr()->position.rho(d,0)
-                    * to_radians(wave.curr()->position.latitude(d,0)-lat1) ;
-                const double Rnext = wave.next()->position.rho(d,0)
-                    * to_radians(wave.next()->position.latitude(d,0)-lat1) ;
+                const double Rprev =
+                    wave.prev()->position.rho(d, 0) *
+                    to_radians(wave.prev()->position.latitude(d, 0) - lat1);
+                const double Rcurr =
+                    wave.curr()->position.rho(d, 0) *
+                    to_radians(wave.curr()->position.latitude(d, 0) - lat1);
+                const double Rnext =
+                    wave.next()->position.rho(d, 0) *
+                    to_radians(wave.next()->position.latitude(d, 0) - lat1);
 
-                double h = (Hnext-Hprev) ;
-                const double slope = (Rnext-Rprev) / h  ;
-                h *= 0.5 ;
-                const double curve = (Rnext-2.0*Rcurr+Rprev) / (h*h)  ;
-                const double dx = -Hcurr ;
-                const double Rmodel = Rcurr + slope*dx + 0.5*curve*dx*dx ;
+                double h = (Hnext - Hprev);
+                const double slope = (Rnext - Rprev) / h;
+                h *= 0.5;
+                const double curve = (Rnext - 2.0 * Rcurr + Rprev) / (h * h);
+                const double dx = -Hcurr;
+                const double Rmodel =
+                    Rcurr + slope * dx + 0.5 * curve * dx * dx;
 
                 // store error to spreadsheet file
 
-                os << wave.time()
-                   << "," << de(d) << "," << Rtheory << "," << Rmodel
-                   << "," << (Rmodel-Rtheory)
-                   << "," << ((Rmodel-Rtheory)/Rtheory*100.0)
-                   << endl ;
-                BOOST_CHECK_CLOSE( Rtheory, Rmodel, 0.01 ) ;
-                std::size_t dup = wave.curr()->upper(d,0) - up(d,0) ;
-                std::size_t dlow = wave.curr()->lower(d,0) - low(d,0) ;
-                BOOST_CHECK_EQUAL( dup, 1 ) ;
-                BOOST_CHECK_EQUAL( dlow, 1 ) ;
-                up(d,0) = wave.curr()->upper(d,0) ;
-                low(d,0) = wave.curr()->lower(d,0) ;
-                max_error = max( max_error, abs(Rmodel-Rtheory) ) ;
+                os << wave.time() << "," << (*de)(d) << "," << Rtheory << ","
+                   << Rmodel << "," << (Rmodel - Rtheory) << ","
+                   << ((Rmodel - Rtheory) / Rtheory * 100.0) << endl;
+                BOOST_CHECK_CLOSE(Rtheory, Rmodel, 0.01);
+                std::size_t dup = wave.curr()->upper(d, 0) - up(d, 0);
+                std::size_t dlow = wave.curr()->lower(d, 0) - low(d, 0);
+                BOOST_CHECK_EQUAL(dup, 1);
+                BOOST_CHECK_EQUAL(dlow, 1);
+                up(d, 0) = wave.curr()->upper(d, 0);
+                low(d, 0) = wave.curr()->lower(d, 0);
+                max_error = max(max_error, abs(Rmodel - Rtheory));
             }
         }
     }
-    wave.close_netcdf();            // close log file for wavefront data
-    cout << "max error = " << max_error << " m" << endl ;
+    wave.close_netcdf();  // close log file for wavefront data
+    cout << "max error = " << max_error << " m" << endl;
 }
 
 /**
@@ -963,68 +975,64 @@ BOOST_AUTO_TEST_CASE(refraction_munk_range) {
  * @xref M. A. Pedersen, D. F. Gordon, "Normal-Mode and Ray Theory Applied
  * to Underwater Acoustic conditions of Extreme Downward Refraction",
  * J. Acoust. Soc. Am. 51 (1B), 323-368 (June 1972).
- * @xref H. Weinberg, R. E. Keenan, Gaussian ray bundles for modeling high-frequency
- * propagation loss under shallow-water conditions,
- * J. Acoust. Soc. Amer. 100 (1996) 1421.
+ * @xref H. Weinberg, R. E. Keenan, Gaussian ray bundles for modeling
+ * high-frequency propagation loss under shallow-water conditions, J. Acoust.
+ * Soc. Amer. 100 (1996) 1421.
  * @xref M. B. Porter, H. P. Bucker, Gaussian beam tracing for computing
  * ocean acoustic fields, J. Acoust. Soc. Amer. 93 (1987) 1349.
  */
 BOOST_AUTO_TEST_CASE(refraction_pedersen_range) {
     cout << "=== refraction_test: refraction_pedersen_range ===" << endl;
-    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/refraction_pedersen_range.nc";
-    const char* name = USML_TEST_DIR "/waveq3d/test/refraction_pedersen_range.csv";
+    const char* ncname_wave =
+        USML_TEST_DIR "/waveq3d/test/refraction_pedersen_range.nc";
+    const char* name =
+        USML_TEST_DIR "/waveq3d/test/refraction_pedersen_range.csv";
 
     // analytic solution for cycle ranges for angles 20:2:50 degrees;
     // computed using the pedersen_range_compute.m routine
 
     static const double cycle_ranges[] = {
-	2115.799965,
-	2286.528610,
-	2446.115431,
-	2593.782977,
-	2728.811865,
-	2850.544337,
-	2958.387468,
-	3051.815999,
-	3130.374953,
-	3193.681828,
-	3241.428421,
-	3273.382397,
-	3289.388370,
-	3289.368623,
-	3273.323545,
-	3241.331594,
-    } ;
+        2115.799965, 2286.528610, 2446.115431, 2593.782977,
+        2728.811865, 2850.544337, 2958.387468, 3051.815999,
+        3130.374953, 3193.681828, 3241.428421, 3273.382397,
+        3289.388370, 3289.368623, 3273.323545, 3241.331594,
+    };
 
     // initialize propagation model
 
-    const double c0 = 1550 ;
-    const double g0 = 1.2 ;
-    profile_model* profile = new profile_n2( c0, g0 );
-    boundary_model* surface = new boundary_flat();
-    boundary_model* bottom = new boundary_flat(1e4); // infinitely deep
-    ocean_model ocean(surface, bottom, profile);
-    profile->flat_earth(true);
+    const double c0 = 1550;
+    const double g0 = 1.2;
+    profile_model* ssp = new profile_n2(c0, g0);
+    ssp->flat_earth(true);
+    profile_model::csptr profile(ssp);
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(1e4));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
 
     double lat1 = 45.0;
     double lng1 = -45.0;
-    double alt1 = -1000.0 ;
+    double alt1 = -1000.0;
 
     wposition1 pos(lat1, lng1, alt1);
-    seq_linear de(20.0,2.0,50.0);
-    seq_linear az(0.0, 0.0, 1);
+    seq_vector::csptr de(new seq_linear(20.0, 2.0, 50.0));
+    seq_vector::csptr az(new seq_linear(0.0, 0.0, 1));
+    seq_vector::csptr freq(new seq_log(10e3, 1.0, 1));
 
     wave_queue wave(ocean, freq, pos, de, az, time_step);
     cout << "time step = " << time_step << " secs"
-         << " freq = " << freq(0) << " Hz" << endl;
+         << " freq = " << (*freq)(0) << " Hz" << endl;
 
     // initialize output to spreadsheet file
 
     std::ofstream os(name);
     cout << "writing error data to " << name << endl;
 
-    os << "t," << "de," << "Rtheory," << "Rtheory," << "diff," << "diff%,"
-       << endl;
+    os << "t,"
+       << "de,"
+       << "Rtheory,"
+       << "Rtheory,"
+       << "diff,"
+       << "diff%," << endl;
     os << std::scientific << std::showpoint << std::setprecision(18);
 
     // compute wavefronts and write them to disk
@@ -1034,114 +1042,123 @@ BOOST_AUTO_TEST_CASE(refraction_pedersen_range) {
     wave.init_netcdf(ncname_wave);  // open a log file for wavefront data
     wave.save_netcdf();             // write ray data to log file
 
-    double max_error = 0.0 ;
+    double max_error = 0.0;
     while (wave.time() < 4.0) {
-
         // increment wavefront by one time step
 
         wave.step();
-        wave.save_netcdf();         // write ray data to log file
+        wave.save_netcdf();  // write ray data to log file
 
         // compare to analytic solution if crossing axis
 
-        for ( size_t d=0 ; d < de.size() ; ++d ) {
-
+        for (size_t d = 0; d < de->size(); ++d) {
             // look for axis crossings
             // this is how we recognize that one cycle is complete
 
-            const double Hprev = wave.prev()->position.altitude(d,0) - alt1 ;
-            const double Hcurr = wave.curr()->position.altitude(d,0) - alt1 ;
-            const double Hnext = wave.next()->position.altitude(d,0) - alt1 ;
-            if ( Hcurr*Hnext < 0.0 ) {
-
+            const double Hprev = wave.prev()->position.altitude(d, 0) - alt1;
+            const double Hcurr = wave.curr()->position.altitude(d, 0) - alt1;
+            const double Hnext = wave.next()->position.altitude(d, 0) - alt1;
+            if (Hcurr * Hnext < 0.0) {
                 // find the analytic result for this launch angle
 
-                const double Rtheory = cycle_ranges[d] ;
+                const double Rtheory = cycle_ranges[d];
 
                 // quadratic interpolation of wavefront range
 
-                const double Rprev = wave.prev()->position.rho(d,0)
-                    * to_radians(wave.prev()->position.latitude(d,0)-lat1) ;
-                const double Rcurr = wave.curr()->position.rho(d,0)
-                    * to_radians(wave.curr()->position.latitude(d,0)-lat1) ;
-                const double Rnext = wave.next()->position.rho(d,0)
-                    * to_radians(wave.next()->position.latitude(d,0)-lat1) ;
+                const double Rprev =
+                    wave.prev()->position.rho(d, 0) *
+                    to_radians(wave.prev()->position.latitude(d, 0) - lat1);
+                const double Rcurr =
+                    wave.curr()->position.rho(d, 0) *
+                    to_radians(wave.curr()->position.latitude(d, 0) - lat1);
+                const double Rnext =
+                    wave.next()->position.rho(d, 0) *
+                    to_radians(wave.next()->position.latitude(d, 0) - lat1);
 
-                double h = (Hnext-Hprev) ;
-                const double slope = (Rnext-Rprev) / h  ;
-                h *= 0.5 ;
-                const double curve = (Rnext-2.0*Rcurr+Rprev) / (h*h)  ;
-                const double dx = -Hcurr ;
-                const double Rmodel = Rcurr + slope*dx + 0.5*curve*dx*dx ;
+                double h = (Hnext - Hprev);
+                const double slope = (Rnext - Rprev) / h;
+                h *= 0.5;
+                const double curve = (Rnext - 2.0 * Rcurr + Rprev) / (h * h);
+                const double dx = -Hcurr;
+                const double Rmodel =
+                    Rcurr + slope * dx + 0.5 * curve * dx * dx;
 
                 // store error to spreadsheet file
 
-                os << wave.time()
-                   << "," << de(d) << "," << Rtheory << "," << Rmodel
-                   << "," << (Rmodel-Rtheory)
-                   << "," << ((Rmodel-Rtheory)/Rtheory*100.0)
-                   << endl ;
-                BOOST_CHECK_CLOSE( Rtheory, Rmodel, 0.12 );
-                max_error = max( max_error, abs(Rmodel-Rtheory) ) ;
+                os << wave.time() << "," << (*de)(d) << "," << Rtheory << ","
+                   << Rmodel << "," << (Rmodel - Rtheory) << ","
+                   << ((Rmodel - Rtheory) / Rtheory * 100.0) << endl;
+                BOOST_CHECK_CLOSE(Rtheory, Rmodel, 0.12);
+                max_error = max(max_error, abs(Rmodel - Rtheory));
             }
         }
     }
-    wave.close_netcdf();            // close log file for wavefront data
-    cout << "max error = " << max_error << " m" << endl ;
+    wave.close_netcdf();  // close log file for wavefront data
+    cout << "max error = " << max_error << " m" << endl;
 }
 
 /**
  * Tests the ability to produce appropriate wavefile data for
  * a surface ducting environment.
  */
-BOOST_AUTO_TEST_CASE( surface_duct_test ) {
+BOOST_AUTO_TEST_CASE(surface_duct_test) {
     cout << "=== refraction_test: surface_duct_test ===" << endl;
-    const char* ncname_wave = USML_TEST_DIR "/waveq3d/test/refraction_surface_duct.nc";
-    const char* csvname = USML_TEST_DIR "/waveq3d/test/refraction_surface_duct.csv";
+    const char* ncname_wave =
+        USML_TEST_DIR "/waveq3d/test/refraction_surface_duct.nc";
+    const char* csvname =
+        USML_TEST_DIR "/waveq3d/test/refraction_surface_duct.csv";
 
     // environmental parameters
-    data_grid<double,1>* sound_profile;
-    const seq_vector* axis[1];
-    axis[0] = new seq_linear( wposition::earth_radius, -0.5, 1000 ) ;
-    sound_profile = new data_grid<double,1>(axis) ;
+    seq_vector::csptr axis[1];
+    axis[0] =
+        seq_vector::csptr(new seq_linear(wposition::earth_radius, -0.5, 1000));
+    auto* ssp_grid = new gen_grid<1>(axis);
     size_t index[1];
-    for(int i=0; i < axis[0]->size(); ++i){
+    for (int i = 0; i < axis[0]->size(); ++i) {
         index[0] = i;
         double value = 1500.0;
-        if( (*axis[0])[i] > wposition::earth_radius-150.0 ) { value+=(0.016*i) ;}
-        if( (*axis[0])[i] <= wposition::earth_radius-150.0 && (*axis[0])[i] > wposition::earth_radius-250.0 ) { value-=(0.1*(i-300)-4.8) ;}
-        if( (*axis[0])[i] <= wposition::earth_radius-250.0 ) { value-=(0.01*(i-500) + 15.2) ; }
-        sound_profile->data(index, value);
+        if ((*axis[0])[i] > wposition::earth_radius - 150.0) {
+            value += (0.016 * i);
+        }
+        if ((*axis[0])[i] <= wposition::earth_radius - 150.0 &&
+            (*axis[0])[i] > wposition::earth_radius - 250.0) {
+            value -= (0.1 * (i - 300) - 4.8);
+        }
+        if ((*axis[0])[i] <= wposition::earth_radius - 250.0) {
+            value -= (0.01 * (i - 500) + 15.2);
+        }
+        ssp_grid->setdata(index, value);
     }
-    sound_profile->interp_type(0, GRID_INTERP_LINEAR);
-    sound_profile->edge_limit(0, true);
-    profile_model* profile = new profile_grid<double,1>(sound_profile);
+    ssp_grid->interp_type(0, interp_enum::linear);
+    ssp_grid->edge_limit(0, true);
+    profile_model* ssp = new profile_grid<1>(data_grid<1>::csptr(ssp_grid));
 
     cout << "writing sound speed profile to " << csvname << endl;
-    matrix<double> speed(1,1);
-    wposition test( 1, 1, 45.0, -45.0, 0.0 );
+    matrix<double> speed(1, 1);
+    wposition test(1, 1, 45.0, -45.0, 0.0);
     std::ofstream file(csvname);
     file << "depth,speed,interp" << endl;
-    for(int j=0; j <axis[0]->size(); ++j){
+    for (int j = 0; j < axis[0]->size(); ++j) {
         index[0] = j;
-        test.rho( 0, 0, (*axis[0])(j) );
-        profile->sound_speed( test, &speed );
-        file << (*axis[0])(j)-wposition::earth_radius << "," << sound_profile->data(index) << "," << speed(0,0) << endl;
+        test.rho(0, 0, (*axis[0])(j));
+        ssp->sound_speed(test, &speed);
+        file << (*axis[0])(j)-wposition::earth_radius << ","
+             << ssp_grid->data(index) << "," << speed(0, 0) << endl;
     }
 
-//    profile_model* profile = new profile_linear(1500.0,0.016);
-    profile->flat_earth(true);
-    boundary_model* bottom = new boundary_flat(1e4);
-    boundary_model* surface = new boundary_flat();
-    ocean_model ocean(surface, bottom, profile);
+    ssp->flat_earth(true);
+    profile_model::csptr profile(ssp);
+    boundary_model::csptr surface(new boundary_flat());
+    boundary_model::csptr bottom(new boundary_flat(1e4));
+    ocean_model::csptr ocean(new ocean_model(surface, bottom, profile));
 
     // test parameters
     double lat = 45.0;
     double lon = -45.0;
-    wposition1 source( lat, lon, -40.0 );
-//    seq_rayfan de(-10.0, 10.0, 51);
-    seq_rayfan de ;
-    seq_linear az( 0.0, 0.0, 1 );
+    wposition1 source(lat, lon, -40.0);
+    seq_vector::csptr de(new seq_rayfan());
+    seq_vector::csptr az(new seq_linear(0.0, 0.0, 1));
+    seq_vector::csptr freq(new seq_log(10e3, 1.0, 1));
 
     wave_queue wave(ocean, freq, source, de, az, time_step);
 
@@ -1153,8 +1170,6 @@ BOOST_AUTO_TEST_CASE( surface_duct_test ) {
         wave.save_netcdf();
     }
     wave.close_netcdf();
-
-    delete axis[0] ;
 }
 
 /// @}

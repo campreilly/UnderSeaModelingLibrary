@@ -941,7 +941,7 @@ NcValues* val;                                                                \
 int validx;                                                                   \
 for (long j=0; j<maxrec; j++) {                                               \
     val = get_rec(rdim,j);                                                    \
-    if (val == NULL) return -1;                                               \
+    if (val == nullptr) return -1;                                               \
     for (validx = 0; validx < maxvals; validx++) {                            \
         if (key[validx] != val->as_ ## TYPE(validx)) break;                   \
         }                                                                     \
@@ -1515,7 +1515,7 @@ NcAtt::NcAtt(NcFile* nc, const NcVar* var, NcToken name)
 }
 
 NcAtt::NcAtt(NcFile* nc, NcToken name)
-   : NcTypedComponent(nc), the_variable(NULL)
+   : NcTypedComponent(nc), the_variable(nullptr)
 {
     the_name = new char[1 + strlen(name)];
     strcpy(the_name, name);

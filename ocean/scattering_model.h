@@ -4,14 +4,14 @@
  */
 #pragma once
 
-#include <usml/ublas/ublas.h>
 #include <usml/types/types.h>
+#include <usml/ublas/ublas.h>
 
 namespace usml {
 namespace ocean {
 
-using namespace usml::ublas ;
-using namespace usml::types ;
+using namespace usml::ublas;
+using namespace usml::types;
 
 using boost::numeric::ublas::vector;
 
@@ -56,50 +56,54 @@ using boost::numeric::ublas::vector;
  *         \f$ h \f$ = thickness of the volume scattering layer.
  */
 class USML_DECLSPEC scattering_model {
+   public:
+    /// Shared pointer to constant version of this class.
+    typedef std::shared_ptr<const scattering_model> csptr;
 
-    public:
+    /**
+     * Computes the broadband scattering strength for a single location.
+     *
+     * @param location      Location at which to compute attenuation.
+     * @param frequencies   Frequencies over which to compute loss. (Hz)
+     * @param de_incident   Depression incident angle (radians).
+     * @param de_scattered  Depression scattered angle (radians).
+     * @param az_incident   Azimuthal incident angle (radians).
+     * @param az_scattered  Azimuthal scattered angle (radians).
+     * @param amplitude     Reverberation scattering strength ratio (output).
+     */
+    virtual void scattering(const wposition1& location,
+                            const seq_vector::csptr& frequencies,
+                            double de_incident, double de_scattered,
+                            double az_incident, double az_scattered,
+                            vector<double>* amplitude) const = 0;
 
-        /**
-         * Computes the broadband scattering strength for a single location.
-         *
-         * @param location      Location at which to compute attenuation.
-         * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param de_incident   Depression incident angle (radians).
-         * @param de_scattered  Depression scattered angle (radians).
-         * @param az_incident   Azimuthal incident angle (radians).
-         * @param az_scattered  Azimuthal scattered angle (radians).
-         * @param amplitude     Reverberation scattering strength ratio (output).
-         */
-        virtual void scattering( const wposition1& location,
-            const seq_vector& frequencies, double de_incident, double de_scattered,
-            double az_incident, double az_scattered, vector<double>* amplitude ) = 0 ;
+    /**
+     * Computes the broadband scattering strength for a collection of
+     * scattering angles from a common incoming ray. Each scattering
+     * has its own location, de_scattered, and az_scattered.
+     * The result is a broadband reverberation scattering strength for
+     * each scattering.
+     *
+     * @param location      Location at which to compute attenuation.
+     * @param frequencies   Frequencies over which to compute loss. (Hz)
+     * @param de_incident   Depression incident angle (radians).
+     * @param de_scattered  Depression scattered angle (radians).
+     * @param az_incident   Azimuthal incident angle (radians).
+     * @param az_scattered  Azimuthal scattered angle (radians).
+     * @param amplitude     Reverberation scattering strength ratio (output).
+     */
+    virtual void scattering(const wposition& location,
+                            const seq_vector::csptr& frequencies,
+                            double de_incident, matrix<double> de_scattered,
+                            double az_incident, matrix<double> az_scattered,
+                            matrix<vector<double> >* amplitude) const = 0;
 
-        /**
-         * Computes the broadband scattering strength for a collection of
-         * scattering angles from a common incoming ray. Each scattering
-         * has its own location, de_scattered, and az_scattered.
-         * The result is a broadband reverberation scattering strength for
-         * each scattering.
-         *
-         * @param location      Location at which to compute attenuation.
-         * @param frequencies   Frequencies over which to compute loss. (Hz)
-         * @param de_incident   Depression incident angle (radians).
-         * @param de_scattered  Depression scattered angle (radians).
-         * @param az_incident   Azimuthal incident angle (radians).
-         * @param az_scattered  Azimuthal scattered angle (radians).
-         * @param amplitude     Reverberation scattering strength ratio (output).
-         */
-        virtual void scattering( const wposition& location,
-            const seq_vector& frequencies, double de_incident, matrix<double> de_scattered,
-            double az_incident, matrix<double> az_scattered, matrix< vector<double> >* amplitude ) = 0 ;
-
-        /**
-         * Virtual destructor
-         */
-        virtual ~scattering_model() {}
-
+    /**
+     * Virtual destructor
+     */
+    virtual ~scattering_model() {}
 };
 
 /// @}
-}   // end namespace ocean
-}   // end namespace usml
+}  // end namespace ocean
+}  // end namespace usml

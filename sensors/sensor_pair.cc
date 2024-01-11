@@ -1,224 +1,205 @@
 /**
  * @file sensor_pair.cc
- * Container for one sensor pair instance.
+ * Modeling products for a link between source and receiver.
  */
+
+#include <usml/biverbs/biverb_generator.h>
+#include <usml/eigenrays/eigenray_model.h>
+#include <usml/managed/manager_template.h>
+#include <usml/platforms/platform_model.h>
+#include <usml/rvbts/rvbts_generator.h>
+#include <usml/sensors/sensor_manager.h>
 #include <usml/sensors/sensor_pair.h>
-#include <usml/eigenverb/envelope_generator.h>
-#include <usml/eigenverb/wavefront_generator.h>
-#include <usml/waveq3d/eigenray_interpolator.h>
-#include <boost/foreach.hpp>
+#include <usml/threads/thread_controller.h>
+#include <usml/threads/thread_pool.h>
+#include <usml/threads/thread_task.h>
+#include <usml/types/seq_linear.h>
+#include <usml/types/seq_vector.h>
+#include <usml/types/wposition.h>
+#include <usml/types/wposition1.h>
+
+#include <boost/numeric/ublas/matrix.hpp>
+#include <sstream>
 
 using namespace usml::sensors;
-using namespace usml::waveq3d;
 
 /**
- * Utility to run the envelope_generator
+ * Construct link between source and receiver.
  */
-void sensor_pair::run_envelope_generator(double initial_time) {
+sensor_pair::sensor_pair(const sensor_model::sptr& source,
+                         const sensor_model::sptr& receiver)
+    : managed_obj<std::string, sensor_pair>(
+          generate_hash_key(source->keyID(), receiver->keyID()),
+          source->description() + " -> " + receiver->description()),
+      _source(source),
+      _receiver(receiver),
+      _compute_reverb(source->compute_reverb() && receiver->compute_reverb()) {
+    source->add_wavefront_listener(this);
+    receiver->add_wavefront_listener(this);
+}
 
-    #ifdef USML_DEBUG
-        cout << "sensor_pair: run_envelope_generator " << endl ;
-    #endif
+/**
+ * Destroy connections between source and receiver.
+ */
+sensor_pair::~sensor_pair() {
+    source()->remove_wavefront_listener(this);
+    receiver()->remove_wavefront_listener(this);
+}
 
-    // Kill any currently running task
-    if ( _envelopes_task.get() != 0 ) {
-        _envelopes_task->abort();
+/**
+ * Utility to generate a hash key for the bistatic_template
+ */
+std::string sensor_pair::generate_hash_key(int src_id, int rcv_id) {
+    std::stringstream key;
+    key << src_id << '_' << rcv_id;
+    return key.str();
+}
+
+/**
+ * Queries for the bistatic pair for the complement of the given sensor.
+ */
+sensor_model::sptr sensor_pair::complement(
+    const sensor_model::sptr& sensor) const {
+    read_lock_guard guard(_mutex);
+    if (sensor == _source) {
+        return _receiver;
     }
-
-    // Create the envelope_generator
-    envelope_generator* generator = new envelope_generator (
-		this, initial_time, _src_freq_first, wavefront_generator::number_az );
-
-    // Make envelope_generator a _envelopes_task, with use of shared_ptr
-    _envelopes_task = thread_task::reference(generator);
-
-    // Pass in to thread_pool
-    thread_controller::instance()->run(_envelopes_task);
+    return _source;
 }
 
 /**
-* Utility to build the intersecting frequencies of a sensor_pair.
-*/
-void sensor_pair::compute_frequencies() {
-
-    // Build intersecting frequencies
-    _frequencies = _source->frequencies()->clip(
-        _receiver->min_active_freq(), _receiver->max_active_freq());
-
-    // Get first and last values
-    double first_value = *( _frequencies->begin() );
-    double last_value = *( _frequencies->end() - 1 );
-   
-    // Set first and last index's
-    _src_freq_first = _source->frequencies()->find_index(first_value);
-    _src_freq_last = _source->frequencies()->find_index(last_value);
-}
-
-
-/**
- * Notification that new eigenray data is ready.
+ * Update eigenrays and eigenverbs using results of the wavefront_generator
+ * background task.
  */
-void sensor_pair::update_fathometer(sensor_model::id_type sensor_id, eigenray_list* list)
-{
-    write_lock_guard guard(_fathometer_mutex);
-    #ifdef USML_DEBUG
-        cout << "sensor_pair: update_fathometer("
-            << sensor_id << ")" << endl;
-    #endif
-   
-    if ( list != NULL ) {
-        seq_vector* original_freq = NULL;
+void sensor_pair::update_wavefront_data(
+    const sensor_model* sensor, eigenray_collection::csptr eigenrays,
+    eigenverb_collection::csptr eigenverbs) {
+    bool notify_early{true};
+    {
+        write_lock_guard guard(_mutex);
 
-        // If sensor that made this call is the _receiver of this pair
-        //    then Swap de's, and az's
-        if ( sensor_id == _receiver->sensorID() ) {
-            BOOST_FOREACH(eigenray ray, *list) {
-                std::swap(ray.source_de, ray.target_de);
-                std::swap(ray.source_az, ray.target_az);
+        // eigenray collection has eigenray list for all targets near this
+        // sensor find the eigenray list specific to this pair
+
+        auto sourceID = _source->keyID();
+        auto targetID = _receiver->keyID();
+        wposition1 source_pos(_source->position());
+        wposition1 receiver_pos(_receiver->position());
+        eigenray_list raylist = eigenrays->find_eigenrays(targetID);
+
+        // swap source/receiver sense of direct path eigenrays, if needed
+
+        if (_source != _receiver && sensor->keyID() == _receiver->keyID()) {
+            sourceID = _receiver->keyID();
+            targetID = _source->keyID();
+            source_pos = _receiver->position();
+            receiver_pos = _source->position();
+            eigenray_list new_list;
+            for (const auto& ray : eigenrays->find_eigenrays(targetID)) {
+                auto* copy = new eigenray_model(*ray);
+                std::swap(copy->source_de, copy->target_de);
+                std::swap(copy->source_az, copy->target_az);
+                new_list.push_back(eigenray_model::csptr(copy));
             }
-            // Get frequencies from receiver
-            original_freq = _receiver->frequencies();
-        } else {
-            // Get frequencies from source
-            original_freq = _source->frequencies();
+            raylist = new_list;  // replace original list
         }
 
-        eigenray_list new_eigenray_list;
-        // Only interpolate when needed
-        if ( *original_freq != *_frequencies ) {
+        // create new direct path collection with just rays for a single target
 
-            // Interpolate to this sensor_pair's bounded frequencies
-            // Set frequencies, and space for intensity's,
-            // and phase's for new eigenray_list
-            size_t num_freq( _frequencies->size() ) ;
-            for (int i = 0; i < list->size(); ++i) {
-                eigenray new_ray;
-                new_ray.frequencies = _frequencies;
-                new_ray.intensity.resize( num_freq, false ) ;
-                new_ray.phase.resize( num_freq, false ) ;
-                new_eigenray_list.push_back(new_ray);
+        matrix<int> receiverID(1, 1);
+        receiverID(0, 0) = targetID;
+
+        auto* collection = new eigenray_collection(
+            eigenrays->frequencies(), _source->position(),
+            wposition(receiver_pos), sourceID, receiverID,
+            eigenrays->coherent());
+        for (const auto& ray : raylist) {
+            collection->add_eigenray(0, 0, ray);
+        }
+        collection->sum_eigenrays();
+        _dirpaths = eigenray_collection::csptr(collection);
+
+        // update eigenverb contributions
+
+        if (_compute_reverb) {
+            notify_early = false;
+            if (_source == _receiver) {
+                _src_eigenverbs = eigenverbs;
+                _rcv_eigenverbs = eigenverbs;
+            } else if (sensor->keyID() == _receiver->keyID()) {
+                _rcv_eigenverbs = eigenverbs;
+            } else {
+                _src_eigenverbs = eigenverbs;
             }
 
-            eigenray_interpolator interpolator( original_freq, _frequencies ) ;
-            interpolator.interpolate( *list, &new_eigenray_list ) ;
+            // launch a new bistatic eigenverb generator background task
 
-        } else {
-            // Just use original
-            new_eigenray_list = *list;
+            if (_src_eigenverbs != nullptr && _rcv_eigenverbs != nullptr) {
+                if (_biverb_task != nullptr) {  // abort incomplete tasks
+                    _biverb_task->abort();
+                }
+                sensor_pair::sptr reference =
+                    sensor_manager::instance()->find(keyID());
+                eigenverb_collection::csptr src_verbs = _src_eigenverbs;
+                eigenverb_collection::csptr rcv_verbs = _rcv_eigenverbs;
+                _biverb_task = std::make_shared<biverb_generator>(
+                    reference, src_verbs, rcv_verbs);
+                thread_controller::instance()->run(_biverb_task);
+                _biverb_task.reset();  // destroy background task shared pointer
+            }
         }
-        // Note new memory location for eigenrays is created here
-        _fathometer = fathometer_collection::reference ( new fathometer_collection(
-            _source->sensorID(),_receiver->sensorID(), _source->position(),
-            _receiver->position(), new_eigenray_list));
+    }
+    if (notify_early) {
+        notify_update(this);
     }
 }
 
 /**
- * Updates the eigenverb_collection
+ * Update bistatic eigenverbs using results of the biverb_generator
+ * background task.
  */
-void sensor_pair::update_eigenverbs(double initial_time, sensor_model* sensor)
-{
-	if (sensor != NULL) {
+void sensor_pair::notify_update(const biverb_collection::csptr* object) {
+    bool notify_early{true};
+    {
+        write_lock_guard guard(_mutex);
+        _biverbs = *object;
 
-		#ifdef USML_DEBUG
-			cout << "sensor_pair: update_eigenverbs("
-				 << sensor->sensorID() << ")" << endl ;
-		#endif
+        // launch a new reverberation time series generator background task
 
-        if (sensor == _source) {
-            write_lock_guard guard(_src_eigenverbs_mutex);
-            _src_eigenverbs = sensor->eigenverbs();
+        double fsample = _receiver->fsample();
+        if (fsample > 0.0 && !this->_source->transmit_schedule().empty()) {
+            notify_early = false;
+            if (_rvbts_task != nullptr) {  // abort incomplete tasks
+                _rvbts_task->abort();
+            }
+            sensor_pair::sptr reference =
+                sensor_manager::instance()->find(keyID());
+            _rvbts_task = std::make_shared<rvbts_generator>(
+                reference, _source, _receiver, _biverbs);
+            thread_controller::instance()->run(_rvbts_task);
+            _rvbts_task.reset();  // destroy background task shared pointer
         }
-        if (sensor == _receiver) {
-            write_lock_guard guard(_rcv_eigenverbs_mutex);
-            _rcv_eigenverbs = sensor->eigenverbs();
-        }
-
-        if ( _src_eigenverbs.get() != NULL && _rcv_eigenverbs.get() != NULL ) {
-            run_envelope_generator(initial_time);
-        }
-	}
-}
-
-/**
- * Updates new envelope_colection
- */
-void sensor_pair::update_envelopes(envelope_collection::reference& collection) {
-
-    if (collection.get() != NULL) {
-        write_lock_guard guard(_envelopes_mutex);
-        #ifdef USML_DEBUG
-            cout << "sensor_pair: update_envelopes src_rcv ("
-                << collection.get()->source_id() << "_"
-                << collection.get()->receiver_id() <<  ")" << endl ;
-        #endif
-        _envelopes = collection;
+    }
+    if (notify_early) {
+        notify_update(this);
     }
 }
 
 /**
- * Queries for the sensor pair complements of this sensor.
+ * Update reverberation time series using results of the rvbts_generator
+ * background task.
  */
-const sensor_model* sensor_pair::sensor_complement(const sensor_model* sensor) const
-{
-    read_lock_guard guard(_complements_mutex);
-	if (sensor != NULL) {
-		if (sensor == _source) {
-			return _receiver;
-		} else {
-			return _source;
-		}
-	} else {
-		return NULL;
-	}
+void sensor_pair::notify_update(const rvbts_collection::csptr* object) {
+    {
+        write_lock_guard guard(_mutex);
+        _rvbts = *object;
+    }
+    notify_update(this);
 }
 
 /**
- * Performs the dead reckoning on the fathometer at the new source and receiver positions.
+ * Notify listeners that acoustic data for this sensor_pair has been updated.
  */
-void sensor_pair::dead_reckon_fathometer(wposition1 src_pos, wposition1 rcv_pos) {
-
-	write_lock_guard guard(_pair_mutex);
-
-	double prev_range = _fathometer->slant_range();
-	double curr_range = src_pos.distance(rcv_pos);
-	double range_diff = curr_range - prev_range;
-
-	if ( abs( range_diff) > 0.0) {
-		// sensor moved so dead reckon
-		// average speed of sound for the first (direct) fathometer
-		double avg_speed = prev_range/_fathometer->initial_time();
-		double delta_time = range_diff/avg_speed;
-		double curr_initial_time = _fathometer->initial_time() + delta_time;
-		// Update eigenrays
-		_fathometer->dead_reckon(delta_time, curr_range, prev_range);
-		// update to new time and positions
-		_fathometer->initial_time(curr_initial_time);
-		_fathometer->source_position(src_pos);
-		_fathometer->receiver_position(rcv_pos);
-	}
-}
-
-/**
- * Performs the dead reckoning on the envelopes at the new source and receiver positions.
- */
-void sensor_pair::dead_reckon_envelopes(wposition1 src_pos, wposition1 rcv_pos) {
-
-	write_lock_guard guard(_pair_mutex);
-
-	double prev_range = _envelopes->slant_range();
-	double curr_range = src_pos.distance(rcv_pos);
-	double range_diff = curr_range - prev_range;
-	if ( abs( range_diff) > 0.0) {
-		// sensor moved dead reckon
-		// average speed of sound for the first fathometer
-		double avg_speed = prev_range/_envelopes->initial_time();
-		double delta_time = range_diff/avg_speed;
-		double curr_initial_time = _envelopes->initial_time() + delta_time;
-		_envelopes->dead_reckon(delta_time, curr_range, prev_range);
-		// update to new time and positions
-		_envelopes->initial_time(curr_initial_time);
-		_envelopes->source_position(src_pos);
-		_envelopes->receiver_position(rcv_pos);
-	}
+void sensor_pair::notify_update(const sensor_pair* object) const {
+    this->update_notifier<sensor_pair>::notify_update(object);
 }

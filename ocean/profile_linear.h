@@ -5,9 +5,13 @@
 #pragma once
 
 #include <usml/ocean/profile_model.h>
+#include <usml/types/wposition.h>
+#include <usml/types/wvector.h>
 
 namespace usml {
 namespace ocean {
+
+using namespace usml::types;
 
 /// @ingroup profiles
 /// @{
@@ -34,38 +38,7 @@ namespace ocean {
  * In a contant profile, all of the values are zero except c0.
  */
 class USML_DECLSPEC profile_linear : public profile_model {
-
-    //**************************************************
-    // sound speed model
-
-    /** Speed of sound at the surface of the water. */
-    double _soundspeed0 ;
-
-    /** Sound speed gradient at the surface of the water. */
-    double _gradient0 ;
-
-    /** Depth at which profile changes gradients. */
-    double _depth1 ;
-
-    /** Sound speed gradient for depths below _depth1. */
-    double _gradient1 ;
-
-  public:
-
-    /**
-     * Compute the speed of sound and it's first derivatives at
-     * a series of locations.
-     *
-     * @param location      Location at which to compute sound speed.
-     * @param speed         Speed of sound (m/s) at each location (output).
-     * @param gradient      Sound speed gradient at each location (output).
-     */
-    virtual void sound_speed( const wposition& location,
-        matrix<double>* speed, wvector* gradient=NULL ) ;
-
-    //**************************************************
-    // initialization
-
+   public:
     /**
      * Bi-Linear verion of the profile.
      *
@@ -77,14 +50,13 @@ class USML_DECLSPEC profile_linear : public profile_model {
      *                  The profile_model takes over ownership of this
      *                  reference and deletes it as part of its destructor.
      */
-    profile_linear(
-        double c0, double g0, double z1, double g1,
-        attenuation_model* attmodel=NULL
-        ) :
-        profile_model(attmodel),
-        _soundspeed0(c0), _gradient0(g0),
-        _depth1(z1), _gradient1(g1)
-        { }
+    profile_linear(double c0, double g0, double z1, double g1,
+                   const attenuation_model::csptr& attmodel = nullptr)
+        : profile_model(attmodel),
+          _soundspeed0(c0),
+          _gradient0(g0),
+          _depth1(z1),
+          _gradient1(g1) {}
 
     /**
      * Linear verion of the profile.
@@ -95,14 +67,13 @@ class USML_DECLSPEC profile_linear : public profile_model {
      *                  The profile_model takes over ownership of this
      *                  reference and deletes it as part of its destructor.
      */
-    profile_linear(
-        double c0, double g0,
-        attenuation_model* attmodel=NULL
-        ) :
-        profile_model(attmodel),
-        _soundspeed0(c0), _gradient0(g0),
-        _depth1(0.0), _gradient1(g0)
-        { }
+    profile_linear(double c0, double g0,
+                   const attenuation_model::csptr& attmodel = nullptr)
+        : profile_model(attmodel),
+          _soundspeed0(c0),
+          _gradient0(g0),
+          _depth1(0.0),
+          _gradient1(g0) {}
 
     /**
      * Constant speed verion of the profile.
@@ -112,15 +83,37 @@ class USML_DECLSPEC profile_linear : public profile_model {
      *                  The profile_model takes over ownership of this
      *                  reference and deletes it as part of its destructor.
      */
-    profile_linear(
-        double c0 = 1500.0,
-        attenuation_model* attmodel=NULL
-        ) :
-        profile_model(attmodel),
-        _soundspeed0(c0), _gradient0(0.0),
-        _depth1(0.0), _gradient1(0.0)
-        { }
+    profile_linear(double c0 = 1500.0,
+                   const attenuation_model::csptr& attmodel = nullptr)
+        : profile_model(attmodel),
+          _soundspeed0(c0),
+          _gradient0(0.0),
+          _depth1(0.0),
+          _gradient1(0.0) {}
 
+    /**
+     * Compute the speed of sound and it's first derivatives at
+     * a series of locations.
+     *
+     * @param location      Location at which to compute sound speed.
+     * @param speed         Speed of sound (m/s) at each location (output).
+     * @param gradient      Sound speed gradient at each location (output).
+     */
+    void sound_speed(const wposition& location, matrix<double>* speed,
+                     wvector* gradient = nullptr) const override;
+
+   private:
+    /** Speed of sound at the surface of the water. */
+    double _soundspeed0;
+
+    /** Sound speed gradient at the surface of the water. */
+    double _gradient0;
+
+    /** Depth at which profile changes gradients. */
+    double _depth1;
+
+    /** Sound speed gradient for depths below _depth1. */
+    double _gradient1;
 };
 
 }  // end of namespace ocean

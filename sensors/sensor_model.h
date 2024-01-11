@@ -1,390 +1,382 @@
 /**
  * @file sensor_model.h
- * Instance of an active sensor in the simulation.
+ * Sensors are platforms that can automatically compute their own acoustics.
  */
 #pragma once
 
-#include <usml/eigenverb/eigenverb_collection.h>
-#include <usml/eigenverb/wavefront_listener.h>
-#include <usml/sensors/receiver_params.h>
-#include <usml/sensors/sensor_listener.h>
-#include <usml/sensors/orientation.h>
-#include <usml/sensors/source_params.h>
-#include <usml/sensors/xmitRcvModeType.h>
-#include <usml/threads/thread_task.h>
-#include <usml/waveq3d/eigenray_collection.h>
-#include <set>
+#include <bits/types/time_t.h>
+#include <usml/beampatterns/bp_model.h>
+#include <usml/managed/managed_obj.h>
+#include <usml/platforms/platform_model.h>
+#include <usml/threads/read_write_lock.h>
+#include <usml/transmit/transmit_model.h>
+#include <usml/types/bvector.h>
+#include <usml/types/orientation.h>
+#include <usml/types/seq_linear.h>
+#include <usml/types/seq_rayfan.h>
+#include <usml/types/seq_vector.h>
+#include <usml/types/wposition1.h>
+#include <usml/usml_config.h>
+#include <usml/wavegen/wavefront_notifier.h>
+
+#include <cstddef>
+#include <list>
+#include <map>
+#include <memory>
+#include <string>
+
+namespace usml {
+namespace wavegen {
+class wavefront_generator;
+} /* namespace wavegen */
+} /* namespace usml */
 
 namespace usml {
 namespace sensors {
 
-using namespace usml::waveq3d;
-using namespace usml::eigenverb;
+using namespace usml::beampatterns;
+using namespace usml::managed;
+using namespace usml::platforms;
 using namespace usml::threads;
+using namespace usml::transmit;
+using namespace usml::types;
+using namespace usml::wavegen;
 
 /// @ingroup sensors
 /// @{
 
 /**
- * Instance of an active sensor in the simulation.
- * As the sensor moves all required attributes are updated. If the attributes
- * change beyond established thresholds a new reverb generation is started.
+ * Sensors are platforms that can automatically compute their own acoustics.
+ * Simple sensors can be implemented as objects that control their own motion,
+ * or they can be attached to host platforms using the add_child() method. Uses
+ * mutex to lock queries and updates in multi-threaded environment.
+ *
+ * Stores the beampattern models used by this sensor. Each beampattern has a
+ * keyID and a const shared pointer to the beampattern model to use.
+ * Beampatterns models are immutable and may be shared between sensors.
+ *
+ * Stores a transmission schedule used to generate acoustic time series and it
+ * includes pulse characteristics, a transmit keyID, and a transmit steering
+ * direction for each pulse. The keyID for of the source beam patterns
+ * identifies the beam pattern model to use for each of these pulses.
+ *
+ * The keyID for each receiver beam pattern identifies the receiver channel
+ * associated with each pattern. This implementation currently supports beam
+ * level simulations where each channel has its own beam pattern and steering.
+ * Time series results are generated as a function of receiver channel number
+ * and time when the fsample property is set.
+ *
+ * Automatically launches a background task to recompute eigenrays and
+ * eigenverbs when sensor motion exceeds position or orientation thresholds. The
+ * find_targets() calculation searches the platform_manager for all platforms
+ * and sensors sensors between the maximum and minimum slant range. If an
+ * existing wavefront_generator is running for this sensor, that task is aborted
+ * before the new background task is created. Uses update_notifier to notify
+ * listeners when eigenray and eigenverb data has changed. Does not notify
+ * listeners when other fields like position and orientation change.
  */
-class USML_DECLSPEC sensor_model: public wavefront_listener {
-public:
-
+class USML_DECLSPEC sensor_model : public platform_model,
+                                   public wavefront_notifier {
+   public:
     /**
-     * Data type used for sensorID.
+     * Form of the shared pointer that supports access to sensor_model
+     * attributes and methods.
      */
-    typedef int id_type;
+    using sptr = std::shared_ptr<sensor_model>;
 
     /**
-     * Construct a new instance of a specific sensor type.
-     * Sets the position and orientation values to NAN.
-     * These values are not set until the update_sensor()
-     * is invoked for the first time.
+     * Initialize location and orientation of the sensor in world coordinates.
      *
-     * @param sensorID        Identification used to find this sensor instance
-     *                         in sensor_manager.
-     * @param paramsID        Identification used to lookup sensor type data
-     *                         in source_params_map and receiver_params_map.
-     * @param description    Human readable name for this sensor instance.
+     * @param keyID        	Identification used to find this platform
+     * 						instance in platform_manager.
+     * @param description   Human readable name for this platform instance.
+     * @param time			Time at which platform is being created.
+     * @param pos 			Initial location for this platform.
+     * @param orient 		Initial orientation for this platform.
+     * @param speed			Platform speed (m/s).
      */
-    sensor_model( sensor_model::id_type sensorID, sensor_params::id_type paramsID,
-            const std::string& description = std::string());
+    sensor_model(platform_model::key_type keyID, const std::string& description,
+                 time_t time = 0.0, const wposition1& pos = wposition1(),
+                 const orientation& orient = orientation(), double speed = 0.0)
+        : platform_model(keyID, description, time, pos, orient, speed) {}
+
+    /// Minimum range to find valid targets (m).
+    double min_range() const { return _min_range; }
+
+    /// Minimum range to find valid targets (m).
+    void min_range(double value) { _min_range = value; }
+
+    /// Maximum range to find valid targets (m).  Set to zero for infinite
+    /// range.
+    double max_range() const { return _max_range; }
+
+    /// Maximum range to find valid targets (m).  Set to zero for infinite
+    /// range.
+    void max_range(double value) { _max_range = value; }
+
+    /// List of depression/elevation angles to use in wavefront calculation.
+    seq_vector::csptr de_fan() const { return _de_fan; }
+
+    /// List of depression/elevation angles to use in wavefront calculation.
+    void de_fan(seq_vector::csptr value) { _de_fan = value; }
+
+    /// List of azimuthal angles  to use in wavefront calculation.
+    seq_vector::csptr az_fan() const { return _az_fan; }
+
+    /// List of azimuthal angles  to use in wavefront calculation.
+    void az_fan(seq_vector::csptr value) { _az_fan = value; }
+
+    /// Time step between wavefronts (sec).
+    double time_step() const { return _time_step; }
+
+    /// Time step between wavefronts (sec).
+    void time_step(double value) { _time_step = value; }
+
+    /// Maximum time to propagate wavefront (sec).
+    double time_minimum() const { return _time_minimum; }
+
+    /// Maximum time to propagate wavefront (sec).
+    void time_minimum(double value) { _time_minimum = value; }
+
+    /// Maximum time to propagate wavefront (sec).
+    double time_maximum() const { return _time_maximum; }
+
+    /// Maximum time to propagate wavefront (sec).
+    void time_maximum(double value) { _time_maximum = value; }
 
     /**
-     * Removes a sensor instance from simulation.
-     * Automatically aborts wavefront task if one exists.
+     * The value of the intensity threshold in dB. Any eigenray or eigenverb
+     * with an intensity value that are weaker than this threshold is not sent
+     * the listeners.
      */
-    virtual ~sensor_model() ;
+    double intensity_threshold() const { return _intensity_threshold; }
+
+    /// The value of the intensity threshold in dB.
+    void intensity_threshold(double value) { _intensity_threshold = value; }
 
     /**
-     * Identification used to find this sensor instance in sensor_manager.
-     * @return sensorID for this sensor_model.
+     * The maximum number of bottom bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of bottom bounces is not sent the listeners.
      */
-    id_type sensorID() const {
-        return _sensorID;
+    int max_bottom() const { return _max_bottom; }
+
+    /// The maximum number of bottom bounces.
+    void max_bottom(int value) { _max_bottom = value; }
+
+    /**
+     * The maximum number of surface bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of surface bounces is not sent the listeners.
+     */
+    int max_surface() const { return _max_surface; }
+
+    /// The maximum number of surface bounces.
+    void max_surface(int value) { _max_surface = value; }
+
+    /// True if eigenverbs computed for this sensor.
+    bool compute_reverb() const { return _compute_reverb; }
+
+    /// True if eigenverbs computed for this sensor.
+    void compute_reverb(bool value) { _compute_reverb = value; }
+
+    /**
+     * Multi-static group for this sensor (0=none). The sensor_manager
+     * automatically creates bistatic pairs for sources and receivers in the
+     * same multistatic group.
+     */
+    int multistatic() const { return _multistatic; }
+
+    /// Multi-static group for this sensor (0=none).
+    void multistatic(int value) { _multistatic = value; }
+
+    /// Add transmit mode beam pattern to this sensor.
+    size_t src_beam(int keyID, const bp_model::csptr& pattern);
+
+    /// Find reference to specific source beam model.
+    bp_model::csptr src_beam(int keyID) const;
+
+    /// Return a list of all source beam keys.
+    std::list<int> src_keys() const;
+
+    /// Return the number of source beam keys.
+    size_t src_num_keys() const {
+        read_lock_guard guard(mutex());
+        return _src_beams.size();
+    }
+
+    /// True if the sensor has source beams.
+    bool is_source() const {
+        read_lock_guard guard(mutex());
+        return _src_beams.size() > 0;
+    }
+
+    /// Add receiver beam pattern to this sensor.
+    size_t rcv_beam(int keyID, const bp_model::csptr& pattern,
+                    const bvector& steering = bvector(1.0, 0.0, 0.0));
+
+    /// Find reference to specific receiver beam model.
+    bp_model::csptr rcv_beam(int keyID) const;
+
+    /// Retrieve source steering for specific channel number.
+    bvector rcv_steering(int keyID) const;
+
+    /// Update source steering for specific channel number.
+    void rcv_steering(int keyID, const bvector& steering);
+
+    /// Return a list of all receiver beam keys.
+    std::list<int> rcv_keys() const;
+
+    /// Return the number of receiver beam keys.
+    size_t rcv_num_keys() const {
+        read_lock_guard guard(mutex());
+        return _rcv_beams.size();
+    }
+
+    /// True if the sensor has receiver beams.
+    bool is_receiver() const {
+        read_lock_guard guard(mutex());
+        return _rcv_beams.size() > 0;
+    }
+
+    /// Retrieve receiver sampling rate (Hz).
+    double fsample() const { return _fsample; }
+
+    /**
+     * Update receiver sampling rate (Hz). Receiver time series data,
+     * including reverberation, are not computed if the receiver sampling rate
+     * is not set by the user.
+     */
+    void fsample(double value) { _fsample = value; }
+
+    /// Retrieve receiver center frequency (Hz).
+    double fcenter() const { return _fcenter; }
+
+    /**
+     * Update receiver center frequency (Hz). Models frequency contents of the
+     * receiver time series data when this value is set by user.
+     */
+    void fcenter(double value) { _fcenter = value; }
+
+    /// Retrieve list of pulses to transmit.
+    transmit_list transmit_schedule() const {
+        read_lock_guard guard(mutex());
+        return _transmit_schedule;
     }
 
     /**
-     * Identification used to lookup sensor type data in 
-     * source_params_map and receiver_params_map.
-     * @return paramID for this sensor_model.
+     * Update list of pulses to transmit. Receiver time series data, including
+     * reverberation, are not computed if the source transmit_schedule is not
+     * set by the user. Recomputes receiver time series for pairs when source
+     * transmit_schedule is updated and old schedule is empty or update_type is
+     * FORCE_UPDATE.
      */
-    sensor_params::id_type paramsID() const {
-        return _paramsID;
-    }
+    void transmit_schedule(const transmit_list& schedule,
+                           update_type_enum update_type = NO_UPDATE);
 
+   protected:
     /**
-     * Gets the minimum active frequency
-     * @return double 
-     */
-    double min_active_freq() const {
-        return _min_active_freq;
-    }
-
-    /**
-     * Gets the maximum active frequency
-     * @return double
-     */
-    double max_active_freq() const {
-        return _max_active_freq;
-    }
-
-    /**
-     * Frequencies of transmitted pulse. Multiple frequencies can be
-     * used to compute multiple results at the same time. These are the
-     * frequencies at which transmission loss and reverberation are computed.
-     * @return frequencies pointer to a seq_vector. 
-     */
-    seq_vector* frequencies() const {
-        return _frequencies.get();
-    }
-
-    /**
-     * Human readable name for this sensor instance.
-     * @return string that contains human readable name of this sensor_model instance.
-     */
-    const std::string& description() const {
-        return _description;
-    }
-
-    /**
-     * Queries the sensor's ability to support source and/or receiver behaviors.
-     * @return mode which is an enumeration of this sensor_model instance.
-     */
-    xmitRcvModeType mode() const ;
-
-    /**
-     * Shared pointer to the the source_params for this sensor.
-     * @return A shared pointer to the source_params.
-     */
-    source_params::reference source() const {
-        return _source;
-    }
-
-    /**
-     * Shared pointer to the the receiver_params for this sensor.
-     * @return A shared pointer to the receiver_params.
-     */
-    receiver_params::reference receiver() const {
-        return _receiver;
-    }
-
-    /**
-     * Location of the sensor in world coordinates.
-     * @return the location of this sensor_model instance.
-     */
-    wposition1 position() const ;
-
-    /**
-     * Orientation of the sensor in world coordinates.
-     * @return the orientation of this sensor_model instance.
-     */
-    orientation orient() const ;
-
-    /**
-     * Updates the position and orientation of sensor.
-     * If the object has changed by more than the threshold amount,
-     * this update kicks off a new set of propagation calculations.
-     * At the end of those calculations, the eigenverbs and eigenrays
-     * are passed onto all sensor listeners.
-     * Blocks until update is complete.
+     * Updates the internal state of this platform and its children. Starts
+     * wavefront_generator background task to update acoustics if sensor has
+     * moved by moved by more than the thresholds defined in motion_thresholds
+     * class. Acoustics not computed if sensor has time_maximum set to zero.
+     * Acoustics not computed if there are no eigenrays or eigenverbs to be
+     * computed.
      *
-     * @param position      Updated position data
-     * @param orient        Updated orientation value
-     * @param force_update    When true, forces update without checking thresholds.
+     * @param time          Time at which platform was updated.
+     * @param pos           New location for this platform.
+     * @param orient        New orientation for this platform.
+     * @param speed         Platform speed (m/s).
+     * @param update_type	Controls testing of thresholds.
      */
-    void update_sensor(const wposition1& position,
-            const orientation& orient, bool force_update = false);
+    virtual void update_internals(
+        time_t time, const wposition1& pos,
+        const orientation& orient = orientation(), double speed = 0.0,
+        update_type_enum update_type = TEST_THRESHOLD);
 
     /**
-     * Last set of eigenverbs computed for this sensor.
-     * Blocks during updates from the wavefront task.
-     * @return shared pointer to and eigenverb_collection.
+     * Get list of acoustic targets near this sensor.
      */
-    eigenverb_collection::reference eigenverbs() const ;
+    std::list<platform_model::sptr> find_targets();
+
+   private:
+    /// Type used to store list of objects.
+    typedef std::map<int, bp_model::csptr> beam_map_type;
+
+    /// Type used to store list of beam steerings.
+    typedef std::map<int, bvector> steering_map_type;
+
+    /// Minimum range to find valid targets (m).
+    double _min_range{0.0};
+
+    /// Maximum range to find valid targets (m).  Use zero for infinite range.
+    double _max_range{0.0};
+
+    /// List of depression/elevation angles to use in wavefront calculation.
+    seq_vector::csptr _de_fan{seq_vector::csptr(new seq_rayfan())};
+
+    /// List of azimuthal angles  to use in wavefront calculation.
+    seq_vector::csptr _az_fan{
+        seq_vector::csptr(new seq_linear(0.0, 10.0, 360.0))};
+
+    /// Time step between wavefronts (sec).
+    double _time_step{0.1};
+
+    /// Minimum time to compute wavefront results (sec).
+    double _time_minimum{0.0};
+
+    /// Maximum time to propagate wavefront (sec).
+    double _time_maximum{0.0};
 
     /**
-     * Asynchronous update of eigenrays and eigenverbs data from the wavefront task.
-     * Passes this data onto all sensor listeners.
-     * Blocks until update is complete.
-     * @param eigenrays Shared pointer to an eigenray_collection.
-     * @param eigenverbs Shared pointer to an eigenverb_collection.
+     * The value of the intensity threshold in dB.
+     * Any eigenray or eigenverb with an intensity value that are weaker
+     * than this threshold is not sent the listeners.
      */
-    virtual void update_wavefront_data(eigenray_collection::reference& eigenrays,
-                                        eigenverb_collection::reference& eigenverbs);
+    double _intensity_threshold{-300.0};
 
     /**
-     * Add a sensor_listener to the _sensor_listeners list
-     * @param listener  Pointer to a sensor_listener to add
-     *                  to the sensor_listeners list.
+     * The maximum number of bottom bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of bottom bounces is not sent the listeners.
      */
-    void add_sensor_listener(sensor_listener* listener);
+    int _max_bottom{999};
 
     /**
-     * Remove a sensor_listener from the _sensor_listeners list.
-     * @param listener  Pointer to a sensor_listener to remove
-     *                  from the sensor_listeners list.
+     * The maximum number of surface bounces.
+     * Any eigenray or eigenverb with more than this number
+     * of surface bounces is not sent the listeners.
      */
-    void remove_sensor_listener(sensor_listener* listener);
+    int _max_surface{999};
 
-    /**
-     * Maximum change in altitude that constitutes new data for
-     * eigenverbs and eigenrays be generated.
-     */
-    static const double alt_threshold ;
+    /// True if computing reverberation from this sensor.
+    bool _compute_reverb{false};
 
-    /**
-     * Maximum change in latitude that constitutes new data for
-     * eigenverbs and eigenrays be generated.
-     */
-    static const double lat_threshold ;
+    /// Multi-static group for this sensor (0=none).
+    int _multistatic{0};
 
-    /**
-     * Maximum change in longitude that constitutes new data for
-     * eigenverbs and eigenrays be generated.
-     */
-    static const double lon_threshold ;
+    /// Source beam patterns.
+    beam_map_type _src_beams;
 
-    /**
-     * Maximum change in pitch that constitutes new data for
-     * eigenverbs and eigenrays be generated.
-     */
-    static const double pitch_threshold ;
+    /// Receiver beam patterns.
+    beam_map_type _rcv_beams;
 
-    /**
-     * Maximum change in heading that constitutes new data for
-     * eigenverbs and eigenrays be generated.
-     */
-    static const double heading_threshold ;
+    /// Receiver beam steerings.
+    steering_map_type _rcv_steering;
 
-    /**
-     * Maximum change in roll that constitutes new data for
-     * eigenverbs and eigenrays be generated.
-     */
-    static const double roll_threshold ;
+    /// Receiver sampling rate (Hz).
+    double _fsample{0.0};
 
-private:
+    /// Receiver center frequency (Hz).
+    double _fcenter{0.0};
 
-    /**
-     * Utility to check if new position and orientation have changed enough
-     * to require a new WaveQ3D run.
-     *
-     * @param position      Updated position data
-     * @param orient        Updated orientation value
-     * @return                 True when thresholds exceeded, requiring a
-     *                         rerun of the model for this sensor.
-     */
-    bool check_thresholds( const wposition1& position,
-            const orientation& orient );
+    /// List of pulses to transmit.
+    transmit_list _transmit_schedule;
 
-    /**
-     * Utility to query the current list of sensor listeners for the complements
-     * of this sensor. Assumes that these listeners act like sensor_pair objects.
-     * @return list of sensor_model pointers that are the complements of the this sensor.
-     */
-    std::list<const sensor_model*> sensor_targets();
-
-    /**
-     * Utility to set the list of target sensorID's from the list of sensors provided.
-     * @param list of sensor_model pointers.
-     */
-    void target_ids(std::list<const sensor_model*>& list);
-
-    /**
-     * Utility to builds a list of target positions from the input list of sensors provided.
-     * @param list of sensor_model pointers.
-     * @return wposition pointer to container of positions of the list of sensors provided.
-     */
-    const wposition* target_positions(std::list<const sensor_model*>& list) const ;
-
-    /**
-     * Utility to run the wave_generator thread task to start the waveq3d model.
-     */
-    void run_wave_generator();
-
-    /**
-     * Utility to set the frequencies band from sensor including
-     * min and max active frequencies.
-     */
-    void frequencies();
-
-    /**
-     * Identification used to find this sensor instance in sensor_manager.
-     */
-    const id_type _sensorID;
-
-    /**
-     * Identification used to lookup sensor type data in source_params_map and receiver_params_map.
-     */
-    const sensor_params::id_type _paramsID;
-
-    /**
-     * Minimum active frequency for the sensor.
-     */
-    double _min_active_freq;
-
-    /**
-     *  Maximum active frequency for the sensor.
-     */
-    double _max_active_freq;
-
-    /**
-     * Frequencies of transmitted pulse. Multiple frequencies can be
-     * used to compute multiple results at the same time. These are the
-     * frequencies at which transmission loss and reverberation are computed.
-     */
-    unique_ptr<seq_vector> _frequencies;
-
-    /**
-     * Enumerated type for the sensor transmit/receiver mode.
-     */
-    xmitRcvModeType _mode;
-
-    /**
-     * Human readable name for this sensor instance.
-     */
-    const std::string _description;
-
-    /**
-     * Shared pointer to the the source_params for this sensor.
-     */
-    source_params::reference _source;
-
-    /**
-     * Shared pointer to the the receiver_params for this sensor.
-     */
-    receiver_params::reference _receiver;
-
-    /**
-     * Location of the sensor in world coordinates.
-     */
-    wposition1 _position;
-
-    /**
-     * Orientation of the sensor in world coordinates.
-     */
-    orientation _orient;
-
-    /**
-     * Flag the designates whether an update requires the creation of
-     * new data, because the new position/orientation has changed enough
-     * such that the currently cached data for eigenrays and eigenverbs
-     * are no longer sufficiently accurate.
-     */
-    bool _initial_update ;
-
-    /**
-     * Mutex that locks sensor during update_sensor.
-     */
-    mutable read_write_lock _update_sensor_mutex ;
-
-    /**
-     * Map containing the target sensorID's and the row offset
-     * in _eigenray_collection prior to the staring the wavefront generator.
-     */
-    std::map<sensor_model::id_type, int> _target_id_map;
-
-    /**
-     * Last set of eigenray data computed for this sensor.
-     */
-    eigenray_collection::reference _eigenray_collection;
-
-    /**
-     * Mutex that locks sensor _eigenray_collection access/write
-     */
-    mutable read_write_lock _eigenrays_mutex ;
-
-    /**
-     * Last set of eigenverbs computed for this sensor.
-     */
-    eigenverb_collection::reference _eigenverb_collection;
-
-    /**
-     * Mutex that locks sensor during _eigenverb_collection access/write.
-     */
-    mutable read_write_lock _eigenverbs_mutex ;
-
-    /**
-     * reference to the task that is computing eigenrays and eigenverbs.
-     */
-    thread_task::reference _wavefront_task;
-
-    /**
-     * List containing the references of objects that will be used to
-     * update classes that require sensor data.
-     * These classes must implement update_fathometer and update_eigenverbs methods.
-     */
-    std::list<sensor_listener*> _sensor_listeners;
-
-    /**
-     * Mutex that locks sensor during add/remove sensor_listeners.
-     */
-    mutable read_write_lock _sensor_listeners_mutex ;
+    /// Reference to currently executing wavefront generator.
+    std::shared_ptr<wavefront_generator> _wavefront_task;
 };
 
 /// @}
-}// end of namespace sensors
-}  // end of namespace usml
+}  // namespace sensors
+}  // namespace usml

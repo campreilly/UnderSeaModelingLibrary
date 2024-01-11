@@ -3,162 +3,188 @@
  * Extracts ocean profile data from world-wide databases.
  */
 #include <usml/netcdf/netcdf_profile.h>
+#include <usml/types/seq_data.h>
+#include <usml/types/seq_linear.h>
+#include <usml/types/seq_vector.h>
 
-using namespace usml::netcdf ;
+#include <boost/algorithm/string/predicate.hpp>
+
+using namespace usml::netcdf;
 
 /**
  * Load ocean profile from disk.
  */
-netcdf_profile::netcdf_profile(
-    const char* profile, double date,
-    double south, double north, double west, double east,
-    double earth_radius )
-{
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+netcdf_profile::netcdf_profile(const char *profile, double date, double south,
+                               double north, double west, double east,
+                               const char *varname) {
     // initialize access to NetCDF file.
 
-    double missing = NAN ;   // default value for missing information
-    NcVar *time, *altitude, *latitude, *longitude, *value ;
-    NcFile pfile( profile ) ;
+    double missing = NAN;       // default value for missing information
+    double scale_factor = NAN;  // default value for scale_factor
+    double add_offset = NAN;    // default value for add_offset
+    NcVar *time;
+    NcVar *altitude;
+    NcVar *latitude;
+    NcVar *longitude;
+    NcVar *value;
+    NcFile pfile(profile);
     if (pfile.is_valid() == 0) {
-        throw std::invalid_argument("file not found") ;
+        throw std::invalid_argument("file not found");
     }
-    decode_filetype( pfile, &missing, &time, &altitude,
-                     &latitude, &longitude, &value ) ;
+    decode_filetype(pfile, &missing, &scale_factor, &add_offset, &time,
+                    &altitude, &latitude, &longitude, &value, varname);
 
     // find the time closest to the specified value
 
-    int time_index = 0 ;
-    double old_diff = abs( date - time->as_double(0) ) ;
-    for ( int t=1 ; t < time->num_vals() ; ++t ) {
-        double diff = abs( date - time->as_double(t) ) ;
-        if ( old_diff > diff ) {
-            old_diff = diff ;
-            time_index = t ;
+    long time_index = 0;
+    double old_diff = abs(date - time->as_double(0));
+    for (long t = 1; t < time->num_vals(); ++t) {
+        double diff = abs(date - time->as_double(t));
+        if (old_diff > diff) {
+            old_diff = diff;
+            time_index = t;
         }
     }
 
     // read altitude axis data from NetCDF variable
 
-    const int alt_num = (int) altitude->num_vals() ;
-    vector<double> vect(alt_num) ;
-    for ( int d=0 ; d < alt_num ; ++d ) {
-        vect[d] = earth_radius - abs( altitude->as_double(d) ) ;
+    const auto alt_num = long(altitude->num_vals());
+    vector<double> vect(alt_num);
+    for (long d = 0; d < alt_num; ++d) {
+        vect[d] = wposition::earth_radius - abs(altitude->as_double(d));
     }
-    this->_axis[0] = new seq_data( vect ) ;
+    _axis[0] = seq_vector::csptr(new seq_data(vect));
 
     // manage wrap-around between eastern and western hemispheres
 
-    double offset = 0.0 ;
-    int duplicate = 0 ;
-    int n = longitude->num_vals() - 1 ;
+    double offset = 0.0;
+    long duplicate = 0;
+    long n = longitude->num_vals() - 1;
     // Is the data set bounds 0 to 359(360)
-    bool zero_to_360 = ( longitude->as_double(0) <= 1.0 &&
-    					 longitude->as_double(n) >= 359.0 ) ? true : false ;
+    bool zero_to_360 =
+        longitude->as_double(0) <= 1.0 && longitude->as_double(n) >= 359.0;
     // Is the data set bounds -180 to 179(180)
-    bool bounds_180 = ( longitude->as_double(n) >= 179.0 &&
-			   	   	  	longitude->as_double(0) == -180.0 ) ? true : false ;
+    bool bounds_180 =
+        longitude->as_double(n) >= 179.0 && longitude->as_double(0) == -180.0;
     // Is this set a global data set
-    bool global = ( zero_to_360 || bounds_180 ) ;
-    if( global ) {
+    bool global = (zero_to_360 || bounds_180);
+    if (global) {
         // check to see if database has duplicate data at cut point
-        if ( abs(longitude->as_double(0)+360-longitude->as_double(n)) < 1e-4 ) duplicate = 1 ;
+        if (abs(longitude->as_double(0) + 360 - longitude->as_double(n)) <
+            1e-4) {
+            duplicate = 1;
+        }
 
         // manage wrap-around between eastern and western hemispheres
-        if ( longitude->as_double(0) < 0.0 ) {
+        if (longitude->as_double(0) < 0.0) {
             // if database has a range (-180,180)
             // make western longitudes into negative numbers
             // unless they span the 180 latitude
-            if ( west > 180.0 && east > 180.0 ) offset = -360.0 ;
+            if (west > 180.0 && east > 180.0) {
+                offset = -360.0;
+            }
         } else {
             // if database has a range (0,360)
             // make all western longitudes into positive numbers
-            if ( west < 0.0 ) offset = 360.0 ;
+            if (west < 0.0) {
+                offset = 360.0;
+            }
         }
     } else {
-    	if( longitude->as_double(0) > 180.0 ) {
-    		if( west < 0.0 ) offset = 360.0 ;
-    	} else if( longitude->as_double(0) < 0.0 ) {
-    		if( east > 180.0 ) offset = -360.0 ;
-    	}
+        if (longitude->as_double(0) > 180.0) {
+            if (west < 0.0) {
+                offset = 360.0;
+            }
+        } else if (longitude->as_double(0) < 0.0) {
+            if (east > 180.0) {
+                offset = -360.0;
+            }
+        }
     }
 
-    west += offset ;
-    east += offset ;
+    west += offset;
+    east += offset;
 
     // read latitude axis data from NetCDF variable
     // lat_first and lat_last are the integer offsets along this axis
     // _axis[1] is expressed as co-latitude in radians [0,PI]
 
-    double a = latitude->as_double(0) ;
-    n = latitude->num_vals() - 1 ;
-    double inc = ( latitude->as_double(n) - a ) / n ;
-    const int lat_first = max( 0, (int) floor( 1e-6 + (south-a) / inc ) ) ;
-    const int lat_last = min( n, (int) floor( 0.5 + (north-a) / inc ) ) ;
-    const int lat_num = lat_last - lat_first + 1 ;
-    this->_axis[1] = new seq_linear(
-        to_colatitude(lat_first*inc+a),
-        to_radians(-inc),
-        lat_num );
+    double a = latitude->as_double(0);
+    n = latitude->num_vals() - 1;
+    double inc = double(latitude->as_double(n) - a) / double(n);
+    const long lat_first = max(0L, long(floor(1e-6 + (south - a) / inc)));
+    const long lat_last = min(n, long(floor(0.5 + (north - a) / inc)));
+    const long lat_num = lat_last - lat_first + 1;
+    _axis[1] = seq_vector::csptr(
+        new seq_linear(to_colatitude(double(lat_first) * inc + a),
+                       to_radians(-inc), size_t(lat_num)));
 
     // read longitude axis data from NetCDF variable
     // lng_first and lng_last are the integer offsets along this axis
-    // _axis[2] is expressed as longtitude in radians [-PI,2*PI]
+    // _axis[2] is expressed as longitude in radians [-PI,2*PI]
 
-    a = longitude->as_double(0) ;
-    n = (int) longitude->num_vals() - 1 ;
-    inc = ( longitude->as_double(n) - a ) / n ;
-    int index = (int) floor( 1e-6 + (west-a) / inc ) ;
-    const int lng_first = (global) ? index : max(0, index) ;
-    index = (int) floor( 0.5 + (east-a) / inc ) ;
-    const int lng_last = (global) ? index : min(n, index) ;
-    const int lng_num = lng_last - lng_first + 1 ;
-    this->_axis[2] = new seq_linear(
-        to_radians(lng_first*inc+a-offset),
-        to_radians(inc),
-        lng_num ) ;
+    a = longitude->as_double(0);
+    n = long(longitude->num_vals() - 1);
+    inc = double(longitude->as_double(n) - a) / double(n);
+    auto index = long(floor(1e-6 + (west - a) / inc));
+    const long lng_first = (global) ? index : max(0L, index);
+    index = long(floor(0.5 + (east - a) / inc));
+    const long lng_last = (global) ? index : min(n, index);
+    const long lng_num = lng_last - lng_first + 1;
+    _axis[2] = seq_vector::csptr(
+        new seq_linear(to_radians(double(lng_first) * inc + a - offset),
+                       to_radians(inc), size_t(lng_num)));
 
     // load profile data out of NetCDF variable
 
-    this->_data = new double[ alt_num * lat_num * lng_num ] ;
-    if ( longitude->num_vals() > lng_last ) {
-        value->set_cur( time_index, 0, lat_first, lng_first ) ;
-        value->get( this->_data, 1, alt_num, lat_num, lng_num ) ;
+    auto *data = new double[lat_num * lng_num * alt_num];
+    _writeable_data = std::shared_ptr<double[]>(data);
+    _data = _writeable_data;
 
-    // support datasets that cross the unwrapping longitude
-    // assumes that bathy data is NOT repeated on both sides of cut point
+    if (longitude->num_vals() > lng_last) {
+        value->set_cur(time_index, 0, lat_first, lng_first);
+        value->get(data, 1, alt_num, lat_num, lng_num);
+
+        // support datasets that cross the unwrapping longitude
+        // assumes that bathy data is NOT repeated on both sides of cut point
 
     } else {
-        int M = lng_last - longitude->num_vals() + 1 ;  // # pts on east side
-        int N = lng_num - M ;                           // # pts on west side
-        double* ptr = this->_data ;
-        for ( int alt = 0 ; alt < alt_num ; ++alt ) {
-            for ( int lat = lat_first ; lat <= lat_last ; ++lat ) {
-
+        long M = lng_last - longitude->num_vals() + 1;  // # pts on east side
+        long N = lng_num - M;                           // # pts on west side
+        double *ptr = data;
+        for (long alt = 0; alt < alt_num; ++alt) {
+            for (long lat = lat_first; lat <= lat_last; ++lat) {
                 // the west side of the block is the portion from
                 // lng_first to the last latitude
-                value->set_cur( time_index, alt, lat, lng_first ) ;
-                value->get( ptr, 1, 1, 1, N ) ;
-                ptr += N ;
+                value->set_cur(time_index, alt, lat, lng_first);
+                value->get(ptr, 1, 1, 1, N);
+                ptr += N;
 
                 // the missing points on the east side of the block
                 // are read from zero until the right # of points are read
                 // skip first longitude if it is a duplicate
-                value->set_cur( time_index, alt, lat, duplicate ) ;
-                value->get( ptr, 1, 1, 1, M ) ;
-                ptr += M ;
+                value->set_cur(time_index, alt, lat, duplicate);
+                value->get(ptr, 1, 1, 1, M);
+                ptr += M;
             }
         }
     }
 
-    // change missing values in the file to NaN in memory
-    // don't execute if netCDF file didn't specify a "missing" value
-
-    if ( ! isnan(missing) ) {
-        const int N = alt_num * lat_num * lng_num ;
-        double* ptr = this->_data ;
-        while ( ptr < this->_data + N ) {
-            if ( *ptr == missing ) *ptr = NAN ;
-            ++ptr ;
+    // apply logic for missing, scale_factor, and add_offset
+    if (!std::isnan(missing) || !std::isnan(scale_factor * add_offset)) {
+        const long N = alt_num * lat_num * lng_num;
+        double *ptr = data;
+        while (ptr < data + N) {
+        	// NOLINTNEXTLINE(clang-analyzer-core.UndefinedBinaryOperatorResult)
+            if (!std::isnan(missing) && *ptr == missing) {
+                *ptr = NAN;
+            }
+            if (!std::isnan(scale_factor * add_offset)) {
+                // NOLINTNEXTLINE(clang-analyzer-core.UndefinedBinaryOperatorResult)
+                *ptr = *ptr * scale_factor + add_offset;
+            }
+            ++ptr;
         }
     }
 }
@@ -166,172 +192,222 @@ netcdf_profile::netcdf_profile(
 /**
  * Fill missing values with average data at each depth.
  */
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void netcdf_profile::fill_missing() {
-	typedef size_t				 			size_type ;
-	typedef double				 			value_type ;
-	typedef data_grid<double,3>  			grid_type ;
-	typedef matrix<value_type>				matrix_type ;
-	typedef ublas::vector<matrix_type>		vector_type ;
-	typedef zero_matrix<value_type>			matrix_z ;
-	typedef scalar_matrix<value_type>		matrix_s ;
+    gen_grid<3> replace(_axis);
 
-	const seq_vector* ax[3] ;
-	ax[0] = this->_axis[0] ;
-	ax[1] = this->_axis[1] ;
-	ax[2] = this->_axis[2] ;
-	grid_type replace( ax ) ;
-	seq_vector* depth = this->_axis[0] ;
-	size_type ndepth = depth->size() ;
-	size_type nlat = this->_axis[1]->size() ;
-	size_type nlon = this->_axis[2]->size() ;
+    seq_vector::csptr depth = _axis[0];
+    size_t ndepth = depth->size();
+    size_t nlat = _axis[1]->size();
+    size_t nlon = _axis[2]->size();
 
-	vector_type profile_grad( ndepth ) ;
-	vector_type replace_grad( ndepth ) ;
-	size_type max_depth = 0 ;
-	for(size_type d=0; d<ndepth; ++d) {
-		if( d==0 ) replace_grad(d) = matrix_s( nlat, nlon, NAN ) ;
-		replace_grad(d) = matrix_z( nlat, nlon ) ;
-		profile_grad(d) = matrix_s( nlat, nlon, NAN ) ;
-		if( d > 0 ) {
-			for(size_type j=0; j<nlat; ++j) {
-				for(size_type k=0; k<nlon; ++k) {
-					size_type indx[] = { d, j, k } ;
-					value_type curr = this->data( indx ) ;
-					if( ! isnan(curr) ) {
-                        max_depth = max( max_depth, d ) ;
-						size_type indx2[] = { d-1, j, k } ;
-						value_type prev = this->data( indx2 ) ;
-						profile_grad(d)(j,k) = ( curr - prev ) / depth->increment(d-1) ;
-					}
-				}
-			}
-		}
-	}
+    // compute the profile depth gradient for points beyond the first depth
+    // initialize the replacement gradient while we are here
 
-	int Q = 4 ;
-	for(size_type d=0; d<max_depth+1; ++d) {
-	    for(size_type j=0; j<nlat; ++j) {
-            for(size_type k=0; k<nlon; ++k) {
-                size_type index[] = { d, j, k } ;
-                value_type r = this->data( index );
-                if( ! isnan(r) ) {
-                    replace.data( index, r ) ;
-                    replace_grad(d)(j,k) = profile_grad(d)(j,k) ;
+    vector<matrix<double>> profile_grad(ndepth);
+    vector<matrix<double>> replace_grad(ndepth);
+    size_t max_depth = 0;
+    for (size_t d = 0; d < ndepth; ++d) {
+        replace_grad(d) = zero_matrix<double>(nlat, nlon);
+        profile_grad(d) = scalar_matrix<double>(nlat, nlon, NAN);
+        if (d > 0) {
+            for (size_t j = 0; j < nlat; ++j) {
+                for (size_t k = 0; k < nlon; ++k) {
+                    const size_t index[] = {d, j, k};
+                    const double curr = data(index);
+                    if (!std::isnan(curr)) {
+                        max_depth = max(max_depth, d);
+                        const size_t index2[] = {d - 1, j, k};
+                        const double prev = data(index2);
+                        profile_grad(d)(j, k) =
+                            (curr - prev) / depth->increment(d - 1);
+                    }
+                }
+            }
+        }
+    }
+
+    // build up replacements as the sum of the points around them
+    // in latitude and longitude, weighted by the fourth power of the distance
+
+    const double distExp = -4.0;  // distance weighting exponent
+    for (size_t d = 0; d < max_depth + 1; ++d) {
+        for (size_t j = 0; j < nlat; ++j) {
+            for (size_t k = 0; k < nlon; ++k) {
+                const size_t index[] = {d, j, k};
+                double r = data(index);
+                if (!std::isnan(r)) {
+                    replace.setdata(index, r);
+                    replace_grad(d)(j, k) = profile_grad(d)(j, k);
                 } else {
-                    // compute weight
-                    value_type weight = 0.0 ;
-                    for(size_type n=0; n<nlat; ++n) {
-                        for(size_type m=0; m<nlon; ++m) {
-                            size_type index2[] = { d, n, m } ;
-                            value_type tmp = this->data(index2) ;
-                            if( ! isnan(tmp) ) {
-                                value_type t = (j-n)*(j-n) + (k-m)*(k-m) ;
-                                t = pow( t, Q ) ;
-                                value_type dist2 = 1.0 / t ;
-                                weight += dist2 ;
-                                if( d==0 ) {
-                                    r = replace.data(index) + dist2 * tmp ;
-                                    replace.data( index, r ) ;
-                                } else {
-                                    replace_grad(d)(j,k) += dist2 * profile_grad(d)(n,m) ;
-                                }	// end if( d==0 )
-                            }	// end if( !isnan(tmp) )
-                        }	// end for m<nlon
-                    }	// end for n<nlat
-                    // apply weighted sum
-                    if( weight > 0.0 ) {
-                        if( d==0 ) {
-                            r = replace.data(index) / weight ;
-                            replace.data( index, r ) ;
-                        } else {
-                            replace_grad(d)(j,k) /= weight ;
-                            size_type index2[] = { d-1, j, k } ;
-                            r = replace.data(index2) + replace_grad(d)(j,k) * depth->increment(d-1) ;
-                            replace.data( index, r ) ;
-                        }
-                    }	// end if( weight > 0.0 )
-                }	// end if( ! isnan )
-            }	// end for k<nlon
-		}	// end for j<nlat
-	}	// end for d<ndepth
+                    // compute weighted sum
 
-	// fill in all of the values that are NANs that are beyond the maximum depth
-	// that contained valid values.
-    for(size_type j=0; j<nlat; ++j) {
-        for(size_type k=0; k<nlon; ++k) {
-            size_type w = 2 ;
-            if( max_depth+1 < ndepth ) {
-                for(size_type d=max_depth+1; d<ndepth; ++d) {
-                    replace_grad(d)(j,k) = replace_grad(max_depth)(j,k) / w ;
-                    size_type in[] = { d, j, k } ;
-                    size_type in_1[] = { d-1, j, k } ;
-                    value_type v = replace.data(in_1) + replace_grad(d)(j,k) * abs(depth->increment(d-1)) ;
-                    replace.data( in, v ) ;
-                    w *= 2 ;
+                    double weight = 0.0;
+                    for (size_t n = 0; n < nlat; ++n) {
+                        for (size_t m = 0; m < nlon; ++m) {
+                            const size_t index2[] = {d, n, m};
+                            const double tmp = data(index2);
+                            if (!std::isnan(tmp)) {
+                                const double dj = double(j) - double(n);
+                                const double dk = double(k) - double(m);
+                                const double t = dj * dj + dk * dk;
+                                const double distScale = pow(t, distExp);
+                                weight += distScale;
+
+                                // for the first depth, compute the weighted
+                                // sum of the actual data values
+
+                                if (d == 0) {
+                                    r = replace.data(index) + distScale * tmp;
+                                    replace.setdata(index, r);
+
+                                    // for the other depths, compute the
+                                    // weighted sum of the depth gradients
+
+                                } else {
+                                    replace_grad(d)(j, k) +=
+                                        distScale * profile_grad(d)(n, m);
+                                }  // end if( d==0 )
+                            }      // end if( !isnan(tmp) )
+                        }          // end for m<nlon
+                    }              // end for n<nlat
+
+                    // convert sums to weighted average
+
+                    if (weight > 0.0) {
+                        if (d == 0) {
+                            r = replace.data(index) / weight;
+                            replace.setdata(index, r);
+                        } else {
+                            replace_grad(d)(j, k) /= weight;
+                            const size_t index2[] = {d - 1, j, k};
+                            r = replace.data(index2) +
+                                replace_grad(d)(j, k) * depth->increment(d - 1);
+                            replace.setdata(index, r);
+                        }
+                    }  // end if( weight > 0.0 )
+                }      // end if( ! isnan(r) )
+            }          // end for k<nlon
+        }              // end for j<nlat
+    }                  // end for d<ndepth
+
+    // fill in values beyond the maximum depth
+    // assumes that the gradient at each latitude and longitude tapers to zero
+    // the gradient at each depth is taken to be half of the gradient above it
+
+    for (size_t j = 0; j < nlat; ++j) {
+        for (size_t k = 0; k < nlon; ++k) {
+            double w = 2.0;
+            if (max_depth + 1 < ndepth) {
+                for (size_t d = max_depth + 1; d < ndepth; ++d) {
+                    replace_grad(d)(j, k) = replace_grad(max_depth)(j, k) / w;
+                    const size_t index[] = {d, j, k};
+                    const size_t prev[] = {d - 1, j, k};
+                    const double v =
+                        replace.data(prev) +
+                        replace_grad(d)(j, k) * abs(depth->increment(d - 1));
+                    replace.setdata(index, v);
+                    w *= 2.0;
                 }
             } else {
-                replace_grad(max_depth)(j,k) = replace_grad(max_depth)(j,k) / w ;
-                size_type in[] = { max_depth, j, k } ;
-                size_type in_1[] = { max_depth-1, j, k } ;
-                value_type v = replace.data(in_1) + replace_grad(max_depth)(j,k) * abs(depth->increment(max_depth-1)) ;
-                replace.data( in, v ) ;
-            }   // end if( max_depth+1 < ndepth )
-        }   // end for k<nlon
-    }   // end for j<nlat
+                replace_grad(max_depth)(j, k) =
+                    replace_grad(max_depth)(j, k) / w;
+                const size_t index[] = {max_depth, j, k};
+                const size_t prev[] = {max_depth - 1, j, k};
+                const double v = replace.data(prev) +
+                                 replace_grad(max_depth)(j, k) *
+                                     abs(depth->increment(max_depth - 1));
+                replace.setdata(index, v);
+            }  // end if( max_depth+1 < ndepth )
+        }      // end for k<nlon
+    }          // end for j<nlat
 
-	this->copy(replace) ;
+    size_t N = _axis[0]->size() * _axis[1]->size() * _axis[2]->size();
+    std::copy_n(replace.data(), N, _writeable_data.get());
 }
 
 /**
  * Deduces the variables to be loaded based on their dimensionality.
  */
-void netcdf_profile::decode_filetype(
-    NcFile& file, double *missing, NcVar **time,
-    NcVar **altitude, NcVar **latitude, NcVar **longitude,
-    NcVar **value )
-{
-    bool found = false ;
-    for ( int n=0 ; n < file.num_vars() ; ++n ) {
-        NcVar *var = file.get_var(n) ;
-        if ( var->num_dims() == 4 ) {
-            // extract profile variable
-            *value = var ;
+void netcdf_profile::decode_filetype(NcFile &file, double *missing,
+                                     double *scale, double *offset,
+                                     NcVar **time, NcVar **altitude,
+                                     NcVar **latitude, NcVar **longitude,
+                                     NcVar **value, const char *varname) {
+    bool found = false;
+    for (int n = 0; n < file.num_vars(); ++n) {
+        NcVar *var = file.get_var(n);
 
-            // extract time variable
-            NcDim* dim = var->get_dim(0) ;
-            *time = file.get_var( dim->name() ) ;
+        // search for variables with time, lat, lon, alt components
+        if (var->num_dims() != 4) {
+            continue;
+        }
 
-            // extract altitude variable
-            dim = var->get_dim(1) ;
-            *altitude = file.get_var( dim->name() ) ;
+        // match variable name, if provided
+        if ((varname != nullptr) &&
+            !boost::algorithm::icontains(var->name(), varname)) {
+            continue;
+        }
 
-            // extract latitude variable
-            dim = var->get_dim(2) ;
-            *latitude = file.get_var( dim->name() ) ;
+        // extract profile variable
+        *value = var;
 
-            // extract longitude variable
-            dim = var->get_dim(3) ;
-            *longitude = file.get_var( dim->name() ) ;
+        // extract time variable
+        NcDim *dim = var->get_dim(0);
+        *time = file.get_var(dim->name());
 
-            { // Handle ncdfiles with no diffault _FillValue
-            NcError* ncdfError = new NcError(NcError::silent_nonfatal) ;
+        // extract altitude variable
+        dim = var->get_dim(1);
+        *altitude = file.get_var(dim->name());
+
+        // extract latitude variable
+        dim = var->get_dim(2);
+        *latitude = file.get_var(dim->name());
+
+        // extract longitude variable
+        dim = var->get_dim(3);
+        *longitude = file.get_var(dim->name());
+
+        {
+            // turn off errors for missing attributes
+            auto *ncdfError = new NcError(NcError::silent_nonfatal);
+            NcAtt *att;
+
             // extract missing attribute
-                NcAtt* att = var->get_att("_FillValue") ;
-                if (att) {
-                    NcValues* values = att->values() ;
-                    *missing = values->as_double(0) ;
-                    delete att ; delete values ;
-                }
-                delete ncdfError;
+            att = var->get_att("_FillValue");
+            if (att != nullptr) {
+                NcValues *values = att->values();
+                *missing = values->as_double(0);
+                delete att;
+                delete values;
             }
 
+            // extract missing attribute
+            att = var->get_att("scale_factor");
+            if (att != nullptr) {
+                NcValues *values = att->values();
+                *scale = values->as_double(0);
+                delete att;
+                delete values;
+            }
 
-            // stop searching
-            found = true ;
-            break ;
+            // extract missing attribute
+            att = var->get_att("add_offset");
+            if (att != nullptr) {
+                NcValues *values = att->values();
+                *offset = values->as_double(0);
+                delete att;
+                delete values;
+            }
+
+            delete ncdfError;
         }
+
+        // stop searching
+        found = true;
+        break;
     }
-    if ( ! found ) {
-        throw std::invalid_argument("unrecognized file type") ;
+    if (!found) {
+        throw std::invalid_argument("unrecognized file type");
     }
 }

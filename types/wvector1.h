@@ -197,8 +197,9 @@ public:
      * @param  pos          Position from which direction is measured.
      * @param  dir          Direction in terms of a spherical earth vector
      *                      (input).
+     * @return              Length of dir vector in local tangent plane.
      */
-    void direction(const wvector1& pos, const wvector1& dir);
+    double direction(const wvector1& pos, const wvector1& dir);
 
     /**
      * Extract spherical earth geocentric direction from acoustic

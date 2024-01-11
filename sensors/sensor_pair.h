@@ -1,268 +1,255 @@
 /**
  * @file sensor_pair.h
- * Container for one sensor pair instance.
+ * Cache of modeling products for link between source and receiver.
  */
 #pragma once
 
-#include <boost/thread.hpp>
+#include <usml/biverbs/biverb_collection.h>
+#include <usml/eigenrays/eigenray_collection.h>
+#include <usml/eigenverbs/eigenverb_collection.h>
+#include <usml/managed/managed_obj.h>
+#include <usml/managed/update_listener.h>
+#include <usml/managed/update_notifier.h>
+#include <usml/rvbts/rvbts_collection.h>
 #include <usml/sensors/sensor_model.h>
-#include <usml/sensors/sensor_listener.h>
-#include <usml/sensors/xmitRcvModeType.h>
-#include <usml/sensors/fathometer_collection.h>
-#include <usml/waveq3d/eigenray_collection.h>
-#include <usml/eigenverb/envelope_listener.h>
-#include <usml/eigenverb/envelope_collection.h>
-#include <usml/eigenverb/eigenverb_collection.h>
+#include <usml/threads/read_write_lock.h>
+#include <usml/usml_config.h>
+#include <usml/wavegen/wavefront_listener.h>
+
+#include <list>
+#include <memory>
+#include <string>
 
 namespace usml {
-namespace sensors{
+namespace biverbs {
+class biverb_generator;
+}
+}  // namespace usml
 
-using namespace waveq3d ;
-using namespace eigenverb ;
+namespace usml {
+namespace rvbts {
+class rvbts_generator;
+}
+}  // namespace usml
+
+namespace usml {
+namespace sensors {
+
+using namespace usml::biverbs;
+using namespace usml::eigenrays;
+using namespace usml::eigenverbs;
+using namespace usml::managed;
+using namespace usml::rvbts;
+using namespace usml::threads;
+using namespace usml::wavegen;
 
 /// @ingroup sensors
 /// @{
 
 /**
- * Container for one sensor pair instance.
- * On construction a pointer to the source and receiver sensor are obtained.
- * Inherits the sensor_listener interface so a sensor instance can get
- * access to its complement sensor, and updates the eigenverbs and fathometers.
+ * Cache of modeling products for link between source and receiver. Listens for
+ * acoustic changes in its component sensor_models. Each eigenray represents a
+ * single acoustic path between a source and target. The dirpaths are eigenrays
+ * that connect this source and receiver; they represent the multipath direct
+ * blast contributions to the received signal. Eigenverbs are a Gaussian beam
+ * projection of an acoustic ray onto a reverberation interface at the point of
+ * collision. The biverbs represent the bistatic overlap between the source and
+ * receiver eigenverbs for this pair. Notifies sensor_pair update listeners
+ * when all of the calculations are complete.
  */
-class USML_DECLSPEC sensor_pair : public sensor_listener, public envelope_listener
-{
-public:
-
+class USML_DECLSPEC sensor_pair
+    : public managed_obj<std::string, sensor_pair>,
+      public wavefront_listener,
+      public update_listener<biverb_collection::csptr>,
+      public update_listener<rvbts_collection::csptr>,
+      public update_notifier<sensor_pair> {
+   public:
     /**
-     * Construct from references to source and receiver.
-     * The source and receiver will be equal for monostatic sensors.
+     * Construct link between source and receiver. Makes this pair an
+     * update_listener to both the source and receiver. The source and receiver
+     * will be equal for monostatic sensors.
      *
-     * @param    source      Pointer to the source for this pair.
-     * @param    receiver    Pointer to the receiver for this pair.
+     * @param    source      Reference to the source for this pair.
+     * @param    receiver    Reference to the receiver for this pair.
      */
-    sensor_pair(sensor_model* source, sensor_model* receiver)
-        : _source(source), _receiver(receiver)
-    {
-        if ( _source->mode() == usml::sensors::BOTH ) {
-            _frequencies = _source->frequencies()->clone();
-            _src_freq_first = 0;
-            _src_freq_last = _source->frequencies()->size()-1;
-        } else {
-            compute_frequencies();
-        }
-    };
+    sensor_pair(const sensor_model::sptr& source,
+                const sensor_model::sptr& receiver);
 
     /**
-     * Default Destructor
+     * Virtual destructor.
      */
-    virtual ~sensor_pair() {
-        delete _frequencies;
-        if ( _envelopes_task.get() != 0 ) {
-            _envelopes_task->abort();
-        }
+    virtual ~sensor_pair();
+
+    /// Lookup key for this combination of source and receiver
+    std::string hash_key() const {
+        read_lock_guard guard(_mutex);
+        return generate_hash_key(_source->keyID(), _receiver->keyID());
+    }
+
+    /// Reference to the source sensor.
+    const sensor_model::sptr source() const { return _source; }
+
+    /// Reference to the receiving sensor.
+    const sensor_model::sptr receiver() const { return _receiver; }
+
+    /// True if eigenverbs can be computed for this sensor pair.
+    bool compute_reverb() const { return _compute_reverb; }
+
+    /// Direct paths that connect source and receiver locations.
+    eigenray_collection::csptr dirpaths() const {
+        read_lock_guard guard(_mutex);
+        return _dirpaths;
+    }
+
+    /// Interface collisions for wavefront emanating from the source.
+    eigenverb_collection::csptr rcv_eigenverbs() const {
+        read_lock_guard guard(_mutex);
+        return _rcv_eigenverbs;
+    }
+
+    /// Interface collisions for wavefront emanating from the receiver.
+    eigenverb_collection::csptr src_eigenverbs() const {
+        read_lock_guard guard(_mutex);
+        return _src_eigenverbs;
+    }
+
+    /// Overlap of source and receiver eigenverbs.
+    biverb_collection::csptr biverbs() const {
+        read_lock_guard guard(_mutex);
+        return _biverbs;
+    }
+
+    /// Reverberation time series time series.
+    rvbts_collection::csptr rvbts() const {
+        read_lock_guard guard(_mutex);
+        return _rvbts;
     }
 
     /**
-     * Gets a pointer to the source sensor.
-     * @return  Pointer to the source sensor
-     */
-    const sensor_model* source() const {
-        return _source;
-    }
-
-     /**
-     * Gets a pointer to the receiver sensor.
-     * @return  Pointer to the receiver sensor
-     */
-    const sensor_model* receiver() const {
-        return _receiver;
-    }
-
-    /**
-     * The intersecting frequencies from the _source for this pair.
-     * @return Pointer to a seq_vector of frequencies.
-     */
-    const seq_vector* frequencies() const {
-        return _frequencies;
-    }
-
-    /**
-     * Bistatic sensor_pairs are those for which the source and receiver
-     * are different.  Set to false for monostatic sensors.
-     */
-    bool multistatic() const {
-        return _source != _receiver ;
-    }
-
-    /**
-     * Notification that new fathometer data is ready.
+     * Utility to generate a hash key for the bistatic_template
      *
-     * @param   sensor_id       The ID of the sensor that issued the notification.
-     * @param   list            Pointer std::list of eigenrays.
+     * @param    src_id   The source id used to generate the hash_key
+     * @param    rcv_id   The receiver id used to generate the hash_key
+     * @return   string   containing the generated hash_key.
      */
-    virtual void update_fathometer(sensor_model::id_type sensor_id, eigenray_list* list) ;
+    static std::string generate_hash_key(int src_id, int rcv_id);
 
     /**
-     * Notification that new eigenverb data is ready.
+     * Queries for the bistatic pair for the complement of the given sensor.
      *
-     * @param   initial_time    The time of arrival of the fastest eigenray for this pair.
-     * @param   sensor          Pointer to sensor that issued the notification.
+     * @param   sensor 	Reference to sensor that requested the complement.
+     * @return  		Reference to complement sensor of the pair.
      */
-    virtual void update_eigenverbs(double initial_time, sensor_model* sensor) ;
+    sensor_model::sptr complement(const sensor_model::sptr& sensor) const;
 
     /**
-     * Notification that new envelope data is ready.
+     * Update eigenrays and eigenverbs using results of the wavefront_generator
+     * background task. Stores a reference to the eigenrays and eigenverbs
+     * and computes direct path eigenrays. Launches a new biverb_generator to
+     * compute bistatic eigenverb contributions if both source and receiver
+     * eigenverbs are ready. Notifies sensor_pair listeners early if acoustic
+     * calculations are complete with any additional background tasks.
      *
-     * @param    sensor    Pointer to sensor that issued the notification.
-     */
-    virtual void update_envelopes(envelope_collection::reference& collection) ;
-
-    /**
-     * Queries for the sensor pair complements of this sensor.
-     * @param    sensor    Const sensor_model pointer Sensor that requested the complement.
-     * @return  Pointer to the complement sensor of the pair.
-     */
-    virtual const sensor_model* sensor_complement(const sensor_model* sensor) const ;
-
-    /**
-     * Gets the shared_ptr to last fathometer update for this sensor_pair.
-     * @return  fathometer_collection shared_ptr
-     */
-     fathometer_collection::reference fathometer() {
-         read_lock_guard guard(_fathometer_mutex);
-         return _fathometer;
-     }
-
-     /**
-      * Gets the shared_ptr to last envelopes update for this sensor_pair.
-      * @return  envelope_collection shared_ptr
-      */
-     envelope_collection::reference envelopes() {
-         read_lock_guard guard(_envelopes_mutex);
-         return _envelopes;
-     }
-
-     /**
-      * Performs the dead reckoning on the fathometer at the new source and receiver positions
-      * @param  src_pos wposition1 source data
-      * @param  rcv_pos wposition1 receiver data
-      */
-     void dead_reckon_fathometer(wposition1 src_pos, wposition1 rcv_pos);
-
-     /**
-      * Performs the dead reckoning on the envelopes at the new source and receiver positions
-      * @param  src_pos wposition1 source data
-      * @param  rcv_pos wposition1 receiver data
-      */
-     void dead_reckon_envelopes(wposition1 src_pos, wposition1 rcv_pos);
-
-private:
-
-     /**
-      * Default Constructor - prevent access
-      */
-    sensor_pair() {};
-
-    /**
-     * Utility to run the envelope_generator
+     * This computation can be triggered by updates from either the source or
+     * receiver object in this sensor_pair. If this is an update from a
+     * bistatic receiver, then the sense of source and target is reversed for
+     * the calculation of direct path bistatic eigenrays. This reversal is valid
+     * if the eigenrays have source/receiver reciprocity, which they might not
+     * have in complex environments because of accuracy limitations in the
+     * wavefront modeling.
      *
-     * @param initial_time  Start time offset for use to calculate the envelope
-     *                      data.
+     * Locks the object while this update is taking place. Then unlocks the
+     * object before notifying sensor_pair listeners of the change.
+     *
+     * Aborts previous biverb_generator if new calculation required before old
+     * one has been completed.
+     *
+     * @param sensor		Pointer to updated sensor.
+     * @param eigenrays		Transmission loss results for this sensor
+     * @param eigenverbs 	Reverberation results for this sensor.
      */
-    void run_envelope_generator(double initial_time);
+    virtual void update_wavefront_data(
+        const sensor_model* sensor, eigenray_collection::csptr eigenrays,
+        eigenverb_collection::csptr eigenverbs) override;
 
     /**
-     * Utility to build the intersecting frequencies of a sensor_pair.
+     * Update bistatic eigenverbs using results of the biverb_generator
+     * background task. Stores a reference to the bistatic eigenverbs then
+     * launches a new rvbts_generator to compute reverberation time series.
+     * Notifies sensor_pair listeners early if acoustic
+     * calculations are complete with any additional background tasks.
+     *
+     * Locks the object while this update is taking place. Then unlocks the
+     * object before notifying sensor_pair listeners of the change.
+     *
+     * Aborts previous rvbts_generator if new calculation required before old
+     * one has been completed.
+     *
+     * @param  object	Updated bistatic eigenverbs collection.
      */
-    void compute_frequencies();
+    virtual void notify_update(const biverb_collection::csptr* object) override;
 
     /**
-     * Index of the first intersecting frequency of the 
-     * source frequencies seq_vector;
+     * Update reverberation time series using results of the rvbts_generator
+     * background task. Stores a reference to the reverberation time series then
+     * notifies listeners that this sensor_pair has been updated.
+     *
+     * Locks the object while this update is taking place. Then unlocks the
+     * object before notifying sensor_pair listeners of the change.
+     *
+     * @param  object	Updated reverberation time series collection.
      */
-    size_t _src_freq_first;
+    virtual void notify_update(const rvbts_collection::csptr* object) override;
 
     /**
-     * Index of the last intersecting frequency of the
-     * source frequencies seq_vector;
+     * Notify listeners that acoustic data for this sensor_pair has been
+     * updated. Invoked early after eigenrays computed if this pair does not
+     * compute reverberation. Invoked early after bistatic eigenrays if this
+     * pair does not compute reverberation time series.
+     *
+     * @param object    Reference to the object that has been updated.
      */
-    size_t _src_freq_last;
+    virtual void notify_update(const sensor_pair* object) const override;
 
-    /**
-     * Pointer to the source sensor.
-     * The source and receiver will be equal for monostatic sensors.
-     */
-    const sensor_model* _source;
+   private:
+    /// Mutex to that locks pair updates.
+    mutable read_write_lock _mutex;
 
-    /**
-     * Pointer to the receiver sensor.
-     * The source and receiver will be equal for monostatic sensors.
-     */
-    const sensor_model* _receiver;
+    /// Reference to the source sensor.
+    /// The source and receiver will be equal for monostatic sensors.
+    const sensor_model::sptr _source;
 
-    /**
-     * The intersecting frequencies from the _source of t
-     * the _source and _reciever sensors.
-     */
-    const seq_vector* _frequencies;
+    /// Reference to the receiving sensor.
+    /// The source and receiver will be equal for monostatic sensors.
+    const sensor_model::sptr _receiver;
 
-    /**
-     * Mutex that locks for all the sensor_pair data.
-     */
-    mutable read_write_lock _pair_mutex;
+    /// True if computing reverberation for this pair.
+    const bool _compute_reverb{false};
 
-    /**
-     * Mutex that locks sensor_pair during complement lookups.
-     */
-    mutable read_write_lock _complements_mutex ;
+    /// Direct paths that connect source and receiver locations.
+    eigenray_collection::csptr _dirpaths;
 
-    /**
-     * Fathometer that connects source and receiver locations.
-     */
-    fathometer_collection::reference _fathometer;
+    /// Interface collisions for wavefront emanating from the source.
+    eigenverb_collection::csptr _src_eigenverbs;
 
-    /**
-     * Mutex that locks sensor_pair during fathometer updates.
-     */
-    mutable read_write_lock _fathometer_mutex ;
+    /// Interface collisions for wavefront emanating from the receiver.
+    eigenverb_collection::csptr _rcv_eigenverbs;
 
-    /**
-     * Interface collisions for wavefront emanating from the source.
-     */
-    eigenverb_collection::reference _src_eigenverbs;
+    /// Overlap of source and receiver eigenverbs.
+    biverb_collection::csptr _biverbs;
 
-    /**
-     * Mutex to that locks sensor_pair during source eigenverb updates.
-     */
-    mutable read_write_lock _src_eigenverbs_mutex ;
+    /// Reverberation time series time series.
+    rvbts_collection::csptr _rvbts;
 
-    /**
-     * Interface collisions for wavefront emanating from the receiver.
-     */
-    eigenverb_collection::reference _rcv_eigenverbs;
+    /// Background task used to generate biverb objects.
+    std::shared_ptr<biverb_generator> _biverb_task;
 
-    /**
-     * Mutex to that locks sensor_pair during receiver eigenverb updates.
-     */
-    mutable read_write_lock _rcv_eigenverbs_mutex ;
-
-    /**
-     * envelopes - contains the Reverb envelopes
-     */
-    envelope_collection::reference _envelopes;
-
-    /**
-     * Mutex to that locks sensor_pair during _envelope updates.
-     */
-    mutable read_write_lock _envelopes_mutex ;
-
-    /**
-     * reference to the task that is computing envelopes.
-     */
-    thread_task::reference _envelopes_task;
-
+    /// Background task used to generate reverberation time series objects.
+    std::shared_ptr<rvbts_generator> _rvbts_task;
 };
 
+typedef std::list<sensor_pair::sptr> pair_list;
+
 /// @}
-} // end of namespace sensors
-} // end of namespace usml
+}  // namespace sensors
+}  // end of namespace usml
