@@ -76,6 +76,7 @@ void sensor_manager::add_sensor(const sensor_model::sptr& sensor,
     if (sensor->time_maximum() == 0.0) {
         throw time_maximum_missing();
     }
+    const auto multistatic = sensor->multistatic();
 
     // add reference to platform_manager
 
@@ -99,7 +100,6 @@ void sensor_manager::add_sensor(const sensor_model::sptr& sensor,
 
     // add bistatic pairs for other sensors in the same multistatic group
 
-    int multistatic = sensor->multistatic();
     if (multistatic > 0) {
         if (sensor->is_source()) {
             add_multistatic_source(sensor, multistatic, listener);
@@ -149,7 +149,7 @@ typename sensor_model::sptr sensor_manager::find_sensor(
 pair_list sensor_manager::find_source(sensor_model::key_type keyID) {
     read_lock_guard guard(_mutex);
     pair_list pair_list;
-    for (int receiverID : _rcv_list) {
+    for (auto receiverID : _rcv_list) {
         auto hash_key = sensor_pair::generate_hash_key(keyID, receiverID);
         auto pair = find(hash_key);
         if (pair != nullptr) {
@@ -165,7 +165,7 @@ pair_list sensor_manager::find_source(sensor_model::key_type keyID) {
 pair_list sensor_manager::find_receiver(sensor_model::key_type keyID) {
     read_lock_guard guard(_mutex);
     pair_list pair_list;
-    for (int sourceID : _src_list) {
+    for (auto sourceID : _src_list) {
         auto hash_key = sensor_pair::generate_hash_key(sourceID, keyID);
         auto pair = find(hash_key);
         if (pair != nullptr) {
@@ -195,7 +195,7 @@ void sensor_manager::add_monostatic_pair(
  * the same multistatic group. Called from sensor_manager::add_sensor().
  */
 void sensor_manager::add_multistatic_source(
-    const sensor_model::sptr& source, int multistatic,
+    const sensor_model::sptr& source, uint64_t multistatic,
     update_listener<sensor_pair>* listener) {
     auto sourceID = source->keyID();
     for (auto receiverID : _rcv_list) {
@@ -217,7 +217,7 @@ void sensor_manager::add_multistatic_source(
  * the same multistatic group. Called from sensor_manager::add_sensor().
  */
 void sensor_manager::add_multistatic_receiver(
-    const sensor_model::sptr& receiver, int multistatic,
+    const sensor_model::sptr& receiver, uint64_t multistatic,
     update_listener<sensor_pair>* listener) {
     auto receiverID = receiver->keyID();
     for (auto sourceID : _src_list) {

@@ -37,7 +37,7 @@ using namespace usml::types;
  * not notify listeners when position or orientation changes. It saves update
  * notifications for "major" changes like acoustic updates in the sub-classes.
  */
-class platform_model : public managed_obj<int, platform_model>,
+class platform_model : public managed_obj<uint64_t, platform_model>,
                        public update_notifier<platform_model> {
    public:
     /// Thresholds update type.
@@ -98,6 +98,16 @@ class platform_model : public managed_obj<int, platform_model>,
     /// Platform speed in world coordinates (m/s).
     double speed() const {
         return _speed;
+    }
+
+    /// Flag to disable platform as acoustic target
+    bool is_acoustic_target() const {
+    	return _is_acoustic_target;
+    }
+
+    /// Flag to disable platform as acoustic target
+    void is_acoustic_target(bool flag) {
+    	_is_acoustic_target = flag;
     }
 
     /**
@@ -182,7 +192,7 @@ class platform_model : public managed_obj<int, platform_model>,
      * Private class to manage location and orientation of child relative to
      * host.
      */
-    class linkage : public managed_obj<int, linkage> {
+    class linkage : public managed_obj<uint64_t, linkage> {
        public:
         /**
          * Construct linkage between host and child. Assumes that the child has
@@ -233,6 +243,9 @@ class platform_model : public managed_obj<int, platform_model>,
 
     /// Platform speed (m/s).
     double _speed{0.0};
+
+    /// Flag to disable platform as acoustic target
+    bool _is_acoustic_target{true};
 };
 
 /// @}

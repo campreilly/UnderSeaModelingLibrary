@@ -34,6 +34,8 @@ sensor_pair::sensor_pair(const sensor_model::sptr& source,
       _source(source),
       _receiver(receiver),
       _compute_reverb(source->compute_reverb() && receiver->compute_reverb()) {
+    source->set_needs_update();
+    receiver->set_needs_update();
     source->add_wavefront_listener(this);
     receiver->add_wavefront_listener(this);
 }
@@ -49,7 +51,7 @@ sensor_pair::~sensor_pair() {
 /**
  * Utility to generate a hash key for the bistatic_template
  */
-std::string sensor_pair::generate_hash_key(int src_id, int rcv_id) {
+std::string sensor_pair::generate_hash_key(uint64_t src_id, uint64_t rcv_id) {
     std::stringstream key;
     key << src_id << '_' << rcv_id;
     return key.str();
@@ -106,7 +108,7 @@ void sensor_pair::update_wavefront_data(
 
         // create new direct path collection with just rays for a single target
 
-        matrix<int> receiverID(1, 1);
+        matrix<uint64_t> receiverID(1, 1);
         receiverID(0, 0) = targetID;
 
         auto* collection = new eigenray_collection(
@@ -163,22 +165,37 @@ void sensor_pair::notify_update(const biverb_collection::csptr* object) {
     {
         write_lock_guard guard(_mutex);
         _biverbs = *object;
+        if (_source->transmit_schedule().empty()) {
+            std::cerr << "sensor_pair::notify_update(biverb_collection*) "
+                    "transmit schedule empty"
+                 << endl;
+            return;
+        }
+
+        // compute treverb from transmit schedule
+
+        const double treverb_min = 0.1;
+        double treverb = 0.0;
+        for (const auto& transmit : _source->transmit_schedule()) {
+            if (treverb == 0.0) {
+                treverb = transmit->duration;
+            } else {
+                treverb = std::min(treverb, transmit->duration);
+            }
+        }
+        treverb = std::max(treverb_min, treverb / 2.0);
 
         // launch a new reverberation time series generator background task
 
-        double fsample = _receiver->fsample();
-        if (fsample > 0.0 && !this->_source->transmit_schedule().empty()) {
-            notify_early = false;
-            if (_rvbts_task != nullptr) {  // abort incomplete tasks
-                _rvbts_task->abort();
-            }
-            sensor_pair::sptr reference =
-                sensor_manager::instance()->find(keyID());
-            _rvbts_task = std::make_shared<rvbts_generator>(
-                reference, _source, _receiver, _biverbs);
-            thread_controller::instance()->run(_rvbts_task);
-            _rvbts_task.reset();  // destroy background task shared pointer
+        notify_early = false;
+        if (_rvbts_task != nullptr) {  // abort incomplete tasks
+            _rvbts_task->abort();
         }
+        sensor_pair::sptr reference = sensor_manager::instance()->find(keyID());
+        _rvbts_task = std::make_shared<rvbts_generator>(
+            reference, _source, _receiver, treverb, _biverbs);
+        thread_controller::instance()->run(_rvbts_task);
+        _rvbts_task.reset();  // destroy background task shared pointer
     }
     if (notify_early) {
         notify_update(this);

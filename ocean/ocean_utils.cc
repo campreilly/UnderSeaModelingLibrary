@@ -67,27 +67,38 @@ void ocean_utils::make_basic(double south, double north, double west,
     scattering_model::csptr surfscat(new scattering_chapman(wind_speed));
     boundary_model::csptr surface(new boundary_flat(0.0, surfloss, surfscat));
 
+    // get data path from environment or compiler variables
+
+    const char* path = std::getenv("USML_DATA_DIR"); // NOLINT(concurrency-mt-unsafe)
+    if (path == nullptr) {
+    	path = USML_DATA_DIR;
+    }
+    std::string dataPath(path);
+    cout << "reading shared ocean from USML_DATA_DIR=" << path << endl;
+
     // load bathymetry from ETOPO1 database
 
+    std::string bathyFile = dataPath + "/bathymetry/ETOPO1_Ice_g_gmt4.grd";
     reflect_loss_model::csptr botloss(new reflect_loss_rayleigh(bottom_type));
     scattering_model::csptr botscat(new scattering_lambert());
     data_grid<2>::csptr grid(
-        new netcdf_bathy(USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
-                         south, north, west, east));
+        new netcdf_bathy(bathyFile.c_str(), south, north, west, east));
     boundary_grid<2>::csptr bottom(
         new boundary_grid<2>(grid, botloss, botscat));
 
     // build sound velocity profile from World Ocean Atlas data
 
+    std::string tempFile1 = dataPath + "/woa09/temperature_seasonal_1deg.nc";
+    std::string tempFile2 = dataPath + "/woa09/temperature_monthly_1deg.nc";
     netcdf_woa::csptr temperature(
-        new netcdf_woa(USML_DATA_DIR "/woa09/temperature_seasonal_1deg.nc",
-                       USML_DATA_DIR "/woa09/temperature_monthly_1deg.nc",
+        new netcdf_woa(tempFile1.c_str(), tempFile2.c_str(),
                        month, south, north, west, east));
 
+    std::string saltFile1 = dataPath + "/woa09/salinity_seasonal_1deg.nc";
+    std::string saltFile2 = dataPath + "/woa09/salinity_monthly_1deg.nc";
     netcdf_woa::csptr salinity(
-        new netcdf_woa(USML_DATA_DIR "/woa09/salinity_seasonal_1deg.nc",
-                       USML_DATA_DIR "/woa09/salinity_monthly_1deg.nc", month,
-                       south, north, west, east));
+        new netcdf_woa(saltFile1.c_str(), saltFile2.c_str(),
+                	   month, south, north, west, east));
 
     data_grid<3>::csptr ssp(new data_grid_mackenzie(temperature, salinity));
     profile_grid<3>::csptr profile(new profile_grid<3>(ssp));

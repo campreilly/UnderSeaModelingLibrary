@@ -27,3 +27,5 @@
 #include <usml/beampatterns/bp_trig.h>
 #include <usml/beampatterns/bp_grid.h>
 #include <usml/beampatterns/bp_solid.h>
+#include <usml/beampatterns/bp_gaussian.h>
+

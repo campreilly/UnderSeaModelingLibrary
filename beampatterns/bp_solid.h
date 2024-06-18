@@ -46,7 +46,7 @@ class USML_DECLSPEC bp_solid : public bp_model {
                      const bvector& steering = bvector(1.0, 0.0, 0.0),
                      double sound_speed = 1500.0) const override;
 
-   private:
+   protected:
     const double _vert_half;  ///< Vertical beam half width (deg).
     const double _horz_half;  ///< Horizontal beam half width (deg).
 };

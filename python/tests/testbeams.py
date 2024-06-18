@@ -4,6 +4,7 @@ import inspect
 import os
 import unittest
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -14,6 +15,19 @@ import usml.plot
 class TestBeams(unittest.TestCase):
     USML_DIR = os.path.join(os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))),
                             "beampatterns", "test")
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup matplotlib defaults."""
+        mpl.rcdefaults()
+        # mpl.use('Qt5Agg')
+        plt.rcParams["figure.constrained_layout.use"] = True
+        plt.rcParams["figure.figsize"] = [8, 6]
+
+    @classmethod
+    def tearDownClass(cls):
+        """Reset matplotlib defaults."""
+        mpl.rcdefaults()
 
     def test_beampatterns(self):
         """Plot all outputs from bp_test.cc script.
@@ -33,7 +47,8 @@ class TestBeams(unittest.TestCase):
             "bp_cardioid.csv",
             "bp_arb.csv",
             "bp_arb_weight.csv",
-            "bp_solid.csv")
+            "bp_solid.csv",
+            "bp_gaussian.csv")
         for file in filenames:
             # read beam pattern from disk
             fullfile = os.path.join(self.USML_DIR, file)
@@ -47,10 +62,12 @@ class TestBeams(unittest.TestCase):
             ax.set_xlabel('x')
             ax.set_ylabel('y')
             ax.set_zlabel('z')
+            # plt.show()
+
             output = fullfile.replace(".csv", ".png")
             print(f"saving {output}")
             plt.savefig(output)
-            plt.close()
+            # plt.close()
 
 
 if __name__ == '__main__':

@@ -94,6 +94,9 @@ class USML_DECLSPEC rvbts_collection {
     /// Receiver times at which reverberation is computed (sec).
     seq_vector::csptr travel_times() const { return _travel_times; }
 
+    /// Reverberation time series for each receiver channel.
+    const matrix<double>& time_series() const { return _time_series; }
+
     /**
      * Adds the intensity contribution for a single bistatic eigenverb.
      * \f[

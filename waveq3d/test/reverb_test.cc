@@ -100,8 +100,8 @@ BOOST_AUTO_TEST_CASE(dead_reckon) {
 
     // test ability to write target id values to disk
 
-    matrix<int> targetIDs(1, 2);
-    for (int n = 0; n < targetIDs.size2(); n++) {
+    matrix<uint64_t> targetIDs(1, 2);
+    for (size_t n = 0; n < targetIDs.size2(); n++) {
         targetIDs(0, n) = n + 2;
     }
 

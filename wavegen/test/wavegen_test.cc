@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE(propagate_wavefront) {
     for (platform_model::key_type site = 1; site <= 5; ++site) {
         std::ostringstream name;
         name << "site" << site;
-        const int index = site - 1;
+        const auto index = site - 1;
         cout << "add sensor " << name.str() << " (" << pos[index][0] << ","
              << pos[index][1] << "," << pos[index][2] << ")" << endl;
         wposition1 position(pos[index][0], pos[index][1], pos[index][2]);

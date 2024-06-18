@@ -9,7 +9,11 @@
 #include <usml/threads/read_write_lock.h>
 #include <usml/usml_config.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <boost/geometry/geometry.hpp>
+#pragma GCC diagnostic pop
+
 #include <cstddef>
 #include <memory>
 #include <utility>

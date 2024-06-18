@@ -50,11 +50,13 @@ class USML_DECLSPEC rvbts_generator
      * @param pair       	Object to notify when complete.
      * @param source      	Reference to the source for this pair.
      * @param receiver    	Reference to the receiver for this pair.
+     * @param treverb		Time increment for reverberation time series.
      * @param biverbs		Overlap of source and receiver eigenverbs.
      */
     rvbts_generator(const sensor_pair::sptr& pair,
                     const sensor_model::sptr& source,
                     const sensor_model::sptr& receiver,
+					const double treverb,
                     const biverb_collection::csptr& biverbs);
 
     /**

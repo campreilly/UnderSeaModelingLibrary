@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(update_envelope) {
     for (platform_model::key_type site = 1; site <= num_sites; ++site) {
         std::ostringstream name;
         name << "site" << site;
-        const int index = site - 1;
+        const auto index = site - 1;
 
         cout << "add sensor " << name.str() << " (" << pos[index][0] << ","
              << pos[index][1] << "," << pos[index][2] << ")" << endl;
@@ -115,7 +115,6 @@ BOOST_AUTO_TEST_CASE(update_envelope) {
         }
         if (site == 2) {
             sensor->rcv_beam(0, beam);
-            sensor->fsample(10.0);
         }
         sensor_mgr->add_sensor(sensor_model::sptr(sensor), &test_listener);
     }
