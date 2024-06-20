@@ -66,7 +66,9 @@ else( CMAKE_COMPILER_IS_GNUCXX )
             "-modernize-pass-by-value,"
             "-readability-identifier-length,"
             "-readability-magic-numbers,"
-            "-misc-const-correctness")
+            "-misc-const-correctness,"
+	    "-performance-avoid-endl,"
+	    "-misc-include-cleaner")
         set(CMAKE_CXX_STANDARD_REQUIRED ON)
         set(CMAKE_CXX_EXTENSIONS OFF)
     endif ( USML_PEDANTIC )

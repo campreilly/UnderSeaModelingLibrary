@@ -43,6 +43,6 @@ thread_pool* thread_controller::instance() {
 void thread_controller::reset(unsigned num_threads) {
     write_lock_guard guard(_instance_mutex);
     _num_threads = num_threads;
-    thread_pool* pool = new thread_pool(_num_threads);
+    auto* pool = new thread_pool(_num_threads);
     _instance.reset(pool);
 }
