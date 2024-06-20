@@ -30,7 +30,7 @@ seq_data::size_type seq_data::find_index(value_type value) const {
     // search for value in map
 
     auto upper = _data_map.upper_bound(value);
-    assert( (*upper).second < 1e6 );
+    assert((*upper).second < 1e6);
 
     return (*upper).second - 1;
 }

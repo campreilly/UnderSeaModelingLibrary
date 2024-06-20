@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <memory>
 
-//#define DEBUG_EIGENRAYS
+// #define DEBUG_EIGENRAYS
 using namespace usml::waveq3d;
 
 const double spreading_hybrid_gaussian::SPREADING_WIDTH = TWO_PI;

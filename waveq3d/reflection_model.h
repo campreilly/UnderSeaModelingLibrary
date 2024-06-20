@@ -6,8 +6,8 @@
 
 #include <usml/types/wposition1.h>
 #include <usml/usml_config.h>
-#include <usml/waveq3d/wave_queue.h>
 #include <usml/waveq3d/wave_front.h>
+#include <usml/waveq3d/wave_queue.h>
 
 #include <cstddef>
 

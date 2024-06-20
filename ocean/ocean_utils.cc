@@ -69,9 +69,10 @@ void ocean_utils::make_basic(double south, double north, double west,
 
     // get data path from environment or compiler variables
 
-    const char* path = std::getenv("USML_DATA_DIR"); // NOLINT(concurrency-mt-unsafe)
+    const char* path =
+        std::getenv("USML_DATA_DIR");  // NOLINT(concurrency-mt-unsafe)
     if (path == nullptr) {
-    	path = USML_DATA_DIR;
+        path = USML_DATA_DIR;
     }
     std::string dataPath(path);
     cout << "reading shared ocean from USML_DATA_DIR=" << path << endl;
@@ -90,15 +91,13 @@ void ocean_utils::make_basic(double south, double north, double west,
 
     std::string tempFile1 = dataPath + "/woa09/temperature_seasonal_1deg.nc";
     std::string tempFile2 = dataPath + "/woa09/temperature_monthly_1deg.nc";
-    netcdf_woa::csptr temperature(
-        new netcdf_woa(tempFile1.c_str(), tempFile2.c_str(),
-                       month, south, north, west, east));
+    netcdf_woa::csptr temperature(new netcdf_woa(
+        tempFile1.c_str(), tempFile2.c_str(), month, south, north, west, east));
 
     std::string saltFile1 = dataPath + "/woa09/salinity_seasonal_1deg.nc";
     std::string saltFile2 = dataPath + "/woa09/salinity_monthly_1deg.nc";
-    netcdf_woa::csptr salinity(
-        new netcdf_woa(saltFile1.c_str(), saltFile2.c_str(),
-                	   month, south, north, west, east));
+    netcdf_woa::csptr salinity(new netcdf_woa(
+        saltFile1.c_str(), saltFile2.c_str(), month, south, north, west, east));
 
     data_grid<3>::csptr ssp(new data_grid_mackenzie(temperature, salinity));
     profile_grid<3>::csptr profile(new profile_grid<3>(ssp));

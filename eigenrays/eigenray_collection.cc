@@ -25,7 +25,7 @@ using namespace usml::eigenrays;
 eigenray_collection::eigenray_collection(const seq_vector::csptr &frequencies,
                                          const wposition1 &source_pos,
                                          const wposition &target_pos,
-										 uint64_t sourceID,
+                                         uint64_t sourceID,
                                          const matrix<uint64_t> &targetIDs,
                                          bool coherent)
     : _sourceID(sourceID),

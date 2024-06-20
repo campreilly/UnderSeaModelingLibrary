@@ -37,7 +37,7 @@ seq_rayfan::seq_rayfan(value_type first, value_type last, size_type size,
 
     vector<double> data_vec(size);
     for (size_type n = 0; n < size; ++n) {
-        const double x = first_ang + scale * (double) n;
+        const double x = first_ang + scale * (double)n;
         data_vec[n] = center + tan(x) * spread;
     }
 

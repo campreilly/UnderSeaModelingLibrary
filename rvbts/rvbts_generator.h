@@ -55,8 +55,7 @@ class USML_DECLSPEC rvbts_generator
      */
     rvbts_generator(const sensor_pair::sptr& pair,
                     const sensor_model::sptr& source,
-                    const sensor_model::sptr& receiver,
-					const double treverb,
+                    const sensor_model::sptr& receiver, const double treverb,
                     const biverb_collection::csptr& biverbs);
 
     /**

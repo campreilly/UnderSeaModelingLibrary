@@ -76,39 +76,25 @@ class platform_model : public managed_obj<uint64_t, platform_model>,
     read_write_lock& mutex() const { return _mutex; }
 
     /// Platform that controls the motion of this platform.
-    const platform_model* host() const {
-        return _host;
-    }
+    const platform_model* host() const { return _host; }
 
     /// Time of last update.
-    time_t time() const {
-        return _time;
-    }
+    time_t time() const { return _time; }
 
     /// Location of the platform in world coordinates.
-    wposition1 position() const {
-        return _position;
-    }
+    wposition1 position() const { return _position; }
 
     /// Orientation of the platform in world coordinates.
-    orientation orient() const {
-        return _orient;
-    }
+    orientation orient() const { return _orient; }
 
     /// Platform speed in world coordinates (m/s).
-    double speed() const {
-        return _speed;
-    }
+    double speed() const { return _speed; }
 
     /// Flag to disable platform as acoustic target
-    bool is_acoustic_target() const {
-    	return _is_acoustic_target;
-    }
+    bool is_acoustic_target() const { return _is_acoustic_target; }
 
     /// Flag to disable platform as acoustic target
-    void is_acoustic_target(bool flag) {
-    	_is_acoustic_target = flag;
-    }
+    void is_acoustic_target(bool flag) { _is_acoustic_target = flag; }
 
     /**
      * Get all of the motion parameters, locked by a common mutex.

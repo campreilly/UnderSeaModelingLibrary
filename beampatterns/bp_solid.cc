@@ -19,7 +19,8 @@ using namespace usml::beampatterns;
  * Computes the beam level gain for an arrival vector in the body coordinates
  * of the array,
  */
-void bp_solid::beam_level(const bvector& arrival, const seq_vector::csptr& frequencies,
+void bp_solid::beam_level(const bvector& arrival,
+                          const seq_vector::csptr& frequencies,
                           vector<double>* level, const bvector& steering,
                           double /*sound_speed*/) const {
     double de = asin(steering.up());
@@ -34,8 +35,8 @@ void bp_solid::beam_level(const bvector& arrival, const seq_vector::csptr& frequ
 /**
  * Computes the directivity gain for uniform a solid angle beam pattern.
  */
-void bp_solid::directivity(const seq_vector::csptr& frequencies, vector<double>* level,
-                           const bvector& steering,
+void bp_solid::directivity(const seq_vector::csptr& frequencies,
+                           vector<double>* level, const bvector& steering,
                            double /*sound_speed*/) const {
     const double de = to_degrees(asin(steering.up()));
     const double diff =

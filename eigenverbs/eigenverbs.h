@@ -12,7 +12,7 @@
  */
 #pragma once
 
-#include <usml/eigenverbs/eigenverb_model.h>
 #include <usml/eigenverbs/eigenverb_collection.h>
 #include <usml/eigenverbs/eigenverb_listener.h>
+#include <usml/eigenverbs/eigenverb_model.h>
 #include <usml/eigenverbs/eigenverb_notifier.h>

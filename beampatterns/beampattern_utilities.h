@@ -33,14 +33,15 @@ using namespace usml::types;
  *
  * @param radii			    The radius of each ring
  * @param num_elements	    The number of elements in each ring
- * @param offsets		    The offset, in radians, for the offset of the
- * 						    first element of each ring
+ * @param offsets		    The offset, in radians, for the offset of
+ * the first element of each ring
  * @param elem_locations    The returned element locations in meters in an
- * 						    Nx3 matrix where N is the sum of the elements
- * 						    in num_elements
+ * 						    Nx3 matrix where N is the
+ * sum of the elements in num_elements
  */
 void bp_con_ring(vector<double> radii, vector<int> num_elements,
-        vector<double> offsets, matrix<double> *elem_locations = nullptr);
+                 vector<double> offsets,
+                 matrix<double> *elem_locations = nullptr);
 
 /**
  * Provides the element locations of a uniformly spaced array in
@@ -53,13 +54,13 @@ void bp_con_ring(vector<double> radii, vector<int> num_elements,
  * @param num_e_up          Number of elements in the up/down direction
  * @param spacing_up        Spacing, in meters, in the up/down direction
  * @param elem_locations    The returned element locations in meters in an
- * 						    Nx3 matrix where N is the sum of the elements
- * 						    in num_elements. In front-right-up order
+ * 						    Nx3 matrix where N is the
+ * sum of the elements in num_elements. In front-right-up order
  */
-void bp_con_uniform(int num_e_front, double spacing_front,
-        int num_e_right, double spacing_right, int num_e_up, double spacing_up,
-        matrix<double> *elem_locations = nullptr);
+void bp_con_uniform(int num_e_front, double spacing_front, int num_e_right,
+                    double spacing_right, int num_e_up, double spacing_up,
+                    matrix<double> *elem_locations = nullptr);
 
 /// @}
-}
-}
+}  // namespace beampatterns
+}  // namespace usml

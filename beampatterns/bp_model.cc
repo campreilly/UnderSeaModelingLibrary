@@ -15,8 +15,9 @@ using namespace usml::beampatterns;
  * of an array which has been rotated by 'orient'.
  */
 void bp_model::beam_level(const bvector& arrival, const orientation& orient,
-                          const seq_vector::csptr& frequencies, vector<double>* level,
-                          const bvector& steering, double sound_speed) const {
+                          const seq_vector::csptr& frequencies,
+                          vector<double>* level, const bvector& steering,
+                          double sound_speed) const {
     bvector rotated;
     rotated.rotate(orient, arrival);
     this->beam_level(rotated, frequencies, level, steering, sound_speed);
@@ -25,8 +26,9 @@ void bp_model::beam_level(const bvector& arrival, const orientation& orient,
 /**
  * Computes the directivity gain for this beam pattern.
  */
-void bp_model::directivity(const seq_vector::csptr& frequencies, vector<double>* level,
-                           const bvector& steering, double sound_speed) const {
+void bp_model::directivity(const seq_vector::csptr& frequencies,
+                           vector<double>* level, const bvector& steering,
+                           double sound_speed) const {
     // loop over all solid angles
 
     vector<double> beam(frequencies->size(), 0.0);

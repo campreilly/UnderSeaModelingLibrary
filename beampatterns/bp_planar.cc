@@ -35,8 +35,9 @@ bp_planar::bp_planar(unsigned num_elem_up, double spacing_up,
  * of the array,
  */
 void bp_planar::beam_level(const bvector& arrival,
-                           const seq_vector::csptr& frequencies, vector<double>* level,
-                           const bvector& steering, double sound_speed) const {
+                           const seq_vector::csptr& frequencies,
+                           vector<double>* level, const bvector& steering,
+                           double sound_speed) const {
     // set gain to zero in backplane when baffle is on
     if (_back_baffle) {
         if (arrival.front() <= 0.0) {

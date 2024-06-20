@@ -59,7 +59,7 @@ class USML_DECLSPEC wavefront_generator : public thread_task {
                         const matrix<uint64_t>& targetIDs,
                         const seq_vector::csptr& frequencies,
                         const seq_vector::csptr& de_fan,
-						const seq_vector::csptr& az_fan, double time_step,
+                        const seq_vector::csptr& az_fan, double time_step,
                         double time_maximum, double intensity_threshold,
                         int max_bottom, int max_surface);
 

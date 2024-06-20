@@ -152,7 +152,7 @@ netcdf_bathy::netcdf_bathy(const char* filename, double south, double north,
     double* ptr = data;
     double* end = data + (lat_num * lng_num);
     while (ptr < end) {
-    	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Assign)
+        // NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Assign)
         *(ptr++) += earth_radius;
     }
 }

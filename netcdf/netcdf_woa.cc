@@ -34,6 +34,6 @@ netcdf_woa::netcdf_woa(const char* deep, const char* shallow, int month,
 
     // data conditioning
 
-    fill_missing();  // replace NaNs with real data
-    interp_type(0,interp_enum::pchip);  // increase smoothness of depth interp
+    fill_missing();                      // replace NaNs with real data
+    interp_type(0, interp_enum::pchip);  // increase smoothness of depth interp
 }

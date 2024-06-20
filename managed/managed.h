@@ -19,4 +19,3 @@
 #include <usml/managed/manager_template.h>
 #include <usml/managed/update_listener.h>
 #include <usml/managed/update_notifier.h>
-

@@ -11,7 +11,7 @@
  */
 #pragma once
 
+#include <usml/threads/read_write_lock.h>
 #include <usml/threads/thread_controller.h>
 #include <usml/threads/thread_pool.h>
 #include <usml/threads/thread_task.h>
-#include <usml/threads/read_write_lock.h>

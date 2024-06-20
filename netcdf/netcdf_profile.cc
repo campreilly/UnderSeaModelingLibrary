@@ -176,7 +176,7 @@ netcdf_profile::netcdf_profile(const char *profile, double date, double south,
         const long N = alt_num * lat_num * lng_num;
         double *ptr = data;
         while (ptr < data + N) {
-        	// NOLINTNEXTLINE(clang-analyzer-core.UndefinedBinaryOperatorResult)
+            // NOLINTNEXTLINE(clang-analyzer-core.UndefinedBinaryOperatorResult)
             if (!std::isnan(missing) && *ptr == missing) {
                 *ptr = NAN;
             }

@@ -140,7 +140,8 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
      * Creates bistatic pairs between the new source and all bistatic receivers
      * in the same multistatic group. Called from sensor_manager::add_sensor().
      *
-     * @param source 		Multistatic source to be paired w/ valid receivers.
+     * @param source 		Multistatic source to be paired w/ valid
+     * receivers.
      * @param multistatic 	Multistatic group for this sensor.
      * @param listener		Update listener for sensor_pair objects.
      */
@@ -152,7 +153,8 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
      * Creates bistatic pairs between the new receiver and all bistatic sources
      * in the same multistatic group. Called from sensor_manager::add_sensor().
      *
-     * @param receiver 		Multistatic receiver to be paired w/ valid sources.
+     * @param receiver 		Multistatic receiver to be paired w/ valid
+     * sources.
      * @param multistatic 	Multistatic group for this sensor.
      * @param listener		Update listener for sensor_pair objects.
      */

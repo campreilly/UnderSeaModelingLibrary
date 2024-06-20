@@ -35,21 +35,18 @@
  */
 #pragma once
 
-#include <usml/types/wvector.h>
-#include <usml/types/wvector1.h>
-#include <usml/types/wposition.h>
-#include <usml/types/wposition1.h>
-
-#include <usml/types/seq_linear.h>
-#include <usml/types/seq_log.h>
-#include <usml/types/seq_data.h>
-#include <usml/types/seq_rayfan.h>
-#include <usml/types/seq_augment.h>
-
+#include <usml/types/bvector.h>
 #include <usml/types/data_grid.h>
-#include <usml/types/gen_grid.h>
 #include <usml/types/data_grid_bathy.h>
 #include <usml/types/data_grid_svp.h>
-
-#include <usml/types/bvector.h>
+#include <usml/types/gen_grid.h>
 #include <usml/types/orientation.h>
+#include <usml/types/seq_augment.h>
+#include <usml/types/seq_data.h>
+#include <usml/types/seq_linear.h>
+#include <usml/types/seq_log.h>
+#include <usml/types/seq_rayfan.h>
+#include <usml/types/wposition.h>
+#include <usml/types/wposition1.h>
+#include <usml/types/wvector.h>
+#include <usml/types/wvector1.h>

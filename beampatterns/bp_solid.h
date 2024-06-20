@@ -37,12 +37,13 @@ class USML_DECLSPEC bp_solid : public bp_model {
     bp_solid(double vert_width, double horz_width = 360.0)
         : _vert_half(0.5 * vert_width), _horz_half(0.5 * horz_width) {}
 
-    void beam_level(const bvector& arrival, const seq_vector::csptr& frequencies,
-                    vector<double>* level,
+    void beam_level(const bvector& arrival,
+                    const seq_vector::csptr& frequencies, vector<double>* level,
                     const bvector& steering = bvector(1.0, 0.0, 0.0),
                     double sound_speed = 1500.0) const override;
 
-    void directivity(const seq_vector::csptr& frequencies, vector<double>* level,
+    void directivity(const seq_vector::csptr& frequencies,
+                     vector<double>* level,
                      const bvector& steering = bvector(1.0, 0.0, 0.0),
                      double sound_speed = 1500.0) const override;
 

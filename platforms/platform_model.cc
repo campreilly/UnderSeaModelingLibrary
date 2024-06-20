@@ -111,7 +111,6 @@ std::list<platform_model::sptr> platform_model::children() {
 void platform_model::update_internals(time_t time, const wposition1& pos,
                                       const orientation& orient, double speed,
                                       update_type_enum update_type) {
-
     // update motion of host
 
     _time = time;

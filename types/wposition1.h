@@ -1,12 +1,13 @@
 /**
  * @file wposition1.h
- * Individual world location in geodetic earth coordinates (latitude, longitude, and altitude).
+ * Individual world location in geodetic earth coordinates (latitude, longitude,
+ * and altitude).
  */
 #pragma once
 
-#include <usml/ublas/ublas.h>
-#include <usml/types/wvector1.h>
 #include <usml/types/wposition.h>
+#include <usml/types/wvector1.h>
+#include <usml/ublas/ublas.h>
 
 namespace usml {
 namespace types {
@@ -19,11 +20,8 @@ namespace types {
  * This class is a convenience to save the developer from doing a lot of
  * operations on 1x1 matrices.
  */
-class USML_DECLSPEC wposition1: public wvector1
-{
-
-public:
-
+class USML_DECLSPEC wposition1 : public wvector1 {
+   public:
     //*********************************
     // initialization
 
@@ -40,14 +38,15 @@ public:
      * Constructs a position on the Earth's surface using the great circle
      * range and bearing from a point.
      *
-	 * @xref E. Williams, "Aviation Formulary V1.47",
-	 * http://www.edwilliams.org/avform147.htm, Accessed Sept 2023.
+     * @xref E. Williams, "Aviation Formulary V1.47",
+     * http://www.edwilliams.org/avform147.htm, Accessed Sept 2023.
      *
      * @param  location     Location of the reference point.
-     * @param  range        Distance to the new point along the Earth's surface (meters).
+     * @param  range        Distance to the new point along the Earth's surface
+     * (meters).
      * @param  bearing      True bearing to the new point (radians).
      */
-    wposition1( const wposition1& location, double range, double bearing);
+    wposition1(const wposition1& location, double range, double bearing);
 
     /**
      * Constructs a new position as a copy of an existing position.
@@ -62,8 +61,7 @@ public:
      */
     wposition1(const wvector& other, size_t row, size_t col);
 
-public:
-
+   public:
     //******************************
     // Altitude property
 
@@ -73,9 +71,7 @@ public:
      *
      * @return            Altitude in meters.
      */
-    inline double altitude() const {
-        return rho() - wposition::earth_radius;
-    }
+    inline double altitude() const { return rho() - wposition::earth_radius; }
 
     /**
      * Defines the altitude above the mean sea level.
@@ -96,9 +92,7 @@ public:
      *
      * @return          Latitude component in degrees.
      */
-    inline double latitude() const {
-        return to_latitude(theta());
-    }
+    inline double latitude() const { return to_latitude(theta()); }
 
     /**
      * Defines the latitude component of geodetic earth coordinates.
@@ -106,9 +100,7 @@ public:
      *
      * @param  latitude    Latitude component in degrees.
      */
-    inline void latitude(double latitude) {
-        theta(to_colatitude(latitude));
-    }
+    inline void latitude(double latitude) { theta(to_colatitude(latitude)); }
 
     //******************************
     // Longitude property
@@ -119,9 +111,7 @@ public:
      *
      * @return            Longitude component in degrees.
      */
-    inline double longitude() const {
-        return to_degrees(phi());
-    }
+    inline double longitude() const { return to_degrees(phi()); }
 
     /**
      * Defines the longitude component of geodetic earth coordinates.
@@ -129,9 +119,7 @@ public:
      *
      * @param  longitude    Longitude component in degrees.
      */
-    inline void longitude(double longitude) {
-        phi(to_radians(longitude));
-    }
+    inline void longitude(double longitude) { phi(to_radians(longitude)); }
 
     //******************************
     // Utilities
@@ -140,17 +128,18 @@ public:
      * Computes the great circle range and bearing between two
      * latitude/longitude positions along the Earth's surface.
      *
-	 * @xref E. Williams, "Aviation Formulary V1.47",
-	 * http://www.edwilliams.org/avform147.htm, Accessed Sept 2023.
+     * @xref E. Williams, "Aviation Formulary V1.47",
+     * http://www.edwilliams.org/avform147.htm, Accessed Sept 2023.
      *
      * @param  location     Location of the reference point.
      * @param  bearing      True bearing to the new point (radians, optional).
-     * @return              Distance to the new point along the Earth's surface (meters).
+     * @return              Distance to the new point along the Earth's surface
+     * (meters).
      */
-    double gc_range( const wposition1& location, double* bearing=nullptr) const ;
-
+    double gc_range(const wposition1& location,
+                    double* bearing = nullptr) const;
 };
 
 /// @}
-} // end of ocean namespace
-} // end of usml namespace
+}  // namespace types
+}  // namespace usml

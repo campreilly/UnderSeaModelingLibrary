@@ -97,8 +97,8 @@ class USML_DECLSPEC wposition : public wvector {
 
     /**
      * Radius of curvature, FAI standard for aviation records.
-	 * @xref E. Williams, "Aviation Formulary V1.47",
-	 * http://www.edwilliams.org/avform147.htm, Accessed Sept 2023.
+     * @xref E. Williams, "Aviation Formulary V1.47",
+     * http://www.edwilliams.org/avform147.htm, Accessed Sept 2023.
      */
     static double earth_radius;
 

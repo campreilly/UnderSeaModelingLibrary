@@ -167,8 +167,8 @@ void sensor_pair::notify_update(const biverb_collection::csptr* object) {
         _biverbs = *object;
         if (_source->transmit_schedule().empty()) {
             std::cerr << "sensor_pair::notify_update(biverb_collection*) "
-                    "transmit schedule empty"
-                 << endl;
+                         "transmit schedule empty"
+                      << endl;
             return;
         }
 

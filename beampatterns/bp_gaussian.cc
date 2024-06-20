@@ -25,7 +25,7 @@ void bp_gaussian::beam_level(const bvector& arrival,
                              double /*sound_speed*/) const {
     double de = 0.0;
     if (_vert_half < 90.0) {
-    	de = asin(steering.up());
+        de = asin(steering.up());
         de = abs(to_degrees(asin(arrival.up()) - de));
         de /= (_vert_half * 2.0);
     }
