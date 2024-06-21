@@ -44,8 +44,8 @@ class USML_DECLSPEC bp_multi : public bp_model {
              bp_multi_type type = bp_multi_type::product)
         : _bp_list(bp_list), _type(type) {}
 
-    void beam_level(const bvector& arrival, const seq_vector::csptr& frequencies,
-                    vector<double>* level,
+    void beam_level(const bvector& arrival,
+                    const seq_vector::csptr& frequencies, vector<double>* level,
                     const bvector& steering = bvector(1.0, 0.0, 0.0),
                     double sound_speed = 1500.0) const override;
 

@@ -22,12 +22,13 @@ namespace beampatterns {
  */
 class USML_DECLSPEC bp_omni : public bp_model {
    public:
-    void beam_level(const bvector& arrival, const seq_vector::csptr& frequencies,
-                    vector<double>* level,
+    void beam_level(const bvector& arrival,
+                    const seq_vector::csptr& frequencies, vector<double>* level,
                     const bvector& steering = bvector(1.0, 0.0, 0.0),
                     double sound_speed = 1500.0) const override;
 
-    void directivity(const seq_vector::csptr& frequencies, vector<double>* level,
+    void directivity(const seq_vector::csptr& frequencies,
+                     vector<double>* level,
                      const bvector& steering = bvector(1.0, 0.0, 0.0),
                      double sound_speed = 1500.0) const override;
 };

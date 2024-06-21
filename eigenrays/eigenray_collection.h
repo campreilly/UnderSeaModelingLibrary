@@ -49,8 +49,8 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
      */
     eigenray_collection(const seq_vector::csptr &frequencies,
                         const wposition1 &source_pos,
-                        const wposition &target_pos, int sourceID = 0,
-                        const matrix<int> &targetIDs = matrix<int>(),
+                        const wposition &target_pos, uint64_t sourceID = 0,
+                        const matrix<uint64_t> &targetIDs = matrix<uint64_t>(),
                         bool coherent = true);
 
     /**
@@ -82,7 +82,7 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
     }
 
     /// Platform ID number for this source. Set to zero if unknown.
-    int sourceID() const { return _sourceID; }
+    uint64_t sourceID() const { return _sourceID; }
 
     /**
      * Platform ID number for one target. Set to zero if unknown.
@@ -91,7 +91,7 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
      * @param   t2  		Column number of target.
      * @return  Value to find target in platform_manager.
      */
-    int targetID(size_t t1 = 0, size_t t2 = 0) const {
+    uint64_t targetID(size_t t1 = 0, size_t t2 = 0) const {
         if (size1() == 0 && size2() == 0) {
             return 0;
         }
@@ -123,7 +123,7 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
      * @param   targetID	  Platform ID number for this target.
      * @return  List of acoustic paths between a source and target.
      */
-    eigenray_list find_eigenrays(int targetID = 0) const;
+    eigenray_list find_eigenrays(uint64_t targetID = 0) const;
 
     /**
      * Find fastest eigenray for a single target in the grid.
@@ -131,7 +131,7 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
      * @param   targetID	  Platform ID number for this target.
      * @return  Time of arrival of the fastest eigenray, zero if not found.
      */
-    double find_initial_time(int targetID = 0) const;
+    double find_initial_time(uint64_t targetID = 0) const;
 
     /**
      * Propagation loss for a single target summed over eigenrays.
@@ -315,10 +315,10 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
 
    private:
     /// Value to find source in platform_manager. Set to zero if unknown.
-    const int _sourceID;
+    const uint64_t _sourceID;
 
     /// Value to find targets in platform_manager. Set to zero if unknown.
-    matrix<int> _targetIDs;
+    matrix<uint64_t> _targetIDs;
 
     /**
      * Location of the wavefront source in spherical earth coordinates.

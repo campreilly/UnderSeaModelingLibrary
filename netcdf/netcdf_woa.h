@@ -67,12 +67,14 @@ namespace netcdf {
  * @xref National Oceanographic Data Center (NODC), "World Ocean
  * Atlas 2009 (WOA09) Product Documentation," National Oceanic and
  * Atmospheric Administration (NOAA), Silver Springs, MD, March 2010.
- * See https://www.ncei.noaa.gov/products/world-ocean-atlas for more information.
+ * See https://www.ncei.noaa.gov/products/world-ocean-atlas for more
+ * information.
  *
  * @xref National Oceanographic Data Center (NODC), "World Ocean
  * Atlas 2005 (WOA05) Product Documentation," National Oceanic and
  * Atmospheric Administration (NOAA), Silver Springs, MD, September 2006.
- * See https://www.ncei.noaa.gov/products/world-ocean-atlas for more information.
+ * See https://www.ncei.noaa.gov/products/world-ocean-atlas for more
+ * information.
  *
  * @xref Mark A. Collier, Paul J. Durack, "CSIRO netCDF version of the
  * NODC World Ocean Atlas 2005," Commonwealth Scientific and Industrial

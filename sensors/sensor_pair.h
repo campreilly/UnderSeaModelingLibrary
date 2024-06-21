@@ -132,7 +132,7 @@ class USML_DECLSPEC sensor_pair
      * @param    rcv_id   The receiver id used to generate the hash_key
      * @return   string   containing the generated hash_key.
      */
-    static std::string generate_hash_key(int src_id, int rcv_id);
+    static std::string generate_hash_key(uint64_t src_id, uint64_t rcv_id);
 
     /**
      * Queries for the bistatic pair for the complement of the given sensor.

@@ -15,7 +15,8 @@ using namespace usml::beampatterns;
  * Computes the beam level gain for an arrival vector in the body coordinates
  * of the array.
  */
-void bp_grid::beam_level(const bvector& arrival, const seq_vector::csptr& frequencies,
+void bp_grid::beam_level(const bvector& arrival,
+                         const seq_vector::csptr& frequencies,
                          vector<double>* level, const bvector& /* steering */,
                          double /* sound_speed */) const {
     double location[3];

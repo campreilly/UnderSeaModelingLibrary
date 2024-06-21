@@ -93,7 +93,6 @@ class reverb_analytic_test {
         sensor->rcv_beam(0, bp_model::csptr(new bp_omni()));
         sensor->time_maximum(7.0);
         sensor->compute_reverb(true);
-        sensor->fsample(10.0);
 
         std::string type1("CW");
         double duration = 0.1;

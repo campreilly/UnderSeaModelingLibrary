@@ -154,7 +154,7 @@ class USML_DECLSPEC data_grid_svp : public gen_grid<3> {
     double interpolate(double* location, double* derivative = nullptr) const {
         double result = 0.0;
         size_t k0, k1, k2;  // indices of he offset data
-        size_t offset[2];
+        size_t offset[3];
         // bi-linear variables
         double f11, f21, f12, f22, x_diff, y_diff;
         double x, x1, x2, y, y1, y2;

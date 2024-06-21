@@ -487,12 +487,10 @@ BOOST_AUTO_TEST_CASE(bp_grid_test) {
 
     // fill in a data vector
 
-    double values[5 * 5 * 1] = {
-            1.0,  0.75, 0.5,  0.75, 0.81,
-            0.87, 0.75, 0.5,  0.75, 0.41,
-            0.2,  0.75, 0.5,  0.75, 0.33,
-            0.61, 0.75, 0.5,  0.75, 0.97,
-            0.53, 0.75, 0.5,  0.75, 0.53};
+    double values[5 * 5 * 1] = {1.0,  0.75, 0.5,  0.75, 0.81, 0.87, 0.75,
+                                0.5,  0.75, 0.41, 0.2,  0.75, 0.5,  0.75,
+                                0.33, 0.61, 0.75, 0.5,  0.75, 0.97, 0.53,
+                                0.75, 0.5,  0.75, 0.53};
     size_t index[3];
     int n = 0;
     for (int i = 0; i < axis[0]->size(); ++i) {
@@ -522,6 +520,9 @@ BOOST_AUTO_TEST_CASE(bp_grid_test) {
 
 /**
  * Test the ability to build a cookie cutter beam pattern.
+ *
+ * The beam is 45 deg tall and 90 deg wide. The directivity index is
+ * -10*log10( (45/180) (90/360) ) = 12 dB.
  */
 BOOST_AUTO_TEST_CASE(bp_solid_test) {
     cout << "=== beampattern_test: bp_solid_test ===" << endl;
@@ -535,8 +536,34 @@ BOOST_AUTO_TEST_CASE(bp_solid_test) {
     vector<double> level(frequencies->size(), 0.0);
     solid.directivity(frequencies, &level);
     level = -10.0 * log10(level);
-    const double test = 10 * log10(16);
-    BOOST_CHECK_CLOSE(level(0), test, 1e-10);
+    BOOST_CHECK_CLOSE(level(0), 12.0, 1.0);
+}
+
+/**
+ * Test the ability to build a cookie cutter beam pattern w/ Gaussian taper.
+ *
+ * The beam is 10 deg tall and 20 deg wide. Steering this beam 5 deg to the
+ * right and 10 deg down puts the level straight ahead at 4 dB down from the
+ * peak. The directivity index is -10*log10( (10/180) (20/360) ) = 25 dB.
+ */
+BOOST_AUTO_TEST_CASE(bp_gaussian_test) {
+    cout << "=== beampattern_test: bp_gaussian_test ===" << endl;
+    const char* csvname = USML_TEST_DIR "/beampatterns/test/bp_gaussian.csv";
+
+    seq_vector::csptr frequencies(new seq_linear(freq, 1.0, 1));
+    bp_gaussian gaussian(10.0, 20.0);
+    pattern_test_generic(5.0, -10.0, gaussian, gaussian,
+                         csvname);  // just to write file
+
+    vector<double> level(frequencies->size(), 0.0);
+    gaussian.beam_level(bvector(1.0, 0.0, 0.0), frequencies, &level,
+                        bvector(10.0, -20.0));
+    level = -10.0 * log10(level);
+    BOOST_CHECK_CLOSE(level(0), 4.0, 10.0);
+
+    gaussian.directivity(frequencies, &level);
+    level = -10.0 * log10(level);
+    BOOST_CHECK_CLOSE(level(0), 25.0, 1.0);
 }
 
 /// @}

@@ -13,7 +13,7 @@ using namespace usml::types;
  * front/right plane
  */
 void bp_con_ring(vector<double> radii, vector<int> num_elements,
-        vector<double> offsets, matrix<double> *elem_locations) {
+                 vector<double> offsets, matrix<double> *elem_locations) {
     (*elem_locations).resize(norm_1(num_elements), 3);
 
     int i = 0;
@@ -35,25 +35,26 @@ void bp_con_ring(vector<double> radii, vector<int> num_elements,
  * Provides the element locations of a uniformly spaced array in
  * 3 dimensions
  */
-void bp_con_uniform(int num_e_front, double spacing_front,
-        int num_e_right, double spacing_right, int num_e_up, double spacing_up,
-        matrix<double> *elem_locations) {
+void bp_con_uniform(int num_e_front, double spacing_front, int num_e_right,
+                    double spacing_right, int num_e_up, double spacing_up,
+                    matrix<double> *elem_locations) {
     (*elem_locations).resize((size_t)num_e_front * num_e_right * num_e_up, 3);
     size_t i = 0;
     for (int u = 0; u < num_e_up; u++) {
         for (int e = 0; e < num_e_right; e++) {
             for (int n = 0; n < num_e_front; n++) {
-                (*elem_locations)(i, 0) = ((double) n
-                        - ((double) num_e_front - 1.0) / 2.0) * spacing_front;
-                (*elem_locations)(i, 1) = ((double) e
-                        - ((double) num_e_right - 1.0) / 2.0) * spacing_right;
-                (*elem_locations)(i, 2) = ((double) u
-                        - ((double) num_e_up - 1.0) / 2.0) * spacing_up;
+                (*elem_locations)(i, 0) =
+                    ((double)n - ((double)num_e_front - 1.0) / 2.0) *
+                    spacing_front;
+                (*elem_locations)(i, 1) =
+                    ((double)e - ((double)num_e_right - 1.0) / 2.0) *
+                    spacing_right;
+                (*elem_locations)(i, 2) =
+                    ((double)u - ((double)num_e_up - 1.0) / 2.0) * spacing_up;
                 i++;
             }
         }
     }
 }
 
-}
-
+}  // namespace usml::beampatterns

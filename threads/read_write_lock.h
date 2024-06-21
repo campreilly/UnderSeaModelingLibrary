@@ -63,15 +63,15 @@ typedef std::shared_mutex read_write_lock;
  * routines that retrieve data from a shared object. Retrieval routines
  * that use this lock should be defined as const operations.
  */
-typedef std::shared_lock< read_write_lock > read_lock_guard;
+typedef std::shared_lock<read_write_lock> read_lock_guard;
 
 /**
  * Acquires a unique lock on a #read_write_lock.  Used as a preamble to
  * routines that update data from a shared object.  Can be used on any
  * operation not defined as const.
  */
-typedef std::unique_lock< read_write_lock > write_lock_guard;
+typedef std::unique_lock<read_write_lock> write_lock_guard;
 
 /// @}
-} // end of namespace threads
-} // end of namespace usml
+}  // end of namespace threads
+}  // end of namespace usml

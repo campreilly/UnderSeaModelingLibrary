@@ -44,10 +44,9 @@ spreading_ray::spreading_ray(wave_queue& wave)
 /**
  * Estimate intensity as the ratio of current area to initial area.
  */
-const vector<double>& spreading_ray::intensity(const wposition1& location,
-                                               size_t de, size_t az,
-                                               const vector<double>& offset,
-                                               const vector<double>&  /*distance*/) {
+const vector<double>& spreading_ray::intensity(
+    const wposition1& location, size_t de, size_t az,
+    const vector<double>& offset, const vector<double>& /*distance*/) {
     // which box has target in it?
 
     if (offset(1) < 0.0) {
@@ -139,7 +138,7 @@ const vector<double>& spreading_ray::intensity(const wposition1& location,
  * by 1/2, as the width of the gaussian cell is half of the distance.
  */
 double spreading_ray::width_de(size_t de, size_t az,
-                               const vector<double>&  /*offset*/) {
+                               const vector<double>& /*offset*/) {
     // Prevent the algorithm from running into problems with the
     // DE is at the edge of the index array.
     const size_t size_de = _wave._source_de->size() - 1;
@@ -181,7 +180,7 @@ double spreading_ray::width_de(size_t de, size_t az,
  * by 1/2, as the width of the gaussian cell is half of the distance.
  */
 double spreading_ray::width_az(size_t de, size_t az,
-                               const vector<double>&  /*offset*/) {
+                               const vector<double>& /*offset*/) {
     // Prevent the algorithm from running into problems with the
     // AZ is at the edge of the index array.
     const size_t size = _wave._source_az->size() - 1;

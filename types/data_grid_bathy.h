@@ -506,8 +506,7 @@ class USML_DECLSPEC data_grid_bathy : public data_grid<2> {
         field(15, 0) = _derv_x_y(k0 + 1, k1 + 1);  // f_x_y(1,1)
 
         // Construct the coefficients of the bicubic interpolation
-        c_matrix<double, 16, 1> bicubic_coeff;
-        bicubic_coeff = prod(_inv_bicubic_coeff, field);
+        c_matrix<double, 16, 1> bicubic_coeff = prod(_inv_bicubic_coeff, field);
 
         // Create the power series of the interpolation formula before hand for
         // speed

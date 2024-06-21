@@ -61,12 +61,13 @@ class USML_DECLSPEC bp_planar : public bp_model {
     bp_planar(unsigned num_elem_up, double spacing_up, unsigned num_elem_right,
               double spacing_right, bool back_baffle = false);
 
-    void beam_level(const bvector& arrival, const seq_vector::csptr& frequencies,
-                    vector<double>* level,
+    void beam_level(const bvector& arrival,
+                    const seq_vector::csptr& frequencies, vector<double>* level,
                     const bvector& steering = bvector(1.0, 0.0, 0.0),
                     double sound_speed = 1500.0) const override;
 
-    void directivity(const seq_vector::csptr& frequencies, vector<double>* level,
+    void directivity(const seq_vector::csptr& frequencies,
+                     vector<double>* level,
                      const bvector& steering = bvector(1.0, 0.0, 0.0),
                      double sound_speed = 1500.0) const override;
 

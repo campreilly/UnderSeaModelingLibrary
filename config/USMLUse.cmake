@@ -52,7 +52,7 @@ else( CMAKE_COMPILER_IS_GNUCXX )
     else()                              	# fast optimizations
 	   add_definitions( -g -Ofast -fno-finite-math-only )
     endif()
-    add_definitions( -pthread )
+    add_definitions( -pthread -fPIC )
     if ( USML_PEDANTIC )                	# standards compliance
         add_definitions( -pedantic -Wall -Werror -Wno-long-long -Wno-sign-compare)
         string(CONCAT CMAKE_CXX_CLANG_TIDY "clang-tidy;--fix;--checks="
@@ -66,7 +66,9 @@ else( CMAKE_COMPILER_IS_GNUCXX )
             "-modernize-pass-by-value,"
             "-readability-identifier-length,"
             "-readability-magic-numbers,"
-            "-misc-const-correctness")
+            "-misc-const-correctness,"
+	    "-performance-avoid-endl,"
+	    "-misc-include-cleaner")
         set(CMAKE_CXX_STANDARD_REQUIRED ON)
         set(CMAKE_CXX_EXTENSIONS OFF)
     endif ( USML_PEDANTIC )

@@ -664,4 +664,3 @@ asignal(const vector_expression<E> &e) {
 /// @}
 }  // namespace ublas
 }  // namespace usml
-

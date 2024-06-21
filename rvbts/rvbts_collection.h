@@ -61,11 +61,11 @@ class USML_DECLSPEC rvbts_collection {
      * @param travel_times    Times at which reverberation is computed (sec).
      */
     rvbts_collection(
-        const sensor_model::sptr& source,
-        const wposition1 source_pos, const orientation& source_orient,
-        const double source_speed, const sensor_model::sptr& receiver,
-        const wposition1 receiver_pos, const orientation& receiver_orient,
-        const double receiver_speed, const seq_vector::csptr& travel_times);
+        const sensor_model::sptr& source, const wposition1 source_pos,
+        const orientation& source_orient, const double source_speed,
+        const sensor_model::sptr& receiver, const wposition1 receiver_pos,
+        const orientation& receiver_orient, const double receiver_speed,
+        const seq_vector::csptr& travel_times);
 
     // Reference to source sensor.
     sensor_model::sptr source() const { return _source; }
@@ -93,6 +93,9 @@ class USML_DECLSPEC rvbts_collection {
 
     /// Receiver times at which reverberation is computed (sec).
     seq_vector::csptr travel_times() const { return _travel_times; }
+
+    /// Reverberation time series for each receiver channel.
+    const matrix<double>& time_series() const { return _time_series; }
 
     /**
      * Adds the intensity contribution for a single bistatic eigenverb.

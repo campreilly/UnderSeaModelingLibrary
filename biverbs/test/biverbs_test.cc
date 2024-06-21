@@ -37,9 +37,9 @@ namespace {
 /**
  * Build hard-coded eigenverb and notify listeners.
  */
-eigenverb_model::csptr create_eigenverb(
-    const wposition1 source_pos, double depth, double de, double az,
-    const seq_vector::csptr& frequencies) {
+eigenverb_model::csptr create_eigenverb(const wposition1 source_pos,
+                                        double depth, double de, double az,
+                                        const seq_vector::csptr& frequencies) {
     auto* verb = new eigenverb_model();
 
     double de_rad = to_radians(de);

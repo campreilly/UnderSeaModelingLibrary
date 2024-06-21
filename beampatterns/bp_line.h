@@ -19,10 +19,9 @@ namespace beampatterns {
 
 /// Line array type.
 enum bp_line_type {
-    HLA = 0, ///< horizontal line array
-    VLA = 1 ///< vertical line array
+    HLA = 0,  ///< horizontal line array
+    VLA = 1   ///< vertical line array
 };
-
 
 /**
  * Implements the closed for solution of a line array.

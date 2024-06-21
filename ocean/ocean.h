@@ -86,8 +86,8 @@
 #include <usml/ocean/reflect_loss_netcdf.h>
 #include <usml/ocean/reflect_loss_rayleigh.h>
 #include <usml/ocean/reflect_loss_rayleigh_grid.h>
-#include <usml/ocean/scattering_constant.h>
 #include <usml/ocean/scattering_chapman.h>
+#include <usml/ocean/scattering_constant.h>
 #include <usml/ocean/scattering_lambert.h>
 #include <usml/ocean/scattering_model.h>
 #include <usml/ocean/volume_flat.h>

@@ -25,8 +25,8 @@ using namespace usml::eigenrays;
 eigenray_collection::eigenray_collection(const seq_vector::csptr &frequencies,
                                          const wposition1 &source_pos,
                                          const wposition &target_pos,
-                                         int sourceID,
-                                         const matrix<int> &targetIDs,
+                                         uint64_t sourceID,
+                                         const matrix<uint64_t> &targetIDs,
                                          bool coherent)
     : _sourceID(sourceID),
       _targetIDs(target_pos.size1(), target_pos.size2()),
@@ -59,7 +59,7 @@ eigenray_collection::eigenray_collection(const seq_vector::csptr &frequencies,
 /**
  * Find eigenrays for a single target in the grid.
  */
-eigenray_list eigenray_collection::find_eigenrays(int targetID) const {
+eigenray_list eigenray_collection::find_eigenrays(uint64_t targetID) const {
     for (size_t t1 = 0; t1 < size1(); ++t1) {
         for (size_t t2 = 0; t2 < size2(); ++t2) {
             if (_targetIDs(t1, t2) == targetID || targetID == 0) {
@@ -73,7 +73,7 @@ eigenray_list eigenray_collection::find_eigenrays(int targetID) const {
 /**
  * Find fastest eigenray for a single target in the grid.
  */
-double eigenray_collection::find_initial_time(int targetID) const {
+double eigenray_collection::find_initial_time(uint64_t targetID) const {
     for (size_t t1 = 0; t1 < size1(); ++t1) {
         for (size_t t2 = 0; t2 < size2(); ++t2) {
             if (_targetIDs(t1, t2) == targetID || targetID == 0) {
@@ -213,7 +213,7 @@ void eigenray_collection::write_netcdf(const char *filename,
     NcVar *src_lng_var = nc_file->add_var("source_longitude", ncDouble);
     NcVar *src_alt_var = nc_file->add_var("source_altitude", ncDouble);
 
-    NcVar *target_var = nc_file->add_var("targetID", ncShort, row_dim, col_dim);
+    NcVar *target_var = nc_file->add_var("targetID", ncLong, row_dim, col_dim);
     NcVar *latitude_var = nc_file->add_var("latitude", ncDouble, row_dim, col_dim);
     NcVar *longitude_var = nc_file->add_var("longitude", ncDouble, row_dim, col_dim);
     NcVar *altitude_var = nc_file->add_var("altitude", ncDouble, row_dim, col_dim);
@@ -279,9 +279,9 @@ void eigenray_collection::write_netcdf(const char *filename,
 
     // write source parameters
 
-    int n;
+    long n;
     double v;
-    n = _sourceID;					src_id_var->put(&n);
+    n = (long) _sourceID;			src_id_var->put(&n);
     v = _source_pos.latitude(); 	src_lat_var->put(&v);
     v = _source_pos.longitude();	src_lng_var->put(&v);
     v = _source_pos.altitude(); 	src_alt_var->put(&v);
@@ -291,7 +291,7 @@ void eigenray_collection::write_netcdf(const char *filename,
 
     // write target parameters
 
-    target_var->put(_targetIDs.data().begin(),
+    target_var->put((long*)_targetIDs.data().begin(),
     		(long) _targetIDs.size1(), (long) _targetIDs.size2());
     const long rows = (long) _target_pos.size1();
     const long cols = (long) _target_pos.size2();

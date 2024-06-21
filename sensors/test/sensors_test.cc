@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(update_wavefront_data) {
     for (platform_model::key_type site = 1; site <= num_sites; ++site) {
         std::ostringstream name;
         name << "site" << site;
-        const int index = site - 1;
+        const auto index = site - 1;
 
         cout << "add sensor " << name.str() << " (" << pos[index][0] << ","
              << pos[index][1] << "," << pos[index][2] << ")" << endl;

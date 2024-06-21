@@ -43,9 +43,10 @@ class USML_DECLSPEC reflection_listener {
      *                      class header for documentation on interpreting
      *                      this number. For some layers, you can also use
      */
-    virtual void reflect(double time, size_t de, size_t az, double dt, double grazing,
-                         double speed, const wposition1& position,
-                         const wvector1& ndirection, size_t type) = 0;
+    virtual void reflect(double time, size_t de, size_t az, double dt,
+                         double grazing, double speed,
+                         const wposition1& position, const wvector1& ndirection,
+                         size_t type) = 0;
 };
 
 /// @}

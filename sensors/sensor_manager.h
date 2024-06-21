@@ -140,26 +140,26 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
      * Creates bistatic pairs between the new source and all bistatic receivers
      * in the same multistatic group. Called from sensor_manager::add_sensor().
      *
-     * @param source 		Multistatic source to be paired with valid
+     * @param source 		Multistatic source to be paired w/ valid
      * receivers.
      * @param multistatic 	Multistatic group for this sensor.
      * @param listener		Update listener for sensor_pair objects.
      */
     void add_multistatic_source(const sensor_model::sptr& source,
-                                int multistatic,
+                                uint64_t multistatic,
                                 update_listener<sensor_pair>* listener);
 
     /**
      * Creates bistatic pairs between the new receiver and all bistatic sources
      * in the same multistatic group. Called from sensor_manager::add_sensor().
      *
-     * @param receiver 		Multistatic receiver to be paired with valid
+     * @param receiver 		Multistatic receiver to be paired w/ valid
      * sources.
      * @param multistatic 	Multistatic group for this sensor.
      * @param listener		Update listener for sensor_pair objects.
      */
     void add_multistatic_receiver(const sensor_model::sptr& receiver,
-                                  int multistatic,
+                                  uint64_t multistatic,
                                   update_listener<sensor_pair>* listener);
 
     /**
@@ -208,14 +208,14 @@ class USML_DECLSPEC sensor_manager : public manager_template<sensor_pair> {
      * find the receivers that may need to be paired with each incoming
      * source.
      */
-    std::set<int> _src_list;
+    std::set<uint64_t> _src_list;
 
     /**
      * List of all active receiver sensor IDs.  Used by insert() to
      * find the sources that may need to be paired with each incoming
      * receiver.
      */
-    std::set<int> _rcv_list;
+    std::set<uint64_t> _rcv_list;
 };
 
 /// @}

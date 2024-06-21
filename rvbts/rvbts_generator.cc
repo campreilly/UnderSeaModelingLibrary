@@ -24,6 +24,7 @@ using namespace usml::rvbts;
 rvbts_generator::rvbts_generator(const sensor_pair::sptr& pair,
                                  const sensor_model::sptr& source,
                                  const sensor_model::sptr& receiver,
+                                 const double treverb,
                                  const biverb_collection::csptr& biverbs)
     : _description(pair->description()),
       _source(source),
@@ -35,8 +36,7 @@ rvbts_generator::rvbts_generator(const sensor_pair::sptr& pair,
       _receiver_pos(receiver->position()),
       _receiver_orient(receiver->orient()),
       _receiver_speed(receiver->speed()),
-      _travel_times(new seq_linear(receiver->time_minimum(),
-                                   1.0 / receiver->fsample(),
+      _travel_times(new seq_linear(receiver->time_minimum(), treverb,
                                    receiver->time_maximum())),
       _biverbs(biverbs),
       _source_steering(compute_src_steering()) {
@@ -89,13 +89,12 @@ void rvbts_generator::run() {
         return;
     }
 
-    auto* collection =
-        new rvbts_collection(_source, _source_pos, _source_orient,
-                             _source_speed, _receiver, _receiver_pos,
-                             _receiver_orient, _receiver_speed, _travel_times);
+    auto* collection = new rvbts_collection(
+        _source, _source_pos, _source_orient, _source_speed, _receiver,
+        _receiver_pos, _receiver_orient, _receiver_speed, _travel_times);
     rvbts_collection::csptr result(collection);
 
-    cout << "task #" << id() << " rvbts_generator: " << _description<< endl;
+    cout << "task #" << id() << " rvbts_generator: " << _description << endl;
 
     // loop through eigenverbs for each interface
 

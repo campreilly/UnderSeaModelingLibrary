@@ -15,7 +15,8 @@ using namespace usml::beampatterns;
  * Computes the beam level gain for an arrival vector in the body coordinates
  * of the array,
  */
-void bp_arb::beam_level(const bvector& arrival, const seq_vector::csptr& frequencies,
+void bp_arb::beam_level(const bvector& arrival,
+                        const seq_vector::csptr& frequencies,
                         vector<double>* level, const bvector& steering,
                         double sound_speed) const {
     // set gain to zero in backplane when baffle is on

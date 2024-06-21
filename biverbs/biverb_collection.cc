@@ -21,7 +21,7 @@
 
 using namespace usml::biverbs;
 
-//#define DEBUG_BIVERB
+// #define DEBUG_BIVERB
 
 /**
  * Threshold for minimum biverb power.

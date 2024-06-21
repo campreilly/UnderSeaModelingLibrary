@@ -36,7 +36,8 @@ using namespace usml::types;
  *
  * @xref Cooperative Ocean/Atmosphere Research Data Service,
  * "Conventions for the standardization of NetCDF files," May 1995.
- * See https://ferret.pmel.noaa.gov/Ferret/documentation/coards-netcdf-conventions
+ * See
+ * https://ferret.pmel.noaa.gov/Ferret/documentation/coards-netcdf-conventions
  * for more information.
  */
 template <int NUM_DIMS>
@@ -86,7 +87,7 @@ class netcdf_coards : public gen_grid<NUM_DIMS> {
      *                         Use NAN as fill value if false.
      */
     netcdf_coards(NcFile& file, NcToken name, bool read_fill = false) {
-    	this->_zero = 0.0; // avoid uninitialized values in gen_grid class
+        this->_zero = 0.0;  // avoid uninitialized values in gen_grid class
 
         // search for this grid in the NetCDF file
 

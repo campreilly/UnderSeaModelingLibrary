@@ -307,7 +307,6 @@ class TestWaveQ3D(unittest.TestCase):
         ax.set_xlabel('Longitude (deg)')
         ax.set_ylabel('Latitude (deg)')
         ax.set_aspect('equal', 'box')
-        plt.show()
 
         output = os.path.join(self.USML_DIR, testname + ".png")
         print(f"saving {output}")
@@ -336,7 +335,6 @@ class TestWaveQ3D(unittest.TestCase):
         ax.set_xlabel('Range (km)')
         ax.set_ylabel('Depth (m)')
         ax.legend(["Model", "Theory"])
-        plt.show()
 
         output = os.path.join(self.USML_DIR, testname + ".png")
         print(f"saving {output}")
@@ -365,7 +363,6 @@ class TestWaveQ3D(unittest.TestCase):
         ax.set_xlabel('Range (km)')
         ax.set_ylabel('Depth (m)')
         ax.legend(["Model", "Theory"])
-        plt.show()
 
         output = os.path.join(self.USML_DIR, testname + ".png")
         print(f"saving {output}")

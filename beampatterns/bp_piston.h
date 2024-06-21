@@ -40,12 +40,13 @@ class USML_DECLSPEC bp_piston : public bp_model {
     bp_piston(double diameter, bool back_baffle = false)
         : _diameter(diameter), _back_baffle(back_baffle) {}
 
-    void beam_level(const bvector& arrival, const seq_vector::csptr& frequencies,
-                    vector<double>* level,
+    void beam_level(const bvector& arrival,
+                    const seq_vector::csptr& frequencies, vector<double>* level,
                     const bvector& steering = bvector(1.0, 0.0, 0.0),
                     double sound_speed = 1500.0) const override;
 
-    void directivity(const seq_vector::csptr& frequencies, vector<double>* level,
+    void directivity(const seq_vector::csptr& frequencies,
+                     vector<double>* level,
                      const bvector& steering = bvector(1.0, 0.0, 0.0),
                      double sound_speed = 1500.0) const override;
 

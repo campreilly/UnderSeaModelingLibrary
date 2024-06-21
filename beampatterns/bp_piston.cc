@@ -18,8 +18,8 @@ using namespace usml::beampatterns;
  * of the array,
  */
 void bp_piston::beam_level(const bvector& arrival,
-                           const seq_vector::csptr& frequencies, vector<double>* level,
-                           const bvector& /* steering */,
+                           const seq_vector::csptr& frequencies,
+                           vector<double>* level, const bvector& /* steering */,
                            double sound_speed) const {
     // set gain to zero in backplane when baffle is on
     if (_back_baffle) {

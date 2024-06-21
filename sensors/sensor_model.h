@@ -185,10 +185,13 @@ class USML_DECLSPEC sensor_model : public platform_model,
      * automatically creates bistatic pairs for sources and receivers in the
      * same multistatic group.
      */
-    int multistatic() const { return _multistatic; }
+    uint64_t multistatic() const { return _multistatic; }
 
     /// Multi-static group for this sensor (0=none).
-    void multistatic(int value) { _multistatic = value; }
+    void multistatic(uint64_t value) { _multistatic = value; }
+
+    /// Reset source beams.
+    void reset_src_beams();
 
     /// Add transmit mode beam pattern to this sensor.
     size_t src_beam(int keyID, const bp_model::csptr& pattern);
@@ -210,6 +213,9 @@ class USML_DECLSPEC sensor_model : public platform_model,
         read_lock_guard guard(mutex());
         return _src_beams.size() > 0;
     }
+
+    /// Reset source beams.
+    void reset_rcv_beams();
 
     /// Add receiver beam pattern to this sensor.
     size_t rcv_beam(int keyID, const bp_model::csptr& pattern,
@@ -239,25 +245,6 @@ class USML_DECLSPEC sensor_model : public platform_model,
         return _rcv_beams.size() > 0;
     }
 
-    /// Retrieve receiver sampling rate (Hz).
-    double fsample() const { return _fsample; }
-
-    /**
-     * Update receiver sampling rate (Hz). Receiver time series data,
-     * including reverberation, are not computed if the receiver sampling rate
-     * is not set by the user.
-     */
-    void fsample(double value) { _fsample = value; }
-
-    /// Retrieve receiver center frequency (Hz).
-    double fcenter() const { return _fcenter; }
-
-    /**
-     * Update receiver center frequency (Hz). Models frequency contents of the
-     * receiver time series data when this value is set by user.
-     */
-    void fcenter(double value) { _fcenter = value; }
-
     /// Retrieve list of pulses to transmit.
     transmit_list transmit_schedule() const {
         read_lock_guard guard(mutex());
@@ -274,6 +261,14 @@ class USML_DECLSPEC sensor_model : public platform_model,
     void transmit_schedule(const transmit_list& schedule,
                            update_type_enum update_type = NO_UPDATE);
 
+    /// Reference to currently executing wavefront generator.
+    std::shared_ptr<wavefront_generator>& wavefront_task() {
+        return _wavefront_task;
+    }
+
+    /// Force wavefront calculation on next update.
+    void set_needs_update() { _needs_update = true; }
+
    protected:
     /**
      * Updates the internal state of this platform and its children. Starts
@@ -289,10 +284,10 @@ class USML_DECLSPEC sensor_model : public platform_model,
      * @param speed         Platform speed (m/s).
      * @param update_type	Controls testing of thresholds.
      */
-    virtual void update_internals(
+    void update_internals(
         time_t time, const wposition1& pos,
         const orientation& orient = orientation(), double speed = 0.0,
-        update_type_enum update_type = TEST_THRESHOLD);
+        update_type_enum update_type = TEST_THRESHOLD) override;
 
     /**
      * Get list of acoustic targets near this sensor.
@@ -353,7 +348,7 @@ class USML_DECLSPEC sensor_model : public platform_model,
     bool _compute_reverb{false};
 
     /// Multi-static group for this sensor (0=none).
-    int _multistatic{0};
+    uint64_t _multistatic{0};
 
     /// Source beam patterns.
     beam_map_type _src_beams;
@@ -364,17 +359,20 @@ class USML_DECLSPEC sensor_model : public platform_model,
     /// Receiver beam steerings.
     steering_map_type _rcv_steering;
 
-    /// Receiver sampling rate (Hz).
-    double _fsample{0.0};
-
-    /// Receiver center frequency (Hz).
-    double _fcenter{0.0};
-
     /// List of pulses to transmit.
     transmit_list _transmit_schedule;
 
     /// Reference to currently executing wavefront generator.
     std::shared_ptr<wavefront_generator> _wavefront_task;
+
+    /// True if acoustics ever updated.
+    bool _needs_update{true};
+
+    /// Location of the platform at last acoustic update.
+    wposition1 _update_position;
+
+    /// Orientation of the platform at last acoustic update.
+    orientation _update_orient;
 };
 
 /// @}

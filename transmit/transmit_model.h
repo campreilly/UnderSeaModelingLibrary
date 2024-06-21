@@ -97,11 +97,12 @@ class USML_DECLSPEC transmit_model {
      * @param window_type   Waveform shading window.
      * @param window_param  Waveform shading parameter.
      * @param orderedAZ  	Ordered steering azimuth relative to host (deg).
-     * @param orderedDE  	Ordered steering elevation relative to host (deg).
+     * @param orderedDE  	Ordered steering elevation relative to host
+     * (deg).
      * @param transmit_mode Transmitter beam pattern number to use.
      */
-    transmit_model(const std::string& type, double duration, double bandwidth, double fcenter,
-                   double delay, double source_level,
+    transmit_model(const std::string& type, double duration, double bandwidth,
+                   double fcenter, double delay, double source_level,
                    window::type window_type, double window_param,
                    double orderedAZ, double orderedDE, int transmit_mode);
 

@@ -56,10 +56,10 @@ class USML_DECLSPEC wavefront_generator : public thread_task {
      * @param max_surface   	The maximum number of surface bounces.
      */
     wavefront_generator(sensor_model* source, const wposition& target_positions,
-                        const matrix<int>& targetIDs,
+                        const matrix<uint64_t>& targetIDs,
                         const seq_vector::csptr& frequencies,
                         const seq_vector::csptr& de_fan,
-						const seq_vector::csptr& az_fan, double time_step,
+                        const seq_vector::csptr& az_fan, double time_step,
                         double time_maximum, double intensity_threshold,
                         int max_bottom, int max_surface);
 
@@ -89,7 +89,7 @@ class USML_DECLSPEC wavefront_generator : public thread_task {
 
     /// List of platform ID numbers for each entry in target_positions.
     /// Cached to avoid change while the calculation is being performed.
-    matrix<int> _targetIDs;
+    matrix<uint64_t> _targetIDs;
 
     /// List of frequencies to use in wavefront calculation.
     seq_vector::csptr _frequencies;

@@ -546,12 +546,12 @@ inline math_traits<double>::value_type copysign(
 // add GNU C++ math functions to Visual C++
 
 #ifdef _MSC_VER  // Microsoft Visual C++
-#ifndef NAN
-#define NAN std::numeric_limits<double>::quiet_NaN()
-#endif
+    #ifndef NAN
+        #define NAN std::numeric_limits<double>::quiet_NaN()
+    #endif
 inline int isnan(double x) { return _isnan(x); }
 
-#if (_MSC_VER < 1800)  // Visual Sudio eariler than 2013
+    #if (_MSC_VER < 1800)  // Visual Sudio eariler than 2013
 
 inline int round(double x) { return floor(x + 0.5); }
 
@@ -568,7 +568,7 @@ inline math_traits<double>::value_type atanh(
     return math_traits<double>::atanh(t);
 }
 
-#endif
+    #endif
 
 #endif
 }  // end of namespace ublas

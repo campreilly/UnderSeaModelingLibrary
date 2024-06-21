@@ -155,9 +155,7 @@ class USML_DECLSPEC seq_vector : public vector_container<seq_vector> {
     /**
      * Create const_iterator equivalent of an array index number.
      */
-    const_iterator find(size_type i) const {
-    	return const_iterator(*this, i);
-    }
+    const_iterator find(size_type i) const { return const_iterator(*this, i); }
 
     /**
      * Return iterator to start of sequence.

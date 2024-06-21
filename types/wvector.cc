@@ -9,18 +9,18 @@ using namespace usml::types;
 /**
  * Constructs a new coordinate from matrix dimensions.
  */
-wvector::wvector(size_t rows, size_t cols) :
-_rho(rows, cols), _theta(rows, cols), _phi(rows, cols) {
-    clear() ;
+wvector::wvector(size_t rows, size_t cols)
+    : _rho(rows, cols), _theta(rows, cols), _phi(rows, cols) {
+    clear();
 }
 
 /**
  * Constructs a new wvector as a copy of an existing wvector1.
  */
 wvector::wvector(const wvector1& other) {
-	_rho = scalar_matrix<double>(1, 1, other.rho());
-	_theta = scalar_matrix<double>(1, 1, other.theta());
-	_phi = scalar_matrix<double>(1, 1, other.phi());
+    _rho = scalar_matrix<double>(1, 1, other.rho());
+    _theta = scalar_matrix<double>(1, 1, other.theta());
+    _phi = scalar_matrix<double>(1, 1, other.phi());
 }
 
 //*********************************
@@ -31,10 +31,11 @@ wvector::wvector(const wvector1& other) {
  * spherical earth vector.
  */
 void wvector::dot(const wvector1& other, matrix<double>& result) const {
-    noalias(result) = element_prod(_rho * other.rho(),
-            1.0 - 2.0 * (abs2(sin(0.5 * (_theta - other.theta())))
-            + element_prod(sin(_theta) * sin(other.theta()),
-            abs2(sin(0.5 * (_phi - other.phi()))))));
+    noalias(result) = element_prod(
+        _rho * other.rho(),
+        1.0 - 2.0 * (abs2(sin(0.5 * (_theta - other.theta()))) +
+                     element_prod(sin(_theta) * sin(other.theta()),
+                                  abs2(sin(0.5 * (_phi - other.phi()))))));
 }
 
 /**
@@ -42,9 +43,10 @@ void wvector::dot(const wvector1& other, matrix<double>& result) const {
  */
 void wvector::dotnorm(const wvector1& other, matrix<double>& result) const {
     // uses the same equation as dot() without the radial terms
-    noalias(result) = 1.0 - 2.0 * (abs2(sin(0.5 * (_theta - other.theta())))
-            + element_prod(sin(_theta) * sin(other.theta()),
-            abs2(sin(0.5 * (_phi - other.phi())))));
+    noalias(result) =
+        1.0 - 2.0 * (abs2(sin(0.5 * (_theta - other.theta()))) +
+                     element_prod(sin(_theta) * sin(other.theta()),
+                                  abs2(sin(0.5 * (_phi - other.phi())))));
 }
 
 /**

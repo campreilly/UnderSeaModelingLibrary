@@ -99,8 +99,8 @@ class USML_DECLSPEC bp_arb : public bp_model {
           _weights(vector<double>(elem_locs.size1(), 1.0)),
           _back_baffle(back_baffle) {}
 
-    void beam_level(const bvector &arrival, const seq_vector::csptr& frequencies,
-                    vector<double> *level,
+    void beam_level(const bvector &arrival,
+                    const seq_vector::csptr &frequencies, vector<double> *level,
                     const bvector &steering = bvector(1.0, 0.0, 0.0),
                     double sound_speed = 1500.0) const override;
 

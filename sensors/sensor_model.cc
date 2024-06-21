@@ -23,6 +23,11 @@
 using namespace usml::sensors;
 
 /**
+ * Reset source beams.
+ */
+void sensor_model::reset_src_beams() { _src_beams.clear(); }
+
+/**
  * Add source beam pattern to this sensor.
  */
 size_t sensor_model::src_beam(int keyID, const bp_model::csptr& pattern) {
@@ -55,6 +60,11 @@ std::list<int> sensor_model::src_keys() const {
     }
     return list;
 }
+
+/**
+ * Reset receiver beams.
+ */
+void sensor_model::reset_rcv_beams() { _rcv_beams.clear(); }
 
 /**
  * Add receiver beam pattern to this sensor.
@@ -139,16 +149,18 @@ void sensor_model::transmit_schedule(const transmit_list& schedule,
 void sensor_model::update_internals(time_t time, const wposition1& pos,
                                     const orientation& orient, double speed,
                                     update_type_enum update_type) {
-    orientation o1 = orient;
-    orientation o2 = orientation();
+    auto p1 = pos;
+    auto p2 = _update_position;
+    auto o1 = orient;
+    auto o2 = _update_orient;
 
     // clang-format off
     bool update_acoustics =
 		update_type != NO_UPDATE && (
-        update_type == FORCE_UPDATE
-		|| abs(pos.latitude() - position().latitude()) >= motion_thresholds::lat_threshold
-		|| abs(pos.longitude() - position().longitude()) >= motion_thresholds::lon_threshold
-		|| abs(pos.altitude() - position().altitude()) >= motion_thresholds::alt_threshold
+        update_type == FORCE_UPDATE || _needs_update
+		|| abs(p1.latitude() - p2.latitude()) >= motion_thresholds::lat_threshold
+		|| abs(p1.longitude() - p2.longitude()) >= motion_thresholds::lon_threshold
+		|| abs(p1.altitude() - p2.altitude()) >= motion_thresholds::alt_threshold
 		|| abs(o1.yaw() - o2.yaw()) >= motion_thresholds::yaw_threshold
 		|| abs(o1.pitch() - o2.pitch()) >= motion_thresholds::pitch_threshold
 		|| abs(o1.roll() - o2.roll()) >= motion_thresholds::roll_threshold);
@@ -161,6 +173,10 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
     // start wavefront_generator background task to update acoustics
 
     if (update_acoustics) {
+        _needs_update = false;
+        _update_position = pos;
+        _update_orient = orient;
+
         auto targets = find_targets();
 
         if (!targets.empty() || _compute_reverb) {
@@ -173,7 +189,7 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
             // launch a new wavefront generator
 
             wposition tpos(targets.size(), 1);
-            matrix<int> targetIDs(targets.size(), 1);
+            matrix<uint64_t> targetIDs(targets.size(), 1);
 
             // count the number of targets
             size_t count = 0;
@@ -191,7 +207,6 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
                 _time_step, _time_maximum, _intensity_threshold, _max_bottom,
                 _max_surface);
             thread_controller::instance()->run(_wavefront_task);
-            _wavefront_task.reset();  // destroy background task
         }
     }
 }
@@ -206,14 +221,16 @@ std::list<platform_model::sptr> sensor_model::find_targets() {
 
     std::list<platform_model::sptr> targets;
     for (const auto& platform : platform_manager::instance()->list()) {
-        if (min_range2 < DBL_EPSILON && max_range2 < DBL_EPSILON) {
-            targets.push_back(platform);
-        } else {
-            wposition1 platform_pos = platform->position();
-            double distance2 = platform_pos.distance2(object_pos);
-            if (distance2 >= min_range2) {
-                if (max_range2 < DBL_EPSILON || distance2 <= max_range2) {
-                    targets.push_back(platform);
+        if (platform->is_acoustic_target()) {
+            if (min_range2 < DBL_EPSILON && max_range2 < DBL_EPSILON) {
+                targets.push_back(platform);
+            } else {
+                wposition1 platform_pos = platform->position();
+                double distance2 = platform_pos.distance2(object_pos);
+                if (distance2 >= min_range2) {
+                    if (max_range2 < DBL_EPSILON || distance2 <= max_range2) {
+                        targets.push_back(platform);
+                    }
                 }
             }
         }

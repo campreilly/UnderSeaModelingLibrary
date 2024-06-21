@@ -63,7 +63,7 @@ void rvbts_collection::add_biverb(const biverb_model::csptr &verb,
     const auto duration = verb->duration + transmit->duration;
     const auto delay = transmit->delay + verb->travel_time + duration;
     size_t first = _travel_times->find_index(delay - 5.0 * duration);
-    size_t last = _travel_times->find_index(delay + 5.0 * duration) + 1;
+    size_t last = _travel_times->find_index(delay + 5.0 * duration);
     range window(first, last);
 
     // update Gaussian time series in this window
@@ -119,7 +119,7 @@ void rvbts_collection::add_biverb(const biverb_model::csptr &verb,
         // add scaled Gaussian to each result in time window
 
         for (size_t n = 0; n < gaussian.size(); ++n) {
-            auto t = n + first - 1;
+            auto t = n + first;
             _time_series(rcv, t) += rcv_level * gaussian[n];
         }
     }
@@ -185,9 +185,9 @@ void rvbts_collection::write_netcdf(const char *filename) const {
     // write source parameters
 
     // clang-format off
-    int n;
+    long n;
     double v;
-    n = _source->keyID();			src_id_var->put(&n);
+    n = (long) _source->keyID();			src_id_var->put(&n);
     v = _source_pos.latitude(); 	src_lat_var->put(&v);
     v = _source_pos.longitude();	src_lng_var->put(&v);
     v = _source_pos.altitude(); 	src_alt_var->put(&v);
@@ -201,7 +201,7 @@ void rvbts_collection::write_netcdf(const char *filename) const {
 
     // write receiver parameters
 
-    n = _receiver->keyID();			rcv_id_var->put(&n);
+    n = (long) _receiver->keyID();			rcv_id_var->put(&n);
     v = _receiver_pos.latitude(); 	rcv_lat_var->put(&v);
     v = _receiver_pos.longitude();	rcv_lng_var->put(&v);
     v = _receiver_pos.altitude(); 	rcv_alt_var->put(&v);

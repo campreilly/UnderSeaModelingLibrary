@@ -4,15 +4,15 @@
  */
 #pragma once
 
-#include <usml/ublas/ublas.h>
 #include <usml/types/wvector.h>
+#include <usml/ublas/ublas.h>
 
 namespace usml {
 namespace types {
 
 using namespace usml::ublas;
 
-class wvector1; // forward reference
+class wvector1;  // forward reference
 
 /// @ingroup wposition
 /// @{
@@ -23,11 +23,8 @@ class wvector1; // forward reference
  * scalar.  This class is a convenience to save the developer
  * from doing a lot of operations on 1x1 matrices.
  */
-class USML_DECLSPEC wvector1
-{
-
-public:
-
+class USML_DECLSPEC wvector1 {
+   public:
     //*********************************
     // initialization
 
@@ -44,94 +41,70 @@ public:
     //*********************************
     // Rho property
 
-private:
-
+   private:
     /** Storage for the radial component of the coordinate system. */
     double _rho;
 
-public:
-
+   public:
     /**
      * Retrieves the radial component of the spherical earth coordinate system.
      *
      * @return            Radial coordinate in meters.
      */
-    inline double rho() const
-    {
-        return _rho;
-    }
+    inline double rho() const { return _rho; }
 
     /**
      * Defines the radial component of the spherical earth coordinate.
      *
      * @param  r        Radial coordinate in meters.
      */
-    inline void rho(double r)
-    {
-        _rho = r;
-    }
+    inline void rho(double r) { _rho = r; }
 
     //*********************************
     // Theta property
 
-private:
-
+   private:
     /** Storage for the colatitude component of the coordinate system. */
     double _theta;
 
-public:
-
+   public:
     /**
      * Retrieves the colatitude component of the spherical earth
      * coordinate system.
      *
      * @return            Colatitude coordinate in radians.
      */
-    inline double theta() const
-    {
-        return _theta;
-    }
+    inline double theta() const { return _theta; }
 
     /**
      * Defines the colatitude component of the spherical earth coordinate.
      *
      * @param  t        Colatitude coordinate in radians.
      */
-    inline void theta(double t)
-    {
-        _theta = t;
-    }
+    inline void theta(double t) { _theta = t; }
 
     //*********************************
     // Phi property
 
-private:
-
+   private:
     /** Storage for the longitude component of the coordinate system. */
     double _phi;
 
-public:
-
+   public:
     /**
      * Retrieves the longitude component of the spherical earth
      * coordinate system.
      *
      * @return          Longitude coordinate in radians.
      */
-    inline double phi() const
-    {
-        return _phi;
-    }
+    inline double phi() const { return _phi; }
 
     /**
      * Defines the longitude component of the spherical earth coordinate.
      *
      * @param  p        Longitude coordinate in radians.
      */
-    inline void phi(double p)
-    {
-        _phi = p;
-    }
+    inline void phi(double p) { _phi = p; }
 
     //*********************************
     // utilities
@@ -187,7 +160,7 @@ public:
      * @param  az           Initial azimuthal angle at the source location
      *                      (degrees, clockwise from true north).
      */
-    void direction(double* de, double* az) const ;
+    void direction(double* de, double* az) const;
 
     /**
      * Compute acoustic ray direction in the local tangent plane using
@@ -242,9 +215,10 @@ public:
      * @param   p3   Third point in space
      * @param   p4   Forth point in space
      */
-    double area(const wvector1& p2, const wvector1& p3, const wvector1& p4) const;
+    double area(const wvector1& p2, const wvector1& p3,
+                const wvector1& p4) const;
 };
 
 /// @}
-} // end of ocean namespace
-} // end of usml namespace
+}  // namespace types
+}  // namespace usml
