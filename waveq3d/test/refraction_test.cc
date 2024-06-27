@@ -745,7 +745,13 @@ BOOST_AUTO_TEST_CASE(refraction_catenary) {
             ++n;
             sign *= -1.0;
         }
+
         double s = -0.5 * ((sinT2 * cos(t) - 1.0) / cosT2 - 1.0);
+
+        // Correct any numerical inaccuracy that might cause 's' to be
+        // < 1.0.
+        s = max(1.0, s);
+
         double z = -(z0 - sign * c1 * acosh(sqrt(s)));
         prev = wave.curr()->position;
 
