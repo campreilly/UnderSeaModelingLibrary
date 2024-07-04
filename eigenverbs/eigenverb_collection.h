@@ -10,7 +10,13 @@
 #include <usml/usml_config.h>
 
 #pragma GCC diagnostic push
+
+// clang-17 doesn't issue any warnings about "geometry.hpp", and
+// also it doesn't support "-Wmaybe-uninitialized".
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 #include <boost/geometry/geometry.hpp>
 #pragma GCC diagnostic pop
 
