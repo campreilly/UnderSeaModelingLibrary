@@ -113,8 +113,9 @@ fig.Visible = 'on';
     function selectAZ(src, event)
     % Select zero or more azimuth angles from interactive display
     azSelect = [];
-    for n = 1:size(event.Selection)
-        row = event.Selection(n);
+    selection = event.Selection(:,1);
+    for n = 1:length(selection)
+        row = selection(n);
         value = src.Data(row);
         if ~isempty(value)
             azSelect = [azSelect; value]; %#ok<AGROW>
@@ -133,8 +134,9 @@ fig.Visible = 'on';
     function selectDE(src, event)
     % Select zero or more depression/elevation angles from interactive display
     deList = [];
-    for n = 1:size(event.Selection)
-        row = event.Selection(n);
+    selection = event.Selection(:,1);
+    for n = 1:length(selection)
+        row = selection(n);
         value = src.Data(row);
         if ~isempty(value)
             deList = [deList; value]; %#ok<AGROW>

@@ -54,6 +54,8 @@ class USML_DECLSPEC wavefront_generator : public thread_task {
      * @param intensity_threshold Intensity threshold in wavefront (dB).
      * @param max_bottom    	The maximum number of bottom bounces.
      * @param max_surface   	The maximum number of surface bounces.
+     * @param wavefront_file   	NetCDF file to store wavefront data for debug.
+     *
      */
     wavefront_generator(sensor_model* source, const wposition& target_positions,
                         const matrix<uint64_t>& targetIDs,
@@ -61,7 +63,7 @@ class USML_DECLSPEC wavefront_generator : public thread_task {
                         const seq_vector::csptr& de_fan,
                         const seq_vector::csptr& az_fan, double time_step,
                         double time_maximum, double intensity_threshold,
-                        int max_bottom, int max_surface);
+                        int max_bottom, int max_surface, const std::string& wavefront_file=std::string());
 
     /**
      * Executes the WaveQ3D propagation model to generate eigenrays and
@@ -129,6 +131,9 @@ class USML_DECLSPEC wavefront_generator : public thread_task {
      * Defaults to 999.
      */
     const int _max_surface;
+
+    /// NetCDF file in which to store wavefront data for debugging.
+    std::string _wavefront_file;
 };
 
 /// @}

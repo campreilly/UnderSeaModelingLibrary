@@ -19,24 +19,23 @@
 %
 function wavefront = load_wavefront( filename )
 
-wave = netcdf(filename) ;
-
-frequency = wave.VarArray(1).Data ;
-source_de = wave.VarArray(2).Data ;
-source_az = wave.VarArray(3).Data ;
-travel_time = wave.VarArray(4).Data ;
-latitude = wave.VarArray(5).Data ;
-longitude = wave.VarArray(6).Data ;
-altitude = wave.VarArray(7).Data ;
-surface = wave.VarArray(8).Data ;
-bottom = wave.VarArray(9).Data ;
-caustic = wave.VarArray(10).Data ;
-upper = wave.VarArray(11).Data ;
-lower = wave.VarArray(12).Data ;
-on_edge = wave.VarArray(13).Data ;
+    index = 3:-1:1;
+    frequencies = ncread(filename,'frequencies') ;
+    source_de = ncread(filename,'source_de');
+    source_az = ncread(filename,'source_az');
+    travel_time = ncread(filename,'travel_time');
+    latitude = permute( ncread(filename,'latitude'), index) ;
+    longitude = permute( ncread(filename,'longitude'), index) ;
+    altitude = permute( ncread(filename,'altitude'), index) ;
+    surface = permute( ncread(filename,'surface'), index) ;
+    bottom = permute( ncread(filename,'bottom'), index) ;
+    caustic = permute( ncread(filename,'caustic'), index) ;
+    upper = permute( ncread(filename,'upper'), index) ;
+    lower = permute( ncread(filename,'lower'), index) ;
+    on_edge = permute( ncread(filename,'on_edge'), index) ;
 
 wavefront = struct( ...
-    'frequency', frequency, ...
+        'frequencies', frequencies, ...
     'source_de', source_de, ...
     'source_az', source_az, ...
     'travel_time', travel_time, ...
@@ -49,3 +48,5 @@ wavefront = struct( ...
     'upper', upper, ...
     'lower', lower, ...
     'on_edge', on_edge ) ;
+
+end

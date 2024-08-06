@@ -75,7 +75,9 @@ void ocean_utils::make_basic(double south, double north, double west,
         path = USML_DATA_DIR;
     }
     std::string dataPath(path);
-    cout << "reading shared ocean from USML_DATA_DIR=" << path << endl;
+    cout << "reading shared ocean from USML_DATA_DIR=" << path
+         << " area=" << south << "->" << north << "," << west << "->" << east
+         << endl;
 
     // load bathymetry from ETOPO1 database
 

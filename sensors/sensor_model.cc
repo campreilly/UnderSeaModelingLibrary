@@ -205,7 +205,7 @@ void sensor_model::update_internals(time_t time, const wposition1& pos,
             _wavefront_task = std::make_shared<wavefront_generator>(
                 this, tpos, targetIDs, frequencies, _de_fan, _az_fan,
                 _time_step, _time_maximum, _intensity_threshold, _max_bottom,
-                _max_surface);
+                _max_surface, _wavefront_file);
             thread_controller::instance()->run(_wavefront_task);
         }
     }
