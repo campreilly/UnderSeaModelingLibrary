@@ -266,6 +266,16 @@ class USML_DECLSPEC sensor_model : public platform_model,
         return _wavefront_task;
     }
 
+    /// NetCDF file in which to store wavefront data for debugging.
+    std::string wavefront_file() const {
+    	return _wavefront_file;
+    }
+
+    /// NetCDF file in which to store wavefront data for debugging.
+    void wavefront_file(const std::string& filename ) {
+    	_wavefront_file = filename;
+    }
+
     /// Force wavefront calculation on next update.
     void set_needs_update() { _needs_update = true; }
 
@@ -364,6 +374,9 @@ class USML_DECLSPEC sensor_model : public platform_model,
 
     /// Reference to currently executing wavefront generator.
     std::shared_ptr<wavefront_generator> _wavefront_task;
+
+    /// NetCDF file in which to store wavefront data for debugging.
+    std::string _wavefront_file;
 
     /// True if acoustics ever updated.
     bool _needs_update{true};

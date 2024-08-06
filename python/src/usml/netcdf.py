@@ -254,7 +254,7 @@ class EigenrayList:
         nc = netCDF4.Dataset(filename)
 
         # load file header variables
-        self.sourceID = int(nc.variables["sourceID"][0])
+        self.sourceID = nc.variables["sourceID"][0]
         self.source_latitude = float(nc.variables["source_latitude"][0])
         self.source_longitude = float(nc.variables["source_longitude"][0])
         self.source_altitude = float(nc.variables["source_altitude"][0])

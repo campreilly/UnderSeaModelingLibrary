@@ -16,6 +16,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 
 using namespace usml::wavegen;
 using namespace usml::waveq3d;
@@ -29,7 +30,7 @@ wavefront_generator::wavefront_generator(
     const matrix<uint64_t>& targetIDs, const seq_vector::csptr& frequencies,
     const seq_vector::csptr& de_fan, const seq_vector::csptr& az_fan,
     double time_step, double time_maximum, double intensity_threshold,
-    int max_bottom, int max_surface)
+    int max_bottom, int max_surface, const std::string& wavefront_file)
     : _ocean(ocean_shared::current()),
       _source(source),
       _source_position(source->position()),
@@ -42,7 +43,8 @@ wavefront_generator::wavefront_generator(
       _time_maximum(time_maximum),
       _intensity_threshold(intensity_threshold),
       _max_bottom(max_bottom),
-      _max_surface(max_surface) {}
+      _max_surface(max_surface),
+      _wavefront_file(wavefront_file) {}
 
 /**
  * Executes the WaveQ3D propagation model.
@@ -85,14 +87,31 @@ void wavefront_generator::run() {
 
     // propagate wavefront to build eigenrays and eigenverbs
 
+    bool has_wavefront_file = !_wavefront_file.empty();
+    if (has_wavefront_file) {
+        cout << "task #" << id()
+             << " wavefront_generator: writing wavefronts to "
+             << _wavefront_file << endl;
+        wave.init_netcdf(_wavefront_file.c_str());
+        wave.save_netcdf();
+    }
     while (wave.time() < _time_maximum) {
         wave.step();
         if (_abort) {
             cout << "task #" << id()
                  << " wavefront_generator *** aborted during execution ***"
                  << endl;
+            if (has_wavefront_file) {
+                wave.close_netcdf();
+            }
             return;
         }
+        if (has_wavefront_file) {
+            wave.save_netcdf();
+        }
+    }
+    if (has_wavefront_file) {
+        wave.close_netcdf();
     }
     if (eigenrays != nullptr) {
         eigenrays->sum_eigenrays();
