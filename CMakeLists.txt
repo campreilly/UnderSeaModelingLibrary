@@ -34,10 +34,6 @@ set( PACKAGE_MODULES ublas types netcdf ocean threads beampatterns transmit
     eigenrays eigenverbs biverbs waveq3d wavegen 
     managed platforms sensors rvbts)
 
-if( MSVC )	# work around for missing netcdf_c++ on windows
-    set( PACKAGE_MODULES ${PACKAGE_MODULES} netcdf/msvc )
-endif( MSVC )	
-
 option( USML_BUILD_TESTS "build all Tests" ON )
 option( USML_BUILD_STUDIES "build all Studies" OFF )
 
@@ -72,13 +68,10 @@ unset( HEADERS )
 unset( SOURCES )
 FIND_SOURCES( "${PACKAGE_MODULES}" "" )
 
-if( MSVC )	# work around for missing netcdf_c++ on windows
-    include_directories( "netcdf/msvc" )
-endif( MSVC )	
-
 set( TARGET usml )
 add_library( ${TARGET} ${HEADERS} ${SOURCES} )
 target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} 
+                       ${NETCDF_LIBRARIES_CXX} ${NETCDF_LIBRARIES_CXX4}
                        ${CMAKE_THREAD_LIBS_INIT} )
 set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION}
                        DEBUG_POSTFIX "_d")
