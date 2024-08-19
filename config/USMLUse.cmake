@@ -143,3 +143,5 @@ find_package_handle_standard_args (NetCDF DEFAULT_MSG
     NETCDF_INCLUDES_CXX
     NETCDF_INCLUDES_CXX4
 )
+
+find_program( NETCDF_NCKS ncks )
