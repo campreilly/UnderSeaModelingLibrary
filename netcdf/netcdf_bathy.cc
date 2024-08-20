@@ -44,10 +44,10 @@ netcdf_bathy::netcdf_bathy(const char* filename, double south, double north,
     longitude.getVar(indexN, &valueN);
 
     // Is the data set bounds 0 to 359(360)
-    bool zero_to_360 = value0 == 0.0 && valueN > 359.9999;
+    bool zero_to_360 = value0 < 1.0 && valueN >= 359.0;
 
     // Is the data set bounds -180 to 179(180)
-    bool bounds_180 = value0 < -179.9999 && valueN == 180.0;
+    bool bounds_180 = value0 < -179.0 && valueN > 179.0;
 
     // Is this set a global data set
     bool global = (zero_to_360 || bounds_180);
@@ -182,8 +182,6 @@ void netcdf_bathy::decode_filetype(netCDF::NcFile& file,
                                    netCDF::NcVar& longitude,
                                    netCDF::NcVar& altitude) {
     bool found = false;
-    const auto& coordMap = file.getCoordVars();
-
     for (const auto& entry : file.getVars()) {
         const netCDF::NcVar& var = entry.second;
         if (var.getDimCount() == 2) {

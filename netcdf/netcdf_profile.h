@@ -4,10 +4,11 @@
  */
 #pragma once
 
-#include <netcdfcpp.h>
 #include <stddef.h>
 #include <usml/types/gen_grid.h>
 #include <usml/usml_config.h>
+
+#include <netcdf>
 
 namespace usml {
 namespace netcdf {
@@ -82,8 +83,9 @@ class USML_DECLSPEC netcdf_profile : public gen_grid<3> {
      *                      to find provided string in variable name.
      * @throws std:invalid_argument on invalid name or path of data file.
      */
-    netcdf_profile(const char *profile, double date, double south, double north,
-                   double west, double east, const char *varname = nullptr);
+    netcdf_profile(const char* filename, double date, double south,
+                   double north, double west, double east,
+                   const char* varname = nullptr);
 
     /**
      * Fill missing values with average data at each depth.
@@ -128,10 +130,12 @@ class USML_DECLSPEC netcdf_profile : public gen_grid<3> {
      *                      can be anything.  Uses strstr() to find provided
      *                      string in variable name.
      */
-    static void decode_filetype(NcFile &file, double *missing, double *scale,
-                                double *offset, NcVar **time, NcVar **altitude,
-                                NcVar **latitude, NcVar **longitude,
-                                NcVar **value, const char *varname);
+    static void decode_filetype(netCDF::NcFile& file, double& missing,
+                                double& scale, double& offset,
+                                netCDF::NcVar& time, netCDF::NcVar& altitude,
+                                netCDF::NcVar& latitude,
+                                netCDF::NcVar& longitude, netCDF::NcVar& profile,
+                                const char* varname);
 };
 
 /// @}
