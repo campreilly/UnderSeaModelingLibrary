@@ -6,6 +6,7 @@
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <iostream>
+#include <netcdf>
 
 BOOST_AUTO_TEST_SUITE(read_bathy_test)
 
@@ -22,7 +23,7 @@ using namespace usml::netcdf;
  * It is used as a fundamental test to see if access to netCDF files
  * are working at all.
  */
-//NOLINTNEXTLINE(readability-function-cognitive-complexity)
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 BOOST_AUTO_TEST_CASE(read_bathy_header) {
     cout << "=== read_bathy_test: read_bathy_header ===" << endl;
     static const char* type_name[] = {"unknown", "byte",  "char",  "short",
@@ -200,12 +201,8 @@ BOOST_AUTO_TEST_CASE(read_etopo) {
 BOOST_AUTO_TEST_CASE(read_coards) {
     cout << "=== read_bathy_test: read_coards ===" << endl;
     static const char* filename = USML_TEST_DIR "/netcdf/test/etopo_cmp.nc";
-    NcFile file(filename);
-    if (file.id() < 0) {
-        cout << filename << " not found, test skipped" << endl;
-        return;
-    }
     cout << "reading " << filename << endl;
+    netCDF::NcFile file(filename, netCDF::NcFile::read);
     netcdf_coards<2> bathy(file, "z");
 
     // compare latitude axis to values read using ncdump
@@ -345,7 +342,8 @@ BOOST_AUTO_TEST_CASE(span_bathy) {
  */
 BOOST_AUTO_TEST_CASE(nonglobal_database) {
     cout << "=== read_bathy_test: nonglobal_database ===" << endl;
-    cout << "reading " << USML_TEST_DIR << "/netcdf/test/flstrts_bathymetry.nc" << endl;
+    cout << "reading " << USML_TEST_DIR << "/netcdf/test/flstrts_bathymetry.nc"
+         << endl;
     netcdf_bathy bathy(USML_TEST_DIR "/netcdf/test/flstrts_bathymetry.nc",
                        -90.0, 90.0, -180.0, 180.0, 0.0);
 
@@ -411,10 +409,10 @@ BOOST_AUTO_TEST_CASE(grid_2d_test) {
     size_t loc = 0;
     double location[2];
     for (size_t i = 0; i < N; ++i) {
-        loc = std::rand() % size1; // NOLINT(concurrency-mt-unsafe)
+        loc = std::rand() % size1;  // NOLINT(concurrency-mt-unsafe)
         location[0] = bathy.axis(0)[loc];
         // cout << "loc[0]: " << location[0];
-        loc = std::rand() % size2; // NOLINT(concurrency-mt-unsafe)
+        loc = std::rand() % size2;  // NOLINT(concurrency-mt-unsafe)
         location[1] = bathy.axis(1)[loc];
         // cout << " loc[1]: " << location[1] << endl;
         rho = bathy.interpolate(location);
