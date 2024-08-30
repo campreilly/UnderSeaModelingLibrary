@@ -3,8 +3,6 @@
  * Collection of biverbs in the form of a vector of biverbs_lists.
  */
 
-#include <ncvalues.h>
-#include <netcdfcpp.h>
 #include <usml/biverbs/biverb_collection.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition1.h>
@@ -16,6 +14,7 @@
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <cmath>
 #include <list>
+#include <netcdf>
 #include <sstream>
 #include <string>
 
@@ -195,22 +194,22 @@ void biverb_collection::add_biverb(const eigenverb_model::csptr& src_verb,
 void biverb_collection::write_netcdf(const char* filename,
                                      size_t interface) const {
     read_lock_guard guard(_mutex);
-    NcFile nc_file(filename, NcFile::Replace);
+    netCDF::NcFile nc_file(filename, netCDF::NcFile::replace);
 
     switch (interface) {
         case eigenverb_model::BOTTOM:
-            nc_file.add_att("long_name", "bottom eigenverbs");
+            nc_file.putAtt("long_name", "bottom eigenverbs");
             break;
         case eigenverb_model::SURFACE:
-            nc_file.add_att("long_name", "surface eigenverbs");
+            nc_file.putAtt("long_name", "surface eigenverbs");
             break;
         case eigenverb_model::VOLUME_UPPER:
-            nc_file.add_att("long_name", "upper volume eigenverbs");
-            nc_file.add_att("layer", 1);
+            nc_file.putAtt("long_name", "upper volume eigenverbs");
+            nc_file.putAtt("layer", netCDF::NcInt(), 1);
             break;
         case eigenverb_model::VOLUME_LOWER:
-            nc_file.add_att("long_name", "lower volume eigenverbs");
-            nc_file.add_att("layer", 1);
+            nc_file.putAtt("long_name", "lower volume eigenverbs");
+            nc_file.putAtt("layer", netCDF::NcInt(), 1);
             break;
         default: {
             size_t layer = interface - eigenverb_model::VOLUME_UPPER;
@@ -219,8 +218,8 @@ void biverb_collection::write_netcdf(const char* filename,
             std::ostringstream oss;
             oss << ((side) != 0U ? "lower" : "upper") << " volume " << layer
                 << " eigenverbs";
-            nc_file.add_att("long_name", oss.str().c_str());
-            nc_file.add_att("layer", (long)layer);
+            nc_file.putAtt("long_name", oss.str());
+            nc_file.putAtt("layer", netCDF::NcInt(), (int)layer);
         } break;
     }
 
@@ -231,144 +230,115 @@ void biverb_collection::write_netcdf(const char* filename,
 
     // dimensions
 
-    NcDim* eigenverb_dim = nc_file.add_dim("eigenverbs", (long)list.size());
-    NcDim* freq_dim = nc_file.add_dim(
-        "frequencies", (long)list.begin()->get()->frequencies->size());
+    netCDF::NcDim eigenverb_dim = nc_file.addDim("eigenverbs", list.size());
+    netCDF::NcDim freq_dim =
+        nc_file.addDim("frequencies", list.begin()->get()->frequencies->size());
+    const std::vector<netCDF::NcDim> verb_freq_dims{eigenverb_dim, freq_dim};
 
     // variables
 
     // clang-format off
-	NcVar* time_var = nc_file.add_var("travel_time", ncDouble, eigenverb_dim);
-	NcVar* freq_var = nc_file.add_var("frequencies", ncDouble, freq_dim);
-	NcVar* power_var = nc_file.add_var("power", ncDouble, eigenverb_dim, freq_dim);
-	NcVar* duration_var = nc_file.add_var("duration", ncDouble, eigenverb_dim);
-	NcVar* de_index_var = nc_file.add_var("de_index", ncShort, eigenverb_dim);
-	NcVar* az_index_var = nc_file.add_var("az_index", ncShort, eigenverb_dim);
+	netCDF::NcVar time_var = nc_file.addVar("travel_time", netCDF::NcDouble(), eigenverb_dim);
+	netCDF::NcVar freq_var = nc_file.addVar("frequencies", netCDF::NcDouble(), freq_dim);
+	netCDF::NcVar power_var = nc_file.addVar("power", netCDF::NcDouble(), verb_freq_dims);
+	netCDF::NcVar duration_var = nc_file.addVar("duration", netCDF::NcDouble(), eigenverb_dim);
+	netCDF::NcVar de_index_var = nc_file.addVar("de_index", netCDF::NcShort(), eigenverb_dim);
+	netCDF::NcVar az_index_var = nc_file.addVar("az_index", netCDF::NcShort(), eigenverb_dim);
 
-	NcVar* source_de_var = nc_file.add_var("source_de", ncDouble, eigenverb_dim);
-	NcVar* source_az_var = nc_file.add_var("source_az", ncDouble, eigenverb_dim);
-	NcVar* source_surface_var = nc_file.add_var("source_surface", ncShort, eigenverb_dim);
-	NcVar* source_bottom_var = nc_file.add_var("source_bottom", ncShort, eigenverb_dim);
-	NcVar* source_caustic_var = nc_file.add_var("source_caustic", ncShort, eigenverb_dim);
-	NcVar* source_upper_var = nc_file.add_var("source_upper", ncShort, eigenverb_dim);
-	NcVar* source_lower_var = nc_file.add_var("source_lower", ncShort, eigenverb_dim);
+	netCDF::NcVar source_de_var = nc_file.addVar("source_de", netCDF::NcDouble(), eigenverb_dim);
+	netCDF::NcVar source_az_var = nc_file.addVar("source_az", netCDF::NcDouble(), eigenverb_dim);
+	netCDF::NcVar source_surface_var = nc_file.addVar("source_surface", netCDF::NcShort(), eigenverb_dim);
+	netCDF::NcVar source_bottom_var = nc_file.addVar("source_bottom", netCDF::NcShort(), eigenverb_dim);
+	netCDF::NcVar source_caustic_var = nc_file.addVar("source_caustic", netCDF::NcShort(), eigenverb_dim);
+	netCDF::NcVar source_upper_var = nc_file.addVar("source_upper", netCDF::NcShort(), eigenverb_dim);
+	netCDF::NcVar source_lower_var = nc_file.addVar("source_lower", netCDF::NcShort(), eigenverb_dim);
 
-	NcVar* receiver_de_var = nc_file.add_var("receiver_de", ncDouble, eigenverb_dim);
-	NcVar* receiver_az_var = nc_file.add_var("receiver_az", ncDouble, eigenverb_dim);
-	NcVar* receiver_surface_var = nc_file.add_var("receiver_surface", ncShort, eigenverb_dim);
-	NcVar* receiver_bottom_var = nc_file.add_var("receiver_bottom", ncShort, eigenverb_dim);
-	NcVar* receiver_caustic_var = nc_file.add_var("receiver_caustic", ncShort, eigenverb_dim);
-	NcVar* receiver_upper_var = nc_file.add_var("receiver_upper", ncShort, eigenverb_dim);
-	NcVar* receiver_lower_var = nc_file.add_var("receiver_lower", ncShort, eigenverb_dim);
+	netCDF::NcVar receiver_de_var = nc_file.addVar("receiver_de", netCDF::NcDouble(), eigenverb_dim);
+	netCDF::NcVar receiver_az_var = nc_file.addVar("receiver_az", netCDF::NcDouble(), eigenverb_dim);
+	netCDF::NcVar receiver_surface_var = nc_file.addVar("receiver_surface", netCDF::NcShort(), eigenverb_dim);
+	netCDF::NcVar receiver_bottom_var = nc_file.addVar("receiver_bottom", netCDF::NcShort(), eigenverb_dim);
+	netCDF::NcVar receiver_caustic_var = nc_file.addVar("receiver_caustic", netCDF::NcShort(), eigenverb_dim);
+	netCDF::NcVar receiver_upper_var = nc_file.addVar("receiver_upper", netCDF::NcShort(), eigenverb_dim);
+	netCDF::NcVar receiver_lower_var = nc_file.addVar("receiver_lower", netCDF::NcShort(), eigenverb_dim);
     // clang-format on
 
     // units
 
-    time_var->add_att("units", "seconds");
-    freq_var->add_att("units", "hertz");
-    power_var->add_att("units", "dB");
-    duration_var->add_att("units", "s");
-    de_index_var->add_att("units", "count");
-    az_index_var->add_att("units", "count");
+    time_var.putAtt("units", "seconds");
+    freq_var.putAtt("units", "hertz");
+    power_var.putAtt("units", "dB");
+    duration_var.putAtt("units", "s");
+    de_index_var.putAtt("units", "count");
+    az_index_var.putAtt("units", "count");
 
-    source_de_var->add_att("units", "degrees");
-    source_de_var->add_att("positive", "up");
-    source_az_var->add_att("units", "degrees_true");
-    source_az_var->add_att("positive", "clockwise");
+    source_de_var.putAtt("units", "degrees");
+    source_de_var.putAtt("positive", "up");
+    source_az_var.putAtt("units", "degrees_true");
+    source_az_var.putAtt("positive", "clockwise");
 
-    source_surface_var->add_att("units", "count");
-    source_bottom_var->add_att("units", "count");
-    source_caustic_var->add_att("units", "count");
-    source_upper_var->add_att("units", "count");
-    source_lower_var->add_att("units", "count");
+    source_surface_var.putAtt("units", "count");
+    source_bottom_var.putAtt("units", "count");
+    source_caustic_var.putAtt("units", "count");
+    source_upper_var.putAtt("units", "count");
+    source_lower_var.putAtt("units", "count");
 
-    receiver_de_var->add_att("units", "degrees");
-    receiver_de_var->add_att("positive", "up");
-    receiver_az_var->add_att("units", "degrees_true");
-    receiver_az_var->add_att("positive", "clockwise");
+    receiver_de_var.putAtt("units", "degrees");
+    receiver_de_var.putAtt("positive", "up");
+    receiver_az_var.putAtt("units", "degrees_true");
+    receiver_az_var.putAtt("positive", "clockwise");
 
-    receiver_surface_var->add_att("units", "count");
-    receiver_bottom_var->add_att("units", "count");
-    receiver_caustic_var->add_att("units", "count");
-    receiver_upper_var->add_att("units", "count");
-    receiver_lower_var->add_att("units", "count");
+    receiver_surface_var.putAtt("units", "count");
+    receiver_bottom_var.putAtt("units", "count");
+    receiver_caustic_var.putAtt("units", "count");
+    receiver_upper_var.putAtt("units", "count");
+    receiver_lower_var.putAtt("units", "count");
 
     // data
 
-    freq_var->put(list.begin()->get()->frequencies->data().begin(),
-                  (long)list.begin()->get()->frequencies->size());
-    int record = 0;  // current record
+    freq_var.putVar(list.begin()->get()->frequencies->data().begin());
+    size_t record = 0;  // current record
+    std::vector<size_t> index(1);
+    std::vector<size_t> rec_freq_index(2);
+    rec_freq_index[0] = 0;
+    rec_freq_index[1] = 0;
+    std::vector<size_t> rec_freq_count(2);
+    rec_freq_count[0] = 1;
+    rec_freq_count[1] = list.begin()->get()->frequencies->size();
+
     for (const auto& verb : list) {
-        // sets current index
-
-        time_var->set_cur(record);
-        power_var->set_cur(record);
-        duration_var->set_cur(record);
-
-        de_index_var->set_cur(record);
-        az_index_var->set_cur(record);
-
-        source_de_var->set_cur(record);
-        source_az_var->set_cur(record);
-
-        source_surface_var->set_cur(record);
-        source_bottom_var->set_cur(record);
-        source_caustic_var->set_cur(record);
-        source_upper_var->set_cur(record);
-        source_lower_var->set_cur(record);
-
-        source_de_var->set_cur(record);
-        source_az_var->set_cur(record);
-
-        source_surface_var->set_cur(record);
-        source_bottom_var->set_cur(record);
-        source_caustic_var->set_cur(record);
-        source_upper_var->set_cur(record);
-        source_lower_var->set_cur(record);
-
-        receiver_de_var->set_cur(record);
-        receiver_az_var->set_cur(record);
-
-        receiver_surface_var->set_cur(record);
-        receiver_bottom_var->set_cur(record);
-        receiver_caustic_var->set_cur(record);
-        receiver_upper_var->set_cur(record);
-        receiver_lower_var->set_cur(record);
-
-        ++record;
-
-        // inserts data
-
         double v;
-        long i;
-        time_var->put(&verb->travel_time, 1);
+        int i;
+        size_t s;
+        index[0] = record;
+        rec_freq_index[0] = record++;
+
+        time_var.putVar(index, &verb->travel_time);
 
         vector<double> power = 10.0 * log10(max(verb->power, 1e-30));
-        power_var->put(power.data().begin(), 1,
-                       (long)verb->frequencies->size());
+        power_var.putVar(rec_freq_index, rec_freq_count, power.data().begin());
 
         // clang-format off
-		v = verb->duration; 				duration_var->put(&v, 1);
-		i = (long)verb->de_index; 			de_index_var->put(&i, 1);
-		i = (long)verb->az_index; 			az_index_var->put(&i, 1);
+		v = verb->duration; 				duration_var.putVar(index, &v);
+		s = verb->de_index; 				de_index_var.putVar(index, &s);
+		s = verb->az_index; 				az_index_var.putVar(index, &s);
 
-		v = to_degrees(verb->source_de); 	source_de_var->put(&v, 1);
-		v = to_degrees(verb->source_az); 	source_az_var->put(&v, 1);
+		v = to_degrees(verb->source_de); 	source_de_var.putVar(index, &v);
+		v = to_degrees(verb->source_az); 	source_az_var.putVar(index, &v);
 
-		i = (long)verb->source_surface;		source_surface_var->put(&i, 1);
-		i = (long)verb->source_bottom;		source_bottom_var->put(&i, 1);
-		i = (long)verb->source_caustic;		source_caustic_var->put(&i, 1);
-		i = (long)verb->source_upper;		source_upper_var->put(&i, 1);
-		i = (long)verb->source_lower;		source_lower_var->put(&i, 1);
+		i = verb->source_surface;			source_surface_var.putVar(index, &i);
+		i = verb->source_bottom;			source_bottom_var.putVar(index, &i);
+		i = verb->source_caustic;			source_caustic_var.putVar(index, &i);
+		i = verb->source_upper;				source_upper_var.putVar(index, &i);
+		i = verb->source_lower;				source_lower_var.putVar(index, &i);
 
-		v = to_degrees(verb->receiver_de); 	receiver_de_var->put(&v, 1);
-		v = to_degrees(verb->receiver_az); 	receiver_az_var->put(&v, 1);
+		v = to_degrees(verb->receiver_de); 	receiver_de_var.putVar(index, &v);
+		v = to_degrees(verb->receiver_az); 	receiver_az_var.putVar(index, &v);
 
-		i = (long)verb->receiver_surface;	receiver_surface_var->put(&i, 1);
-		i = (long)verb->receiver_bottom;	receiver_bottom_var->put(&i, 1);
-		i = (long)verb->receiver_caustic;	receiver_caustic_var->put(&i, 1);
-		i = (long)verb->receiver_upper;		receiver_upper_var->put(&i, 1);
-		i = (long)verb->receiver_lower;		receiver_lower_var->put(&i, 1);
+		i = verb->receiver_surface;			receiver_surface_var.putVar(index, &i);
+		i = verb->receiver_bottom;			receiver_bottom_var.putVar(index, &i);
+		i = verb->receiver_caustic;			receiver_caustic_var.putVar(index, &i);
+		i = verb->receiver_upper;			receiver_upper_var.putVar(index, &i);
+		i = verb->receiver_lower;			receiver_lower_var.putVar(index, &i);
         // clang-format on
     }
 }
