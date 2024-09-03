@@ -8,7 +8,6 @@
 #include <usml/ocean/reflect_loss_rayleigh.h>
 #include <usml/types/gen_grid.h>
 
-#include <netcdf>
 #include <vector>
 
 namespace usml {

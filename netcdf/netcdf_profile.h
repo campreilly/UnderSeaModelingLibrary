@@ -134,8 +134,8 @@ class USML_DECLSPEC netcdf_profile : public gen_grid<3> {
                                 double& scale, double& offset,
                                 netCDF::NcVar& time, netCDF::NcVar& altitude,
                                 netCDF::NcVar& latitude,
-                                netCDF::NcVar& longitude, netCDF::NcVar& profile,
-                                const char* varname);
+                                netCDF::NcVar& longitude,
+                                netCDF::NcVar& profile, const char* varname);
 };
 
 /// @}

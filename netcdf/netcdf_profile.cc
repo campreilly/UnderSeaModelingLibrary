@@ -396,30 +396,30 @@ void netcdf_profile::decode_filetype(
         longitude = file.getVar(var.getDim(3).getName());
 
         {
-        	// NOLINTBEGIN(bugprone-empty-catch)
+            // NOLINTBEGIN(bugprone-empty-catch)
             netCDF::NcVarAtt att;
 
             // extract fill value attribute
             try {
                 att = profile.getAtt("_FillValue");
                 att.getValues(&missing);
-            } catch (const netCDF::exceptions::NcException& ex) {
+            } catch (const netCDF::exceptions::NcException &ex) {
             }
 
             // extract scale factor attribute
             try {
                 att = profile.getAtt("scale_factor");
                 att.getValues(&scale);
-            } catch (const netCDF::exceptions::NcException& ex) {
+            } catch (const netCDF::exceptions::NcException &ex) {
             }
 
             // extract add offset attribute
             try {
                 att = profile.getAtt("add_offset");
                 att.getValues(&offset);
-            } catch (const netCDF::exceptions::NcException& ex) {
+            } catch (const netCDF::exceptions::NcException &ex) {
             }
-        	// NOLINTEND(bugprone-empty-catch)
+            // NOLINTEND(bugprone-empty-catch)
         }
 
         // stop searching

@@ -6,6 +6,7 @@
 #include <usml/types/gen_grid.h>
 
 #include <exception>
+#include <netcdf>
 
 using namespace usml::ocean;
 
