@@ -70,7 +70,10 @@ class boundary_grid : public boundary_model {
     void height(const wposition& location, matrix<double>* rho,
                 wvector* normal = nullptr) const override {
         switch (NUM_DIMS) {
-            case 1:  // 1-D grids
+                //***************
+                // 1-D grids
+
+            case 1:
                 if (normal) {
                     matrix<double> gtheta(location.size1(), location.size2());
                     matrix<double> t(location.size1(), location.size2());
@@ -88,7 +91,10 @@ class boundary_grid : public boundary_model {
                 }
                 break;
 
-            case 2:  // 2-D grids
+                //***************
+                // 2-D grids
+
+            case 2:
                 if (normal) {
                     matrix<double> gtheta(location.size1(), location.size2());
                     matrix<double> gphi(location.size1(), location.size2());
@@ -110,7 +116,10 @@ class boundary_grid : public boundary_model {
                 }
                 break;
 
-            default:  // error
+                //***************
+                // error
+
+            default:
                 throw std::invalid_argument("dataset must be 1-D or 2-D");
                 break;
         }
@@ -126,8 +135,11 @@ class boundary_grid : public boundary_model {
      */
     void height(const wposition1& location, double* rho,
                 wvector1* normal = nullptr) const override {
-        switch (NUM_DIMS) {
-            case 1:  // 1-D grids
+        switch (2) {
+                //***************
+                // 1-D grids
+
+            case 1:
                 if (normal) {
                     double theta = location.theta();
                     double gtheta;
@@ -144,7 +156,10 @@ class boundary_grid : public boundary_model {
                 }
                 break;
 
-            case 2:  // 2-D grids
+                //***************
+                // 2-D grids
+
+            case 2:
                 if (normal) {
                     double loc[2] = {location.theta(), location.phi()};
                     double grad[2];
@@ -163,7 +178,10 @@ class boundary_grid : public boundary_model {
                 }
                 break;
 
-            default:  // error
+                //***************
+                // error
+
+            default:
                 throw std::invalid_argument("bathymetry must be 1-D or 2-D");
                 break;
         }
