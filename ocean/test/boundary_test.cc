@@ -323,6 +323,68 @@ BOOST_AUTO_TEST_CASE(ascii_arc_test) {
 }
 
 /**
+ * Test the extraction of bathymetry slope data from General Bathymetric Chart
+ * of the Oceans (GEBCO). As part of GitHub issue #284, we found that bathymetry
+ * normals were not decoded correctly by the boundary_grid class.
+ */
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+BOOST_AUTO_TEST_CASE(gebco_slope_test) {
+    cout << "=== boundary_test: gebco_slope_test ===" << endl;
+    const char* filename = USML_DATA_DIR
+        "/bathymetry/gebco_2024_n23.21_s13.21_w-75.852_e-65.852.nc";
+    const char* csv_name = USML_TEST_DIR "/ocean/test/gebco_slope_test.csv";
+
+    cout << "reading " << filename << endl;
+    auto* grid = new netcdf_bathy(filename, -90.0, 90.0, -180.0, 180.0,
+                                  wposition::earth_radius);
+    data_grid<2>::csptr reference(grid);
+    boundary_grid<2> model(reference);
+
+    std::ofstream os(csv_name);
+    cout << "writing tables to " << csv_name << endl;
+
+    for (double latitude : grid->axis(0)) {
+        for (double longitude : grid->axis(1)) {
+            // scalar version of accessors
+
+            double altitude1;
+            wvector1 normal1;
+            wposition1 pos1(latitude, longitude, 0.0);
+            model.height(pos1, &altitude1, &normal1);
+
+            // matrix version of accessors
+
+            matrix<double> altitude(1, 1);
+            wvector normal(1, 1);
+            const wposition& pos(pos1);
+            model.height(pos, &altitude, &normal);
+
+            // check values for NaN
+
+            BOOST_CHECK(!std::isnan(altitude1));
+            BOOST_CHECK(!std::isnan(normal1.rho()));
+            BOOST_CHECK(!std::isnan(normal1.theta()));
+            BOOST_CHECK(!std::isnan(normal1.phi()));
+            BOOST_CHECK(!std::isnan(altitude(0, 0)));
+            BOOST_CHECK(!std::isnan(normal.rho(0, 0)));
+            BOOST_CHECK(!std::isnan(normal.theta(0, 0)));
+            BOOST_CHECK(!std::isnan(normal.phi(0, 0)));
+
+            // check values for NaN
+
+            BOOST_CHECK_CLOSE(altitude1, altitude(0, 0), 1e-6);
+            BOOST_CHECK_CLOSE(normal1.rho(), normal.rho(0, 0), 1e-6);
+            BOOST_CHECK_CLOSE(normal1.theta(), normal.theta(0, 0), 1e-6);
+            BOOST_CHECK_CLOSE(normal1.phi(), normal.phi(0, 0), 1e-6);
+
+            // write rho value to disk
+            os << normal1.rho() << ",";
+        }
+        os << endl;
+    }
+}
+
+/**
  * Computes the broad spectrum scattering strength from a flat
  * ocean bottom, using Lambert's law.
  */
@@ -363,8 +425,8 @@ BOOST_AUTO_TEST_CASE(scattering_chapman_test) {
 
     const wposition1 pos;
     seq_vector::csptr freq(new seq_log(600.0, 2.0, 4));
-     seq_linear grazing(1.0, 1.0, 90.0);
-     vector<double> wind_speed = seq_linear(5.0, 5.0, 30.0).data();
+    seq_linear grazing(1.0, 1.0, 90.0);
+    vector<double> wind_speed = seq_linear(5.0, 5.0, 30.0).data();
 
     vector<double> amplitude(freq->size());
     matrix<vector<double> > result(wind_speed.size(), grazing.size());
