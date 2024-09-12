@@ -331,7 +331,7 @@ BOOST_AUTO_TEST_CASE(ascii_arc_test) {
 BOOST_AUTO_TEST_CASE(gebco_slope_test) {
     cout << "=== boundary_test: gebco_slope_test ===" << endl;
     const char* filename = USML_DATA_DIR
-        "/bathymetry/gebco_2024_n23.21_s13.21_w-75.852_e-65.852.nc";
+        "/bathymetry/gebco_2024_n21.1_s20.0_w-70.0_e-69.0.nc";
     const char* csv_name = USML_TEST_DIR "/ocean/test/gebco_slope_test.csv";
 
     cout << "reading " << filename << endl;
@@ -343,10 +343,12 @@ BOOST_AUTO_TEST_CASE(gebco_slope_test) {
     std::ofstream os(csv_name);
     cout << "writing tables to " << csv_name << endl;
 
-    // double latitude{13.632};
-    // double longitude{-69.349};
-    for (double latitude : grid->axis(0)) {
-        for (double longitude : grid->axis(1)) {
+    double latitude{20.000};
+    double longitude{-69.91};
+    // for (double latitude : grid->axis(0)) {
+    //    for (double longitude : grid->axis(1)) {
+	// for (double latitude=20.0; latitude < 21.0; latitude += 0.1) {
+		// for (double longitude=-70.0; longitude < -69.0; longitude += 0.01) {
             // scalar version of accessors
 
             double altitude1;
@@ -362,6 +364,10 @@ BOOST_AUTO_TEST_CASE(gebco_slope_test) {
             model.height(pos, &altitude, &normal);
 
             // check values for NaN
+
+            if ( std::isnan(normal1.rho()) ) {
+            	cout << "bad" << endl;
+            }
 
             BOOST_CHECK(!std::isnan(altitude1));
             BOOST_CHECK(!std::isnan(normal1.rho()));
@@ -381,9 +387,9 @@ BOOST_AUTO_TEST_CASE(gebco_slope_test) {
 
             // write rho value to disk
             os << normal1.rho() << ",";
-        }
+        // }
         os << endl;
-    }
+    // }
 }
 
 /**
