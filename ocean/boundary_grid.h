@@ -61,7 +61,25 @@ class boundary_grid : public boundary_model {
 
     /**
      * Compute the height of the boundary and it's surface normal at
-     * a series of locations.
+     * a series of locations. The interpolation of the height returns
+     * the gradients in the theta (co-latitude) and phi (longitude) directions
+     * in units of meters per radian. To scale these gradients into unitless
+     * values (meters per meter), we must scale them by the meters per radian
+     * in the theta and phi directions.
+     * \f[
+     * 		\frac{dz}{dx} = \frac{ \frac{dz}{d\phi} }{R \sin{\theta} }
+     * \f]\f[
+     * 		\frac{dz}{dy} = \frac{ \frac{dz}{d\theta} }{R}
+     * \f]
+     * The surface normal vector in the \f$\rho, \theta, \phi\f$ directions is
+     * given by
+     * \f[
+     * 		\vec{N} = \left( 1, \frac{dz}{dy}, \frac{dz}{dx} \right)
+     * \f]
+     * normalized to unit length.
+     *
+     * @xref Weisstein, Eric W. "Normal Vector." From MathWorld--A Wolfram Web
+     * Resource. https://mathworld.wolfram.com/NormalVector.html
      *
      * @param location      Location at which to compute boundary.
      * @param rho           Surface height in spherical earth coords (output).
@@ -70,29 +88,24 @@ class boundary_grid : public boundary_model {
     void height(const wposition& location, matrix<double>* rho,
                 wvector* normal = nullptr) const override {
         switch (NUM_DIMS) {
-                //***************
-                // 1-D grids
-
             case 1:
                 if (normal) {
                     matrix<double> gtheta(location.size1(), location.size2());
                     matrix<double> t(location.size1(), location.size2());
+                    matrix<double> N(location.size1(), location.size2());
+
                     _height->interpolate(location.theta(), rho, &gtheta);
-                    t = min(element_div(gtheta, *rho),
-                            1.0);   // slope = tan(angle)
-                    normal->theta(  // normal = -sin(angle)
-                        element_div(-t, sqrt(1.0 + abs2(t))));
+
+                    t = -gtheta / *rho;
+                    N = sqrt(1 + t * t);
+                    normal->rho(1.0 / N);
+                    normal->theta(t / N);
                     normal->phi(scalar_matrix<double>(location.size1(),
                                                       location.size2(), 0.0));
-                    normal->rho(
-                        sqrt(1.0 - abs2(normal->theta())));  // r=sqrt(1-t^2)
                 } else {
                     _height->interpolate(location.theta(), rho);
                 }
                 break;
-
-                //***************
-                // 2-D grids
 
             case 2:
                 if (normal) {
@@ -100,24 +113,23 @@ class boundary_grid : public boundary_model {
                     matrix<double> gphi(location.size1(), location.size2());
                     matrix<double> t(location.size1(), location.size2());
                     matrix<double> p(location.size1(), location.size2());
+                    matrix<double> N(location.size1(), location.size2());
+
                     _height->interpolate(location.theta(), location.phi(), rho,
                                          &gtheta, &gphi);
 
-                    t = element_div(gtheta, *rho);  // slope = tan(angle)
-                    p = element_div(gphi,
+                    t = element_div(-gtheta, *rho);
+                    p = element_div(-gphi,
                                     element_prod(*rho, sin(location.theta())));
-                    normal->theta(  // normal = -sin(angle)
-                        element_div(-t, sqrt(1.0 + abs2(t))));
-                    normal->phi(element_div(-p, sqrt(1.0 + abs2(p))));
-                    normal->rho(sqrt(  // r=sqrt(1-t^2-p^2)
-                        1.0 - abs2(normal->theta()) - abs2(normal->phi())));
+                    N = sqrt(1 + t * t + p * p);
+                    normal->rho(1.0 / N);
+                    normal->theta(t / N);
+                    normal->phi(p / N);
+
                 } else {
                     _height->interpolate(location.theta(), location.phi(), rho);
                 }
                 break;
-
-                //***************
-                // error
 
             default:
                 throw std::invalid_argument("dataset must be 1-D or 2-D");
@@ -129,57 +141,53 @@ class boundary_grid : public boundary_model {
      * Compute the height of the boundary and it's surface normal at
      * a single location.  Often used during reflection processing.
      *
+     * @see boundary_grid::height
+     *
      * @param location      Location at which to compute boundary.
      * @param rho           Surface height in spherical earth coords (output).
      * @param normal        Unit normal relative to location (output).
      */
     void height(const wposition1& location, double* rho,
                 wvector1* normal = nullptr) const override {
-        switch (2) {
-                //***************
-                // 1-D grids
-
+        switch (NUM_DIMS) {
             case 1:
                 if (normal) {
                     double theta = location.theta();
                     double gtheta;
                     *rho = _height->interpolate(&theta, &gtheta);
-                    const double t = gtheta / (*rho);  // slope = tan(angle)
-                    normal->theta(-t /
-                                  sqrt(1.0 + t * t));  // normal = -sin(angle)
+
+                    const double t = -gtheta / (*rho);
+                    const double N = sqrt(1 + t * t);
+                    normal->rho(1.0 / N);
+                    normal->theta(t / N);
                     normal->phi(0.0);
-                    const double N = normal->theta() * normal->theta();
-                    normal->rho(sqrt(1.0 - N));  // r=sqrt(1-t^2)
+
                 } else {
                     double theta = location.theta();
                     *rho = _height->interpolate(&theta);
                 }
                 break;
 
-                //***************
-                // 2-D grids
-
             case 2:
                 if (normal) {
                     double loc[2] = {location.theta(), location.phi()};
                     double grad[2];
+
                     *rho = _height->interpolate(loc, grad);
-                    const double t = grad[0] / (*rho);  // slope = tan(angle)
-                    const double p = grad[1] / ((*rho) * sin(location.theta()));
-                    normal->theta(-t /
-                                  sqrt(1.0 + t * t));  // normal = -sin(angle)
-                    normal->phi(-p / sqrt(1.0 + p * p));
-                    const double N = normal->theta() * normal->theta() +
-                                     normal->phi() * normal->phi();
-                    normal->rho(sqrt(1.0 - N));  // r=sqrt(1-t^2-p^2)
+
+                    const double t = -grad[0] / (*rho);
+                    const double p =
+                        -grad[1] / ((*rho) * sin(location.theta()));
+                    const double N = sqrt(1 + t * t + p * p);
+                    normal->rho(1.0 / N);
+                    normal->theta(t / N);
+                    normal->phi(p / N);
+
                 } else {
                     double loc[2] = {location.theta(), location.phi()};
                     *rho = _height->interpolate(loc);
                 }
                 break;
-
-                //***************
-                // error
 
             default:
                 throw std::invalid_argument("bathymetry must be 1-D or 2-D");

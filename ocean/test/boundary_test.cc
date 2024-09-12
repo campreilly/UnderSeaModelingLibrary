@@ -343,6 +343,8 @@ BOOST_AUTO_TEST_CASE(gebco_slope_test) {
     std::ofstream os(csv_name);
     cout << "writing tables to " << csv_name << endl;
 
+    // double latitude{13.632};
+    // double longitude{-69.349};
     for (double latitude : grid->axis(0)) {
         for (double longitude : grid->axis(1)) {
             // scalar version of accessors
