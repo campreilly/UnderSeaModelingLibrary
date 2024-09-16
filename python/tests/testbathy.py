@@ -217,6 +217,102 @@ class TestBathy(unittest.TestCase):
         plt.savefig(output)
         plt.close()
 
+    def test_gebco_slope(self):
+        """Test the extraction of bathymetry slope data from General Bathymetric Chart of the Oceans (GEBCO).
+
+        As part of GitHub issue #284, we found that bathymetry normals were not decoded correctly by the boundary_grid
+        class. This test plots the outputs of the C++ boundary_test/gebco_slope_test unit test so that the old and new methods can be compared.
+
+        Note that there are no automatic assertions in this test.
+        """
+        testname = inspect.stack()[0][3]
+        print("=== " + testname + " ===")
+
+        # load data from disk
+        filename = os.path.join(self.USML_DIR, "ocean/test/gebco_2024_n20.85_s19.75_w-69.75_e-68.75.csv")
+        print(f"reading {filename}")
+        table = np.genfromtxt(filename, delimiter=',')
+
+        class Bathymetry(): pass
+
+        bathymetry = Bathymetry()
+        bathymetry.latitude = np.unique(table[:, 0])
+        bathymetry.longitude = np.unique(table[:, 1])
+
+        shape = (len(bathymetry.latitude), len(bathymetry.longitude))
+
+        bathymetry.altitude = np.reshape(table[:, 2], shape)
+        bathymetry.nrho = np.reshape(table[:, 3], shape)
+        bathymetry.ntheta = np.reshape(table[:, 4], shape)
+        bathymetry.nphi = np.reshape(table[:, 5], shape)
+
+        pitch = np.degrees(np.acos(bathymetry.nrho))
+        heading = np.degrees(np.atan2(bathymetry.ntheta, bathymetry.nphi))
+
+        x, y = np.meshgrid(bathymetry.longitude, bathymetry.latitude)
+        cmap = mpl.cm.jet
+
+        # draw bathymetry depth
+
+        fig, ax = plt.subplots(subplot_kw={'projection': '3d',
+                                           'proj_type': 'ortho'})
+        usml.plot.plot_bathymetry_3d(ax, bathymetry)
+        ax.view_init(90, -90)
+        ax.set_xlim(bathymetry.longitude[1], bathymetry.longitude[-1])
+        ax.set_ylim(bathymetry.latitude[1], bathymetry.latitude[-1])
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title("Bathymetry Depth")
+
+        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}_depth.png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+        # draw pitch of normal relative to straight up
+
+        fig, ax = plt.subplots(subplot_kw={'projection': '3d',
+                                           'proj_type': 'ortho'})
+        surface = ax.plot_surface(x, y, pitch,
+                                  cmap=cmap,
+                                  norm=mpl.colors.Normalize(vmin=0.0, vmax=45.0),
+                                  linewidth=0,
+                                  antialiased=False)
+        plt.colorbar(surface)
+        ax.view_init(90, -90)
+        ax.set_xlim(bathymetry.longitude[1], bathymetry.longitude[-1])
+        ax.set_ylim(bathymetry.latitude[1], bathymetry.latitude[-1])
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title("Normal Rho")
+
+        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}_pitch.png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
+        # draw heading of normal as compass direction
+
+        fig, ax = plt.subplots(subplot_kw={'projection': '3d',
+                                           'proj_type': 'ortho'})
+        surface = ax.plot_surface(x, y, heading,
+                                  cmap=cmap,
+                                  norm=mpl.colors.Normalize(vmin=-180.0, vmax=180.0),
+                                  linewidth=0,
+                                  antialiased=False)
+        plt.colorbar(surface)
+        ax.view_init(90, -90)
+        ax.set_xlim(bathymetry.longitude[1], bathymetry.longitude[-1])
+        ax.set_ylim(bathymetry.latitude[1], bathymetry.latitude[-1])
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_title("Bathymetry Heading")
+
+        output = os.path.join(self.USML_DIR, f"ocean/test/{testname}_heading.png")
+        print(f"saving {output}")
+        plt.savefig(output)
+        plt.close()
+
 
 if __name__ == '__main__':
     unittest.main()
