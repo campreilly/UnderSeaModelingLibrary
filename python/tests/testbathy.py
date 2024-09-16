@@ -275,7 +275,7 @@ class TestBathy(unittest.TestCase):
                                            'proj_type': 'ortho'})
         surface = ax.plot_surface(x, y, pitch,
                                   cmap=cmap,
-                                  norm=mpl.colors.Normalize(vmin=0.0, vmax=45.0),
+                                  norm=mpl.colors.Normalize(vmin=0.0, vmax=50.0),
                                   linewidth=0,
                                   antialiased=False)
         plt.colorbar(surface)
@@ -284,7 +284,7 @@ class TestBathy(unittest.TestCase):
         ax.set_ylim(bathymetry.latitude[1], bathymetry.latitude[-1])
         ax.set_xlabel("Longitude (deg)")
         ax.set_ylabel("Latitude (deg)")
-        ax.set_title("Normal Rho")
+        ax.set_title("Normal Pitch")
 
         output = os.path.join(self.USML_DIR, f"ocean/test/{testname}_pitch.png")
         print(f"saving {output}")

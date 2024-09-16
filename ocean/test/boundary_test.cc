@@ -362,7 +362,7 @@ BOOST_AUTO_TEST_CASE(gebco_slope_test) {
 
             // write scalar position and normal values to disk
 
-#ifdef USML_DEBUG
+#ifndef NDEBUG
             cout << std::fixed << pos1.latitude() << "," << pos1.longitude()
                  << "," << pos1.altitude() << "," << normal1.rho() << ","
                  << normal1.theta() << "," << normal1.phi() << endl;
