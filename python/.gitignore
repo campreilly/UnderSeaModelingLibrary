@@ -1,3 +1,4 @@
 __pycache__
 /tests/*.png
 .venv
+.idea/workspace.xml
