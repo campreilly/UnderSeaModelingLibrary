@@ -4,8 +4,6 @@
  */
 #pragma once
 
-#include <ncvalues.h>
-#include <netcdfcpp.h>
 #include <usml/types/seq_vector.h>
 #include <usml/types/wposition.h>
 #include <usml/usml_config.h>
@@ -14,6 +12,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <cstddef>
 #include <memory>
+#include <netcdf>
 #include <sstream>
 #include <string>
 #include <typeinfo>
@@ -285,49 +284,28 @@ class USML_DLLEXPORT data_grid {
      * @param filename      name of the netcdf file to output to
      */
     void write_netcdf(const char* filename) const {
-        NcFile* file = new NcFile(filename, NcFile::Replace);
+        netCDF::NcFile file(filename, netCDF::NcFile::replace);
 
-        vector<const NcDim*> axis_dim(NUM_DIMS);
-        vector<NcVar*> axis_var(NUM_DIMS);
-        const NcDim** axis_size = new const NcDim*[NUM_DIMS];
-        long* data_size = new long[NUM_DIMS];
-        // Note: Using size_t instead of long for this variable
-        // doesn't work on VC++ 32 bit, data_var->put() requires long.
-        NcType type = ncDouble;
-        const std::type_info& dt = typeid(double);
-        const char* dtype = dt.name();
-        if (dtype == typeid(int).name()) {
-            type = ncInt;
-        } else if (dtype == typeid(float).name()) {
-            type = ncFloat;
-        } else if (dtype == typeid(double).name()) {
-            type = ncDouble;
-        }
+        std::vector<netCDF::NcDim> axis_dim(NUM_DIMS);
+        std::vector<netCDF::NcVar> axis_var(NUM_DIMS);
 
-        NcVar* earth_radius = file->add_var("earth_radius", ncDouble, 0);
+        netCDF::NcVar earth_radius =
+            file.addVar("earth_radius", netCDF::NcDouble());
         for (size_t i = 0; i < NUM_DIMS; ++i) {
             std::stringstream ss;
-            ss << "axis" << i << "\0";
-            axis_dim[i] =
-                file->add_dim((ss.str()).c_str(), (long)_axis[i]->size());
-            axis_size[i] = axis_dim[i];
-            axis_var[i] = file->add_var((ss.str()).c_str(), type, axis_dim[i]);
-            data_size[i] = (long)_axis[i]->size();
+            ss << "axis" << i;
+            axis_dim[i] = file.addDim(ss.str(), _axis[i]->size());
+            axis_var[i] =
+                file.addVar(ss.str(), netCDF::NcDouble(), axis_dim[i]);
         }
-        NcVar* data_var = file->add_var("data", type, NUM_DIMS, &*axis_size);
+        netCDF::NcVar data_var =
+            file.addVar(std::string("data"), netCDF::NcDouble(), axis_dim);
 
-        earth_radius->put(&wposition::earth_radius, 1);
+        earth_radius.putVar(&wposition::earth_radius);
         for (size_t i = 0; i < NUM_DIMS; ++i) {
-            axis_var[i]->put(
-                boost::numeric::ublas::vector<double>(*_axis[i]).data().begin(),
-                data_size[i]);
+            axis_var[i].putVar(_axis[i]->data().begin());
         }
-        data_var->put(_data.get(), data_size);
-
-        // clean up after file completion
-        delete file;
-        delete[] axis_size;
-        delete[] data_size;
+        data_var.putVar(_data.get());
     }
 
    protected:
