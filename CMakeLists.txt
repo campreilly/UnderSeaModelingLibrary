@@ -109,7 +109,6 @@ install( FILES
   ${PROJECT_BINARY_DIR}/USMLConfig.cmake
   ${PROJECT_BINARY_DIR}/USMLConfigVersion.cmake 
   config/USMLUse.cmake
-  config/FindNetCDF.cmake
   DESTINATION ${INSTALL_CMAKE_DIR} )
 
 ######################################################################

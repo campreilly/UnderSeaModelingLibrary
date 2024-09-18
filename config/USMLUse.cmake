@@ -128,12 +128,4 @@ find_path(NETCDF_INCLUDES_CXX4 NAMES netcdf
 find_library(NETCDF_LIBRARIES_CXX4 NAMES netcdf_c++4 netcdf-cxx4
     HINTS ${NETCDF_CXX4_ROOT} PATH_SUFFIXES lib)
 
-include (FindPackageHandleStandardArgs)
-find_package_handle_standard_args (NetCDF DEFAULT_MSG
-    NETCDF_LIBRARIES_C
-    NETCDF_LIBRARIES_CXX4
-    NETCDF_INCLUDES_C
-    NETCDF_INCLUDES_CXX4
-)
-
 find_program( NETCDF_NCKS ncks )
