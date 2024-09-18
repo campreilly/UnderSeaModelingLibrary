@@ -70,7 +70,7 @@ class USML_DECLSPEC netcdf_profile : public gen_grid<3> {
      * positive values for east. Areas that span longitude 180 should use
      * positive values for both east and west.
      *
-     * @param  profile      Name of the NetCDF temperature file to load.
+     * @param  filename     Name of the NetCDF temperature file to load.
      * @param  date         Extract data for the time closest to
      *                      the specified date. Same units and scale as
      *                      used in the NetCDF file.

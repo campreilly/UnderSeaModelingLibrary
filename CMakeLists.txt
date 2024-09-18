@@ -71,7 +71,7 @@ FIND_SOURCES( "${PACKAGE_MODULES}" "" )
 set( TARGET usml )
 add_library( ${TARGET} ${HEADERS} ${SOURCES} )
 target_link_libraries( ${TARGET} ${Boost_LIBRARIES} ${NETCDF_LIBRARIES} 
-                       ${NETCDF_LIBRARIES_CXX} ${NETCDF_LIBRARIES_CXX4}
+                       ${NETCDF_LIBRARIES_CXX4}
                        ${CMAKE_THREAD_LIBS_INIT} )
 set_target_properties( ${TARGET} PROPERTIES VERSION ${PACKAGE_VERSION}
                        DEBUG_POSTFIX "_d")
