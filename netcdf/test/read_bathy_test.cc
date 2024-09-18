@@ -26,34 +26,33 @@ using namespace usml::netcdf;
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 BOOST_AUTO_TEST_CASE(read_bathy_header) {
     cout << "=== read_bathy_test: read_bathy_header ===" << endl;
-    static const char* type_name[] = {"unknown", "byte",  "char",  "short",
-                                      "int",     "float", "double"};
+    netCDF::NcFile file(USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd",
+                        netCDF::NcFile::FileMode::read);
 
-    NcFile file(USML_DATA_DIR "/bathymetry/ETOPO1_Ice_g_gmt4.grd");
     cout << "netcdf read_bathy_header {" << endl;
 
     // dimensions
 
-    cout << "dimensions:" << endl;
-    for (int d = 0; d < file.num_dims(); ++d) {
-        NcDim* dim = file.get_dim(d);
-        cout << "\t" << dim->name() << " = " << dim->size() << " ;" << endl;
+    const auto& bob = file.getDims();
+    for (const auto& pair : file.getDims()) {
+        const auto& dim = pair.second;
+        cout << "\t" << dim.getName() << " = " << dim.getSize() << " ;" << endl;
     }
 
     // variables
 
     cout << "variables:" << endl;
-    for (int v = 0; v < file.num_vars(); ++v) {
-        NcVar* var = file.get_var(v);
-        cout << "\t" << type_name[var->type()] << " " << var->name() << "(";
+    for (const auto& pair : file.getVars()) {
+        netCDF::NcVar var = pair.second;
+        cout << "\t" << var.getType().getName() << " " << var.getName() << "(";
 
         // variable dimensions
 
-        for (int d = 0; d < var->num_dims(); ++d) {
-            NcDim* dim = var->get_dim(d);
-            cout << dim->name();
-            if (d < var->num_dims() - 1) {
-                cout << ", ";
+        unsigned d = 0;
+        for (const auto& dim : var.getDims()) {
+            cout << dim.getName();
+            if (++d < var.getDimCount()) {
+                cout << ",";
             } else {
                 cout << ") ;" << endl;
             }
@@ -61,54 +60,63 @@ BOOST_AUTO_TEST_CASE(read_bathy_header) {
 
         // variable attributes
 
-        for (int a = 0; a < var->num_atts(); ++a) {
-            NcAtt* att = var->get_att(a);
-            NcValues* values = att->values();
-            cout << "\t\t" << var->name() << ":" << att->name() << " = ";
-            if (att->type() == 2) {
-                char* str = values->as_string(0);
-                cout << "\"" << str << "\" ;" << endl;
-                delete[] str;
+        for (const auto& pair : var.getAtts()) {
+            netCDF::NcVarAtt att = pair.second;
+            cout << "\t\t" << var.getName() << ":" << att.getName() << " = ";
+            if (att.getType() == netCDF::NcChar()) {
+                std::string str;
+                att.getValues(str);
+                cout << "\"" << str << "\"";
             } else {
-                for (int v = 0; v < att->num_vals(); ++v) {
-                    char* str = values->as_string(v);
-                    cout << str;
-                    delete[] str;
-                    if (v < att->num_vals() - 1) {
+                double values[att.getAttLength()];
+                att.getValues(values);
+                size_t count = 0;
+                for (const auto& v : values) {
+                    cout << v;
+                    if (++count < att.getAttLength()) {
                         cout << ", ";
-                    } else {
-                        cout << " ;" << endl;
                     }
                 }
             }
-            delete att;
-            delete values;
+            cout << " ;" << endl;
         }
     }
 
     // data
 
     cout << "data:" << endl;
-    const long N = 10;
-    double data[N];
-    for (int v = 0; v < file.num_vars(); ++v) {
-        NcVar* var = file.get_var(v);
-        long D1 = min(N, var->num_vals());
-        long D2 = max(0L, var->num_dims() - 1L);
-        long D3 = max(0L, var->num_dims() - 2L);
-        long D4 = max(0L, var->num_dims() - 3L);
-        long D5 = max(0L, var->num_dims() - 4L);
-        if (D1 > 0) {
-            NcBool status = var->get(data, D1, D2, D3, D4, D5);
-            cout << var->name() << " = ";
-            if (status != 0U) {
-                for (long d = 0; d < D1; ++d) {
-                    cout << data[d] << ", ";
-                }
-                cout << "..." << endl;
-            } else {
-                cout << "error" << endl;
+    const size_t N = 10;
+    for (const auto& pair : file.getVars()) {
+        netCDF::NcVar var = pair.second;
+        cout << "\t" << var.getName() << " = ";
+
+        // get values to print
+
+        std::vector<netCDF::NcDim> dims = var.getDims();
+        std::vector<size_t> start(dims.size(), 0.0);
+        std::vector<size_t> count(dims.size(), 0.0);
+
+        size_t num_values = dims[0].getSize();
+        size_t num_print = min(N, num_values);
+        double values[num_print];
+        count[0] = num_print;
+        var.getVar(start, count, values);
+
+        // print values separated by commas
+
+        for (size_t n = 0; n < num_print; ++n ) {
+        	cout << values[n] ;
+            if (n < num_print) {
+                cout << ", ";
             }
+        }
+
+        // print end of line
+
+        if (num_print < num_values) {
+            cout << " ..." << endl;
+        } else {
+            cout << " ;" << endl;
         }
     }
     cout << "}" << endl;
