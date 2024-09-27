@@ -4,10 +4,11 @@
  */
 #pragma once
 
-#include <netcdfcpp.h>
 #include <usml/types/gen_grid.h>
 #include <usml/types/wposition.h>
 #include <usml/usml_config.h>
+
+#include <netcdf>
 
 namespace usml {
 namespace netcdf {
@@ -73,7 +74,7 @@ class USML_DECLSPEC netcdf_bathy : public gen_grid<2> {
      * @throws                std:invalid_argument on invalid name or path of
      * bathymetry file.
      */
-    netcdf_bathy(const char *filename, double south, double north, double west,
+    netcdf_bathy(const char* filename, double south, double north, double west,
                  double east, double earth_radius = wposition::earth_radius);
 
    private:
@@ -88,8 +89,9 @@ class USML_DECLSPEC netcdf_bathy : public gen_grid<2> {
      * @param  longitude    NetCDF variable for longitude (output).
      * @param  altitude     NetCDF variable for altitude (output).
      */
-    static void decode_filetype(NcFile &file, NcVar **latitude,
-                                NcVar **longitude, NcVar **altitude);
+    static void decode_filetype(netCDF::NcFile& file, netCDF::NcVar& latitude,
+                                netCDF::NcVar& longitude,
+                                netCDF::NcVar& altitude);
 };
 
 /// @}

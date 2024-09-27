@@ -328,9 +328,27 @@ BOOST_AUTO_TEST_CASE(proploss_limits) {
  *
  * - "bias" is the mean difference and it measures offsets in level.
  * - "dev" is an estimate of the sqrt of the variance and it is a measure of
- *   the difference in flucuations of between the models.
+ *   the difference in fluctuations of between the models.
  * - "detcoef" is the coefficient of determination and its measure of the
  *   fraction of the model that predicts the analytic solution.
+ *
+ * Caution: Running this test at frequencies lower than 500 Hz creates an
+ * "extra path" that is conceptually counter-intuative and causes this test to
+ * fail. When the initial frequency is lowered to 250 Hz, these extra paths
+ * start to be seen for the target 250m from the source. After some deeper
+ * investigation, we found that this extra path arises from a surface reflection
+ * that is much greater in range than the target. Just after reflection, the
+ * wavefront notices a target below it and toward the source. The previous
+ * wavefront doesn't exist because it is on the edge of a new fold in the
+ * wavefront, and the next wavefront is farther away. So, the model registers a
+ * target collision, even though the target is far away. When the initial
+ * frequency is lowered from 500 Hz to 250 Hz, the model allows target
+ * collisions from farther away. And once the initial frequency has a collision,
+ * all the other frequencies are computed as well. The extra path doesn't impact
+ * the total propagation loss, because it is more than 70 dB weaker than the two
+ * primary paths. Long story short: the target collision model appears to be
+ * operating in a physically realistic manner. But the test code is not smart
+ * enough to understand the role played by the extra path.
  *
  * @xref F.B. Jensen, W.A. Kuperman, M.B. Porter, H. Schmidt,
  * "Computational Ocean Acoustics", pp. 16-19.
@@ -911,7 +929,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_spherical) {
                     const double L =
                         sqrt(D1 * D1 + D2 * D2 - 2.0 * D1 * D2 * cos(xi));
                     time = L / c0;
-                    intensity = 20*log10(L);
+                    intensity = 20 * log10(L);
                     sde = to_degrees(
                         -asin((L * L + D1 * D1 - D2 * D2) / (2.0 * L * D1)));
                     tde = to_degrees(
@@ -955,7 +973,7 @@ BOOST_AUTO_TEST_CASE(proploss_lloyds_spherical) {
                     const double a2 =
                         sqrt(R * R + D2 * D2 - 2.0 * R * D2 * cos(xi2));
                     time = (a1 + a2) / c0;
-                    intensity = 20*log10(a1 + a2);
+                    intensity = 20 * log10(a1 + a2);
                     sde = to_degrees(
                         -asin((a1 * a1 + D1 * D1 - R * R) / (2.0 * a1 * D1)));
                     tde = to_degrees(

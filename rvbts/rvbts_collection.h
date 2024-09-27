@@ -129,6 +129,65 @@ class USML_DECLSPEC rvbts_collection {
      *
      * An example of the file format is given below.
      * <pre>
+     * netcdf rvbts_1_2 {
+     * dimensions:
+     * 	channels = 1 ;
+     * 	travel_time = 81 ;
+     * variables:
+     * 	uint64 sourceID ;
+     * 	double source_latitude ;
+     * 	double source_longitude ;
+     * 	double source_altitude ;
+     * 	double source_yaw ;
+     * 		source_yaw:units = "degrees" ;
+     * 	double source_pitch ;
+     * 		source_pitch:units = "degrees" ;
+     * 	double source_roll ;
+     * 		source_roll:units = "degrees" ;
+     * 	double source_speed ;
+     * 		source_speed:units = "m/s" ;
+     * 	uint64 receiverID ;
+     * 	double receiver_latitude ;
+     * 	double receiver_longitude ;
+     * 	double receiver_altitude ;
+     * 	double receiver_yaw ;
+     * 		receiver_yaw:units = "degrees" ;
+     * 	double receiver_pitch ;
+     * 		receiver_pitch:units = "degrees" ;
+     * 	double receiver_roll ;
+     * 		receiver_roll:units = "degrees" ;
+     * 	double receiver_speed ;
+     * 		receiver_speed:units = "m/s" ;
+     * 	double channels(channels) ;
+     * 	double travel_time(travel_time) ;
+     * 		travel_time:units = "seconds" ;
+     * 	double time_series(channels, travel_time) ;
+     * data:
+     *  sourceID = 1 ;
+     *  source_latitude = 36 ;
+     *  source_longitude = 16 ;
+     *  source_altitude = -100 ;
+     *  source_yaw = 0 ;
+     *  source_pitch = 0 ;
+     *  source_roll = -0 ;
+     *  source_speed = 0 ;
+     *  receiverID = 2 ;
+     *  receiver_latitude = 36 ;
+     *  receiver_longitude = 16 ;
+     *  receiver_altitude = -500 ;
+     *  receiver_yaw = 0 ;
+     *  receiver_pitch = 0 ;
+     *  receiver_roll = -0 ;
+     *  receiver_speed = 0 ;
+     *  channels = 0 ;
+     *  travel_time = 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2,
+     *     1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7,
+     *     ...
+     *  time_series =
+     *   0.0230246588015713, 3.90710898959351, 248.084296395493, 6218.72601007047,
+     *   63389.3431319566, 277757.744817599, 583774.087033403, 722343.069221165,
+     *   ...
+     * }
      * </pre>
      */
     void write_netcdf(const char* filename) const;

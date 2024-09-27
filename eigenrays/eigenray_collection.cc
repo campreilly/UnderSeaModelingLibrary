@@ -3,8 +3,6 @@
  * List of targets and their associated propagation data.
  */
 
-#include <ncvalues.h>
-#include <netcdfcpp.h>
 #include <usml/eigenrays/eigenray_collection.h>
 #include <usml/types/wvector1.h>
 #include <usml/ublas/math_traits.h>
@@ -15,6 +13,7 @@
 #include <cmath>
 #include <complex>
 #include <list>
+#include <netcdf>
 
 using namespace usml::eigenrays;
 
@@ -120,6 +119,8 @@ void eigenray_collection::sum_eigenrays() {
             int surface = -1;
             int bottom = -1;
             int caustic = -1;
+            int upper = -1;
+            int lower = -1;
             double wgt = 0.0;
             double max_a = 0.0;
 
@@ -161,6 +162,8 @@ void eigenray_collection::sum_eigenrays() {
                         surface = ray->surface;
                         bottom = ray->bottom;
                         caustic = ray->caustic;
+                        upper = ray->upper;
+                        lower = ray->lower;
                     }
                 }  // end eigenray_list
 
@@ -182,6 +185,8 @@ void eigenray_collection::sum_eigenrays() {
             total.surface = surface;
             total.bottom = bottom;
             total.caustic = caustic;
+            total.upper = upper;
+            total.lower = lower;
         }  // end target size2
     }      // end target size1
 }
@@ -191,194 +196,164 @@ void eigenray_collection::sum_eigenrays() {
  */
 void eigenray_collection::write_netcdf(const char *filename,
                                        const char *long_name) const {
-    // clang-format off
-    auto *nc_file = new NcFile(filename, NcFile::Replace);
+    netCDF::NcFile nc_file(filename, netCDF::NcFile::replace);
     if (long_name != nullptr) {
-        nc_file->add_att("long_name", long_name);
+        nc_file.putAtt("long_name", long_name);
     }
-    nc_file->add_att("Conventions", "COARDS");
+    nc_file.putAtt("Conventions", "COARDS");
 
     // dimensions
 
-    NcDim *freq_dim = nc_file->add_dim("frequencies", (long)_frequencies->size());
-    NcDim *row_dim = nc_file->add_dim("rows", (long)_target_pos.size1());
-    NcDim *col_dim = nc_file->add_dim("cols", (long)_target_pos.size2());
-    NcDim *eigenray_dim = nc_file->add_dim(
-        "eigenrays", (long)(_num_eigenrays + _total.size1() * _total.size2()));
+    // clang-format off
+    netCDF::NcDim row_dim = nc_file.addDim("rows", _target_pos.size1());
+    netCDF::NcDim col_dim = nc_file.addDim("cols", _target_pos.size2());
+    netCDF::NcDim eigenray_dim = nc_file.addDim( "eigenrays", _num_eigenrays + _total.size1() * _total.size2());
+    netCDF::NcDim freq_dim = nc_file.addDim("frequencies", _frequencies->size());
+    const std::vector< netCDF::NcDim > row_col_dims{ row_dim, col_dim };
+    const std::vector< netCDF::NcDim > ray_freq_dims{ eigenray_dim, freq_dim };
 
     // coordinates
 
-    NcVar *src_id_var = nc_file->add_var("sourceID", ncLong);
-    NcVar *src_lat_var = nc_file->add_var("source_latitude", ncDouble);
-    NcVar *src_lng_var = nc_file->add_var("source_longitude", ncDouble);
-    NcVar *src_alt_var = nc_file->add_var("source_altitude", ncDouble);
+    netCDF::NcVar src_id_var = nc_file.addVar("sourceID", netCDF::NcUint64());
+    netCDF::NcVar src_lat_var = nc_file.addVar("source_latitude", netCDF::NcDouble());
+    netCDF::NcVar src_lng_var = nc_file.addVar("source_longitude", netCDF::NcDouble());
+    netCDF::NcVar src_alt_var = nc_file.addVar("source_altitude", netCDF::NcDouble());
 
-    NcVar *target_var = nc_file->add_var("targetID", ncLong, row_dim, col_dim);
-    NcVar *latitude_var = nc_file->add_var("latitude", ncDouble, row_dim, col_dim);
-    NcVar *longitude_var = nc_file->add_var("longitude", ncDouble, row_dim, col_dim);
-    NcVar *altitude_var = nc_file->add_var("altitude", ncDouble, row_dim, col_dim);
-    NcVar *initial_time_var = nc_file->add_var("initial_time", ncDouble, row_dim, col_dim);
+    netCDF::NcVar target_var = nc_file.addVar("targetID", netCDF::NcUint64(), row_col_dims);
+    netCDF::NcVar latitude_var = nc_file.addVar("latitude", netCDF::NcDouble(), row_col_dims);
+    netCDF::NcVar longitude_var = nc_file.addVar("longitude", netCDF::NcDouble(), row_col_dims);
+    netCDF::NcVar altitude_var = nc_file.addVar("altitude", netCDF::NcDouble(), row_col_dims);
+    netCDF::NcVar initial_time_var = nc_file.addVar("initial_time", netCDF::NcDouble(), row_col_dims);
 
-    NcVar *freq_var = nc_file->add_var("frequencies", ncDouble, freq_dim);
-    NcVar *proploss_index_var = nc_file->add_var("proploss_index", ncLong, row_dim, col_dim);
-    NcVar *eigenray_index_var = nc_file->add_var("eigenray_index", ncLong, row_dim, col_dim);
-    NcVar *eigenray_num_var = nc_file->add_var("eigenray_num", ncLong, row_dim, col_dim);
+    netCDF::NcVar freq_var = nc_file.addVar("frequencies", netCDF::NcDouble(), freq_dim);
+    netCDF::NcVar proploss_index_var = nc_file.addVar("proploss_index", netCDF::NcInt(), row_col_dims);
+    netCDF::NcVar eigenray_index_var = nc_file.addVar("eigenray_index", netCDF::NcInt(), row_col_dims);
+    netCDF::NcVar eigenray_num_var = nc_file.addVar("eigenray_num", netCDF::NcInt(), row_col_dims);
 
-    NcVar *intensity_var = nc_file->add_var("intensity", ncDouble, eigenray_dim, freq_dim);
-    NcVar *phase_var = nc_file->add_var("phase", ncDouble, eigenray_dim, freq_dim);
-    NcVar *time_var = nc_file->add_var("travel_time", ncDouble, eigenray_dim);
-    NcVar *source_de_var = nc_file->add_var("source_de", ncDouble, eigenray_dim);
-    NcVar *source_az_var = nc_file->add_var("source_az", ncDouble, eigenray_dim);
-    NcVar *target_de_var = nc_file->add_var("target_de", ncDouble, eigenray_dim);
-    NcVar *target_az_var = nc_file->add_var("target_az", ncDouble, eigenray_dim);
-    NcVar *surface_var = nc_file->add_var("surface", ncShort, eigenray_dim);
-    NcVar *bottom_var = nc_file->add_var("bottom", ncShort, eigenray_dim);
-    NcVar *caustic_var = nc_file->add_var("caustic", ncShort, eigenray_dim);
-    NcVar *upper_var = nc_file->add_var("upper", ncShort, eigenray_dim);
-    NcVar *lower_var = nc_file->add_var("lower", ncShort, eigenray_dim);
+    netCDF::NcVar intensity_var = nc_file.addVar("intensity", netCDF::NcDouble(), ray_freq_dims);
+    netCDF::NcVar phase_var = nc_file.addVar("phase", netCDF::NcDouble(), ray_freq_dims);
+    netCDF::NcVar time_var = nc_file.addVar("travel_time", netCDF::NcDouble(), eigenray_dim);
+    netCDF::NcVar source_de_var = nc_file.addVar("source_de", netCDF::NcDouble(), eigenray_dim);
+    netCDF::NcVar source_az_var = nc_file.addVar("source_az", netCDF::NcDouble(), eigenray_dim);
+    netCDF::NcVar target_de_var = nc_file.addVar("target_de", netCDF::NcDouble(), eigenray_dim);
+    netCDF::NcVar target_az_var = nc_file.addVar("target_az", netCDF::NcDouble(), eigenray_dim);
+    netCDF::NcVar surface_var = nc_file.addVar("surface", netCDF::NcShort(), eigenray_dim);
+    netCDF::NcVar bottom_var = nc_file.addVar("bottom", netCDF::NcShort(), eigenray_dim);
+    netCDF::NcVar caustic_var = nc_file.addVar("caustic", netCDF::NcShort(), eigenray_dim);
+    netCDF::NcVar upper_var = nc_file.addVar("upper", netCDF::NcShort(), eigenray_dim);
+    netCDF::NcVar lower_var = nc_file.addVar("lower", netCDF::NcShort(), eigenray_dim);
+    // clang-format on
 
     // units
 
-    src_id_var->add_att("units", "count");
-    src_lat_var->add_att("units", "degrees_north");
-    src_lng_var->add_att("units", "degrees_east");
-    src_alt_var->add_att("units", "meters");
-    src_alt_var->add_att("positive", "up");
+    src_lat_var.putAtt("units", "degrees_north");
+    src_lng_var.putAtt("units", "degrees_east");
+    src_alt_var.putAtt("units", "meters");
+    src_alt_var.putAtt("positive", "up");
 
-    target_var->add_att("units", "count");
-    latitude_var->add_att("units", "degrees_north");
-    longitude_var->add_att("units", "degrees_east");
-    altitude_var->add_att("units", "meters");
-    altitude_var->add_att("positive", "up");
-    initial_time_var->add_att("units", "seconds");
+    latitude_var.putAtt("units", "degrees_north");
+    longitude_var.putAtt("units", "degrees_east");
+    altitude_var.putAtt("units", "meters");
+    altitude_var.putAtt("positive", "up");
+    initial_time_var.putAtt("units", "seconds");
 
-    freq_var->add_att("units", "hertz");
-    proploss_index_var->add_att("units", "count");
-    eigenray_index_var->add_att("units", "count");
-    eigenray_num_var->add_att("units", "count");
+    freq_var.putAtt("units", "hertz");
+    proploss_index_var.putAtt("units", "count");
+    eigenray_index_var.putAtt("units", "count");
+    eigenray_num_var.putAtt("units", "count");
 
-    intensity_var->add_att("units", "dB");
-    phase_var->add_att("units", "radians");
-    time_var->add_att("units", "seconds");
+    intensity_var.putAtt("units", "dB");
+    phase_var.putAtt("units", "radians");
+    time_var.putAtt("units", "seconds");
 
-    source_de_var->add_att("units", "degrees");
-    source_de_var->add_att("positive", "up");
-    source_az_var->add_att("units", "degrees_true");
-    source_az_var->add_att("positive", "clockwise");
+    source_de_var.putAtt("units", "degrees");
+    source_de_var.putAtt("positive", "up");
+    source_az_var.putAtt("units", "degrees_true");
+    source_az_var.putAtt("positive", "clockwise");
 
-    target_de_var->add_att("units", "degrees");
-    target_de_var->add_att("positive", "up");
-    target_az_var->add_att("units", "degrees_true");
-    target_az_var->add_att("positive", "clockwise");
+    target_de_var.putAtt("units", "degrees");
+    target_de_var.putAtt("positive", "up");
+    target_az_var.putAtt("units", "degrees_true");
+    target_az_var.putAtt("positive", "clockwise");
 
-    surface_var->add_att("units", "count");
-    bottom_var->add_att("units", "count");
-    caustic_var->add_att("units", "count");
-    upper_var->add_att("units", "count");
-    lower_var->add_att("units", "count");
+    surface_var.putAtt("units", "count");
+    bottom_var.putAtt("units", "count");
+    caustic_var.putAtt("units", "count");
+    upper_var.putAtt("units", "count");
+    lower_var.putAtt("units", "count");
 
     // write source parameters
 
-    long n;
+    size_t n;
     double v;
-    n = (long) _sourceID;			src_id_var->put(&n);
-    v = _source_pos.latitude(); 	src_lat_var->put(&v);
-    v = _source_pos.longitude();	src_lng_var->put(&v);
-    v = _source_pos.altitude(); 	src_alt_var->put(&v);
-
-    const long num_freqs = (long) _frequencies->size();
-    freq_var->put((*_frequencies).data().begin(), num_freqs);
+    n = _sourceID;
+    src_id_var.putVar(&n);
+    v = _source_pos.latitude();
+    src_lat_var.putVar(&v);
+    v = _source_pos.longitude();
+    src_lng_var.putVar(&v);
+    v = _source_pos.altitude();
+    src_alt_var.putVar(&v);
+    freq_var.putVar((*_frequencies).data().begin());
 
     // write target parameters
 
-    target_var->put((long*)_targetIDs.data().begin(),
-    		(long) _targetIDs.size1(), (long) _targetIDs.size2());
-    const long rows = (long) _target_pos.size1();
-    const long cols = (long) _target_pos.size2();
-    latitude_var->put(_target_pos.latitude().data().begin(), rows, cols);
-    longitude_var->put(_target_pos.longitude().data().begin(), rows, cols);
-    altitude_var->put(_target_pos.altitude().data().begin(), rows, cols);
-    initial_time_var->put(_initial_time.data().begin(), rows, cols);
+    target_var.putVar(_targetIDs.data().begin());
+    latitude_var.putVar(_target_pos.latitude().data().begin());
+    longitude_var.putVar(_target_pos.longitude().data().begin());
+    altitude_var.putVar(_target_pos.altitude().data().begin());
+    initial_time_var.putVar(_initial_time.data().begin());
 
     // write propagation loss and eigenrays to disk
 
-    int record = 0;  // current record number
-    for (long t1 = 0; t1 < (long)_target_pos.size1(); ++t1) {
-        for (long t2 = 0; t2 < (long)_target_pos.size2(); ++t2) {
-            int num = int(_eigenrays(t1, t2).size());
-            proploss_index_var->set_cur(t1, t2);
-            eigenray_index_var->set_cur(t1, t2);
-            eigenray_num_var->set_cur(t1, t2);
+    std::vector<size_t> row_col_index(2);
+    std::vector<size_t> ray_index(1);
+    std::vector<size_t> ray_freq_index(2);
+    std::vector<size_t> ray_freq_count(2);
+    ray_freq_count[0] = 1;
+    ray_freq_count[1] = _frequencies->size();
 
-            proploss_index_var->put(&record, 1, 1);  // 1st rec = summed PL
-            int next_rec = record + 1;
-            eigenray_index_var->put(&next_rec, 1,
-                                    1);  // followed by list of rays
-            eigenray_num_var->put(&num, 1, 1);
+    size_t record = 0;  // current record number
+    for (size_t t1 = 0; t1 < _target_pos.size1(); ++t1) {
+        row_col_index[0] = t1;
+        for (size_t t2 = 0; t2 < _target_pos.size2(); ++t2) {
+            row_col_index[1] = t2;
+            size_t num = _eigenrays(t1, t2).size();
+            size_t next_rec = record + 1;
+
+            proploss_index_var.putVar(row_col_index, &record);
+            eigenray_index_var.putVar(row_col_index, &next_rec);
+            eigenray_num_var.putVar(row_col_index, &num);
 
             auto iter = _eigenrays(t1, t2).begin();
+            for (int n = -1; n < (int)num; ++n) {
+                ray_index[0] = record++;
+                ray_freq_index[0] = ray_index[0];
+                ray_freq_index[1] = 0;
+                const eigenray_model *ray;
+                if (n < 0) {  // summed over all eigenrays
+                    ray = &_total(t1, t2);
+                } else {  // individual eigenray
+                    ray = (*iter++).get();
+                }
+                intensity_var.putVar(ray_freq_index, ray_freq_count,
+                                     ray->intensity.data().begin());
+                phase_var.putVar(ray_freq_index, ray_freq_count,
+                                 ray->phase.data().begin());
+                time_var.putVar(ray_index, &ray->travel_time);
+                source_de_var.putVar(ray_index, &ray->source_de);
+                source_az_var.putVar(ray_index, &ray->source_az);
+                target_de_var.putVar(ray_index, &ray->target_de);
+                target_az_var.putVar(ray_index, &ray->target_az);
+                surface_var.putVar(ray_index, &ray->surface);
+                bottom_var.putVar(ray_index, &ray->bottom);
+                caustic_var.putVar(ray_index, &ray->caustic);
+                upper_var.putVar(ray_index, &ray->upper);
+                lower_var.putVar(ray_index, &ray->lower);
 
-            for (int n = -1; n < num; ++n) {
-
-                // set record number for each eigenray data element
-
-                intensity_var->set_cur(record);
-                phase_var->set_cur(record);
-                time_var->set_cur(record);
-                source_de_var->set_cur(record);
-                source_az_var->set_cur(record);
-                target_de_var->set_cur(record);
-                target_az_var->set_cur(record);
-                surface_var->set_cur(record);
-                bottom_var->set_cur(record);
-                caustic_var->set_cur(record);
-                upper_var->set_cur(record);
-                lower_var->set_cur(record);
-                ++record;
-
-                // case 1 : write propagation loss summed over all eigenrays
-
-                if (n < 0) {
-                    const eigenray_model *ray = &_total(t1, t2);
-                    intensity_var->put(ray->intensity.data().begin(), 1, num_freqs);
-                    phase_var->put(ray->phase.data().begin(), 1, num_freqs);
-                    time_var->put(&ray->travel_time, 1);
-                    source_de_var->put(&ray->source_de, 1);
-                    source_az_var->put(&ray->source_az, 1);
-                    target_de_var->put(&ray->target_de, 1);
-                    target_az_var->put(&ray->target_az, 1);
-                    surface_var->put(&ray->surface, 1);
-                    bottom_var->put(&ray->bottom, 1);
-                    caustic_var->put(&ray->caustic, 1);
-                    upper_var->put(&ray->upper, 1);
-                    lower_var->put(&ray->lower, 1);
-
-                    // case 2 : write individual eigenray
-
-                } else {
-                    eigenray_model::csptr ray = *iter++;
-                    intensity_var->put(ray->intensity.data().begin(), 1, num_freqs);
-                    phase_var->put(ray->phase.data().begin(), 1, num_freqs);
-                    time_var->put(&ray->travel_time, 1);
-                    source_de_var->put(&ray->source_de, 1);
-                    source_az_var->put(&ray->source_az, 1);
-                    target_de_var->put(&ray->target_de, 1);
-                    target_az_var->put(&ray->target_az, 1);
-                    surface_var->put(&ray->surface, 1);
-                    bottom_var->put(&ray->bottom, 1);
-                    caustic_var->put(&ray->caustic, 1);
-                    upper_var->put(&ray->upper, 1);
-                    lower_var->put(&ray->lower, 1);
-
-                }  // if sum or individual
-            }      // loop over # of eigenrays
-        }          // loop over target# t2
-    }              // loop over target# t1
-
-    // close file
-
-    delete nc_file;  // destructor frees all netCDF temp variables
-                     // clang-format on
+            }  // loop over # of eigenrays
+        }      // loop over target# t2
+    }          // loop over target# t1
 }
 
 /**

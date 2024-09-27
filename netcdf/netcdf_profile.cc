@@ -15,32 +15,35 @@ using namespace usml::netcdf;
  * Load ocean profile from disk.
  */
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-netcdf_profile::netcdf_profile(const char *profile, double date, double south,
+netcdf_profile::netcdf_profile(const char *filename, double date, double south,
                                double north, double west, double east,
                                const char *varname) {
     // initialize access to NetCDF file.
 
+    std::string fname(filename);
+    netCDF::NcFile file(fname, netCDF::NcFile::FileMode::read);
+
     double missing = NAN;       // default value for missing information
     double scale_factor = NAN;  // default value for scale_factor
     double add_offset = NAN;    // default value for add_offset
-    NcVar *time;
-    NcVar *altitude;
-    NcVar *latitude;
-    NcVar *longitude;
-    NcVar *value;
-    NcFile pfile(profile);
-    if (pfile.is_valid() == 0) {
-        throw std::invalid_argument("file not found");
-    }
-    decode_filetype(pfile, &missing, &scale_factor, &add_offset, &time,
-                    &altitude, &latitude, &longitude, &value, varname);
+    netCDF::NcVar longitude;
+    netCDF::NcVar latitude;
+    netCDF::NcVar altitude;
+    netCDF::NcVar time;
+    netCDF::NcVar profile;
+
+    decode_filetype(file, missing, scale_factor, add_offset, time, altitude,
+                    latitude, longitude, profile, varname);
 
     // find the time closest to the specified value
 
-    long time_index = 0;
-    double old_diff = abs(date - time->as_double(0));
-    for (long t = 1; t < time->num_vals(); ++t) {
-        double diff = abs(date - time->as_double(t));
+    size_t time_index = 0;
+    const size_t time_num = time.getDim(0).getSize();
+    std::vector<double> time_values(time_num);
+    time.getVar(time_values.data());
+    double old_diff = abs(date - time_values[0]);
+    for (size_t t = 1; t < time_num; ++t) {
+        double diff = abs(date - time_values[t]);
         if (old_diff > diff) {
             old_diff = diff;
             time_index = t;
@@ -49,35 +52,44 @@ netcdf_profile::netcdf_profile(const char *profile, double date, double south,
 
     // read altitude axis data from NetCDF variable
 
-    const auto alt_num = long(altitude->num_vals());
-    vector<double> vect(alt_num);
-    for (long d = 0; d < alt_num; ++d) {
-        vect[d] = wposition::earth_radius - abs(altitude->as_double(d));
+    const size_t alt_num = altitude.getDim(0).getSize();
+    std::vector<double> alt_values(alt_num);
+    altitude.getVar(alt_values.data());
+    for (size_t a = 0; a < alt_num; ++a) {
+        alt_values[a] = wposition::earth_radius - alt_values[a];
     }
-    _axis[0] = seq_vector::csptr(new seq_data(vect));
+    _axis[0] = seq_vector::csptr(new seq_data(alt_values));
 
-    // manage wrap-around between eastern and western hemispheres
+    // read latitude and longitude axis data from NetCDF variables
 
     double offset = 0.0;
-    long duplicate = 0;
-    long n = longitude->num_vals() - 1;
+    unsigned duplicate = 0;
+    const unsigned lat_index_max = latitude.getDim(0).getSize() - 1;
+    const unsigned lng_index_max = longitude.getDim(0).getSize() - 1;
+
+    double value0;
+    double valueN;
+    std::vector<size_t> index0(1, 0);
+    std::vector<size_t> indexN(1, lng_index_max);
+    longitude.getVar(index0, &value0);
+    longitude.getVar(indexN, &valueN);
+
     // Is the data set bounds 0 to 359(360)
-    bool zero_to_360 =
-        longitude->as_double(0) <= 1.0 && longitude->as_double(n) >= 359.0;
+    bool zero_to_360 = value0 < 1.0 && valueN >= 359.0;
+
     // Is the data set bounds -180 to 179(180)
-    bool bounds_180 =
-        longitude->as_double(n) >= 179.0 && longitude->as_double(0) == -180.0;
+    bool bounds_180 = value0 < -179.0 && valueN > 179.0;
+
     // Is this set a global data set
     bool global = (zero_to_360 || bounds_180);
     if (global) {
         // check to see if database has duplicate data at cut point
-        if (abs(longitude->as_double(0) + 360 - longitude->as_double(n)) <
-            1e-4) {
+        if (abs(value0 + 360.0 - valueN) < 1e-4) {
             duplicate = 1;
         }
 
         // manage wrap-around between eastern and western hemispheres
-        if (longitude->as_double(0) < 0.0) {
+        if (value0 < 0.0) {
             // if database has a range (-180,180)
             // make western longitudes into negative numbers
             // unless they span the 180 latitude
@@ -92,96 +104,122 @@ netcdf_profile::netcdf_profile(const char *profile, double date, double south,
             }
         }
     } else {
-        if (longitude->as_double(0) > 180.0) {
+        if (value0 > 180.0) {
             if (west < 0.0) {
                 offset = 360.0;
             }
-        } else if (longitude->as_double(0) < 0.0) {
+        } else if (value0 < 0.0) {
             if (east > 180.0) {
                 offset = -360.0;
             }
         }
     }
-
     west += offset;
     east += offset;
 
-    // read latitude axis data from NetCDF variable
+    // read latitude axis data from NetCDF file.
     // lat_first and lat_last are the integer offsets along this axis
-    // _axis[1] is expressed as co-latitude in radians [0,PI]
+    // _axis[0] is expressed as co-latitude in radians [0,PI]
 
-    double a = latitude->as_double(0);
-    n = latitude->num_vals() - 1;
-    double inc = double(latitude->as_double(n) - a) / double(n);
-    const long lat_first = max(0L, long(floor(1e-6 + (south - a) / inc)));
-    const long lat_last = min(n, long(floor(0.5 + (north - a) / inc)));
-    const long lat_num = lat_last - lat_first + 1;
+    indexN[0] = lat_index_max;
+    latitude.getVar(index0, &value0);
+    latitude.getVar(indexN, &valueN);
+
+    double inc = (valueN - value0) / lat_index_max;
+    const int lat_first = max(0, (int)floor(1e-6 + (south - value0) / inc));
+    const int lat_last =
+        min((int)lat_index_max, (int)(floor(0.5 + (north - value0) / inc)));
+    const size_t lat_num = lat_last - lat_first + 1;
     _axis[1] = seq_vector::csptr(
-        new seq_linear(to_colatitude(double(lat_first) * inc + a),
-                       to_radians(-inc), size_t(lat_num)));
+        new seq_linear(to_colatitude(double(lat_first) * inc + value0),
+                       to_radians(-inc), lat_num));
 
-    // read longitude axis data from NetCDF variable
+    // read longitude axis data from NetCDF file
     // lng_first and lng_last are the integer offsets along this axis
-    // _axis[2] is expressed as longitude in radians [-PI,2*PI]
+    // _axis[1] is expressed as longitude in radians [-PI,2*PI]
 
-    a = longitude->as_double(0);
-    n = long(longitude->num_vals() - 1);
-    inc = double(longitude->as_double(n) - a) / double(n);
-    auto index = long(floor(1e-6 + (west - a) / inc));
-    const long lng_first = (global) ? index : max(0L, index);
-    index = long(floor(0.5 + (east - a) / inc));
-    const long lng_last = (global) ? index : min(n, index);
-    const long lng_num = lng_last - lng_first + 1;
+    indexN[0] = lng_index_max;
+    longitude.getVar(index0, &value0);
+    longitude.getVar(indexN, &valueN);
+
+    inc = (valueN - value0) / lng_index_max;
+    int index = int(floor(1e-6 + (west - value0) / inc));
+    const int lng_first = (global) ? index : max(0, index);
+    index = int(floor(0.5 + (east - value0) / inc));
+    const int lng_last = (global) ? index : min(int(lng_index_max), index);
+    const size_t lng_num = lng_last - lng_first + 1;
     _axis[2] = seq_vector::csptr(
-        new seq_linear(to_radians(double(lng_first) * inc + a - offset),
-                       to_radians(inc), size_t(lng_num)));
+        new seq_linear(to_radians(lng_first * inc + value0 - offset),
+                       to_radians(inc), lng_num));
 
-    // load profile data out of NetCDF variable
+    // load depth data out of NetCDF file
 
     auto *data = new double[lat_num * lng_num * alt_num];
     _writeable_data = std::shared_ptr<double[]>(data);
     _data = _writeable_data;
 
-    if (longitude->num_vals() > lng_last) {
-        value->set_cur(time_index, 0, lat_first, lng_first);
-        value->get(data, 1, alt_num, lat_num, lng_num);
+    std::vector<size_t> start(4);
+    std::vector<size_t> count(4);
 
-        // support datasets that cross the unwrapping longitude
-        // assumes that bathy data is NOT repeated on both sides of cut point
-
+    if (lng_last <= lng_index_max || !global) {
+        start[0] = time_index;
+        start[1] = 0;
+        start[2] = lat_first;
+        start[3] = lng_first;
+        count[0] = 1;
+        count[1] = alt_num;
+        count[2] = lat_num;
+        count[3] = lng_num;
+        profile.getVar(start, count, data);
     } else {
-        long M = lng_last - longitude->num_vals() + 1;  // # pts on east side
-        long N = lng_num - M;                           // # pts on west side
+        // support datasets that cross the unwrapping longitude
+        // assumes that bathy data is repeated on both sides of cut point
+
+        const size_t M = lng_last - lng_index_max;  // # pts on east side
+        const size_t N = lng_num - M;               // # pts on west side
         double *ptr = data;
         for (long alt = 0; alt < alt_num; ++alt) {
-            for (long lat = lat_first; lat <= lat_last; ++lat) {
+            for (int lat = lat_first; lat <= lat_last; ++lat) {
                 // the west side of the block is the portion from
                 // lng_first to the last latitude
-                value->set_cur(time_index, alt, lat, lng_first);
-                value->get(ptr, 1, 1, 1, N);
+                start[0] = time_index;
+                start[1] = alt;
+                start[2] = lat;
+                start[3] = lng_first;
+                count[0] = 1;
+                count[1] = 1;
+                count[2] = 1;
+                count[3] = N;
+                profile.getVar(start, count, ptr);
                 ptr += N;
 
                 // the missing points on the east side of the block
                 // are read from zero until the right # of points are read
                 // skip first longitude if it is a duplicate
-                value->set_cur(time_index, alt, lat, duplicate);
-                value->get(ptr, 1, 1, 1, M);
+                start[0] = time_index;
+                start[1] = alt;
+                start[2] = lat;
+                start[3] = duplicate;
+                count[0] = 1;
+                count[1] = 1;
+                count[2] = 1;
+                count[3] = M;
+                profile.getVar(start, count, ptr);
                 ptr += M;
             }
         }
     }
 
     // apply logic for missing, scale_factor, and add_offset
+
     if (!std::isnan(missing) || !std::isnan(scale_factor * add_offset)) {
-        const long N = alt_num * lat_num * lng_num;
+        const size_t N = alt_num * lat_num * lng_num;
         double *ptr = data;
         while (ptr < data + N) {
-            // NOLINTNEXTLINE(clang-analyzer-core.UndefinedBinaryOperatorResult)
             if (!std::isnan(missing) && *ptr == missing) {
                 *ptr = NAN;
             }
             if (!std::isnan(scale_factor * add_offset)) {
-                // NOLINTNEXTLINE(clang-analyzer-core.UndefinedBinaryOperatorResult)
                 *ptr = *ptr * scale_factor + add_offset;
             }
             ++ptr;
@@ -329,84 +367,66 @@ void netcdf_profile::fill_missing() {
 /**
  * Deduces the variables to be loaded based on their dimensionality.
  */
-void netcdf_profile::decode_filetype(NcFile &file, double *missing,
-                                     double *scale, double *offset,
-                                     NcVar **time, NcVar **altitude,
-                                     NcVar **latitude, NcVar **longitude,
-                                     NcVar **value, const char *varname) {
+void netcdf_profile::decode_filetype(
+    netCDF::NcFile &file, double &missing, double &scale, double &offset,
+    netCDF::NcVar &time, netCDF::NcVar &altitude, netCDF::NcVar &latitude,
+    netCDF::NcVar &longitude, netCDF::NcVar &profile, const char *varname) {
     bool found = false;
-    for (int n = 0; n < file.num_vars(); ++n) {
-        NcVar *var = file.get_var(n);
-
+    for (const auto &entry : file.getVars()) {
+        const netCDF::NcVar &var = entry.second;
         // search for variables with time, lat, lon, alt components
-        if (var->num_dims() != 4) {
+
+        if (var.getDimCount() != 4) {
             continue;
         }
 
         // match variable name, if provided
+
         if ((varname != nullptr) &&
-            !boost::algorithm::icontains(var->name(), varname)) {
+            !boost::algorithm::icontains(var.getName(), varname)) {
             continue;
         }
 
-        // extract profile variable
-        *value = var;
+        // extract profile variable, it's coordinates, and attributes
 
-        // extract time variable
-        NcDim *dim = var->get_dim(0);
-        *time = file.get_var(dim->name());
-
-        // extract altitude variable
-        dim = var->get_dim(1);
-        *altitude = file.get_var(dim->name());
-
-        // extract latitude variable
-        dim = var->get_dim(2);
-        *latitude = file.get_var(dim->name());
-
-        // extract longitude variable
-        dim = var->get_dim(3);
-        *longitude = file.get_var(dim->name());
+        profile = var;
+        time = file.getVar(var.getDim(0).getName());
+        altitude = file.getVar(var.getDim(1).getName());
+        latitude = file.getVar(var.getDim(2).getName());
+        longitude = file.getVar(var.getDim(3).getName());
 
         {
-            // turn off errors for missing attributes
-            auto *ncdfError = new NcError(NcError::silent_nonfatal);
-            NcAtt *att;
+            // NOLINTBEGIN(bugprone-empty-catch)
+            netCDF::NcVarAtt att;
 
-            // extract missing attribute
-            att = var->get_att("_FillValue");
-            if (att != nullptr) {
-                NcValues *values = att->values();
-                *missing = values->as_double(0);
-                delete att;
-                delete values;
+            // extract fill value attribute
+            try {
+                att = profile.getAtt("_FillValue");
+                att.getValues(&missing);
+            } catch (const netCDF::exceptions::NcException &ex) {
             }
 
-            // extract missing attribute
-            att = var->get_att("scale_factor");
-            if (att != nullptr) {
-                NcValues *values = att->values();
-                *scale = values->as_double(0);
-                delete att;
-                delete values;
+            // extract scale factor attribute
+            try {
+                att = profile.getAtt("scale_factor");
+                att.getValues(&scale);
+            } catch (const netCDF::exceptions::NcException &ex) {
             }
 
-            // extract missing attribute
-            att = var->get_att("add_offset");
-            if (att != nullptr) {
-                NcValues *values = att->values();
-                *offset = values->as_double(0);
-                delete att;
-                delete values;
+            // extract add offset attribute
+            try {
+                att = profile.getAtt("add_offset");
+                att.getValues(&offset);
+            } catch (const netCDF::exceptions::NcException &ex) {
             }
-
-            delete ncdfError;
+            // NOLINTEND(bugprone-empty-catch)
         }
 
         // stop searching
         found = true;
         break;
     }
+
     if (!found) {
         throw std::invalid_argument("unrecognized file type");
     }

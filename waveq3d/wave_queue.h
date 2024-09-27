@@ -4,22 +4,26 @@
  */
 #pragma once
 
-#include <netcdfcpp.h>
 #include <usml/eigenrays/eigenray_notifier.h>
 #include <usml/eigenverbs/eigenverb_notifier.h>
 #include <usml/ocean/ocean_model.h>
 #include <usml/types/seq_vector.h>
-#include <usml/types/wposition.h>
 #include <usml/types/wposition1.h>
 #include <usml/usml_config.h>
 #include <usml/waveq3d/reflection_notifier.h>
-#include <usml/waveq3d/wave_front.h>
 #include <usml/waveq3d/wave_thresholds.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <cstddef>
 #include <memory>
+#include <netcdf>
+
+namespace usml {
+namespace waveq3d {
+class wave_front;
+} /* namespace waveq3d */
+} /* namespace usml */
 
 namespace usml {
 namespace waveq3d {
@@ -741,16 +745,15 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier,
    private:
     /**
      * The netCDF file used to record the wavefront log.
-     * Reset to nullptr when not initialized.
      */
-    NcFile* _nc_file;
+    std::unique_ptr<netCDF::NcFile> _nc_file;
 
     /** The netCDF variables used to record the wavefront log. */
-    NcVar *_nc_time, *_nc_latitude, *_nc_longitude, *_nc_altitude, *_nc_surface,
-        *_nc_bottom, *_nc_caustic, *_nc_upper, *_nc_lower, *_nc_on_edge;
+    netCDF::NcVar _nc_time, _nc_latitude, _nc_longitude, _nc_altitude, _nc_surface,
+        _nc_bottom, _nc_caustic, _nc_upper, _nc_lower, _nc_on_edge;
 
     /** Current record number in netDCF file. */
-    long _nc_rec;
+    size_t _nc_rec;
 
    public:
     /**

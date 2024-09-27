@@ -6,6 +6,7 @@
 #include <usml/types/gen_grid.h>
 
 #include <exception>
+#include <netcdf>
 
 using namespace usml::ocean;
 
@@ -13,18 +14,16 @@ using namespace usml::ocean;
  * Loads bottom province data from a netCDF formatted file.
  */
 reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
-    NcFile file(filename);
-    if (file.is_valid() == 0) {
-        throw std::invalid_argument("file not found");
-    }
-    NcVar* bot_speed = file.get_var("speed_ratio");
-    NcVar* bot_density = file.get_var("density_ratio");
-    NcVar* bot_atten = file.get_var("atten");
-    NcVar* bot_shear_speed = file.get_var("shear_speed");
-    NcVar* bot_shear_atten = file.get_var("shear_atten");
-    NcVar* lon = file.get_var("longitude");
-    NcVar* lat = file.get_var("latitude");
-    NcVar* bot_num = file.get_var("type");
+    netCDF::NcFile file(filename, netCDF::NcFile::read);
+
+    netCDF::NcVar bot_speed = file.getVar("speed_ratio");
+    netCDF::NcVar bot_density = file.getVar("density_ratio");
+    netCDF::NcVar bot_atten = file.getVar("atten");
+    netCDF::NcVar bot_shear_speed = file.getVar("shear_speed");
+    netCDF::NcVar bot_shear_atten = file.getVar("shear_atten");
+    netCDF::NcVar lon = file.getVar("longitude");
+    netCDF::NcVar lat = file.getVar("latitude");
+    netCDF::NcVar bot_num = file.getVar("type");
 
     // gets the size of the dimensions to be used to create the data grid
 
@@ -42,6 +41,8 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
     long n_types;
     ncdiminq(ncid, types, nullptr, &n_types);
 
+    ncclose(ncid);
+
     // extracts the data for all of the variables from the netcdf file
 
     auto* latitude = new double[latdim];
@@ -53,14 +54,14 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
     auto* shearspd = new double[n_types];
     auto* shearatten = new double[n_types];
 
-    lat->get(&latitude[0], latdim);
-    lon->get(&longitude[0], londim);
-    bot_num->get(&type_num[0], latdim, londim);
-    bot_speed->get(&speed[0], n_types);
-    bot_density->get(&density[0], n_types);
-    bot_atten->get(&atten[0], n_types);
-    bot_shear_speed->get(&shearspd[0], n_types);
-    bot_shear_atten->get(&shearatten[0], n_types);
+    lat.getVar(latitude);
+    lon.getVar(longitude);
+    bot_num.getVar(type_num);
+    bot_speed.getVar(speed);
+    bot_density.getVar(density);
+    bot_atten.getVar(atten);
+    bot_shear_speed.getVar(shearspd);
+    bot_shear_atten.getVar(shearatten);
 
     // creates a sequence vector of axes that are passed to data grid
 
@@ -100,7 +101,6 @@ reflect_loss_netcdf::reflect_loss_netcdf(const char* filename) {
         _loss_model.push_back(reflect_loss_model::csptr(model));
     }
 
-    ncclose(ncid);
     delete[] latitude;
     delete[] longitude;
     delete[] speed;

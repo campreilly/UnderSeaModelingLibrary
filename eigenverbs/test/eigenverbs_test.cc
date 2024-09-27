@@ -35,7 +35,7 @@ eigenverb_model::csptr create_eigenverb(const wposition1 source_pos,
     verb->sound_speed = 1500.0;
     verb->travel_time = slant_range / verb->sound_speed;
     verb->frequencies = frequencies;
-    verb->power = vector<double>(frequencies->size(), 1.0);
+    verb->power = scalar_vector<double>(frequencies->size(), 1e20);
     verb->length = 0.5 * slant_range * to_radians(de_spacing) / sin(grazing);
     verb->width = 0.5 * slant_range * to_radians(az_spacing) * cos(grazing);
     verb->position = wposition1(source_pos, horz_range, az_rad);

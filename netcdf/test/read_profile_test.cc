@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(read_woa) {
     size_t num_lat = latitude.size();
     double lat1 = to_latitude(latitude(0));
     double lat2 = to_latitude(latitude(num_lat - 1));
-    double inc_lat = to_degrees(latitude.increment(0));
+    double inc_lat = to_degrees(-latitude.increment(0));
     cout << "latitude[" << num_lat << "] = " << lat1 << " to " << lat2 << " by "
          << inc_lat << endl;
     BOOST_CHECK_EQUAL(num_lat, 5);

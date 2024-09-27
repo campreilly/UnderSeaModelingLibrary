@@ -10,70 +10,66 @@ using namespace usml::waveq3d;
  * Initialize recording to netCDF wavefront log.
  */
 void wave_queue::init_netcdf(const char *filename, const char *long_name) {
-    _nc_file = new NcFile(filename, NcFile::Replace);
+    _nc_file = std::unique_ptr<netCDF::NcFile>(
+        new netCDF::NcFile(filename, netCDF::NcFile::replace));
     _nc_rec = 0;
     if (long_name != nullptr) {
-        _nc_file->add_att("long_name", long_name);
+        _nc_file->putAtt("long_name", long_name);
     }
-    _nc_file->add_att("Conventions", "COARDS");
+    _nc_file->putAtt("Conventions", "COARDS");
 
     // dimensions
 
-    NcDim *freq_dim =
-        _nc_file->add_dim("frequencies", (long)_frequencies->size());
-    NcDim *de_dim = _nc_file->add_dim("source_de", (long)_source_de->size());
-    NcDim *az_dim = _nc_file->add_dim("source_az", (long)_source_az->size());
-    NcDim *time_dim = _nc_file->add_dim("travel_time");  // unlimited
+    netCDF::NcDim freq_dim =
+        _nc_file->addDim("frequencies", _frequencies->size());
+    netCDF::NcDim de_dim = _nc_file->addDim("source_de", _source_de->size());
+    netCDF::NcDim az_dim = _nc_file->addDim("source_az", _source_az->size());
+    netCDF::NcDim time_dim = _nc_file->addDim("travel_time");  // unlimited
+    std::vector<netCDF::NcDim> tda_dim = {time_dim, de_dim, az_dim};
 
     // coordinates
 
-    NcVar *freq_var = _nc_file->add_var("frequencies", ncDouble, freq_dim);
-    NcVar *de_var = _nc_file->add_var("source_de", ncDouble, de_dim);
-    NcVar *az_var = _nc_file->add_var("source_az", ncDouble, az_dim);
-    _nc_time = _nc_file->add_var("travel_time", ncDouble, time_dim);
-    _nc_latitude =
-        _nc_file->add_var("latitude", ncDouble, time_dim, de_dim, az_dim);
-    _nc_longitude =
-        _nc_file->add_var("longitude", ncDouble, time_dim, de_dim, az_dim);
-    _nc_altitude =
-        _nc_file->add_var("altitude", ncDouble, time_dim, de_dim, az_dim);
-    _nc_surface =
-        _nc_file->add_var("surface", ncShort, time_dim, de_dim, az_dim);
-    _nc_bottom = _nc_file->add_var("bottom", ncShort, time_dim, de_dim, az_dim);
-    _nc_caustic =
-        _nc_file->add_var("caustic", ncShort, time_dim, de_dim, az_dim);
-    _nc_upper = _nc_file->add_var("upper", ncShort, time_dim, de_dim, az_dim);
-    _nc_lower = _nc_file->add_var("lower", ncShort, time_dim, de_dim, az_dim);
-    _nc_on_edge =
-        _nc_file->add_var("on_edge", ncByte, time_dim, de_dim, az_dim);
+    netCDF::NcVar freq_var =
+        _nc_file->addVar("frequencies", netCDF::NcDouble(), freq_dim);
+    netCDF::NcVar de_var =
+        _nc_file->addVar("source_de", netCDF::NcDouble(), de_dim);
+    netCDF::NcVar az_var =
+        _nc_file->addVar("source_az", netCDF::NcDouble(), az_dim);
+    _nc_time = _nc_file->addVar("travel_time", netCDF::NcDouble(), time_dim);
+    _nc_latitude = _nc_file->addVar("latitude", netCDF::NcDouble(), tda_dim);
+    _nc_longitude = _nc_file->addVar("longitude", netCDF::NcDouble(), tda_dim);
+    _nc_altitude = _nc_file->addVar("altitude", netCDF::NcDouble(), tda_dim);
+    _nc_surface = _nc_file->addVar("surface", netCDF::NcShort(), tda_dim);
+    _nc_bottom = _nc_file->addVar("bottom", netCDF::NcShort(), tda_dim);
+    _nc_caustic = _nc_file->addVar("caustic", netCDF::NcShort(), tda_dim);
+    _nc_upper = _nc_file->addVar("upper", netCDF::NcShort(), tda_dim);
+    _nc_lower = _nc_file->addVar("lower", netCDF::NcShort(), tda_dim);
+    _nc_on_edge = _nc_file->addVar("on_edge", netCDF::NcByte(), tda_dim);
 
     // units
 
-    freq_var->add_att("units", "hertz");
-    de_var->add_att("units", "degrees");
-    de_var->add_att("positive", "up");
-    az_var->add_att("units", "degrees_true");
-    az_var->add_att("positive", "clockwise");
-    _nc_time->add_att("units", "seconds");
-    _nc_latitude->add_att("units", "degrees_north");
-    _nc_longitude->add_att("units", "degrees_east");
-    _nc_altitude->add_att("units", "meters");
-    _nc_altitude->add_att("positive", "up");
-    _nc_surface->add_att("units", "count");
-    _nc_bottom->add_att("units", "count");
-    _nc_caustic->add_att("units", "count");
-    _nc_upper->add_att("units", "count");
-    _nc_lower->add_att("units", "count");
-    _nc_on_edge->add_att("units", "bool");
+    freq_var.putAtt("units", "hertz");
+    de_var.putAtt("units", "degrees");
+    de_var.putAtt("positive", "up");
+    az_var.putAtt("units", "degrees_true");
+    az_var.putAtt("positive", "clockwise");
+    _nc_time.putAtt("units", "seconds");
+    _nc_latitude.putAtt("units", "degrees_north");
+    _nc_longitude.putAtt("units", "degrees_east");
+    _nc_altitude.putAtt("units", "meters");
+    _nc_altitude.putAtt("positive", "up");
+    _nc_surface.putAtt("units", "count");
+    _nc_bottom.putAtt("units", "count");
+    _nc_caustic.putAtt("units", "count");
+    _nc_upper.putAtt("units", "count");
+    _nc_lower.putAtt("units", "count");
+    _nc_on_edge.putAtt("units", "bool");
 
     // coordinate data
 
-    freq_var->put(vector<double>(*_frequencies).data().begin(),
-                  (long)_frequencies->size());
-    de_var->put(vector<double>(*_source_de).data().begin(),
-                (long)_source_de->size());
-    az_var->put(vector<double>(*_source_az).data().begin(),
-                (long)_source_az->size());
+    freq_var.putVar(_frequencies->data().begin());
+    de_var.putVar(_source_de->data().begin());
+    az_var.putVar(_source_az->data().begin());
 }
 
 /**
@@ -81,17 +77,24 @@ void wave_queue::init_netcdf(const char *filename, const char *long_name) {
  */
 void wave_queue::save_netcdf() {
     // NcError( verbose_nonfatal ) ;
-    _nc_time->put_rec(&_time, _nc_rec);
-    _nc_latitude->put_rec(_curr->position.latitude().data().begin(), _nc_rec);
-    _nc_longitude->put_rec(_curr->position.longitude().data().begin(), _nc_rec);
-    _nc_altitude->put_rec(_curr->position.altitude().data().begin(), _nc_rec);
-    _nc_surface->put_rec(_curr->surface.data().begin(), _nc_rec);
-    _nc_bottom->put_rec(_curr->bottom.data().begin(), _nc_rec);
-    _nc_caustic->put_rec(_curr->caustic.data().begin(), _nc_rec);
-    _nc_upper->put_rec(_curr->upper.data().begin(), _nc_rec);
-    _nc_lower->put_rec(_curr->lower.data().begin(), _nc_rec);
-    _nc_on_edge->put_rec((const ncbyte *)_curr->on_edge.data().begin(),
-                         _nc_rec);
+    const std::vector<size_t> start1 = {_nc_rec};
+    const std::vector<size_t> count1 = {1};
+    const std::vector<size_t> startp = {_nc_rec, 0, 0};
+    const std::vector<size_t> countp = {1, _source_de->size(),
+                                        _source_az->size()};
+    _nc_time.putVar(startp, countp, &_time);
+    _nc_latitude.putVar(startp, countp,
+                        _curr->position.latitude().data().begin());
+    _nc_longitude.putVar(startp, countp,
+                         _curr->position.longitude().data().begin());
+    _nc_altitude.putVar(startp, countp,
+                        _curr->position.altitude().data().begin());
+    _nc_surface.putVar(startp, countp, _curr->surface.data().begin());
+    _nc_bottom.putVar(startp, countp, _curr->bottom.data().begin());
+    _nc_caustic.putVar(startp, countp, _curr->caustic.data().begin());
+    _nc_upper.putVar(startp, countp, _curr->upper.data().begin());
+    _nc_lower.putVar(startp, countp, _curr->lower.data().begin());
+    _nc_on_edge.putVar(startp, countp,_curr->on_edge.data().begin());
     ++_nc_rec;
 }
 
@@ -99,6 +102,5 @@ void wave_queue::save_netcdf() {
  * Close netCDF wavefront log.
  */
 void wave_queue::close_netcdf() {
-    delete _nc_file;  // destructor frees all netCDF temp variables
-    _nc_file = nullptr;
+    _nc_file.reset();  // destructor frees all netCDF temp variables
 }

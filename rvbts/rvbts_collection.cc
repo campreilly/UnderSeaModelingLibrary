@@ -4,8 +4,6 @@
  * transmit frequency, source beam number, receiver beam number.
  */
 
-#include <ncvalues.h>
-#include <netcdfcpp.h>
 #include <usml/beampatterns/bp_model.h>
 #include <usml/rvbts/rvbts_collection.h>
 #include <usml/types/bvector.h>
@@ -21,6 +19,7 @@
 #include <cmath>
 #include <cstddef>
 #include <list>
+#include <netcdf>
 
 using namespace usml::rvbts;
 
@@ -129,99 +128,97 @@ void rvbts_collection::add_biverb(const biverb_model::csptr &verb,
  * Writes reverberation time series data to disk.
  */
 void rvbts_collection::write_netcdf(const char *filename) const {
-    auto *nc_file = new NcFile(filename, NcFile::Replace);
+	netCDF::NcFile nc_file(filename, netCDF::NcFile::replace);
 
     auto num_channels = (long)_time_series.size1();
     auto num_times = (long)_time_series.size2();
 
     // dimensions
 
-    NcDim *channels_dim = nc_file->add_dim("channels", num_channels);
-    NcDim *time_dim = nc_file->add_dim("travel_time", num_times);
+    netCDF::NcDim channels_dim = nc_file.addDim("channels", num_channels);
+    netCDF::NcDim time_dim = nc_file.addDim("travel_time", num_times);
+    const std::vector<netCDF::NcDim> chan_time_dims{channels_dim, time_dim};
 
     // variables
 
-    NcVar *src_id_var = nc_file->add_var("sourceID", ncLong);
-    NcVar *src_lat_var = nc_file->add_var("source_latitude", ncDouble);
-    NcVar *src_lng_var = nc_file->add_var("source_longitude", ncDouble);
-    NcVar *src_alt_var = nc_file->add_var("source_altitude", ncDouble);
+    // clang-format off
+    netCDF::NcVar src_id_var = nc_file.addVar("sourceID", netCDF::NcUint64());
+    netCDF::NcVar src_lat_var = nc_file.addVar("source_latitude", netCDF::NcDouble());
+    netCDF::NcVar src_lng_var = nc_file.addVar("source_longitude", netCDF::NcDouble());
+    netCDF::NcVar src_alt_var = nc_file.addVar("source_altitude", netCDF::NcDouble());
 
-    NcVar *src_yaw_var = nc_file->add_var("source_yaw", ncDouble);
-    NcVar *src_pitch_var = nc_file->add_var("source_pitch", ncDouble);
-    NcVar *src_roll_var = nc_file->add_var("source_roll", ncDouble);
+    netCDF::NcVar src_yaw_var = nc_file.addVar("source_yaw", netCDF::NcDouble());
+    netCDF::NcVar src_pitch_var = nc_file.addVar("source_pitch", netCDF::NcDouble());
+    netCDF::NcVar src_roll_var = nc_file.addVar("source_roll", netCDF::NcDouble());
 
-    NcVar *src_speed_var = nc_file->add_var("source_speed", ncDouble);
+    netCDF::NcVar src_speed_var = nc_file.addVar("source_speed", netCDF::NcDouble());
 
-    NcVar *rcv_id_var = nc_file->add_var("receiverID", ncLong);
-    NcVar *rcv_lat_var = nc_file->add_var("receiver_latitude", ncDouble);
-    NcVar *rcv_lng_var = nc_file->add_var("receiver_longitude", ncDouble);
-    NcVar *rcv_alt_var = nc_file->add_var("receiver_altitude", ncDouble);
+    netCDF::NcVar rcv_id_var = nc_file.addVar("receiverID", netCDF::NcUint64());
+    netCDF::NcVar rcv_lat_var = nc_file.addVar("receiver_latitude", netCDF::NcDouble());
+    netCDF::NcVar rcv_lng_var = nc_file.addVar("receiver_longitude", netCDF::NcDouble());
+    netCDF::NcVar rcv_alt_var = nc_file.addVar("receiver_altitude", netCDF::NcDouble());
 
-    NcVar *rcv_yaw_var = nc_file->add_var("receiver_yaw", ncDouble);
-    NcVar *rcv_pitch_var = nc_file->add_var("receiver_pitch", ncDouble);
-    NcVar *rcv_roll_var = nc_file->add_var("receiver_roll", ncDouble);
+    netCDF::NcVar rcv_yaw_var = nc_file.addVar("receiver_yaw", netCDF::NcDouble());
+    netCDF::NcVar rcv_pitch_var = nc_file.addVar("receiver_pitch", netCDF::NcDouble());
+    netCDF::NcVar rcv_roll_var = nc_file.addVar("receiver_roll", netCDF::NcDouble());
 
-    NcVar *rcv_speed_var = nc_file->add_var("receiver_speed", ncDouble);
+    netCDF::NcVar rcv_speed_var = nc_file.addVar("receiver_speed", netCDF::NcDouble());
 
-    NcVar *channels_var = nc_file->add_var("channels", ncDouble, channels_dim);
-    NcVar *time_var = nc_file->add_var("travel_time", ncDouble, time_dim);
-    NcVar *time_series_var =
-        nc_file->add_var("time_series", ncDouble, channels_dim, time_dim);
+    netCDF::NcVar channels_var = nc_file.addVar("channels", netCDF::NcDouble(), channels_dim);
+    netCDF::NcVar time_var = nc_file.addVar("travel_time", netCDF::NcDouble(), time_dim);
+    netCDF::NcVar time_series_var = nc_file.addVar("time_series", netCDF::NcDouble(), chan_time_dims);
+    // clang-format on
 
     // units
 
-    time_var->add_att("units", "seconds");
+    time_var.putAtt("units", "seconds");
 
-    src_yaw_var->add_att("units", "degrees");
-    src_pitch_var->add_att("units", "degrees");
-    src_roll_var->add_att("units", "degrees");
-    src_speed_var->add_att("units", "m/s");
+    src_yaw_var.putAtt("units", "degrees");
+    src_pitch_var.putAtt("units", "degrees");
+    src_roll_var.putAtt("units", "degrees");
+    src_speed_var.putAtt("units", "m/s");
 
-    rcv_yaw_var->add_att("units", "degrees");
-    rcv_pitch_var->add_att("units", "degrees");
-    rcv_roll_var->add_att("units", "degrees");
-    rcv_speed_var->add_att("units", "m/s");
+    rcv_yaw_var.putAtt("units", "degrees");
+    rcv_pitch_var.putAtt("units", "degrees");
+    rcv_roll_var.putAtt("units", "degrees");
+    rcv_speed_var.putAtt("units", "m/s");
 
     // write source parameters
 
     // clang-format off
-    long n;
+    size_t n;
     double v;
-    n = (long) _source->keyID();			src_id_var->put(&n);
-    v = _source_pos.latitude(); 	src_lat_var->put(&v);
-    v = _source_pos.longitude();	src_lng_var->put(&v);
-    v = _source_pos.altitude(); 	src_alt_var->put(&v);
+    n = _source->keyID();			src_id_var.putVar(&n);
+    v = _source_pos.latitude(); 	src_lat_var.putVar(&v);
+    v = _source_pos.longitude();	src_lng_var.putVar(&v);
+    v = _source_pos.altitude(); 	src_alt_var.putVar(&v);
 
     orientation src_orient(_source_orient);
-    v = src_orient.yaw(); 			src_yaw_var->put(&v);
-    v = src_orient.pitch();			src_pitch_var->put(&v);
-    v = src_orient.roll(); 			src_roll_var->put(&v);
+    v = src_orient.yaw(); 			src_yaw_var.putVar(&v);
+    v = src_orient.pitch();			src_pitch_var.putVar(&v);
+    v = src_orient.roll(); 			src_roll_var.putVar(&v);
 
-    v = _source_speed; 				src_speed_var->put(&v);
+    v = _source_speed; 				src_speed_var.putVar(&v);
 
     // write receiver parameters
 
-    n = (long) _receiver->keyID();			rcv_id_var->put(&n);
-    v = _receiver_pos.latitude(); 	rcv_lat_var->put(&v);
-    v = _receiver_pos.longitude();	rcv_lng_var->put(&v);
-    v = _receiver_pos.altitude(); 	rcv_alt_var->put(&v);
+    n = _receiver->keyID();			rcv_id_var.putVar(&n);
+    v = _receiver_pos.latitude(); 	rcv_lat_var.putVar(&v);
+    v = _receiver_pos.longitude();	rcv_lng_var.putVar(&v);
+    v = _receiver_pos.altitude(); 	rcv_alt_var.putVar(&v);
 
     orientation rcv_orient(_receiver_orient);
-    v = rcv_orient.yaw(); 			rcv_yaw_var->put(&v);
-    v = rcv_orient.pitch();			rcv_pitch_var->put(&v);
-    v = rcv_orient.roll(); 			rcv_roll_var->put(&v);
+    v = rcv_orient.yaw(); 			rcv_yaw_var.putVar(&v);
+    v = rcv_orient.pitch();			rcv_pitch_var.putVar(&v);
+    v = rcv_orient.roll(); 			rcv_roll_var.putVar(&v);
 
-    v = _receiver_speed; 			rcv_speed_var->put(&v);
+    v = _receiver_speed; 			rcv_speed_var.putVar(&v);
     // clang-format on
 
     // data
 
     seq_linear channels(0.0, 1.0, (size_t)num_channels);
-    channels_var->put(channels.data().begin(), num_channels);
-    time_var->put(_travel_times->data().begin(), num_times);
-    time_series_var->put(_time_series.data().begin(), num_channels, num_times);
-
-    // close file and free all netCDF temp variables
-
-    delete nc_file;
+    channels_var.putVar(channels.data().begin());
+    time_var.putVar(_travel_times->data().begin());
+    time_series_var.putVar(_time_series.data().begin());
 }
