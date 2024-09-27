@@ -18,6 +18,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include <fstream>
+#include <iomanip>
 
 BOOST_AUTO_TEST_SUITE(boundary_test)
 
@@ -323,6 +324,82 @@ BOOST_AUTO_TEST_CASE(ascii_arc_test) {
 }
 
 /**
+ * Test the extraction of bathymetry slope data from General Bathymetric Chart
+ * of the Oceans (GEBCO). As part of GitHub issue #284, we found that bathymetry
+ * normals were not decoded correctly by the boundary_grid class. Checks that
+ * not of the values are NaN and that values extracted using wposition1 are the
+ * same as those extracted using wposition locations. Writes positions and
+ * normals to disk so that they can be plotted in subsequent testing.
+ */
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+BOOST_AUTO_TEST_CASE(gebco_slope_test) {
+    cout << "=== boundary_test: gebco_slope_test ===" << endl;
+    const char* filename =
+        USML_TEST_DIR "/ocean/test/gebco_2024_n20.85_s19.75_w-69.75_e-68.75.nc";
+    const char* csv_name = USML_TEST_DIR
+        "/ocean/test/gebco_2024_n20.85_s19.75_w-69.75_e-68.75.csv";
+
+    cout << "reading " << filename << endl;
+    auto* grid = new netcdf_bathy(filename, -90.0, 90.0, -180.0, 180.0,
+                                  wposition::earth_radius);
+    data_grid<2>::csptr reference(grid);
+    boundary_grid<2> model(reference);
+
+    std::ofstream os(csv_name);
+    cout << "writing tables to " << csv_name << endl;
+
+    for (const double theta : grid->axis(0)) {
+        for (const double phi : grid->axis(1)) {
+            // scalar version of accessors
+
+            wposition1 pos1;
+            pos1.theta(theta);
+            pos1.phi(phi);
+            double rho1;
+            wvector1 normal1;
+            model.height(pos1, &rho1, &normal1);
+            pos1.rho(rho1);
+
+            // write scalar position and normal values to disk
+
+#ifndef NDEBUG
+            cout << std::fixed << pos1.latitude() << "," << pos1.longitude()
+                 << "," << pos1.altitude() << "," << normal1.rho() << ","
+                 << normal1.theta() << "," << normal1.phi() << endl;
+#endif
+            os << std::fixed << pos1.latitude() << "," << pos1.longitude()
+               << "," << pos1.altitude() << "," << normal1.rho() << ","
+               << normal1.theta() << "," << normal1.phi() << endl;
+
+            // matrix version of accessors
+
+            matrix<double> rho(1, 1);
+            wvector normal(1, 1);
+            const wposition& pos(pos1);
+            model.height(pos, &rho, &normal);
+
+            // check values for NaN
+
+            BOOST_CHECK(!std::isnan(rho1));
+            BOOST_CHECK(!std::isnan(normal1.rho()));
+            BOOST_CHECK(!std::isnan(normal1.theta()));
+            BOOST_CHECK(!std::isnan(normal1.phi()));
+            BOOST_CHECK(!std::isnan(rho(0, 0)));
+            BOOST_CHECK(!std::isnan(normal.rho(0, 0)));
+            BOOST_CHECK(!std::isnan(normal.theta(0, 0)));
+            BOOST_CHECK(!std::isnan(normal.phi(0, 0)));
+
+            // check values for equality
+
+            BOOST_CHECK_CLOSE(rho1, rho(0, 0), 1e-6);
+            BOOST_CHECK_CLOSE(normal1.rho(), normal.rho(0, 0), 1e-6);
+            BOOST_CHECK_CLOSE(normal1.theta(), normal.theta(0, 0), 1e-6);
+            BOOST_CHECK_CLOSE(normal1.phi(), normal.phi(0, 0), 1e-6);
+        }
+    }
+}
+
+/**
  * Computes the broad spectrum scattering strength from a flat
  * ocean bottom, using Lambert's law.
  */
@@ -363,8 +440,8 @@ BOOST_AUTO_TEST_CASE(scattering_chapman_test) {
 
     const wposition1 pos;
     seq_vector::csptr freq(new seq_log(600.0, 2.0, 4));
-     seq_linear grazing(1.0, 1.0, 90.0);
-     vector<double> wind_speed = seq_linear(5.0, 5.0, 30.0).data();
+    seq_linear grazing(1.0, 1.0, 90.0);
+    vector<double> wind_speed = seq_linear(5.0, 5.0, 30.0).data();
 
     vector<double> amplitude(freq->size());
     matrix<vector<double> > result(wind_speed.size(), grazing.size());
