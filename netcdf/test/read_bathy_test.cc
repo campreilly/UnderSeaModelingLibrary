@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(read_bathy_header) {
 
         std::vector<netCDF::NcDim> dims = var.getDims();
         std::vector<size_t> start(dims.size(), 0.0);
-        std::vector<size_t> count(dims.size(), 0.0);
+        std::vector<size_t> count(dims.size(), 1.0);
 
         size_t num_values = dims[0].getSize();
         size_t num_print = min(N, num_values);
