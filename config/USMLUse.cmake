@@ -116,17 +116,16 @@ add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
 ######################################################################
 # NetCDF data access library
 
-if( NOT DEFINED NETCDF_DIR AND DEFINED ENV{NETCDF_DIR} )
-    set( NETCDF_DIR $ENV{NETCDF_DIR} CACHE PATH "Root of NetCDF library" )
-endif()
-if( IS_DIRECTORY ${NETCDF_DIR}/include )
-    list( APPEND CMAKE_INCLUDE_PATH $ENV{NETCDF_DIR}/include )
-endif()
-if( IS_DIRECTORY ${NETCDF_DIR}/lib )
-    list( APPEND CMAKE_LIBRARY_PATH $ENV{NETCDF_DIR}/lib )
-endif()
-if( NOT MSVC )
-   set( NETCDF_CXX ON )
-endif()
-find_package( NetCDF 3.6 MODULE REQUIRED )
+# C
+find_path(NETCDF_INCLUDES_C NAMES netcdf.h
+    HINTS ${NETCDF_ROOT} PATH_SUFFIXES include)
+find_library(NETCDF_LIBRARIES_C NAMES netcdf
+    HINTS ${NETCDF_ROOT} PATH_SUFFIXES lib)
+
+# CXX4
+find_path(NETCDF_INCLUDES_CXX4 NAMES netcdf
+    HINTS ${NETCDF_CXX4_ROOT} PATH_SUFFIXES include)
+find_library(NETCDF_LIBRARIES_CXX4 NAMES netcdf_c++4 netcdf-cxx4
+    HINTS ${NETCDF_CXX4_ROOT} PATH_SUFFIXES lib)
+
 find_program( NETCDF_NCKS ncks )

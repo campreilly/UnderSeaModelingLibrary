@@ -244,9 +244,7 @@ BOOST_AUTO_TEST_CASE(plot_rayleigh_sediments) {
  * Generate errors if values differ by more that 1E-5 percent.
  */
 BOOST_AUTO_TEST_CASE(reflect_loss_netcdf_test) {
-    cout << " === reflection_loss_test: reflection_loss_netcdf bottom type "
-            "file === "
-         << endl;
+    cout << "=== reflection_loss_test: reflection_loss_netcdf === " << endl;
     reflect_loss_netcdf netcdf(USML_DATA_DIR
                                "/bottom_province/sediment_test.nc");
 

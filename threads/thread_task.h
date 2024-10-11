@@ -98,7 +98,7 @@ class USML_DECLSPEC thread_task {
      * param millisec 	Number of milliseconds to wait, 0 waits forever.
      */
     static void wait(int64_t max_time = 0) {
-        int64_t count;
+        int64_t count = 0;
         while (thread_task::num_active() > 0) {
             if (max_time > 0 && count++ > max_time) {
                 throw std::range_error("maximum wait time exceeded");
