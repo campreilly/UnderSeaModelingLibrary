@@ -4,14 +4,16 @@
  */
 #include <usml/waveq3d/wave_queue.h>
 
+#include <memory>
+
 using namespace usml::waveq3d;
 
 /**
  * Initialize recording to netCDF wavefront log.
  */
 void wave_queue::init_netcdf(const char *filename, const char *long_name) {
-    _nc_file = std::unique_ptr<netCDF::NcFile>(
-        new netCDF::NcFile(filename, netCDF::NcFile::replace));
+    _nc_file = std::make_unique<netCDF::NcFile>(
+        filename, netCDF::NcFile::replace);
     _nc_rec = 0;
     if (long_name != nullptr) {
         _nc_file->putAtt("long_name", long_name);

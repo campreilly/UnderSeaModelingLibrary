@@ -68,11 +68,11 @@ BOOST_AUTO_TEST_CASE(read_bathy_header) {
                 att.getValues(str);
                 cout << "\"" << str << "\"";
             } else {
-                double values[att.getAttLength()];
-                att.getValues(values);
+                auto values = std::make_unique<double[]>(att.getAttLength());
+                att.getValues(values.get());
                 size_t count = 0;
-                for (const auto& v : values) {
-                    cout << v;
+                for (size_t n = 0; n < att.getAttLength(); ++n) {
+                    cout << values[n];
                     if (++count < att.getAttLength()) {
                         cout << ", ";
                     }
@@ -98,14 +98,14 @@ BOOST_AUTO_TEST_CASE(read_bathy_header) {
 
         size_t num_values = dims[0].getSize();
         size_t num_print = min(N, num_values);
-        double values[num_print];
+        auto values = std::make_unique<double[]>(num_print);
         count[0] = num_print;
-        var.getVar(start, count, values);
+        var.getVar(start, count, values.get());
 
         // print values separated by commas
 
-        for (size_t n = 0; n < num_print; ++n ) {
-        	cout << values[n] ;
+        for (size_t n = 0; n < num_print; ++n) {
+            cout << values[n];
             if (n < num_print) {
                 cout << ", ";
             }
