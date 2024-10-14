@@ -34,17 +34,15 @@ class USML_DECLSPEC eigenray_notifier {
 
     /**
      * Notifies all of the listeners that a wave front collision has been
-     * detected for one of the targets. Targets are specified by a row and
-     * column number.
+     * detected for one of the targets.
      *
-     * @param target_row    Row identifier for target involved in collision.
-     * @param target_col    Column identifier for target involved in collision.
-     * @param ray           Propagation loss information for this collision.
-     * @param runID         Identification number of the wavefront that
-     *                      produced this result.
+     * @param t1     	Row number of target.
+     * @param t2     	Column number of target.
+     * @param ray    	Propagation loss information for this collision.
+     * @param runID 	Wavefront identification number.
      * @see wave_queue.runID()
      */
-    void notify_eigenray_listeners(size_t target_row, size_t target_col,
+    void notify_eigenray_listeners(size_t t1, size_t t2,
                                    const eigenray_model::csptr& ray,
                                    size_t runID) const;
 
@@ -54,8 +52,7 @@ class USML_DECLSPEC eigenray_notifier {
      * window for eigenrays to each specific target.
      *
      * @param  wave_time    Elapsed time for this wavefront step.
-     * @param  runID        Identification number of the wavefront that
-     *                      produced this result.
+     * @param runID 		Wavefront identification number.
      * @see wave_queue.runID()
      */
     void check_eigenray_listeners(double wave_time, size_t runID) const;

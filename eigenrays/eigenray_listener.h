@@ -31,28 +31,23 @@ class USML_DECLSPEC eigenray_listener {
     /**
      * Notifies the observer that a wave front collision has been detected for
      * one of the targets. Targets are specified by a row and column number.
-     * Must be overloaded by sub-classes.
      *
-     * @param   target_row     Row identifier for the target involved in this
-     * collision.
-     * @param   target_col     Column identifier for the target involved in this
-     * collision.
-     * @param   ray            Propagation loss information for this collision.
-     * @param   runID          Identification number of the wavefront that
-     *                         produced this result.
+     * @param t1     	Row number of target.
+     * @param t2     	Column number of target.
+     * @param ray    	Propagation loss information for this collision.
+     * @param runID 	Wavefront identification number.
      * @see wave_queue.runID()
      */
-    virtual void add_eigenray(size_t target_row, size_t target_col,
-                              eigenray_model::csptr ray, size_t runID) = 0;
+    virtual void add_eigenray(size_t t1, size_t t2, eigenray_model::csptr ray,
+                              size_t runID) = 0;
 
     /**
      * Notifies the observer that eigenray processing is complete for
      * a specific wavefront time step. This can be used to limit the time
-     * window for eigenrays to each specific target.
+     * window for eigenrays to each specific target. Does nothing by default.
      *
-     * @param  wave_time    Elapsed time for this wavefront step.
-     * @param  runID        Identification number of the wavefront that
-     *                      produced this result.
+     * @param wave_time 	Elapsed time for this wavefront step.
+     * @param runID 		Wavefront identification number.
      * @see wave_queue.runID()
      */
     virtual void check_eigenrays(double wave_time, size_t runID) {}

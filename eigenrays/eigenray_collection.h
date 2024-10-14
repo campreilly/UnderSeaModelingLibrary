@@ -151,13 +151,11 @@ class USML_DECLSPEC eigenray_collection : public eigenray_listener {
     /**
      * Notifies the observer that a wave front collision has been detected for
      * one of the targets. Targets are specified by a row and column number.
-     * Must be overloaded by sub-classes.
      *
-     * @param   t1     Row number of target.
-     * @param   t2     Column number of target.
-     * @param   ray    Propagation loss information for this collision.
-     * @param   runID  Identification number of the wavefront that
-     *                 produced this result.
+     * @param t1     	Row number of target.
+     * @param t2     	Column number of target.
+     * @param ray    	Propagation loss information for this collision.
+     * @param runID		Wavefront identification number.
      * @see wave_queue.runID()
      */
     void add_eigenray(size_t t1, size_t t2, eigenray_model::csptr ray,

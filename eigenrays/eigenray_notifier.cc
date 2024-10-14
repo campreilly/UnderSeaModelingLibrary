@@ -25,10 +25,10 @@ void eigenray_notifier::remove_eigenray_listener(eigenray_listener* listener) {
  * Distribute an eigenray updates to all listeners.
  */
 void eigenray_notifier::notify_eigenray_listeners(
-    size_t target_row, size_t target_col, const eigenray_model::csptr& ray,
+    size_t t1, size_t t2, const eigenray_model::csptr& ray,
     size_t runID) const {
     for (eigenray_listener* listener : _listeners) {
-        listener->add_eigenray(target_row, target_col, ray, runID);
+        listener->add_eigenray(t1, t2, ray, runID);
     }
 }
 

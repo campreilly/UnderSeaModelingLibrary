@@ -86,7 +86,6 @@ double eigenray_collection::find_initial_time(uint64_t targetID) const {
 /**
  * Notifies the observer that a wave front collision has been detected for
  * one of the targets. Targets are specified by a row and column number.
- * Must be overloaded by sub-classes.
  */
 void eigenray_collection::add_eigenray(size_t t1, size_t t2,
                                        eigenray_model::csptr ray,

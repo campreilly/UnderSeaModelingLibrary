@@ -259,7 +259,7 @@ class USML_DECLSPEC wave_queue : public eigenray_notifier,
      * the boundaries.  This allows the eigenray calculation to accurately
      * portray targets near the interface.  Reflections are computed at the
      * beginning of the next iteration to ensure that the next wave elements
-     * are alway inside of the water column.
+     * are always inside of the water column.
      */
     void step();
 
