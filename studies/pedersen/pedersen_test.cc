@@ -1,4 +1,3 @@
-
 /**
  * @file pedersen_test.cc
  *
@@ -50,9 +49,8 @@
  * New York, 1994) pp. 162-166.
  */
 #define BOOST_TEST_MAIN
-#include <cstddef>
-#include <usml/eigenrays/eigenray_model.h>
 #include <usml/eigenrays/eigenray_collection.h>
+#include <usml/eigenrays/eigenray_model.h>
 #include <usml/ocean/attenuation_constant.h>
 #include <usml/ocean/attenuation_model.h>
 #include <usml/ocean/boundary_flat.h>
@@ -77,6 +75,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
+#include <cstddef>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -137,7 +136,7 @@ ocean_model::csptr build_ocean() {
  * @param   csvfile         File used to store model/theory comparisons
  */
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-void analyze_raytrace(double source_depth, const seq_vector::csptr& de,
+void analyze_raytrace(double source_depth, const seq_vector::csptr &de,
                       double time_min, double time_inc, double time_max,
                       double time_threshold, double range_threshold,
                       double de_threshold, const char *ncfile,
@@ -302,9 +301,10 @@ BOOST_AUTO_TEST_CASE(pedersen_deep_raytrace) {
  * @param   target_range    List of target ranges (m)
  * @param   ncfile          File used to store eigenrays
  */
-void analyze_proploss(const seq_vector::csptr& de, double source_depth,
-                      double target_depth, const seq_vector::csptr& target_range,
-                      double time_step, double time_max, const char *ncfile) {
+void analyze_proploss(const seq_vector::csptr &de, double source_depth,
+                      double target_depth,
+                      const seq_vector::csptr &target_range, double time_step,
+                      double time_max, const char *ncfile) {
     // initialize source information
 
     ocean_model::csptr ocean = build_ocean();
@@ -404,30 +404,30 @@ BOOST_AUTO_TEST_CASE(pedersen_deep_sensitivity) {
     cout << "=== pedersen_deep_sensitivity ===" << endl;
     seq_vector::csptr ranges(new seq_linear(3000.0, 0.25, 3120.0));
 
-    seq_vector::csptr de(new seq_rayfan(-90.0, 90.0, 181));
-    analyze_proploss(
-        de, -1000, -800.0, ranges, 0.01, 3.5,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_tan.nc");
+    seq_vector::csptr de(new seq_rayfan(-90.0, 90.0, 181, 51.21));
+    analyze_proploss(de, -1000, -800.0, ranges, 0.01, 3.5,
+                     USML_STUDIES_DIR
+                     "/pedersen/pedersen_deep_sensitivity_tan.nc");
 
     seq_vector::csptr de1000(new seq_linear(20.00, 0.100, 60.00));
-    analyze_proploss(
-        de1000, -1000, -800.0, ranges, 0.01, 3.5,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_1000.nc");
+    analyze_proploss(de1000, -1000, -800.0, ranges, 0.01, 3.5,
+                     USML_STUDIES_DIR
+                     "/pedersen/pedersen_deep_sensitivity_1000.nc");
 
     seq_vector::csptr de0500(new seq_linear(20.00, 0.05000, 60.00));
-    analyze_proploss(
-        de0500, -1000, -800.0, ranges, 0.01, 3.5,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0500.nc");
+    analyze_proploss(de0500, -1000, -800.0, ranges, 0.01, 3.5,
+                     USML_STUDIES_DIR
+                     "/pedersen/pedersen_deep_sensitivity_0500.nc");
 
     seq_vector::csptr de0250(new seq_linear(20.00, 0.0250, 60.00));
-    analyze_proploss(
-        de0250, -1000, -800.0, ranges, 0.01, 3.5,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0250.nc");
+    analyze_proploss(de0250, -1000, -800.0, ranges, 0.01, 3.5,
+                     USML_STUDIES_DIR
+                     "/pedersen/pedersen_deep_sensitivity_0250.nc");
 
     seq_vector::csptr de0125(new seq_linear(20.00, 0.0125, 60.00));
-    analyze_proploss(
-        de0125, -1000, -800.0, ranges, 0.01, 3.5,
-        USML_STUDIES_DIR "/pedersen/pedersen_deep_sensitivity_0125.nc");
+    analyze_proploss(de0125, -1000, -800.0, ranges, 0.01, 3.5,
+                     USML_STUDIES_DIR
+                     "/pedersen/pedersen_deep_sensitivity_0125.nc");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
