@@ -15,7 +15,6 @@
 %       latitude            target latitudes (degrees_north)
 %       longitude           target longitudes (degrees_east)
 %       altitude            target altitudes (meters)
-%	targetID	    target identification number (0 if unknown)
 %       intensity           transmission loss (dB)
 %       phase               path phase adjustment (rad)
 %       travel_time         path travel time (secs).
@@ -39,40 +38,51 @@ function [ proploss, eigenrays ] = load_proploss( filename )
 
 % read netCDF data into local variables
 
-rays = netcdf(filename) ;
+source_latitude = ncread(filename,'source_latitude') ;
+source_longitude = ncread(filename,'source_longitude') ;
+source_altitude = ncread(filename,'source_altitude') ;
+launch_de = ncread(filename,'launch_de') ;
+launch_az = ncread(filename,'launch_az') ;
+time_step = ncread(filename,'time_step') ;
+frequency = ncread(filename,'frequency') ;
+latitude = ncread(filename,'latitude') ;
+longitude = ncread(filename,'longitude') ;
+altitude = ncread(filename,'altitude') ;
 
-source_latitude = rays.VarArray(1).Data ;
-source_longitude = rays.VarArray(2).Data ;
-source_altitude = rays.VarArray(3).Data ;
-launch_de = rays.VarArray(4).Data ;
-launch_az = rays.VarArray(5).Data ;
-time_step = rays.VarArray(6).Data ;
-frequency = rays.VarArray(7).Data ;
-latitude = rays.VarArray(8).Data ;
-longitude = rays.VarArray(9).Data ;
-altitude = rays.VarArray(10).Data ;
+proploss_index = 1 + ncread(filename,'proploss_index') ;
+eigenray_index = 1 + ncread(filename,'eigenray_index') ;
+eigenray_num = ncread(filename,'eigenray_num') ;
 
-offset=10;
-targetID = zeros(size(latitude));
-if length(rays.VarArray) > 23
-    offset=11;
-    targetID = rays.VarArray(offset).Data ;
-end
+% load all values into local workspace
+start = [1, 1] ;
+count = [inf, inf] ;
+intensity = ncread(filename,'intensity',start,count) ;
+phase = ncread(filename,'phase',start,count) ;
+start = 1 ;
+count = inf ;
+travel_time = ncread(filename,'travel_time',start,count) ;
+source_de = ncread(filename,'source_de',start,count) ;
+source_az = ncread(filename,'source_az',start,count) ;
+target_de = ncread(filename,'target_de',start,count) ;
+target_az = ncread(filename,'target_az',start,count) ;
+surface = ncread(filename,'surface',start,count) ;
+bottom = ncread(filename,'bottom',start,count) ;
+caustic = ncread(filename,'caustic',start,count) ;
+upper = ncread(filename,'upper',start,count) ;
+lower = ncread(filename,'lower',start,count) ;
 
-proploss_index = 1 + rays.VarArray(offset+1).Data ;
-eigenray_index = 1 + rays.VarArray(offset+2).Data ;
-eigenray_num = rays.VarArray(offset+3).Data ;
-
-intensity = rays.VarArray(offset+4).Data(proploss_index,:) ;
-phase = rays.VarArray(offset+5).Data(proploss_index,:) ;
-travel_time = rays.VarArray(offset+6).Data(proploss_index) ;
-source_de = rays.VarArray(offset+7).Data(proploss_index) ;
-source_az = rays.VarArray(offset+8).Data(proploss_index) ;
-target_de = rays.VarArray(offset+9).Data(proploss_index) ;
-target_az = rays.VarArray(offset+10).Data(proploss_index) ;
-surface = rays.VarArray(offset+11).Data(proploss_index) ;
-bottom = rays.VarArray(offset+12).Data(proploss_index) ;
-caustic = rays.VarArray(offset+13).Data(proploss_index) ;
+i = intensity(:,proploss_index) ;
+p = phase(:,proploss_index) ;
+time = travel_time(proploss_index) ;
+sde = source_de(proploss_index) ;
+saz = source_az(proploss_index) ;
+tde = target_de(proploss_index) ;
+taz = target_az(proploss_index) ;
+s = surface(proploss_index) ;
+b = bottom(proploss_index) ;
+c = caustic(proploss_index) ;
+u = upper(:,proploss_index) ;
+l = lower(:,proploss_index) ;
 
 % translate scenario and the summed transmission loss data into structure
 
@@ -84,20 +94,21 @@ proploss = struct( ...
     'frequency', frequency, ...
     'launch_de', launch_de, ...
     'launch_az', launch_az, ...
-    'latitude', latitude, ...
-    'longitude', longitude, ...
-    'altitude', altitude, ...
-    'targetID', targetID, ...
-    'intensity', intensity, ...
-    'phase', phase, ...
-    'travel_time', travel_time, ...
-    'source_de', source_de, ...
-    'source_az', source_az, ...
-    'target_de', target_de, ...
-    'target_az', target_az, ...
-    'surface', surface, ...
-    'bottom', bottom, ...
-    'caustic', caustic ) ;
+    'latitude', latitude', ...
+    'longitude', longitude', ...
+    'altitude', altitude', ...
+    'intensity', i', ...
+    'phase', p', ...
+    'travel_time', time, ...
+    'source_de', sde, ...
+    'source_az', saz, ...
+    'target_de', tde, ...
+    'target_az', taz, ...
+    'surface', s, ...
+    'bottom', b, ...
+    'caustic', c, ...
+    'upper', u, ...
+    'lower', l ) ;
 
 % translate individual eigenrays into array of structures
 
@@ -106,28 +117,32 @@ if ( nargout >= 2 )
     for n=1:N
         for m=1:M
             index = (1:eigenray_num(n,m)) + eigenray_index(n,m) - 1 ;
-            intensity = rays.VarArray(offset+4).Data(index,:) ;
-            phase = rays.VarArray(offset+5).Data(index,:) ;
-            travel_time = rays.VarArray(offset+6).Data(index) ;
-            source_de = rays.VarArray(offset+7).Data(index) ;
-            source_az = rays.VarArray(offset+8).Data(index) ;
-            target_de = rays.VarArray(offset+9).Data(index) ;
-            target_az = rays.VarArray(offset+10).Data(index) ;
-            surface = rays.VarArray(offset+11).Data(index) ;
-            bottom = rays.VarArray(offset+12).Data(index) ;
-            caustic = rays.VarArray(offset+13).Data(index) ;
+            i = intensity(:,index)' ;
+            p = phase(:,index)' ;
+            time = travel_time(index) ;
+            sde = source_de(index) ;
+            saz = source_az(index) ;
+            tde = target_de(index) ;
+            taz = target_az(index) ;
+            s = surface(index) ;
+            b = bottom(index) ;
+            c = caustic(index) ;
+            u = upper(index) ;
+            l = lower(index) ;
 
             eigenrays(n,m) = struct( ...
-                'intensity', intensity, ...
-                'phase', phase, ...
-                'travel_time', travel_time, ...
-                'source_de', source_de, ...
-                'source_az', source_az, ...
-                'target_de', target_de, ...
-                'target_az', target_az, ...
-                'surface', surface, ...
-                'bottom', bottom, ...
-                'caustic', caustic ) ;
+                'intensity', i, ...
+                'phase', p, ...
+                'travel_time', time, ...
+                'source_de', sde, ...
+                'source_az', saz, ...
+                'target_de', tde, ...
+                'target_az', taz, ...
+                'surface', s, ...
+                'bottom', b, ...
+                'caustic', c, ...
+                'upper', u, ...
+                'lower', l ) ;
         end
     end
 end
