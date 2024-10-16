@@ -6,6 +6,61 @@
   <body>
     <h1>Under Sea Modeling Library (USML) Release Notes</h1>
 
+    <h2>Development Release 3.0.0dr2 - Oct 2024</h2>
+    <ul>
+    <li>Import changes from GRID Server for Underwater Acosutics (GUWA) project</li>
+    <ul>
+        <li>Derive bp_gaussian beam pattern from bp_solid.
+        <li>Add -fPIC to USMLUse.cmake file
+        <li>Change platform IDs from int to uint64_t to better support JSE/GRID ids.
+        <li>Ignore -Wmaybe-uninitialized from boost::geomentry in eigenverb_collection.h
+        <li>Add ability to read USML_DATA_DIR from environment variables in ocean_utils::make_basic() function.
+        <li>Add is_acoustic_target flag to platform_model so that it can be skipped in wavefront generation.
+        <li>Fix index calculation in rvbts_collection.cc file.
+        <li>Add ability to read time_series data from rvbts_collection.
+        <li>Add treverb parameter to rvbts_generator as replacement for fsample.
+        <li>Add ability to reset_src_beams() in sensor_model.
+        <li>Get rid of fsample and fcenter in sensor_model.
+        <li>Fix the way that wavefront generators are computed.
+        <li>Fix the way that thead_controller is reset.
+        <li>Resolves #263 "git-lfs" undocumented requirement.
+        <li>Resolves #269 reverb_analytic_test fails to compile
+        <li>Resolves #265 Invalid array index in data_grid_svp.h
+        <li>Fix NaN value in `refraction_catenary` (#273)
+         <li>Fix round off error in acosh(sqrt(s))) causes analytic solution in refraction_test.cc to return NaNs (#271).
+        <li>Fix clang-17 warning about gcc-specific pragma (#279)
+        <li>Resolves #286 test_pedersen_sensitivity giving bad answers with tan spacing. Center of tangent spaced ray fan was accidently deleted during refactoring.
+    </ul>
+    <li>Change matlab/load_wavefront.m to use new ncread routines</li>
+    <ul>
+        <li>In matlab/visualize_rays_*.m, deal with fact that matlab GUI table selections now have rows and columns, even if only one column selected.
+        <li>Display area loaded in cean_utils::make_basic().
+        <li>Update python project unit tests.
+        <li>Fix problems in Matlab visualization of USML ray paths.
+        <li>Add ability for wavefront_generator to store wavefront file.
+    </ul>
+    <li>Bathymetry normals become NaN for steep slopes, resulting in segfault (#285)</li>
+    <ul>
+        <li>Fix calculation of normal in boundary_grid class.
+        <li>Revert to version of boundary_grid from master.
+        <li>Add test file for GEBCO.
+        <li>Change bathymetry normal algorithm using https://mathworld.wolfram.com/NormalVector.html
+        <li>Change to smaller operating area for gebco_slope_test.
+        <li>Build ability to plot bathymetry pitch and heading.
+        <li>Unit test development for bathymetry normals.
+        <li>Create a new bathymetry file in the area of Turks and Caicos Islands from the GEBCO website
+        <li>Fix #287 read_bathy_header has trouble converting int data to double. Default count to 1 and not zero in read_bathy_header test.
+    </ul>
+    <li>Update netCDF interface to latest version of C++ API (#288)</li>
+    <ul>
+        <li>Update CMake build files to support legacy and updated NetCDF C++ libraries.
+        <li>Pass netCDF function arguments as const references.
+        <li>Remove netCDF file structure examples from documentation.
+        <li>Update CMake files to eliminate use of Legacy C++ libraries.
+        <li>Silance warnings in sensor_pair when missing transmit schedule.
+    </ul>
+    </ul>
+
     <h2>Development Release 3.0.0dr1 - Aug 2023</h2>
     <ul>
     <li>Migrate code to C++17 standard</li>
