@@ -15,7 +15,7 @@
 %       caustic         caustics encounters (count)
 %       upper           upper vertices (count)
 %       lower           lower vertices (count)
-%       on_edge         state of on_edge-ness (bool)
+%       on_edge         on edge (bool)
 %
 function wavefront = load_wavefront( filename )
 

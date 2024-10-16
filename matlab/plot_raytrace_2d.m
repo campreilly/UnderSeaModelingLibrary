@@ -41,6 +41,7 @@ v2.phi = deg2rad(longitude(:, n));
 v2.rho = earth_radius * ones(size(v2.phi));
 range = spherical_dist(v1, v2);
 
+set(gca,'ColorOrderIndex',1)
 hrays = plot(ax, range/1e3, altitude(:, n), 'LineWidth', 1.5);
 
 % use greate circle calcs to compute line over which bathymetry will be
