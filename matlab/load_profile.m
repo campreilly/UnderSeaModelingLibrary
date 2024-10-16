@@ -13,28 +13,50 @@
 %                       3rd dminension is latitude
 %                       4th dminension is longitude
 %
+% If the file includes a variable for earth_radius, we assume that this
+% profile was created by saving a USML data_grid<3> to disk. This format
+% stores its data as longitude, co-latitude, and distance from the earth's
+% center. This data is automatically converted.
+
 function profile = load_profile(filename)
 
-profile = netcdf(filename);
+info = ncinfo(filename);
+index = 3:-1:1;
 
-if strcmpi(profile.VarArray(1).Str, 'earth_radius') % USML data_grid<3>
-    earth_radius = profile.VarArray(1).Data;
-    altitude = profile.VarArray(2).Data - earth_radius;
-    latitude = 90 - profile.VarArray(3).Data * 180 / pi;
-    longitude = profile.VarArray(4).Data * 180 / pi;
-    time = [];
-    data = profile.VarArray(5).Data;
-else % downloaded from web
-    longitude = profile.VarArray(1).Data;
-    latitude = profile.VarArray(2).Data;
-    altitude = profile.VarArray(3).Data;
-    time = profile.VarArray(4).Data;
-    data = profile.VarArray(5).Data;
+% search variables for 2D altitude
+
+for n=1:length(info.Variables)
+    variable = info.Variables(n);
+    if length(variable.Dimensions) >= 3
+        data = ncread(filename, variable.Name) ;
+        longitude = ncread(filename, variable.Dimensions(1).Name);
+        latitude = ncread(filename, variable.Dimensions(2).Name);
+        altitude = ncread(filename, variable.Dimensions(3).Name);
+        profile = struct( ...
+            'latitude', double(latitude), ...
+            'longitude', double(longitude), ...
+            'altitude', double(-altitude), ...
+            'data', double( permute(data, index) ));
+        break;
+    end
 end
 
-profile = struct( ...
-    'latitude', double(latitude), ...
-    'longitude', double(longitude), ...
-    'altitude', double(altitude), ...
-    'time', double(time), ...
-    'data', double(data));
+% check for errors
+
+if ~exist('profile','var')
+    error('can not find 2D altitude');
+end
+
+% search variables for earth_radius
+% if found, treat as output from USML data_grid<3>
+
+for n=1:length(info.Variables)
+    variable = info.Variables(n);
+    if strcmpi(variable.Name, 'earth_radius')
+        earth_radius = ncread(filename,variable.Name);
+        profile.longitude = profile.longitude * 180 / pi;
+        profile.latitude = 90.0 - profile.latitude * 180 / pi;
+        profile.altitude = -profile.altitude - earth_radius;
+        break;
+    end
+end

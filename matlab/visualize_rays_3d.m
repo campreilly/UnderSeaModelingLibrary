@@ -22,7 +22,7 @@ deList = 0; % select just one D/E
 
 % manage app layout
 
-fig = uifigure('Name', 'Visualize Rays 2D', ...
+fig = uifigure('Name', 'Visualize Rays 3D', ...
     'HandleVisibility', 'on', 'Visible', 'off');
 pos = get(fig,'Position');
 set(fig,'Position',[ pos(1)-pos(3) pos(2)-pos(4) pos(3)*2 pos(4)*2 ]);
