@@ -11,8 +11,8 @@ this model is created from the source code using Doxygen.
 
 Warnings:
 - The big data files distributed with USML require you to install
-  the git large file system (lfs) befor they can be correctly
-  downloaded form GitHub.  This is a GitHub requirement.
+  the git large file system (lfs) before they can be correctly
+  downloaded from GitHub.  This is a GitHub requirement.
 - The code must be checked out into a directory called "usml"
   in order to build properly.  The build process treate the parent
   of the "usml" as the root of the project.
